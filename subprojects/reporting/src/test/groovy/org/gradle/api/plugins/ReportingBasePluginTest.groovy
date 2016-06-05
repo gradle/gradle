@@ -15,14 +15,10 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-public class ReportingBasePluginTest extends Specification {
-
-    DefaultProject project = TestUtil.createRootProject();
+public class ReportingBasePluginTest extends AbstractProjectBuilderSpec {
 
     def "can apply plugin by id"() {
         given:

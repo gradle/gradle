@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.IvyModuleDescriptorWriter
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser
-
+import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.internal.resource.local.PathKeyFileStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -35,22 +33,17 @@ class ModuleDescriptorStoreTest extends Specification {
     PathKeyFileStore pathKeyFileStore = Mock()
     ModuleComponentRepository repository = Mock()
     LocallyAvailableResource fileStoreEntry = Mock()
-    ModuleDescriptor moduleDescriptor = Mock()
-    IvyModuleDescriptorWriter ivyModuleDescriptorWriter = Mock()
-    IvyXmlModuleDescriptorParser ivyXmlModuleDescriptorParser = Mock()
-    ModuleComponentIdentifier moduleComponentIdentifier = Mock()
+    ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "testArtifact", "1.0")
+    ModuleDescriptorSerializer serializer = Mock()
 
     def setup() {
-        store = new ModuleDescriptorStore(pathKeyFileStore, ivyModuleDescriptorWriter, ivyXmlModuleDescriptorParser);
+        store = new ModuleDescriptorStore(pathKeyFileStore, serializer);
         _ * repository.getId() >> "repositoryId"
-        _ * moduleComponentIdentifier.group >> "org.test"
-        _ * moduleComponentIdentifier.module >> "testArtifact"
-        _ * moduleComponentIdentifier.version >> "1.0"
     }
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {
         when:
-        pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/ivy.xml") >> null
+        pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/descriptor.bin") >> null
         then:
         null == store.getModuleDescriptor(repository, moduleComponentIdentifier)
     }
@@ -59,18 +52,19 @@ class ModuleDescriptorStoreTest extends Specification {
         when:
         store.getModuleDescriptor(repository, moduleComponentIdentifier);
         then:
-        1 * pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/ivy.xml") >> null
+        1 * pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/descriptor.bin") >> null
     }
 
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {
         setup:
         File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
+        def descriptor = new MutableModuleDescriptorState(moduleComponentIdentifier)
         when:
-        store.putModuleDescriptor(repository, moduleComponentIdentifier, moduleDescriptor);
+        store.putModuleDescriptor(repository, moduleComponentIdentifier, descriptor);
         then:
-        1 * pathKeyFileStore.add("org.test/testArtifact/1.0/repositoryId/ivy.xml", _) >> { path, action ->
+        1 * pathKeyFileStore.add("org.test/testArtifact/1.0/repositoryId/descriptor.bin", _) >> { path, action ->
             action.execute(descriptorFile); fileStoreEntry
         };
-        1 * ivyModuleDescriptorWriter.write(moduleDescriptor, descriptorFile)
+        1 * serializer.write(_, descriptor)
     }
 }

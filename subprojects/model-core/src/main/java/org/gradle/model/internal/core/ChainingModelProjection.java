@@ -74,19 +74,6 @@ public class ChainingModelProjection implements ModelProjection {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        ChainingModelProjection that = (ChainingModelProjection) o;
-        return projections.equals(that.projections);
-    }
-
-    @Override
     public Optional<String> getValueDescription(MutableModelNode modelNodeInternal) {
         for (ModelProjection projection : projections) {
             Optional<String> projectionValueDescription = projection.getValueDescription(modelNodeInternal);
@@ -95,11 +82,6 @@ public class ChainingModelProjection implements ModelProjection {
             }
         }
         return Optional.absent();
-    }
-
-    @Override
-    public int hashCode() {
-        return projections.hashCode();
     }
 
     @Override

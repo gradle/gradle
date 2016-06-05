@@ -84,15 +84,6 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }
 
-    @Test
-    void javaJdk14Failing() {
-        executer.withTasks("test").runWithFailure().assertTestsFailed()
-
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.BadTest')
-        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
-    }
-
     @Issue("GRADLE-1822")
     @Test
     void javaJdk15Failing() {

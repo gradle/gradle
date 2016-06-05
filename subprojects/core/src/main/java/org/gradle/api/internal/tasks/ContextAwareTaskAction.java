@@ -16,9 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-
-public interface ContextAwareTaskAction extends Action<Task> {
+public interface ContextAwareTaskAction extends ClassLoaderAwareTaskAction {
     void contextualise(TaskExecutionContext context);
 }

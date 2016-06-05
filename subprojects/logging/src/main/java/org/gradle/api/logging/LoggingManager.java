@@ -62,13 +62,4 @@ public interface LoggingManager extends LoggingOutput {
      * @return The current logging level.
      */
     LogLevel getLevel();
-
-    /**
-     * Sets the minimum logging level. All messages at a lower level are discarded.
-     *
-     * @param logLevel The minimum logging level.
-     * @return this
-     */
-    @Deprecated
-    LoggingManager setLevel(LogLevel logLevel);
 }

@@ -18,7 +18,12 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Equivalence.Wrapper;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
@@ -26,19 +31,36 @@ import groovy.lang.ReadOnlyPropertyException;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.internal.reflect.UnsupportedPropertyValueException;
 import org.gradle.internal.typeconversion.TypeConversionException;
 import org.gradle.internal.typeconversion.TypeConverter;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 import org.gradle.model.internal.core.MutableModelNode;
-import org.gradle.model.internal.manage.binding.*;
+import org.gradle.model.internal.manage.binding.BridgeMethodBinding;
+import org.gradle.model.internal.manage.binding.DelegateMethodBinding;
+import org.gradle.model.internal.manage.binding.DirectMethodBinding;
+import org.gradle.model.internal.manage.binding.ManagedProperty;
+import org.gradle.model.internal.manage.binding.ManagedPropertyMethodBinding;
+import org.gradle.model.internal.manage.binding.StructBindings;
+import org.gradle.model.internal.manage.binding.StructMethodBinding;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ModelElementState;
-import org.gradle.model.internal.manage.schema.*;
+import org.gradle.model.internal.manage.schema.CompositeSchema;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
+import org.gradle.model.internal.manage.schema.StructSchema;
+import org.gradle.model.internal.manage.schema.UnmanagedImplStructSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -47,7 +69,9 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
-import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.*;
+import static org.gradle.internal.reflect.PropertyAccessorType.*;
+import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
+import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.IGNORED_OBJECT_TYPES;
 import static org.objectweb.asm.Opcodes.*;
 
 public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
@@ -167,7 +191,7 @@ public class ManagedProxyClassGenerator extends AbstractProxyClassGenerator {
         // We need to also implement all the interfaces of the delegate type because otherwise
         // BinaryContainer won't recognize managed binaries as BinarySpecInternal
         if (delegateSchema != null) {
-            ModelSchemaUtils.walkTypeHierarchy(delegateSchema.getType().getConcreteClass(), new ModelSchemaUtils.TypeVisitor<D>() {
+            walkTypeHierarchy(delegateSchema.getType().getConcreteClass(), IGNORED_OBJECT_TYPES, new TypeVisitor<D>() {
                 @Override
                 public void visitType(Class<? super D> type) {
                     if (type.isInterface()) {

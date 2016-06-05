@@ -16,6 +16,12 @@
 
 package org.gradle.logging;
 
+/**
+ * This type was accidentally leaked into the public API, please do not refer to it.
+ */
 @Deprecated
 public interface StandardOutputCapture {
+    org.gradle.logging.StandardOutputCapture start();
+
+    org.gradle.logging.StandardOutputCapture stop();
 }

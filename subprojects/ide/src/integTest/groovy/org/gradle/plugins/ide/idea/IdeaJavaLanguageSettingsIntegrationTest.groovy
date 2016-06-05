@@ -19,6 +19,7 @@ package org.gradle.plugins.ide.idea
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
+import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.junit.Rule
 
 class IdeaJavaLanguageSettingsIntegrationTest extends AbstractIdeIntegrationSpec {
@@ -428,7 +429,7 @@ allprojects {
     }
 
     def getIpr() {
-        return parseIpr("root.ipr")
+        return IdeaFixtures.parseIpr(file("root.ipr"))
     }
 
     def iml(String name = 'root') {
@@ -436,9 +437,5 @@ allprojects {
             return parseIml('root.iml')
         }
         return parseIml("${name}/${name}.iml")
-    }
-
-    protected IdeaProjectFixture parseIpr(Map options = [:], String projectFile) {
-        return new IdeaProjectFixture(parseFile(options, projectFile))
     }
 }

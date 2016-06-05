@@ -60,7 +60,7 @@ public class FindBugsClasspathValidator {
 
     private VersionNumber getFindbugsVersion(Iterable<String> classpath) {
         for (String f: classpath) {
-            Matcher m = Pattern.compile("findbugs-(.*)\\.jar").matcher(f);
+            Matcher m = Pattern.compile("findbugs-(\\d+.*)\\.jar").matcher(f);
             if (m.matches()) {
                 return VersionNumber.parse(m.group(1));
             }

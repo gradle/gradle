@@ -23,8 +23,15 @@ import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.FilteredCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.util.ConfigureUtil;
 
-import java.util.*;
+import java.util.AbstractCollection;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Set;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollection<T> {
 
@@ -150,8 +157,8 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         mutateActions.add(action);
     }
 
-    private Action<? super T> toAction(final Closure action) {
-        return new ClosureBackedAction<T>(action);
+    private Action<? super T> toAction(Closure action) {
+        return ConfigureUtil.configureUsing(action);
     }
 
     public boolean add(T toAdd) {

@@ -16,14 +16,11 @@
 
 package org.gradle.jvm.tasks.api.internal
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
 import java.lang.reflect.Modifier
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 class ApiClassExtractorInnerClassTest extends ApiClassExtractorTestSupport {
 
     private final static int ACC_PUBLICSTATIC = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC

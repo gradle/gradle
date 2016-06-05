@@ -23,18 +23,17 @@ import spock.lang.Specification
 class DefaultIvyArtifactNameTest extends Specification {
     def "has useful string representation"() {
         expect:
-        def name = new DefaultIvyArtifactName("name", "type", "ext", [attr1: "attr"])
-        name.toString() == "name.ext"
+        def name = new DefaultIvyArtifactName("name", "type", "ext", 'classifier')
+        name.toString() == "name-classifier.ext"
     }
 
     def "is equal when all fields are equal"() {
-        def name = new DefaultIvyArtifactName("name", "type", "ext", [attr1: "attr"])
-        def same = new DefaultIvyArtifactName("name", "type", "ext", [attr1: "attr"])
-        def differentName = new DefaultIvyArtifactName("other", "type", "ext", [attr1: "attr"])
-        def differentType = new DefaultIvyArtifactName("name", "other", "ext", [attr1: "attr"])
-        def differentExt = new DefaultIvyArtifactName("name", "type", "other", [attr1: "attr"])
-        def differentAttr = new DefaultIvyArtifactName("name", "type", "ext", [attr1: "other"])
-        def differentAttrs = new DefaultIvyArtifactName("name", "type", "ext", [other: null])
+        def name = new DefaultIvyArtifactName("name", "type", "ext", 'classifier')
+        def same = new DefaultIvyArtifactName("name", "type", "ext", 'classifier')
+        def differentName = new DefaultIvyArtifactName("other", "type", "ext", 'classifier')
+        def differentType = new DefaultIvyArtifactName("name", "other", "ext", 'classifier')
+        def differentExt = new DefaultIvyArtifactName("name", "type", "other", 'classifier')
+        def differentAttr = new DefaultIvyArtifactName("name", "type", "ext", 'other')
 
         expect:
         name Matchers.strictlyEqual(same)
@@ -42,26 +41,6 @@ class DefaultIvyArtifactNameTest extends Specification {
         name != differentType
         name != differentExt
         name != differentAttr
-        name != differentAttrs
-    }
-
-    def "ignores empty and null attributes when determining equality"() {
-        def name = new DefaultIvyArtifactName("name", "type", "ext", [attr1: "attr", attr2: "", attr3: null])
-        def same = new DefaultIvyArtifactName("name", "type", "ext", [attr1: "attr", attr4: "", attr5: null])
-
-        expect:
-        name Matchers.strictlyEqual(same)
-    }
-
-    def "uses extended attributes to determine classifier"() {
-        def withClassifier = new DefaultIvyArtifactName("name", "type", "ext", ['classifier': 'classifier'])
-        def emptyClassifier = new DefaultIvyArtifactName("name", "type", "ext", ['classifier': ''])
-        def noClassifier = new DefaultIvyArtifactName("name", "type", "ext", [:])
-
-        expect:
-        withClassifier.classifier == 'classifier'
-        emptyClassifier.classifier == null
-        noClassifier.classifier == null
     }
 
     def "creates for PublishArtifact"() {
@@ -80,7 +59,6 @@ class DefaultIvyArtifactNameTest extends Specification {
         name.extension == "art-ext"
         name.type == "art-type"
         name.classifier == "art-classifier"
-        name.attributes == [classifier: "art-classifier"]
 
         when:
         1 * publishArtifact.getName() >> null

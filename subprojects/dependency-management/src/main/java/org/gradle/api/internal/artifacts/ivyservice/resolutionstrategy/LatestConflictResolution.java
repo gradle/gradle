@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import org.gradle.api.artifacts.ConflictResolution;
+import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 
 /**
  * Latest resolution strategy

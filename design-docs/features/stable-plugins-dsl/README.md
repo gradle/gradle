@@ -3,7 +3,7 @@
 **Owners:**
 Pepper Lebeck-Jobe [@eljobe](https://github.com/eljobe)
 Stefan Oehme [@oehme](https://github.com/oehme)   
-**Updated:** 2016-05-02   
+**Updated:** 2016-05-23   
 ![Approved](https://img.shields.io/badge/design-approved-green.svg)
 
 # Objective
@@ -25,12 +25,12 @@ pieces come together to accomplish the objective.
       ![Approved](https://img.shields.io/badge/design-approved-green.svg)   
       Be able to map from plugin id and version to a maven/ivy artifact
 
-    * **[M1.2](https://docs.google.com/document/d/139-eP7JhUvuVKfHUEk4fNFR_vzOGKsB4WYYrHLPe_6s)**   
-      ![For Review](https://img.shields.io/badge/design-for_review-yellow.svg)   
+    * **[M1.2](M1.2.md)**   
+      ![Approved](https://img.shields.io/badge/design-approved-green.svg)   
       Specify which maven/ivy repositories to search for plugins
 
-    * **[M1.3](https://docs.google.com/document/d/1n9CTekaRt1tybw1qiXPtQD5gwI6CQLHzQSliDX7_vc0/edit)**   
-      ![For Review](https://img.shields.io/badge/design-for_review-yellow.svg)   
+    * **[M1.3](M1.3.md)**   
+      ![Approved](https://img.shields.io/badge/design-approved-green.svg)   
       Publish plugins to a maven/ivy repository complete with metadata needed to map from the plugin id and version to a maven/ivy artifact and its dependencies
 
 * **[M2](https://docs.google.com/document/d/1uy8mqv_ZuvLUh10P43VPkaPEmofckvOnRjtaA9_quzI/edit)**   

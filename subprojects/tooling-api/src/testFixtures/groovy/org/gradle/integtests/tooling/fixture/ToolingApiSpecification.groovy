@@ -23,8 +23,8 @@ import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.junit.runner.RunWith
 
-@ToolingApiVersion('>=1.2')
-@TargetGradleVersion('>=1.0-milestone-8')
+@ToolingApiVersion('>=2.0')
+@TargetGradleVersion('>=1.2')
 @RunWith(ToolingApiCompatibilitySuiteRunner)
 abstract class ToolingApiSpecification extends AbstractToolingApiSpecification {
 

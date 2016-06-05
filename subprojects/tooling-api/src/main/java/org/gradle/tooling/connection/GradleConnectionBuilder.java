@@ -23,7 +23,7 @@ import java.io.File;
 import java.net.URI;
 
 /**
- * Builds a new composite Gradle connection.
+ * <p>Builds a new composite Gradle connection.</p>
  *
  * <pre autoTested=''>
  * GradleConnectionBuilder builder = GradleConnector.newGradleConnection();

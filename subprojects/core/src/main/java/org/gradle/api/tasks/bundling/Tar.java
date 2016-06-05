@@ -22,6 +22,8 @@ import org.gradle.api.internal.file.archive.compression.Bzip2Archiver;
 import org.gradle.api.internal.file.archive.compression.GzipArchiver;
 import org.gradle.api.internal.file.archive.compression.SimpleCompressor;
 import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 
 import java.util.concurrent.Callable;
 
@@ -44,6 +46,7 @@ public class Tar extends AbstractArchiveTask {
         return new TarCopyAction(getArchivePath(), getCompressor());
     }
 
+    @Internal
     private ArchiveOutputStreamFactory getCompressor() {
         switch(compression) {
             case BZIP2: return Bzip2Archiver.getCompressor();
@@ -51,11 +54,13 @@ public class Tar extends AbstractArchiveTask {
             default:    return new SimpleCompressor();
         }
     }
+
     /**
      * Returns the compression that is used for this archive.
      *
      * @return The compression. Never returns null.
      */
+    @Input
     public Compression getCompression() {
         return compression;
     }

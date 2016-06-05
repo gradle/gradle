@@ -17,30 +17,17 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.base.Objects;
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.util.GUtil;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import static com.google.common.base.Objects.equal;
 
 public class DefaultIvyArtifactName implements IvyArtifactName {
-    private static final String CLASSIFIER = "classifier";
     private final String name;
     private final String type;
     private final String extension;
-    private final Map<String, String> attributes;
-
-    public static DefaultIvyArtifactName forIvyArtifact(Artifact a) {
-        return new DefaultIvyArtifactName(a.getName(), a.getType(), a.getExt(), a.getExtraAttributes());
-    }
-
-    public static DefaultIvyArtifactName forIvyArtifact(DependencyArtifactDescriptor a) {
-        return new DefaultIvyArtifactName(a.getName(), a.getType(), a.getExt(), a.getExtraAttributes());
-    }
+    private final String classifier;
 
     public static DefaultIvyArtifactName forPublishArtifact(PublishArtifact publishArtifact) {
         String name = publishArtifact.getName();
@@ -51,45 +38,21 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         return new DefaultIvyArtifactName(name, publishArtifact.getType(), publishArtifact.getExtension(), classifier);
     }
 
-    public DefaultIvyArtifactName(String name, String type, @Nullable String extension, Map<String, String> attributes) {
-        this.name = name;
-        this.type = type;
-        this.extension = extension;
-        if (attributes.isEmpty()) {
-            this.attributes = Collections.emptyMap();
-        } else {
-            this.attributes = new HashMap<String, String>();
-            for (Map.Entry<String, String> entry : attributes.entrySet()) {
-                if (GUtil.isTrue(entry.getValue())) {
-                    this.attributes.put(entry.getKey(), entry.getValue());
-                }
-            }
-        }
-    }
-
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension) {
-        this.name = name;
-        this.type = type;
-        this.extension = extension;
-        this.attributes = Collections.emptyMap();
+        this(name, type, extension, null);
     }
 
     public DefaultIvyArtifactName(String name, String type, @Nullable String extension, @Nullable String classifier) {
         this.name = name;
         this.type = type;
         this.extension = extension;
-        if (classifier == null) {
-            this.attributes = Collections.emptyMap();
-        } else {
-            this.attributes = Collections.singletonMap(CLASSIFIER, classifier);
-        }
+        this.classifier = classifier;
     }
 
     @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append(name);
-        String classifier = attributes.get(CLASSIFIER);
         if (GUtil.isTrue(classifier)) {
             result.append("-");
             result.append(classifier);
@@ -103,7 +66,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
 
     @Override
     public int hashCode() {
-        return name.hashCode() ^ type.hashCode() ^ (extension == null ? 0 : extension.hashCode()) ^ attributes.hashCode();
+        return Objects.hashCode(name, type, extension, classifier);
     }
 
     @Override
@@ -115,10 +78,10 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
             return false;
         }
         DefaultIvyArtifactName other = (DefaultIvyArtifactName) obj;
-        return other.name.equals(name)
-                && other.type.equals(type)
-                && Objects.equal(other.extension, extension)
-                && other.attributes.equals(attributes);
+        return equal(name, other.name)
+            && equal(type, other.type)
+            && equal(extension, other.extension)
+            && equal(classifier, other.classifier);
     }
 
     public String getName() {
@@ -133,12 +96,7 @@ public class DefaultIvyArtifactName implements IvyArtifactName {
         return extension;
     }
 
-    @Nullable
     public String getClassifier() {
-        return attributes.get(CLASSIFIER);
-    }
-
-    public Map<String, String> getAttributes() {
-        return attributes;
+        return classifier;
     }
 }

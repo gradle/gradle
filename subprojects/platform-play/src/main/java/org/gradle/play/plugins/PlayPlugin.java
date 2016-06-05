@@ -32,5 +32,6 @@ public class PlayPlugin implements Plugin<Project> {
         project.getPluginManager().apply(PlayTestPlugin.class);
         project.getPluginManager().apply(PlayJavaScriptPlugin.class);
         project.getPluginManager().apply(PlayDistributionPlugin.class);
+        project.getPluginManager().apply("org.gradle.play-ide");
     }
 }

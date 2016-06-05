@@ -39,7 +39,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
     }
 
     def setup() {
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
         applyPlugin()
     }
 
@@ -172,15 +172,15 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         fails "compareGradleBuilds"
 
         and:
-        failure.assertHasCause("Cannot run comparison because both the source and target build are to be executed with a Gradle version older than Gradle 1.2 (source: 1.1, target: 1.1).")
+        failure.assertHasCause("Builds must be executed with Gradle 1.2 or newer (source: 1.1, target: 1.1)")
     }
 
-    def "cannot compare when source is older than 1.0"() {
+    def "cannot compare when source is older than 1.2"() {
         when:
         buildFile << """
             apply plugin: "java"
             compareGradleBuilds {
-                sourceBuild.gradleVersion "1.0-rc-1"
+                sourceBuild.gradleVersion "1.1"
             }
         """
 
@@ -188,7 +188,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         fails "compareGradleBuilds"
 
         and:
-        failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: 1.0-rc-1, target: ${distribution.version.version})")
+        failure.assertHasCause("Builds must be executed with Gradle 1.2 or newer (source: 1.1, target: ${distribution.version.version})")
     }
 
     def "can ignore errors"() {
@@ -219,12 +219,12 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         output.contains(NOT_IDENTICAL_MESSAGE_PREFIX)
     }
 
-    def "cannot compare when target is older than 1.0"() {
+    def "cannot compare when target is older than 1.2"() {
         when:
         buildFile << """
             apply plugin: "java"
             compareGradleBuilds {
-                targetBuild.gradleVersion "1.0-rc-1"
+                targetBuild.gradleVersion "1.1"
             }
         """
 
@@ -232,7 +232,7 @@ class BuildComparisonIntegrationSpec extends WellBehavedPluginTest {
         fails "compareGradleBuilds"
 
         and:
-        failure.assertHasCause("Builds must be executed with Gradle 1.0 or newer (source: ${distribution.version.version}, target: 1.0-rc-1)")
+        failure.assertHasCause("Builds must be executed with Gradle 1.2 or newer (source: ${distribution.version.version}, target: 1.1)")
     }
 
     def "can handle artifact not existing on source side"() {

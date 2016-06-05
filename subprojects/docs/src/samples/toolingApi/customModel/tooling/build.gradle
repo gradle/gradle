@@ -3,13 +3,8 @@ apply plugin: 'application'
 def toolingApiVersion = gradle.gradleVersion
 
 repositories {
-    ivy {
-        url '../plugin/build/repo'
-    }
-    maven {
-        url 'https://repo.gradle.org/gradle/libs-releases-local'
-    }
-    mavenCentral()
+    ivy { url '../plugin/build/repo' }
+    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
 }
 
 dependencies {

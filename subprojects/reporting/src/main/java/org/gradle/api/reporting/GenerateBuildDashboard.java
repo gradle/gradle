@@ -24,6 +24,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.reporting.internal.BuildDashboardGenerator;
 import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
@@ -44,8 +45,7 @@ import java.util.Set;
 public class GenerateBuildDashboard extends DefaultTask implements Reporting<BuildDashboardReports> {
     private Set<Reporting<? extends ReportContainer<?>>> aggregated = new LinkedHashSet<Reporting<? extends ReportContainer<?>>>();
 
-    @Nested
-    private final DefaultBuildDashboardReports reports;
+    private final BuildDashboardReports reports;
 
     public GenerateBuildDashboard() {
         reports = getInstantiator().newInstance(DefaultBuildDashboardReports.class, this);
@@ -70,6 +70,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
         return inputs;
     }
 
+    @Internal
     private Set<Report> getEnabledInputReports() {
         Set<NamedDomainObjectSet<? extends Report>> enabledReportSets = CollectionUtils.collect(aggregated, new Transformer<NamedDomainObjectSet<? extends Report>, Reporting<? extends ReportContainer<?>>>() {
             public NamedDomainObjectSet<? extends Report> transform(Reporting<? extends ReportContainer<?>> reporting) {
@@ -99,6 +100,8 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
      *
      * @return The reports container
      */
+    @Nested
+    @Override
     public BuildDashboardReports getReports() {
         return reports;
     }

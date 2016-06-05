@@ -27,8 +27,8 @@ import org.gradle.tooling.internal.consumer.DefaultCompositeConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.net.URI;
@@ -86,12 +86,12 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeValue(daemonMaxIdleTimeValue);
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeUnits(daemonMaxIdleTimeUnits);
         compositeConnectionParametersBuilder.setDaemonBaseDir(daemonBaseDir);
-        
+
         if (integrated) {
             compositeConnectionParametersBuilder.setEmbedded(embedded);
             DefaultCompositeConnectionParameters connectionParameters = compositeConnectionParametersBuilder.build();
 
-            DeprecationLogger.incubatingFeatureUsed("Integrated composite build", WARNING_MESSAGE);
+            SingleMessageLogger.incubatingFeatureUsed("Integrated composite build", WARNING_MESSAGE);
             Distribution distribution = coordinatorDistribution;
             if (distribution == null) {
                 distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
@@ -139,6 +139,12 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     @Override
     public GradleConnectionBuilder useInstallation(File gradleHome) {
         this.coordinatorDistribution = distributionFactory.getDistribution(gradleHome);
+        return this;
+    }
+
+    @Override
+    public GradleConnectionBuilder useGradleVersion(String gradleVersion) {
+        this.coordinatorDistribution = distributionFactory.getDistribution(gradleVersion);
         return this;
     }
 

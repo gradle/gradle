@@ -19,52 +19,34 @@ package org.gradle.launcher
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
+import org.gradle.util.Requires
+import spock.lang.Unroll
 
+@Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
 class SupportedBuildJvmIntegrationTest extends AbstractIntegrationSpec {
-    @IgnoreIf({ AvailableJavaHomes.java5 == null })
-    def "provides reasonable failure message when attempting to run under java 5"() {
-        def jdk = AvailableJavaHomes.java5
-
+    @Unroll
+    def "provides reasonable failure message when attempting to run under java #jdk.javaVersion"() {
         given:
         executer.withJavaHome(jdk.javaHome)
 
         expect:
         fails("help")
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. You are currently using Java 5.")
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 
-    @IgnoreIf({ AvailableJavaHomes.jdk6 == null })
-    def "warns of deprecated java version when running under java 6"() {
-        def jdk = AvailableJavaHomes.jdk6
-
+    @Unroll
+    def "fails when build is configured to use Java #jdk.javaVersion"() {
         given:
-        executer.withJavaHome(jdk.javaHome)
-        executer.expectDeprecationWarning()
+        file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
 
         expect:
-        run("help")
-        outputContains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
-    }
+        fails("help")
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
 
-    @IgnoreIf({ AvailableJavaHomes.java5 == null })
-    def "fails when build is configured to use Java 5"() {
-        given:
-        file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.java5.javaHome.canonicalPath)
-
-        expect:
-        fails()
-        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 6 or later to run. Your build is currently configured to use Java 5.")
-    }
-
-    @IgnoreIf({ AvailableJavaHomes.jdk6 == null })
-    def "warns of deprecate java version when build is configured to use java 6"() {
-        given:
-        file("gradle.properties").writeProperties("org.gradle.java.home": AvailableJavaHomes.jdk6.javaHome.canonicalPath)
-        executer.expectDeprecationWarning()
-
-        expect:
-        run("help")
-        outputContains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 }

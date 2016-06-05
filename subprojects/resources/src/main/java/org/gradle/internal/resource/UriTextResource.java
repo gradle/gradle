@@ -23,6 +23,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.util.GradleVersion;
 
 import java.io.*;
+import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -131,6 +132,12 @@ public class UriTextResource implements TextResource {
     private Reader getInputStream(URI url) throws IOException {
         final URLConnection urlConnection = url.toURL().openConnection();
         urlConnection.setRequestProperty("User-Agent", getUserAgentString());
+
+        // Without this, the URLConnection will keep the backing Jar file open indefinitely
+        // This will have a performance impact for Jar-backed `UriTextResource` instances
+        if (urlConnection instanceof JarURLConnection) {
+            urlConnection.setUseCaches(false);
+        }
         urlConnection.connect();
         String charset = extractCharacterEncoding(urlConnection.getContentType(), "utf-8");
         return new InputStreamReader(urlConnection.getInputStream(), charset);

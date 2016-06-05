@@ -105,6 +105,7 @@ We need to check these values after a build has completed (to decide whether a n
 - Detects fast leaks in builds with both a small (200m) and large heap (1024m) and stops daemon.
 - Detects slow leaks in builds with both a small (200m) and large heap (1024m) and stops daemon.
 - For a build that leaks without tripping the thresholds, the daemon is not stopped.
+- User can specify a threshold for gc rate and tenured heap usage
 
 ### Prevent daemon with a Perm Gen leak on <=JDK7 from reaching a point where gc is thrashing
 
@@ -123,6 +124,7 @@ We need to check this value after a build has completed (to decide whether a new
 #### Test coverage
 
 - Detects a perm gen leak in a build and expires the deamon at the end of a build
+- User can specify a threshold for perm gen heap usage
 
 ### Detect when gc is thrashing and premptively stop the daemon
 
@@ -166,3 +168,73 @@ This can ensure stability in serving builds and avoid stalled build due to exhau
 #### Coverage
 
 - integration test that contains a leaky build. The build fails with OOME if the feature is turned off.
+
+### Story - Internally Expose Basic Daemon Information
+Some basic daemon status information is made, internally, available via the service registry. 
+
+1. The number of builds executed by the daemon
+1. The idle timeout of the daemon
+1. The number of running daemons
+1. The time at which the daemon was started
+
+#### Implementation
+
+1. Introduce the following interface
+  ```java
+  package org.gradle.launcher.daemon.server.scaninfo;
+
+  public interface DaemonScanInfo {
+      int getNumberOfBuilds();
+      long getStartedAt();
+      long getIdleTimeout();
+      int getNumberOfRunningDaemons();
+  }
+  ```
+  With a default implementation with references to `org.gradle.launcher.daemon.server.health.DaemonStats` and `org.gradle.launcher.daemon.registry.DaemonRegistry`
+1. Expose `DaemonScanInfo` from `DaemonServices`
+1. `org.gradle.launcher.daemon.server.health.DaemonStats` provides getters for `buildCount` and a new attribute `startTime` (the time the daemon was started)
+1. `org.gradle.launcher.daemon.bootstrap.DaemonMain` passes the daemon start time to `DaemonServices`. This is not quite exactly the point in time that the daemon starts 
+ but may be close enough.
+1. `DaemonServices` is responsible for instantiating `org.gradle.launcher.daemon.server.health.DaemonScanInfo` e.g.
+  ```java
+    protected DaemonScanInfo createDaemonInformation(DaemonStats daemonStats) {
+        return DefaultDaemonScanInfo.of(daemonStats, configuration.getIdleTimeout(), get(DaemonRegistry.class));
+    }
+  ```
+1. `DaemonScanInfo` can be accessed via the service registry 
+  ```groovy
+     import org.gradle.launcher.daemon.server.scaninfo.DaemonScanInfo
+     DaemonScanInfo info = project.getServices().get(DaemonScanInfo)
+  ```
+
+#### Coverage
+- A DaemonIntegrationSpec which verifies all 4 data points 
+- The number of builds is correctly incremented when a daemon runs more than one build
+- The number of running builds is backed by the `org.gradle.launcher.daemon.registry.DaemonRegistry#getAll`
+- Works when the daemon is ran in the foreground `--foreground`
+- Works when the daemon is run with `--continuous`
+
+### Story - Internally register a listener for daemon expiration events
+
+#### Implementation
+
+1. Add `DaemonExpirationListenerRegistry` as a service via `org.gradle.launcher.daemon.server.DaemonServices`
+1. `DaemonExpirationListenerRegistry` takes the same `ListenerManager` used by `DaemonHealthCheck`
+1. Clients can register a listener as follows: 
+  ```groovy
+   def registry = project.getServices().get(org.gradle.launcher.daemon.server.DaemonExpirationListenerRegistry)
+   registry.register(new DaemonExpirationListener() {
+      @Override
+      public void onExpirationEvent(org.gradle.launcher.daemon.server.DaemonExpirationResult result) {
+          println "onExpirationEvent fired with: \${result.getReason()}"
+      }
+  })
+  ```
+
+#### Coverage
+- An integration test which:
+   - Registers a dummy `org.gradle.launcher.daemon.server.DaemonExpirationStrategy` which aways returns a `DaemonExpirationResult`
+   - Registers a `DaemonExpirationListener` which prints the `result` of `DaemonExpirationResult`
+   - Verifies the console output by the above `DaemonExpirationListener`
+- Works when the daemon is ran in the foreground `--foreground`
+- Works when the daemon is run with `--continuous`

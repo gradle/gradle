@@ -16,7 +16,6 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -31,20 +30,18 @@ import org.gradle.language.base.plugins.LanguageBasePlugin
 import org.gradle.language.java.JavaSourceSet
 import org.gradle.language.jvm.JvmResourceSet
 import org.gradle.platform.base.BinarySpec
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestUtil
 import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.api.file.FileCollectionMatchers.sameCollection
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 import static org.gradle.util.WrapUtil.toLinkedSet
 
-class JavaBasePluginTest extends Specification {
+class JavaBasePluginTest extends AbstractProjectBuilderSpec {
     @Rule
     public SetSystemProperties sysProperties = new SetSystemProperties()
-    private final DefaultProject project = TestUtil.createRootProject()
 
     void appliesBasePluginsAndAddsConventionObject() {
         when:
@@ -342,5 +339,4 @@ class JavaBasePluginTest extends Specification {
         binary.tasks.contains(project.tasks.findByName("compileCustomJava"))
         binary.tasks.contains(project.tasks.findByName("processCustomResources"))
     }
-
 }

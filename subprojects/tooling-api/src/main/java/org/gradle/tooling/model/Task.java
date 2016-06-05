@@ -52,17 +52,6 @@ public interface Task extends Launchable {
     String getDescription();
 
     /**
-     * Returns the element which this task belongs to.
-     *
-     * @deprecated Do not use this method. It is assumed that the caller already has a reference to owning project.
-     * @return The element which this task belongs to.
-     * @throws org.gradle.tooling.model.UnsupportedMethodException From 1.12 for implementations that do not also implement {@link org.gradle.tooling.model.GradleTask}.
-     * @since 1.0-milestone-3
-     */
-    @Deprecated
-    Element getProject();
-
-    /**
      * Returns the group a task belongs to.
      *
      * @return the group a task belongs to.

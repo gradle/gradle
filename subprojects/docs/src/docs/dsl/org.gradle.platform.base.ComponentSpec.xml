@@ -7,9 +7,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>displayName</td>
-            </tr>
         </table>
     </section>
     <section>

@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.antbuilder;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
@@ -29,7 +30,11 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.*;
+import org.gradle.internal.classloader.CachingClassLoader;
+import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.FilteringClassLoader;
+import org.gradle.internal.classloader.MultiParentClassLoader;
+import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.Stoppable;
@@ -70,13 +75,22 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             antClasspath.add(toolsJar);
         }
 
+        /**
+         * Mix in an XML parser implementation when running on Java 6 and another XML parser is present on the system ClassLoader, to work around a bug in older implementations of JAXP
+         * @see org.gradle.internal.classloader.DefaultClassLoaderFactory#createFilteringClassLoader(ClassLoader)
+         */
+        if (needJaxpHackery()) {
+            antClasspath.addAll(moduleRegistry.getExternalModule("xercesImpl").getImplementationClasspath().getAsFiles());
+        }
+
         antLoader = classLoaderFactory.createIsolatedClassLoader(new DefaultClassPath(antClasspath));
-        FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().getClassLoader());
-        loggingLoader.allowPackage("org.slf4j");
-        loggingLoader.allowPackage("org.apache.commons.logging");
-        loggingLoader.allowPackage("org.apache.log4j");
-        loggingLoader.allowClass(Logger.class);
-        loggingLoader.allowClass(LogLevel.class);
+        FilteringClassLoader.Spec loggingLoaderSpec = new FilteringClassLoader.Spec();
+        loggingLoaderSpec.allowPackage("org.slf4j");
+        loggingLoaderSpec.allowPackage("org.apache.commons.logging");
+        loggingLoaderSpec.allowPackage("org.apache.log4j");
+        loggingLoaderSpec.allowClass(Logger.class);
+        loggingLoaderSpec.allowClass(LogLevel.class);
+        FilteringClassLoader loggingLoader = new FilteringClassLoader(getClass().getClassLoader(), loggingLoaderSpec);
 
         this.baseAntLoader = new CachingClassLoader(new MultiParentClassLoader(antLoader, loggingLoader));
 
@@ -87,10 +101,14 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
-        this.antAdapterLoader = new MutableURLClassLoader(baseAntLoader, gradleCoreUrls);
+        this.antAdapterLoader = new VisitableURLClassLoader(baseAntLoader, gradleCoreUrls);
 
         gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
         antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
+    }
+
+    private boolean needJaxpHackery() {
+        return !JavaVersion.current().isJava7Compatible() && ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory") != null;
     }
 
     protected DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> libClasspath) {
@@ -122,7 +140,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             new Factory<ClassLoader>() {
                 @Override
                 public ClassLoader create() {
-                    return new MutableURLClassLoader(baseAntLoader, libClasspath);
+                    return new VisitableURLClassLoader(baseAntLoader, libClasspath);
                 }
             }, new Action<CachedClassLoader>() {
                 @Override
@@ -142,8 +160,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
                         // Closure class, so the AntBuilder's methodMissing() doesn't work. It just converts our Closures to String
                         // because they are not an instanceof its Closure class.
                         Object delegate = new AntBuilderDelegate(antBuilder, classLoader);
-                        new ClosureBackedAction<Object>(antClosure).execute(delegate);
-
+                        ClosureBackedAction.execute(delegate, antClosure);
                     } finally {
                         Thread.currentThread().setContextClassLoader(originalLoader);
                         disposeBuilder(antBuilder, antLogger);

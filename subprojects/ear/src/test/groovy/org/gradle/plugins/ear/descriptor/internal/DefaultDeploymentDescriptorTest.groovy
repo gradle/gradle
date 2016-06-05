@@ -25,6 +25,7 @@ import org.gradle.plugins.ear.descriptor.EarSecurityRole
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 import javax.xml.parsers.DocumentBuilderFactory
 
@@ -55,18 +56,76 @@ class DefaultDeploymentDescriptorTest extends Specification {
         root.childNodes.length == 0
     }
 
-    def "writes version 1.3 default descriptor"() {
+    @Unroll
+    def "writes version #version default descriptor"() {
         def out = new StringWriter()
-        descriptor.version = '1.3'
+        descriptor.version = version
 
         when:
         descriptor.writeTo(out)
 
         then:
-        out.toString() == toPlatformLineSeparators("""<?xml version="1.0"?>
+        def stringOutput = out.toString()
+        acceptableDescriptors.contains(stringOutput)
+
+        where:
+        version | _
+        '1.3'   | _
+        '1.4'   | _
+        '5'     | _
+        '6'     | _
+        '7'     | _
+        acceptableDescriptors = defaultDescriptorForVersion(version)
+    }
+
+    private List<String>defaultDescriptorForVersion(version) {
+        // Groovy XML Node put attributes in a HashMap so does not guarantee rendering order for attributes
+        // This method generates all permutations so we can assert we have at least one
+        def attributesPermutations = { String template, List<String> attributes ->
+            def permutations = []
+            attributes.eachPermutation { attrs ->
+                permutations << template.replace('##ATTRIBUTES##', attrs.join(' '))
+            }
+            permutations
+        }
+        switch (version) {
+            case '1.3':
+                return [toPlatformLineSeparators('''<?xml version="1.0"?>
 <!DOCTYPE application PUBLIC "-//Sun Microsystems, Inc.//DTD J2EE Application 1.3//EN" "http://java.sun.com/dtd/application_1_3.dtd">
 <application version="1.3"/>
-""")
+''')]
+            case '1.4':
+                def attributes = [
+                    'xmlns="http://java.sun.com/xml/ns/j2ee"',
+                    'xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/application_1_4.xsd"',
+                    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+                    'version="1.4"'
+                ]
+                return attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes).collect { String descriptor ->
+                    toPlatformLineSeparators(descriptor)
+                }
+            case '5':
+            case '6':
+                def attributes = [
+                    'xmlns="http://java.sun.com/xml/ns/javaee"',
+                    "xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_${version}.xsd\"",
+                    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+                    "version=\"${version}\""
+                ]
+                return attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes).collect { String descriptor ->
+                    toPlatformLineSeparators(descriptor)
+                }
+            default:
+                def attributes = [
+                    'xmlns="http://xmlns.jcp.org/xml/ns/javaee"',
+                    "xsi:schemaLocation=\"http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/application_${version}.xsd\"",
+                    'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
+                    "version=\"${version}\""
+                ]
+                return attributesPermutations('<?xml version="1.0"?>\n<application ##ATTRIBUTES##/>\n', attributes).collect { String descriptor ->
+                    toPlatformLineSeparators(descriptor)
+                }
+        }
     }
 
     def "writes customized descriptor"() {

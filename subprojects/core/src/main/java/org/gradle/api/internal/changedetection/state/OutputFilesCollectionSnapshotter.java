@@ -16,17 +16,22 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hasher;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileTreeElementHasher;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.util.ChangeListener;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Takes a snapshot of the output files of a task.
@@ -51,8 +56,8 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot.PreCheck preCheck(FileCollection files, boolean allowReuse) {
-        return new OutputFileCollectionSnapshotPreCheck(getRoots(files), snapshotter.preCheck(files, allowReuse));
+    public FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse) {
+        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, allowReuse));
     }
 
     private Map<String, Boolean> getRoots(FileCollection files) {
@@ -98,11 +103,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             filesSnapshot = ((OutputFilesSnapshot) filesSnapshot).filesSnapshot;
         }
         return new OutputFilesSnapshot(getRoots(roots), filesSnapshot);
-    }
-
-    @Override
-    public FileCollectionSnapshot snapshot(FileCollectionSnapshot.PreCheck preCheck) {
-        return new OutputFilesSnapshot(getRoots(preCheck.getFiles()), snapshotter.snapshot(preCheck));
     }
 
     static class OutputFilesSnapshot implements FileCollectionSnapshot {
@@ -193,58 +193,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
                     return false;
                 }
             };
-        }
-    }
-
-    private static class OutputFileCollectionSnapshotPreCheck implements FileCollectionSnapshot.PreCheck {
-        private final Map<String, Boolean> roots;
-        private final FileCollectionSnapshot.PreCheck delegate;
-        private Integer hash;
-
-        public OutputFileCollectionSnapshotPreCheck(Map<String, Boolean> roots, FileCollectionSnapshot.PreCheck preCheck) {
-            this.roots = roots;
-            this.delegate = preCheck;
-        }
-
-        @Override
-        public Integer getHash() {
-            if (hash == null) {
-                hash = calculatePreCheckHash();
-            }
-            return hash;
-        }
-
-        private Integer calculatePreCheckHash() {
-            Hasher hasher = FileTreeElementHasher.createHasher();
-            hasher.putInt(delegate.getHash());
-
-            SortedMap<String, Boolean> sortedRoots = new TreeMap<String, Boolean>(roots);
-            for (Map.Entry<String, Boolean> entry : sortedRoots.entrySet()) {
-                hasher.putString(entry.getKey(), Charsets.UTF_8);
-                hasher.putBoolean(entry.getValue());
-            }
-
-            return hasher.hash().asInt();
-        }
-
-        @Override
-        public FileCollection getFiles() {
-            return delegate.getFiles();
-        }
-
-        @Override
-        public Collection<VisitedTree> getVisitedTrees() {
-            return delegate.getVisitedTrees();
-        }
-
-        @Override
-        public Collection<File> getMissingFiles() {
-            return delegate.getMissingFiles();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return delegate.isEmpty();
         }
     }
 }

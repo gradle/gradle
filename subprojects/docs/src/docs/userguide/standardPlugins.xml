@@ -534,21 +534,6 @@
                     </para>
                 </td>
             </tr>
-            <tr>
-                <td>
-                    <link linkend='sonar_plugin'>
-                        <literal>sonar</literal>
-                    </link>
-                </td>
-                <td>-</td>
-                <td>java-base, java, jacoco</td>
-                <td>
-                    <para>Provides integration with the
-                        <ulink url="http://www.sonarsource.org">Sonar</ulink>
-                        code quality platform. Superceeded by the <link linkend='sonar_runner_plugin'><literal>sonar-runner</literal></link> plugin.
-                    </para>
-                </td>
-            </tr>
         </table>
     </section>
     <section>
@@ -615,21 +600,6 @@
                     <para>Provides integration with the
                         <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>
                             code coverage library for Java.
-                    </para>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <link linkend='sonar_runner_plugin'>
-                        <literal>sonar-runner</literal>
-                    </link>
-                </td>
-                <td>-</td>
-                <td>java-base, java, jacoco</td>
-                <td>
-                    <para>Provides integration with the
-                        <ulink url="http://www.sonarsource.org">Sonar</ulink>
-                        code quality platform. Supersedes the <link linkend='sonar_plugin'><literal>sonar</literal></link> plugin.
                     </para>
                 </td>
             </tr>

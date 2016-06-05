@@ -16,7 +16,10 @@
 
 package org.gradle.plugin.devel;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.NamedDomainObjectContainer;
+import org.gradle.api.Project;
 import org.gradle.api.tasks.SourceSet;
 
 import java.util.Arrays;
@@ -35,7 +38,13 @@ import java.util.Set;
  *
  *     gradlePlugin {
  *         pluginSourceSet project.sourceSets.customMain
-*          testSourceSets project.sourceSets.functionalTest
+ *         testSourceSets project.sourceSets.functionalTest
+ *         plugins {
+ *             helloPlugin {
+ *                 id  = 'org.example.hello'
+ *                 implementationClass = 'org.example.HelloPlugin'
+ *             }
+ *         }
  *     }
  * </pre>
  *
@@ -47,12 +56,15 @@ public class GradlePluginDevelopmentExtension {
 
     private SourceSet pluginSourceSet;
     private Set<SourceSet> testSourceSets = Collections.emptySet();
+    private final NamedDomainObjectContainer<PluginDeclaration> plugins;
+    private boolean automatedPublishing = true;
 
-    public GradlePluginDevelopmentExtension(SourceSet pluginSourceSet, SourceSet testSourceSet) {
-        this(pluginSourceSet, new SourceSet[] {testSourceSet});
+    public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet testSourceSet) {
+        this(project, pluginSourceSet, new SourceSet[] {testSourceSet});
     }
 
-    public GradlePluginDevelopmentExtension(SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
+    public GradlePluginDevelopmentExtension(Project project, SourceSet pluginSourceSet, SourceSet[] testSourceSets) {
+        this.plugins = project.container(PluginDeclaration.class);
         this.pluginSourceSet = pluginSourceSet;
         testSourceSets(testSourceSets);
     }
@@ -93,5 +105,39 @@ public class GradlePluginDevelopmentExtension {
      */
     public Set<SourceSet> getTestSourceSets() {
         return testSourceSets;
+    }
+
+    /**
+     * Returns the declared plugins.
+     *
+     * @return the declared plugins, never null
+     */
+    public NamedDomainObjectContainer<PluginDeclaration> getPlugins() {
+        return plugins;
+    }
+
+    /**
+     * Configures the declared plugins.
+     *
+     * @param action the configuration action to invoke on the plugins
+     */
+    public void plugins(Action<? super NamedDomainObjectContainer<PluginDeclaration>> action) {
+        action.execute(plugins);
+    }
+
+    /**
+     * Whether the plugin should automatically configure the publications for the plugins.
+     * @return true if publishing should be automated, false otherwise
+     */
+    public boolean isAutomatedPublishing() {
+        return automatedPublishing;
+    }
+
+    /**
+     * Configures whether the plugin should automatically configure the publications for the plugins.
+     * @param automatedPublishing whether to automated publication
+     */
+    public void setAutomatedPublishing(boolean automatedPublishing) {
+        this.automatedPublishing = automatedPublishing;
     }
 }

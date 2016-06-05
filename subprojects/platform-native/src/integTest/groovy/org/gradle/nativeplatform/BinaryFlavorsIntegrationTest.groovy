@@ -19,7 +19,6 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -66,7 +65,6 @@ model {
         helloWorldApp.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
     }
 
-    @LeaksFileHandles
     def "can configure components for a single flavor"() {
         given:
         buildFile << """
@@ -79,9 +77,9 @@ model {
         }
     }
     components {
-        main.targetFlavors "french"
-        hello.targetFlavors "french"
-        greetings.targetFlavors "french"
+        main { targetFlavors "french" }
+        hello { targetFlavors "french" }
+        greetings { targetFlavors "french" }
     }
 }
 """
@@ -102,7 +100,6 @@ model {
         installation("build/install/main/german").assertInstalled()
     }
 
-    @LeaksFileHandles("can't delete build/install/mainExecutable/french")
     def "executable with flavors depends on library with matching flavors"() {
         when:
         buildFile << """
@@ -165,7 +162,7 @@ model {
         buildFile << """
 model {
     components {
-        main.targetFlavors "unknown"
+        main { targetFlavors "unknown" }
     }
 }
 """

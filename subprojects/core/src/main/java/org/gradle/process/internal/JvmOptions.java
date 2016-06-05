@@ -26,7 +26,15 @@ import org.gradle.util.internal.ArgumentsSplitter;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -132,8 +140,7 @@ public class JvmOptions {
             args.add("-ea");
         }
         if (debug) {
-            args.add("-Xdebug");
-            args.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
+            args.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005");
         }
         return args;
     }
@@ -204,6 +211,7 @@ public class JvmOptions {
 
         boolean xdebugFound = false;
         boolean xrunjdwpFound = false;
+        boolean xagentlibJdwpFound = false;
         Set<Object> matches = new HashSet<Object>();
         for (Object extraJvmArg : extraJvmArgs) {
             if (extraJvmArg.toString().equals("-Xdebug")) {
@@ -212,9 +220,12 @@ public class JvmOptions {
             } else if (extraJvmArg.toString().equals("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")) {
                 xrunjdwpFound = true;
                 matches.add(extraJvmArg);
+            } else if (extraJvmArg.toString().equals("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005")) {
+                xagentlibJdwpFound = true;
+                matches.add(extraJvmArg);
             }
         }
-        if (xdebugFound && xrunjdwpFound) {
+        if (xdebugFound && xrunjdwpFound || xagentlibJdwpFound) {
             debug = true;
             extraJvmArgs.removeAll(matches);
         }

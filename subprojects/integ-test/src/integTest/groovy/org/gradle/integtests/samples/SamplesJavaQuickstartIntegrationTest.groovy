@@ -16,51 +16,47 @@
 
 package org.gradle.integtests.samples
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
-import org.junit.Test
 
 import java.util.jar.Manifest
 
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
-class SamplesJavaQuickstartIntegrationTest extends  AbstractIntegrationTest {
+class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')
+    @Rule
+    public final Sample sample = new Sample(testDirectoryProvider, 'java/quickstart')
 
-    @Test
     public void canBuildAndUploadJar() {
+        given:
         TestFile javaprojectDir = sample.dir
 
-        // Build and test projects
+        when: "Build and test projects"
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
 
-        // Check tests have run
+        then: "Check tests have run"
         def result = new DefaultTestExecutionResult(javaprojectDir)
         result.assertTestClassesExecuted('org.gradle.PersonTest')
-
         // Check jar exists
         javaprojectDir.file("build/libs/quickstart-1.0.jar").assertIsFile()
-
         // Check jar uploaded
         javaprojectDir.file('repos/quickstart-1.0.jar').assertIsFile()
-
         // Check contents of Jar
         TestFile jarContents = file('jar')
         javaprojectDir.file('repos/quickstart-1.0.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'org/gradle/Person.class',
-                'org/gradle/resource.xml'
+            'META-INF/MANIFEST.MF',
+            'org/gradle/Person.class',
+            'org/gradle/resource.xml'
         )
 
         // Check contents of manifest
-        Manifest manifest = new Manifest()
-        jarContents.file('META-INF/MANIFEST.MF').withInputStream { manifest.read(it) }
+        Manifest manifest = jarContents.file('META-INF/MANIFEST.MF').withInputStream { new Manifest(it) }
         assertThat(manifest.mainAttributes.size(), equalTo(3))
         assertThat(manifest.mainAttributes.getValue('Manifest-Version'), equalTo('1.0'))
         assertThat(manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle Quickstart'))

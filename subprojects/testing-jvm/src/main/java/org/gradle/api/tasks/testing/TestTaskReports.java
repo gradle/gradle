@@ -19,6 +19,7 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.reporting.Report;
 import org.gradle.api.reporting.ReportContainer;
+import org.gradle.api.tasks.Nested;
 
 /**
  * The reports produced by the {@link Test} task.
@@ -30,6 +31,7 @@ public interface TestTaskReports extends ReportContainer<Report> {
      *
      * @return The HTML report
      */
+    @Nested
     DirectoryReport getHtml();
 
     /**
@@ -37,6 +39,7 @@ public interface TestTaskReports extends ReportContainer<Report> {
      *
      * @return The test results in “JUnit XML” format
      */
+    @Nested
     JUnitXmlReport getJunitXml();
 
 }

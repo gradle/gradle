@@ -17,14 +17,18 @@ package org.gradle.nativeplatform.test.cunit
 import org.gradle.language.c.CSourceSet
 import org.gradle.nativeplatform.NativeLibrarySpec
 import org.gradle.nativeplatform.test.cunit.plugins.CUnitConventionPlugin
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.base.TestSuiteSpec
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 
 class CUnitTest extends Specification {
-    final def project = TestUtil.createRootProject();
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final def project = TestUtil.create(testDir).rootProject();
 
     def "creates a test suite for each library under test"() {
         given:

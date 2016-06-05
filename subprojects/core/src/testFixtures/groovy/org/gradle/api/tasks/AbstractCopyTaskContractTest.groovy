@@ -20,22 +20,19 @@ import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Test
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static junit.framework.TestCase.fail
-
 /**
  * Tests that different types of copy tasks correctly expose DSL enhanced objects.
  */
 abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
-
+    @Override
     abstract AbstractCopyTask getTask()
 
     @Unroll
-    @Test
-    public void rootLevelFileCopyDetailsIsDslEnhanced() {
+    def rootLevelFileCopyDetailsIsDslEnhanced() {
         task.eachFile {
             assert delegate instanceof DynamicObject
         }
@@ -46,9 +43,8 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         })
     }
 
-    @Test
     @Issue("GRADLE-2906")
-    void "each file does not execute action for directories"() {
+    def "each file does not execute action for directories"() {
         File fromSrcDir = createDir(project.projectDir, 'src')
         File fromConfDir = createDir(fromSrcDir, 'conf')
         File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
@@ -65,9 +61,8 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         assert closureInvocation.files.containsAll(fromPropertiesFile)
     }
 
-    @Test
     @Issue("GRADLE-2900")
-    void "each file does not execute action for directories after filtering file tree"() {
+    def "each file does not execute action for directories after filtering file tree"() {
         File fromSrcDir = createDir(project.projectDir, 'src')
         File fromConfDir = createDir(fromSrcDir, 'conf')
         File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
@@ -83,7 +78,7 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         assert closureInvocation.files.contains(fromPropertiesFile)
     }
 
-    private File createDir(File parentDir, String path) {
+    private static File createDir(File parentDir, String path) {
         TestFile newDir = new TestFile(parentDir, path)
         boolean success = newDir.mkdirs()
 
@@ -94,7 +89,7 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         newDir
     }
 
-    private File createFile(File parent, String filename) {
+    private static File createFile(File parent, String filename) {
         TestFile file = new TestFile(parent, filename)
         file.createNewFile()
         file

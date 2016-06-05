@@ -346,8 +346,8 @@ class DefaultExecHandleSpec extends Specification {
         }
     }
 
-    private ExecHandleBuilder handle() {
-        new ExecHandleBuilder(TestFiles.resolver())
+    private DefaultExecHandleBuilder handle() {
+        new DefaultExecHandleBuilder(TestFiles.resolver())
                 .executable(Jvm.current().getJavaExecutable().getAbsolutePath())
                 .setTimeout(20000) //sanity timeout
                 .workingDir(tmpDir.getTestDirectory());

@@ -18,13 +18,15 @@ package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
-import org.gradle.tooling.model.*
+import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.GradleTask
+import org.gradle.tooling.model.Launchable
+import org.gradle.tooling.model.Task
+import org.gradle.tooling.model.TaskSelector
 import org.gradle.tooling.model.gradle.BuildInvocations
 
-@ToolingApiVersion(">=1.12")
 class BuildInvocationsCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << '''
@@ -153,12 +155,6 @@ project(':b:c') {
         then:
         tasks.size() == 2
         tasks*.name as Set == ['t2', 't3'] as Set
-
-        when:
-        tasks[0].project
-        then:
-        UnsupportedMethodException e = thrown()
-        e != null
     }
 
     @TargetGradleVersion(">=2.0")
@@ -176,13 +172,6 @@ project(':b:c') {
         tasks*.name as Set == projectBExpectedTasks
 
         when:
-        tasks[0].project
-
-        then:
-        UnsupportedMethodException e = thrown()
-        e != null
-
-        when:
         tasks = withConnection { connection ->
             connection.action(new FetchTasksBuildAction(':')).run()
         }
@@ -190,12 +179,6 @@ project(':b:c') {
         then:
         tasks.size() == rootProjectExpectedTasks.size()
         tasks*.name as Set == rootProjectExpectedTasks
-
-        when:
-        tasks[0].project
-        then:
-        e = thrown()
-        e != null
     }
 
     @TargetGradleVersion(">=1.12")
@@ -329,7 +312,6 @@ project(':b:c') {
         result.result.assertTasksExecuted(':b:c:t1', ':b:t3', ':t1')
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8")
     def "can request tasks for root project"() {
         // TODO make sure it is for root project if default project is different
 
@@ -345,11 +327,5 @@ project(':b:c') {
         task != null
         task.name == 't1'
         task.path == ':t1'
-
-        when:
-        task.project
-
-        then:
-        UnsupportedMethodException e = thrown()
     }
 }

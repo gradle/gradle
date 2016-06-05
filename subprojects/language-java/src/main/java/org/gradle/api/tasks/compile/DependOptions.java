@@ -16,6 +16,10 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.tasks.Console;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 
 /**
  * Options for the Ant Depend task. Only take effect if {@code CompileOptions.useAnt} and
@@ -48,6 +52,7 @@ public class DependOptions extends AbstractOptions {
     /**
      * Tells whether to cache dependency information. Defaults to {@code true}.
      */
+    @Input
     public boolean isUseCache() {
         return useCache;
     }
@@ -63,6 +68,7 @@ public class DependOptions extends AbstractOptions {
      * Tells whether to delete the transitive closure of outdated files or only their
      * direct dependencies. Defaults to {@code false}.
      */
+    @Input
     public boolean isClosure() {
         return closure;
     }
@@ -78,6 +84,7 @@ public class DependOptions extends AbstractOptions {
     /**
      * Tells whether to log dependency information. Defaults to {@code false}.
      */
+    @Console
     public boolean isDump() {
         return dump;
     }
@@ -93,6 +100,7 @@ public class DependOptions extends AbstractOptions {
      * Returns the compile classpath for which dependencies should also be checked.
      * Defaults to the empty string.
      */
+    @Optional @Input
     public String getClasspath() {
         return classpath;
     }
@@ -108,6 +116,7 @@ public class DependOptions extends AbstractOptions {
     /**
      * Tells whether to warn on RMI stubs without source. Defaults to {@code true}.
      */
+    @Internal
     public boolean isWarnOnRmiStubs() {
         return warnOnRmiStubs;
     }

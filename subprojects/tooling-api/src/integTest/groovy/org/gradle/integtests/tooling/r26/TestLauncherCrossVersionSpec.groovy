@@ -23,13 +23,16 @@ import org.gradle.integtests.tooling.TestLauncherSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.*
+import org.gradle.tooling.BuildCancelledException
+import org.gradle.tooling.BuildException
+import org.gradle.tooling.ListenerFailedException
+import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.TestExecutionException
+import org.gradle.tooling.TestLauncher
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.test.TestOperationDescriptor
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 @ToolingApiVersion(">=2.6")
 @TargetGradleVersion(">=2.6")
@@ -130,7 +133,6 @@ class TestLauncherCrossVersionSpec extends TestLauncherSpec {
         assertTaskNotExecuted(":test")
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "can run and cancel test execution in continuous mode"() {
         given:
         events.skipValidation = true

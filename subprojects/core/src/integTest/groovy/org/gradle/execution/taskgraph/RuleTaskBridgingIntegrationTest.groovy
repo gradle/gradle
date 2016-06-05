@@ -22,6 +22,76 @@ import org.gradle.util.TextUtil
 
 class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
+    def "can view task container as various view types"() {
+        given:
+        buildFile << '''
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void applyMessages(ModelMap<Task> tasks) {
+                    println "as map: $tasks"
+                }
+                @Mutate
+                void applyMessages(TaskContainer tasks) {
+                    println "as container: $tasks"
+                }
+                @Mutate
+                void applyMessages(@Path("tasks") ModelElement tasks) {
+                    println "as model element: $tasks"
+                    println "name: $tasks.name"
+                }
+            }
+
+            apply type: MyPlugin
+        '''
+
+        when:
+        run()
+
+        then:
+        output.contains "as map: ModelMap<Task> 'tasks'"
+        output.contains "as container: []"
+        output.contains "as model element: ModelMap<Task> 'tasks'"
+        output.contains "name: tasks"
+    }
+
+    def "can view tasks as various view types"() {
+        given:
+        buildFile << """
+            ${ruleBasedTasks()}
+
+            class MyPlugin extends RuleSource {
+                @Mutate
+                void tasks(ModelMap<EchoTask> tasks) {
+                    tasks.create("test")
+                }
+                @Mutate
+                void applyMessages(@Path("tasks.test") Task task) {
+                    println "as task: \$task"
+                }
+                @Mutate
+                void applyMessages(@Path("tasks.test") EchoTask task) {
+                    println "as task subtype: \$task"
+                }
+                @Mutate
+                void applyMessages(@Path("tasks.test") ModelElement task) {
+                    println "as model element: \$task"
+                    println "name: \$task.name"
+                }
+            }
+
+            apply type: MyPlugin
+        """
+
+        when:
+        run("test")
+
+        then:
+        output.contains "as task: task ':test'"
+        output.contains "as task subtype: task ':test'"
+        output.contains "as model element: EchoTask 'tasks.test'"
+        output.contains "name: test"
+    }
+
     def "mutate rules are applied to tasks created using legacy DSL when the task is added to the task graph"() {
         given:
         buildFile << """

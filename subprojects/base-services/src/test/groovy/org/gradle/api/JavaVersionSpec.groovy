@@ -209,7 +209,7 @@ public class JavaVersionSpec extends Specification {
     }
 
     def "uses system property to determine if compatible with Java 9"() {
-        System.properties['java.version'] = '1.9'
+        System.properties['java.version'] = javaVersion
 
         expect:
         !JavaVersion.current().java5
@@ -224,5 +224,8 @@ public class JavaVersionSpec extends Specification {
         JavaVersion.current().java7Compatible
         JavaVersion.current().java8Compatible
         JavaVersion.current().java9Compatible
+
+        where:
+        javaVersion << ['1.9', '9-ea']
     }
 }

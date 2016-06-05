@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import com.google.common.collect.Iterables
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -27,14 +28,14 @@ import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @IgnoreIf({ //noinspection UnnecessaryQualifiedReference
-    GradleContextualExecuter.parallel || JavaCompileParallelIntegrationTest.availableJdksWithJavac().size() < 2
+    GradleContextualExecuter.parallel || JavaCompileParallelIntegrationTest.availableJdksWithJavac().keySet().size() < 2
 })
 class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 
-    static List<JavaInfo> availableJdksWithJavac() {
-        AvailableJavaHomes.availableJdks.findAll {
+    static Map<JavaInfo, JavaVersion> availableJdksWithJavac() {
+        AvailableJavaHomes.availableJdksWithVersion.findAll { jdk, version ->
             try {
-                if (it.javacExecutable) {
+                if (jdk.javacExecutable) {
                     return true
                 }
             }
@@ -48,7 +49,7 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-3029")
     def "system property java.home is not modified across compile task boundaries"() {
         def projectNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g']
-        def jdks = Iterables.cycle(availableJdksWithJavac()*.javacExecutable.collect(TextUtil.&escapeString)).iterator()
+        def jdks = Iterables.cycle(availableJdksWithJavac().entrySet()).iterator()
 
         settingsFile << "include ${projectNames.collect { "'$it'" }.join(', ')}"
         buildFile << """
@@ -66,12 +67,18 @@ class JavaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
 """
 
         projectNames.each { projectName ->
+            def jdk = jdks.next()
+            def executable = TextUtil.escapeString(jdk.key.javacExecutable)
+            def version = jdk.value
             buildFile << """
 project(':$projectName') {
     tasks.withType(JavaCompile) {
+        sourceCompatibility = '${version}'
+        targetCompatibility = '${version}'
+
         options.with {
             fork = true
-            forkOptions.executable = "${jdks.next()}"
+            forkOptions.executable = "${executable}"
         }
     }
 }

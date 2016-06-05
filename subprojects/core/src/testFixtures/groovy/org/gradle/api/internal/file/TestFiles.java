@@ -24,6 +24,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.process.internal.ExecActionFactory;
 import org.gradle.process.internal.ExecHandleFactory;
+import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 
 import java.io.File;
@@ -79,6 +80,10 @@ public class TestFiles {
     }
 
     public static ExecHandleFactory execHandleFactory(File baseDir) {
+        return new DefaultExecActionFactory(resolver(baseDir));
+    }
+
+    public static JavaExecHandleFactory javaExecHandleFactory(File baseDir) {
         return new DefaultExecActionFactory(resolver(baseDir));
     }
 

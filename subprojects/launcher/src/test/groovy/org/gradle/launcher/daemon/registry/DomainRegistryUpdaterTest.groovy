@@ -27,7 +27,7 @@ public class DomainRegistryUpdaterTest extends Specification {
     final DaemonRegistry registry = Mock()
     final Address address = Mock()
     final DaemonContext context = Mock()
-    final updater = new DomainRegistryUpdater(registry, context, "password")
+    final updater = new DomainRegistryUpdater(registry, context)
 
     def "marks idle"() {
         given:

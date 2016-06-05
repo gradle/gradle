@@ -39,7 +39,6 @@ import spock.lang.Unroll
 import java.nio.charset.Charset
 import java.util.concurrent.atomic.AtomicInteger
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
 @UsesNativeServices
 class Jdk7DirectoryWalkerTest extends Specification {
     @Rule

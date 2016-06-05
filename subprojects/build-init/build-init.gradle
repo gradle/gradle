@@ -85,6 +85,5 @@ class GenerateVersionProperties extends DefaultTask {
     }
 }
 
-
 useTestFixtures()
 useClassycle()

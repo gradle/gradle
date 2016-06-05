@@ -16,10 +16,18 @@
 
 package org.gradle.api.reporting;
 
+import org.gradle.api.tasks.OutputFile;
+
+import java.io.File;
+
 /**
  * A report that is a single file.
  */
 public interface SingleFileReport extends ConfigurableReport {
+    @OutputFile
+    @Override
+    File getDestination();
+
     /**
      * Always returns {@link Report.OutputType#FILE}
      *

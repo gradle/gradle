@@ -19,10 +19,16 @@ package org.gradle.plugins.ide.idea.model.internal;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.collect.*;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
@@ -36,11 +42,20 @@ import org.gradle.plugins.ide.internal.resolver.model.UnresolvedIdeRepoFileDepen
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.EnumMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class IdeaDependenciesProvider {
 
     private final IdeDependenciesExtractor dependenciesExtractor;
+    private final ModuleDependencyBuilder moduleDependencyBuilder;
     private Transformer<FilePath, File> getPath;
 
     /**
@@ -49,13 +64,13 @@ public class IdeaDependenciesProvider {
      * Applied in order: if a dependency is found in all listed configurations it is provided as
      * a dependency in given scope(s).
      */
-    Map<GeneratedIdeaScope, List<IdeaScopeMappingRule>> scopeMappings = new EnumMap<GeneratedIdeaScope, List<IdeaScopeMappingRule>>(GeneratedIdeaScope.class);
+    private Map<GeneratedIdeaScope, List<IdeaScopeMappingRule>> scopeMappings = new EnumMap<GeneratedIdeaScope, List<IdeaScopeMappingRule>>(GeneratedIdeaScope.class);
 
-    public IdeaDependenciesProvider() {
-        this(new IdeDependenciesExtractor());
+    public IdeaDependenciesProvider(ServiceRegistry serviceRegistry) {
+        this(new IdeDependenciesExtractor(), serviceRegistry);
     }
 
-    IdeaDependenciesProvider(IdeDependenciesExtractor dependenciesExtractor) {
+    IdeaDependenciesProvider(IdeDependenciesExtractor dependenciesExtractor, ServiceRegistry serviceRegistry) {
         this.dependenciesExtractor = dependenciesExtractor;
         scopeMappings.put(GeneratedIdeaScope.PROVIDED_TEST,
                 Collections.singletonList(new IdeaScopeMappingRule("providedRuntime", "test")));
@@ -75,10 +90,13 @@ public class IdeaDependenciesProvider {
                 Lists.newArrayList(new IdeaScopeMappingRule("testCompileClasspath"), new IdeaScopeMappingRule("testCompile"), new IdeaScopeMappingRule("testRuntime")));
         scopeMappings.put(GeneratedIdeaScope.COMPILE_CLASSPATH,
                 Collections.singletonList(new IdeaScopeMappingRule("compileClasspath")));
+
+        moduleDependencyBuilder = new ModuleDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry));
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
         getPath = new Transformer<FilePath, File>() {
+            @Override
             @Nullable
             public FilePath transform(File file) {
                 return file != null ? ideaModule.getPathFactory().path(file) : null;
@@ -118,10 +136,10 @@ public class IdeaDependenciesProvider {
                 }
             }
             List<Configuration> plusConfigurations = plusMinusConfigurations.containsKey("plus")
-                ? Lists.<Configuration>newArrayList(plusMinusConfigurations.get("plus"))
+                ? Lists.newArrayList(plusMinusConfigurations.get("plus"))
                 : Lists.<Configuration>newArrayList();
             List<Configuration> minusConfigurations = plusMinusConfigurations.containsKey("minus")
-                ? Lists.<Configuration>newArrayList(plusMinusConfigurations.get("minus"))
+                ? Lists.newArrayList(plusMinusConfigurations.get("minus"))
                 : Lists.<Configuration>newArrayList();
             for (IdeaScopeMappingRule scopeMappingRule : scopeMappings.get(scope)) {
                 for(Configuration configuration: ideaModule.getProject().getConfigurations()) {
@@ -145,8 +163,9 @@ public class IdeaDependenciesProvider {
                 IdeDependencyKey<?, Dependency> key = IdeDependencyKey.forProjectDependency(
                         ideProjectDependency,
                         new IdeDependencyKey.DependencyBuilder<IdeProjectDependency, Dependency>() {
+                            @Override
                             public Dependency buildDependency(IdeProjectDependency dependency, String scope) {
-                                return new ModuleDependencyBuilder().create(dependency, scope);
+                                return moduleDependencyBuilder.create(dependency, scope);
                             }});
                 dependencyToConfigurations.put(key, configuration.getName());
             }
@@ -159,6 +178,7 @@ public class IdeaDependenciesProvider {
                     IdeDependencyKey<?, Dependency> key = IdeDependencyKey.forRepoFileDependency(
                             ideRepoFileDependency,
                             new IdeDependencyKey.DependencyBuilder<IdeExtendedRepoFileDependency, Dependency>() {
+                                @Override
                                 public Dependency buildDependency(IdeExtendedRepoFileDependency dependency, String scope) {
                                     Set<FilePath> javadoc = CollectionUtils.collect(dependency.getJavadocFiles(), new LinkedHashSet<FilePath>(), getPath);
                                     Set<FilePath> source = CollectionUtils.collect(dependency.getSourceFiles(), new LinkedHashSet<FilePath>(), getPath);
@@ -177,6 +197,7 @@ public class IdeaDependenciesProvider {
                 IdeDependencyKey<?, Dependency> key = IdeDependencyKey.forLocalFileDependency(
                         fileDependency,
                         new IdeDependencyKey.DependencyBuilder<IdeLocalFileDependency, Dependency>() {
+                            @Override
                             public Dependency buildDependency(IdeLocalFileDependency dependency, String scope) {
                                 return new SingleEntryModuleLibrary(getPath.transform(dependency.getFile()), scope);
                             }});
@@ -199,6 +220,7 @@ public class IdeaDependenciesProvider {
                     ? Lists.newArrayList(Iterables.transform(
                             minusConfigurations,
                             new Function<Configuration, String>() {
+                                @Override
                                 public String apply(Configuration configuration) {
                                     return configuration.getName();
                                 }
@@ -242,6 +264,7 @@ public class IdeaDependenciesProvider {
 
     private static Function<String, Dependency> scopeToDependency(final IdeDependencyKey<?, Dependency> dependencyKey) {
         return new Function<String, Dependency>() {
+            @Override
             @Nullable
             public Dependency apply(String s) {
                 return dependencyKey.buildDependency(s);
@@ -259,6 +282,7 @@ public class IdeaDependenciesProvider {
         return Iterables.filter(
                 configurations,
                 new Predicate<Configuration>() {
+                    @Override
                     public boolean apply(Configuration input) {
                         return isMappedToIdeaScope(input, ideaModule);
                     }
@@ -268,6 +292,7 @@ public class IdeaDependenciesProvider {
     private boolean isMappedToIdeaScope(final Configuration configuration, IdeaModule ideaModule) {
         Iterable<IdeaScopeMappingRule> rules = Iterables.concat(scopeMappings.values());
         boolean matchesRule = Iterables.any(rules, new Predicate<IdeaScopeMappingRule>() {
+            @Override
             public boolean apply(IdeaScopeMappingRule ideaScopeMappingRule) {
                 return ideaScopeMappingRule.configurationNames.contains(configuration.getName());
             }
@@ -285,7 +310,7 @@ public class IdeaDependenciesProvider {
     }
 
     /** Looks for dependencies contained in all configurations to remove them from multimap and return as result. */
-    List<IdeDependencyKey<?, Dependency>> extractDependencies(Multimap<IdeDependencyKey<?, Dependency>, String> dependenciesToConfigs,
+    private List<IdeDependencyKey<?, Dependency>> extractDependencies(Multimap<IdeDependencyKey<?, Dependency>, String> dependenciesToConfigs,
                             Collection<String> configurations, Collection<String> minusConfigurations) {
         List<IdeDependencyKey<?, Dependency>> deps = new ArrayList<IdeDependencyKey<?, Dependency>>();
         List<IdeDependencyKey<?, Dependency>> minusDeps = new ArrayList<IdeDependencyKey<?, Dependency>>();

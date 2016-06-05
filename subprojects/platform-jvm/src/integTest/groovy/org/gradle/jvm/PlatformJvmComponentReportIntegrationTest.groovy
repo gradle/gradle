@@ -76,7 +76,6 @@ Binaries
 """
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "shows details of jvm library with multiple targets"() {
         given:
         buildFile << """

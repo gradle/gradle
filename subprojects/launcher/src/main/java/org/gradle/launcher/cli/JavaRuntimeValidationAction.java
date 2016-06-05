@@ -29,9 +29,7 @@ public class JavaRuntimeValidationAction implements Action<ExecutionListener> {
     }
 
     public void execute(ExecutionListener executionListener) {
-        if (!JavaVersion.current().isJava6Compatible()) {
-            throw UnsupportedJavaRuntimeException.usingUnsupportedVersion("Gradle", JavaVersion.VERSION_1_6);
-        }
+        UnsupportedJavaRuntimeException.assertUsingVersion("Gradle", JavaVersion.VERSION_1_7);
         action.execute(executionListener);
     }
 }

@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.DefaultComponentSelection;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.resolve.result.BuildableComponentSelectionResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.rules.SpecRuleAction;
@@ -46,7 +46,7 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         this.componentSelectionRules = componentSelectionRules;
     }
 
-    public ComponentResolveMetaData selectNewestComponent(ComponentResolveMetaData one, ComponentResolveMetaData two) {
+    public ComponentResolveMetadata selectNewestComponent(ComponentResolveMetadata one, ComponentResolveMetadata two) {
         if (one == null || two == null) {
             return two == null ? one : two;
         }
@@ -63,8 +63,8 @@ class DefaultVersionedComponentChooser implements VersionedComponentChooser {
         return comparison < 0 ? two : one;
     }
 
-    private boolean isGeneratedModuleDescriptor(ComponentResolveMetaData componentResolveMetaData) {
-        return componentResolveMetaData.isGenerated();
+    private boolean isGeneratedModuleDescriptor(ComponentResolveMetadata componentResolveMetadata) {
+        return componentResolveMetadata.isGenerated();
     }
 
     public void selectNewestMatchingComponent(Collection<? extends ModuleComponentResolveState> versions, BuildableComponentSelectionResult result, ModuleVersionSelector requested) {

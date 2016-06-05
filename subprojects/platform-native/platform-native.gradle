@@ -40,3 +40,4 @@ useClassycle(exclude: ['org/gradle/nativeplatform/plugins/**',
                        'org/gradle/nativeplatform/tasks/**',
                        'org/gradle/nativeplatform/internal/resolve/**',
                        'org/gradle/nativeplatform/toolchain/internal/**'])
+

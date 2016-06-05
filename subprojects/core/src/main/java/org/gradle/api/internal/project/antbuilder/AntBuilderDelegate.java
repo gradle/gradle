@@ -33,13 +33,13 @@ import java.util.Set;
 
 public class AntBuilderDelegate extends BuilderSupport {
 
-    public final Object builder;
-    private final DynamicObject dynamicObject;
+    private final Object originalBuilder;
+    private final DynamicObject builder;
     private final ClassLoader antlibClassLoader;
 
     public AntBuilderDelegate(Object builder, ClassLoader antlibClassLoader) {
-        this.builder = builder;
-        this.dynamicObject = DynamicObjectUtil.asDynamicObject(builder);
+        this.originalBuilder = builder;
+        this.builder = DynamicObjectUtil.asDynamicObject(builder);
         this.antlibClassLoader = antlibClassLoader;
     }
 
@@ -78,47 +78,51 @@ public class AntBuilderDelegate extends BuilderSupport {
     }
 
     private void addTaskDefinition(String name, String className) throws ClassNotFoundException {
-        DynamicObject project = DynamicObjectUtil.asDynamicObject(dynamicObject.getProperty("project"));
+        DynamicObject project = DynamicObjectUtil.asDynamicObject(builder.getProperty("project"));
         project.invokeMethod("addTaskDefinition", name, antlibClassLoader.loadClass(className));
     }
 
     public Object propertyMissing(String name) {
-        return dynamicObject.getProperty(name);
+        return builder.getProperty(name);
     }
 
     protected Object createNode(Object name) {
-        return dynamicObject.invokeMethod("createNode", name);
+        return builder.invokeMethod("createNode", name);
     }
 
     protected Object createNode(Object name, Map attributes) {
         if (name.equals("taskdef")) {
             taskdef(Cast.<Map<String, String>>uncheckedCast(attributes));
         } else {
-            return dynamicObject.invokeMethod("createNode", name, attributes);
+            return builder.invokeMethod("createNode", name, attributes);
         }
         return null;
     }
 
     protected Object createNode(Object name, Map attributes, Object value) {
-        return dynamicObject.invokeMethod("createNode", name, attributes, value);
+        return builder.invokeMethod("createNode", name, attributes, value);
     }
 
     protected Object createNode(Object name, Object value) {
-        return dynamicObject.invokeMethod("createNode", name, value);
+        return builder.invokeMethod("createNode", name, value);
     }
 
     protected void setParent(Object parent, Object child) {
-        dynamicObject.invokeMethod("setParent", parent, child);
+        builder.invokeMethod("setParent", parent, child);
     }
 
     protected void nodeCompleted(Object parent, Object node) {
         if (parent == null && node == null) {// happens when dispatching to taskdef via createNode()
             return;
         }
-        dynamicObject.invokeMethod("nodeCompleted", parent, node);
+        builder.invokeMethod("nodeCompleted", parent, node);
     }
 
     protected Object postNodeCompletion(Object parent, Object node) {
-        return dynamicObject.invokeMethod("postNodeCompletion", parent, node);
+        return builder.invokeMethod("postNodeCompletion", parent, node);
+    }
+
+    public Object getBuilder() {
+        return originalBuilder;
     }
 }

@@ -18,7 +18,7 @@ public class ConfigPlugin implements Plugin<Project> {
             child.getDependencies().add("compile", "commons-httpclient:commons-httpclient:3.0");
             child.getDependencies().add("compile", "commons-codec:commons-codec:1.2");
             child.getDependencies().add("compile", "org.slf4j:jcl-over-slf4j:1.6.6");
-            child.getDependencies().add("compile", "org.codehaus:groovy:groovy-all:2.4.4");
+            child.getDependencies().add("compile", "org.codehaus:groovy:groovy-all:2.4.6");
             child.getDependencies().add("compile", "commons-codec:commons-codec:1.2");
             child.getDependencies().add("testCompile", "junit:junit:4.12");
             child.getDependencies().add("testCompile", "org.testng:testng:6.4");

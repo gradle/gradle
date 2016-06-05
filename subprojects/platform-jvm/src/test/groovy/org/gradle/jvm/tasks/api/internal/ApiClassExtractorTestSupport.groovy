@@ -19,18 +19,19 @@ package org.gradle.jvm.tasks.api.internal
 import groovy.transform.CompileStatic
 import groovy.transform.TupleConstructor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.objectweb.asm.ClassReader
 import spock.lang.Shared
 import spock.lang.Specification
 
-import javax.tools.*
+import javax.tools.DiagnosticCollector
+import javax.tools.JavaCompiler
+import javax.tools.JavaFileObject
+import javax.tools.SimpleJavaFileObject
+import javax.tools.ToolProvider
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 class ApiClassExtractorTestSupport extends Specification {
 
     private static class JavaSourceFromString extends SimpleJavaFileObject {

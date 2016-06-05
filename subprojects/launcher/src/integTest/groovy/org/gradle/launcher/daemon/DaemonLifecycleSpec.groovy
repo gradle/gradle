@@ -17,17 +17,18 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.daemon.DaemonContextParser
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
-import org.gradle.integtests.fixtures.daemon.DaemonContextParser
+import org.gradle.launcher.daemon.client.DaemonStartingMessage
 import org.gradle.launcher.daemon.registry.DaemonDir
+import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
-import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
-
 /**
  * Outlines the lifecycle of the daemon given different sequences of events.
  *
@@ -69,8 +70,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
     void startBuild(String javaHome = null, String buildEncoding = null) {
         run {
             executer.withTasks("watch")
+            executer.withDaemonIdleTimeoutSecs(daemonIdleTimeout)
             executer.withArguments(
-                    "-Dorg.gradle.daemon.idletimeout=${daemonIdleTimeout * 1000}",
                     "-Dorg.gradle.daemon.healthcheckinterval=${periodicCheckInterval * 1000}",
                     "--info",
                     "-Dorg.gradle.jvmargs=-ea")
@@ -107,9 +108,27 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
+    void waitForFileDelete(File file) {
+        run {
+            poll(10) { assert(!file.exists()) }
+        }
+    }
+
     void waitForBuildToWait(buildNum = 0) {
         run {
             poll(20) { assert builds[buildNum].standardOutput.contains("waiting for stop file"); }
+        }
+    }
+
+    void waitForDaemonExpiration(buildNum = 0) {
+        run {
+            poll(20) { assert builds[buildNum].standardOutput.contains("Daemon will be stopped at the end of the build") }
+        }
+    }
+
+    void waitForStartupMessageToContain(buildNum = 0, String expected) {
+        run {
+            poll(20) { assert builds[buildNum].standardOutput.contains(expected) }
         }
     }
 
@@ -241,6 +260,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         busy 2
+        waitForStartupMessageToContain(1, DaemonStartingMessage.ONE_BUSY_DAEMON_MESSAGE)
     }
 
     def "sending stop to idle daemons causes them to terminate immediately"() {
@@ -263,6 +283,33 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    def "daemon start message contains stop reasons"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        daemonContext {
+            new DaemonDir(executer.daemonBaseDir).registry.delete()
+        }
+
+        then:
+        waitForDaemonExpiration()
+
+        then:
+        completeBuild()
+
+        then:
+        stopped()
+
+        when:
+        startBuild()
+
+        then:
+        waitForStartupMessageToContain(1, DaemonStartingMessage.ONE_DAEMON_STOPPED_PREFIX + DaemonRegistryUnavailableExpirationStrategy.REGISTRY_BECAME_UNREADABLE)
+    }
+
     def "daemon stops after current build if registry is deleted"() {
         when:
         startBuild()
@@ -281,8 +328,55 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    def "idle daemon stops immediately if registry is deleted"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+
+        then:
+        completeBuild()
+
+        and:
+        idle()
+
+        when:
+        daemonContext {
+            new DaemonDir(executer.daemonBaseDir).registry.delete()
+        }
+
+        then:
+        stopped()
+    }
+
+    def "daemon stops after current build if registry is deleted and recreated"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+        daemonContext {
+            new DaemonDir(executer.daemonBaseDir).registry.delete()
+        }
+        startBuild()
+        waitForBuildToWait(1)
+
+        then:
+        daemonContext(0) {
+            assert(new DaemonDir(executer.daemonBaseDir).registry.exists())
+        }
+        completeBuild(0)
+        completeBuild(1)
+
+        and:
+        idle 1
+    }
+
     def "starting new build recreates registry and succeeds"() {
-        def registry
+        File registry
 
         when:
         startBuild()
@@ -293,7 +387,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         daemonContext {
             registry = new DaemonDir(executer.daemonBaseDir).registry
             registry.delete()
-            assert(!registry.exists())
+            waitForFileDelete(registry)
         }
 
         when:
@@ -359,6 +453,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         startBuild(null, "UTF-8")
+        waitForStartupMessageToContain(1, DaemonStartingMessage.ONE_INCOMPATIBLE_DAEMON_MESSAGE)
         waitForBuildToWait()
 
         then:

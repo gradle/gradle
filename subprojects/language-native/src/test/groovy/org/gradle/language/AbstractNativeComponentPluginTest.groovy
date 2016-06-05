@@ -84,7 +84,7 @@ abstract class AbstractNativeComponentPluginTest extends PlatformBaseSpecificati
                 components {
                     lib(NativeLibrarySpec) {
                         sources {
-                            "$pluginName" {
+                            "${this.pluginName}" {
                                 source {
                                     srcDirs "d3"
                                 }
@@ -96,7 +96,7 @@ abstract class AbstractNativeComponentPluginTest extends PlatformBaseSpecificati
                     }
                     exe(NativeExecutableSpec) {
                         sources {
-                            "$pluginName" {
+                            "${this.pluginName}" {
                                 source {
                                     srcDirs "d1", "d2"
                                 }
@@ -109,7 +109,6 @@ abstract class AbstractNativeComponentPluginTest extends PlatformBaseSpecificati
                 }
             }
         }
-
 
         expect:
         def components = realizeComponents()
@@ -136,13 +135,13 @@ abstract class AbstractNativeComponentPluginTest extends PlatformBaseSpecificati
                 components {
                     test(NativeExecutableSpec) {
                         binaries.all { NativeBinary binary ->
-                            binary."${pluginName}Compiler".define "NDEBUG"
-                            binary."${pluginName}Compiler".define "LEVEL", "1"
-                            binary."${pluginName}Compiler".args "ARG1", "ARG2"
+                            binary."${this.pluginName}Compiler".define "NDEBUG"
+                            binary."${this.pluginName}Compiler".define "LEVEL", "1"
+                            binary."${this.pluginName}Compiler".args "ARG1", "ARG2"
                         }
                         sources {
-                            anotherOne(sourceSetClass) {}
-                            emptyOne(sourceSetClass) {}
+                            anotherOne(this.sourceSetClass) {}
+                            emptyOne(this.sourceSetClass) {}
                         }
                     }
                 }

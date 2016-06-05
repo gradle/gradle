@@ -6,107 +6,107 @@ Here are the new features introduced in this Gradle release.
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
 Add-->
 
-### Set the character set used for filtering files in CopySpec
+<!--
+### Example new and noteworthy
+-->
 
-By default, file filtering using `CopySpec` uses the default platform character set to read and write filtered files.
-This can cause problems if, for example, the files are encoded using `UTF-8` but the default platform character set is another one.
+### Improvements since Gradle 2.0
 
-You can now define the character set to use when reading and writing filtered files per `CopySpec`, e.g.:
+- Performance improvements, faster builds and reduced memory usage
+    - Configuration time, incremental build, incremental native compilation, build script compilation, test execution
+- Gradle plugin portal
+    - Publishing plugin
+    - Maven and Ivy plugin repositories
+- Dependency management
+    - Compile-only dependencies for Java projects
+    - Improved component meta-data rules
+    - Component selection rules
+    - Component replacement rules
+    - Dependency substitution rules
+    - Support for S3 repositories
+    - Configurable HTTP authentication, including preemptive HTTP authentication
+    - Artifact query API access to ivy.xml and pom.xml
+    - Depend on a particular Maven snapshot
+- Daemon
+    - Health monitoring
+    - System memory pressure aware expiration
+- Continuous build
+- Incremental Java compile
+- Tooling API
+    - Composite builds
+    - Rich test, task and build progress events
+    - Run test classes or methods
+    - Cancellation
+    - Color output
+    - Eclipse builders and natures, Java source and runtime version, build JDK
+- IDE
+    - Improved Eclipse WTP integration, Scala integration
+    - Java source and runtime version
+- TestKit
+- publish plugins
+    - Publish to SFTP and S3 repositories
+    - Maven dependency exclusions, dependency classifiers
+    - Ivy extra attributes, dependency exclusions
+- Groovy annotation processing
+- Build environment report
+- Code quality and application plugins
+    - Various improvements
+- Native
+    - Parallel compilation
+    - Cross compilation
+    - Precompiled headers
+    - Google test support
+- Community
+    - More frequent releases
+    - More pull requests
+- Play support
+- Text resources
+- Software model    
+    - Dependency management for JVM libraries, target platform aware
+        - inter-project, intra-project and external libraries 
+    - JVM library API definition, compile avoidance
+    - JUnit support
+    - Components report, model report
+    - Validation and defaults rules, apply rules to all subjects with type
+    - More managed model features
+    - Better extension by plugins
+    - Model DSL
+    
+### Improved Gradle Daemon, now enabled by default
 
-    task filter(type: Copy) {
-        from 'some/place'
-        into 'somewhere/else'
-        expand(version: project.version)
-        filteringCharset = 'UTF-8'
-    }
+The performance improvement gained by using the Daemon is staggering: our performance tests [show that builds could be up to 75% faster](TODO(ew) link blog post), just by enabling the Gradle Daemon.
 
-See the “[Filtering files](userguide/working_with_files.html#sec:filtering_files)” section of the “Working with files” chapter in the user guide for more information and examples of using this new feature.
+We have been working hard to make the Gradle Daemon aware of its health and impact on the system it's running on; and we believe that it is now robust enough to be **enabled by default**.
 
-This was contributed by [Jean-Baptiste Nizet](https://github.com/jnizet).
+We encourage you to give the improved Daemon a try. If for some reason you encounter problems, you can [disable the Daemon](userguide/gradle_daemon.html#daemon_faq). Please [submit feedback to us](https://discuss.gradle.org/c/bugs/) if you encounter instability so that we can make further improvements.
 
-### Generated POM files now include classifiers and all artifacts for project dependencies
+### Delayed configuration of task inputs and outputs
 
-When publishing from a multi-project build to a Maven repository using the `maven` plugin, Gradle needs to map project dependencies to `<dependency>` declarations in the generated POM file. Previously, Gradle was ignoring the classifier attribute on any project artifacts, and would simply create a single `<dependency>` entry in the POM for any project dependency. This meant that the published POM for a project didn't contain the necessary dependencies to allow that project to be properly resolved from a Maven repository.
+A `configure()` method with an `Action` or `Closure` parameter was added to both `TaskInputs` and `TaskOutputs` to allow configuring the task's inputs and outputs directly before the task is to be executed.
 
-The mapping of project dependencies into POM file dependencies has been improved, and Gradle will now produce correct POM files for the following cases:
+### Up-to-date checks more robust against task implementation changes
 
- - When the depended-on project configuration produces a single artifact with a classifier: this classifier will be included in the POM `<dependency>` entry.
- - The depended-on project configuration produces multiple artifacts: a `<dependency>` entry will be created for each artifact, with the appropriate classifier attribute for each.
+Previously if a task's implementation class name changed, the class was deemed out-of-date even if its inputs and outputs matched the previous execution. However, if only the code of the task, or a dependent library changed, the task was still considered up-to-date. Since this version Gradle notices if the code of a task or its dependencies change between executions, and marks tasks as out-of-date when needed.
 
-As an example, given the following project definitions in Gradle:
+### Improved handling of external dependencies in `eclipse-wtp` plugin
 
-    project(':project1') {
-        dependencies {
-            compile project(':project2')
-            testCompile project(path: 'project2', configuration: 'testRuntime')
-        }
-    }
+Before Gradle 3.0, the `eclipse-wtp` plugin always defined external dependencies the WTP component descriptor. This caused several problems, listed at [GRADLE-2123](https://issues.gradle.org/browse/GRADLE-2123). To resolve this, the plugin now defines external dependencies in the Eclipse classpath and marks them as deployed/non-deployed accordingly. For each library a classpath entry similar to the one below is generated:
 
-    project(':project2') {
-        jar {
-            classifier = 'defaultJar'
-        }
+    <classpathentry kind="lib" path=“/path/to/lib-1.0.0.jar" exported=“false">
+        <attributes>
+            <attribute name="org.eclipse.jst.component.dependency" value="WEB-INF/lib"/>
+        </attributes>
+    </classpath>
+    
+If the project is not a Java project (and thus has no classpath), the dependencies are added to the component descriptor as before.
 
-        task testJar(type: Jar, dependsOn: classes) {
-            from sourceSets.test.output
-            classifier = 'tests'
-        }
+### Improved dependency resolution for `eclipse-wtp` plugin
 
-        artifacts {
-            testRuntime  testJar
-        }
-    }
+The `eclipse-wtp` plugin now fully leverages Gradle's dependency resolution engine. As a result, all dependency customisations like substitution rules and forced versions work in WTP projects.
 
-The generated POM file for `project1` will include these dependency entries:
+### `eclipse` plugin also applies `eclipse-wtp` for web projects
 
-    ...
-    <dependencies>
-      <dependency>
-        <groupId>org.gradle.test</groupId>
-        <artifactId>project2</artifactId>
-        <version>1.9</version>
-        <classifier>defaultJar</classifier>
-        <scope>compile</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.gradle.test</groupId>
-        <artifactId>project2</artifactId>
-        <version>1.9</version>
-        <classifier>tests</classifier>
-        <scope>test</scope>
-      </dependency>
-    </dependencies>
-    ...
-
-Previously, only a single `<dependency>` entry would have been generated for 'project2', omitting the 'classifier' attribute altogether.
-
-Many thanks to [Raymond Navarette](https://github.com/rnavarette) for contributing this feature.
-
-### Better control over Ant message logging
-
-In previous versions of Gradle, the mapping of Ant message priorities to Gradle logging levels was fixed and the default "lifecycle"
-log level was set in between the Ant "warn" and "info" priorities.  This meant that to show output from Ant tasks logged at the common "info"
-priority, the Gradle logging level had to be set to a higher verbosity, potentially exposing unwanted output.  Similarly, to suppress
-unwanted messages from Ant tasks, the Gradle logging level would need to be set to a lower verbosity, potentially suppressing other
-desirable output.
-
-You can now control the level of Ant logging by changing the message priority that maps to the Gradle lifecycle logging level:
-
-    ant {
-        lifecycleLogLevel = "INFO"
-    }
-
-This causes any Ant messages logged at the specified priority to be logged at the lifecycle logging level.  Any messages logged at a
-higher priority will also be logged at lifecycle level (or above if it is already mapped to a higher logging level).  Messages logged
-at a lower priority than the specified priority will be logged at the "info" logging level or below.
-
-### Dependency substitution in composite build defined via `GradleConnection`
-
-- Placeholder
-
-### Identifier properties for IDE Tooling API models
-
-- Placeholder
+If a project applies the `war` or `ear` plugins, then applying the `eclipse` plugin also applies `eclipse-wtp`. This improves the out-of-the box experience for Eclipse Buildship users.
 
 ## Promoted features
 
@@ -115,115 +115,147 @@ See the User guide section on the “[Feature Lifecycle](userguide/feature_lifec
 
 The following are the features that have been promoted in this Gradle release.
 
-### `StartParameter.consoleOutput` property
-
-The `StartParameter.consoleOutput` property has been promoted and is now stable.
+<!--
+### Example promoted
+-->
 
 ## Fixed issues
 
 ## Deprecations
 
 Features that have become superseded or irrelevant due to the natural evolution of Gradle become *deprecated*, and scheduled to be removed
-in the next major Gradle version (Gradle 3.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
+in the next major Gradle version (Gradle 4.0). See the User guide section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](http://discuss.gradle.org).
 
-### Setting the log level from build logic
+<!--
+### Example deprecation
+-->
 
-The ability to set the log level from build logic using [LoggingManager.setLevel()](javadoc/org/gradle/api/logging/LoggingManager.html#setLevel%28org.gradle.api.logging.LogLevel%29)
-is now deprecated and scheduled for removal in the next release of Gradle.  If you are using this feature to control logging of messages from Ant
-tasks, please use the [AntBuilder.setLifecycleLogLevel()](javadoc/org/gradle/api/AntBuilder.html#setLifecycleLogLevel%28java.lang.String%29) method instead.
+### Plural task output registration APIs
 
-### Support for running Gradle on Java 6
+The following APIs have been deprecated:
 
-Running Gradle using Java 6 is now deprecated, and support will be removed in Gradle 3.0.
-
-It will continue to be possible to build JVM based projects for Java 6 using Gradle 3.0, by running Gradle using Java 7 and configuring your build to use Java 6 to compile, test and run your code.
-
-Using the Gradle Tooling API and TestKit on Java 6 is also deprecated, and support will be removed in Gradle 3.0.
-
-### `StartParameter.colorOutput` property
-
-The `StartParameter.colorOutput` property has been deprecated and will be removed in Gradle 3.0. You should use the `consoleOutput` property instead.
-
-### Tooling API support for Gradle versions 1.1 and older
-
-Using the Gradle tooling API to run Gradle builds for Gradle versions 1.1 and older is now deprecated, and support will be removed in Gradle 3.0.
-
-### Tooling API model properties
-
-- `EclipseProjectDependency.targetProject` has been deprecated, use `EclipseProjectDependency.target` instead.
-
-### Deprecated task methods
-
-The `setName()` and `setProject()` methods in `AbstractTask` have been deprecated and will be removed in Gradle 3.0.
+* `@OutputFiles` annotation – use multiple `@OutputFile` properties instead
+* `@OutputDirectories` annotation – use multiple `@OutputDirectory` properties instead
+* `TaskOutputs.files()` method – call `TaskOutputs.file()` with each file separately instead
 
 ## Potential breaking changes
 
-### Gradle implementation dependencies are not visible to plugins at development time
+### Supported Java versions
 
-Implementing a Gradle plugin requires the declaration of `gradleApi()`
-to the `compile` configuration. The resolved dependency encompasses the
-entire Gradle runtime including Gradle's third party dependencies
-(e.g. Guava). Any third party dependencies declared by the plugin might
-conflict with the ones pulled in by the `gradleApi()` declaration. Gradle
-does not apply conflict resolution. As a result The user will end up with
-two addressable copies of a dependency on the compile classpath and in
- the test runtime classpath.
+TBD - Gradle requires Java 7 or later to run.
+TBD - Gradle tooling API requires Java 7 or later to run.
+TBD - Test execution in Gradle requires Java 6 or later.
 
-In previous versions of Gradle the dependency `gradleTestKit()`, which
-relies on a Gradle runtime, attempts to address this problem via class
-relocation. The use of `gradleApi()` and `gradleTestKit()` together
-became unreliable as classes of duplicate name but of different content
-were added to the classpath.
+### Sonar plugin has been removed
 
-With this version of Gradle proper class relocation has been implemented
- across the dependencies `gradleApi()`, `gradleTestKit()` and the published
- Tooling API JAR. Projects using any of those dependencies will not
- conflict anymore with classes from third party dependencies used by
- the Gradle runtime. Classes from third-party libraries provided by
- the Gradle runtime are no longer "visible" at compile and test
- time.
+The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
 
-### Change in plugin id
+### Ant-Based Scala Compiler has been removed
 
-`ComponentModelBasePlugin` can no longer be applied using id `component-base`. Its new id is `component-model-base`.
+The deprecated Ant-Based Scala Compiler has been removed from Gradle
+3.0. The Zinc Scala Compiler is now used exclusively. The following
+properties have been removed from the ScalaCompile task:
 
-### JAR metadata and Manifest content encoding
+1. `daemonServer`
+1. `fork`
+1. `useAnt`
+1. `useCompileDaemon`
 
-Previous versions of Gradle used to encode JAR/WAR/EAR files metadata and Manifests content using the platform default character set instead of UTF-8. Both are bugs and have been fixed in this release, see the related fixed issues above.
+### Support for TestNG javadoc annotations has been removed
 
-In order to keep backward compatibility, merged manifests are still read using the platform default character set.
+The support for declaring TestNG tests via javadoc annotations has been removed. The `Test.testSrcDirs` and the methods on `TestNGOptions` were removed, too,
+since they are not needed any more.
 
-If necessary, convenience properties have been added to [`Jar`](dsl/org.gradle.api.tasks.bundling.Jar.html), [`War`](dsl/org.gradle.api.tasks.bundling.War.html), [`Ear`](dsl/org.gradle.plugins.ear.Ear.html) tasks and both [`Manifest`](javadoc/org/gradle/api/java/archives/Manifest.html) and [`ManifestMergeSpec`](javadoc/org/gradle/api/java/archives/ManifestMergeSpec.html) types to control which character set to use when merging manifests.
+### Task property annotations on implemented interfaces
 
-In order to fall back to the old behaviour you can do the following:
+In previous versions, annotations on task properties like `@InputFile` and `@OutputDirectory` were only taken into account when they were declared on the task class itself, or one of its super-classes. Since Gradle 3.0 annotations declared on implemented interfaces are also taken into account.
 
-    jar {
-        # JAR metadata
-        metadataCharset = Charset.defaultCharset().name()
-        manifest {
-            # Manifest content
-            contentCharset = Charset.defaultCharset().name()
-        }
-    }
+### `eclipse-wtp` handling of external dependencies changed
 
-### Additional POM `<dependency>` attributes generated for some project dependencies
+For Java projects, the `eclipse-wtp` plugin no longer adds external dependencies to the WTP component file, but to the classpath instead. Any customizations related to external dependencies that were made in the `eclipse.wtp.component.file` hooks now need to be done in the `eclipse.classpath.file` hooks instead.
 
-As described above, POM files generated by the `maven` plugin now include classifiers and all artifacts for project dependencies. This improvement may break existing Gradle builds, particularly those that include a specific workaround for the previous behaviour. These workarounds should no longer be required, and may need to be removed to ensure that Gradle 2.14 will create correct `<dependency>` attributes for project dependencies.
+### `eclipse-wtp` is automatically applied when the `war` or `ear` plugins are applied
+
+User who are building `war` projects with Eclipse, but for any reason do not want to have WTP enabled can deactivate WTP like this:
+
+```
+eclipse.project {
+    natures.removeAll { it.startsWith('org.eclipse.wst') }
+    buildCommands.removeAll { it.name.startsWith('org.eclipse.wst') }
+}
+```
+
+### Changes to previously deprecated APIs
+
+* The `AbstractTask` methods `setName()` and `setProject()` are removed.
+* The `plus(Iterable<FileCollection>)` and `#minus(Iterable<FileCollection>)` methods have been removed from `FileCollection`.
+* Changing configurations after they have been resolved now throws an error.
+* Changing configurations after task dependencies have been resolved now throws an error.
+* Declaring custom `check`, `clean`, `build` or `assemble` tasks is not allowed anymore when using the lifecycle plugin.
+* Configuring the Eclipse project name during `beforeMerged` or `whenMerged` is not allowed anymore.
+* Removed `--no-color` command-line option (use `--console=plain` instead).
+* Removed `--parallel-threads` command-line option (use `--parallel` + `--max-workers` instead).
+* Removed `Zip.encoding` (use `Zip.metadataCharset` instead).
+* Removed `DistributionPlugin.addZipTask()` and `addTarTask()`.
+* The `installApp` task is no longer created by the `application` plugin (use `installDist` instead).
+* Removed `Groovydoc.overview` (use `overviewText` instead).
+* Removed `LoggingManager.setLevel()`. It is now not possible to change the log level during the execution of a task.
+  If you were using this method to expose Ant logging messages, please use `AntBuilder.setLifecycleLogLevel()` instead.
+* Removed `AntScalaCompiler` in favor of `ZincScalaCompiler`.
+* Removed `EclipseClasspath.noExportConfigurations` property.
+* Removed `ProjectDependency.declaredConfigurationName` property.
+* Removed `AbstractLibrary.declaredConfigurationName` property.
+* Removed `BuildExceptionReporter`.
+* Removed `BuildLogger`.
+* Removed `BuildResultLogger`.
+* Removed `TaskExecutionLogger`.
+* Removed `ConflictResolution`.
+* Removed `Module`.
+* Removed `DeleteAction`.
+* Removed `EclipseDomainModel`.
+* Removed `AntGroovydoc`.
+* Removed `AntScalaDoc`.
+* Removed `BinaryType`.
+* Removed `LanguageType`.
+* Removed `ConventionValue`.
+* Removed `org.gradle.platform.base.test.TestSuiteBinarySpec` replaced by `org.gradle.testing.base.TestSuiteBinarySpec`
+* Removed `org.gradle.platform.base.test.TestSuiteContainer` replaced by `org.gradle.testing.base.TestSuiteContainer`
+* Removed `org.gradle.platform.base.test.TestSuiteSpec` replaced by `org.gradle.testing.base.TestSuiteSpec`
+* TestKit supports Gradle versions 1.2 or later.
+* Build comparison plugin supports Gradle versions 1.2 or later.
+* Removed `Specs.and()`, `Specs.or()` and `Specs.not()`
+* Removed `StartParameter.getParallelThreadCount()` and `StartParameter.setParallelThreadCount()`
+* Removed `PrefixHeaderFileGenerateTask.getHeaders()`
+* Removed `org.gradle.tooling.model.Task.getProject()`
+* Removed `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`
+* Removed old wrapper properties `urlRoot`, `distributionName`, `distributionVersion` and `distributionClassifier`
+* Removed deprecated `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
+* Removed deprecated constructor `DefaultSourceDirectorySet(String name, FileResolver fileResolver)`
+
+### Tooling API changes
+
+TBD - Requires tooling API version 2.0 or later.
+TBD - Tooling API supports only Gradle 1.2 and later.
+
+#### Eclipse model contains classpath attributes for project and external dependencies
+
+The `EclipseProjectDependency` and `EclipseExternalDependency` models now contain `ClasspathAttribute`s. By default the JavaDoc location attribute and WTP deployment attributes are populated.
+ 
+Any customizations done via `eclipse.classpath.file.beforeMerged` and `eclipse.classpath.file.whenMerged` are also reflected in these tooling models. 
 
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-- [Igor Melnichenko](https://github.com/Myllyenko) - fixed Groovydoc up-to-date checks ([GRADLE-3349](https://issues.gradle.org/browse/GRADLE-3349))
-- [Sandu Turcan](https://github.com/idlsoft) - add wildcard exclusion for non-transitive dependencies in POM ([GRADLE-1574](https://issues.gradle.org/browse/GRADLE-1574))
-- [Jean-Baptiste Nizet](https://github.com/jnizet) - add `filteringCharset` property to `CopySpec` ([GRADLE-1267](https://issues.gradle.org/browse/GRADLE-1267))
-- [Simon Herter](https://github.com/sherter) - add thrown exception to Javadocs for `ExtensionContainer`
-- [Raymond Navarette](https://github.com/rnavarette) - add classifiers for project dependencies in generated POM files ([GRADLE-3030](https://issues.gradle.org/browse/GRADLE-3030))
-- [Armin Groll](https://github.com/arming9) - Make Gradle source code compile inside Eclipse
-- [Juan Martín Sotuyo Dodero](https://github.com/jsotuyod) - fix NPE when configuring FileTree's builtBy by map ([GRADLE-3444](https://issues.gradle.org/browse/GRADLE-3444))
-
+ - [Tatsiana Drabovich](https://github.com/blestka) - Fixed TestNG Listener adapters equality (GRADLE-3189)
+ - [Michael Ottati](https://github.com/mottati) - Allow Jetty daemon instances to be shut down. (GRADLE-2263)
+ - [Gregorios Leach](https://github.com/simtel12) - Include directories when using a S3Client to list objects in a prefix. (GRADLE-3453)
+ - [Mahmoud  Khater](https://github.com/mahmoud-k) - Fix a problem with determining the version of Findbugs on the classpath (GRADLE-3457)
+ - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.6
+ - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
+  
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->

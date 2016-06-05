@@ -18,6 +18,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.hash.Hasher
@@ -41,7 +42,7 @@ class DefaultJarSnapshotterTest extends Specification {
 
     def "creates snapshot for an empty jar"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(HashUtil.createHash("foo", "md5"), new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing")))))
+        def snapshot = snapshotter.createSnapshot(HashUtil.createHash("foo", "md5"), new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing"))), TestFiles.resolver().getPatternSetFactory()))
         snapshot.hashes.isEmpty()
         snapshot.analysis
     }

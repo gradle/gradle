@@ -34,25 +34,6 @@ public interface LoggingConfiguration {
     void setLogLevel(LogLevel logLevel);
 
     /**
-     * Returns true if logging output should be displayed in color when Gradle is running in a console which supports
-     * color output. The default value is true.
-     *
-     * @return true if logging output should be displayed in color.
-     * @deprecated Use {@link #getConsoleOutput()} instead.
-     */
-    @Deprecated
-    boolean isColorOutput();
-
-    /**
-     * Specifies whether logging output should be displayed in color.
-     *
-     * @param colorOutput true if logging output should be displayed in color.
-     * @deprecated Use {@link #setConsoleOutput(ConsoleOutput)} instead.
-     */
-    @Deprecated
-    void setColorOutput(boolean colorOutput);
-
-    /**
      * Returns the style of logging output that should be written to the console.
      * Defaults to {@link ConsoleOutput#Auto}
      */
@@ -61,7 +42,7 @@ public interface LoggingConfiguration {
     /**
      * Specifies the style of logging output that should be written to the console.
      */
-    void setConsoleOutput(ConsoleOutput colorOutput);
+    void setConsoleOutput(ConsoleOutput consoleOutput);
 
     /**
      * Returns the detail that should be included in stacktraces. Defaults to {@link ShowStacktrace#INTERNAL_EXCEPTIONS}.

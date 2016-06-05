@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -61,23 +61,23 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     }
 
     @Override
-    public void build(ComponentArtifactMetaData artifact) {
-        if (artifact instanceof CompositeProjectComponentArtifactMetaData) {
-            CompositeProjectComponentArtifactMetaData artifactMetaData = (CompositeProjectComponentArtifactMetaData) artifact;
-            build(artifactMetaData.getComponentId(), artifactMetaData.getProjectDirectory(), artifactMetaData.getTaskNames());
+    public void build(ComponentArtifactMetadata artifact) {
+        if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
+            CompositeProjectComponentArtifactMetadata artifactMetaData = (CompositeProjectComponentArtifactMetadata) artifact;
+            build(artifactMetaData.getComponentId(), artifactMetaData.getRootDirectory(), artifactMetaData.getTasks());
         }
     }
 
-    private void build(ProjectComponentIdentifier project, File projectDirectory, Iterable<String> taskNames) {
+    private void build(ProjectComponentIdentifier project, File buildDirectory, Iterable<String> taskNames) {
         buildStarted(project);
         try {
-            doBuild(project, projectDirectory, taskNames);
+            doBuild(project, buildDirectory, taskNames);
         } finally {
             buildCompleted(project);
         }
     }
 
-    private void doBuild(ProjectComponentIdentifier project, File projectDirectory, Iterable<String> taskNames) {
+    private void doBuild(ProjectComponentIdentifier project, File buildDirectory, Iterable<String> taskNames) {
         List<String> tasksToExecute = Lists.newArrayList();
         for (String taskName : taskNames) {
             if (executedTasks.put(project, taskName)) {
@@ -88,8 +88,8 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
             return;
         }
 
-        StartParameter param = requestedStartParameter.newBuild();
-        param.setProjectDir(projectDirectory);
+        StartParameter param = requestedStartParameter.newInstance();
+        param.setProjectDir(buildDirectory);
         param.setTaskNames(tasksToExecute);
 
         GradleLauncher launcher = gradleLauncherFactory.newInstance(param, serviceRegistry);

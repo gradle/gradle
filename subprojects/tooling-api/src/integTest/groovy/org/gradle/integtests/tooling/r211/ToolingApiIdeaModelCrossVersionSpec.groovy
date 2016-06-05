@@ -30,7 +30,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    @TargetGradleVersion(">=1.2 <2.11")
     def "older Gradle versions infer project source settings from default idea plugin language level"() {
         given:
         if (projectAppliesJavaPlugin) { buildFile << "apply plugin: 'java'"}
@@ -48,7 +48,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         true                     | defaultIdeaPluginLanguageLevelForJavaProjects
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    @TargetGradleVersion(">=1.2 <2.11")
     def "older Gradle versions infer project source settings from configured idea plugin language level"() {
         given:
         buildFile << """
@@ -72,7 +72,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         applyJavaPlugin << [false, true]
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    @TargetGradleVersion(">=1.2 <2.11")
     def "older Gradle version throw exception when querying idea module java settings"() {
         when:
         def ideaProject = loadIdeaProjectModel()
@@ -82,7 +82,7 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
         thrown(UnsupportedMethodException)
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8 <2.11")
+    @TargetGradleVersion(">=1.2 <2.11")
     def "older Gradle version throws exception when querying idea project java bytecode version or jdk"() {
         given:
         def ideaProject = loadIdeaProjectModel()
@@ -310,8 +310,6 @@ description = org.gradle.internal.jvm.Jvm.current().javaHome.toString()
     }
 
     private JavaVersion getDefaultIdeaPluginLanguageLevelForJavaProjects() {
-        // see IdeaPlugin#configureIdeaProjectForJava(Project)
-        println "GRADLE_VERSION " + getTargetDist().getVersion().toString()
-        getTargetDist().getVersion().version.startsWith("1.0-milestone-8") ? JavaVersion.VERSION_1_5 : JavaVersion.current()
+        return JavaVersion.current()
     }
 }

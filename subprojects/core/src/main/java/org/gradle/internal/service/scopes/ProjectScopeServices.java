@@ -20,19 +20,33 @@ import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.*;
+import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.ClassGeneratorBackedInstantiator;
+import org.gradle.api.internal.DependencyInjectingInstantiator;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
-import org.gradle.api.internal.artifacts.ModuleInternal;
+import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.component.ComponentRegistry;
 import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
-import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.BaseDirFileResolver;
+import org.gradle.api.internal.file.DefaultFileOperations;
+import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
+import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
+import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.SourceDirectorySetFactory;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.plugins.*;
+import org.gradle.api.internal.plugins.DefaultPluginManager;
+import org.gradle.api.internal.plugins.PluginApplicator;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.api.internal.plugins.RuleBasedPluginApplicator;
 import org.gradle.api.internal.project.DefaultAntBuilderFactory;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -46,6 +60,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -53,7 +68,6 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.typeconversion.DefaultTypeConverter;
 import org.gradle.internal.typeconversion.TypeConverter;
-import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.DefaultModelRegistry;
@@ -130,8 +144,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultAntBuilderFactory(project, new DefaultAntLoggingAdapterFactory());
     }
 
-    protected ToolingModelBuilderRegistry createToolingModelRegistry() {
-        return new DefaultToolingModelBuilderRegistry();
+    protected ToolingModelBuilderRegistry decorateToolingModelRegistry(ToolingModelBuilderRegistry buildScopedToolingModelBuilders) {
+        return new DefaultToolingModelBuilderRegistry(buildScopedToolingModelBuilders);
     }
 
     protected PluginManagerInternal createPluginManager(Instantiator instantiator, DependencyInjectingInstantiator.ConstructorCache cachedConstructors) {
@@ -198,7 +212,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     private class ProjectBackedModuleMetaDataProvider implements DependencyMetaDataProvider {
-        public ModuleInternal getModule() {
+        public Module getModule() {
             return new ProjectBackedModule(project);
         }
     }

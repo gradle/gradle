@@ -21,9 +21,8 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.util.GradleVersion
-import spock.lang.IgnoreIf
+import org.gradle.util.Requires
 
-@IgnoreIf({ AvailableJavaHomes.java5 == null })
 class ToolingApiUnsupportedClientJvmCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         settingsFile << "rootProject.name = 'test'"
@@ -71,34 +70,27 @@ public class TestClient {
     }
 }
 """
-        targetDist.executer(temporaryFolder).inDirectory(projectDir).withTasks("installDist").requireGradleHome().run()
+        targetDist.executer(temporaryFolder).inDirectory(projectDir).withTasks("installDist").requireGradleDistribution().run()
     }
 
-    @TargetGradleVersion("current")
-    @ToolingApiVersion(">=1.2 <=1.12")
-    def "cannot use old tooling API client to run build using Java 5"() {
-        when:
-        def out = runScript()
-
-        then:
-        out.contains("Could not execute build using Gradle installation")
-        out.contains("Gradle ${targetDist.version.version} requires Java 6 or later to run. You are currently using Java 5.")
-    }
-
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
     @TargetGradleVersion("current")
     @ToolingApiVersion("current")
-    def "cannot use tooling API from Java 5"() {
+    def "cannot use tooling API from Java 6 or earlier"() {
         when:
-        def out = runScript()
+        def out = runScript(jdk)
 
         then:
-        out.contains("Gradle Tooling API ${targetDist.version.version} requires Java 6 or later to run. You are currently using Java 5.")
+        out.contains("Gradle Tooling API ${targetDist.version.version} requires Java 7 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 
-    def runScript() {
+    def runScript(def jdk) {
         def outStr = new ByteArrayOutputStream()
         def executer = new ScriptExecuter()
-        executer.environment(JAVA_HOME: AvailableJavaHomes.java5.javaHome)
+        executer.environment(JAVA_HOME: jdk.javaHome)
         executer.workingDir(projectDir)
         executer.standardOutput = outStr
         executer.commandLine("build/install/test/bin/test")

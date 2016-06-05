@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.Project;
 
-public class ProjectBackedModule implements ModuleInternal {
+public class ProjectBackedModule implements Module {
 
     private final Project project;
 

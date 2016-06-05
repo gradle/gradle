@@ -26,6 +26,7 @@ import org.gradle.plugin.use.internal.InvalidPluginRequestException;
 import org.gradle.plugin.use.internal.PluginRequest;
 
 public class ArtifactRepositoryPluginResolver implements PluginResolver {
+    public static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
 
     private String name;
     private final DependencyResolutionServices resolution;
@@ -59,6 +60,10 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     private boolean exists(PluginRequest request) {
+        // This works because the corresponding BackedByArtifactRepository PluginRepository sets
+        // registers an ArtifactRepository in the DependencyResolutionServices instance which is
+        // exclusively used by this ArtifactRepositoryPluginResolver. If the plugin marker
+        // doesn't exist in that isolated ArtifactRepository, this resolver won't look anywhere else.
         Dependency dependency = resolution.getDependencyHandler().create(getMarkerCoordinates(request));
 
         ConfigurationContainer configurations = resolution.getConfigurationContainer();
@@ -86,7 +91,7 @@ public class ArtifactRepositoryPluginResolver implements PluginResolver {
     }
 
     private String getMarkerCoordinates(PluginRequest pluginRequest) {
-        return pluginRequest.getId() + ":" + pluginRequest.getId() + ":" + pluginRequest.getVersion();
+        return pluginRequest.getId() + ":" + pluginRequest.getId() + PLUGIN_MARKER_SUFFIX +  ":" + pluginRequest.getVersion();
     }
 
 }

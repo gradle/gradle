@@ -19,7 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.ExecResult;
 
-public class DefaultExecAction extends ExecHandleBuilder implements ExecAction {
+public class DefaultExecAction extends DefaultExecHandleBuilder implements ExecAction {
     public DefaultExecAction(PathToFileResolver fileResolver) {
         super(fileResolver);
     }

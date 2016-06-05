@@ -30,9 +30,9 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadata
 import org.gradle.api.internal.notations.ModuleIdentifierNotationConverter;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.component.external.model.IvyModuleResolveMetaData;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.rules.*;
@@ -40,13 +40,21 @@ import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataProcessor {
-    private final Instantiator instantiator;
+    private static final String ADAPTER_NAME = ComponentMetadataHandler.class.getSimpleName();
+    private static final List<Class<?>> VALIDATOR_PARAM_LIST = Collections.<Class<?>>singletonList(IvyModuleDescriptor.class);
 
+    private static final NotationParser<Object, ModuleIdentifier> MODULE_IDENTIFIER_NOTATION_PARSER = NotationParserBuilder
+        .toType(ModuleIdentifier.class)
+        .converter(new ModuleIdentifierNotationConverter())
+        .toComposite();
     private static final String INVALID_SPEC_ERROR = "Could not add a component metadata rule for module '%s'.";
+
+    private final Instantiator instantiator;
     private final Set<SpecRuleAction<? super ComponentMetadataDetails>> rules = Sets.newLinkedHashSet();
     private final RuleActionAdapter<ComponentMetadataDetails> ruleActionAdapter;
     private final NotationParser<Object, ModuleIdentifier> moduleIdentifierNotationParser;
@@ -62,17 +70,12 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private static RuleActionAdapter<ComponentMetadataDetails> createAdapter() {
-        List<Class<?>> parameterTypes = Lists.newArrayList();
-        parameterTypes.add(IvyModuleDescriptor.class);
-        RuleActionValidator<ComponentMetadataDetails> ruleActionValidator = new DefaultRuleActionValidator<ComponentMetadataDetails>(parameterTypes);
-        return new DefaultRuleActionAdapter<ComponentMetadataDetails>(ruleActionValidator, ComponentMetadataHandler.class.getSimpleName());
+        RuleActionValidator<ComponentMetadataDetails> ruleActionValidator = new DefaultRuleActionValidator<ComponentMetadataDetails>(VALIDATOR_PARAM_LIST);
+        return new DefaultRuleActionAdapter<ComponentMetadataDetails>(ruleActionValidator, ADAPTER_NAME);
     }
 
     private static NotationParser<Object, ModuleIdentifier> createModuleIdentifierNotationParser() {
-        return NotationParserBuilder
-                .toType(ModuleIdentifier.class)
-                .converter(new ModuleIdentifierNotationConverter())
-                .toComposite();
+        return MODULE_IDENTIFIER_NOTATION_PARSER;
     }
 
     private ComponentMetadataHandler addRule(SpecRuleAction<? super ComponentMetadataDetails> ruleAction) {
@@ -121,7 +124,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
-    public void processMetadata(MutableModuleComponentResolveMetaData metadata) {
+    public void processMetadata(MutableModuleComponentResolveMetadata metadata) {
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
         processAllRules(metadata, details);
         if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
@@ -129,13 +132,13 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         }
     }
 
-    private void processAllRules(ModuleComponentResolveMetaData metadata, ComponentMetadataDetails details) {
+    private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {
         for (SpecRuleAction<? super ComponentMetadataDetails> rule : rules) {
             processRule(rule, metadata, details);
         }
     }
 
-    private void processRule(SpecRuleAction<? super ComponentMetadataDetails> specRuleAction, ModuleComponentResolveMetaData metadata, ComponentMetadataDetails details) {
+    private void processRule(SpecRuleAction<? super ComponentMetadataDetails> specRuleAction, ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {
         if (!specRuleAction.getSpec().isSatisfiedBy(details)) {
             return;
         }
@@ -144,11 +147,11 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         for (Class<?> inputType : specRuleAction.getAction().getInputTypes()) {
             if (inputType == IvyModuleDescriptor.class) {
                 // Ignore the rule if it expects Ivy metadata and this isn't an Ivy module
-                if (!(metadata instanceof IvyModuleResolveMetaData)) {
+                if (!(metadata instanceof IvyModuleResolveMetadata)) {
                     return;
                 }
 
-                IvyModuleResolveMetaData ivyMetadata = (IvyModuleResolveMetaData) metadata;
+                IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
                 inputs.add(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraInfo(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
                 continue;
             }

@@ -32,19 +32,11 @@ public interface FileCollectionSnapshotter {
     FileCollectionSnapshot emptySnapshot();
 
     /**
-     * Creates an actual snapshot based on the precheck information
-     *
-     * @param preCheck The precheck information returned from preCheck method
-     * @return The snapshot.
-     */
-    FileCollectionSnapshot snapshot(FileCollectionSnapshot.PreCheck preCheck);
-
-    /**
-     * Creates the 1. phase of a snapshot of the contents of the given collection
+     * Creates a snapshot of the contents of the given collection
      *
      * @param files The files to snapshot
      * @param allowReuse When true, can use cached snapshot trees
-     * @return The snapshot precheck.
+     * @return The snapshot.
      */
-    FileCollectionSnapshot.PreCheck preCheck(FileCollection files, boolean allowReuse);
+    FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse);
 }

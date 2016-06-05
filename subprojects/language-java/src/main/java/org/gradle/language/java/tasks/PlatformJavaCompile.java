@@ -27,6 +27,7 @@ import org.gradle.jvm.platform.JavaPlatform;
 public class PlatformJavaCompile extends JavaCompile {
     private JavaPlatform platform;
 
+    // TODO:LPTR This should be @Nested
     @Override
     public JavaPlatform getPlatform() {
         return platform;

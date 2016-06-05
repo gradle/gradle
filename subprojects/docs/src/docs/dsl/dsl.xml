@@ -175,6 +175,9 @@
                 <td>org.gradle.api.dsl.ConventionProperty</td>
             </tr>
             <tr>
+                <td>org.gradle.plugin.repository.GradlePluginPortal</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.plugins.ExtensionAware</td>
             </tr>
             <tr>
@@ -196,6 +199,9 @@
                 <td>org.gradle.api.publish.ivy.IvyModuleDescriptorSpec</td>
             </tr>
             <tr>
+                <td>org.gradle.plugin.repository.IvyPluginRepository</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.publish.maven.MavenPublication</td>
             </tr>
             <tr>
@@ -208,10 +214,19 @@
                 <td>org.gradle.api.publish.maven.MavenPom</td>
             </tr>
             <tr>
+                <td>org.gradle.plugin.repository.MavenPluginRepository</td>
+            </tr>
+            <tr>
                 <td>org.gradle.plugin.use.PluginDependenciesSpec</td>
             </tr>
             <tr>
                 <td>org.gradle.plugin.use.PluginDependencySpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugin.repository.PluginRepositoriesSpec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugin.repository.PluginRepository</td>
             </tr>
             <tr>
                 <td>org.gradle.api.resources.ResourceHandler</td>
@@ -414,12 +429,6 @@
             </tr>
             <tr>
                 <td>org.gradle.plugins.signing.Sign</td>
-            </tr>
-            <tr>
-                <td>org.gradle.api.plugins.sonar.SonarAnalyze</td>
-            </tr>
-            <tr>
-                <td>org.gradle.sonar.runner.tasks.SonarRunner</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Sync</td>

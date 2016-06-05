@@ -151,7 +151,7 @@ public class AbstractFileCollectionTest extends Specification {
         TestFileCollection collection2 = new TestFileCollection(file2, file3);
 
         when:
-        FileCollection sum = collection1.plus([collection2])
+        FileCollection sum = collection1.plus(collection2)
 
         then:
         sum instanceof UnionFileCollection
@@ -166,7 +166,7 @@ public class AbstractFileCollectionTest extends Specification {
         TestFileCollection collection2 = new TestFileCollection(file2, file3);
 
         when:
-        FileCollection sum = collection1 + [collection2]
+        FileCollection sum = collection1 + collection2
 
         then:
         sum instanceof UnionFileCollection
@@ -209,7 +209,7 @@ public class AbstractFileCollectionTest extends Specification {
         TestFileCollection collection2 = new TestFileCollection(file2, file3);
 
         when:
-        FileCollection difference = collection1.minus([collection2])
+        FileCollection difference = collection1.minus(collection2)
 
         then:
         difference.files == toLinkedSet(file1)
@@ -223,7 +223,7 @@ public class AbstractFileCollectionTest extends Specification {
         TestFileCollection collection2 = new TestFileCollection(file2, file3);
 
         when:
-        FileCollection difference = collection1 - [collection2]
+        FileCollection difference = collection1 - collection2
 
         then:
         difference.files == toLinkedSet(file1)

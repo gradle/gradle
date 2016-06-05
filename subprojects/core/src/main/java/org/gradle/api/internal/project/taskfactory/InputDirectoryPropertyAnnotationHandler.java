@@ -41,7 +41,7 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
         return InputDirectory.class;
     }
 
-    public void attachActions(PropertyActionContext context) {
+    public boolean attachActions(TaskPropertyActionContext context) {
         context.setValidationAction(inputDirValidation);
         final boolean isSourceDir = context.getTarget().getAnnotation(SkipWhenEmpty.class) != null;
         context.setConfigureAction(new UpdateAction() {
@@ -53,5 +53,11 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
                 }
             }
         });
+        return true;
+    }
+
+    @Override
+    public boolean getMustNotBeNullByDefault() {
+        return true;
     }
 }

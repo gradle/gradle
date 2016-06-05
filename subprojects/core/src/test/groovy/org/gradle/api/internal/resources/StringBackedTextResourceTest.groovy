@@ -17,11 +17,9 @@
 package org.gradle.api.internal.resources
 
 import org.gradle.api.internal.file.TemporaryFileProvider
-import org.gradle.util.TestUtil
 
 class StringBackedTextResourceTest extends AbstractTextResourceTest {
     def setup() {
-        def project = TestUtil.createRootProject()
         resource = new StringBackedTextResource(project.services.get(TemporaryFileProvider), "contents")
     }
 }

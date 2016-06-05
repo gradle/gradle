@@ -38,7 +38,6 @@ import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.internal.toolchain.PlayToolProvider;
 
 import java.io.File;
-import java.util.Arrays;
 
 /**
  * Plugin for executing tests from a Play Framework application.
@@ -89,7 +88,6 @@ public class PlayTestPlugin extends RuleSource {
                     test.getReports().getJunitXml().setDestination(new File(binaryBuildDir, "reports/test/xml"));
                     test.getReports().getHtml().setDestination(new File(binaryBuildDir, "reports/test"));
                     test.dependsOn(testCompileTaskName);
-                    test.setTestSrcDirs(Arrays.asList(testSourceDir));
                     test.setWorkingDir(projectIdentifier.getProjectDir());
                 }
             });

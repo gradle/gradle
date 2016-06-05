@@ -15,25 +15,57 @@
  */
 package org.gradle.launcher.daemon.server
 
+import com.google.common.base.Function
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
 import spock.lang.Specification
 
+import javax.annotation.Nullable
 import java.util.concurrent.TimeUnit
+
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*
 
 class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
     final Daemon daemon = Mock(Daemon)
     final DaemonStateCoordinator daemonStateCoordinator = Mock(DaemonStateCoordinator)
 
-    def "daemon should expire when it's idle time exceeds idleTimeout"() {
+    def "daemon should expire when its idle time exceeds idleTimeout"() {
         given:
-        DaemonIdleTimeoutExpirationStrategy expirationStrategy = new DaemonIdleTimeoutExpirationStrategy(100, TimeUnit.MILLISECONDS)
+        DaemonIdleTimeoutExpirationStrategy expirationStrategy = new DaemonIdleTimeoutExpirationStrategy(daemon, 1000000, TimeUnit.MILLISECONDS)
 
         when:
         1 * daemon.getStateCoordinator() >> { daemonStateCoordinator }
-        1 * daemonStateCoordinator.getIdleMillis(_) >> { 101L }
+        1 * daemonStateCoordinator.getIdleMillis(_) >> { 1000001L }
 
         then:
-        DaemonExpirationResult result = expirationStrategy.checkExpiration(daemon)
-        result.isExpired()
-        result.reason == "daemon has been idle for 101 milliseconds"
+        DaemonExpirationResult result = expirationStrategy.checkExpiration()
+        result.status == QUIET_EXPIRE
+        result.reason == "to reclaim system memory after being idle for 16 minutes"
+    }
+
+    def "daemon accepts idle timeout closure"() {
+        given:
+        DaemonIdleTimeoutExpirationStrategy expirationStrategy = new DaemonIdleTimeoutExpirationStrategy(daemon, new Function<Void, Long>() {
+            private long numTimesCalled = 0;
+
+            @Override
+            Long apply(@Nullable Void input) {
+                return ++numTimesCalled
+            }
+        })
+
+        when:
+        _ * daemon.getStateCoordinator() >> { daemonStateCoordinator }
+        _ * daemonStateCoordinator.getIdleMillis(_) >> { 2L }
+
+        then:
+        DaemonExpirationResult firstResult = expirationStrategy.checkExpiration()
+        firstResult.status == QUIET_EXPIRE
+        firstResult.reason == "to reclaim system memory after being idle for 0 minutes"
+
+        DaemonExpirationResult secondResult = expirationStrategy.checkExpiration()
+        secondResult.status == DO_NOT_EXPIRE
+
+        DaemonExpirationResult thirdResult = expirationStrategy.checkExpiration()
+        thirdResult.status == DO_NOT_EXPIRE
     }
 }

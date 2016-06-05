@@ -16,6 +16,7 @@
 package org.gradle.plugins.ide.api;
 
 import org.gradle.api.internal.PropertiesTransformer;
+import org.gradle.api.tasks.Internal;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObject;
 import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurationObjectGenerator;
 
@@ -26,19 +27,22 @@ import org.gradle.plugins.ide.internal.generator.generator.PersistableConfigurat
  */
 public abstract class PropertiesGeneratorTask<T extends PersistableConfigurationObject> extends GeneratorTask<T> {
     private final PropertiesTransformer transformer = new PropertiesTransformer();
-    
+
     public PropertiesGeneratorTask() {
         generator = new PersistableConfigurationObjectGenerator<T>() {
+            @Override
             public T create() {
                 return PropertiesGeneratorTask.this.create();
             }
 
+            @Override
             public void configure(T object) {
                 PropertiesGeneratorTask.this.configure(object);
             }
         };
     }
 
+    @Internal
     protected PropertiesTransformer getTransformer() {
         return transformer;
     }

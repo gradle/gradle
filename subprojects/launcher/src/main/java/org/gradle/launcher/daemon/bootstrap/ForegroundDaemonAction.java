@@ -15,20 +15,16 @@
  */
 package org.gradle.launcher.daemon.bootstrap;
 
-import com.google.common.collect.ImmutableList;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.server.AnyDaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonIdleTimeoutExpirationStrategy;
-import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy;
 import org.gradle.launcher.daemon.server.DaemonServices;
-
-import java.util.concurrent.TimeUnit;
+import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 public class ForegroundDaemonAction implements Runnable {
 
@@ -44,22 +40,18 @@ public class ForegroundDaemonAction implements Runnable {
         LoggingManagerInternal loggingManager = loggingRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.start();
 
-        DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager, new DefaultClassPath());
+        DaemonServices daemonServices = new DaemonServices(configuration, loggingRegistry, loggingManager, new DefaultClassPath(), new TrueTimeProvider().getCurrentTime());
         Daemon daemon = daemonServices.get(Daemon.class);
+        DaemonRegistry daemonRegistry = daemonServices.get(DaemonRegistry.class);
+        DaemonExpirationStrategy expirationStrategy = daemonServices.get(MasterExpirationStrategy.class);
 
         daemon.start();
 
         try {
-            daemonServices.get(DaemonRegistry.class).markIdle(daemon.getAddress());
-            daemon.stopOnExpiration(initializeExpirationStrategy(configuration), configuration.getPeriodicCheckIntervalMs());
+            daemonRegistry.markIdle(daemon.getAddress());
+            daemon.stopOnExpiration(expirationStrategy, configuration.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();
         }
-    }
-
-    private DaemonExpirationStrategy initializeExpirationStrategy(final DaemonServerConfiguration config) {
-        DaemonIdleTimeoutExpirationStrategy timeoutStrategy = new DaemonIdleTimeoutExpirationStrategy(config.getIdleTimeout(), TimeUnit.MILLISECONDS);
-        DaemonRegistryUnavailableExpirationStrategy registryUnavailableStrategy = new DaemonRegistryUnavailableExpirationStrategy();
-        return new AnyDaemonExpirationStrategy(ImmutableList.of(timeoutStrategy, registryUnavailableStrategy));
     }
 }

@@ -93,12 +93,14 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         and:
         output.contains DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE
+        output.contains DaemonMessages.UNABLE_TO_STOP_DAEMON
 
         when:
         stopDaemonsNow()
 
         then:
         !output.contains(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE)
+        !output.contains(DaemonMessages.UNABLE_TO_STOP_DAEMON)
         output.contains(DaemonMessages.NO_DAEMONS_RUNNING)
     }
 
@@ -121,6 +123,62 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         def analyzer = daemons
         analyzer.daemons.size() == 2        //2 daemon participated
         analyzer.visible.size() == 1        //only one address in the registry
+    }
+
+    @Issue("GRADLE-2464")
+    def "stop removes entry when nothing is listening on address"() {
+        when:
+        buildSucceeds()
+
+        then:
+        def daemon = daemons.daemon
+
+        when:
+        daemon.assertIdle()
+        daemon.kill()
+
+        then:
+        stopDaemonsNow()
+
+        and:
+        output.contains(DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE)
+        output.contains(DaemonMessages.NO_DAEMONS_RUNNING)
+
+        and:
+        def analyzer = daemons
+        analyzer.daemons.size() == 1
+        analyzer.visible.size() == 0
+    }
+
+    def "daemon drops connection when client request is badly formed"() {
+        given:
+        buildSucceeds()
+        def daemon = daemons.daemon
+        daemon.assertIdle()
+
+        when:
+        def socket = new Socket(InetAddress.getByName(null), daemon.port)
+        socket.outputStream.write("GET / HTTP/1.0\n\n".getBytes())
+        socket.outputStream.flush()
+
+        then:
+        // Nothing sent back
+        socket.inputStream.read() == -1
+
+        // Daemon is still running
+        daemon.becomesIdle()
+        daemon.log.contains("Unable to receive command from client")
+
+        when:
+        // Ensure daemon is functional
+        buildSucceeds()
+
+        then:
+        daemon.assertIdle()
+        daemons.daemons.size() == 1
+
+        cleanup:
+        socket?.close()
     }
 
     private static class TestServer extends ExternalResource {

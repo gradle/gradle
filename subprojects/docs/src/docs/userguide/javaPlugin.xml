@@ -1501,11 +1501,6 @@
                     <td><classname>File</classname></td>
                     <td><literal>testReportDir</literal></td>
                 </tr>
-                <tr>
-                    <td><literal>testSrcDirs</literal></td>
-                    <td><classname>List&lt;File></classname></td>
-                    <td><literal>sourceSets.test.java.srcDirs</literal></td>
-                </tr>
             </table>
         </section>
 

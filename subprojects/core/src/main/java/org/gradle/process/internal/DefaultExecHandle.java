@@ -20,10 +20,11 @@ import com.google.common.base.Joiner;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
-import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
 import org.gradle.process.internal.streams.StreamsHandler;
@@ -276,6 +277,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                     condition.await();
                 } catch (InterruptedException e) {
                     //ok, wrapping up...
+                    throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         } finally {
@@ -352,7 +354,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         private final ExecException failure;
         private final String displayName;
 
-        public ExecResultImpl(int exitValue, ExecException failure, String displayName) {
+        ExecResultImpl(int exitValue, ExecException failure, String displayName) {
             this.exitValue = exitValue;
             this.failure = failure;
             this.displayName = displayName;

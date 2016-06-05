@@ -19,7 +19,7 @@ package org.gradle.model.internal.manage.projection
 import org.gradle.api.internal.ClosureBackedAction
 import org.gradle.model.Managed
 import org.gradle.model.ModelSet
-import org.gradle.model.ModelViewClosedException
+import org.gradle.model.ReadOnlyModelViewException
 import org.gradle.model.internal.core.ModelPath
 import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.core.ModelRegistrations
@@ -153,7 +153,7 @@ class ModelSetModelProjectionTest extends ProjectRegistrySpec {
 
         then:
         def e = thrown ModelRuleExecutionException
-        e.cause instanceof ModelViewClosedException
+        e.cause instanceof ReadOnlyModelViewException
 
         where:
         method << ["afterEach", "beforeEach"]

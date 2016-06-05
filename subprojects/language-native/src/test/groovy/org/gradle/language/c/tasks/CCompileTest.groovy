@@ -28,11 +28,14 @@ import org.gradle.nativeplatform.toolchain.internal.PreCompiledHeader
 import org.gradle.nativeplatform.toolchain.internal.compilespec.CCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class CCompileTest extends Specification {
-    def testDir = new TestNameTestDirectoryProvider().testDirectory
-    CCompile cCompile = TestUtil.createTask(CCompile)
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+
+    CCompile cCompile = TestUtil.create(testDir).task(CCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
@@ -55,14 +58,17 @@ class CCompileTest extends Specification {
 
         then:
         _ * toolChain.outputType >> "c"
+        platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain
         1 * platformToolChain.newCompiler({CCompileSpec.class.isAssignableFrom(it)}) >> cCompiler
-        1 * pch.objectFile >> testDir.file("pchObjectFile").createFile()
-        1 * pch.includeString >> "header"
-        2 * pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
-        2 * pch.pchObjects >> new SimpleFileCollection()
+        pch.objectFile >> testDir.file("pchObjectFile").createFile()
+        pch.name >> "testPch"
+        pch.projectPath >> ":"
+        pch.includeString >> "header"
+        pch.prefixHeaderFile >> testDir.file("prefixHeader").createFile()
+        pch.pchObjects >> new SimpleFileCollection()
         1 * cCompiler.execute({ CCompileSpec spec ->
             assert spec.sourceFiles*.name== ["sourceFile"]
             assert spec.args == ['arg']

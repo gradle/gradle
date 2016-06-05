@@ -15,12 +15,14 @@
  */
 
 package org.gradle.wrapper
-import org.gradle.test.fixtures.file.LeaksFileHandles
+
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+@CleanupTestDirectory
 class InstallTest extends Specification {
     File testDir
     Install install
@@ -35,11 +37,11 @@ class InstallTest extends Specification {
     PathAssembler pathAssembler = Mock()
     PathAssembler.LocalDistribution localDistribution = Mock()
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
 
     public void setup() {
         downloadCalled = false
-        testDir = tmpDir.testDirectory
+        testDir = temporaryFolder.testDirectory
         configuration.zipBase = PathAssembler.PROJECT_STRING
         configuration.zipPath = 'someZipPath'
         configuration.distributionBase = PathAssembler.GRADLE_USER_HOME_STRING
@@ -53,14 +55,13 @@ class InstallTest extends Specification {
     }
 
     void createTestZip(File zipDestination) {
-        TestFile explodedZipDir = tmpDir.createDir('explodedZip')
+        TestFile explodedZipDir = temporaryFolder.createDir('explodedZip')
         TestFile gradleScript = explodedZipDir.file('gradle-0.9/bin/gradle')
         gradleScript.parentFile.createDir()
         gradleScript.write('something')
         explodedZipDir.zipTo(new TestFile(zipDestination))
     }
 
-    @LeaksFileHandles
     def "installs distribution and reuses on subsequent access"() {
         given:
         _ * pathAssembler.getDistribution(configuration) >> localDistribution
@@ -90,7 +91,6 @@ class InstallTest extends Specification {
         0 * download._
     }
 
-    @LeaksFileHandles
     def "recovers from download failure"() {
         def failure = new RuntimeException("broken")
 

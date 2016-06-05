@@ -29,17 +29,18 @@ class LifecycleBasePluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     def "throws deprecation warning when applied in build with #taskName"() {
-        when:
         buildFile << """
 
         task $taskName << {
             println "custom $taskName task"
         }
         """
-        executer.expectDeprecationWarning()
-        succeeds(taskName)
+
+        when:
+        fails(taskName)
+
         then:
-        output.contains("Defining custom '$taskName' task when using the standard Gradle lifecycle plugins has been deprecated and is scheduled to be removed")
+        failure.assertHasCause("Declaring custom '$taskName' task when using the standard Gradle lifecycle plugins is not allowed.")
         where:
         taskName << ["check", "clean", "build", "assemble"]
     }

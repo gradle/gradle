@@ -56,6 +56,35 @@ public class TestNGSuiteIntegrationTest extends MultiVersionIntegrationSpec {
         outputContains 'Property from task again: test'
     }
 
+    def "methodMissing propagates failures"() {
+        buildFile << """
+    apply plugin: 'java'
+    repositories { mavenCentral() }
+    dependencies {
+        testCompile 'org.testng:testng:$version'
+    }
+    test {
+        useTestNG {
+            systemProperty 'name', 'value'
+        }
+    }
+"""
+        file("src/test/java/FooTest.java") << """
+            import org.testng.annotations.*;
+
+            public class FooTest {
+                @Test public void foo() {
+                  assert System.getProperty("name").equals("value");
+                }
+            }
+        """
+        when:
+        succeeds("test")
+        then:
+        def result = new DefaultTestExecutionResult(testDirectory)
+        result.testClass("FooTest").assertTestsExecuted("foo")
+    }
+
     @Issue("GRADLE-3020")
     def "can specify test suite by string"() {
         buildFile << """

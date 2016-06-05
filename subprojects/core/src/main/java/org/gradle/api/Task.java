@@ -100,9 +100,6 @@ import java.util.Set;
  * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
- * <li>An {@code Object}. The object's {@code toString()} method is interpreted as a task path or name. The support for custom Objects
- * has been deprecated and will be removed in the next version of Gradle.</li>
- *
  * </ul>
  *
  * <h3>Using a Task in a Build File</h3>
@@ -240,8 +237,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
      * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
      *
-     * <li>An {@code Object}. The object's {@code toString()} method is interpreted as a task path or name. The support for custom Objects
-     * has been deprecated and will be removed in the next version of Gradle.</li>
+     * <li>Anything else is treated as a failure.</li>
      *
      * @return the task object this method is applied to
      */

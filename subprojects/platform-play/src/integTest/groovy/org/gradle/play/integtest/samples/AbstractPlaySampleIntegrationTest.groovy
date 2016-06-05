@@ -15,16 +15,14 @@
  */
 
 package org.gradle.play.integtest.samples
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.play.integtest.fixtures.RunningPlayApp
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.integtests.fixtures.UrlValidator.*
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class AbstractPlaySampleIntegrationTest extends AbstractIntegrationSpec {
     File initScript
     RunningPlayApp runningPlayApp = new RunningPlayApp(testDirectory)

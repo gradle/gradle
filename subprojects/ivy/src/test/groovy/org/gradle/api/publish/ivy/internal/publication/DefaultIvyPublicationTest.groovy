@@ -15,7 +15,6 @@
  */
 
 package org.gradle.api.publish.ivy.internal.publication
-
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.*
 import org.gradle.api.internal.AsmBackedClassGenerator
@@ -32,13 +31,14 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.typeconversion.NotationParser
-import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import spock.lang.Shared
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultIvyPublicationTest extends Specification {
-    @Shared TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     def projectIdentity = Mock(IvyPublicationIdentity)
     def notationParser = Mock(NotationParser)

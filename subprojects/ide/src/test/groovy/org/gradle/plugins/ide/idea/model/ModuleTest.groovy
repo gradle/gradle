@@ -117,6 +117,14 @@ class ModuleTest extends Specification {
         this.module == newModule
     }
 
+    def 'Module without content can be loaded'() {
+        when:
+        module.load((InputStream) getClass().getResourceAsStream('moduleWithoutContent.xml'))
+
+        then:
+        noExceptionThrown()
+    }
+
     private InputStream getToXmlReader() {
         ByteArrayOutputStream toXmlText = new ByteArrayOutputStream()
         module.store(toXmlText)

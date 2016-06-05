@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.protocol;
 
 public class Stop extends Command {
-    public Stop(Object identifier) {
-        super(identifier);
+    public Stop(Object identifier, byte[] token) {
+        super(identifier, token);
     }
 }

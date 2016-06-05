@@ -16,10 +16,10 @@
 package org.gradle.tooling.internal.consumer.loader
 
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.internal.actor.ActorFactory
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.internal.actor.ActorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.Distribution
@@ -46,12 +46,12 @@ class DefaultToolingImplementationLoaderTest extends Specification {
     def "locates connection implementation using meta-inf service then instantiates and configures the connection"() {
         given:
         distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> new DefaultClassPath(
-                getToolingApiResourcesDir(connectionImplementation),
-                ClasspathUtil.getClasspathForClass(TestConnection.class),
-                ClasspathUtil.getClasspathForClass(ActorFactory.class),
-                ClasspathUtil.getClasspathForClass(Logger.class),
-                ClasspathUtil.getClasspathForClass(GroovyObject.class),
-                ClasspathUtil.getClasspathForClass(GradleVersion.class))
+            getToolingApiResourcesDir(connectionImplementation),
+            ClasspathUtil.getClasspathForClass(TestConnection.class),
+            ClasspathUtil.getClasspathForClass(ActorFactory.class),
+            ClasspathUtil.getClasspathForClass(Logger.class),
+            ClasspathUtil.getClasspathForClass(GroovyObject.class),
+            ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
         def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters, cancellationToken)
@@ -74,24 +74,28 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         TestR18Connection.class   | ActionAwareConsumerConnection.class              | true
         TestR16Connection.class   | ModelBuilderBackedConsumerConnection.class       | true
         TestR12Connection.class   | BuildActionRunnerBackedConsumerConnection.class  | true
-        TestR10M8Connection.class | InternalConnectionBackedConsumerConnection.class | true
     }
 
     def "locates connection implementation using meta-inf service for deprecated connection"() {
         given:
         distribution.getToolingImplementationClasspath(loggerFactory, userHomeDir, cancellationToken) >> new DefaultClassPath(
-                getToolingApiResourcesDir(TestR10M3Connection.class),
-                ClasspathUtil.getClasspathForClass(TestConnection.class),
-                ClasspathUtil.getClasspathForClass(ActorFactory.class),
-                ClasspathUtil.getClasspathForClass(Logger.class),
-                ClasspathUtil.getClasspathForClass(GroovyObject.class),
-                ClasspathUtil.getClasspathForClass(GradleVersion.class))
+            getToolingApiResourcesDir(connectionImplementation),
+            ClasspathUtil.getClasspathForClass(TestConnection.class),
+            ClasspathUtil.getClasspathForClass(ActorFactory.class),
+            ClasspathUtil.getClasspathForClass(Logger.class),
+            ClasspathUtil.getClasspathForClass(GroovyObject.class),
+            ClasspathUtil.getClasspathForClass(GradleVersion.class))
 
         when:
         def adaptedConnection = loader.create(distribution, loggerFactory, connectionParameters, cancellationToken)
 
         then:
         adaptedConnection.class == UnsupportedOlderVersionConnection.class
+
+        where:
+        connectionImplementation  | _
+        TestR10M3Connection.class | _
+        TestR10M8Connection.class | _
     }
 
     private getToolingApiResourcesDir(Class implementation) {
@@ -140,13 +144,13 @@ class TestConnection extends TestR21Connection implements StoppableConnection {
 class TestR21Connection extends TestR18Connection implements InternalCancellableConnection {
     @Override
     BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
-            throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
+        throws BuildExceptionVersion1, InternalUnsupportedModelException, InternalUnsupportedBuildArgumentException, IllegalStateException {
         throw new UnsupportedOperationException();
     }
 
     @Override
     def <T> BuildResult<T> run(InternalBuildAction<T> action, InternalCancellationToken cancellationToken, BuildParameters operationParameters)
-            throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, InternalBuildActionFailureException, IllegalStateException {
+        throws BuildExceptionVersion1, InternalUnsupportedBuildArgumentException, InternalBuildActionFailureException, IllegalStateException {
         throw new UnsupportedOperationException();
     }
 

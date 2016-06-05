@@ -13,27 +13,54 @@ A set of candidates for making the resolution of remote dependencies faster, and
 
 ### Large project with lot of external dependencies and project dependencies
 
-Here are the results of profiling dependency management on the `largeProjectDependencies` template. This template includes:
+Here are the results of profiling dependency management on the `lotProjectDependencies` template. This template includes:
 
 - 100 projects
 - 400 dependencies, with a transitive dependency depth of 6
 - internal project dependencies
 
-Times here were reported against `master` as of April, 7th, and relative to `Configuration.getResolvedConfiguration`. The template makes use of a local Maven repository, so external dependencies are fetched from a local filesystem. Therefore times reported here do not include any remote download.
+Times here were reported against `master` as of May, 9th, using `help`, that is to say that we're not measuring
+the performance of network access with an empty cache, but the configuration time of a project that has been
+configured at least once. Profiling was done using `honest profiler` which doesn't
+suffer issues reported by YourKit. No specific hotspot is visible in **dependency management** itself. However, there's
+a clear problem with the `dependencies` block itself, which triggers an excessive number of `MethodMissingException`
+being thrown, and stack traces filled for nothing. This represents 30% of build time.
 
-* 41% of time spent in writing the resolved configuration to the persistent cache
-    * 62% of it in `TransientConfigurationResultsBuilder.writeId(byte, ResolvedConfigurationIdentifier[])`
-    * 31% of it in `StreamingResolutionResultBuilder.resolvedConfiguration(ModuleVersionIdentifier, Collection)`
-    * 4% of it in `TransientConfigurationResultsBuilder.parentChildMapping(ResolvedConfigurationIdentifier, ResolvedConfigurationIdentifier, long)`
-    * 2% of it in `StreamingResolutionResultBuilder.resolvedModuleVersion(ModuleVersionSelection)`
-    * Most of this time seems to be spent in `flush`, and since flushing is mostly triggered from `writeString`, it probably indicates that the buffer size is too small (currently 4096 bytes). Increasing the default buffer size to `65536` reduces the time spent in writing the persistent cache from 41% to 10%.
-* 9% of time spent in parsing the module descriptors
-    * 69% of it spent in parsing the external module descriptors (Maven POM files)
-    * 31% of time spent in parsing the project module descriptors (Ivy files). This one clearly indicates that a better serialized format for our internal modules would be better fitted. It's very expensive for information that is available locally.
-* 20% of time spent in adding `DependencyEdge` instances to `incomingEdges`/`outcomingEdges` in `ConfigurationNode`. Time is totally dominated by calling `hashCode` on these instances. Since the `hashCode` is the native JVM one, it seems to be hardly optimizable without changing the algorithms. Question: do we need the `Set` semantics here?
+No specific hotspot was discovered either in `lotDependencies` or the external `iosched` Android project. It's worth
+noting that while honest profiler sometimes shows the ivy descriptor files parsing as being an issue, it is far from
+being the 20% time shown by previous profiling sessions: it's only a fraction of total dependency time, and optimizing
+this is less likely to dramatically change the performance of dependency resolution.
 
-Those results show that using a more appropriate cache, we can probably improve the performance of dependency resolution. For example, instead of using a persistent store, we could use an in-memory store backed with a persistent store for overflows.
+### Cost of declaring dependencies
 
-#### Miscellaneous results
+The following profiling results are based on an experiment to use _static Groovy scripts_ to create:
 
-1. Iterating on `Configuration#getAllDependencies` is very inefficient. The code at `DefaultProjectDependency.resolve(DependencyResolveContext)` triggers a call to `iterator()`, which in turns delegates to `org.gradle.api.internal.CompositeDomainObjectSet#iterator()`. The problem is that this method returns an immutable iterator constructed from a `LinkedHashSet`. Creating this hash set requires iterating the backing collection twice, because of an implicit call to `size()`. We should investigate why returning an immutable iterator is required, and in any case avoid creating a `LinkedHashSet`.
+- 2500 projects applying the Java plugin
+- each project declaring 50 dependencies
+
+And calling `help`. The results show that:
+
+- 14.6% of build time is spent in registering the dependencies, that is to say executing the `dependencies` block.
+- time spent in `dependencies` block is equally dominated by parsing the dependency notation (6.85%) and adding the dependencies to the container (4.8%)
+- 54% of build time is spent in applying the Java plugin, and 21% just in creating the source sets plus 8% in creating the `Test` tasks
+
+### Large project with lot of snapshot dependencies and local repository
+
+Those measurements were made as of May 17th, using `master`, after optimizing the depdendency management engine to remove use of Ivy structures in our engine.
+The project used is `lotDependencies`, which defines:
+
+- a local Maven repository
+- 4 sub-projects with lots of snapshot dependencies
+
+The task being executed is `dependencyReport` which triggers full dependency resolution. Times are measured with a hot daemon.
+
+- dependency resolution represents 58% of build execution time
+- 42.3% of build execution time is spent in resolving dependencies
+   - 13% spent in parsing `maven-metadata.xml`. This time is totally dominated by the SAX parser initialization itself. Actual parsing is less than 2% of time.
+   - 17% spent in parsing the POM descriptors. This time is also totally dominated by parser initialization. Only 5% of time is really spent in parsing.
+   - 4% of time is spent in `ExternalResourceResolver#getId`. This ID cannot be cached efficiently because it depends on the configuration of the resolver which is not immutable.
+   - 3% of time spent in `DefaultMavenModuleResolveMetaData#copy`
+- 11.8% of build execution time is spent in assembling the result (mostly populating internal datastructures / copying)
+
+
+

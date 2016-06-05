@@ -17,11 +17,10 @@
 package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import org.gradle.testkit.runner.fixtures.Debug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
+import org.gradle.testkit.runner.fixtures.PluginUnderTest
 import org.gradle.testkit.runner.internal.feature.TestKitFeature
-import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -103,9 +102,8 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
             .build()
 
         then:
-        def e = thrown InvalidRunnerConfigurationException
-        e.cause instanceof UnsupportedVersionException
-        e.cause.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support the plugin classpath injection feature used by GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
+        def e = thrown UnsupportedFeatureException
+        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support plugin classpath injection. Support for this is available in Gradle $minSupportedVersion and all later versions."
     }
 
     def "fails informatively if trying to use conventional plugin classpath on version that does not support injection"() {
@@ -124,9 +122,8 @@ class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRun
         }
 
         then:
-        def e = thrown InvalidRunnerConfigurationException
-        e.cause instanceof UnsupportedVersionException
-        e.cause.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support the plugin classpath injection feature used by GradleRunner. Support for this is available in Gradle $minSupportedVersion and all later versions."
+        def e = thrown UnsupportedFeatureException
+        e.message == "The version of Gradle you are using ($maxUnsupportedVersion) does not support plugin classpath injection. Support for this is available in Gradle $minSupportedVersion and all later versions."
     }
 
     static String getMaxUnsupportedVersion(TestKitFeature feature) {

@@ -17,7 +17,8 @@ package org.gradle.launcher.cli;
 
 import groovy.lang.GroovySystem;
 import org.apache.tools.ant.Main;
-import org.gradle.BuildExceptionReporter;
+import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.api.Action;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
@@ -29,6 +30,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.LayoutCommandLineConverter;
 import org.gradle.internal.Actions;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.*;
 import org.gradle.internal.logging.LoggingCommandLineConverter;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
@@ -37,6 +39,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.ExecutionListener;
+import org.gradle.process.internal.DefaultExecActionFactory;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
@@ -74,7 +77,7 @@ public class CommandLineActionFactory {
 
     protected void createActionFactories(ServiceRegistry loggingServices, Collection<CommandLineAction> actions) {
         actions.add(new GuiActionsFactory());
-        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter()));
+        actions.add(new BuildActionsFactory(loggingServices, new ParametersConverter(), new JvmVersionDetector(new DefaultExecActionFactory(new IdentityFileResolver()))));
     }
 
     private static GradleLauncherMetaData clientMetaData() {

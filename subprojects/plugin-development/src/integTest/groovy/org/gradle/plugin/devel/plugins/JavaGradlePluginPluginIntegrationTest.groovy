@@ -20,9 +20,10 @@ import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
-    final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE
-    final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.split('%')[0]
-    final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.split('%')[0]
+    final static String NO_DESCRIPTOR_WARNING = JavaGradlePluginPlugin.NO_DESCRIPTOR_WARNING_MESSAGE.substring(4)
+    final static String DECLARED_PLUGIN_MISSING_MESSAGE = JavaGradlePluginPlugin.DECLARED_PLUGIN_MISSING_MESSAGE
+    final static String BAD_IMPL_CLASS_WARNING_PREFIX = JavaGradlePluginPlugin.BAD_IMPL_CLASS_WARNING_MESSAGE.substring(4).split('[%]')[0]
+    final static String INVALID_DESCRIPTOR_WARNING_PREFIX = JavaGradlePluginPlugin.INVALID_DESCRIPTOR_WARNING_MESSAGE.substring(4).split('[%]')[0]
 
     @Override
     String getMainTask() {
@@ -64,6 +65,27 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         output.contains(NO_DESCRIPTOR_WARNING)
     }
 
+    def "jar issues warning if built jar does not contain declared plugin" () {
+        given:
+        buildFile()
+        goodPlugin()
+        goodPluginDescriptor()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    otherPlugin {
+                        id = 'other-plugin'
+                        implementationClass = 'com.xxx.OtherPlugin'
+                    }
+                }
+            }
+            pluginDescriptors.enabled = false
+        """
+
+        expect:
+        succeeds "jar"
+        output.contains(String.format(':jar', DECLARED_PLUGIN_MISSING_MESSAGE, "otherPlugin", "other-plugin"))
+    }
 
     def "jar issues warning if built jar contains bad descriptor" (String descriptorContents, String warningMessage) {
         given:
@@ -128,6 +150,103 @@ class JavaGradlePluginPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds "jar"
         output.count(BAD_IMPL_CLASS_WARNING_PREFIX) == 1
         output.count(INVALID_DESCRIPTOR_WARNING_PREFIX) == 1
+    }
+
+    def "Fails if plugin declaration has no id"() {
+        given:
+        buildFile()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    helloPlugin {
+                        implementationClass = 'com.foo.Bar'
+                    }
+                }
+            }
+        """
+        expect:
+        fails "jar"
+        failureCauseContains(String.format(JavaGradlePluginPlugin.DECLARATION_MISSING_ID_MESSAGE, 'helloPlugin'))
+    }
+
+    def "Fails if plugin declaration has no implementation class"() {
+        given:
+        buildFile()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    helloPlugin {
+                        id = 'hello'
+                    }
+                }
+            }
+        """
+        expect:
+        fails "jar"
+        failureCauseContains(String.format(JavaGradlePluginPlugin.DECLARATION_MISSING_IMPLEMENTATION_MESSAGE, 'helloPlugin'))
+    }
+
+    def "Generates plugin descriptor for declared plugin"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds "jar"
+    }
+
+    def "Plugin descriptor generation is up-to-date if declarations did not change"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                    }
+                }
+            }
+        """
+        expect:
+        succeeds "jar"
+        succeeds "jar"
+        skipped ":pluginDescriptors"
+    }
+
+    def "Plugin descriptor generation clears output folder"() {
+        given:
+        buildFile()
+        goodPlugin()
+        buildFile << """
+            gradlePlugin {
+                plugins {
+                    testPlugin {
+                        id = 'test-plugin'
+                        implementationClass = 'com.xxx.TestPlugin'
+                    }
+                }
+            }
+        """
+        succeeds "jar"
+        buildFile << """
+            gradlePlugin.plugins.testPlugin.id = 'test-plugin-changed'
+        """
+        expect:
+
+        succeeds "jar"
+        file("build", "pluginDescriptors").listFiles().size() == 1
+        file("build", "resources", "main", "META-INF", "gradle-plugins").listFiles().size() == 1
     }
 
     def buildFile() {

@@ -26,7 +26,9 @@ class ReleasedVersions {
     private static final int MILLIS_PER_DAY = 24 * 60 * 60 * 1000
 
     private lowestInterestingVersion = GradleVersion.version("0.8")
+    private lowestTestedVersion = GradleVersion.version("1.0")
     private def versions
+    private def testedVersions
     private def snapshots
 
     File destFile
@@ -36,6 +38,7 @@ class ReleasedVersions {
     void prepare() {
         download()
         versions = calculateVersions()
+        testedVersions = calculateVersions(lowestTestedVersion)
         snapshots = calculateSnapshots()
     }
 
@@ -103,18 +106,22 @@ $standardErr""")
         return versions*.version*.version
     }
 
+    List<String> getTestedVersions() {
+        return testedVersions*.version*.version
+    }
+
     List<String> getAllSnapshots() {
         return snapshots*.version*.version
     }
 
-    List<Map<String, ?>> calculateVersions() {
+    List<Map<String, ?>> calculateVersions(def startingAt = lowestInterestingVersion) {
         def versions = new groovy.json.JsonSlurper().parseText(destFile.text).findAll {
             (it.activeRc == true || it.rcFor == "") && it.broken == false && it.snapshot == false
         }.collect {
             it.version = GradleVersion.version(it.version)
             it
         }.findAll {
-            it.version >= lowestInterestingVersion
+            it.version >= startingAt
         }.sort {
             it.version
         }.reverse()

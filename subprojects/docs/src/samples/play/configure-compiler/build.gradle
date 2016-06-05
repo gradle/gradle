@@ -1,6 +1,9 @@
+// START SNIPPET play-idea
 plugins {
     id 'play'
+    id 'idea'
 }
+// END SNIPPET play-idea
 
 repositories {
     jcenter()

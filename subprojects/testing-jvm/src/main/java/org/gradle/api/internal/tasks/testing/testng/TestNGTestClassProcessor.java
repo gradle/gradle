@@ -23,14 +23,19 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.TimeProvider;
+import org.gradle.internal.actor.Actor;
+import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.reflect.NoSuchMethodException;
-import org.gradle.internal.actor.Actor;
-import org.gradle.internal.actor.ActorFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GFileUtils;
-import org.testng.*;
+import org.testng.IMethodInstance;
+import org.testng.IMethodInterceptor;
+import org.testng.ISuite;
+import org.testng.ITestContext;
+import org.testng.ITestListener;
+import org.testng.TestNG;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -96,15 +101,6 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         invokeVerifiedMethod(testNg, "setConfigFailurePolicy", String.class, options.getConfigFailurePolicy(), TestNGOptions.DEFAULT_CONFIG_FAILURE_POLICY);
         invokeVerifiedMethod(testNg, "setPreserveOrder", boolean.class, options.getPreserveOrder(), false);
         invokeVerifiedMethod(testNg, "setGroupByInstances", boolean.class, options.getGroupByInstances(), false);
-        try {
-            JavaReflectionUtil.method(TestNG.class, Object.class, "setAnnotations").invoke(testNg, options.getAnnotations());
-        } catch (NoSuchMethodException e) {
-            /* do nothing; method has been removed in TestNG 6.3 */
-        }
-        if (options.getJavadocAnnotations()) {
-            testNg.setSourcePath(CollectionUtils.join(File.pathSeparator, options.getTestResources()));
-        }
-
         testNg.setUseDefaultListeners(options.getUseDefaultListeners());
         testNg.setVerbose(0);
         testNg.setGroups(CollectionUtils.join(",", options.getIncludeGroups()));

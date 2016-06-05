@@ -23,8 +23,6 @@ import org.gradle.util.TextUtil
 import org.hamcrest.Matchers
 import spock.lang.Unroll
 
-import static org.testng.Assert.assertEquals
-
 class EarPluginIntegrationTest extends AbstractIntegrationSpec {
 
     void "setup"() {
@@ -100,8 +98,8 @@ dependencies {
         def appXml = new XmlSlurper().parse(
                 file('unzipped/META-INF/application.xml'))
         def modules = appXml.module
-        assertEquals(modules[0].ejb.text(), 'moduleA.jar')
-        assertEquals(modules[1].web.'web-uri'.text(), 'moduleB.war')
+        modules[0].ejb.text() == 'moduleA.jar'
+        modules[1].web.'web-uri'.text() == 'moduleB.war'
     }
 
     @Unroll
@@ -259,10 +257,10 @@ ear {
         def appXml = new XmlSlurper().parse(
                 file('unzipped/META-INF/application.xml'))
         def roles = appXml."security-role"
-        assertEquals(roles[0]."role-name".text(), 'superman')
-        assertEquals(roles[0].description.text(), 'This is the SUPERMAN role')
-        assertEquals(roles[1]."role-name".text(), 'supergirl')
-        assertEquals(roles[1].description.text(), 'This is the SUPERGIRL role')
+        roles[0]."role-name".text() == 'superman'
+        roles[0].description.text() == 'This is the SUPERMAN role'
+        roles[1]."role-name".text() == 'supergirl'
+        roles[1].description.text() == 'This is the SUPERGIRL role'
     }
 
 }

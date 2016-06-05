@@ -27,4 +27,5 @@ public interface TaskOutputsInternal extends TaskOutputs {
 
     void setHistory(TaskExecutionHistory history);
 
+    void ensureConfigured();
 }

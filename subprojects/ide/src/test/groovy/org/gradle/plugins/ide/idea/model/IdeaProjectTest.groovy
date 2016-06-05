@@ -17,16 +17,16 @@
 package org.gradle.plugins.ide.idea.model
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class IdeaProjectTest extends Specification {
-    private final DefaultProject project = TestUtil.createRootProject()
-    private final DefaultProject childProject = TestUtil.createChildProject(project, "child", new File("."))
-    private final DefaultProject anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
+    private final ProjectInternal project = TestUtil.createRootProject()
+    private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
+    private final ProjectInternal anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
 
     def "project bytecode version set to highest module targetCompatibility"() {
         when:

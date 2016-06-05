@@ -16,60 +16,34 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.BuildListener;
-import org.gradle.BuildResult;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.internal.Factory;
 
 import java.io.Closeable;
 import java.io.IOException;
 
 public class CachingTreeVisitorCleaner implements Closeable {
     private final Gradle gradle;
-    private final CacheCleaner buildListener;
+    private final TreeVisitorCacheExpirationStrategy cacheExpirationStrategy;
 
     public CachingTreeVisitorCleaner(CachingTreeVisitor cachingTreeVisitor, Gradle gradle) {
         this.gradle = gradle;
-        buildListener = new CacheCleaner(cachingTreeVisitor);
-        gradle.addBuildListener(buildListener);
+        cacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, new Factory<OverlappingDirectoriesDetector>() {
+            @Override
+            public OverlappingDirectoriesDetector create() {
+                return new OverlappingDirectoriesDetector();
+            }
+        });
+        gradle.getTaskGraph().addTaskExecutionGraphListener(cacheExpirationStrategy);
+        gradle.getTaskGraph().addTaskExecutionListener(cacheExpirationStrategy);
+        gradle.addBuildListener(cacheExpirationStrategy);
     }
 
     @Override
     public void close() throws IOException {
-        gradle.removeListener(buildListener);
+        gradle.removeListener(cacheExpirationStrategy);
+        gradle.getTaskGraph().removeTaskExecutionGraphListener(cacheExpirationStrategy);
+        gradle.getTaskGraph().removeTaskExecutionListener(cacheExpirationStrategy);
     }
 
-    private static class CacheCleaner implements BuildListener {
-        private final CachingTreeVisitor cachingTreeVisitor;
-
-        public CacheCleaner(CachingTreeVisitor cachingTreeVisitor) {
-            this.cachingTreeVisitor = cachingTreeVisitor;
-        }
-
-        @Override
-        public void buildFinished(BuildResult result) {
-            cachingTreeVisitor.clearCache();
-        }
-
-        @Override
-        public void buildStarted(Gradle gradle) {
-
-        }
-
-        @Override
-        public void settingsEvaluated(Settings settings) {
-
-        }
-
-        @Override
-        public void projectsLoaded(Gradle gradle) {
-
-        }
-
-        @Override
-        public void projectsEvaluated(Gradle gradle) {
-
-        }
-
-    }
 }

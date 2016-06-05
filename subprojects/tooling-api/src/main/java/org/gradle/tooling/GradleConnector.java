@@ -37,7 +37,7 @@ import java.net.URI;
  *
  * </ol>
  *
- * Example:
+ * <p>Example:</p>
  * <pre autoTested=''>
  * ProjectConnection connection = GradleConnector.newConnector()
  *    .forProjectDirectory(new File("someProjectFolder"))
@@ -50,8 +50,29 @@ import java.net.URI;
  * }
  * </pre>
  *
+ * <p>The connection will use the version of Gradle that the target build is configured to use, for example in the Gradle wrapper properties file. When no Gradle version is defined for the build, the connection will use the tooling API's version as the Gradle version to run the build.
+ *  Generally, you should avoid configuring a Gradle distribution or version and instead use the default provided by the tooling API.
+ * </p>
+ *
+ * <p>Similarly, the connection will use the JVM and JVM arguments that the target build is configured to use, for example in the {@code gradle.propertes} file. When no JVM or JVM arguments are defined for the build, the connection will use the current JVM and some default JVM arguments.</p>
+ *
  * <p>{@code GradleConnector} instances are not thread-safe. If you want to use a {@code GradleConnector} concurrently you <em>must</em> always create a
  * new instance for each thread using {@link #newConnector()}. Note, however, the {@link ProjectConnection} instances that a connector creates are completely thread-safe.</p>
+ *
+ * <h2>Gradle version compatibility</h2>
+ *
+ * <p>The Tooling API is both forwards and backwards compatible with other versions of Gradle. It supports execution of Gradle builds that use older or newer versions of Gradle.</p>
+ *
+ * <p>The current version of the Tooling API supports running builds using Gradle versions 1.2.</p>
+ *
+ * <p>You should note that not all features of the Tooling API are available for all versions of Gradle. For example, build cancellation is only available for builds using Gradle 2.1 and later. Refer to the documentation for each class and method for more details.</p>
+ *
+ * <p>The current Gradle version can be used from Tooling API versions 2.0 or later.
+ *
+ * <h2>Java version compatibility</h2>
+ *
+ * <p>The Tooling API requires Java 7 or later. The Gradle version used by builds may have additional Java version requirements.</p>
+ *
  * @since 1.0-milestone-3
  */
 public abstract class GradleConnector {

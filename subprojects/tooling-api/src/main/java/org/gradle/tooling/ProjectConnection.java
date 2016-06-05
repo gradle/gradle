@@ -18,7 +18,7 @@ package org.gradle.tooling;
 import org.gradle.api.Incubating;
 
 /**
- * Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.
+ * <p>Represents a long-lived connection to a Gradle project. You obtain an instance of a {@code ProjectConnection} by using {@link org.gradle.tooling.GradleConnector#connect()}.</p>
  *
  * <pre autoTested=''>
  * ProjectConnection connection = GradleConnector.newConnector()

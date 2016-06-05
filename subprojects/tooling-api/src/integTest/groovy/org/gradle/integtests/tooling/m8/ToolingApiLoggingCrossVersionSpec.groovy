@@ -110,14 +110,13 @@ project.logger.debug("debug logging");
 
     private ExecutionResult runUsingCommandLine() {
         targetDist.executer(temporaryFolder)
-            .requireGradleHome()
+            .requireGradleDistribution()
             .withArgument("--no-daemon") //suppress daemon usage suggestions
             .withBuildJvmOpts("-Dorg.gradle.deprecation.trace=false") //suppress deprecation stack trace
             .run()
     }
 
     String normaliseOutput(String output) {
-        output = output.replaceFirst("Support for Gradle version ${targetDist.version.version} is deprecated and will be removed in tooling API version 3.0. You should upgrade your Gradle build to use Gradle 1.2 or later.\n", "")
         return output.replaceFirst("Total time: .+ secs", "Total time: 0 secs")
     }
 

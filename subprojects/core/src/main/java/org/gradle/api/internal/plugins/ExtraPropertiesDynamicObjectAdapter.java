@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.GetPropertyResult;
 import org.gradle.internal.metaobject.SetPropertyResult;
-import org.gradle.api.plugins.ExtraPropertiesExtension;
 
 import java.util.Map;
 
@@ -61,5 +61,4 @@ public class ExtraPropertiesDynamicObjectAdapter extends AbstractDynamicObject {
             result.found();
         }
     }
-
 }

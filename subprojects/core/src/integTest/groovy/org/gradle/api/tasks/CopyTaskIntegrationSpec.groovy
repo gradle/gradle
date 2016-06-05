@@ -1035,4 +1035,34 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         "**/%*%"     | "%"
         "**/abc*abc" | "abc"
     }
+
+    def "changing case-sensitive setting makes task out-of-date"() {
+        given:
+        buildScript '''
+            task (copy, type:Copy) {
+               caseSensitive = false
+               from 'src'
+               into 'dest'
+               include '**/sub/**'
+               exclude '**/ignore/**'
+            }
+        '''.stripIndent()
+        run 'copy'
+
+        buildScript '''
+            task (copy, type:Copy) {
+               caseSensitive = true
+               from 'src'
+               into 'dest'
+               include '**/sub/**'
+               exclude '**/ignore/**'
+            }
+        '''.stripIndent()
+        when:
+        run "copy"
+        then:
+        skippedTasks.empty
+    }
+
+
 }

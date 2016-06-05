@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.project.antbuilder
+
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.DefaultClassPathProvider
 import org.gradle.api.internal.DefaultClassPathRegistry
@@ -22,15 +23,12 @@ import org.gradle.api.internal.classpath.DefaultModuleRegistry
 import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.installation.CurrentGradleInstallation
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
 import java.lang.reflect.Proxy
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
 class AntBuilderMemoryLeakTest extends Specification {
 
     @Shared

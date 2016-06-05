@@ -18,11 +18,8 @@ package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.play.integtest.fixtures.PlayCoverage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 @TargetCoverage({ PlayCoverage.PLAY23_OR_EARLIER })
-@Requires(TestPrecondition.JDK7_OR_LATER)
 class Play23RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegrationTest {
     @Override
     def getJavaRoutesFileName(String packageName, String namespace) {

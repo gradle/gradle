@@ -16,6 +16,7 @@
 package org.gradle.play.plugins;
 
 import org.gradle.api.*;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.file.FileResolver;
@@ -91,6 +92,11 @@ public class PlayApplicationPlugin implements Plugin<Project> {
         @Hidden @Model
         FileResolver fileResolver(ServiceRegistry serviceRegistry) {
             return serviceRegistry.get(FileResolver.class);
+        }
+
+        @Hidden @Model
+        ConfigurationContainer configurationContainer(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ConfigurationContainer.class);
         }
 
         @ComponentType

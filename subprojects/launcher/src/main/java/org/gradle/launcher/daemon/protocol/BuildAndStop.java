@@ -21,7 +21,7 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.launcher.exec.BuildActionParameters;
 
 public class BuildAndStop extends Build {
-    public BuildAndStop(Object identifier, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, BuildActionParameters parameters) {
-        super(identifier, action, buildClientMetaData, startTime, parameters);
+    public BuildAndStop(Object identifier, byte[] token, BuildAction action, BuildClientMetaData buildClientMetaData, long startTime, BuildActionParameters parameters) {
+        super(identifier, token, action, buildClientMetaData, startTime, parameters);
     }
 }

@@ -22,18 +22,24 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
-import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.CacheValidator;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.ClassLoaderVisitor;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
-import org.objectweb.asm.*;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import java.io.Closeable;
 import java.io.File;
@@ -50,18 +56,18 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final CacheValidator validator;
     private final FileSnapshotter snapshotter;
     private final ClassLoaderCache classLoaderCache;
-    private final ClassLoaderRegistry classLoaderRegistry;
+    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, CacheValidator validator, ScriptCompilationHandler scriptCompilationHandler,
                                               ProgressLoggerFactory progressLoggerFactory, FileSnapshotter snapshotter, ClassLoaderCache classLoaderCache,
-                                              ClassLoaderRegistry classLoaderRegistry) {
+                                              ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.cacheRepository = cacheRepository;
         this.validator = validator;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.snapshotter = snapshotter;
         this.classLoaderCache = classLoaderCache;
-        this.classLoaderRegistry = classLoaderRegistry;
+        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
     }
 
     @Override
@@ -78,7 +84,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
 
         final String sourceHash = hashFor(source);
         final String dslId = operation.getId();
-        final String classpathHash = dslId + getClassLoaderHash(classLoader);
+        final String classpathHash = dslId + classLoaderHierarchyHasher.getLenientHash(classLoader);
         final RemappingScriptSource remapped = new RemappingScriptSource(source);
 
         // Caching involves 2 distinct caches, so that 2 scripts with the same (hash, classpath) do not get compiled twice
@@ -100,57 +106,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         File remappedMetadataDir = metadataDir(remappedClassesCache);
 
         return scriptCompilationHandler.loadFromDir(source, classLoader, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass, classLoaderId);
-    }
-
-    private long getClassLoaderHash(ClassLoader cl) {
-        ClassloaderHasher hasher = new ClassloaderHasher(classLoaderRegistry);
-        hasher.visit(cl);
-        return hasher.hash;
-    }
-
-    private static class ClassloaderHasher extends ClassLoaderVisitor {
-        private final ClassLoaderRegistry classLoaderRegistry;
-
-        private long hash;
-
-        private ClassloaderHasher(ClassLoaderRegistry classLoaderRegistry) {
-            this.classLoaderRegistry = classLoaderRegistry;
-        }
-
-        private long hashFor(ClassLoader cl) {
-            if (classLoaderRegistry.getRuntimeClassLoader() == cl) {
-                return 1;
-            }
-            if (classLoaderRegistry.getGradleApiClassLoader() == cl) {
-                return 2;
-            }
-            if (classLoaderRegistry.getGradleCoreApiClassLoader() == cl) {
-                return 3;
-            }
-            if (classLoaderRegistry.getPluginsClassLoader() == cl) {
-                return 5;
-            }
-            ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-            if (systemClassLoader == cl) {
-                return 7;
-            }
-            if (systemClassLoader != null && systemClassLoader.getParent() == cl) {
-                return 11;
-            }
-            if (cl instanceof DefaultClassLoaderCache.HashedClassLoader) {
-                return ((DefaultClassLoaderCache.HashedClassLoader) cl).getClassLoaderHash();
-            }
-            return 0;
-        }
-
-        public void visit(ClassLoader classLoader) {
-            ClassLoader end = ClassLoader.getSystemClassLoader();
-            if (classLoader != null && classLoader != end) {
-                hash = 31 * hash + hashFor(classLoader);
-            }
-            super.visit(classLoader);
-        }
-
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(ClassLoaderId classLoaderId, CompileOperation<M> operation) {

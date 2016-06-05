@@ -23,11 +23,13 @@ import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStat
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
-import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.internal.nativeintegration.filesystem.Chmod;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.serialize.DefaultSerializer;
+import org.gradle.launcher.daemon.context.DaemonContext;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -43,7 +45,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
 
     private static final Logger LOGGER = Logging.getLogger(PersistentDaemonRegistry.class);
 
-    public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager) {
+    public PersistentDaemonRegistry(File registryFile, FileLockManager fileLockManager, Chmod chmod) {
         this.registryFile = registryFile;
         cache = new FileIntegrityViolationSuppressingPersistentStateCacheDecorator<DaemonRegistryContent>(
                 new SimpleStateCache<DaemonRegistryContent>(
@@ -52,7 +54,8 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                                 registryFile,
                                 "daemon addresses registry",
                                 fileLockManager),
-                        new DefaultSerializer<DaemonRegistryContent>()
+                        new DefaultSerializer<DaemonRegistryContent>(),
+                        chmod
                 ));
     }
 
@@ -157,10 +160,62 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
     }
 
+    @Override
+    public void storeStopEvent(final DaemonStopEvent stopEvent) {
+        lock.lock();
+        LOGGER.debug("Storing daemon stop event with timestamp {}", stopEvent.getTimestamp().getTime());
+        try {
+            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+                public DaemonRegistryContent update(DaemonRegistryContent content) {
+                    if (content == null) { // registry doesn't exist yet
+                        content = new DaemonRegistryContent();
+                    }
+                    content.addStopEvent(stopEvent);
+                    return content;
+                }
+            });
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public List<DaemonStopEvent> getStopEvents() {
+        lock.lock();
+        LOGGER.debug("Getting daemon stop events");
+        try {
+            DaemonRegistryContent content = cache.get();
+            if (content == null) { // no daemon process has started yet
+                return new LinkedList<DaemonStopEvent>();
+            }
+            return content.getStopEvents();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public void removeStopEvents(final Collection<DaemonStopEvent> events) {
+        lock.lock();
+        LOGGER.info("Removing {} daemon stop events from registry", events.size());
+        try {
+            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
+                public DaemonRegistryContent update(DaemonRegistryContent content) {
+                    if (content != null) { // no daemon process has started yet
+                        content.removeStopEvents(events);
+                    }
+                    return content;
+                }
+            });
+        } finally {
+            lock.unlock();
+        }
+    }
+
     public void store(final DaemonInfo info) {
         final Address address = info.getAddress();
         final DaemonContext daemonContext = info.getContext();
-        final String password = info.getPassword();
+        final byte[] token = info.getToken();
         final boolean idle = info.isIdle();
 
         lock.lock();
@@ -172,7 +227,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                         //it means the registry didn't exist yet
                         oldValue = new DaemonRegistryContent();
                     }
-                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, password, idle);
+                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, token, idle);
                     oldValue.setStatus(address, daemonInfo);
                     return oldValue;
                 }

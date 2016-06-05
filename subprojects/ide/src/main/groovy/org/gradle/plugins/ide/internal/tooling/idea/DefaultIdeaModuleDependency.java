@@ -18,9 +18,11 @@ package org.gradle.plugins.ide.internal.tooling.idea;
 
 import org.gradle.tooling.internal.protocol.DefaultIdeaModuleIdentifier;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
+import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 
 import java.io.File;
 
+@LegacyConsumerInterface("org.gradle.tooling.model.idea.IdeaModuleDependency")
 public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
     private IdeaDependencyScope scope;
     private DefaultIdeaModule dependencyModule;

@@ -16,12 +16,12 @@
 package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.execution.internal.TaskInputsListener
+import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.tasks.TaskInputs
 import spock.lang.Specification
 
 class SkipEmptySourceFilesTaskExecuterTest extends Specification {
@@ -29,7 +29,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final TaskInternal task = Mock()
     final TaskStateInternal state = Mock()
     final TaskExecutionContext executionContext = Mock()
-    final TaskInputs taskInputs = Mock()
+    final taskInputs = Mock(TaskInputsInternal)
     final FileCollectionInternal sourceFiles = Mock()
     def taskInputsListener = Mock(TaskInputsListener)
     final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, target)

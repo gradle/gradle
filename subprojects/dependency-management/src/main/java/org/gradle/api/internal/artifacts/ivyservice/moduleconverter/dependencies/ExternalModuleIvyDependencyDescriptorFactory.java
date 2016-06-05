@@ -21,16 +21,16 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetaDataWrapper;
-import org.gradle.internal.component.model.LocalComponentDependencyMetaData;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
+import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 
 public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     public ExternalModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
     }
 
-    public DslOriginDependencyMetaData createDependencyDescriptor(String configuration, ModuleDependency dependency) {
+    public DslOriginDependencyMetadata createDependencyDescriptor(String configuration, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
@@ -39,12 +39,12 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         ModuleVersionSelector requested = new DefaultModuleVersionSelector(nullToEmpty(dependency.getGroup()), nullToEmpty(dependency.getName()), nullToEmpty(dependency.getVersion()));
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
 
-        LocalComponentDependencyMetaData dependencyMetaData = new LocalComponentDependencyMetaData(
+        LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
                 selector, requested, configuration, dependency.getConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
                 convertExcludeRules(configuration, dependency.getExcludeRules()),
                 force, changing, transitive);
-        return new DslOriginDependencyMetaDataWrapper(dependencyMetaData, dependency);
+        return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }
 
     private String nullToEmpty(String input) {

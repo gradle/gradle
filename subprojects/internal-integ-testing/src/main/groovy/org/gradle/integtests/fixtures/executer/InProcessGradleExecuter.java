@@ -26,11 +26,17 @@ import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.execution.MultipleBuildFailures;
-import org.gradle.initialization.*;
+import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.DefaultBuildCancellationToken;
+import org.gradle.initialization.DefaultBuildRequestContext;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
+import org.gradle.initialization.NoOpBuildEventConsumer;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
@@ -38,25 +44,18 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
-import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.cli.Parameters;
 import org.gradle.launcher.cli.ParametersConverter;
-import org.gradle.launcher.daemon.configuration.DaemonUsage;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.services.LoggingServiceRegistry;
-import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
-import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 import org.hamcrest.Matcher;
@@ -66,7 +65,17 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Pattern;
@@ -76,12 +85,6 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
-    private static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
-        .displayName("Global services")
-        .parent(LoggingServiceRegistry.newCommandLineProcessLogging())
-        .parent(NativeServicesTestFixture.getInstance())
-        .provider(new GlobalScopeServices(true))
-        .build();
     private final ProcessEnvironment processEnvironment = GLOBAL_SERVICES.get(ProcessEnvironment.class);
 
     public static final TestFile COMMON_TMP = new TestFile(new File("build/tmp"));
@@ -259,7 +262,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 System.getenv(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
-                DaemonUsage.EXPLICITLY_DISABLED,
+                false,
                 startParameter.isContinuous(),
                 interactive,
                 ClassPath.EMPTY
@@ -289,7 +292,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         if (defaultLocale != null) {
             assertEquals(defaultLocale, Locale.getDefault());
         }
-        assertFalse(isRequireGradleHome());
+        assertFalse(isRequiresGradleDistribution());
     }
 
     @Override

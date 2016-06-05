@@ -16,33 +16,19 @@
 
 package org.gradle.api.file
 
-import org.gradle.api.Project
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.junit.Rule
-import spock.lang.Specification
 
-class ProjectCopySpecTest extends Specification {
-
-    Project project
-
-    @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
-
-    def setup() {
-        project = ProjectBuilder.builder().withProjectDir(testDirectoryProvider.testDirectory).build()
-    }
+class ProjectCopySpecTest extends AbstractProjectBuilderSpec {
 
     TestFile getCopySource() {
-        testDirectoryProvider.testDirectory.createDir("source")
+        temporaryFolder.testDirectory.createDir("source")
     }
 
     TestFile getCopyDest() {
-        testDirectoryProvider.testDirectory.createDir("dest")
+        temporaryFolder.testDirectory.createDir("dest")
     }
 
-    @LeaksFileHandles
     def "copy spec is enhanced"() {
         given:
         def copySpecRootCalled = false

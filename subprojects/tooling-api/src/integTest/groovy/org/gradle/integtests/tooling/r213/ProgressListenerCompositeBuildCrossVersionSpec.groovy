@@ -19,7 +19,12 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.tooling.*
+import org.gradle.tooling.BuildLauncher
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ModelBuilder
+import org.gradle.tooling.ProgressEvent
+import org.gradle.tooling.ProgressListener
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Tooling client provides progress listener for composite model request
@@ -127,18 +132,30 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApi
     }
 
     private void assertListenerReceivedSameEventsInCompositeAndRegularConnections() {
-        def regularBuildEvents = progressListenerForRegularBuild.eventDescriptions
-        regularBuildEvents.removeAll(IGNORED_EVENTS)
-        assert !regularBuildEvents.isEmpty()
-
-        def compositeBuildEvents = progressListenerForComposite.eventDescriptions
-        compositeBuildEvents.removeAll(IGNORED_EVENTS)
-        assert !compositeBuildEvents.isEmpty()
+        def regularBuildEvents = cleanEvents(progressListenerForRegularBuild.eventDescriptions)
+        def compositeBuildEvents = cleanEvents(progressListenerForComposite.eventDescriptions)
 
         regularBuildEvents.each { eventDescription ->
             assert compositeBuildEvents.contains(eventDescription)
             compositeBuildEvents.remove(eventDescription)
         }
+    }
+
+    private static cleanEvents(List<String> eventDescriptions) {
+        def copy = []
+        String previous = null
+        for (String event : eventDescriptions) {
+            if (IGNORED_EVENTS.contains(event)) {
+                continue;
+            }
+            if (event != previous) {
+                copy.add event
+                previous = event
+            }
+        }
+
+        assert !copy.empty
+        return copy
     }
 
     private List<File> createBuilds(int numberOfBuilds) {

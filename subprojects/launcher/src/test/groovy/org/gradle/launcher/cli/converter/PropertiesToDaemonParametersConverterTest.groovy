@@ -27,7 +27,6 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
 import static org.gradle.launcher.daemon.configuration.GradleProperties.*
 
 @UsesNativeServices
@@ -40,9 +39,9 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
 
     def "allows whitespace around boolean properties"() {
         when:
-        converter.convert([ (DAEMON_ENABLED_PROPERTY): 'true ' ], params)
+        converter.convert([ (DAEMON_ENABLED_PROPERTY): 'false ' ], params)
         then:
-        params.daemonUsage == EXPLICITLY_ENABLED
+        !params.enabled
     }
 
     def "can configure jvm args combined with a system property"() {
@@ -69,7 +68,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert([
             (JVM_ARGS_PROPERTY)                 : '-Xmx256m',
             (JAVA_HOME_PROPERTY)                : Jvm.current().javaHome.absolutePath,
-            (DAEMON_ENABLED_PROPERTY)           : "true",
+            (DAEMON_ENABLED_PROPERTY)           : "false",
             (DAEMON_BASE_DIR_PROPERTY)          : new File("baseDir").absolutePath,
             (IDLE_TIMEOUT_PROPERTY)             : "115",
             (HEALTH_CHECK_INTERVAL_PROPERTY)  : "42",
@@ -80,7 +79,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         params.effectiveJvmArgs.contains("-Xmx256m")
         params.debug
         params.effectiveJvm == Jvm.current()
-        params.daemonUsage == EXPLICITLY_ENABLED
+        !params.enabled
         params.baseDir == new File("baseDir").absoluteFile
         params.idleTimeout == 115
         params.periodicCheckInterval == 42
@@ -132,7 +131,7 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert([:], params)
 
         then:
-        params.daemonUsage == IMPLICITLY_DISABLED
+        params.enabled
     }
 
     @Unroll
@@ -141,11 +140,11 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         converter.convert((GradleProperties.DAEMON_ENABLED_PROPERTY): enabled.toString(), params)
 
         then:
-        params.daemonUsage == usage
+        params.enabled == propertyValue
 
         where:
-        enabled | usage
-        true    | EXPLICITLY_ENABLED
-        false   | EXPLICITLY_DISABLED
+        enabled | propertyValue
+        true    | true
+        false   | false
     }
 }

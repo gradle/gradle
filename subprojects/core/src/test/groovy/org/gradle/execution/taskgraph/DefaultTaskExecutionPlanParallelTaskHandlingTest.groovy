@@ -19,7 +19,7 @@ package org.gradle.execution.taskgraph
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
@@ -45,7 +45,7 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
     FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
 
     DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), true)
-    DefaultProject root = createRootProject()
+    ProjectInternal root = createRootProject()
 
     List<TaskInfo> startedTasks = []
     List<Thread> blockedThreads = []

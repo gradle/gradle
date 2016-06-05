@@ -1,0 +1,13 @@
+// START SNIPPET custom-plugin-repositories
+pluginRepositories {
+  maven {
+    url 'maven-repo'
+  }
+  gradlePluginPortal()
+  ivy {
+    url 'ivy-repo'
+  }
+}
+// END SNIPPET custom-plugin-repositories
+
+rootProject.name = 'custom-repositories'

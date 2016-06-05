@@ -36,7 +36,7 @@ public interface BuildActionRunner extends InternalProtocolInterface {
      * Performs some action against a build and returns some result of the given type.
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.2-rc-1 to 1.5.</p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 1.2-rc-1.</p>
+     * <p>Provider compatibility: This method is implemented by all provider versions from 1.2-rc-1. Provider versions 3.0 and later fail with a 'no longer supported' exception.</p>
      *
      * @param type The desired result type. Use {@link Void} to indicate that no result is desired.
      * @throws UnsupportedOperationException When the given model type is not supported.

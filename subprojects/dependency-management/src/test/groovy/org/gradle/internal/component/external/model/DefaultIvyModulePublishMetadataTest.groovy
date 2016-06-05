@@ -1,0 +1,94 @@
+/*
+ * Copyright 2013 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.component.external.model
+
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
+import org.gradle.internal.component.external.descriptor.Configuration
+import org.gradle.internal.component.local.model.LocalConfigurationMetadata
+import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.IvyArtifactName
+import spock.lang.Specification
+
+class DefaultIvyModulePublishMetadataTest extends Specification {
+    def metadata = new DefaultIvyModulePublishMetadata(Stub(ModuleComponentIdentifier), "status")
+
+    def "can add artifacts"() {
+        def artifact = Stub(IvyArtifactName)
+        def file = new File("artifact.zip")
+
+        when:
+        metadata.addArtifact(artifact, file)
+
+        then:
+        metadata.artifacts.size() == 1
+        def publishArtifact = metadata.artifacts.iterator().next()
+        publishArtifact.artifactName == artifact
+        publishArtifact.file == file
+    }
+
+    def "can add configuration"() {
+        when:
+        metadata.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
+
+        then:
+        metadata.moduleDescriptor.configurations.size() == 1
+        Configuration conf = metadata.moduleDescriptor.configurations[0]
+        conf.name == "configName"
+        conf.extendsFrom == ["one", "three", "two"]
+        conf.visible
+        conf.transitive
+    }
+
+    def mockConfiguration() {
+        return Stub(LocalConfigurationMetadata) { configuration ->
+            configuration.name >> "configName"
+            configuration.description >> "configDescription"
+            configuration.extendsFrom >> (["one", "two", "three"] as Set)
+            configuration.visible >> true
+            configuration.transitive >> true
+        }
+    }
+
+    def "can add dependencies"() {
+        def dependency = Mock(DependencyMetadata)
+
+        given:
+        metadata.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
+
+        and:
+        dependency.requested >> DefaultModuleVersionSelector.newSelector("group", "module", "version")
+        dependency.force >> true
+        dependency.changing >> true
+        dependency.transitive >> true
+        dependency.moduleConfigurations >> (["configName"] as String[])
+        dependency.getDependencyConfigurations("configName", "configName") >> (["dep1"] as String[])
+        dependency.artifacts >> ([] as Set)
+
+        when:
+        metadata.addDependency(dependency)
+
+        then:
+        metadata.moduleDescriptor.dependencies.size() == 1
+        def dependencyMetadata = metadata.moduleDescriptor.dependencies[0]
+        dependencyMetadata.force
+        dependencyMetadata.changing
+        dependencyMetadata.transitive
+        dependencyMetadata.confMappings == [configName: ["dep1"]]
+        dependencyMetadata.dependencyArtifacts.empty
+    }
+}

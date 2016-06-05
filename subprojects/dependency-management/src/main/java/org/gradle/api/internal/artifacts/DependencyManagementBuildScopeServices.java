@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts;
 
-import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
@@ -35,7 +34,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.StartParameterRes
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache.InMemoryCachedRepositoryFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.DefaultModuleArtifactsCache;
@@ -64,15 +62,15 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
-import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.api.internal.notations.ClientModuleNotationParserFactory;
 import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -147,11 +145,10 @@ class DependencyManagementBuildScopeServices {
         );
     }
 
-    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ResolverStrategy resolverStrategy) {
+    ModuleMetaDataCache createModuleDescriptorCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         return new DefaultModuleMetaDataCache(
             timeProvider,
-            cacheLockingManager,
-            resolverStrategy
+            cacheLockingManager
         );
     }
 
@@ -183,7 +180,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider);
     }
 
-    LocallyAvailableResourceFinder<ModuleComponentArtifactMetaData> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactIdentifierFileStore fileStore) {
+    LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> createArtifactRevisionIdLocallyAvailableResourceFinder(ArtifactCacheMetaData artifactCacheMetaData, LocalMavenRepositoryLocator localMavenRepositoryLocator, ArtifactIdentifierFileStore fileStore) {
         LocallyAvailableResourceFinderFactory finderFactory = new LocallyAvailableResourceFinderFactory(
             artifactCacheMetaData,
             localMavenRepositoryLocator,
@@ -191,11 +188,7 @@ class DependencyManagementBuildScopeServices {
         return finderFactory.create();
     }
 
-    ResolverStrategy createResolverStrategy() {
-        return new ResolverStrategy();
-    }
-
-    VersionSelectorScheme createVersionSelectorScheme(ResolverStrategy resolverStrategy, VersionComparator versionComparator) {
+    VersionSelectorScheme createVersionSelectorScheme(VersionComparator versionComparator) {
         return new DefaultVersionSelectorScheme(versionComparator);
     }
 
@@ -243,7 +236,7 @@ class DependencyManagementBuildScopeServices {
                                                                 IvyContextManager ivyContextManager,
                                                                 VersionComparator versionComparator,
                                                                 ServiceRegistry serviceRegistry) {
-        DefaultArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
+        ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
             serviceRegistry,
             resolveIvyFactory,
             dependencyDescriptorFactory,
@@ -262,9 +255,12 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    ProjectComponentRegistry createProjectComponentRegistry(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder, ServiceRegistry serviceRegistry) {
-        List<ProjectComponentProvider> providers = Lists.newArrayList(serviceRegistry.getAll(ProjectComponentProvider.class));
-        providers.add(new LocalProjectComponentProvider(projectRegistry, metaDataBuilder));
+    ProjectComponentProvider createProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
+        return new LocalProjectComponentProvider(projectRegistry, metaDataBuilder);
+    }
+
+    ProjectComponentRegistry createProjectComponentRegistry(ServiceRegistry serviceRegistry) {
+        List<ProjectComponentProvider> providers = serviceRegistry.getAll(ProjectComponentProvider.class);
         return new DefaultProjectComponentRegistry(providers);
     }
 

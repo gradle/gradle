@@ -61,9 +61,9 @@ public class CompositeFileCollectionTest {
         final File file3 = new File("3");
 
         context.checking(new Expectations() {{
-            one(source1).getFiles();
+            oneOf(source1).getFiles();
             will(returnValue(toSet(file1, file2)));
-            one(source2).getFiles();
+            oneOf(source2).getFiles();
             will(returnValue(toSet(file2, file3)));
         }});
 
@@ -92,9 +92,9 @@ public class CompositeFileCollectionTest {
         final File file1 = new File("1");
 
         context.checking(new Expectations() {{
-            one(source1).contains(file1);
+            oneOf(source1).contains(file1);
             will(returnValue(false));
-            one(source2).contains(file1);
+            oneOf(source2).contains(file1);
             will(returnValue(true));
         }});
 
@@ -106,9 +106,9 @@ public class CompositeFileCollectionTest {
         final File file1 = new File("1");
 
         context.checking(new Expectations() {{
-            one(source1).contains(file1);
+            oneOf(source1).contains(file1);
             will(returnValue(false));
-            one(source2).contains(file1);
+            oneOf(source2).contains(file1);
             will(returnValue(false));
         }});
 
@@ -124,9 +124,9 @@ public class CompositeFileCollectionTest {
     @Test
     public void isEmptyWhenAllSetsAreEmpty() {
         context.checking(new Expectations() {{
-            one(source1).isEmpty();
+            oneOf(source1).isEmpty();
             will(returnValue(true));
-            one(source2).isEmpty();
+            oneOf(source2).isEmpty();
             will(returnValue(true));
         }});
 
@@ -136,7 +136,7 @@ public class CompositeFileCollectionTest {
     @Test
     public void isNotEmptyWhenAnySetIsNotEmpty() {
         context.checking(new Expectations() {{
-            one(source1).isEmpty();
+            oneOf(source1).isEmpty();
             will(returnValue(false));
         }});
 
@@ -146,8 +146,8 @@ public class CompositeFileCollectionTest {
     @Test
     public void addToAntBuilderDelegatesToEachSet() {
         context.checking(new Expectations() {{
-            one(source1).addToAntBuilder("node", "name", FileCollection.AntType.ResourceCollection);
-            one(source2).addToAntBuilder("node", "name", FileCollection.AntType.ResourceCollection);
+            oneOf(source1).addToAntBuilder("node", "name", FileCollection.AntType.ResourceCollection);
+            oneOf(source2).addToAntBuilder("node", "name", FileCollection.AntType.ResourceCollection);
         }});
 
         collection.addToAntBuilder("node", "name", FileCollection.AntType.ResourceCollection);
@@ -159,9 +159,9 @@ public class CompositeFileCollectionTest {
         final DirectoryFileTree set2 = new DirectoryFileTree(new File("dir2").getAbsoluteFile());
 
         context.checking(new Expectations() {{
-            one(source1).getAsFileTrees();
+            oneOf(source1).getAsFileTrees();
             will(returnValue(toList((Object) set1)));
-            one(source2).getAsFileTrees();
+            oneOf(source2).getAsFileTrees();
             will(returnValue(toList((Object) set2)));
         }});
         assertThat(collection.getAsFileTrees(), equalTo((Collection) toList(set1, set2)));
@@ -176,9 +176,9 @@ public class CompositeFileCollectionTest {
         assertThat(fileTree, instanceOf(CompositeFileTree.class));
 
         context.checking(new Expectations() {{
-            one(source1).getFiles();
+            oneOf(source1).getFiles();
             will(returnValue(toSet(file1)));
-            one(source2).getFiles();
+            oneOf(source2).getFiles();
             will(returnValue(toSet(file2)));
         }});
 
@@ -196,9 +196,9 @@ public class CompositeFileCollectionTest {
         assertThat(fileTree, instanceOf(CompositeFileTree.class));
 
         context.checking(new Expectations() {{
-            one(source1).getFiles();
+            oneOf(source1).getFiles();
             will(returnValue(toSet(dir1)));
-            one(source2).getFiles();
+            oneOf(source2).getFiles();
             will(returnValue(toSet(dir2)));
         }});
 
@@ -207,11 +207,11 @@ public class CompositeFileCollectionTest {
         collection.sourceCollections.add(source3);
 
         context.checking(new Expectations() {{
-            one(source1).getFiles();
+            oneOf(source1).getFiles();
             will(returnValue(toSet(dir1)));
-            one(source2).getFiles();
+            oneOf(source2).getFiles();
             will(returnValue(toSet(dir2)));
-            one(source3).getFiles();
+            oneOf(source3).getFiles();
             will(returnValue(toSet(dir3)));
         }});
 
@@ -229,9 +229,9 @@ public class CompositeFileCollectionTest {
         assertThat(filtered, instanceOf(CompositeFileCollection.class));
 
         context.checking(new Expectations() {{
-            one(source1).filter(spec);
+            oneOf(source1).filter(spec);
             will(returnValue(filtered1));
-            one(source2).filter(spec);
+            oneOf(source2).filter(spec);
             will(returnValue(filtered2));
         }});
 

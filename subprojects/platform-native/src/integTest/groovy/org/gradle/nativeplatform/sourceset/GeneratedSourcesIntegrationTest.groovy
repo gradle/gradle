@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.nativeplatform.sourceset
+
 import org.apache.commons.io.FileUtils
 import org.gradle.ide.visualstudio.fixtures.ProjectFile
 import org.gradle.ide.visualstudio.fixtures.SolutionFile
@@ -23,12 +24,9 @@ import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.MixedLanguageHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
-
 // TODO: Test incremental
-@LeaksFileHandles
 class GeneratedSourcesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def setup() {
@@ -111,7 +109,7 @@ model {
         }
         main(NativeExecutableSpec) {
             sources {
-                c.lib comp.headersOnly.sources.c
+                c.lib \$.components.headersOnly.sources.c
             }
         }
     }

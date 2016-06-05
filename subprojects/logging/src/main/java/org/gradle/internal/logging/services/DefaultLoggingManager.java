@@ -17,17 +17,17 @@
 package org.gradle.internal.logging.services;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.LoggingOutputInternal;
+import org.gradle.internal.logging.config.LoggingRouter;
+import org.gradle.internal.logging.config.LoggingSourceSystem;
+import org.gradle.internal.logging.config.LoggingSystem;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.internal.logging.source.LoggingSystem;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.Closeable;
 import java.io.OutputStream;
@@ -36,20 +36,21 @@ import java.util.Set;
 
 public class DefaultLoggingManager implements LoggingManagerInternal, Closeable {
     private boolean started;
-    private final StartableLoggingSystem loggingSystem;
+    private final StartableLoggingSystem slf4jLoggingSystem;
     private final StartableLoggingSystem stdOutLoggingSystem;
     private final StartableLoggingSystem stdErrLoggingSystem;
     private final StartableLoggingSystem javaUtilLoggingSystem;
+    private final StartableLoggingRouter loggingRouter;
     private final LoggingOutputInternal loggingOutput;
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<OutputEventListener> outputEventListeners = new LinkedHashSet<OutputEventListener>();
-    private boolean hasConsole;
 
-    public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem javaUtilLoggingSystem, LoggingSystem stdOutLoggingSystem,
-                                 LoggingSystem stdErrLoggingSystem, LoggingOutputInternal loggingOutput) {
-        this.loggingOutput = loggingOutput;
-        this.loggingSystem = new StartableLoggingSystem(loggingSystem, null);
+    public DefaultLoggingManager(LoggingSourceSystem slf4jLoggingSystem, LoggingSourceSystem javaUtilLoggingSystem, LoggingSourceSystem stdOutLoggingSystem,
+                                 LoggingSourceSystem stdErrLoggingSystem, LoggingRouter loggingRouter) {
+        this.loggingOutput = loggingRouter;
+        this.loggingRouter = new StartableLoggingRouter(loggingRouter);
+        this.slf4jLoggingSystem = new StartableLoggingSystem(slf4jLoggingSystem, null);
         this.stdOutLoggingSystem = new StartableLoggingSystem(stdOutLoggingSystem, null);
         this.stdErrLoggingSystem = new StartableLoggingSystem(stdErrLoggingSystem, null);
         this.javaUtilLoggingSystem = new StartableLoggingSystem(javaUtilLoggingSystem, null);
@@ -66,7 +67,8 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
         for (OutputEventListener outputEventListener : outputEventListeners) {
             loggingOutput.addOutputEventListener(outputEventListener);
         }
-        loggingSystem.start();
+        loggingRouter.start();
+        slf4jLoggingSystem.start();
         javaUtilLoggingSystem.start();
         stdOutLoggingSystem.start();
         stdErrLoggingSystem.start();
@@ -76,7 +78,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
 
     public DefaultLoggingManager stop() {
         try {
-            CompositeStoppable.stoppable(loggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem).stop();
+            CompositeStoppable.stoppable(slf4jLoggingSystem, javaUtilLoggingSystem, stdOutLoggingSystem, stdErrLoggingSystem).stop();
             for (StandardOutputListener stdoutListener : stdoutListeners) {
                 loggingOutput.removeStandardOutputListener(stdoutListener);
             }
@@ -86,9 +88,7 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
             for (OutputEventListener listener : outputEventListeners) {
                 loggingOutput.removeOutputEventListener(listener);
             }
-            if (hasConsole) {
-                loggingOutput.flush();
-            }
+            loggingRouter.stop();
         } finally {
             started = false;
         }
@@ -100,19 +100,14 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     @Override
-    public LoggingManager setLevel(LogLevel logLevel) {
-        SingleMessageLogger.nagUserOfDeprecated("LoggingManager.setLevel(LogLevel)", "If you are using this method to expose Ant logging messages, please use AntBuilder.setLifecycleLogLevel() instead");
-        return setLevelInternal(logLevel);
-    }
-
-    @Override
     public DefaultLoggingManager setLevelInternal(LogLevel logLevel) {
-        loggingSystem.setLevel(logLevel);
+        slf4jLoggingSystem.setLevel(logLevel);
+        loggingRouter.setLevel(logLevel);
         return this;
     }
 
     public LogLevel getLevel() {
-        return loggingSystem.level;
+        return slf4jLoggingSystem.level;
     }
 
     @Override
@@ -186,30 +181,101 @@ public class DefaultLoggingManager implements LoggingManagerInternal, Closeable 
     }
 
     public void attachProcessConsole(ConsoleOutput consoleOutput) {
-        hasConsole = true;
-        loggingOutput.attachProcessConsole(consoleOutput);
+        loggingRouter.attachProcessConsole(consoleOutput);
     }
 
     public void attachAnsiConsole(OutputStream outputStream) {
-        hasConsole = true;
-        loggingOutput.attachAnsiConsole(outputStream);
-    }
-
-    @Override
-    public void flush() {
-        throw new UnsupportedOperationException();
+        loggingRouter.attachAnsiConsole(outputStream);
     }
 
     public void attachSystemOutAndErr() {
         loggingOutput.attachSystemOutAndErr();
     }
 
+    private static class StartableLoggingRouter implements Stoppable {
+        private final LoggingRouter loggingRouter;
+        private LogLevel level;
+        private LoggingSystem.Snapshot originalState;
+        private ConsoleOutput consoleOutput;
+        private OutputStream consoleOutputStream;
+
+        public StartableLoggingRouter(LoggingRouter loggingRouter) {
+            this.loggingRouter = loggingRouter;
+        }
+
+        public void start() {
+            originalState = loggingRouter.snapshot();
+            if (level != null) {
+                loggingRouter.configure(level);
+            }
+            if (consoleOutput != null) {
+                loggingRouter.attachProcessConsole(consoleOutput);
+            }
+            if (consoleOutputStream != null) {
+                loggingRouter.attachAnsiConsole(consoleOutputStream);
+            }
+        }
+
+        public void attachProcessConsole(ConsoleOutput consoleOutput) {
+            if (this.consoleOutput == consoleOutput) {
+                return;
+            }
+            if (consoleOutputStream != null) {
+                throw new UnsupportedOperationException("Not implemented yet.");
+            }
+
+            if (originalState != null) {
+                // Already started
+                loggingRouter.attachProcessConsole(consoleOutput);
+            }
+            this.consoleOutput = consoleOutput;
+        }
+
+        public void attachAnsiConsole(OutputStream outputStream) {
+            if (this.consoleOutputStream == outputStream) {
+                return;
+            }
+            if (consoleOutput != null) {
+                throw new UnsupportedOperationException("Not implemented yet.");
+            }
+
+            if (originalState != null) {
+                // Already started
+                loggingRouter.attachAnsiConsole(outputStream);
+            }
+            this.consoleOutputStream = outputStream;
+        }
+
+        public void setLevel(LogLevel logLevel) {
+            if (this.level == logLevel) {
+                return;
+            }
+
+            if (originalState != null) {
+                // Already started
+                loggingRouter.configure(logLevel);
+            }
+            level = logLevel;
+        }
+
+        @Override
+        public void stop() {
+            try {
+                if (originalState != null) {
+                    loggingRouter.restore(originalState);
+                }
+            } finally {
+                originalState = null;
+            }
+        }
+    }
+
     private static class StartableLoggingSystem implements Stoppable {
-        private final LoggingSystem loggingSystem;
+        private final LoggingSourceSystem loggingSystem;
         private LogLevel level;
         private LoggingSystem.Snapshot originalState;
 
-        private StartableLoggingSystem(LoggingSystem loggingSystem, LogLevel level) {
+        private StartableLoggingSystem(LoggingSourceSystem loggingSystem, LogLevel level) {
             this.loggingSystem = loggingSystem;
             this.level = level;
         }

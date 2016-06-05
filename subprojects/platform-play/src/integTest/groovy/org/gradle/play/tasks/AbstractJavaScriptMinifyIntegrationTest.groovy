@@ -19,11 +19,8 @@ package org.gradle.play.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class AbstractJavaScriptMinifyIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

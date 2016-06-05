@@ -33,7 +33,7 @@ class JavaCompileTest extends Specification {
     def platform = Mock(JavaPlatform)
     def toolProvider = Mock(ToolProvider)
     def compiler = Mock(Compiler)
-    def task = TestUtil.createTask(JavaCompile)
+    def task = TestUtil.create(tmpDir).task(JavaCompile)
 
     def "uses specified ToolChain to create a Compiler to do the work"() {
         given:

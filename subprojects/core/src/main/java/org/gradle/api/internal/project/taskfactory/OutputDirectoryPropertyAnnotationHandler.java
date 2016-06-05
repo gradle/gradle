@@ -17,68 +17,41 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.internal.FileUtils;
-import org.gradle.internal.UncheckedException;
-import org.gradle.util.GFileUtils;
+import org.gradle.api.tasks.OutputDirectory;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-public class OutputDirectoryPropertyAnnotationHandler implements PropertyAnnotationHandler {
+import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
+import static org.gradle.internal.Cast.uncheckedCast;
+import static org.gradle.util.GUtil.uncheckedCall;
 
-    private final Class<? extends Annotation> annotationType;
-    private final Transformer<Iterable<File>, Object> valueTransformer;
-    
-    public OutputDirectoryPropertyAnnotationHandler(Class<? extends Annotation> annotationType, Transformer<Iterable<File>, Object> valueTransformer) {
-        this.annotationType = annotationType;
-        this.valueTransformer = valueTransformer;
-    }
+public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputDirectoryPropertyAnnotationHandler {
 
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
-        return annotationType;
+        return OutputDirectory.class;
     }
 
-    private final ValidationAction outputDirValidation = new ValidationAction() {
-        public void validate(String propertyName, Object value, Collection<String> messages) {
-            for (File file : valueTransformer.transform(value)) {
-                if (file.exists() && !file.isDirectory()) {
-                    messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", file, propertyName));
-                    return;
-                }
-
-                for (File candidate = file; candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
-                    if (candidate.exists() && !candidate.isDirectory()) {
-                        messages.add(String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", file, propertyName, candidate));
-                        break;
-                    }
-                }
-            }
+    @Override
+    protected void validate(String propertyName, Object value, Collection<String> messages) {
+        if (value != null) {
+            validateDirectory(propertyName, (File) value, messages);
         }
-    };
-    
-    public void attachActions(final PropertyActionContext context) {
-        context.setValidationAction(outputDirValidation);
-        context.setConfigureAction(new UpdateAction() {
-            public void update(TaskInternal task, final Callable<Object> futureValue) {
-                task.getOutputs().files(futureValue);
-                task.prependParallelSafeAction(new Action<Task>() {
-                    public void execute(Task task) {
-                        Iterable<File> files;
-                        try {
-                            files = valueTransformer.transform(futureValue.call());
-                        } catch (Exception e) {
-                            throw UncheckedException.throwAsUncheckedException(e);
-                        }
-                        for (File file : files) {
-                            file = FileUtils.canonicalize(file);
-                            GFileUtils.mkdirs(file);
-                        }
-                    }
-                });
+    }
+
+    @Override
+    protected void update(TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
+        task.getOutputs().dir(futureValue);
+        task.prependParallelSafeAction(new Action<Task>() {
+            public void execute(Task task) {
+                File directory = uncheckedCast(uncheckedCall(futureValue));
+                if (directory != null) {
+                    ensureDirectoryExists(directory);
+                }
             }
         });
     }

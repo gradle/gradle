@@ -21,13 +21,14 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.GUtil.uncheckedCall;
 
 public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     //prefix internal fields with _ so that they don't get into the way of propertyMissing()
@@ -47,7 +48,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
         this._convention = convention;
     }
 
-    private static interface Value<T> {
+    private interface Value<T> {
         T getValue(Convention convention, IConventionAware conventionAwareObject);
     }
 
@@ -80,11 +81,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
     public MappedProperty map(String propertyName, final Callable<?> value) {
         return map(propertyName, new Value<Object>() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                try {
-                    return value.call();
-                } catch (Exception e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
+                return uncheckedCall(value);
             }
         });
     }

@@ -35,10 +35,12 @@ class PublicationsBuilder extends ProjectSensitiveToolingModelBuilder {
         this.publicationRegistry = publicationRegistry;
     }
 
+    @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.gradle.ProjectPublications");
     }
 
+    @Override
     public Object buildAll(String modelName, Project project) {
         return new DefaultProjectPublications().setPublications(publications(project.getPath()));
     }

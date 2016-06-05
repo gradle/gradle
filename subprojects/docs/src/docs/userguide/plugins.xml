@@ -232,6 +232,65 @@ plugins {
             </para>
         </section>
     </section>
+    <section id="sec:custom_plugin_repositories">
+        <title>Custom Plugin Repositories</title>
+        <note>
+            <para>
+                The <code>pluginRepositories {}</code> DSL is currently <link linkend="feature_lifecycle">incubating</link>.
+                Please be aware that the DSL and other configuration may change in later Gradle versions.
+            </para>
+        </note>
+        <para>
+            By default, the <code>plugins {}</code> DSL resolves plugins from the public <ulink url="https://plugins.gradle.org">Gradle Plugin Portal.</ulink>
+            Many build authors would also like to resolve plugins from private Maven or Ivy repositories because the plugins contain proprietary implementation
+            details, or just to have more control over what plugins are available to their builds.
+        </para>
+        <para>
+            To specify custom plugin repositories, add a <code>pluginRepositories {}</code> block to the <code>settings.gradle</code> file:
+        </para>
+        <sample id="customPluginRepositories" dir="plugins/consuming" title="Using plugins from custom plugin repositories.">
+            <sourcefile file="settings.gradle" snippet="custom-plugin-repositories" />
+        </sample>
+        <para>
+            This tells Gradle to first look in the Maven repository at <literal>maven-repo</literal> when resolving plugins and then to
+            check the Gradle Plugin Portal if the plugins are not found in the Maven repository. If you don't want the Gradle Plugin Portal to be searched,
+            omit the <code>gradlePluginPortal()</code> line. Finally, the Ivy repository at <literal>ivy-repo</literal> will be checked.
+        </para>
+        <para>
+            The <code>pluginRepositories {}</code> block may only appear in the <code>settings.gradle</code> file, and must be the first block in the file.
+            Custom Maven and Ivy plugin repositories must contain <link linkend="sec:plugin_markers">plugin marker artifacts</link> in addition to the artifacts
+            which actually implement the plugin. For more information on publishing plugins to custom repositories read <xref linkend="javaGradle_plugin" />.
+        </para>
+        <para>
+            See <apilink class="org.gradle.plugin.repository.PluginRepositoriesSpec" /> for complete documentation for using the
+            <code>pluginRepositories {}</code> block.
+        </para>
+    </section>
+    <section id="sec:plugin_markers">
+        <title>Plugin Marker Artifacts</title>
+        <para>
+            Since the <code>plugins {}</code> DSL block only allows for declaring plugins by their globally unique plugin <literal>id</literal> and
+            <literal>version</literal> properties, Gradle needs a way to look up the coordinates of the plugin implementation artifact. To do so,
+            Gradle will look for a Plugin Marker Artifact with the coordinates <literal>plugin.id:plugin.id.gradle.plugin:plugin.version</literal>.
+            This marker needs to have a dependency on the actual plugin implementation. Publishing these markers is automated by the
+            <link linkend="javaGradle_plugin">java-gradle-plugin</link>.
+        </para>
+        <para>
+            For example, the following complete sample from the <literal>sample-plugins</literal> project shows how to publish a
+            <literal>org.gradle.sample.hello</literal> plugin and a <literal>org.gradle.sample.goodbye</literal> plugin to both an Ivy and Maven repository
+            using the combination of the <link linkend="javaGradle_plugin">java-gradle-plugin</link>, the
+            <link linkend="publishing_maven">maven-publish</link> plugin, and the <link linkend="publishing_ivy">ivy-publish</link> plugin.
+        </para>
+        <sample id="completePluginPublishing" title="Complete Plugin Publishing Sample" dir="plugins/publishing">
+            <sourcefile file="build.gradle" snippet="complete-plugin-publishing" />
+        </sample>
+        <para>
+            Running <literal>gradle publish</literal> in the sample directory causes the following repo layouts to exist:
+        </para>
+        <para>
+            <imagedata fileref="img/pluginMarkers.png" />
+        </para>
+    </section>
     <section>
         <title>Finding community plugins</title>
         <para>

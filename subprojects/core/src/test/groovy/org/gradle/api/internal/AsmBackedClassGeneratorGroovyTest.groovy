@@ -97,7 +97,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         then:
         tester.lastMethod == "oneAction"
         tester.lastArgs.size() == 1
-        tester.lastArgs.first() instanceof ClosureBackedAction
+        tester.lastArgs.first() instanceof Action
 
         when:
         tester.twoArgs("1") { assert it == "subject" }
@@ -106,7 +106,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         tester.lastMethod == "twoArgs"
         tester.lastArgs.size() == 2
         tester.lastArgs.first() == "1"
-        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.lastArgs.last() instanceof Action
 
         when:
         tester.threeArgs("1", "2") { assert it == "subject" }
@@ -116,7 +116,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         tester.lastArgs.size() == 3
         tester.lastArgs.first() == "1"
         tester.lastArgs[1] == "2"
-        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.lastArgs.last() instanceof Action
 
         when:
         tester.overloaded("1") { assert it == "subject" }
@@ -125,7 +125,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         tester.lastMethod == "overloaded"
         tester.lastArgs.size() == 2
         tester.lastArgs.first() == "1"
-        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.lastArgs.last() instanceof Action
 
         when:
         tester.overloaded(1) { assert it == "subject" }
@@ -134,7 +134,7 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
         tester.lastMethod == "overloaded"
         tester.lastArgs.size() == 2
         tester.lastArgs.first() == 1
-        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.lastArgs.last() instanceof Action
 
         when:
         def closure = { assert it == "subject" }
@@ -148,17 +148,17 @@ class AsmBackedClassGeneratorGroovyTest extends Specification {
 
         expect: // can return values
         tester.oneActionReturnsString({}) == "string"
-        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.lastArgs.last() instanceof Action
         tester.twoArgsReturnsString("foo", {}) == "string"
-        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.lastArgs.last() instanceof Action
         tester.oneActionReturnsInt({}) == 1
-        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.lastArgs.last() instanceof Action
         tester.twoArgsReturnsInt("foo", {}) == 1
-        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.lastArgs.last() instanceof Action
         tester.oneActionReturnsArray({}) == [] as Object[]
-        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.lastArgs.last() instanceof Action
         tester.twoArgsReturnsArray("foo", {}) == [] as Object[]
-        tester.lastArgs.last() instanceof ClosureBackedAction
+        tester.lastArgs.last() instanceof Action
     }
 
     def "can coerce enum values"() {

@@ -32,7 +32,7 @@ import java.util.Set;
  * @param <T> the contract type for all items
  */
 @Incubating
-public interface ModelMap<T> extends Iterable<T> {
+public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Returns a collection containing the items from this collection which are of the specified type.
      *

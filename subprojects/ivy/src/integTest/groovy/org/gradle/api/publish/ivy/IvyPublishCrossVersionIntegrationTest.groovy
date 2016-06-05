@@ -15,12 +15,10 @@
  */
 package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.util.TextUtil
 
-@TargetVersions('0.9+')
 class IvyPublishCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
     final TestFile repoDir = file("ivy-repo")

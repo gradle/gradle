@@ -19,6 +19,8 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.DefaultHasher
+import org.gradle.cache.CacheAccess
+import org.gradle.cache.PersistentStore
 import org.gradle.cache.internal.MapBackedInMemoryStore
 import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -30,9 +32,10 @@ class MinimalFileSetSnapshotterTest extends Specification {
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def stringInterner = new StringInterner()
-    def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), new MapBackedInMemoryStore(), stringInterner)
+    PersistentStore persistentStore = new MapBackedInMemoryStore()
+    def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), persistentStore, stringInterner)
 
-    TaskArtifactStateCacheAccess cacheAccess = Mock()
+    CacheAccess cacheAccess = persistentStore
     FileResolver fileResolver = Mock()
     FileSystem fileSystem = Mock()
 
@@ -55,8 +58,7 @@ class MinimalFileSetSnapshotterTest extends Specification {
         def collection = new SimpleFileCollection(included, missing, includedDirectory)
 
         when:
-        FileCollectionSnapshot.PreCheck preCheck = minimalFileSnapshotter.preCheck(collection, true)
-        snapshot = minimalFileSnapshotter.snapshot(preCheck)
+        snapshot = minimalFileSnapshotter.snapshot(collection, true)
 
         then:
         findSnapshot(included) instanceof FileHashSnapshot

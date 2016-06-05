@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -25,7 +25,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.daemon.client.JvmVersionDetector;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 
@@ -52,7 +51,7 @@ public class ConnectionScopeServices {
     }
 
     ProviderConnection createProviderConnection(BuildExecuter buildActionExecuter, DaemonClientFactory daemonClientFactory,
-                                                ClassLoaderFactory classLoaderFactory, ServiceRegistry serviceRegistry,
+                                                ServiceRegistry serviceRegistry,
                                                 JvmVersionDetector jvmVersionDetector,
                                                 // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
                                                 ShutdownCoordinator shutdownCoordinator) {
@@ -66,8 +65,7 @@ public class ConnectionScopeServices {
                                 new DefaultPayloadClassLoaderRegistry(
                                         new ClassLoaderCache(),
                                         new ClientSidePayloadClassLoaderFactory(
-                                                new ModelClassLoaderFactory(
-                                                        classLoaderFactory))),
+                                                new ModelClassLoaderFactory())),
                                 new ClasspathInferer())),
                 jvmVersionDetector
         );

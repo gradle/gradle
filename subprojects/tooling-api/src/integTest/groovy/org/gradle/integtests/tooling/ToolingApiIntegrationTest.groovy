@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApi
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
@@ -145,7 +144,6 @@ allprojects {
     }
 
     @Issue("GRADLE-2419")
-    @LeaksFileHandles
     def "tooling API does not hold JVM open"() {
         given:
         def buildFile = projectDir.file("build.gradle")
@@ -226,10 +224,12 @@ allprojects {
                     try {
                         // Configure the build
                         BuildLauncher launcher = connection.newBuild();
-                        launcher.forTasks("thing").withArguments("-u");
+                        launcher.forTasks("thing");
+                        launcher.withArguments("-u");
                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                         launcher.setStandardOutput(outputStream);
                         launcher.setStandardError(outputStream);
+                        launcher.setColorOutput(true);
 
                         // Run the build
                         launcher.run();

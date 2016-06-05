@@ -109,7 +109,7 @@
             </sample>
             <para>
                 You can use Gradle's dependency management to assemble the classpath to use for the custom tasks.
-                To do this, you need to define a custom configuration for the classpath, then add some dependencies 
+                To do this, you need to define a custom configuration for the classpath, then add some dependencies
                 to the configuration. This is described in more detail in <xref linkend='sec:how_to_declare_your_dependencies'/>.
             </para>
             <sample id="useExternalAntTaskWithConfig" dir="userguide/ant/useExternalAntTaskWithConfig" title="Declaring the classpath for a custom Ant task">
@@ -195,6 +195,81 @@
             <sourcefile file="build.xml" snippet="get-reference"/>
             <sourcefile file="build.gradle" snippet="get-reference"/>
         </sample>
+    </section>
+
+    <section id="sec:ant_logging">
+        <title>Ant logging</title>
+
+        <para>Gradle maps Ant message priorities to Gradle log levels so that messages logged from Ant appear in the Gradle output.
+            By default, these are mapped as follows:
+        </para>
+
+        <table>
+            <title>Ant message priority mapping</title>
+            <thead>
+                <tr>
+                    <td>Ant Message Priority</td>
+                    <td>Gradle Log Level</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><firstterm>VERBOSE</firstterm></td>
+                <td><literal>DEBUG</literal></td>
+            </tr>
+            <tr>
+                <td><firstterm>DEBUG</firstterm></td>
+                <td><literal>DEBUG</literal></td>
+            </tr>
+            <tr>
+                <td><firstterm>INFO</firstterm></td>
+                <td><literal>INFO</literal></td>
+            </tr>
+            <tr>
+                <td><firstterm>WARN</firstterm></td>
+                <td><literal>WARN</literal></td>
+            </tr>
+            <tr>
+                <td><firstterm>ERROR</firstterm></td>
+                <td><literal>ERROR</literal></td>
+            </tr>
+        </table>
+
+        <section id="sec:fine_tuning_ant_logging">
+            <title>Fine tuning Ant logging</title>
+
+            <para>The default mapping of Ant message priority to Gradle log level can sometimes be problematic.  For example,
+                there is no message priority that maps directly to the <literal>LIFECYCLE</literal> log level, which is the
+                default for Gradle.  Many Ant tasks log messages at the <firstterm>INFO</firstterm> priority, which means to expose
+                those messages from Gradle, a build would have to be run with the log level set to <literal>INFO</literal>,
+                potentially logging much more output than is desired.
+            </para>
+
+            <para>Conversely, if an Ant task logs messages at too high of a level, to suppress those messages would require the
+                build to be run at a higher log level, such as <literal>QUIET</literal>.  However, this could result in other,
+                desirable output being suppressed.
+            </para>
+
+            <para>To help with this, Gradle allows the user to fine tune the Ant logging and control the mapping of message priority
+                to Gradle log level.  This is done by setting the priority that should map to the default Gradle <literal>LIFECYCLE</literal>
+                log level using the <apilink class="org.gradle.api.AntBuilder" method="setLifecycleLogLevel(java.lang.String)"/> method.  When this value
+                is set, any Ant message logged at the configured priority or above will be logged at least at <literal>LIFECYCLE</literal>.
+                Any Ant message logged below this priority will be logged at most at <literal>INFO</literal>.
+            </para>
+
+            <para>For example, the following changes the mapping such that Ant <firstterm>INFO</firstterm> priority messages are exposed at the <literal>LIFECYCLE</literal>
+                log level.
+            </para>
+
+            <sample id="antLogging" dir="userguide/ant/antLogging" title="Fine tuning Ant logging">
+                <sourcefile file="build.gradle"/>
+                <output args="hello"/>
+            </sample>
+
+            <para>On the other hand, if the <literal>lifecycleLogLevel</literal> was set to <firstterm>ERROR</firstterm>, Ant messages logged
+                at the <firstterm>WARN</firstterm> priority would no longer be logged at the <literal>WARN</literal> log level.  They would now
+                be logged at the <literal>INFO</literal> level and would be suppressed by default.
+            </para>
+        </section>
     </section>
 
     <section id="sec:ant_api">

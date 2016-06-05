@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
+
 import java.util.Map;
 import java.util.Set;
 
@@ -23,10 +25,10 @@ import java.util.Set;
  */
 public abstract class TaskExecution {
     private String taskClass;
+    private HashCode taskClassLoaderHash;
+    private HashCode taskActionsClassLoaderHash;
     private Map<String, Object> inputProperties;
     private Set<String> outputFiles;
-    private Integer outputFilesHash;
-    private Integer inputFilesHash;
 
     public Set<String> getOutputFiles() {
         return outputFiles;
@@ -42,6 +44,22 @@ public abstract class TaskExecution {
 
     public void setTaskClass(String taskClass) {
         this.taskClass = taskClass;
+    }
+
+    public HashCode getTaskClassLoaderHash() {
+        return taskClassLoaderHash;
+    }
+
+    public void setTaskClassLoaderHash(HashCode taskClassLoaderHash) {
+        this.taskClassLoaderHash = taskClassLoaderHash;
+    }
+
+    public HashCode getTaskActionsClassLoaderHash() {
+        return taskActionsClassLoaderHash;
+    }
+
+    public void setTaskActionsClassLoaderHash(HashCode taskActionsClassLoaderHash) {
+        this.taskActionsClassLoaderHash = taskActionsClassLoaderHash;
     }
 
     public Map<String, Object> getInputProperties() {
@@ -69,20 +87,4 @@ public abstract class TaskExecution {
     public abstract FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
 
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
-
-    public Integer getOutputFilesHash() {
-        return outputFilesHash;
-    }
-
-    public void setOutputFilesHash(Integer outputFilesHash) {
-        this.outputFilesHash = outputFilesHash;
-    }
-
-    public Integer getInputFilesHash() {
-        return inputFilesHash;
-    }
-
-    public void setInputFilesHash(Integer inputFilesHash) {
-        this.inputFilesHash = inputFilesHash;
-    }
 }

@@ -42,12 +42,39 @@ model {
                 assert binaries.size() == 1
                 def sampleBinary = binaries.sampleBinary
                 assert sampleBinary instanceof SampleBinary
+                assert sampleBinary.name == "sampleBinary"
                 assert sampleBinary.displayName == "SampleBinary 'sampleBinary'"
+                assert sampleBinary.toString() == "SampleBinary 'sampleBinary'"
             }
         }
     }
 }
 '''
+        then:
+        succeeds "checkModel"
+    }
+
+    def "custom binary type can viewed as ModelElement"() {
+        when:
+        buildWithCustomBinaryPlugin()
+
+        and:
+        buildFile << '''
+            class Rules extends RuleSource {
+                @Mutate
+                void tasks(ModelMap<Task> tasks, @Path("binaries.sampleBinary") ModelElement binary) {
+                    tasks.create("checkModel") {
+                        doLast {
+                            assert binary.name == "sampleBinary"
+                            assert binary.displayName == "SampleBinary 'sampleBinary'"
+                            assert binary.toString() == binary.displayName
+                        }
+                    }
+                }
+            }
+            apply plugin: Rules
+'''
+
         then:
         succeeds "checkModel"
     }

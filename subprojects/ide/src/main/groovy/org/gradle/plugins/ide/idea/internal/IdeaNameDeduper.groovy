@@ -15,19 +15,24 @@
  */
 package org.gradle.plugins.ide.idea.internal
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Project
+import org.gradle.plugins.ide.idea.GenerateIdeaModule
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget
 import org.gradle.plugins.ide.internal.configurer.ProjectDeduper
 
+@CompileStatic
 class IdeaNameDeduper {
 
     void configureRoot(Project rootProject) {
         def ideaProjects = rootProject.allprojects.findAll { it.plugins.hasPlugin(IdeaPlugin) }
-        new ProjectDeduper().dedupe(ideaProjects, { project ->
+        new ProjectDeduper().dedupe(ideaProjects, { Project project ->
             new DeduplicationTarget(project: project,
-                    moduleName: project.ideaModule.module.name,
-                    updateModuleName: { project.ideaModule.module.name = it } )
+                moduleName: ((GenerateIdeaModule) project.tasks.getByName("ideaModule")).module.name,
+                updateModuleName: { String moduleName ->
+                    ((GenerateIdeaModule) project.tasks.getByName("ideaModule")).module.name = moduleName
+                })
         })
     }
 }

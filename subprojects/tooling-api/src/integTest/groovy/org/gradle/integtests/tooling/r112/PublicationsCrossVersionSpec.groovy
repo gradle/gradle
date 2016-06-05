@@ -18,11 +18,9 @@ package org.gradle.integtests.tooling.r112
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.model.gradle.ProjectPublications
 
-@ToolingApiVersion('>=1.12')
 @TargetGradleVersion('>=1.12')
 class PublicationsCrossVersionSpec extends ToolingApiSpecification {
     def "empty project"() {
@@ -198,7 +196,7 @@ publishing {
         pub2.id.version == "1.2"
     }
 
-    @TargetGradleVersion('>=1.0-milestone-8 <1.12')
+    @TargetGradleVersion('>=1.2 <1.12')
     def "decent error message for Gradle version that doesn't expose publications"() {
         when:
         ProjectPublications publications = withConnection { connection ->

@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.tasks.testing.testng;
 
-import org.gradle.internal.reflect.JavaReflectionUtil;
+import com.google.common.base.Objects;
 import org.gradle.internal.reflect.JavaMethod;
+import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.testng.ISuiteListener;
 import org.testng.ITestListener;
 
@@ -54,22 +55,63 @@ class TestNGListenerAdapterFactory {
     }
 
     private ITestListener createProxy(Class<?> configListenerClass, final ITestListener listener) {
-        return (ITestListener) Proxy.newProxyInstance(classLoader, new Class<?>[]{ITestListener.class, ISuiteListener.class, configListenerClass}, new InvocationHandler() {
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                Class<?> realReturnType = method.getReturnType();
-                Class<?> boxedReturnType = realReturnType;
-                if (!realReturnType.equals(void.class) && realReturnType.isPrimitive()) {
-                    boxedReturnType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(realReturnType);
-                }
+        Class<?>[] interfaces = new Class<?>[]{ITestListener.class, ISuiteListener.class, configListenerClass};
+        return (ITestListener) Proxy.newProxyInstance(classLoader, interfaces, new AdaptedListener(listener));
+    }
 
-                return invoke(listener.getClass(), listener, boxedReturnType, method, args);
-            }
+    private static class AdaptedListener implements InvocationHandler {
 
-            private <T, R> R invoke(Class<T> listenerType, Object listener, Class<R> returnType, Method method, Object[] args) {
-                T listenerCast = listenerType.cast(listener);
-                JavaMethod<T, R> javaMethod = JavaReflectionUtil.method(listenerType, returnType, method.getName(), method.getParameterTypes());
-                return javaMethod.invoke(listenerCast, args);
+        private final ITestListener delegate;
+
+        private AdaptedListener(ITestListener delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            Class<?> realReturnType = method.getReturnType();
+            Class<?> boxedReturnType = realReturnType;
+            if (!realReturnType.equals(void.class) && realReturnType.isPrimitive()) {
+                boxedReturnType = JavaReflectionUtil.getWrapperTypeForPrimitiveType(realReturnType);
             }
-        });
+            if (method.getName().equals("equals") && args != null && args.length == 1) {
+                return proxyEquals(proxy, args[0]);
+            }
+            if (method.getName().equals("hashCode") && args == null) {
+                return proxyHashCode(proxy);
+            }
+            return invoke(delegate.getClass(), delegate, boxedReturnType, method, args);
+        }
+
+        private <T, R> R invoke(Class<T> listenerType, Object listener, Class<R> returnType, Method method, Object[] args) {
+            T listenerCast = listenerType.cast(listener);
+            JavaMethod<T, R> javaMethod = JavaReflectionUtil.method(listenerType, returnType, method.getName(), method.getParameterTypes());
+            return javaMethod.invoke(listenerCast, args);
+        }
+
+        private boolean proxyEquals(Object proxy, Object other) {
+            if (other == null) {
+                return false;
+            }
+            if (proxy == other) {
+                return true;
+            }
+            if (!Proxy.isProxyClass(other.getClass())) {
+                return false;
+            }
+            InvocationHandler otherHandler = Proxy.getInvocationHandler(other);
+            if (!(otherHandler instanceof AdaptedListener)) {
+                return false;
+            }
+            AdaptedListener proxyAdapter = (AdaptedListener) Proxy.getInvocationHandler(proxy);
+            AdaptedListener otherAdapter = (AdaptedListener) otherHandler;
+            return proxyAdapter.getClass().equals(otherHandler.getClass())
+                && proxyAdapter.delegate.getClass().equals(otherAdapter.delegate.getClass());
+        }
+
+        private int proxyHashCode(Object proxy) {
+            AdaptedListener invocationHandler = (AdaptedListener) Proxy.getInvocationHandler(proxy);
+            return Objects.hashCode(invocationHandler.getClass(), invocationHandler.delegate.getClass());
+        }
     }
 }

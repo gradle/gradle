@@ -15,21 +15,25 @@
  */
 package org.gradle.wrapper
 
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import spock.lang.Specification
 
+@CleanupTestDirectory
 class SystemPropertiesHandlerTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
-    @LeaksFileHandles
     def parsesPropertiesFile() {
-        File propFile = tmpDir.file('props')
-        Properties props = new Properties()
-        props.putAll a: 'b', 'systemProp.c': 'd', 'systemProp.': 'e'
-        props.store(new FileOutputStream(propFile), "")
+        TestFile propFile = temporaryFolder.file('props')
+        propFile << """
+a=b
+systemProp.c=d
+systemProp.=e
+systemProp=f
+"""
 
         expect:
         [c: 'd'] == SystemPropertiesHandler.getSystemProperties(propFile)
@@ -37,6 +41,6 @@ class SystemPropertiesHandlerTest extends Specification {
 
     def ifNoPropertyFileExistShouldReturnEmptyMap() {
         expect:
-        [:] == SystemPropertiesHandler.getSystemProperties(tmpDir.file('unknown'))
+        [:] == SystemPropertiesHandler.getSystemProperties(temporaryFolder.file('unknown'))
     }
 }

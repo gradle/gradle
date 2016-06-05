@@ -18,33 +18,30 @@ package org.gradle.model.internal.manage.schema.extract;
 
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
-import com.google.common.collect.*;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.Ordering;
 import groovy.lang.GroovyObject;
-import org.gradle.api.Nullable;
-import org.gradle.internal.Cast;
+import org.gradle.internal.reflect.GroovyMethods;
+import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.model.Managed;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
+import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class ModelSchemaUtils {
-
-    private static final Set<Equivalence.Wrapper<Method>> IGNORED_METHODS = ImmutableSet.copyOf(
-        Iterables.transform(
-            Iterables.concat(
-                Arrays.asList(Object.class.getMethods()),
-                Arrays.asList(GroovyObject.class.getMethods())
-            ), new Function<Method, Equivalence.Wrapper<Method>>() {
-                public Equivalence.Wrapper<Method> apply(@Nullable Method input) {
-                    return SIGNATURE_EQUIVALENCE.wrap(input);
-                }
-            }
-        )
-    );
+    public static final List<Class<?>> IGNORED_OBJECT_TYPES = ImmutableList.of(Object.class, GroovyObject.class);
 
     /**
      * Returns all candidate methods for schema generation declared by the given type and its super-types indexed by name.
@@ -64,7 +61,7 @@ public class ModelSchemaUtils {
      */
     public static <T> CandidateMethods getCandidateMethods(Class<T> clazz) {
         final ImmutableListMultimap.Builder<String, Method> methodsByNameBuilder = ImmutableListMultimap.builder();
-        ModelSchemaUtils.walkTypeHierarchy(clazz, new ModelSchemaUtils.TypeVisitor<T>() {
+        walkTypeHierarchy(clazz, IGNORED_OBJECT_TYPES, new TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
                 Method[] declaredMethods = type.getDeclaredMethods();
@@ -93,56 +90,14 @@ public class ModelSchemaUtils {
         return new CandidateMethods(candidatesBuilder.build());
     }
 
-    public static boolean isIgnoredMethod(Method method) {
+    private static boolean isIgnoredMethod(Method method) {
         int modifiers = method.getModifiers();
         if (method.isSynthetic() || Modifier.isStatic(modifiers)) {
             return true;
         }
 
         // Ignore overrides of Object and GroovyObject methods
-        return isObjectMethod(method);
-    }
-
-    /**
-     * Is defined by Object or GroovyObject?
-     */
-    public static boolean isObjectMethod(Method method) {
-        return IGNORED_METHODS.contains(SIGNATURE_EQUIVALENCE.wrap(method));
-    }
-
-    /**
-     * Visits all types in a type hierarchy in breadth-first order, super-classes first and then implemented interfaces.
-     *
-     * @param clazz the type of whose type hierarchy to visit.
-     * @param visitor the visitor to call for each type in the hierarchy.
-     */
-    public static <T> void walkTypeHierarchy(Class<T> clazz, TypeVisitor<? extends T> visitor) {
-        Set<Class<?>> seenInterfaces = Sets.newHashSet();
-        Queue<Class<? super T>> queue = new ArrayDeque<Class<? super T>>();
-        queue.add(clazz);
-        Class<? super T> type;
-        while ((type = queue.poll()) != null) {
-            // Do not process Object's or GroovyObject's methods
-            if (type.equals(Object.class) || type.equals(GroovyObject.class)) {
-                continue;
-            }
-
-            visitor.visitType(type);
-
-            Class<? super T> superclass = type.getSuperclass();
-            if (superclass != null) {
-                queue.add(superclass);
-            }
-            for (Class<?> iface : type.getInterfaces()) {
-                if (seenInterfaces.add(iface)) {
-                    queue.add(Cast.<Class<? super T>>uncheckedCast(iface));
-                }
-            }
-        }
-    }
-
-    public interface TypeVisitor<T> {
-        void visitType(Class<? super T> type);
+        return GroovyMethods.isObjectMethod(method);
     }
 
     /**

@@ -56,7 +56,7 @@ public class PathJavadocOptionFileOptionTest {
         pathOption.getValue().add(fileTwo);
 
         context.checking(new Expectations() {{
-            one(writerContextMock).writePathOption(optionName, pathOption.getValue(), joinBy);
+            oneOf(writerContextMock).writePathOption(optionName, pathOption.getValue(), joinBy);
         }});
 
         pathOption.write(writerContextMock);

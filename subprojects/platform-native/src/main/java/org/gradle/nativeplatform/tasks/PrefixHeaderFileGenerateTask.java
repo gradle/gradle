@@ -31,18 +31,16 @@ import java.io.File;
  */
 @Incubating
 public class PrefixHeaderFileGenerateTask extends DefaultTask {
-    @Input
-    String header;
-
-    @OutputFile
-    File prefixHeaderFile;
+    private String header;
+    private File prefixHeaderFile;
 
     @TaskAction
     void generatePrefixHeaderFile() {
         PCHUtils.generatePCHFile(Lists.newArrayList(header), prefixHeaderFile);
     }
 
-    public String getHeaders() {
+    @Input
+    public String getHeader() {
         return header;
     }
 
@@ -50,6 +48,7 @@ public class PrefixHeaderFileGenerateTask extends DefaultTask {
         this.header = header;
     }
 
+    @OutputFile
     public File getPrefixHeaderFile() {
         return prefixHeaderFile;
     }

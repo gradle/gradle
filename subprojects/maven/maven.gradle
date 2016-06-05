@@ -20,6 +20,7 @@ dependencies {
     compile project(':core')
     compile project(':dependencyManagement')
     compile project(':plugins')
+    compile project(':pluginUse')
     compile project(':publish')
     compile libraries.slf4j_api
 
@@ -39,3 +40,6 @@ dependencies {
 
 useTestFixtures()
 useTestFixtures(project: ":modelCore")
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

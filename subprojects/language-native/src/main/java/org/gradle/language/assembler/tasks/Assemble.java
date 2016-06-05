@@ -19,7 +19,15 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.ParallelizableTask;
+import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.operations.logging.BuildOperationLogger;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.language.assembler.internal.DefaultAssembleSpec;
@@ -113,6 +121,7 @@ public class Assemble extends DefaultTask {
     /**
      * The tool chain being used to build.
      */
+    @Internal
     public NativeToolChain getToolChain() {
         return toolChain;
     }
@@ -124,6 +133,7 @@ public class Assemble extends DefaultTask {
     /**
      * The platform being targeted.
      */
+    @Nested
     public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }

@@ -31,8 +31,8 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.local.model.LocalConfigurationMetaData;
-import org.gradle.internal.component.model.ConfigurationMetaData;
+import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -123,9 +123,9 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void visitNode(DependencyGraphNode resolvedConfiguration) {
-            ConfigurationMetaData configurationMetaData = resolvedConfiguration.getMetaData();
-            if (configurationMetaData instanceof LocalConfigurationMetaData) {
-                TaskDependency directBuildDependencies = ((LocalConfigurationMetaData) configurationMetaData).getDirectBuildDependencies();
+            ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetaData();
+            if (configurationMetadata instanceof LocalConfigurationMetadata) {
+                TaskDependency directBuildDependencies = ((LocalConfigurationMetadata) configurationMetadata).getDirectBuildDependencies();
                 taskDependency.add(directBuildDependencies);
             }
 

@@ -16,62 +16,67 @@
 
 package org.gradle.api.internal.file;
 
-import com.google.common.base.Charsets;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.serialize.Encoder;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 public class FileTreeElementHasher {
     private static final byte HASH_PATH_SEPARATOR = (byte) '/';
     private static final byte HASH_FIELD_SEPARATOR = (byte) '\t';
     private static final byte HASH_RECORD_SEPARATOR = (byte) '\n';
 
-    public static final int calculateHashForFileMetadata(Collection<? extends FileTreeElement> allFileTreeElements) {
-        Collection<FileTreeElement> sortedFileTreeElement = sortForHashing(allFileTreeElements);
+    public static int calculateHashForFileMetadata(Collection<? extends FileTreeElement> allFileTreeElements) {
+        FileTreeElement[] sortedFileTreeElement = sortForHashing(allFileTreeElements);
 
-        Hasher hasher = createHasher();
-        for (FileTreeElement fileTreeElement : sortedFileTreeElement) {
-            for (String pathPart : fileTreeElement.getRelativePath().getSegments()) {
-                hasher.putString(pathPart, Charsets.UTF_8);
-                hasher.putByte(HASH_PATH_SEPARATOR);
+        BufferedStreamingHasher hasher = new BufferedStreamingHasher();
+        Encoder encoder = hasher.getEncoder();
+        try {
+            for (FileTreeElement fileTreeElement : sortedFileTreeElement) {
+                for (String pathPart : fileTreeElement.getRelativePath().getSegments()) {
+                    encoder.writeString(pathPart);
+                    encoder.writeByte(HASH_PATH_SEPARATOR);
+                }
+                if (!fileTreeElement.isDirectory()) {
+                    encoder.writeByte(HASH_FIELD_SEPARATOR);
+                    encoder.writeLong(fileTreeElement.getSize());
+                    encoder.writeByte(HASH_FIELD_SEPARATOR);
+                    encoder.writeLong(fileTreeElement.getLastModified());
+                }
+                encoder.writeByte(HASH_RECORD_SEPARATOR);
             }
-            if (!fileTreeElement.isDirectory()) {
-                hasher.putByte(HASH_FIELD_SEPARATOR);
-                hasher.putLong(fileTreeElement.getSize());
-                hasher.putByte(HASH_FIELD_SEPARATOR);
-                hasher.putLong(fileTreeElement.getLastModified());
-            }
-            hasher.putByte(HASH_RECORD_SEPARATOR);
+            return hasher.checksum();
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
-        return hasher.hash().asInt();
     }
 
-    public static Hasher createHasher() {
-        return Hashing.crc32().newHasher();
-    }
+    public static int calculateHashForFilePaths(Collection<? extends FileTreeElement> allFileTreeElements) {
+        FileTreeElement[] sortedFileTreeElement = sortForHashing(allFileTreeElements);
 
-    public static final int calculateHashForFilePaths(Collection<? extends FileTreeElement> allFileTreeElements) {
-        Collection<FileTreeElement> sortedFileTreeElement = sortForHashing(allFileTreeElements);
-
-        Hasher hasher = createHasher();
-        for (FileTreeElement fileTreeElement : sortedFileTreeElement) {
-            for (String pathPart : fileTreeElement.getRelativePath().getSegments()) {
-                hasher.putString(pathPart, Charsets.UTF_8);
-                hasher.putByte(HASH_PATH_SEPARATOR);
+        BufferedStreamingHasher hasher = new BufferedStreamingHasher();
+        Encoder encoder = hasher.getEncoder();
+        try {
+            for (FileTreeElement fileTreeElement : sortedFileTreeElement) {
+                for (String pathPart : fileTreeElement.getRelativePath().getSegments()) {
+                    encoder.writeString(pathPart);
+                    encoder.writeByte(HASH_PATH_SEPARATOR);
+                }
+                encoder.writeByte(HASH_RECORD_SEPARATOR);
             }
-            hasher.putByte(HASH_RECORD_SEPARATOR);
+            return hasher.checksum();
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
-        return hasher.hash().asInt();
+
     }
 
-    private static Collection<FileTreeElement> sortForHashing(Collection<? extends FileTreeElement> allFileTreeElements) {
-        List<FileTreeElement> sortedFileTreeElement = new ArrayList<FileTreeElement>(allFileTreeElements);
-        Collections.sort(sortedFileTreeElement, FileTreeElementComparator.INSTANCE);
+    private static FileTreeElement[] sortForHashing(Collection<? extends FileTreeElement> allFileTreeElements) {
+        FileTreeElement[] sortedFileTreeElement = allFileTreeElements.toArray(new FileTreeElement[0]);
+        Arrays.sort(sortedFileTreeElement, FileTreeElementComparator.INSTANCE);
         return sortedFileTreeElement;
     }
 }

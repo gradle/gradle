@@ -42,7 +42,7 @@ public class S3ResourceConnector implements ExternalResourceConnector {
 
     public List<String> list(URI parent) {
         LOGGER.debug("Listing parent resources: {}", parent);
-        return s3Client.list(parent);
+        return s3Client.listDirectChildren(parent);
     }
 
     public ExternalResourceReadResponse openResource(URI location) {

@@ -21,6 +21,7 @@ package org.gradle.tooling.internal.protocol;
  * <p>The following constraints apply to implementations:
  * <ul>
  * <li>Implementations must be thread-safe.
+ * <li>Implementations should implement {@link InternalCompositeAwareConnection}. This is used by all consumer versions from 2.13-rc-1.
  * <li>Implementations should implement {@link org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection}. This is used by all consumer versions from 2.6-rc-1.
  * <li>Implementations should implement {@link InternalCancellableConnection}. This is used by all consumer versions from 2.1-rc-1.
  * <li>Implementations should implement {@link ConfigurableConnection}. This is used by all consumer versions from 1.2-rc-1.
@@ -69,9 +70,9 @@ public interface ConnectionVersion4 {
      * <p>Fetches a snapshot of the model for the project.
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-3 to 1.0-milestone-7. It is also used by later consumers when the provider
-     * does not implement newer interfaces.
+     * does not implement newer interfaces. It is not used by consumer versions 2.0 and later.
      * </p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3. Versions 2.0 and later fail with a 'no longer supported' exception.</p>
+     * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3. Provider versions 2.0 and later fail with a 'no longer supported' exception.</p>
      *
      * @throws UnsupportedOperationException When the given model type is not supported.
      * @throws IllegalStateException When this connection has been stopped.
@@ -85,9 +86,9 @@ public interface ConnectionVersion4 {
      * <p>Executes a build.
      *
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.0-milestone-3 to 1.1. It is also used by later consumers when the provider
-     * does not implement newer interfaces.
+     * does not implement newer interfaces. It is not used by consumer versions 2.0 and later.
      * </p>
-     * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3. Versions 2.0 and later fail with a 'no longer supported' exception.</p>
+     * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3. Provider versions 2.0 and later fail with a 'no longer supported' exception.</p>
      *
      * @param buildParameters The parameters for the build.
      * @throws IllegalStateException When this connection has been stopped.

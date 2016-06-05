@@ -55,7 +55,7 @@ public class StringsJavadocOptionFileOptionTest {
         stringsOption.getValue().add(valueTwo);
 
         context.checking(new Expectations() {{
-            one(writerContextMock).writeValuesOption(optionName, stringsOption.getValue(), joinBy);
+            oneOf(writerContextMock).writeValuesOption(optionName, stringsOption.getValue(), joinBy);
         }});
 
         stringsOption.write(writerContextMock);

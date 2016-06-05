@@ -48,29 +48,11 @@ class DefaultClassLoaderFactoryTest extends Specification {
         thrown(ClassNotFoundException)
     }
 
-    def "can use XML APIs from isolated ClassLoader when application classes include an XML provider"() {
-        assert ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory")
-
-        when:
-        def cl = factory.createIsolatedClassLoader(classpath)
-        def c = cl.loadClass(DefaultClassLoaderFactoryTestHelper.name)
-
-        then:
-        c != DefaultClassLoaderFactoryTestHelper
-
-        when:
-        Thread.currentThread().contextClassLoader = cl
-        c.newInstance().doStuff()
-
-        then:
-        notThrown()
-    }
-
     def "can use XML APIs from filtering ClassLoader when application classes include an XML provider"() {
         assert ClassLoader.getSystemResource("META-INF/services/javax.xml.parsers.SAXParserFactory")
 
         when:
-        def cl = new URLClassLoader(classpath.collect { it.toURL() } as URL[], factory.createFilteringClassLoader(getClass().classLoader))
+        def cl = new URLClassLoader(classpath.collect { it.toURL() } as URL[], factory.createFilteringClassLoader(getClass().classLoader, new FilteringClassLoader.Spec()))
         def c = cl.loadClass(DefaultClassLoaderFactoryTestHelper.name)
 
         then:
@@ -85,7 +67,7 @@ class DefaultClassLoaderFactoryTest extends Specification {
     }
 
     def getClasspath() {
-        return [ClasspathUtil.getClasspathForClass(DefaultClassLoaderFactoryTestHelper)].collect { it.toURI() }
+        return [ClasspathUtil.getClasspathForClass(DefaultClassLoaderFactoryTestHelper)]
     }
 }
 

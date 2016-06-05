@@ -76,6 +76,44 @@ project(':shared:model') {
     }
 
     @Test
+    void buildsCorrectModuleDependenciesWhenRootProjectDoesNotApplyIdePlugin() {
+        def settingsFile = file("settings.gradle")
+        settingsFile << """
+include 'api'
+include 'util'
+include 'other'
+        """
+
+        def buildFile = file("build.gradle")
+        buildFile << """
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'idea'
+}
+
+project(':api') {
+    dependencies {
+        compile project(':util')
+        compile project(':other')
+    }
+}
+
+project(':other') {
+    idea.module.name = 'other-renamed'
+}
+"""
+
+        //when
+        executer.usingBuildScript(buildFile).usingSettingsFile(settingsFile).withTasks("ideaModule").run()
+
+        //then
+        def dependencies = parseIml("api/api.iml").dependencies
+        assert dependencies.modules.size() == 2
+        dependencies.assertHasModule("COMPILE", "util")
+        dependencies.assertHasModule("COMPILE", "other-renamed")
+    }
+
+    @Test
     void dealsWithDuplicatedModuleNames() {
       /*
       This is the multi-module project structure the integration test works with:

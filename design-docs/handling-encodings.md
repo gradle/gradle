@@ -274,10 +274,7 @@ This is a bug and it should be fixed, see [GRADLE-3374](https://issues.gradle.or
 Manifests can be merged and so Gradle read manifests from files.
 The platform default charset is also used to decode the merged manifests content.
 
-In order to both fix the bug and keep backward compatibility, by default, all manifests should be encoded using UTF-8, all merged manifests should be decoded using the platform
-default charset.
-
-Read merged manifest using the default platform charset, write the manifest using UTF-8:
+By default, all manifests should be encoded using UTF-8, all merged manifests should be decoded using UTF-8:
 
     task jar(type: Jar) {
         manifest {
@@ -289,6 +286,7 @@ Previous behaviour:
 
     task jar(type: Jar) {
         manifest {
+            contentCharset = Charset.defaultCharset().name()
             from('src/config/javabasemanifest.txt') {
                 contentCharset = Charset.defaultCharset().name()
             }
@@ -298,6 +296,7 @@ Previous behaviour:
 #### Tests
 
 - by default, whatever the platform default character set, JAR/WAR/EAR manifests are encoded using UTF-8
-- by default, merged manifests are decoded using the platform default charset
+- by default, merged manifests are decoded using UTF-8
 - build author can control which character set is used for both encoding/decoding JAR manifests
+- manifest attributes with split multi-bytes characters are read/merged/written correctly
 - See existing tests in `JarIntegrationTest` for manifest content encoding

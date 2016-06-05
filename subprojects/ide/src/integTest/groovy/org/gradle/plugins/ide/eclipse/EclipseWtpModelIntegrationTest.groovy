@@ -60,8 +60,6 @@ dependencies {
 
 eclipse {
 
-  pathVariables 'userHomeVariable' : file(System.properties['user.home'])
-
   wtp {
     component {
       contextPath = 'killerApp'
@@ -84,26 +82,24 @@ eclipse {
 }
         """
 
-        component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        def facet = getFile([:], '.settings/org.eclipse.wst.common.project.facet.core.xml').text
+        // Classpath
+        def classpath = getClasspath()
+        classpath.assertHasLibs('foo-1.0.jar', 'bar-1.0.jar', 'baz-1.0.jar')
+        classpath.lib('foo-1.0.jar').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('bar-1.0.jar').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('baz-1.0.jar').assertIsExcludedFromDeployment()
 
-        //then component:
-        contains('someExtraSourceDir')
+        // Facets
+        wtpFacets.assertFacetVersion('gradleFacet', '1.333')
 
-        contains('foo-1.0.jar', 'bar-1.0.jar')
-        assert !component.contains('baz-1.0.jar')
-
-        contains('someBetterDeployName')
-
+        // Component
+        def component = getWtpComponent()
+        component.resources[0].assertAttributes('deploy-path': '/WEB-INF/classes', 'source-path': 'someExtraSourceDir')
+        component.resources[1].assertAttributes('deploy-path': './deploy/foo/bar', 'source-path': './src/foo/bar')
+        assert component.deployName =='someBetterDeployName'
+        assert component.moduleProperties.'wbPropertyOne' == 'New York!'
+        assert component.moduleProperties.'context-root' == 'killerApp'
         //contains('userHomeVariable') //TODO don't know how to test it at the moment
-
-        contains('./src/foo/bar', './deploy/foo/bar')
-        contains('wbPropertyOne', 'New York!')
-
-        contains('killerApp')
-
-        assert facet.contains('gradleFacet')
-        assert facet.contains('1.333')
     }
 
     @Issue("GRADLE-2653")
@@ -137,11 +133,12 @@ configurations.all {
 
         //when
         component = getFile([:], '.settings/org.eclipse.wst.common.component').text
+        def classpath = getFile([:], '.classpath').text
 
         //then
-        assert component.contains('foo-1.0.jar')
-        assert component.contains('baz-2.0.jar') //forced version
-        assert !component.contains('bar') //excluded
+        assert classpath.contains('foo-1.0.jar')
+        assert classpath.contains('baz-2.0.jar') //forced version
+        assert !classpath.contains('bar') //excluded
     }
 
     @Test
@@ -278,10 +275,11 @@ eclipse {
 }
         """
 
-        def component = getFile([:], '.settings/org.eclipse.wst.common.component').text
-        assert component.contains('foo.txt')
-        assert component.contains('bar.txt')
-        assert !component.contains('baz.txt')
+        def classpath = getClasspath()
+        classpath.assertHasLibs('foo.txt', 'bar.txt', 'baz.txt')
+        classpath.lib('foo.txt').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('bar.txt').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('baz.txt').assertIsExcludedFromDeployment()
     }
 
     @Test
@@ -485,41 +483,6 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1707")
-    void "the library and variable classpath entries are marked as component non-dependency"() {
-        //given
-        file('libs/myFoo.jar').touch()
-
-        file("build.gradle") << """
-            apply plugin: 'war'
-            apply plugin: 'eclipse-wtp'
-
-            repositories { mavenCentral() }
-
-            dependencies {
-              compile 'commons-io:commons-io:1.4'
-              compile files('libs/myFoo.jar')
-            }
-
-            eclipse.pathVariables MY_LIBS: file('libs')
-        """
-
-        //when
-        executer.withTasks("eclipse").run()
-
-        //then
-        def classpath = classpath
-        def component = wtpComponent
-
-        //the jar dependency is configured in the WTP component file and in the classpath
-        classpath.lib('commons-io-1.4.jar').assertIsExcludedFromDeployment()
-        component.lib('commons-io-1.4.jar').assertDeployedAt('/WEB-INF/lib')
-
-        classpath.lib('myFoo.jar').assertIsExcludedFromDeployment()
-        component.lib('myFoo.jar').assertDeployedAt('/WEB-INF/lib')
-    }
-
-    @Test
-    @Issue("GRADLE-1707")
     void "classpath entries are protected from conflicting component dependency attributes"() {
         //given
         file("build.gradle") << """
@@ -555,42 +518,68 @@ project(':contrib') {
 
     @Test
     @Issue("GRADLE-1412")
-    void "dependent project's library and variable classpath entries contain necessary dependency attribute"() {
+    void "utility project's library and variable classpath entries contain necessary dependency attribute"() {
         //given
         file('libs/myFoo.jar').touch()
         file('settings.gradle') << "include 'someLib'"
 
-        file("build.gradle") << """
-            apply plugin: 'war'
-            apply plugin: 'eclipse-wtp'
+        file("build.gradle") <<
+        """apply plugin: 'java'
+           apply plugin: 'eclipse-wtp'
 
-            dependencies {
-                compile project(':someLib')
-            }
+           repositories {
+               mavenCentral()
+           }
 
-            project(':someLib') {
-                apply plugin: 'java'
-                apply plugin: 'eclipse-wtp'
+           dependencies {
+               runtime 'commons-io:commons-io:1.4'
+               runtime files('libs/myFoo.jar')
+           }
 
-                repositories { mavenCentral() }
-
-                dependencies {
-                  compile 'commons-io:commons-io:1.4'
-                  compile files('libs/myFoo.jar')
-                }
-
-                eclipse.pathVariables MY_LIBS: file('libs')
-            }
+           eclipse.pathVariables MY_LIBS: file('libs')
         """
 
         //when
         executer.withTasks("eclipse").run()
 
         //then
-        def classpath = classpath('someLib')
+        def classpath = getClasspath()
 
-        classpath.lib('commons-io-1.4.jar').assertIsDeployedTo('../')
-        classpath.lib('myFoo.jar').assertIsDeployedTo('../')
+        classpath.lib('commons-io-1.4.jar').assertIsExcludedFromDeployment()
+        classpath.lib('myFoo.jar').assertIsExcludedFromDeployment()
+    }
+
+    @Test
+    @Issue("GRADLE-1412")
+    void "web project's library and variable classpath entries contain necessary dependency attribute"() {
+        //given
+        file('libs/myFoo.jar').touch()
+        file('settings.gradle') << "include 'someLib'"
+
+        file("build.gradle") <<
+        """apply plugin: 'war'
+           apply plugin: 'eclipse-wtp'
+
+           repositories {
+               mavenCentral()
+           }
+
+           dependencies {
+               runtime 'commons-io:commons-io:1.4'
+               runtime files('libs/myFoo.jar')
+           }
+
+           eclipse.pathVariables MY_LIBS: file('libs')
+        """
+
+        //when
+        executer.withTasks("eclipse").run()
+
+        //then
+        def classpath = getClasspath()
+
+        classpath.lib('commons-io-1.4.jar').assertIsDeployedTo('/WEB-INF/lib')
+        classpath.lib('myFoo.jar').assertIsDeployedTo('/WEB-INF/lib')
     }
 
     protected def contains(String ... contents) {

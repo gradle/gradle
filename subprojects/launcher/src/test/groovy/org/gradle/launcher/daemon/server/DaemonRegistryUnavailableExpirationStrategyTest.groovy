@@ -15,44 +15,62 @@
  */
 package org.gradle.launcher.daemon.server
 
+import org.gradle.internal.remote.Address
 import org.gradle.launcher.daemon.context.DaemonContext
+import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.registry.DaemonDir
+import org.gradle.launcher.daemon.registry.DaemonInfo
+import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
+
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
 class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
+    Daemon daemon = Mock(Daemon)
+    @Subject DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon)
     @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
-    final Daemon daemon = Mock(Daemon)
-    final DaemonContext daemonContext = Mock(DaemonContext)
+    File daemonDir = tempDir.createDir("test_daemon_dir")
 
     def "daemon should expire when registry file is unreachable"() {
         given:
-        DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy()
+        DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon)
+        DaemonContext daemonContext = new DefaultDaemonContext("user", null, tempDir.file("BOGUS"), 51234L, 10000, [] as List<String>)
 
         when:
         1 * daemon.getDaemonContext() >> { daemonContext }
-        1 * daemonContext.getDaemonRegistryDir() >> { tempDir.file("test_daemon_registry") }
-        DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration(daemon)
+        DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration()
 
         then:
-        expirationCheck.expired
-        expirationCheck.reason == "daemon registry became unreadable"
+        expirationCheck.status == GRACEFUL_EXPIRE
+        expirationCheck.reason == DaemonRegistryUnavailableExpirationStrategy.REGISTRY_BECAME_UNREADABLE
     }
 
-    def "daemon should not expire given readable registry"() {
+    def "daemon should not expire given readable registry with it's PID"() {
         given:
-        DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy()
-        DaemonDir daemonDir = new DaemonDir(tempDir.createDir("test_daemon_dir"))
+        Address address = new Address() {
+            String getDisplayName() {
+                return "DAEMON_ADDRESS"
+            }
+        }
+        DaemonContext daemonContext = new DefaultDaemonContext("user", null, daemonDir, 51234L, 10000, [] as List<String>)
+        DaemonDir daemonDir = new DaemonDir(daemonDir)
+        DaemonRegistry registry = new EmbeddedDaemonRegistry()
         daemonDir.getRegistry().createNewFile()
+        registry.store(new DaemonInfo(address, daemonContext, "password".bytes, true))
 
         when:
         1 * daemon.getDaemonContext() >> { daemonContext }
-        1 * daemonContext.getDaemonRegistryDir() >> { daemonDir.baseDir }
+        1 * daemon.getDaemonRegistry() >> { registry }
 
         then:
-        DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration(daemon)
-        !expirationCheck.expired
+        DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration()
+        expirationCheck.status == DO_NOT_EXPIRE
         expirationCheck.reason == null
     }
 }

@@ -30,15 +30,6 @@ allprojects {
                 eclipse {
                     classpath {
                         downloadJavadoc = true
-                        //this hack is it avoid getting mad with xmlunit failures for whitespace
-                        //and with futile attempts to resolve them properly.
-                        file.whenMerged { classpath ->
-                            classpath.entries.each { entry ->
-                                if (entry instanceof AbstractClasspathEntry) {
-                                    entry.entryAttributes.remove(AbstractClasspathEntry.COMPONENT_NON_DEPENDENCY_ATTRIBUTE)
-                                }
-                            }
-                        }
                     }
                     jdt.javaRuntimeName = "JavaSE-1.7"
                 }

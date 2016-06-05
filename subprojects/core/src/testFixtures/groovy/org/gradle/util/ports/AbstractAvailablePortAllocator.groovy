@@ -15,15 +15,23 @@
  */
 
 package org.gradle.util.ports
+import com.google.common.annotations.VisibleForTesting
+import com.google.common.collect.ImmutableList
+import org.gradle.internal.Pair
 
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
-
 abstract class AbstractAvailablePortAllocator implements PortAllocator {
-    List<ReservedPortRange> reservations = []
+    private final List<ReservedPortRange> reservations = []
     protected final Lock lock = new ReentrantLock()
+    @VisibleForTesting
     ReservedPortRangeFactory portRangeFactory = new DefaultReservedPortRangeFactory()
+
+    @VisibleForTesting
+    public List<ReservedPortRange> getReservations() {
+        return ImmutableList.copyOf(reservations)
+    }
 
     @Override
     public int assignPort() {
@@ -57,16 +65,6 @@ abstract class AbstractAvailablePortAllocator implements PortAllocator {
         }
     }
 
-    protected abstract ReservedPortRange reservePortRange()
-
-    protected void releaseRange(ReservedPortRange range) {
-        reservations.remove(range)
-    }
-
-    void clear() {
-        reservations.clear()
-    }
-
     private int reservePort() {
         while(true) {
             for (int i = 0; i < reservations.size(); i++) {
@@ -81,24 +79,21 @@ abstract class AbstractAvailablePortAllocator implements PortAllocator {
         }
     }
 
-    protected ReservedPortRange reservePortRange(int startPort, int endPort) {
-        ReservedPortRange range = portRangeFactory.getReservedPortRange(startPort, endPort)
+    private ReservedPortRange reservePortRange() {
+        def portRange = getNextPortRange(reservations.size())
+        ReservedPortRange range = portRangeFactory.getReservedPortRange(portRange.left, portRange.right)
         reservations.add(range)
         return range
     }
 
-    protected boolean isReserved(int startPort, int endPort) {
-        return isReservedInList(reservations, startPort, endPort)
-    }
+    protected abstract Pair<Integer, Integer> getNextPortRange(int rangeNumber)
 
-    static boolean isReservedInList(List<ReservedPortRange> reservationList, int startPort, int endPort) {
-        for (int i=0; i<reservationList.size(); i++) {
-            ReservedPortRange range = reservationList.get(i)
-            if ((startPort <= range.endPort && startPort >= range.startPort)
-                || (endPort >= range.startPort && endPort <= range.endPort)) {
-                return true
-            }
+    private void releaseRange(ReservedPortRange range) {
+        try {
+            lock.lock();
+            reservations.remove(range)
+        } finally {
+            lock.unlock();
         }
-        return false
     }
 }

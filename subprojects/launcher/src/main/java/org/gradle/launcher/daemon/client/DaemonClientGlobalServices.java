@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.client;
 
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
 
@@ -24,10 +25,6 @@ import org.gradle.launcher.daemon.bootstrap.DaemonGreeter;
  * Global services shared by all Gradle daemon clients in a given process.
  */
 public class DaemonClientGlobalServices {
-    JvmVersionDetector createJvmVersionDetector() {
-        return new JvmVersionDetector();
-    }
-
     JvmVersionValidator createJvmVersionValidator(JvmVersionDetector jvmVersionDetector) {
         return new JvmVersionValidator(jvmVersionDetector);
     }

@@ -15,10 +15,8 @@
  */
 
 package org.gradle.launcher.daemon
-
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -109,7 +107,7 @@ task verify << {
 
     def "forks new daemon when file encoding is set to different value via GRADLE_OPTS"() {
         setup:
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
         buildScript """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
@@ -141,7 +139,7 @@ task verify << {
     @IgnoreIf({ !JavaVersion.current().java7Compatible })
     def "forks new daemon when tmpdir is set to different value via GRADLE_OPTS"() {
         setup:
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
         buildScript """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
@@ -172,7 +170,7 @@ task verify << {
 
     def "forks new daemon for changed javax.net.ssl sys properties"() {
         setup:
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
         buildScript """
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
@@ -202,7 +200,7 @@ task verify << {
     }
 
     String tempFolder(String folderName) {
-        def dir = new TestNameTestDirectoryProvider().createDir(folderName)
+        def dir = temporaryFolder.createDir(folderName)
         dir.mkdirs();
         dir.absolutePath
     }

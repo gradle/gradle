@@ -43,12 +43,12 @@ class EclipseProjectTest extends Specification {
         eclipseProject.linkedResource(name: 'foo', type: 'folder', location: '/stuff/foo', locationUri: 'file:///boooo')
 
         then:
-        thrown(AssertionError.class)
+        thrown(IllegalArgumentException.class)
 
         when:
         eclipseProject.linkedResource(name: 'foo', type: 'folder')
 
         then:
-        thrown(AssertionError.class)
+        thrown(IllegalArgumentException.class)
     }
 }

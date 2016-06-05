@@ -32,6 +32,7 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * @return The unique identifier for this IDEA module.
      * @since 2.14
      */
+    @Incubating
     IdeaModuleIdentifier getIdentifier();
 
     /**

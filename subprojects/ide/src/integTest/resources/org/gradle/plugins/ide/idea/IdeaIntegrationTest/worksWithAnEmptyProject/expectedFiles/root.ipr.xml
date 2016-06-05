@@ -6,6 +6,8 @@
       <entry name=".+\.(gif|png|jpeg|jpg)"/>
     </resourceExtensions>
     <wildcardResourcePatterns>
+      <entry name="!?*.class"/>
+      <entry name="!?*.scala"/>
       <entry name="!?*.groovy"/>
       <entry name="!?*.java"/>
     </wildcardResourcePatterns>

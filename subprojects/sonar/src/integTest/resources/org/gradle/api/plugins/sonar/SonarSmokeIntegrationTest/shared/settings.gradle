@@ -1,3 +1,0 @@
-include "javaProjectWithJacoco", "skippedProject", "customizedProject", "nested:nested2:nestedProject"
-
-rootProject.name = "Sonar Test Build" // spaces are intentional

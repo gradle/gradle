@@ -23,6 +23,7 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     def discoveredDir = file('discoveredDir')
 
     def "setup"() {
+        setupTaskSources()
         buildFile << buildFileBase
         buildFile << """
     task incremental(type: IncrementalTask) {
@@ -44,8 +45,13 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         file('outputs/file2.txt') << "outputFile2"
     }
 
-    private static String getBuildFileBase() {
-        """
+    private void setupTaskSources() {
+        file("buildSrc/src/main/groovy/BaseIncrementalTask.groovy") << """
+    import org.gradle.api.*
+    import org.gradle.api.plugins.*
+    import org.gradle.api.tasks.*
+    import org.gradle.api.tasks.incremental.*
+
     class BaseIncrementalTask extends DefaultTask {
         @InputDirectory
         def File inputDir
@@ -95,6 +101,12 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         def discoveredFiles = []
         def incrementalExecution
     }
+        """
+        file("buildSrc/src/main/groovy/IncrementalTask.groovy") << """
+    import org.gradle.api.*
+    import org.gradle.api.plugins.*
+    import org.gradle.api.tasks.*
+    import org.gradle.api.tasks.incremental.*
 
     class IncrementalTask extends BaseIncrementalTask {
         @Input
@@ -110,7 +122,11 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
             }
         }
     }
+"""
+    }
 
+    private static String getBuildFileBase() {
+        """
     ext {
         incrementalExecution = true
         added = []

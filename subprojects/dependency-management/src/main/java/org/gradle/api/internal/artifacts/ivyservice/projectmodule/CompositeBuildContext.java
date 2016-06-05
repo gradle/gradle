@@ -16,12 +16,14 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalComponentMetaData;
 
 import java.io.File;
+import java.util.Set;
 
-public interface CompositeBuildContext extends CompositeProjectComponentRegistry {
-    void register(ModuleIdentifier moduleId, ProjectComponentIdentifier identifier, LocalComponentMetaData localComponentMetaData, File projectDirectory);
+public interface CompositeBuildContext extends ProjectComponentProvider {
+    ProjectComponentIdentifier getReplacementProject(ModuleComponentSelector selector);
+    File getProjectDirectory(ProjectComponentIdentifier project);
+    Set<ProjectComponentIdentifier> getAllProjects();
 }

@@ -20,12 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.artifacts.cache.ResolutionRules;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
+import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.internal.Actions;
+import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NormalizedTimeUnit;
 import org.gradle.internal.typeconversion.TimeUnitsParser;
 
@@ -180,7 +182,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
             out.preferProjectModules(((LatestConflictResolution) conflictResolution).isPreferProjectModules());
         }
         out.setForcedModules(getForcedModules());
-        out.getComponentSelection().getRules().addAll(componentSelectionRules.getRules());
+        for (SpecRuleAction<? super ComponentSelection> ruleAction : componentSelectionRules.getRules()) {
+            out.getComponentSelection().addRule(ruleAction);
+        }
         return out;
     }
 }

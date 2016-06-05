@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Rule
 import org.junit.Test
-
 import spock.lang.Issue
 
 class EclipseClasspathIntegrationTest extends AbstractEclipseIntegrationTest {
@@ -933,41 +932,6 @@ task generateForTest << {}
 ''')
         //then
         result.assertTasksExecuted(':generateForMain', ':generateForTest', ':eclipseClasspath', ':eclipseJdt', ':eclipseProject', ':eclipse')
-    }
-
-    @Test
-    void configuringNonExportedConfigurationsIsDeprecated() {
-        //when
-        executer.expectDeprecationWarning()
-        def result = runEclipseTask """
-apply plugin: 'java'
-apply plugin: 'eclipse'
-
-configurations {
-  provided
-}
-
-dependencies {
-  compile  files('compileDependency.jar')
-  provided files('providedDependency.jar')
-}
-
-eclipse {
-  classpath {
-    plusConfigurations << configurations.provided
-    noExportConfigurations << configurations.provided
-  }
-}
-"""
-
-        //then
-        def libraries = classpath.libs
-        assert libraries.size() == 2
-        libraries[0].assertHasJar(file('compileDependency.jar'))
-        libraries[0].assertNotExported() // we changed the behaviour to default to false
-        libraries[1].assertHasJar(file('providedDependency.jar'))
-        libraries[1].assertNotExported()
-        result.output.contains("EclipseClasspath.noExportConfigurations has been deprecated and is scheduled to be removed in Gradle 3.0")
     }
 
     @Test

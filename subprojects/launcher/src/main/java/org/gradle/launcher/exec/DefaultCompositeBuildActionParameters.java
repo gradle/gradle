@@ -20,7 +20,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.CompositeBuildActionParameters;
 import org.gradle.internal.composite.CompositeParameters;
-import org.gradle.launcher.daemon.configuration.DaemonUsage;
 
 import java.io.File;
 import java.util.Map;
@@ -28,8 +27,8 @@ import java.util.Map;
 public class DefaultCompositeBuildActionParameters extends DefaultBuildActionParameters implements CompositeBuildActionParameters {
     private final CompositeParameters compositeParameters;
 
-    public DefaultCompositeBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, DaemonUsage daemonUsage, boolean continuous, boolean interactive, ClassPath injectedPluginClasspath, CompositeParameters compositeParameters) {
-        super(systemProperties, envVariables, currentDir, logLevel, daemonUsage, continuous, interactive, injectedPluginClasspath);
+    public DefaultCompositeBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, boolean useDaemon, boolean continuous, boolean interactive, ClassPath injectedPluginClasspath, CompositeParameters compositeParameters) {
+        super(systemProperties, envVariables, currentDir, logLevel, useDaemon, continuous, interactive, injectedPluginClasspath);
         this.compositeParameters = compositeParameters;
     }
 

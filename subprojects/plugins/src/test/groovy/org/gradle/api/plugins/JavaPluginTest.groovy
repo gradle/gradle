@@ -17,266 +17,361 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.file.FileCollectionMatchers
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
-import org.gradle.api.internal.java.JavaLibrary
-import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import org.junit.Test
+import org.junit.Assert
 
+import static org.gradle.api.file.FileCollectionMatchers.sameCollection
+import static org.gradle.api.tasks.TaskDependencyMatchers.builtBy
+import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
 import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 
-class JavaPluginTest {
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    private final def project = TestUtil.createRootProject()
+class JavaPluginTest extends AbstractProjectBuilderSpec {
     private final def javaPlugin = new JavaPlugin()
 
-    @Test public void appliesBasePluginsAndAddsConventionObject() {
+    def appliesBasePluginsAndAddsConventionObject() {
+        given:
         javaPlugin.apply(project)
 
+        when:
         def component = project.services.get(ComponentRegistry).mainComponent
-        assertThat(component, instanceOf(BuildableJavaComponent))
-        assertThat(component.rebuildTasks, equalTo([BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]))
-        assertThat(component.buildTasks, equalTo([JavaBasePlugin.BUILD_TASK_NAME]))
-        assertThat(component.runtimeClasspath, notNullValue())
-        assertThat(component.compileDependencies, equalTo(project.configurations.compile))
+
+        then:
+        component instanceof BuildableJavaComponent
+        component.rebuildTasks == [BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]
+        component.buildTasks == [JavaBasePlugin.BUILD_TASK_NAME]
+        component.runtimeClasspath != null
+        component.compileDependencies == project.configurations.compile
     }
 
-    @Test public void addsConfigurationsToTheProject() {
+    def addsConfigurationsToTheProject() {
+        given:
         javaPlugin.apply(project)
 
+        when:
         def compile = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
-        assertThat(compile.extendsFrom, equalTo(toSet()))
-        assertFalse(compile.visible)
-        assertTrue(compile.transitive)
 
+        then:
+        compile.extendsFrom == toSet()
+        !compile.visible
+        compile.transitive
+
+        when:
         def runtime = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
-        assertThat(runtime.extendsFrom, equalTo(toSet(compile)))
-        assertFalse(runtime.visible)
-        assertTrue(runtime.transitive)
 
+        then:
+        runtime.extendsFrom == toSet(compile)
+        !runtime.visible
+        runtime.transitive
+
+        when:
         def compileOnly = project.configurations.getByName(JavaPlugin.COMPILE_ONLY_CONFIGURATION_NAME)
-        assertThat(compileOnly.extendsFrom, equalTo(toSet(compile)))
-        assertFalse(compileOnly.visible)
-        assertTrue(compileOnly.transitive)
 
+        then:
+        compileOnly.extendsFrom == toSet(compile)
+        !compileOnly.visible
+        compileOnly.transitive
+
+        when:
         def compileClasspath = project.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
-        assertThat(compileClasspath.extendsFrom, equalTo(toSet(compileOnly)))
-        assertFalse(compileClasspath.visible)
-        assertTrue(compileClasspath.transitive)
 
+        then:
+        compileClasspath.extendsFrom == toSet(compileOnly)
+        !compileClasspath.visible
+        compileClasspath.transitive
+
+        when:
         def testCompile = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CONFIGURATION_NAME)
-        assertThat(testCompile.extendsFrom, equalTo(toSet(compile)))
-        assertFalse(testCompile.visible)
-        assertTrue(testCompile.transitive)
 
+        then:
+        testCompile.extendsFrom == toSet(compile)
+        !testCompile.visible
+        testCompile.transitive
+
+        when:
         def testRuntime = project.configurations.getByName(JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME)
-        assertThat(testRuntime.extendsFrom, equalTo(toSet(runtime, testCompile)))
-        assertFalse(testRuntime.visible)
-        assertTrue(testRuntime.transitive)
 
+        then:
+        testRuntime.extendsFrom == toSet(runtime, testCompile)
+        !testRuntime.visible
+        testRuntime.transitive
+
+        when:
         def testCompileOnly = project.configurations.getByName(JavaPlugin.TEST_COMPILE_ONLY_CONFIGURATION_NAME)
-        assertThat(testCompileOnly.extendsFrom, equalTo(toSet(testCompile)))
-        assertFalse(testCompileOnly.visible)
-        assertTrue(testCompileOnly.transitive)
 
+        then:
+        testCompileOnly.extendsFrom == toSet(testCompile)
+        !testCompileOnly.visible
+        testCompileOnly.transitive
+
+        when:
         def testCompileClasspath = project.configurations.getByName(JavaPlugin.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME)
-        assertThat(testCompileClasspath.extendsFrom, equalTo(toSet(testCompileOnly)))
-        assertFalse(testCompileClasspath.visible)
-        assertTrue(testCompileClasspath.transitive)
 
+        then:
+        testCompileClasspath.extendsFrom == toSet(testCompileOnly)
+        !testCompileClasspath.visible
+        testCompileClasspath.transitive
+
+        when:
         def defaultConfig = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
-        assertThat(defaultConfig.extendsFrom, equalTo(toSet(runtime)))
+
+        then:
+        defaultConfig.extendsFrom == toSet(runtime)
     }
 
-    @Test public void addsJarAsPublication() {
+    def addsJarAsPublication() {
+        given:
         javaPlugin.apply(project)
 
+        when:
         def runtimeConfiguration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
-        assertThat(runtimeConfiguration.artifacts.collect { it.archiveTask }, equalTo([project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]))
 
+        then:
+        runtimeConfiguration.artifacts.collect { it.archiveTask } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]
+
+        when:
         def archivesConfiguration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
-        assertThat(archivesConfiguration.artifacts.collect { it.archiveTask }, equalTo([project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]))
+
+        then:
+        archivesConfiguration.artifacts.collect { it.archiveTask } == [project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)]
     }
 
-    @Test public void addsJavaLibraryComponent() {
+    def addsJavaLibraryComponent() {
+        given:
         javaPlugin.apply(project)
 
+        when:
         def jarTask = project.tasks.getByName(JavaPlugin.JAR_TASK_NAME)
+        def javaLibrary = project.components.getByName("java")
 
-        JavaLibrary javaLibrary = project.components.getByName("java")
-        assertThat(javaLibrary.artifacts.collect {it.archiveTask}, equalTo([jarTask]))
-        assertThat(javaLibrary.runtimeDependencies, equalTo(project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies))
+        then:
+        javaLibrary.artifacts.collect {it.archiveTask} == [jarTask]
+        javaLibrary.runtimeDependencies == project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).allDependencies
     }
 
-    @Test public void createsStandardSourceSetsAndAppliesMappings() {
+    def createsStandardSourceSetsAndAppliesMappings() {
+        given:
         javaPlugin.apply(project)
 
+        when:
         def set = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
-        assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/main/java'))))
-        assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/main/resources'))))
-        assertThat(set.compileClasspath, sameInstance(project.configurations.compileClasspath))
-        assertThat(set.output.classesDir, equalTo(new File(project.buildDir, 'classes/main')))
-        assertThat(set.output.resourcesDir, equalTo(new File(project.buildDir, 'resources/main')))
-        assertThat(set.output, TaskDependencyMatchers.builtBy(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(set.runtimeClasspath.sourceCollections, hasItem(project.configurations.runtime))
-        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/main')))
 
+        then:
+        set.java.srcDirs == toLinkedSet(project.file('src/main/java'))
+        set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
+        set.compileClasspath.is(project.configurations.compileClasspath)
+        set.output.classesDir == new File(project.buildDir, 'classes/main')
+        set.output.resourcesDir == new File(project.buildDir, 'resources/main')
+        set.getOutput() builtBy(JavaPlugin.CLASSES_TASK_NAME)
+        set.runtimeClasspath.sourceCollections.contains(project.configurations.runtime)
+        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/main'))
+
+        when:
         set = project.sourceSets[SourceSet.TEST_SOURCE_SET_NAME]
-        assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/test/java'))))
-        assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/test/resources'))))
-        assertThat(set.compileClasspath.sourceCollections, hasItem(project.configurations.testCompileClasspath))
-        assertThat(set.compileClasspath, hasItem(new File(project.buildDir, 'classes/main')))
-        assertThat(set.output.classesDir, equalTo(new File(project.buildDir, 'classes/test')))
-        assertThat(set.output.resourcesDir, equalTo(new File(project.buildDir, 'resources/test')))
-        assertThat(set.output, TaskDependencyMatchers.builtBy(JavaPlugin.TEST_CLASSES_TASK_NAME))
-        assertThat(set.runtimeClasspath.sourceCollections, hasItem(project.configurations.testRuntime))
-        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/main')))
-        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/test')))
+
+        then:
+        set.java.srcDirs == toLinkedSet(project.file('src/test/java'))
+        set.resources.srcDirs == toLinkedSet(project.file('src/test/resources'))
+        set.compileClasspath.sourceCollections.contains(project.configurations.testCompileClasspath)
+        set.compileClasspath.contains(new File(project.buildDir, 'classes/main'))
+        set.output.classesDir == new File(project.buildDir, 'classes/test')
+        set.output.resourcesDir == new File(project.buildDir, 'resources/test')
+        set.getOutput() builtBy(JavaPlugin.TEST_CLASSES_TASK_NAME)
+        set.runtimeClasspath.sourceCollections.contains(project.configurations.testRuntime)
+        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/main'))
+        set.runtimeClasspath.contains(new File(project.buildDir, 'classes/test'))
     }
 
-    @Test public void createsMappingsForCustomSourceSets() {
+    def createsMappingsForCustomSourceSets() {
+        given:
         javaPlugin.apply(project)
 
-        def set = project.sourceSets.create('custom')
-        assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/custom/java'))))
-        assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/custom/resources'))))
-        assertThat(set.compileClasspath, sameInstance(project.configurations.customCompileClasspath))
-        assertThat(set.output.classesDir, equalTo(new File(project.buildDir, 'classes/custom')))
-        assertThat(set.output, TaskDependencyMatchers.builtBy('customClasses'))
-        assertThat(set.runtimeClasspath, FileCollectionMatchers.sameCollection(set.output + project.configurations.customRuntime))
+        when:
+        SourceSet set = project.sourceSets.create('custom')
+
+        then:
+        set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
+        set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
+        set.compileClasspath.is(project.configurations.customCompileClasspath)
+        set.output.classesDir == new File(project.buildDir, 'classes/custom')
+        set.getOutput() builtBy('customClasses')
+        Assert.assertThat(set.runtimeClasspath, sameCollection(set.output + project.configurations.customRuntime))
     }
 
-    @Test public void createsStandardTasksAndAppliesMappings() {
+    def createsStandardTasksAndAppliesMappings() {
+        given:
         javaPlugin.apply(project)
         new TestFile(project.file("src/main/java/File.java")) << "foo"
         new TestFile(project.file("src/main/resources/thing.txt")) << "foo"
         new TestFile(project.file("src/test/java/File.java")) << "foo"
         new TestFile(project.file("src/test/resources/thing.txt")) << "foo"
 
+        when:
         def task = project.tasks[JavaPlugin.PROCESS_RESOURCES_TASK_NAME]
-        assertThat(task, instanceOf(Copy))
-        assertThat(task, TaskDependencyMatchers.dependsOn())
-        assertEquals(task.source.files, project.sourceSets.main.resources.files)
-        assertThat(task.destinationDir, equalTo(project.sourceSets.main.output.resourcesDir))
 
+        then:
+        task instanceof Copy
+        task dependsOn()
+        task.source.files == project.sourceSets.main.resources.files
+        task.destinationDir == project.sourceSets.main.output.resourcesDir
+
+        when:
         task = project.tasks[JavaPlugin.COMPILE_JAVA_TASK_NAME]
-        assertThat(task, instanceOf(JavaCompile))
-        assertThat(task, TaskDependencyMatchers.dependsOn())
-        assertThat(task.classpath, sameInstance(project.sourceSets.main.compileClasspath))
-        assertThat(task.destinationDir, equalTo(project.sourceSets.main.output.classesDir))
-        assertEquals(task.source.files, project.sourceSets.main.java.files)
 
+        then:
+        task instanceof JavaCompile
+        task dependsOn()
+        task.classpath.is(project.sourceSets.main.compileClasspath)
+        task.destinationDir == project.sourceSets.main.output.classesDir
+        task.source.files == project.sourceSets.main.java.files
+
+        when:
         task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
-        assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.PROCESS_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME))
 
+        then:
+        task instanceof DefaultTask
+        task dependsOn(JavaPlugin.PROCESS_RESOURCES_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME)
+
+        when:
         task = project.tasks[JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME]
-        assertThat(task, instanceOf(Copy))
-        assertThat(task, TaskDependencyMatchers.dependsOn())
-        assertEquals(task.source.files, project.sourceSets.test.resources.files)
-        assertThat(task.destinationDir, equalTo(project.sourceSets.test.output.resourcesDir))
 
+        then:
+        task instanceof Copy
+        task dependsOn()
+        task.source.files == project.sourceSets.test.resources.files
+        task.destinationDir == project.sourceSets.test.output.resourcesDir
+
+        when:
         task = project.tasks[JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME]
-        assertThat(task, instanceOf(JavaCompile))
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.classpath, sameInstance(project.sourceSets.test.compileClasspath))
-        assertThat(task.destinationDir, equalTo(project.sourceSets.test.output.classesDir))
-        assertEquals(task.source.files, project.sourceSets.test.java.files)
 
+        then:
+        task instanceof JavaCompile
+        task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        task.classpath.is(project.sourceSets.test.compileClasspath)
+        task.destinationDir == project.sourceSets.test.output.classesDir
+        task.source.files == project.sourceSets.test.java.files
+
+        when:
         task = project.tasks[JavaPlugin.TEST_CLASSES_TASK_NAME]
-        assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME))
 
+        then:
+        task instanceof DefaultTask
+        task dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME)
+
+        when:
         task = project.tasks[JavaPlugin.JAR_TASK_NAME]
-        assertThat(task, instanceOf(Jar))
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.destinationDir, equalTo(project.libsDir))
-        assertThat(task.mainSpec.sourcePaths, equalTo([project.sourceSets.main.output] as Set))
-        assertThat(task.manifest, notNullValue())
-        assertThat(task.manifest.mergeSpecs.size(), equalTo(0))
 
+        then:
+        task instanceof Jar
+        task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        task.destinationDir == project.libsDir
+        task.mainSpec.sourcePaths == [project.sourceSets.main.output] as Set
+        task.manifest != null
+        task.manifest.mergeSpecs.size() == 0
+
+        when:
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.JAR_TASK_NAME))
 
+        then:
+        task dependsOn(JavaPlugin.JAR_TASK_NAME)
+
+        when:
         task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
-        assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.TEST_TASK_NAME))
 
-        project.sourceSets.main.java.srcDirs(tmpDir.getTestDirectory())
-        tmpDir.file("SomeFile.java").touch()
+        then:
+        task instanceof DefaultTask
+        task dependsOn(JavaPlugin.TEST_TASK_NAME)
+
+        when:
+        project.sourceSets.main.java.srcDirs(temporaryFolder.getTestDirectory())
+        temporaryFolder.file("SomeFile.java").touch()
         task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
-        assertThat(task, instanceOf(Javadoc))
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.source.files, equalTo(project.sourceSets.main.allJava.files))
-        assertThat(task.classpath, FileCollectionMatchers.sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
-        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/javadoc")))
-        assertThat(task.title, equalTo(project.extensions.getByType(ReportingExtension).apiDocTitle))
 
+        then:
+        task instanceof Javadoc
+        task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        task.source.files == project.sourceSets.main.allJava.files
+        Assert.assertThat(task.classpath, sameCollection(project.files(project.sourceSets.main.output, project.sourceSets.main.compileClasspath)))
+        task.destinationDir == project.file("$project.docsDir/javadoc")
+        task.title == project.extensions.getByType(ReportingExtension).apiDocTitle
+
+        when:
         task = project.tasks["buildArchives"]
-        assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.JAR_TASK_NAME))
 
+        then:
+        task instanceof DefaultTask
+        task dependsOn(JavaPlugin.JAR_TASK_NAME)
+
+        when:
         task = project.tasks[JavaBasePlugin.BUILD_TASK_NAME]
-        assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, TaskDependencyMatchers.dependsOn(BasePlugin.ASSEMBLE_TASK_NAME, JavaBasePlugin.CHECK_TASK_NAME))
 
+        then:
+        task instanceof DefaultTask
+        task dependsOn(BasePlugin.ASSEMBLE_TASK_NAME, JavaBasePlugin.CHECK_TASK_NAME)
+
+        when:
         task = project.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME]
-        assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME))
 
+        then:
+        task instanceof DefaultTask
+        task dependsOn(JavaBasePlugin.BUILD_TASK_NAME)
+
+        when:
         task = project.tasks[JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME]
-        assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME))
+
+        then:
+        task instanceof DefaultTask
+        task dependsOn(JavaBasePlugin.BUILD_TASK_NAME)
     }
 
-    @Test void "configures test task"() {
+    def "configures test task"() {
+        given:
         javaPlugin.apply(project)
 
-        //when
+        when:
         def task = project.tasks[JavaPlugin.TEST_TASK_NAME]
 
-        //then
-        assert task instanceof org.gradle.api.tasks.testing.Test
-        assertThat(task, TaskDependencyMatchers.dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
-        assert task.classpath == project.sourceSets.test.runtimeClasspath
-        assert task.testClassesDir == project.sourceSets.test.output.classesDir
-        assert task.workingDir == project.projectDir
+        then:
+        task instanceof org.gradle.api.tasks.testing.Test
+        task dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME)
+        task.classpath == project.sourceSets.test.runtimeClasspath
+        task.testClassesDir == project.sourceSets.test.output.classesDir
+        task.workingDir == project.projectDir
     }
 
-    @Test public void appliesMappingsToTasksAddedByTheBuildScript() {
+    def appliesMappingsToTasksAddedByTheBuildScript() {
+        given:
         javaPlugin.apply(project);
 
+        when:
         def task = project.task('customTest', type: org.gradle.api.tasks.testing.Test.class)
-        assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
-        assertThat(task.testClassesDir, equalTo(project.sourceSets.test.output.classesDir))
-        assertThat(task.workingDir, equalTo(project.projectDir))
-        assertThat(task.reports.junitXml.destination, equalTo(project.testResultsDir))
-        assertThat(task.reports.html.destination, equalTo(project.testReportDir))
+
+        then:
+        task.classpath == project.sourceSets.test.runtimeClasspath
+        task.testClassesDir == project.sourceSets.test.output.classesDir
+        task.workingDir == project.projectDir
+        task.reports.junitXml.destination == project.testResultsDir
+        task.reports.html.destination == project.testReportDir
     }
 
-    @Test public void buildOtherProjects() {
-        DefaultProject commonProject = TestUtil.createChildProject(project, "common");
-        DefaultProject middleProject = TestUtil.createChildProject(project, "middle");
-        DefaultProject appProject = TestUtil.createChildProject(project, "app");
+    def buildOtherProjects() {
+        given:
+        def commonProject = TestUtil.createChildProject(project, "common");
+        def middleProject = TestUtil.createChildProject(project, "middle");
+        def appProject = TestUtil.createChildProject(project, "app");
 
+        when:
         javaPlugin.apply(project);
         javaPlugin.apply(commonProject);
         javaPlugin.apply(middleProject);
@@ -289,10 +384,16 @@ class JavaPluginTest {
             compile commonProject
         }
 
-        Task task = middleProject.tasks['buildNeeded'];
-        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build', ':common:buildNeeded'] as Set))
+        and:
+        def task = middleProject.tasks['buildNeeded'];
 
+        then:
+        task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':common:buildNeeded'] as Set
+
+        when:
         task = middleProject.tasks['buildDependents'];
-        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build', ':app:buildDependents'] as Set))
+
+        then:
+        task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':app:buildDependents'] as Set
     }
 }

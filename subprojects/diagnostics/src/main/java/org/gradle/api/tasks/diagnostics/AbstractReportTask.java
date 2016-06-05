@@ -19,6 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -78,6 +79,7 @@ public abstract class AbstractReportTask extends ConventionTask {
         reportGenerator.generateReport(new TreeSet<Project>(getProjects()));
     }
 
+    @Internal
     protected abstract ReportRenderer getRenderer();
 
     protected abstract void generate(Project project) throws IOException;
@@ -109,6 +111,8 @@ public abstract class AbstractReportTask extends ConventionTask {
      *
      * @return The set of files.
      */
+    @Internal
+    // TODO:LPTR Have the paths of the projects serve as @Input maybe?
     public Set<Project> getProjects() {
         return projects;
     }

@@ -112,7 +112,7 @@ public class DefaultDomainObjectCollectionTest {
         };
         TestClosure testClosure = new TestClosure() {
             public Object call(Object param) {
-                return !param.equals("b");    
+                return !param.equals("b");
             }
         };
 
@@ -137,15 +137,15 @@ public class DefaultDomainObjectCollectionTest {
     // @Test
     // public void canExecuteActionForAllElementsInATypeFilteredCollection() {
     //     final Action<CharSequence> action = context.mock(Action.class);
-    // 
+    //
     //     container.add("c");
     //     container.add(new StringBuffer("b"));
-    // 
+    //
     //     context.checking(new Expectations(){{
     //         one(action).execute("c");
     //         one(action).execute("a");
     //     }});
-    // 
+    //
     //     container.withType(String.class, action);
     //     container.add("a");
     // }
@@ -158,10 +158,10 @@ public class DefaultDomainObjectCollectionTest {
         container.add(new StringBuffer("b"));
 
         context.checking(new Expectations(){{
-            one(closure).call("c");
-            one(closure).call("a");
+            oneOf(closure).call("c");
+            oneOf(closure).call("a");
         }});
-        
+
         container.withType(String.class, TestUtil.toClosure(closure));
         container.add("a");
     }
@@ -191,7 +191,7 @@ public class DefaultDomainObjectCollectionTest {
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
-            one(action).execute("a");
+            oneOf(action).execute("a");
         }});
 
         Spec<CharSequence> spec = new Spec<CharSequence>() {
@@ -211,7 +211,7 @@ public class DefaultDomainObjectCollectionTest {
         final TestClosure closure = context.mock(TestClosure.class);
 
         context.checking(new Expectations() {{
-            one(closure).call("a");
+            oneOf(closure).call("a");
         }});
 
         Spec<CharSequence> spec = new Spec<CharSequence>() {
@@ -270,14 +270,14 @@ public class DefaultDomainObjectCollectionTest {
         container.add("d");
         assertThat(collection, equalTo((Collection) toList("a", "c")));
     }
-    
+
     @Test
     public void callsActionWhenObjectAdded() {
         @SuppressWarnings("unchecked")
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
-            one(action).execute("a");
+            oneOf(action).execute("a");
         }});
 
         container.whenObjectAdded(action);
@@ -289,7 +289,7 @@ public class DefaultDomainObjectCollectionTest {
         final TestClosure closure = context.mock(TestClosure.class);
 
         context.checking(new Expectations() {{
-            one(closure).call("a");
+            oneOf(closure).call("a");
         }});
 
         container.whenObjectAdded(TestUtil.toClosure(closure));
@@ -303,7 +303,7 @@ public class DefaultDomainObjectCollectionTest {
         container.add("a");
 
         context.checking(new Expectations() {{
-            one(closure).call("a");
+            oneOf(closure).call("a");
         }});
 
         container.whenObjectRemoved(TestUtil.toClosure(closure));
@@ -323,7 +323,7 @@ public class DefaultDomainObjectCollectionTest {
         final String original = "a";
 
         context.checking(new Expectations() {{
-            one(action).execute(with(sameInstance(original)));
+            oneOf(action).execute(with(sameInstance(original)));
         }});
 
         container.whenObjectRemoved(action);
@@ -345,7 +345,7 @@ public class DefaultDomainObjectCollectionTest {
         iterator.next();
 
         context.checking(new Expectations() {{
-            one(action).execute("b");
+            oneOf(action).execute("b");
         }});
 
         iterator.remove();
@@ -357,7 +357,7 @@ public class DefaultDomainObjectCollectionTest {
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
-            one(action).execute("a");
+            oneOf(action).execute("a");
         }});
 
         container.add("a");
@@ -369,7 +369,7 @@ public class DefaultDomainObjectCollectionTest {
         final TestClosure closure = context.mock(TestClosure.class);
 
         context.checking(new Expectations() {{
-            one(closure).call("a");
+            oneOf(closure).call("a");
         }});
 
         container.add("a");
@@ -382,7 +382,7 @@ public class DefaultDomainObjectCollectionTest {
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
-            one(action).execute("a");
+            oneOf(action).execute("a");
         }});
 
         container.all(action);
@@ -394,7 +394,7 @@ public class DefaultDomainObjectCollectionTest {
         final TestClosure closure = context.mock(TestClosure.class);
 
         context.checking(new Expectations() {{
-            one(closure).call("a");
+            oneOf(closure).call("a");
         }});
 
         container.all(TestUtil.toClosure(closure));
@@ -413,7 +413,7 @@ public class DefaultDomainObjectCollectionTest {
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
-            one(action).execute("a");
+            oneOf(action).execute("a");
             will(new org.jmock.api.Action() {
                 public Object invoke(Invocation invocation) throws Throwable {
                     container.add("c");
@@ -424,8 +424,8 @@ public class DefaultDomainObjectCollectionTest {
                     description.appendText("add 'c'");
                 }
             });
-            one(action).execute("b");
-            one(action).execute("c");
+            oneOf(action).execute("b");
+            oneOf(action).execute("c");
         }});
 
         container.add("a");
@@ -439,7 +439,7 @@ public class DefaultDomainObjectCollectionTest {
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            one(action).run();
+            oneOf(action).run();
         }});
 
         container.add("a");
@@ -452,7 +452,7 @@ public class DefaultDomainObjectCollectionTest {
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            one(action).run();
+            oneOf(action).run();
             will(throwException(failure));
         }});
 
@@ -472,7 +472,7 @@ public class DefaultDomainObjectCollectionTest {
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            one(action).run();
+            oneOf(action).run();
         }});
 
         container.addAll(toList("a", "b"));
@@ -484,7 +484,7 @@ public class DefaultDomainObjectCollectionTest {
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            one(action).run();
+            oneOf(action).run();
         }});
 
         container.remove("a");
@@ -501,7 +501,7 @@ public class DefaultDomainObjectCollectionTest {
         iterator.next();
 
         context.checking(new Expectations() {{
-            one(action).run();
+            oneOf(action).run();
         }});
 
         iterator.remove();
@@ -513,9 +513,9 @@ public class DefaultDomainObjectCollectionTest {
         final RuntimeException failure = new RuntimeException();
         container.add("a");
         container.beforeChange(action);
-        
+
         context.checking(new Expectations() {{
-            one(action).run();
+            oneOf(action).run();
             will(throwException(failure));
         }});
 
@@ -535,7 +535,7 @@ public class DefaultDomainObjectCollectionTest {
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            one(action).run();
+            oneOf(action).run();
         }});
 
         container.clear();
@@ -547,7 +547,7 @@ public class DefaultDomainObjectCollectionTest {
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            one(action).run();
+            oneOf(action).run();
         }});
 
         container.removeAll(toList("a", "b"));
@@ -561,7 +561,7 @@ public class DefaultDomainObjectCollectionTest {
         container.beforeChange(action);
 
         context.checking(new Expectations() {{
-            one(action).run();
+            oneOf(action).run();
         }});
 
         container.retainAll(toList());
@@ -581,5 +581,5 @@ public class DefaultDomainObjectCollectionTest {
     public void canRemoveNonExistentObject() {
         assertFalse(container.remove("a"));
     }
-    
+
 }

@@ -15,32 +15,34 @@
  */
 
 package org.gradle.internal.operations.logging
-
 import org.gradle.api.logging.Logger
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TextUtil
+import org.junit.Rule
+import spock.lang.Specification
 
 import static org.gradle.api.logging.LogLevel.*
 
-import org.gradle.util.TextUtil
-import spock.lang.Specification
-
+@CleanupTestDirectory
 class DefaultBuildOperationLoggerTest extends Specification {
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     Logger logger = Mock()
 
-    StringWriter logOutput = new StringWriter()
-    PrintWriter logWriter = new PrintWriter(logOutput)
+    def outputFile = temporaryFolder.file("test-output.txt")
 
     def maxOperationsShown = 5
     def pathToLog = new File("path/to/log/file")
     def pathToLogStr = new ConsoleRenderer().asClickableFileUrl(pathToLog)
     BuildOperationLogInfo configuration = new BuildOperationLogInfo("<testTask>", pathToLog, maxOperationsShown)
-    BuildOperationLogger log = new DefaultBuildOperationLogger(configuration, logger, logWriter)
+    BuildOperationLogger log = new DefaultBuildOperationLogger(configuration, logger, outputFile)
 
     /**
      * @return output that would appear in the log file
      */
     def logOutput() {
-        TextUtil.normaliseLineSeparators(logOutput.toString())
+        TextUtil.normaliseLineSeparators(outputFile.text)
     }
 
     def "logs start of overall operation"() {
@@ -49,6 +51,8 @@ class DefaultBuildOperationLoggerTest extends Specification {
         then:
         logOutput() == """See $pathToLogStr for all output for <testTask>.
 """
+        cleanup:
+        log.done()
     }
 
     def "logs completion of operation"() {
@@ -63,6 +67,8 @@ class DefaultBuildOperationLoggerTest extends Specification {
 <operation> successful.
 <output>
 """
+        cleanup:
+        log.done()
     }
 
     def "logs failure of operation"() {
@@ -77,7 +83,10 @@ class DefaultBuildOperationLoggerTest extends Specification {
 <operation> failed.
 <output>
 """
+        cleanup:
+        log.done()
     }
+
     def "logs output from multiple operations"() {
         when:
         log.start()

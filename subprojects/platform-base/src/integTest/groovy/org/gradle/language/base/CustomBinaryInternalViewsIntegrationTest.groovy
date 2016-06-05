@@ -103,14 +103,14 @@ class CustomBinaryInternalViewsIntegrationTest extends AbstractIntegrationSpec {
         class Rules extends RuleSource {
             @Finalize
             void mutateInternal(@Path("binaries") ModelMap<SampleBinarySpecInternal> sampleBins) {
-                sampleBins.each { sampleBin ->
+                sampleBins.all { sampleBin ->
                     sampleBin.internalData = "internal"
                 }
             }
 
             @Finalize
             void mutatePublic(@Path("binaries") ModelMap<SampleBinarySpec> sampleBins) {
-                sampleBins.each { sampleBin ->
+                sampleBins.all { sampleBin ->
                     sampleBin.publicData = "public"
                 }
                 sampleBins.withType(BareInternal) { sampleBin ->

@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.IgnoreVersions
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.internal.classloader.DefaultClassLoaderFactory
+import org.gradle.internal.classpath.DefaultClassPath
 import org.junit.Rule
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -95,6 +96,6 @@ class CrossVersionCompatibilityIntegrationTest extends CrossVersionIntegrationSp
     private ClassLoader loadOpenApi(GradleDistribution openApiVersion) {
         def classpath = openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
         logger.info('Using Open API classpath {}', classpath)
-        new DefaultClassLoaderFactory().createIsolatedClassLoader(classpath.collect { it.toURI() })
+        new DefaultClassLoaderFactory().createIsolatedClassLoader(new DefaultClassPath(classpath))
     }
 }

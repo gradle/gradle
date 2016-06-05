@@ -23,8 +23,6 @@ import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.launcher.daemon.configuration.DaemonUsage.*
-
 @UsesNativeServices
 class DaemonCommandLineConverterTest extends Specification {
     @Unroll
@@ -33,14 +31,46 @@ class DaemonCommandLineConverterTest extends Specification {
         def converted = convert(options)
 
         then:
-        converted.daemonUsage == usage
+        converted.enabled == useDaemon
 
         where:
-        options                     | usage
-        []                          | IMPLICITLY_DISABLED
-        ['--no-daemon']             | EXPLICITLY_DISABLED
-        ['--daemon']                | EXPLICITLY_ENABLED
-        ['--no-daemon', '--daemon'] | EXPLICITLY_ENABLED
+        options                         | useDaemon
+        []                              | true
+        ['--no-daemon']                 | false
+        ['--foreground', '--no-daemon'] | false
+        ['--no-daemon', '--foreground'] | false
+        ['--daemon']                    | true
+        ['--no-daemon', '--daemon']     | true
+    }
+
+    @Unroll
+    def "can convert foreground option - #options"() {
+        when:
+        def converted = convert(options)
+
+        then:
+        converted.foreground == foregound
+
+        where:
+        options                         | foregound
+        []                              | false
+        ['--foreground']                | true
+        ['--foreground', '--no-daemon'] | true
+        ['--foreground', '--daemon']    | true
+    }
+
+    @Unroll
+    def "can convert stop option - #options"() {
+        when:
+        def converted = convert(options)
+
+        then:
+        converted.stop == stop
+
+        where:
+        options     | stop
+        []          | false
+        ['--stop']  | true
     }
 
     private DaemonParameters convert(Iterable args) {

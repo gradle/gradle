@@ -16,24 +16,30 @@
 
 package org.gradle.internal.operations.logging;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.ConsoleRenderer;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 class DefaultBuildOperationLogger implements BuildOperationLogger {
     private final BuildOperationLogInfo configuration;
     private final Logger logger;
-    private final PrintWriter logWriter;
+    private final File outputFile;
+    private PrintWriter logWriter;
 
     private boolean started;
     private int numberOfFailedOperationsSeen;
 
-    DefaultBuildOperationLogger(BuildOperationLogInfo configuration, Logger logger, PrintWriter logWriter) {
+    DefaultBuildOperationLogger(BuildOperationLogInfo configuration, Logger logger, File outputFile) {
         this.configuration = configuration;
         this.logger = logger;
-        this.logWriter = logWriter;
+        this.outputFile = outputFile;
 
         this.numberOfFailedOperationsSeen = 0;
         this.started = false;
@@ -42,8 +48,19 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
     @Override
     public void start() {
         assert !started;
+        logWriter = createWriter(outputFile);
         logInBoth(LogLevel.INFO, String.format("See %s for all output for %s.", getLogLocation(), configuration.getTaskName()));
         started = true;
+    }
+
+    protected PrintWriter createWriter(File outputFile) {
+        PrintWriter logWriter = null;
+        try {
+            logWriter = new PrintWriter(new FileWriter(outputFile), true);
+        } catch (IOException e) {
+            UncheckedException.throwAsUncheckedException(e);
+        }
+        return logWriter;
     }
 
     @Override
@@ -63,13 +80,16 @@ class DefaultBuildOperationLogger implements BuildOperationLogger {
     @Override
     public void done() {
         assert started;
-        int suppressedCount = numberOfFailedOperationsSeen - configuration.getMaximumFailedOperationsShown();
-        if (suppressedCount > 0) {
-            logger.log(LogLevel.ERROR, String.format("...output for %d more failed operation(s) continued in %s.", suppressedCount, getLogLocation()));
+        try {
+            int suppressedCount = numberOfFailedOperationsSeen - configuration.getMaximumFailedOperationsShown();
+            if (suppressedCount > 0) {
+                logger.log(LogLevel.ERROR, String.format("...output for %d more failed operation(s) continued in %s.", suppressedCount, getLogLocation()));
+            }
+            logInBoth(LogLevel.INFO, String.format("Finished %s, see full log %s.", configuration.getTaskName(), getLogLocation()));
+        } finally {
+            IOUtils.closeQuietly(logWriter);
+            started = false;
         }
-        logInBoth(LogLevel.INFO, String.format("Finished %s, see full log %s.", configuration.getTaskName(), getLogLocation()));
-        logWriter.close();
-        started = false;
     }
 
     private void maybeShowSuccess(String output) {

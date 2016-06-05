@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests
-
 import org.apache.commons.io.IOUtils
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import org.junit.rules.ExternalResource
@@ -30,7 +28,6 @@ import javax.servlet.ServletException
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-@LeaksFileHandles
 class WrapperConcurrentDownloadTest extends AbstractWrapperIntegrationSpec {
     @Rule BlockingDownloadHttpServer server = new BlockingDownloadHttpServer(distribution.binDistribution)
 

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
 import spock.lang.Specification
@@ -74,9 +74,9 @@ class InMemoryMetaDataCacheTest extends Specification {
     }
 
     def "caches and supplies remote metadata"() {
-        def suppliedMetaData = Stub(MutableModuleComponentResolveMetaData)
-        def cachedCopy = Stub(MutableModuleComponentResolveMetaData)
-        def originalMetaData = Stub(MutableModuleComponentResolveMetaData)
+        def suppliedMetaData = Stub(MutableModuleComponentResolveMetadata)
+        def cachedCopy = Stub(MutableModuleComponentResolveMetadata)
+        def originalMetaData = Stub(MutableModuleComponentResolveMetadata)
         def resolvedResult = Mock(BuildableModuleComponentMetaDataResolveResult.class) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> originalMetaData
@@ -106,7 +106,7 @@ class InMemoryMetaDataCacheTest extends Specification {
     }
 
     def "caches and supplies remote and local metadata"() {
-        def moduleMetaData = Stub(MutableModuleComponentResolveMetaData)
+        def moduleMetaData = Stub(MutableModuleComponentResolveMetadata)
         _ * moduleMetaData.copy() >> moduleMetaData
         def resolvedResult = Mock(BuildableModuleComponentMetaDataResolveResult.class) {
             getMetaData() >> moduleMetaData

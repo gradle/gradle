@@ -17,9 +17,7 @@
 package org.gradle.logging;
 
 /**
- * DO NOT REMOVE.
- *
- * @deprecated This is here because tasks implemented in Groovy that are compiled against older versions of Gradle have this type baked into their byte-code, and cannot be loaded if it's not found.
+ * This type was accidentally leaked into the public API, please do not refer to it.
  */
 @Deprecated
 public interface StyledTextOutputFactory {

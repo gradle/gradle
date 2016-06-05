@@ -33,13 +33,23 @@ public interface DaemonStateControl {
      *
      * <p>The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will failing with {@link DaemonUnavailableException}.
      */
-    void requestForcefulStop();
+    void requestForcefulStop(String reason);
+
+    /**
+     * @return true if daemon is stopping or stopped.
+     */
+    boolean isStopping();
+
+    /**
+     * @return true if daemon is stopped.
+     */
+    boolean isStopped();
 
     /**
      * Communicates a request for build cancellation. Note that this method blocks until the operation has been cancelled.
      *
      * <p>If any long running command is currently running, this method does block for certain time to give chance to perform cancellation, and if the command
-     * doesn't finnish in a timely manner a request for forceful stop will be issued ({@link #requestForcefulStop()}.</p>
+     * doesn't finnish in a timely manner a request for forceful stop will be issued ({@link #requestForcefulStop(String reason)}.</p>
      */
     void cancelBuild();
 

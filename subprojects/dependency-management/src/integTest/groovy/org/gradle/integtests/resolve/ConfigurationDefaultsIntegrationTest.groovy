@@ -101,7 +101,7 @@ configurations.conf.incoming.beforeResolve {
         succeeds "checkExplicit"
     }
 
-    def "deprecation warning informs about defaultDependencies if beforeResolve used to add dependencies to observed configuration"() {
+    def "fails if beforeResolve used to add dependencies to observed configuration"() {
         buildFile << """
 def fooDep = project.dependencies.create("org:foo:1.0")
 configurations.conf.incoming.beforeResolve {
@@ -114,15 +114,11 @@ configurations.conf.incoming.beforeResolve {
 
         when:
         executer.withArgument("-PresolveChild")
-        executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning()
 
         then:
-        succeeds "checkDefault"
+        fails "checkDefault"
 
         and:
-        output.contains "Changed dependencies of configuration ':conf' after it has been included in dependency resolution."
-        output.contains "Use 'defaultDependencies' instead of 'beforeResolve' to specify default dependencies for a configuration."
-        output.contains "Changed dependencies of parent of configuration ':child' after it has been resolved."
+        failure.assertHasCause "Cannot change dependencies of configuration ':conf' after it has been included in dependency resolution."
     }
 }

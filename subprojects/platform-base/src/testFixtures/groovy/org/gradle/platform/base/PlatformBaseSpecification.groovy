@@ -24,6 +24,7 @@ import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
 import org.gradle.model.internal.registry.RuleContext
 import org.gradle.model.internal.type.ModelType
 import org.gradle.model.internal.type.ModelTypes
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import org.junit.rules.TestRule
@@ -32,7 +33,10 @@ import org.junit.runners.model.Statement
 import spock.lang.Specification
 
 abstract class PlatformBaseSpecification extends Specification {
-    final def project = TestUtil.createRootProject()
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+
+    final def project = TestUtil.create(testDir).rootProject()
     @Rule SetRuleContext setContext = new SetRuleContext()
 
     def realize(String name) {

@@ -187,6 +187,9 @@ task sleep << {
         daemon.standardOutput.count("debug me!") == 1
 
         debugBuild.output.count("debug me!") == 1
+
+        cleanup:
+        daemon.abort()
     }
 
     List<File> getLogs(File baseDir) {

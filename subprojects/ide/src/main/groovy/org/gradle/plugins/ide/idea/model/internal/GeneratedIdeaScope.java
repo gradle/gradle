@@ -37,7 +37,7 @@ public enum GeneratedIdeaScope {
 
     public final Set<String> scopes;
 
-    private GeneratedIdeaScope(String ... scopes) {
+    GeneratedIdeaScope(String ... scopes) {
         this.scopes = Collections.unmodifiableSet(Sets.newHashSet(scopes));
     }
 }

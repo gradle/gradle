@@ -176,7 +176,7 @@ eclipseJdt.doLast() {
     }
 
     @Unroll
-    void "setting project name within #hook is deprecated"(){
+    void "setting project name within #hook is disallowed"(){
         given:
 
         buildScript """
@@ -194,11 +194,10 @@ eclipse {
 }
 """
         when:
-        executer.expectDeprecationWarning()
-        run "eclipse"
+        fails "eclipse"
 
         then:
-        output.contains("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook has been deprecated and is scheduled to be removed in Gradle")
+        failure.assertHasCause("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook is not allowed")
         where:
         hook << ["whenMerged", "beforeMerged"]
     }

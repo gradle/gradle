@@ -16,14 +16,15 @@
 
 package org.gradle.jvm.tasks.api.internal
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-import org.objectweb.asm.*
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 import spock.lang.Unroll
 
 import java.lang.reflect.Modifier
 
-@Requires(TestPrecondition.JDK6_OR_LATER)
 class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
 
     def "should not remove public method"() {
@@ -278,7 +279,6 @@ class ApiClassExtractorTest extends ApiClassExtractorTestSupport {
         'boolean' | 'true'         | false
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     void "target binary compatibility is maintained"() {
         given:
         def api = toApi(target, [A: 'public class A {}'])

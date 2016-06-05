@@ -17,9 +17,6 @@ package org.gradle.internal.classloader;
 
 import org.gradle.internal.classpath.ClassPath;
 
-import java.net.URI;
-import java.util.List;
-
 public interface ClassLoaderFactory {
     /**
      * Returns the ClassLoader that will be used as the parent for all isolated ClassLoaders.
@@ -32,22 +29,16 @@ public interface ClassLoaderFactory {
     ClassLoader createIsolatedClassLoader(ClassPath classPath);
 
     /**
-     * Creates a ClassLoader implementation which has only the classes from the specified URIs and the Java API visible.
+     * Creates a {@link ClassLoader} with the given parent and classpath.
      */
-    ClassLoader createIsolatedClassLoader(Iterable<URI> uris);
+    ClassLoader createClassLoader(ClassLoader parent, ClassPath classPath);
 
     /**
      * Creates a ClassLoader implementation which has, by default, only the classes from the Java API visible, but which can allow access to selected classes from the given parent ClassLoader.
      *
      * @param parent the parent ClassLoader
+     * @param spec the filtering spec for the classloader
      * @return The ClassLoader
      */
-    FilteringClassLoader createFilteringClassLoader(ClassLoader parent);
-
-    /**
-     * Creates a ClassLoader from its spec.
-     */
-    ClassLoader createClassLoader(ClassLoaderSpec spec, List<? extends ClassLoader> parents);
-
-    FilteringClassLoader createSystemFilteringClassLoader();
+    ClassLoader createFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec);
 }

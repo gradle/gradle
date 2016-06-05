@@ -88,7 +88,6 @@ These should be rationalised and ideally replaced with model rules.
 
 - DeferredConfigurable
 - TaskContainer.addPlaceholderAction
-- SonarRunnerExtension.sonarProperties
 - Move native plugin suite to new mechanism
 - Move publishing plugin suite to new mechanism
 

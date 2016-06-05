@@ -17,12 +17,22 @@ repositories {
     }
 <% } %>
 
+<% if (binding.hasVariable("springDmPluginVersion")) {%>
+apply plugin: "io.spring.dependency-management"
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:1.3.5.RELEASE'
+        mavenBom 'io.spring.platform:platform-bom:2.0.5.RELEASE'
+    }
+}
+<% } %>
+
 dependencies {
     compile 'commons-lang:commons-lang:2.5'
     compile "commons-httpclient:commons-httpclient:3.0"
     compile "commons-codec:commons-codec:1.2"
     compile "org.slf4j:jcl-over-slf4j:1.7.10"
-    compile "org.codehaus.groovy:groovy:2.4.4"
+    compile "org.codehaus.groovy:groovy:2.4.6"
     testCompile 'junit:junit:4.12'
     runtime 'com.googlecode:reflectasm:1.01'
 
@@ -46,7 +56,7 @@ test {
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    compile 'org.codehaus:groovy:groovy-all:2.4.4'
+    compile 'org.codehaus:groovy:groovy-all:2.4.6'
 }
 <% } %>
 

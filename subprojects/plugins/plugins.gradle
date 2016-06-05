@@ -16,6 +16,8 @@
 
 apply from: "$rootDir/gradle/providedConfiguration.gradle"
 
+sourceCompatibility = 1.6
+
 configurations {
     testFixtures
 }
@@ -57,4 +59,7 @@ useTestFixtures()
 useTestFixtures(sourceSet: "testFixtures")
 useTestFixtures(project: ":dependencyManagement")
 useTestFixtures(project: ':diagnostics')
+
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
 

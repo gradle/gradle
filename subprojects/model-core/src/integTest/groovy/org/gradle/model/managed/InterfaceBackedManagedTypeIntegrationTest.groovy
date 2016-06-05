@@ -78,6 +78,44 @@ class InterfaceBackedManagedTypeIntegrationTest extends AbstractIntegrationSpec 
         output.contains("name: foo")
     }
 
+    def "can view a managed element as ModelElement"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Person {
+                String getName()
+                void setName(String name)
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void someone(Person person) {
+                }
+
+                @Mutate
+                void addEchoTask(ModelMap<Task> tasks, @Path("someone") ModelElement person) {
+                    tasks.create("echo") {
+                        it.doLast {
+                            println "person: $person"
+                            println "name: $person.name"
+                            println "display-name: $person.displayName"
+                        }
+                    }
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        succeeds "echo"
+
+        and:
+        output.contains("person: Person 'someone'")
+        output.contains("name: someone")
+        output.contains("display-name: Person 'someone'")
+    }
+
     def "rule method can apply defaults to a managed model element"() {
         when:
         buildScript '''

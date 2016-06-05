@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 dependencies {
-    compile libraries.groovy
+    compile libraries.commons_codec
     compile libraries.slf4j_api
     compile project(':core')
+    testCompile libraries.groovy
     integTestRuntime project(':plugins')
 }
 

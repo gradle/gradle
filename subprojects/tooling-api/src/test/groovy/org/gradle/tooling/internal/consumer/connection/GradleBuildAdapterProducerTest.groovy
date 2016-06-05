@@ -31,7 +31,7 @@ class GradleBuildAdapterProducerTest extends Specification {
     def mapping = Mock(ModelMapping);
     def builder = Mock(ModelBuilder);
     def delegate = Mock(ModelProducer)
-    def mappingProvider = Mock(HasCompatibilityMapperAction)
+    def mappingProvider = Mock(HasCompatibilityMapping)
 
     GradleBuildAdapterProducer modelProducer = new GradleBuildAdapterProducer(adapter, delegate, mappingProvider);
 
@@ -41,7 +41,7 @@ class GradleBuildAdapterProducerTest extends Specification {
         def operationParameters = Mock(ConsumerOperationParameters)
         def mappingAction = Mock(Action)
         adapter.adapt(GradleProject, gradleProject) >> gradleProject
-        mappingProvider.getCompatibilityMapperAction(operationParameters) >> mappingAction
+        mappingProvider.getCompatibilityMapping(operationParameters) >> mappingAction
         adapter.adapt(GradleBuild, _, mappingAction) >> Mock(GradleBuild)
         when:
         def model = modelProducer.produceModel(GradleBuild, operationParameters)

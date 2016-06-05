@@ -17,15 +17,19 @@ package org.gradle.platform.base.internal
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.internal.AbstractBuildableComponentSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 public class BuildableComponentSpecTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def element = new TestBuildableComponentSpec(Stub(ComponentSpecIdentifier))
     def dependedOn1 = Stub(Task)
     def dependedOn2 = Stub(Task)
-    def lifecycleTask = TestUtil.createTask(DefaultTask)
+    def lifecycleTask = TestUtil.create(tmpDir).task(DefaultTask)
 
     def "has direct dependencies with no lifecycle task set"() {
         when:

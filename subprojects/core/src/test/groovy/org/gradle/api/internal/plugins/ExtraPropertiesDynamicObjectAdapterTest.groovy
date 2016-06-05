@@ -64,11 +64,11 @@ public class ExtraPropertiesDynamicObjectAdapterTest extends Specification {
         and:
         !adapter.hasMethod("other")
     }
-    
+
     def "getting missing property throws MPE"() {
         when:
         adapter.getProperty("foo")
-        
+
         then:
         thrown(MissingPropertyException)
     }

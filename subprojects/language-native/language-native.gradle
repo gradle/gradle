@@ -30,3 +30,4 @@ useTestFixtures(project: ":messaging")
 
 useClassycle()
 strictCompile()
+

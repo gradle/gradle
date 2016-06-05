@@ -41,7 +41,7 @@ class FixedAvailablePortAllocatorTest extends AbstractPortAllocatorTest {
                 assert portAllocator.reservations[0].startPort >= PortAllocator.MIN_PRIVATE_PORT
                 assert portAllocator.reservations[0].endPort <= PortAllocator.MAX_PRIVATE_PORT
                 otherRanges.each { other ->
-                    assert !other.isReserved(portAllocator.reservations[0].startPort, portAllocator.reservations[0].endPort)
+                    assert !isReservedInList(other.reservations, portAllocator.reservations[0].startPort, portAllocator.reservations[0].endPort)
                 }
             }
         }

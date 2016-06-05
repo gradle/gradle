@@ -42,4 +42,9 @@ public class OrSpec<T> extends CompositeSpec<T> {
         }
         return false;
     }
+
+    @Override
+    public int hashCode() {
+        return 13 * super.hashCode();
+    }
 }

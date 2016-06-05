@@ -48,34 +48,32 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
         buildFile << '''
             model {
                 tasks { tasks ->
-                    $.components.main.binaries { binaries ->
-                        def binary = binaries.values().first()
-                        tasks.create('taskThatDependsOnAssembly') {
-                            dependsOn binary.assembly
-                            doFirst {
-                                def hasOrNot = binary.jarFile.exists() ? 'has' : 'has not'
-                                println "Jar $hasOrNot been built."
+                    def binary = $.components.main.binaries.values().first()
+                    tasks.create('taskThatDependsOnAssembly') {
+                        dependsOn binary.assembly
+                        doFirst {
+                            def hasOrNot = binary.jarFile.exists() ? 'has' : 'has not'
+                            println "Jar $hasOrNot been built."
 
-                                def relativize = { root, file ->
-                                    root.toURI().relativize(file.toURI()).toString()
-                                }
-
-                                def classes = []
-                                binary.assembly.classDirectories.each { dir ->
-                                    dir.eachFileRecurse(groovy.io.FileType.FILES) {
-                                        classes << relativize(dir, it)
-                                    }
-                                }
-                                println "Classes were generated: $classes"
-
-                                def resources = []
-                                binary.assembly.resourceDirectories.each { dir ->
-                                    dir.eachFileRecurse(groovy.io.FileType.FILES) {
-                                        resources << "${relativize(dir, it)} => $it.text"
-                                    }
-                                }
-                                println "Resources were processed: $resources"
+                            def relativize = { root, file ->
+                                root.toURI().relativize(file.toURI()).toString()
                             }
+
+                            def classes = []
+                            binary.assembly.classDirectories.each { dir ->
+                                dir.eachFileRecurse(groovy.io.FileType.FILES) {
+                                    classes << relativize(dir, it)
+                                }
+                            }
+                            println "Classes were generated: $classes"
+
+                            def resources = []
+                            binary.assembly.resourceDirectories.each { dir ->
+                                dir.eachFileRecurse(groovy.io.FileType.FILES) {
+                                    resources << "${relativize(dir, it)} => $it.text"
+                                }
+                            }
+                            println "Resources were processed: $resources"
                         }
                     }
                 }
@@ -124,9 +122,11 @@ class JavaJvmAssemblyIntegrationTest extends AbstractIntegrationSpec {
                             assembly.classDirectories << precompiledClassesDir
                         }
                     }
-                    main.binaries.jar {
-                        assert !assembly.classDirectories.empty // conventional class directory should already be there
-                        assembly.classDirectories << precompiledClassesDir
+                    main {
+                        binaries.jar {
+                            assert !assembly.classDirectories.empty // conventional class directory should already be there
+                            assembly.classDirectories << precompiledClassesDir
+                        }
                     }
                     mainConsumer(JvmLibrarySpec) {
                         dependencies {

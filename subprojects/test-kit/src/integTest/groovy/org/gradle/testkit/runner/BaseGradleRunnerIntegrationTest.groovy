@@ -44,7 +44,7 @@ import static org.gradle.testkit.runner.internal.ToolingApiGradleExecutor.TEST_K
 @RunWith(Runner)
 abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
-    public static final GradleVersion MIN_TESTED_VERSION = GradleVersion.version('1.0')
+    public static final GradleVersion MIN_TESTED_VERSION = TestKitFeature.RUN_BUILDS.since
     public static final GradleVersion CUSTOM_DAEMON_DIR_SUPPORT_VERSION = GradleVersion.version("2.2")
 
     // Context set by multi run infrastructure
@@ -58,7 +58,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     SetSystemProperties setSystemProperties = new SetSystemProperties(
-        (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.gradleUserHomeDir.file("native").absolutePath,
+        (NativeServices.NATIVE_DIR_OVERRIDE): buildContext.nativeServicesDir.absolutePath,
         (GradleUserHomeLookup.GRADLE_USER_HOME_PROPERTY_KEY): buildContext.gradleUserHomeDir.absolutePath
     )
 

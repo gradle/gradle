@@ -26,7 +26,7 @@ import org.gradle.util.GradleVersion
 import org.junit.runner.RunWith
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_COMPOSITE_BUILD)
-@TargetGradleVersion(">=1.0")
+@TargetGradleVersion(">=1.2")
 @RunWith(CompositeToolingApiCompatibilitySuiteRunner)
 abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecification {
 

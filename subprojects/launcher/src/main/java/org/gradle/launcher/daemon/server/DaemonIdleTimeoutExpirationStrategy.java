@@ -13,35 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.launcher.daemon.server;
 
+import com.google.common.base.Function;
+import com.google.common.base.Functions;
+import com.google.common.base.Preconditions;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import java.util.concurrent.TimeUnit;
 
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
+
 public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStrategy {
     private static final Logger LOG = Logging.getLogger(DaemonIdleTimeoutExpirationStrategy.class);
-    private int idleTimeout;
-    private TimeUnit timeUnit;
+    private Function<?, Long> idleTimeout;
+    private final Daemon daemon;
 
-    public DaemonIdleTimeoutExpirationStrategy(int idleTimeout, TimeUnit timeUnit) {
-        this.idleTimeout = idleTimeout;
-        this.timeUnit = timeUnit;
+    public DaemonIdleTimeoutExpirationStrategy(Daemon daemon, int idleTimeout, TimeUnit timeUnit) {
+        this(daemon, Functions.constant(timeUnit.toMillis(idleTimeout)));
+    }
+
+    public DaemonIdleTimeoutExpirationStrategy(Daemon daemon, Function<?, Long> timeoutClosure) {
+        this.daemon = daemon;
+        this.idleTimeout = Preconditions.checkNotNull(timeoutClosure);
     }
 
     @Override
-    public DaemonExpirationResult checkExpiration(Daemon daemon) {
+    public DaemonExpirationResult checkExpiration() {
         long idleMillis = daemon.getStateCoordinator().getIdleMillis(System.currentTimeMillis());
-        boolean idleTimeoutExceeded = idleMillis > timeUnit.toMillis(idleTimeout);
+        boolean idleTimeoutExceeded = idleMillis > idleTimeout.apply(null);
         if (idleTimeoutExceeded) {
             LOG.info("Idle timeout: daemon has been idle for {} milliseconds. Expiring.", idleMillis);
-            return new DaemonExpirationResult(true, "daemon has been idle for " + idleMillis + " milliseconds");
+            return new DaemonExpirationResult(QUIET_EXPIRE, "to reclaim system memory after being idle for " + (idleMillis / 60000) + " minutes");
         }
-        return new DaemonExpirationResult(false, null);
-    }
-
-    public long getIdleTimeout() {
-        return idleTimeout;
+        return DaemonExpirationResult.NOT_TRIGGERED;
     }
 }

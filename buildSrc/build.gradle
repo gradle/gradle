@@ -20,9 +20,11 @@ apply plugin: 'codenarc'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 
+sourceCompatibility = '1.7'
+targetCompatibility = '1.7'
+
 repositories {
-    maven { url 'https://repo.gradle.org/gradle/libs' }
-    mavenCentral()
+    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
 }
 
 dependencies {

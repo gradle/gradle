@@ -25,10 +25,16 @@ import org.hamcrest.core.StringContains;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.gradle.launcher.daemon.client.DefaultDaemonConnector.STARTING_DAEMON_MESSAGE;
+import static org.gradle.launcher.daemon.client.DaemonStartingMessage.NO_COMPATIBLE_DAEMONS_MESSAGE;
+import static org.gradle.launcher.daemon.client.DaemonStartingMessage.STARTING_DAEMON_MESSAGE;
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -70,14 +76,16 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         int i = 0;
         while (i < lines.size()) {
             String line = lines.get(i);
-            if (line.contains("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0")) {
-                // Assume running build on Java 6, skip over stack trace and ignore
+            if (line.contains(STARTING_DAEMON_MESSAGE)) {
+                // Remove the "daemon starting" message
                 i++;
-                while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+            } else if (line.contains(NO_COMPATIBLE_DAEMONS_MESSAGE)) {
+                // Remove daemon reporting lines
+                while (i < lines.size() && !lines.get(i).contains(STARTING_DAEMON_MESSAGE)) {
                     i++;
                 }
-            } else if (line.contains(STARTING_DAEMON_MESSAGE)) {
-                // Assume running using the daemon, ignore
+
+                // Remove the "subsequent builds faster" message
                 i++;
             } else if (i == lines.size() - 1 && line.matches("Total time: [\\d\\.]+ secs")) {
                 result.append("Total time: 1 secs");

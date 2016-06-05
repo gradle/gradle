@@ -35,7 +35,7 @@ public class PluginClasspathInjectionSupportedCheckModelProducer implements Mode
     @Override
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (!operationParameters.getInjectedPluginClasspath().isEmpty() && !isSupported()) {
-            throw Exceptions.unsupportedFeature("plugin classpath injection feature used by GradleRunner", providerVersion, "2.8");
+            throw Exceptions.unsupportedFeature("plugin classpath injection feature", providerVersion, "2.8");
         }
 
         return delegate.produceModel(type, operationParameters);

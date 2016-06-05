@@ -13,26 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.launcher.daemon.server;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import java.util.Date;
 
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.QUIET_EXPIRE;
+
 /**
  * This strategy expires the daemon if it's been idle for the longest consecutive period of time.
- * It will not expire a busy daemon.
+ * It will not expire a busy daemon, or the last daemon running.
  *
  */
 public class LruDaemonExpirationStrategy implements DaemonExpirationStrategy {
-    public DaemonExpirationResult checkExpiration(Daemon daemon) {
+    private final Daemon daemon;
+
+    public LruDaemonExpirationStrategy(Daemon daemon) {
+        this.daemon = daemon;
+    }
+
+    public DaemonExpirationResult checkExpiration() {
         DaemonRegistry registry = daemon.getDaemonRegistry();
         return registry.getAll().size() > 1 && isOldest(daemon.getDaemonContext(), registry)
-            ? new DaemonExpirationResult(true, "This is the least recently used daemon")
-            : new DaemonExpirationResult(false, null);
+            ? new DaemonExpirationResult(QUIET_EXPIRE, "This is the least recently used daemon")
+            : DaemonExpirationResult.NOT_TRIGGERED;
     }
 
     // Daemons are compared by PID; the assumption is that two will never have an identical PID.

@@ -21,8 +21,15 @@ import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
@@ -137,7 +144,7 @@ public abstract class StructSchemaExtractionStrategySupport implements ModelSche
     }
 
     private static ModelType<?> determinePropertyType(PropertyAccessorExtractionContext accessor) {
-        return accessor == null ? null : accessor.getAccessorType().propertyTypeFor(accessor.getMostSpecificDeclaration());
+        return accessor == null ? null : ModelType.of(accessor.getAccessorType().propertyTypeFor(accessor.getMostSpecificDeclaration()));
     }
 
     private static <P> ModelPropertyExtractionResult<P> createProperty(ModelType<P> propertyType, ModelPropertyExtractionContext propertyContext) {

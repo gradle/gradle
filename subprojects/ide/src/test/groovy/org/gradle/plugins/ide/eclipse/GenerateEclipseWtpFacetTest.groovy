@@ -21,9 +21,10 @@ import org.gradle.plugins.ide.eclipse.model.Facet
 import org.gradle.plugins.ide.eclipse.model.Facet.FacetType
 
 public class GenerateEclipseWtpFacetTest extends AbstractSpockTaskTest {
-    private eclipseFacet = createTask(GenerateEclipseWtpFacet)
+    private eclipseFacet
 
     def setup() {
+        eclipseFacet = createTask(GenerateEclipseWtpFacet)
         eclipseFacet.facet = new EclipseWtpFacet()
     }
 

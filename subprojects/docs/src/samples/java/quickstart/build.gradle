@@ -6,7 +6,7 @@ apply plugin: 'eclipse'
 // END SNIPPET use-eclipse-plugin
 
 // START SNIPPET customization
-sourceCompatibility = 1.5
+sourceCompatibility = 1.7
 version = '1.0'
 jar {
     manifest {

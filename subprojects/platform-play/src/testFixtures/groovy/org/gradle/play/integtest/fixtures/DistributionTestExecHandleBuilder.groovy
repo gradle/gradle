@@ -20,10 +20,10 @@ import org.apache.commons.io.output.CloseShieldOutputStream
 import org.apache.commons.io.output.TeeOutputStream
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.internal.ExecHandle
-import org.gradle.process.internal.ExecHandleBuilder
+import org.gradle.process.internal.DefaultExecHandleBuilder
 import org.gradle.test.fixtures.ConcurrentTestUtil
 
-class DistributionTestExecHandleBuilder extends ExecHandleBuilder {
+class DistributionTestExecHandleBuilder extends DefaultExecHandleBuilder {
     final String port
 
     DistributionTestExecHandleBuilder(String port, String baseDirName) {

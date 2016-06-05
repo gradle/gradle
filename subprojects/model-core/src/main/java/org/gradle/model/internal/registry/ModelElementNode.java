@@ -72,7 +72,12 @@ class ModelElementNode extends ModelNodeInternal {
 
     @Override
     public <T> ModelView<? extends T> asMutable(ModelType<T> type, ModelRuleDescriptor ruleDescriptor) {
-        ModelView<? extends T> modelView = getAdapter().asMutable(type, this, ruleDescriptor);
+        ModelView<? extends T> modelView;
+        if (isMutable()) {
+            modelView = getAdapter().asMutable(type, this, ruleDescriptor);
+        } else {
+            modelView = getAdapter().asImmutable(type, this, ruleDescriptor);
+        }
         if (modelView == null) {
             throw new IllegalStateException("Model element " + getPath() + " cannot be expressed as a mutable view of type " + type);
         }

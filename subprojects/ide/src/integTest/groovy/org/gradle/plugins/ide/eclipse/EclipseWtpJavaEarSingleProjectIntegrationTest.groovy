@@ -15,60 +15,101 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.test.fixtures.maven.MavenFileModule
+import org.gradle.test.fixtures.maven.MavenFileRepository
+
 class EclipseWtpJavaEarSingleProjectIntegrationTest extends AbstractEclipseIntegrationSpec {
+
+    String localMaven
+
+    def setup() {
+        MavenFileRepository mavenRepo = new MavenFileRepository(file('maven-repo'))
+        MavenFileModule lib1Api = mavenRepo.module('org.example', 'lib1-api', '1.0').publish()
+        mavenRepo.module('org.example', 'lib1-impl', '1.0').dependsOn(lib1Api).publish()
+        MavenFileModule lib2Api = mavenRepo.module('org.example', 'lib2-api', '2.0').publish()
+        mavenRepo.module('org.example', 'lib2-impl', '2.0').dependsOn(lib2Api).publish()
+        localMaven = "maven { url '${mavenRepo.uri}' }"
+    }
+
     def "generates configuration files for an ear project"() {
         file('src/main/java').mkdirs()
 
         settingsFile << "rootProject.name = 'ear'"
 
-        buildFile << """
-apply plugin: 'eclipse-wtp'
-apply plugin: 'ear'
-apply plugin: 'java'
+        buildFile <<
+        """apply plugin: 'eclipse-wtp'
+           apply plugin: 'ear'
+           apply plugin: 'java'
 
-repositories {
-    jcenter()
-}
+           repositories { $localMaven }
 
-dependencies {
-    compile 'com.google.guava:guava:18.0'
-    testCompile "junit:junit:4.12"
-}
-"""
+           dependencies {
+               earlib 'org.example:lib1-impl:1.0'
+               deploy 'org.example:lib2-impl:2.0'
+           }
+        """
 
         when:
-        run "eclipse"
+        run 'eclipse'
 
         then:
-        // This test covers actual behaviour, not necessarily desired behaviour
-
         // Builders and natures
         def project = project
-        project.assertHasNatures("org.eclipse.wst.common.project.facet.core.nature",
-                "org.eclipse.wst.common.modulecore.ModuleCoreNature",
-                "org.eclipse.jem.workbench.JavaEMFNature",
-                "org.eclipse.jdt.core.javanature")
-        project.assertHasBuilders("org.eclipse.wst.common.project.facet.core.builder",
-                "org.eclipse.wst.validation.validationbuilder")
+        project.assertHasNatures('org.eclipse.wst.common.project.facet.core.nature',
+                'org.eclipse.wst.common.modulecore.ModuleCoreNature',
+                'org.eclipse.jem.workbench.JavaEMFNature',
+                'org.eclipse.jdt.core.javanature')
+        project.assertHasBuilders('org.eclipse.wst.common.project.facet.core.builder',
+                'org.eclipse.wst.validation.validationbuilder')
 
         // Classpath
         def classpath = classpath
-        classpath.assertHasLibs('guava-18.0.jar', 'junit-4.12.jar', 'hamcrest-core-1.3.jar')
-        classpath.lib('guava-18.0.jar').assertHasNoDeploymentAttributes() // Probably not right
-        classpath.lib('junit-4.12.jar').assertHasNoDeploymentAttributes()
-        classpath.lib('hamcrest-core-1.3.jar').assertHasNoDeploymentAttributes()
+        classpath.assertHasLibs('lib2-impl-2.0.jar', 'lib1-impl-1.0.jar', 'lib1-api-1.0.jar')
+        classpath.lib('lib1-api-1.0.jar').assertIsDeployedTo('/lib')
+        classpath.lib('lib1-impl-1.0.jar').assertIsDeployedTo('/lib')
+        classpath.lib('lib2-impl-2.0.jar').assertIsDeployedTo('/')
 
         // Facets
         def facets = wtpFacets
-        facets.assertHasFixedFacets("jst.ear")
-        facets.assertHasInstalledFacets("jst.ear") // Probably not right
-        facets.assertFacetVersion("jst.ear", "5.0")
+        facets.assertHasFixedFacets('jst.ear')
+        facets.assertHasInstalledFacets('jst.ear')
+        facets.assertFacetVersion('jst.ear', '5.0')
 
-        // Deployment
+        // Component
         def component = wtpComponent
         component.deployName == 'ear'
         component.resources.size() == 1
-        component.sourceDirectory('src/main/java').assertDeployedAt('/') // Probably not right
-        component.modules.size() == 0 // Probably not right
+        component.sourceDirectory('src/main/java').assertDeployedAt('/')
+        component.modules.size() == 0
+    }
+
+    def "ear deployment location can be configured via libDirName"() {
+        settingsFile << "rootProject.name = 'ear'"
+
+        buildFile <<
+        """apply plugin: 'eclipse-wtp'
+           apply plugin: 'ear'
+           apply plugin: 'java'
+
+           repositories { $localMaven }
+
+           dependencies {
+               earlib 'org.example:lib1-impl:1.0'
+               deploy 'org.example:lib2-impl:2.0'
+           }
+            ear {
+               libDirName = 'APP-INF/lib'
+           }
+        """
+
+        when:
+        run 'eclipse'
+
+        then:
+        def classpath = classpath
+        classpath.assertHasLibs('lib2-impl-2.0.jar', 'lib1-impl-1.0.jar', 'lib1-api-1.0.jar')
+        classpath.lib('lib1-api-1.0.jar').assertIsDeployedTo('/APP-INF/lib')
+        classpath.lib('lib1-impl-1.0.jar').assertIsDeployedTo('/APP-INF/lib')
+        classpath.lib('lib2-impl-2.0.jar').assertIsDeployedTo('/')
     }
 }

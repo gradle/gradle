@@ -27,7 +27,6 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet;
-import org.gradle.api.internal.tasks.scala.ScalaCompileOptionsInternal;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -52,8 +51,8 @@ import java.util.concurrent.Callable;
 public class ScalaBasePlugin implements Plugin<Project> {
 
     @VisibleForTesting
-    static final String ZINC_CONFIGURATION_NAME = "zinc";
-    private static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
+    public static final String ZINC_CONFIGURATION_NAME = "zinc";
+    public static final String SCALA_RUNTIME_EXTENSION_NAME = "scalaRuntime";
     private final SourceDirectorySetFactory sourceDirectorySetFactory;
 
     @Inject
@@ -154,7 +153,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     @Override
                     public Configuration call() throws Exception {
                         Configuration config = project.getConfigurations().getAt(ZINC_CONFIGURATION_NAME);
-                        if (!((ScalaCompileOptionsInternal) compile.getScalaCompileOptions()).internalIsUseAnt() && config.getDependencies().isEmpty()) {
+                        if (config.getDependencies().isEmpty()) {
                             project.getDependencies().add("zinc", "com.typesafe.zinc:zinc:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION);
                         }
                         return config;
@@ -189,5 +188,13 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 });
             }
         });
+    }
+
+    public static String getZINC_CONFIGURATION_NAME() {
+        return ZINC_CONFIGURATION_NAME;
+    }
+
+    public static String getSCALA_RUNTIME_EXTENSION_NAME() {
+        return SCALA_RUNTIME_EXTENSION_NAME;
     }
 }

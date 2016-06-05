@@ -33,10 +33,10 @@ class EclipseModelTest extends Specification {
         then:
         model.classpath.pathVariables == [one: new File('.'), two: new File('.')]
     }
-    
+
     def "enables setting path variables even if wtp component is not configured"() {
         given:
-        model.wtp = new EclipseWtp(model.classpath)
+        model.wtp = new EclipseWtp()
         //for example when wtp+java applied but project is not a dependency to any war/ear.
         assert model.wtp.component == null
 
@@ -49,9 +49,9 @@ class EclipseModelTest extends Specification {
 
     def "enables setting path variables"() {
         given:
-        model.wtp = new EclipseWtp(model.classpath)
+        model.wtp = new EclipseWtp()
         model.wtp.component = new EclipseWtpComponent(null, null)
-        
+
         when:
         model.pathVariables(one: new File('.'))
 

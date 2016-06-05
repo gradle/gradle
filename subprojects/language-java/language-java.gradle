@@ -1,3 +1,6 @@
+// Compiler daemon
+sourceCompatibility = 1.6
+
 dependencies {
     compile libraries.groovy
     compile project(":core")
@@ -16,3 +19,6 @@ useTestFixtures()
 useTestFixtures(project: ":languageJvm", sourceSet: 'testFixtures')
 useTestFixtures(project: ":platformBase")
 useTestFixtures(project: ":launcher")
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

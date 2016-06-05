@@ -42,6 +42,10 @@ class EclipseWtpComponentFixture {
         return component."wb-module"."dependent-module".collect { new WbModule(it) }
     }
 
+    Map<String, String> getModuleProperties() {
+        return component."wb-module".property.collectEntries { [(it.@name) : it.@value] }
+    }
+
     WbModule lib(String jarName) {
         def module = modules.find {
             def handle = it.node.@handle
@@ -90,5 +94,10 @@ class EclipseWtpComponentFixture {
         void assertDeployedAt(String path) {
             assert node."@deploy-path" == path
         }
+
+        void assertAttributes(Map attributes) {
+            attributes.each { key, value ->  assert node."@$key" == value }
+        }
+
     }
 }

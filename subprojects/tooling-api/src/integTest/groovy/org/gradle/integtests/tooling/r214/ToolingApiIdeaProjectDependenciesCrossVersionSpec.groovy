@@ -16,18 +16,14 @@
 
 
 package org.gradle.integtests.tooling.r214
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.internal.protocol.DefaultIdeaModuleIdentifier
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
-import org.gradle.tooling.model.idea.IdeaModuleIdentifier
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.util.GradleVersion
 
 @ToolingApiVersion(">=2.14")
-@TargetGradleVersion(">=1.0")
 class ToolingApiIdeaProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
 
     def "can build the idea project dependencies for a java project"() {
@@ -51,22 +47,18 @@ project(':a') {
         IdeaProject ideaProject = loadToolingModel(IdeaProject)
 
         then:
-        IdeaModule ideaModule = ideaProject.modules.find { it.gradleProject.path == ":a" }
-        ideaModule.dependencies.size() == 2
+        IdeaModule ideaModuleRoot = ideaProject.modules.find { it.gradleProject.path == ":" }
+        IdeaModule ideaModuleA = ideaProject.modules.find { it.gradleProject.path == ":a" }
+        IdeaModule ideaModuleB = ideaProject.modules.find { it.gradleProject.path == ":a:b" }
 
-        IdeaModuleDependency rootDependency = ideaModule.dependencies.find { it.dependencyModule.name == 'root' }
+        ideaModuleA.dependencies.size() == 2
+
+        IdeaModuleDependency rootDependency = ideaModuleA.dependencies.find { it.dependencyModule.name == 'root' }
         rootDependency != null
-        rootDependency.target == getModuleIdentifier(":", projectDir)
+        rootDependency.target == ideaModuleRoot.identifier
 
-        IdeaModuleDependency otherDependency = ideaModule.dependencies.find { it.dependencyModule.name == 'b' }
+        IdeaModuleDependency otherDependency = ideaModuleA.dependencies.find { it.dependencyModule.name == 'b' }
         otherDependency != null
-        otherDependency.target == getModuleIdentifier(":a:b", projectDir.file("a", "b"))
-    }
-
-    private IdeaModuleIdentifier getModuleIdentifier(String path, File rootDir) {
-        if (GradleVersion.version(getTargetDist().version.baseVersion.version) >= GradleVersion.version("2.14")) {
-            return new DefaultIdeaModuleIdentifier(rootDir);
-        }
-        return new DefaultIdeaModuleIdentifier(path);
+        otherDependency.target == ideaModuleB.identifier
     }
 }

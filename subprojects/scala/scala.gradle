@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+// Compiler daemon
+sourceCompatibility = 1.6
+
 dependencies {
     compile libraries.groovy
 
@@ -21,7 +24,6 @@ dependencies {
     compile project(":languageJvm")
     compile project(":languageScala")
     compile project(":plugins")
-
 
     testCompile libraries.slf4j_api
 

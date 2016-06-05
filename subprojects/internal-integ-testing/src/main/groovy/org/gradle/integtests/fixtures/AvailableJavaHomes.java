@@ -24,11 +24,11 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.specs.Specs;
+import org.gradle.integtests.fixtures.executer.GradleDistribution;
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.jvm.JavaInfo;
 import org.gradle.internal.jvm.Jre;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.filesystem.FileCanonicalizer;
@@ -38,7 +38,14 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,20 +54,44 @@ import java.util.regex.Pattern;
  */
 public abstract class AvailableJavaHomes {
     private static List<JvmInstallation> jvms;
+    private static GradleDistribution underTest = new UnderDevelopmentGradleDistribution();
 
     @Nullable
-    public static JavaInfo getJava5() {
+    public static Jvm getJava5() {
         return getJdk(JavaVersion.VERSION_1_5);
     }
 
     @Nullable
-    public static JavaInfo getJdk6() {
+    public static Jvm getJdk6() {
         return getJdk(JavaVersion.VERSION_1_6);
     }
 
     @Nullable
-    public static JavaInfo getJdk(final JavaVersion version) {
-        return getAvailableJdk(new Spec<JvmInstallation>() {
+    public static Jvm getJdk(final JavaVersion version) {
+        return Iterables.getFirst(getAvailableJdks(version), null);
+    }
+
+    /**
+     * Returns a JDK for each of the given java versions, if available.
+     */
+    public static List<Jvm> getJdks(final String... versions) {
+        final Set<JavaVersion> remaining = new HashSet<JavaVersion>();
+        for (String version : versions) {
+            remaining.add(JavaVersion.toVersion(version));
+        }
+        return getAvailableJdks(new Spec<JvmInstallation>() {
+            @Override
+            public boolean isSatisfiedBy(JvmInstallation element) {
+                return remaining.remove(element.getJavaVersion());
+            }
+        });
+    }
+
+    /**
+     * Returns all JDKs for the given java version.
+     */
+    public static List<Jvm> getAvailableJdks(final JavaVersion version) {
+        return getAvailableJdks(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
                 return version.equals(element.getJavaVersion());
@@ -68,21 +99,17 @@ public abstract class AvailableJavaHomes {
         });
     }
 
-    public static List<JavaInfo> getAvailableJvms() {
+    public static List<Jvm> getAvailableJvms() {
         return FluentIterable.from(getJvms())
-            .transform(new Function<JvmInstallation, JavaInfo>() {
+            .transform(new Function<JvmInstallation, Jvm>() {
                 @Override
-                public JavaInfo apply(@javax.annotation.Nullable JvmInstallation input) {
-                    return Jvm.forHome(input.getJavaHome());
+                public Jvm apply(JvmInstallation input) {
+                    return Jvm.discovered(input.getJavaHome(), input.getJavaVersion());
                 }
             }).toList();
     }
 
-    public static List<JavaInfo> getAvailableJdks() {
-        return getAvailableJdks(Specs.satisfyAll());
-    }
-
-    public static List<JavaInfo> getAvailableJdks(final Spec<? super JvmInstallation> filter) {
+    public static List<Jvm> getAvailableJdks(final Spec<? super JvmInstallation> filter) {
         return FluentIterable.from(getJvms())
             .filter(new Predicate<JvmInstallation>() {
                 @Override
@@ -90,34 +117,54 @@ public abstract class AvailableJavaHomes {
                     return input.isJdk() && filter.isSatisfiedBy(input);
                 }
             })
-            .transform(new Function<JvmInstallation, JavaInfo>() {
+            .transform(new Function<JvmInstallation, Jvm>() {
                 @Override
-                public JavaInfo apply(JvmInstallation input) {
-                    return Jvm.forHome(input.getJavaHome());
+                public Jvm apply(JvmInstallation input) {
+                    return Jvm.discovered(input.getJavaHome(), input.getJavaVersion());
                 }
             }).toList();
     }
 
-    public static JavaInfo getAvailableJdk(final Spec<? super JvmInstallation> filter) {
+    public static Map<Jvm, JavaVersion> getAvailableJdksWithVersion() {
+        Map<Jvm, JavaVersion> result = new HashMap<Jvm, JavaVersion>();
+        for (JavaVersion javaVersion : JavaVersion.values()) {
+            for (Jvm javaInfo : getAvailableJdks(javaVersion)) {
+                result.put(javaInfo, javaVersion);
+            }
+        }
+        return result;
+    }
+
+    public static Jvm getAvailableJdk(final Spec<? super JvmInstallation> filter) {
         return Iterables.getFirst(getAvailableJdks(filter), null);
     }
 
+    private static boolean isSupportedVersion(JvmInstallation jvmInstallation) {
+        return underTest.worksWith(Jvm.discovered(jvmInstallation.getJavaHome(), jvmInstallation.getJavaVersion()));
+    }
+
+    /**
+     * Returns a JDK is that has a different Java home to the current one, and which is supported by the Gradle version under test.
+     */
     @Nullable
-    public static JavaInfo getDifferentJdk() {
+    public static Jvm getDifferentJdk() {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
-                return !element.getJavaHome().equals(Jvm.current().getJavaHome());
+                return !element.getJavaHome().equals(Jvm.current().getJavaHome()) && isSupportedVersion(element);
             }
         });
     }
 
+    /**
+     * Returns a JDK is that has a different Java version to the current one, and which is supported by the Gradle version under test.
+     */
     @Nullable
-    public static JavaInfo getDifferentVersion() {
+    public static Jvm getDifferentVersion() {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
-                return !element.getJavaVersion().equals(Jvm.current().getJavaVersion());
+                return !element.getJavaVersion().equals(Jvm.current().getJavaVersion()) && isSupportedVersion(element);
             }
         });
     }

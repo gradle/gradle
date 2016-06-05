@@ -42,6 +42,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @return the parameters. Never returns null.
      */
+    @Internal
     public StartParameter getStartParameter() {
         return startParameter;
     }
@@ -60,6 +61,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @return The project directory. Never returns null.
      */
+    @Internal
     public File getDir() {
         return getStartParameter().getCurrentDir();
     }
@@ -79,6 +81,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @return The build file. May be null.
      */
+    @Optional @InputFile
     public File getBuildFile() {
         return getStartParameter().getBuildFile();
     }
@@ -97,6 +100,7 @@ public class GradleBuild extends ConventionTask {
      *
      * @return The sequence. May be empty. Never returns null.
      */
+    @Input
     public List<String> getTasks() {
         return getStartParameter().getTaskNames();
     }

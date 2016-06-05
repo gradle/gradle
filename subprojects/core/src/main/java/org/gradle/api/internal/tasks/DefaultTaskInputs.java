@@ -15,26 +15,33 @@
  */
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.GString;
+import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.internal.UncheckedException;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.Callable;
 
-public class DefaultTaskInputs implements TaskInputs {
+import static org.gradle.util.GUtil.uncheckedCall;
+
+public class DefaultTaskInputs implements TaskInputsInternal {
     private final DefaultConfigurableFileCollection inputFiles;
     private final DefaultConfigurableFileCollection sourceFiles;
     private final FileResolver resolver;
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
+    private Queue<Action<? super TaskInputs>> configureActions;
 
     public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.resolver = resolver;
@@ -126,14 +133,7 @@ public class DefaultTaskInputs implements TaskInputs {
         while (true) {
             if (value instanceof Callable) {
                 Callable callable = (Callable) value;
-                try {
-                    value = callable.call();
-                } catch (Exception e) {
-                    throw UncheckedException.throwAsUncheckedException(e);
-                }
-            } else if (value instanceof Closure) {
-                Closure closure = (Closure) value;
-                value = closure.call();
+                value = uncheckedCall(callable);
             } else if (value instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) value;
                 return fileCollection.getFiles();
@@ -144,7 +144,7 @@ public class DefaultTaskInputs implements TaskInputs {
     }
 
     private static Object avoidGString(Object value) {
-        return (value instanceof GString)? value.toString() : value;
+        return (value instanceof GString) ? value.toString() : value;
     }
 
     public TaskInputs property(final String name, final Object value) {
@@ -163,5 +163,33 @@ public class DefaultTaskInputs implements TaskInputs {
             }
         });
         return this;
+    }
+
+    @Override
+    public TaskInputs configure(final Action<? super TaskInputs> action) {
+        taskMutator.mutate("TaskInputs.configure(Action)", new Runnable() {
+            public void run() {
+                if (configureActions == null) {
+                    configureActions = Lists.newLinkedList();
+                }
+                configureActions.add(action);
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public TaskInputs configure(Closure action) {
+        return configure(ConfigureUtil.configureUsing(action));
+    }
+
+    @Override
+    public void ensureConfigured() {
+        if (configureActions != null) {
+            while (!configureActions.isEmpty()) {
+                configureActions.remove().execute(this);
+            }
+            configureActions = null;
+        }
     }
 }

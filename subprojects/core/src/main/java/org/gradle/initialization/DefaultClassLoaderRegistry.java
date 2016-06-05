@@ -18,41 +18,47 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classloader.CachingClassLoader;
-import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.MutableURLClassLoader;
+import org.gradle.internal.classloader.HashingClassLoaderFactory;
+import org.gradle.internal.classloader.HashingClassLoaderFactory.CustomClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader apiOnlyClassLoader;
     private final ClassLoader apiAndPluginsClassLoader;
     private final ClassLoader extensionsClassLoader;
-    private final ClassLoaderFactory classLoaderFactory;
+    private final HashingClassLoaderFactory classLoaderFactory;
 
-    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+    public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, HashingClassLoaderFactory classLoaderFactory) {
         this.classLoaderFactory = classLoaderFactory;
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
 
         apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader);
 
         ClassPath pluginsClassPath = classPathRegistry.getClassPath("GRADLE_EXTENSIONS");
-        extensionsClassLoader = new MutableURLClassLoader(runtimeClassLoader, pluginsClassPath);
+        extensionsClassLoader = classLoaderFactory.createCustomClassLoader(runtimeClassLoader, pluginsClassPath, new CustomClassLoaderFactory() {
+            @Override
+            public ClassLoader create(ClassLoader parent, ClassPath classPath) {
+                return new MixInLegacyTypesClassLoader(parent, classPath);
+            }
+        });
 
         this.apiAndPluginsClassLoader = restrictToGradleApi(extensionsClassLoader);
     }
 
     private ClassLoader restrictToGradleApi(ClassLoader classLoader) {
-        FilteringClassLoader rootClassLoader = classLoaderFactory.createFilteringClassLoader(classLoader);
-        rootClassLoader.allowPackage("org.gradle");
-        rootClassLoader.allowResources("META-INF/gradle-plugins");
-        rootClassLoader.allowPackage("org.apache.tools.ant");
-        rootClassLoader.allowPackage("groovy");
-        rootClassLoader.allowPackage("org.codehaus.groovy");
-        rootClassLoader.allowPackage("groovyjarjarantlr");
-        rootClassLoader.allowPackage("org.slf4j");
-        rootClassLoader.allowPackage("org.apache.commons.logging");
-        rootClassLoader.allowPackage("org.apache.log4j");
-        rootClassLoader.allowPackage("javax.inject");
+        FilteringClassLoader.Spec rootSpec = new FilteringClassLoader.Spec();
+        rootSpec.allowPackage("org.gradle");
+        rootSpec.allowResources("META-INF/gradle-plugins");
+        rootSpec.allowPackage("org.apache.tools.ant");
+        rootSpec.allowPackage("groovy");
+        rootSpec.allowPackage("org.codehaus.groovy");
+        rootSpec.allowPackage("groovyjarjarantlr");
+        rootSpec.allowPackage("org.slf4j");
+        rootSpec.allowPackage("org.apache.commons.logging");
+        rootSpec.allowPackage("org.apache.log4j");
+        rootSpec.allowPackage("javax.inject");
+        ClassLoader rootClassLoader = classLoaderFactory.createFilteringClassLoader(classLoader, rootSpec);
         return new CachingClassLoader(rootClassLoader);
     }
 

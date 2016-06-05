@@ -20,7 +20,7 @@ import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -62,8 +62,8 @@ public class UserResolverChain implements ComponentResolvers {
         artifactResolver.add(repository);
     }
 
-    private static class ModuleTransformer implements Transformer<ModuleComponentResolveMetaData, RepositoryChainModuleResolution> {
-        public ModuleComponentResolveMetaData transform(RepositoryChainModuleResolution original) {
+    private static class ModuleTransformer implements Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> {
+        public ModuleComponentResolveMetadata transform(RepositoryChainModuleResolution original) {
             RepositoryChainModuleSource moduleSource = new RepositoryChainModuleSource(original.repository.getId(), original.module.getSource());
             original.module.setSource(moduleSource);
             return original.module;

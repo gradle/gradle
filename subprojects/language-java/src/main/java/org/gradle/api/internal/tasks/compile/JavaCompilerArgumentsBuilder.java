@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile;
 
 import com.google.common.base.Joiner;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.ForkOptions;
@@ -118,12 +117,12 @@ public class JavaCompilerArgumentsBuilder {
         }
 
         String sourceCompatibility = spec.getSourceCompatibility();
-        if (sourceCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(sourceCompatibility))) {
+        if (sourceCompatibility != null) {
             args.add("-source");
             args.add(sourceCompatibility);
         }
         String targetCompatibility = spec.getTargetCompatibility();
-        if (targetCompatibility != null && !JavaVersion.current().equals(JavaVersion.toVersion(targetCompatibility))) {
+        if (targetCompatibility != null) {
             args.add("-target");
             args.add(targetCompatibility);
         }

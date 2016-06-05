@@ -19,10 +19,10 @@ package org.gradle.plugin.use.internal;
 import com.google.common.collect.Iterables;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.api.internal.plugins.repositories.PluginRepository;
-import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
 import org.gradle.internal.Factory;
-import org.gradle.plugin.use.repository.internal.PluginRepositoryInternal;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
+import org.gradle.plugin.repository.PluginRepository;
+import org.gradle.plugin.repository.internal.PluginRepositoryInternal;
 import org.gradle.plugin.use.resolve.internal.CompositePluginResolver;
 import org.gradle.plugin.use.resolve.internal.CorePluginResolver;
 import org.gradle.plugin.use.resolve.internal.NoopPluginResolver;
@@ -86,12 +86,13 @@ class PluginResolverFactory implements Factory<PluginResolver> {
             resolvers.add(injectedClasspathPluginResolver);
         }
 
-        for (PluginRepository pluginRepository : pluginRepositoryRegistry) {
+        pluginRepositoryRegistry.lock();
+        for (PluginRepository pluginRepository : pluginRepositoryRegistry.getPluginRepositories()) {
             PluginResolver resolver = ((PluginRepositoryInternal) pluginRepository).asResolver();
             resolvers.add(resolver);
         }
 
-        if (Iterables.isEmpty(pluginRepositoryRegistry)) {
+        if (Iterables.isEmpty(pluginRepositoryRegistry.getPluginRepositories())) {
             resolvers.add(pluginResolutionServiceResolver);
         }
     }

@@ -16,13 +16,12 @@
 package org.gradle.language.rc
 
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.ExecutableFixture
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.WindowsResourceHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.nativeplatform.internal.CompilerOutputFileNamingScheme
 import spock.lang.IgnoreIf
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
@@ -66,7 +65,6 @@ model {
         nonSkippedTasks.empty
     }
 
-    @LeaksFileHandles
     def "compiles and links when resource source changes"() {
         when:
         file("src/main/rc/resources.rc").text = """

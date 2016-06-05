@@ -16,42 +16,38 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
 import org.junit.Rule
-import org.junit.Test
 
 import java.util.jar.Manifest
 
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertTrue
-
-class OsgiProjectSampleIntegrationTest extends AbstractIntegrationTest {
+class OsgiProjectSampleIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi')
 
-    @Test
-    public void osgiProjectSamples() {
+    def "OSGi project samples"() {
         long start = System.currentTimeMillis()
+
         TestFile osgiProjectDir = sample.dir
         executer.inDirectory(osgiProjectDir).withTasks('clean', 'assemble').run()
         TestFile tmpDir = testDirectory
         osgiProjectDir.file('build/libs/osgi-1.0.jar').unzipTo(tmpDir)
+        Manifest manifest
         tmpDir.file('META-INF/MANIFEST.MF').withInputStream { InputStream instr ->
-            Manifest manifest = new Manifest(instr)
-            checkManifest(manifest, start)
+            manifest = new Manifest(instr)
         }
-    }
 
-    static void checkManifest(Manifest manifest, start) {
-        assertEquals('Example Gradle Activator', manifest.mainAttributes.getValue('Bundle-Name'))
-        assertEquals('2', manifest.mainAttributes.getValue('Bundle-ManifestVersion'))
-        assertEquals('Bnd-2.4.0.201411031534', manifest.mainAttributes.getValue('Tool'))
-        assertTrue(start <= Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')))
-        assertEquals('1.0.0', manifest.mainAttributes.getValue('Bundle-Version'))
-        assertEquals('gradle_tooling.osgi', manifest.mainAttributes.getValue('Bundle-SymbolicName'))
-        assertEquals( GradleVersion.current().version, manifest.mainAttributes.getValue('Built-By'))
+        expect:
+        manifest != null
+        manifest.mainAttributes.getValue('Bundle-Name') == 'Example Gradle Activator'
+        manifest.mainAttributes.getValue('Bundle-ManifestVersion') == '2'
+        manifest.mainAttributes.getValue('Tool') == 'Bnd-2.4.0.201411031534'
+        Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')) >= start
+        manifest.mainAttributes.getValue('Bundle-Version') == '1.0.0'
+        manifest.mainAttributes.getValue('Bundle-SymbolicName') == 'gradle_tooling.osgi'
+        manifest.mainAttributes.getValue('Built-By') ==  GradleVersion.current().version
     }
 }

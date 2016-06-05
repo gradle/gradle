@@ -171,7 +171,7 @@ assert System.getProperty('some-prop') == 'some-value'
 """
 
         when:
-        executer.requireGradleHome().useDefaultBuildJvmArgs().run()
+        executer.requireGradleDistribution().useDefaultBuildJvmArgs().run()
 
         then:
         noExceptionThrown()

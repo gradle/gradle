@@ -1,3 +1,9 @@
+/**
+ * Logging infrastructure.
+ */
+
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
 dependencies {
     compile libraries.groovy
     compile libraries.slf4j_api

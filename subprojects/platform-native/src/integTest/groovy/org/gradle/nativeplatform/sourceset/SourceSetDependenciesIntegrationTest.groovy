@@ -14,19 +14,15 @@
  * limitations under the License.
  */
 
-
 package org.gradle.nativeplatform.sourceset
 
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.CppCallingCHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
-
 // TODO: Test incremental
 // TODO: Test dependency on functional source set
 // TODO: Test dependency on source set that is not HeaderExportingSourceSet
 // TODO: Sad day tests
-@LeaksFileHandles
 class SourceSetDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
     def "source dependency on source set of same type"() {
@@ -72,7 +68,7 @@ model {
         library(NativeLibrarySpec)
         main(NativeExecutableSpec) {
             sources {
-                c.lib comp.library.sources.c
+                c.lib \$.components.library.sources.c
             }
         }
     }
@@ -132,7 +128,7 @@ model {
         extra(NativeLibrarySpec)
         main(NativeExecutableSpec) {
             sources {
-                cpp.lib comp.extra.sources.cpp
+                cpp.lib \$.components.extra.sources.cpp
             }
         }
     }
@@ -159,7 +155,7 @@ model {
         extra(NativeLibrarySpec)
         main(NativeExecutableSpec) {
             binaries.all {
-                lib comp.extra.sources.cpp
+                lib \$.components.extra.sources.cpp
             }
         }
     }

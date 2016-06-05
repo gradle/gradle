@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 package org.gradle.language.c
+
 import org.gradle.language.AbstractNativeLanguageIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CCompilerDetectingTestApp
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.HelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
-@LeaksFileHandles
 class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
 
     HelloWorldApp helloWorldApp = new CHelloWorldApp()

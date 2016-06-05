@@ -46,9 +46,9 @@ class RelativePathSpockTest extends Specification {
         def path1 = new RelativePath(true, "b");
         def path2 = new RelativePath(true, "a", "b", "c");
         expect:
-        path1.compareTo(path2) > 0
+        path1.compareTo(path2) < 0
         path1.compareTo(path1) == 0
-        path2.compareTo(path1) < 0
+        path2.compareTo(path1) > 0
         path2.compareTo(path2) == 0
     }
 }

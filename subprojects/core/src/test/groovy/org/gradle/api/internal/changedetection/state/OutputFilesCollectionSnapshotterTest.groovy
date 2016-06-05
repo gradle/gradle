@@ -266,10 +266,6 @@ class OutputFilesCollectionSnapshotterTest extends Specification {
         snapshotter.createOutputSnapshot(null, snapshotter.emptySnapshot(), createSnapshot(rootDir), files(rootDir))
     }
 
-    private FileCollectionSnapshot snapshotFiles(File... filesToSnapshot) {
-        snapshotter.snapshot(snapshotter.preCheck(files(filesToSnapshot), false))
-    }
-
     private void snapshotBeforeAndAfterTasks(Closure betweenTasksClosure, Closure taskActionClosure) {
         previous = createInitialOutputSnapshot()
         if (betweenTasksClosure != null) {
@@ -287,15 +283,15 @@ class OutputFilesCollectionSnapshotterTest extends Specification {
         changes(target, previous, listener)
     }
 
-    private FileCollection files(File... files) {
+    private static FileCollection files(File... files) {
         new SimpleFileCollection(files)
     }
 
     private FileCollectionSnapshot createSnapshot(File dir) {
-        snapshotter.snapshot(snapshotter.preCheck(createFileCollection(dir), false))
+        snapshotter.snapshot(createFileCollection(dir), false)
     }
 
-    private FileCollection createFileCollection(File dir) {
+    private static FileCollection createFileCollection(File dir) {
         TestFiles.fileCollectionFactory().fixed("root", dir)
     }
 }

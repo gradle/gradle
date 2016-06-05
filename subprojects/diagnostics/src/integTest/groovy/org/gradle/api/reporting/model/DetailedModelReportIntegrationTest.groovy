@@ -98,7 +98,8 @@ model {
 
     def "can find the relative path when model configuration is applied from a local script outside the root dir"() {
         given:
-        def modelFile = testDirectory.getParentFile().file("my-model.gradle")
+        def buildDir = testDirectory.createDir("root-dir")
+        def modelFile = testDirectory.file("my-model.gradle")
 
         modelFile.text = """
         ${managedNumbers()}
@@ -110,8 +111,9 @@ model {
         }
 """
 
-        buildFile << "apply from: '${normaliseFileSeparators(modelFile.getAbsolutePath())}'"
+        buildDir.file("build.gradle") << "apply from: '${normaliseFileSeparators(modelFile.getAbsolutePath())}'"
         when:
+        executer.inDirectory(buildDir)
         run "model"
 
         then:

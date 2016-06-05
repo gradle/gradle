@@ -1,3 +1,0 @@
-include "javaProjectWithJacoco", "emptyJavaProject", "groovyProject", "javaProjectWithoutTestClasses", "javaProjectWithSkippedTestTask", "skippedProject", "customizedProject", "nested:nested2:nestedProject"
-
-rootProject.name = "SonarTestBuild"

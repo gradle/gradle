@@ -158,7 +158,7 @@
     <section>
         <title>Dependency management</title>
         <para>Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships
-            with a Groovy library (2.4.4 as of Gradle 2.8). Nevertheless, Groovy projects need to explicitly declare a Groovy dependency.
+            with a Groovy library (2.4.6 as of Gradle 3.0). Nevertheless, Groovy projects need to explicitly declare a Groovy dependency.
             This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler
             and Groovydoc tool, respectively.
         </para>

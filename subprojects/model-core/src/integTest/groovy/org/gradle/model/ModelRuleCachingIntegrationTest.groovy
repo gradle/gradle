@@ -16,7 +16,7 @@
 
 package org.gradle.model
 
-import org.gradle.integtests.fixtures.PersistentBuildProcessIntegrationTest
+import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
 import org.gradle.model.internal.inspect.ModelRuleExtractor
 
 class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {

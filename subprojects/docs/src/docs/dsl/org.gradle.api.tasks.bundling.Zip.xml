@@ -9,7 +9,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>encoding</td>
+                <td>metadataCharset</td>
                 <td>Platform default encoding</td>
             </tr>
             <tr>
@@ -19,6 +19,10 @@
             <tr>
                 <td>extension</td>
                 <td><literal>zip</literal></td>
+            </tr>
+            <tr>
+                <td>metadataCharset</td>
+                <td>Platform default encoding</td>
             </tr>
             <tr>
                 <td>zip64</td>

@@ -31,6 +31,7 @@ import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.util.TextUtil
 
 class PluginBuilder {
+    static final String PLUGIN_MARKER_SUFFIX = ".gradle.plugin";
 
     final TestFile projectDir
 
@@ -89,7 +90,7 @@ class PluginBuilder {
 
         pluginIds.keySet().each {id ->
             // The marker files for each plugin.
-            def marker = mavenRepo.module(id, id, gav[2])
+            def marker = mavenRepo.module(id, id + PLUGIN_MARKER_SUFFIX, gav[2])
             marker.dependsOn(module)
             markerModules.add(marker.publish())
         }
@@ -111,7 +112,7 @@ class PluginBuilder {
 
         pluginIds.keySet().each {id ->
             // The marker files for each plugin.
-            def marker = ivyRepo.module(id, id, omr[2])
+            def marker = ivyRepo.module(id, id + PLUGIN_MARKER_SUFFIX, omr[2])
             marker.dependsOn(module)
             marker.publish()
             markerModules.add(marker)

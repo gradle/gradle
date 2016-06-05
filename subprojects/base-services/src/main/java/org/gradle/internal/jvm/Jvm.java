@@ -18,14 +18,13 @@ package org.gradle.internal.jvm;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Nullable;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.SystemProperties;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.os.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -41,59 +40,65 @@ public class Jvm implements JavaInfo {
     private final File javaHome;
     private final boolean userSupplied;
     private final JavaVersion javaVersion;
-    private static final AtomicReference<Jvm> CURRENT = new AtomicReference<Jvm>();
+    private static final AtomicReference<JvmImplementation> CURRENT = new AtomicReference<JvmImplementation>();
+
+    // Cached resolved executables
+    private File javaExecutable;
+    private File javacExecutable;
+    private File javadocExecutable;
+    private File toolsJar;
 
     public static Jvm current() {
         Jvm jvm = CURRENT.get();
         if (jvm == null) {
-            CURRENT.compareAndSet(null, create(null));
+            CURRENT.compareAndSet(null, create());
             jvm = CURRENT.get();
         }
         return jvm;
     }
 
-    static Jvm create(File javaBase) {
+    private static JvmImplementation create() {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
-            return new AppleJvm(OperatingSystem.current(), javaBase);
+            return new AppleJvm(OperatingSystem.current());
         }
         if (vendor.toLowerCase().startsWith("ibm corporation")) {
-            return new IbmJvm(OperatingSystem.current(), javaBase);
+            return new IbmJvm(OperatingSystem.current());
         }
-        return new Jvm(OperatingSystem.current(), javaBase);
+        return new JvmImplementation(OperatingSystem.current());
     }
 
-    Jvm(OperatingSystem os) {
-        this(os, null);
+    static Jvm create(File javaBase, @Nullable JavaVersion javaVersion) {
+        Jvm jvm = new Jvm(OperatingSystem.current(), javaBase, javaVersion);
+        Jvm current = current();
+        return jvm.getJavaHome().equals(current.getJavaHome()) ? current : jvm;
     }
 
     /**
-     * @param os the OS
-     * @param suppliedJavaBase initial location to discover from. May be jdk or jre.
+     * Constructs JVM details by inspecting the current JVM.
      */
-    Jvm(OperatingSystem os, File suppliedJavaBase) {
-        this.os = os;
-        if (suppliedJavaBase == null) {
-            //discover based on what's in the sys. property
-            try {
-                this.javaBase = new File(System.getProperty("java.home")).getCanonicalFile();
-            } catch (IOException e) {
-                throw new UncheckedException(e);
-            }
-            this.javaHome = findJavaHome(javaBase);
-            this.javaVersion = JavaVersion.current();
-            this.userSupplied = false;
-        } else {
-            //precisely use what the user wants and validate strictly further on
-            this.javaBase = suppliedJavaBase;
-            this.javaHome = suppliedJavaBase;
-            this.userSupplied = true;
-            this.javaVersion = null;
-        }
+    Jvm(OperatingSystem os) {
+        this(os, FileUtils.canonicalize(new File(System.getProperty("java.home"))), JavaVersion.current(), false);
     }
 
     /**
-     * Creates jvm instance for given java home. Attempts to validate if provided javaHome is a valid jdk or jre location.
+     * Constructs JVM details from the given values
+     */
+    Jvm(OperatingSystem os, File suppliedJavaBase, JavaVersion javaVersion) {
+        this(os, suppliedJavaBase, javaVersion, true);
+    }
+
+    private Jvm(OperatingSystem os, File suppliedJavaBase, JavaVersion javaVersion, boolean userSupplied) {
+        this.os = os;
+        this.javaBase = suppliedJavaBase;
+        this.javaHome = findJavaHome(suppliedJavaBase);
+        this.javaVersion = javaVersion;
+        this.userSupplied = userSupplied;
+    }
+
+    /**
+     * Creates JVM instance for given java home. Attempts to validate if provided javaHome is a valid jdk or jre location.
+     * This method is intended to be used for user supplied java homes.
      *
      * @param javaHome - location of your jdk or jre (jdk is safer), cannot be null
      * @return jvm for given java home
@@ -104,10 +109,17 @@ public class Jvm implements JavaInfo {
         if (javaHome == null || !javaHome.isDirectory()) {
             throw new IllegalArgumentException("Supplied javaHome must be a valid directory. You supplied: " + javaHome);
         }
-        Jvm jvm = create(javaHome);
+        Jvm jvm = create(javaHome, null);
         //some validation:
         jvm.getJavaExecutable();
         return jvm;
+    }
+
+    /**
+     * Creates JVM instance for given values. This method is intended to be used for discovered java homes.
+     */
+    public static Jvm discovered(File javaHome, JavaVersion javaVersion) {
+        return create(javaHome, javaVersion);
     }
 
     @Override
@@ -164,21 +176,33 @@ public class Jvm implements JavaInfo {
      * {@inheritDoc}
      */
     public File getJavaExecutable() throws JavaHomeException {
-        return findExecutable("java");
+        if (javaExecutable != null) {
+            return javaExecutable;
+        }
+        javaExecutable = findExecutable("java");
+        return javaExecutable;
     }
 
     /**
      * {@inheritDoc}
      */
     public File getJavacExecutable() throws JavaHomeException {
-        return findExecutable("javac");
+        if (javacExecutable != null) {
+            return javacExecutable;
+        }
+        javacExecutable = findExecutable("javac");
+        return javacExecutable;
     }
 
     /**
      * {@inheritDoc}
      */
     public File getJavadocExecutable() throws JavaHomeException {
-        return findExecutable("javadoc");
+        if (javadocExecutable != null) {
+            return javadocExecutable;
+        }
+        javadocExecutable = findExecutable("javadoc");
+        return javadocExecutable;
     }
 
     /**
@@ -191,6 +215,7 @@ public class Jvm implements JavaInfo {
     /**
      * @return the {@link JavaVersion} information
      */
+    @Nullable
     public JavaVersion getJavaVersion() {
         return javaVersion;
     }
@@ -216,20 +241,12 @@ public class Jvm implements JavaInfo {
     /**
      * {@inheritDoc}
      */
-    public File getRuntimeJar() {
-        File runtimeJar = new File(javaBase, "lib/rt.jar");
-        if (runtimeJar.exists()) {
-            return runtimeJar;
-        }
-        runtimeJar = new File(javaBase, "jre/lib/rt.jar");
-        return runtimeJar.exists() ? runtimeJar : null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
     public File getToolsJar() {
-        return findToolsJar(javaBase);
+        if (toolsJar != null) {
+            return toolsJar;
+        }
+        toolsJar = findToolsJar(javaBase);
+        return toolsJar;
     }
 
     /**
@@ -309,9 +326,18 @@ public class Jvm implements JavaInfo {
         return false;
     }
 
-    static class IbmJvm extends Jvm {
-        IbmJvm(OperatingSystem os, File suppliedJavaBase) {
-            super(os, suppliedJavaBase);
+    /**
+     * Details about a known JVM implementation.
+     */
+    static class JvmImplementation extends Jvm {
+        JvmImplementation(OperatingSystem os) {
+            super(os);
+        }
+    }
+
+    static class IbmJvm extends JvmImplementation {
+        IbmJvm(OperatingSystem os) {
+            super(os);
         }
 
         @Override
@@ -323,23 +349,9 @@ public class Jvm implements JavaInfo {
     /**
      * Note: Implementation assumes that an Apple JVM always comes with a JDK rather than a JRE, but this is likely an over-simplification.
      */
-    static class AppleJvm extends Jvm {
+    static class AppleJvm extends JvmImplementation {
         AppleJvm(OperatingSystem os) {
             super(os);
-        }
-
-        AppleJvm(OperatingSystem current, File javaHome) {
-            super(current, javaHome);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public File getRuntimeJar() {
-            File javaHome = super.getJavaHome();
-            File runtimeJar = new File(javaHome.getParentFile(), "Classes/classes.jar");
-            return runtimeJar.exists() ? runtimeJar : null;
         }
 
         /**
@@ -347,7 +359,7 @@ public class Jvm implements JavaInfo {
          */
         @Override
         public File getToolsJar() {
-            return getRuntimeJar();
+            return null;
         }
 
         /**

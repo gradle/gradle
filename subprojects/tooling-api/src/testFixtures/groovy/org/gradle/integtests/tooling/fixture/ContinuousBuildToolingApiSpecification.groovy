@@ -19,20 +19,22 @@ package org.gradle.integtests.tooling.fixture
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.commons.io.output.TeeOutputStream
-import org.gradle.integtests.fixtures.executer.*
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleVersions
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
+import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
+import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.CancellationToken
 import org.gradle.tooling.ProjectConnection
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Timeout
 
 @Timeout(180)
-@Requires(TestPrecondition.JDK7_OR_LATER)
 @TargetGradleVersion(GradleVersions.SUPPORTS_CONTINUOUS)
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_CANCELLATION)
 abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecification {

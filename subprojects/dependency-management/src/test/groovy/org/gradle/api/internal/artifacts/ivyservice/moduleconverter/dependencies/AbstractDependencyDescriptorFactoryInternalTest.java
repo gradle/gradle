@@ -16,18 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.core.module.descriptor.DefaultExcludeRule;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ArtifactId;
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.internal.component.model.DependencyMetaData;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
+import org.gradle.internal.component.external.descriptor.DefaultExclude;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.util.TestUtil;
 import org.gradle.util.WrapUtil;
@@ -38,7 +36,6 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -47,13 +44,13 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public abstract class AbstractDependencyDescriptorFactoryInternalTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
+    protected JUnit4Mockery context = new JUnit4Mockery();
 
     protected static final String TEST_CONF = "conf";
     protected static final String TEST_DEP_CONF = "depconf1";
 
     protected static final ExcludeRule TEST_EXCLUDE_RULE = new org.gradle.api.internal.artifacts.DefaultExcludeRule("testOrg", null);
-    protected static final org.apache.ivy.core.module.descriptor.ExcludeRule TEST_IVY_EXCLUDE_RULE = getTestExcludeRule();
+    protected static final Exclude TEST_IVY_EXCLUDE_RULE = getTestExcludeRule();
     protected ExcludeRuleConverter excludeRuleConverterStub = context.mock(ExcludeRuleConverter.class);
     protected final DefaultModuleDescriptor moduleDescriptor = TestUtil.createModuleDescriptor(WrapUtil.toSet(TEST_CONF));
     private DefaultDependencyArtifact artifact = new DefaultDependencyArtifact("name", "type", null, null, null);
@@ -64,10 +61,10 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
         expectExcludeRuleConversion(TEST_EXCLUDE_RULE, TEST_IVY_EXCLUDE_RULE);
     }
 
-    protected void expectExcludeRuleConversion(final ExcludeRule excludeRule, final org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule) {
+    protected void expectExcludeRuleConversion(final ExcludeRule excludeRule, final Exclude exclude) {
         context.checking(new Expectations() {{
-            allowing(excludeRuleConverterStub).createExcludeRule(TEST_CONF, excludeRule);
-            will(returnValue(ivyExcludeRule));
+            allowing(excludeRuleConverterStub).convertExcludeRule(TEST_CONF, excludeRule);
+            will(returnValue(exclude));
         }});
     }
 
@@ -78,20 +75,19 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
                 setTransitive(true);
     }
 
-    protected void assertDependencyDescriptorHasCommonFixtureValues(DependencyMetaData dependencyMetaData) {
-        assertEquals(TEST_IVY_EXCLUDE_RULE, dependencyMetaData.getExcludeRules(Collections.singleton(TEST_CONF))[0]);
-        assertThat(dependencyMetaData.getDependencyConfigurations(TEST_CONF, TEST_CONF), equalTo(WrapUtil.toArray(TEST_DEP_CONF)));
-        assertThat(dependencyMetaData.isTransitive(), equalTo(true));
-        assertDependencyDescriptorHasArtifacts(dependencyMetaData);
+    protected void assertDependencyDescriptorHasCommonFixtureValues(DependencyMetadata dependencyMetadata) {
+        assertEquals(TEST_IVY_EXCLUDE_RULE, dependencyMetadata.getExcludes(Collections.singleton(TEST_CONF)).get(0));
+        assertThat(dependencyMetadata.getDependencyConfigurations(TEST_CONF, TEST_CONF), equalTo(WrapUtil.toArray(TEST_DEP_CONF)));
+        assertThat(dependencyMetadata.isTransitive(), equalTo(true));
+        assertDependencyDescriptorHasArtifacts(dependencyMetadata);
     }
 
-    private void assertDependencyDescriptorHasArtifacts(DependencyMetaData dependencyMetaData) {
-        List<IvyArtifactName> artifactDescriptors = WrapUtil.toList(dependencyMetaData.getArtifacts());
+    private void assertDependencyDescriptorHasArtifacts(DependencyMetadata dependencyMetadata) {
+        List<IvyArtifactName> artifactDescriptors = WrapUtil.toList(dependencyMetadata.getArtifacts());
         assertThat(artifactDescriptors.size(), equalTo(2));
 
         IvyArtifactName artifactDescriptorWithoutClassifier = findDescriptor(artifactDescriptors, artifact);
         assertEquals(null, artifactDescriptorWithoutClassifier.getClassifier());
-        assertEquals(new HashMap(), artifactDescriptorWithoutClassifier.getAttributes());
         compareArtifacts(artifact, artifactDescriptorWithoutClassifier);
         assertEquals(artifact.getType(), artifactDescriptorWithoutClassifier.getExtension());
 
@@ -115,12 +111,8 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
         assertEquals(artifact.getType(), artifactDescriptor.getType());
     }
 
-    private static DefaultExcludeRule getTestExcludeRule() {
-        return new DefaultExcludeRule(new ArtifactId(
-                IvyUtil.createModuleId("org", "testOrg"), PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION,
-                PatternMatcher.ANY_EXPRESSION),
-                ExactPatternMatcher.INSTANCE, null);
+    private static DefaultExclude getTestExcludeRule() {
+        return new DefaultExclude("org", "testOrg", new String[0], PatternMatchers.EXACT);
     }
 }
 

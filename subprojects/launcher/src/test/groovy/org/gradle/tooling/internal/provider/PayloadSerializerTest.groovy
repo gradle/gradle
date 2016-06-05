@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.junit.Assert
 import spock.lang.Ignore
@@ -26,8 +25,8 @@ import java.lang.reflect.Method
 import java.lang.reflect.Proxy
 
 class PayloadSerializerTest extends AbstractClassGraphSpec {
-    final PayloadSerializer originator = new PayloadSerializer(new DefaultPayloadClassLoaderRegistry(new ClassLoaderCache(), new ModelClassLoaderFactory(new DefaultClassLoaderFactory())))
-    final PayloadSerializer receiver = new PayloadSerializer(new DefaultPayloadClassLoaderRegistry(new ClassLoaderCache(), new ModelClassLoaderFactory(new DefaultClassLoaderFactory())))
+    final PayloadSerializer originator = new PayloadSerializer(new DefaultPayloadClassLoaderRegistry(new ClassLoaderCache(), new ModelClassLoaderFactory()))
+    final PayloadSerializer receiver = new PayloadSerializer(new DefaultPayloadClassLoaderRegistry(new ClassLoaderCache(), new ModelClassLoaderFactory()))
 
     def "can send an object between two parties"() {
         expect:
@@ -183,9 +182,9 @@ class PayloadSerializerTest extends AbstractClassGraphSpec {
     }
 
     ClassLoader filter(Class<?> aClass) {
-        def filter = new FilteringClassLoader(aClass.classLoader)
-        filter.allowClass(aClass)
-        return filter
+        def spec = new FilteringClassLoader.Spec()
+        spec.allowClass(aClass)
+        return new FilteringClassLoader(aClass.classLoader, spec)
     }
 
     ClassLoader isolated(ClassLoader parent = ClassLoader.systemClassLoader.parent, Class<?>... classes) {

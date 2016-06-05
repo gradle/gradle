@@ -20,16 +20,18 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Before
 import org.junit.Test
 
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
-    @Before
-    public void setup() {
-        testFile('build.gradle') << '''
+
+    private TestFile writeDirTransformerTask() {
+        testFile('buildSrc/src/main/groovy/DirTransformerTask.groovy') << '''
+import org.gradle.api.*
+import org.gradle.api.tasks.*
+
 public class DirTransformerTask extends DefaultTask {
     private File inputDir
     private File outputDir
@@ -60,34 +62,13 @@ public class DirTransformerTask extends DefaultTask {
         }
     }
 }
-
-public class GeneratorTask extends DefaultTask {
-    @Input
-    private String text
-    @OutputFile
-    private File outputFile
-
-    public String getText() {
-        return text
+'''
     }
 
-    public void setText(String text) {
-        this.text = text
-    }
-
-    public File getOutputFile() {
-        return outputFile
-    }
-
-    public void setOutputFile(File outputFile) {
-        this.outputFile = outputFile
-    }
-
-    @TaskAction
-    public void generate() {
-        outputFile.text = text
-    }
-}
+    private TestFile writeTransformerTask() {
+        testFile('buildSrc/src/main/groovy/TransformerTask.groovy') << '''
+import org.gradle.api.*
+import org.gradle.api.tasks.*
 
 public class TransformerTask extends DefaultTask {
     private File inputFile
@@ -131,6 +112,8 @@ public class TransformerTask extends DefaultTask {
 
     @Test
     public void skipsTaskWhenOutputFileIsUpToDate() {
+        writeTransformerTask()
+
         testFile('build.gradle') << '''
 task a(type: TransformerTask) {
     inputFile = file('src.txt')
@@ -244,6 +227,8 @@ b.outputFile = file('new-output.txt')
 
     @Test
     public void skipsTaskWhenOutputDirContentsAreUpToDate() {
+        writeDirTransformerTask()
+
         testFile('build.gradle') << '''
 task a(type: DirTransformerTask) {
     inputDir = file('src')
@@ -318,6 +303,34 @@ task b(type: DirTransformerTask, dependsOn: a) {
     @Test
     public void skipsTaskWhenInputPropertiesHaveNotChanged() {
         testFile('build.gradle') << '''
+public class GeneratorTask extends DefaultTask {
+    @Input
+    private String text
+    @OutputFile
+    private File outputFile
+
+    public String getText() {
+        return text
+    }
+
+    public void setText(String text) {
+        this.text = text
+    }
+
+    public File getOutputFile() {
+        return outputFile
+    }
+
+    public void setOutputFile(File outputFile) {
+        this.outputFile = outputFile
+    }
+
+    @TaskAction
+    public void generate() {
+        outputFile.text = text
+    }
+}
+
 task a(type: GeneratorTask) {
     text = project.text
     outputFile = file('dest.txt')
@@ -333,6 +346,8 @@ task a(type: GeneratorTask) {
 
     @Test
     public void multipleTasksCanGenerateIntoOverlappingOutputDirectories() {
+        writeDirTransformerTask()
+
         testFile('build.gradle') << '''
 task a(type: DirTransformerTask) {
     inputDir = file('src/a')
@@ -384,7 +399,7 @@ task b(type: DirTransformerTask) {
         testFile('build.gradle') << '''
 task inputsAndOutputs {
     inputs.files 'src.txt'
-    outputs.files 'src.a.txt'
+    outputs.file 'src.a.txt'
     outputs.upToDateWhen { project.hasProperty('uptodate') }
     doFirst {
         outputs.files.singleFile.text = "[${inputs.files.singleFile.text}]"
@@ -441,6 +456,8 @@ task nothing {
 
     @Test
     public void lifecycleTaskIsUpToDateWhenAllDependenciesAreSkipped() {
+        writeTransformerTask()
+
         testFile('build.gradle') << '''
 task a(type: TransformerTask) {
     inputFile = file('src.txt')
@@ -457,6 +474,8 @@ task b(dependsOn: a)
 
     @Test
     public void canShareArtifactsBetweenBuilds() {
+        writeTransformerTask()
+
         def buildFile = testFile('build.gradle') << '''
 task otherBuild(type: GradleBuild) {
     buildFile = 'build.gradle'

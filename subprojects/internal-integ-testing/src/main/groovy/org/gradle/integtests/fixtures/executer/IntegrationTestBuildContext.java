@@ -37,15 +37,15 @@ public class IntegrationTestBuildContext {
     public TestFile getUserGuideOutputDir() {
         return file("integTest.userGuideOutputDir", "subprojects/docs/src/samples/userguideOutput");
     }
-    
+
     public TestFile getUserGuideInfoDir() {
-        return file("integTest.userGuideInfoDir", "subprojects/docs/build/src");    
+        return file("integTest.userGuideInfoDir", "subprojects/docs/build/src");
     }
-    
+
     public TestFile getDistributionsDir() {
         return file("integTest.distsDir", "build/distributions");
     }
-    
+
     public TestFile getLibsRepo() {
         return file("integTest.libsRepo", "build/repo");
     }
@@ -60,6 +60,10 @@ public class IntegrationTestBuildContext {
 
     public TestFile getTmpDir() {
         return file("integTest.tmpDir", "build/tmp");
+    }
+
+    public TestFile getNativeServicesDir() {
+        return getGradleUserHomeDir().file("native");
     }
 
     public GradleVersion getVersion() {

@@ -39,8 +39,13 @@ class MavenInstallationDownloader {
             if (MavenInstallation.valid(home)) {
                 return new MavenInstallation(mavenVersion, home)
             }
-            def preferredUrl = fetchPreferredUrl(mavenVersion)
-            def binArchive = downloadBinArchive(mavenVersion, preferredUrl)
+            def binArchive
+            try {
+                binArchive = downloadMavenBinFromRandomMirror(mavenVersion)
+            } catch (IOException ignored) {
+                // Retry getting maven once in case we get a bad mirror
+                binArchive = downloadMavenBinFromRandomMirror(mavenVersion)
+            }
             def tempHome = extractBinArchive(mavenVersion, binArchive)
             home = moveToInstallsRoot(tempHome)
             new MavenInstallation(mavenVersion, home)
@@ -74,6 +79,11 @@ class MavenInstallationDownloader {
         ant.mkdir(dir: target)
         ant.untar(src: binArchive, dest: target, compression: "gzip")
         mavenInstallDirectory(target, mavenVersion)
+    }
+
+    private static File downloadMavenBinFromRandomMirror(String mavenVersion) {
+        def preferredUrl = fetchPreferredUrl(mavenVersion)
+        downloadBinArchive(mavenVersion, preferredUrl)
     }
 
     private File moveToInstallsRoot(File tmpHome) {

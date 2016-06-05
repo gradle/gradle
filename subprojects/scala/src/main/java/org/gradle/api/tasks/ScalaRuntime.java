@@ -61,11 +61,6 @@ public class ScalaRuntime {
      * Searches the specified class path for a 'scala-library' Jar, and returns a class path
      * containing a corresponding (same version) 'scala-compiler' Jar and its dependencies.
      *
-     * <p>If the (deprecated) 'scalaTools' configuration is explicitly configured, no repository
-     * is declared for the project, no 'scala-library' Jar is found on the specified class path,
-     * or its version cannot be determined, a class path with the contents of the 'scalaTools'
-     * configuration is returned.
-     *
      * <p>The returned class path may be empty, or may fail to resolve when asked for its contents.
      *
      * @param classpath a class path containing a 'scala-library' Jar

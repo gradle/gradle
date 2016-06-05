@@ -35,6 +35,14 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultDependencySubstitutions implements DependencySubstitutionsInternal {
+    private static final NotationParser<Object, ComponentSelector> MODULE_SELECTOR_NOTATION_PARSER = NotationParserBuilder
+        .toType(ComponentSelector.class)
+        .converter(new ModuleSelectorStringNotationConverter())
+        .toComposite();
+    private static final NotationParser<Object, ComponentSelector> PROJECT_SELECTOR_NOTATION_PARSER = NotationParserBuilder
+        .toType(ComponentSelector.class)
+        .fromCharSequence(new ProjectPathConverter())
+        .toComposite();
     private final Set<Action<? super DependencySubstitution>> substitutionRules;
     private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
     private final NotationParser<Object, ComponentSelector> projectSelectorNotationParser;
@@ -118,17 +126,11 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     private static NotationParser<Object, ComponentSelector> createModuleSelectorNotationParser() {
-        return NotationParserBuilder
-                .toType(ComponentSelector.class)
-                .converter(new ModuleSelectorStringNotationConverter())
-                .toComposite();
+        return MODULE_SELECTOR_NOTATION_PARSER;
     }
 
     private static NotationParser<Object, ComponentSelector> createProjectSelectorNotationParser() {
-        return NotationParserBuilder
-                .toType(ComponentSelector.class)
-                .fromCharSequence(new ProjectPathConverter())
-                .toComposite();
+        return PROJECT_SELECTOR_NOTATION_PARSER;
     }
 
     private static class ProjectPathConverter implements NotationConverter<String, ProjectComponentSelector> {

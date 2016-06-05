@@ -19,24 +19,33 @@ package org.gradle.api.plugins.buildcomparison.gradle.internal;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Transformer;
-import org.gradle.internal.Factory;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.resource.local.FileStore;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
-import org.gradle.api.plugins.buildcomparison.compare.internal.*;
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparator;
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonResult;
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonSpec;
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildComparisonSpecFactory;
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparator;
+import org.gradle.api.plugins.buildcomparison.compare.internal.BuildOutcomeComparisonResult;
+import org.gradle.api.plugins.buildcomparison.compare.internal.DefaultBuildComparator;
+import org.gradle.api.plugins.buildcomparison.compare.internal.DefaultBuildOutcomeComparatorFactory;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcome;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.BuildOutcomeAssociator;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.ByTypeAndNameBuildOutcomeAssociator;
 import org.gradle.api.plugins.buildcomparison.outcome.internal.CompositeBuildOutcomeAssociator;
-import org.gradle.api.plugins.buildcomparison.render.internal.*;
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildComparisonResultRenderer;
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeComparisonResultRenderer;
+import org.gradle.api.plugins.buildcomparison.render.internal.BuildOutcomeRenderer;
+import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeComparisonResultRendererFactory;
+import org.gradle.api.plugins.buildcomparison.render.internal.DefaultBuildOutcomeRendererFactory;
 import org.gradle.api.plugins.buildcomparison.render.internal.html.GradleBuildComparisonResultHtmlRenderer;
 import org.gradle.api.plugins.buildcomparison.render.internal.html.HtmlRenderContext;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.resource.local.FileStore;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
@@ -110,60 +119,23 @@ public class GradleBuildComparison {
             ));
         }
 
-        boolean sourceBuildHasOutcomesModel = sourceBuildExecuter.isCanObtainProjectOutcomesModel();
-        boolean targetBuildHasOutcomesModel = targetBuildExecuter.isCanObtainProjectOutcomesModel();
-
-        if (!sourceBuildHasOutcomesModel && !targetBuildHasOutcomesModel) {
-            throw new GradleException(String.format(
-                    "Cannot run comparison because both the source and target build are to be executed with a Gradle version older than %s (source: %s, target: %s).",
-                    ComparableGradleBuildExecuter.PROJECT_OUTCOMES_MINIMUM_VERSION,
-                    sourceBuildExecuter.getSpec().getGradleVersion(),
-                    targetBuildExecuter.getSpec().getGradleVersion()
-            ));
-        }
-
-        if (!sourceBuildHasOutcomesModel) {
-            warnAboutInferredOutcomes(true, sourceBuildExecuter);
-        }
-        if (!targetBuildHasOutcomesModel) {
-            warnAboutInferredOutcomes(false, targetBuildExecuter);
-        }
-
-        Set<BuildOutcome> sourceOutcomes = null;
-        if (sourceBuildHasOutcomesModel) {
-            logger.info(executingSourceBuildMessage);
-            progressLogger.started(executingSourceBuildMessage);
-            ProjectOutcomes sourceOutput = executeBuild(sourceBuildExecuter);
-            progressLogger.progress("inspecting source build outcomes");
-            GradleBuildOutcomeSetTransformer sourceOutcomeTransformer = createOutcomeSetTransformer(fileStore, SOURCE_FILESTORE_PREFIX);
-            sourceOutcomes = sourceOutcomeTransformer.transform(sourceOutput);
-        }
+        Set<BuildOutcome> sourceOutcomes;
+        logger.info(executingSourceBuildMessage);
+        progressLogger.started(executingSourceBuildMessage);
+        ProjectOutcomes sourceOutput = executeBuild(sourceBuildExecuter);
+        progressLogger.progress("inspecting source build outcomes");
+        GradleBuildOutcomeSetTransformer sourceOutcomeTransformer = createOutcomeSetTransformer(fileStore, SOURCE_FILESTORE_PREFIX);
+        sourceOutcomes = sourceOutcomeTransformer.transform(sourceOutput);
 
         logger.info(executingTargetBuildMessage);
-        if (sourceBuildHasOutcomesModel) {
-            progressLogger.progress(executingTargetBuildMessage);
-        } else {
-            progressLogger.started(executingTargetBuildMessage);
-        }
+        progressLogger.progress(executingTargetBuildMessage);
 
         ProjectOutcomes targetOutput = executeBuild(targetBuildExecuter);
 
         Set<BuildOutcome> targetOutcomes;
-        if (targetBuildHasOutcomesModel) {
-            progressLogger.progress("inspecting target build outcomes");
-            GradleBuildOutcomeSetTransformer targetOutcomeTransformer = createOutcomeSetTransformer(fileStore, TARGET_FILESTORE_PREFIX);
-            targetOutcomes = targetOutcomeTransformer.transform(targetOutput);
-        } else {
-            targetOutcomes = createOutcomeSetInferrer(fileStore, TARGET_FILESTORE_PREFIX, targetBuildExecuter.getSpec().getProjectDir()).transform(sourceOutcomes);
-        }
-
-        if (!sourceBuildHasOutcomesModel) {
-            logger.info(executingSourceBuildMessage);
-            progressLogger.progress(executingSourceBuildMessage);
-            executeBuild(sourceBuildExecuter);
-            progressLogger.progress("inspecting source build outcomes");
-            sourceOutcomes = createOutcomeSetInferrer(fileStore, SOURCE_FILESTORE_PREFIX, sourceBuildExecuter.getSpec().getProjectDir()).transform(targetOutcomes);
-        }
+        progressLogger.progress("inspecting target build outcomes");
+        GradleBuildOutcomeSetTransformer targetOutcomeTransformer = createOutcomeSetTransformer(fileStore, TARGET_FILESTORE_PREFIX);
+        targetOutcomes = targetOutcomeTransformer.transform(targetOutput);
 
         progressLogger.progress("comparing build outcomes");
         BuildComparisonResult result = compareBuilds(sourceOutcomes, targetOutcomes);
@@ -171,20 +143,6 @@ public class GradleBuildComparison {
         progressLogger.completed();
 
         return result;
-    }
-
-    private void warnAboutInferredOutcomes(boolean isSource, ComparableGradleBuildExecuter executer) {
-        String inferred = isSource ? "source" : "target";
-        String inferredFrom = isSource ? "target" : "source";
-
-        String message = String.format(
-                "The build outcomes for the %s build will be inferred from the %s build because the %s build is to be executed with Gradle %s."
-                + " This means that the comparison accuracy will be reduced."
-                + " See the Gradle User Guide for more information.",
-                inferred, inferredFrom, inferred, executer.getSpec().getGradleVersion()
-        );
-
-        logger.warn(message);
     }
 
     private BuildComparisonResult compareBuilds(Set<BuildOutcome> sourceOutcomes, Set<BuildOutcome> targetOutcomes) {
@@ -202,10 +160,6 @@ public class GradleBuildComparison {
         return new GradleBuildOutcomeSetTransformer(fileStore, filesPath);
     }
 
-    private GradleBuildOutcomeSetInferrer createOutcomeSetInferrer(FileStore<String> fileStore, String filesPath, File baseDir) {
-        return new GradleBuildOutcomeSetInferrer(fileStore, filesPath, baseDir);
-    }
-
     private ProjectOutcomes executeBuild(ComparableGradleBuildExecuter executer) {
         ProjectConnection connection = createProjectConnection(executer);
         try {
@@ -216,13 +170,7 @@ public class GradleBuildComparison {
     }
 
     private ProjectConnection createProjectConnection(ComparableGradleBuildExecuter executer) {
-        GradleConnector connector = DeprecationLogger.whileDisabled(new Factory<GradleConnector>() {
-            @Override
-            public GradleConnector create() {
-                // Ignore 'java 6 is deprecated' warning
-                return GradleConnector.newConnector();
-            }
-        });
+        GradleConnector connector = GradleConnector.newConnector();
         connector.forProjectDirectory(executer.getSpec().getProjectDir());
         File gradleUserHomeDir = gradle.getStartParameter().getGradleUserHomeDir();
         if (gradleUserHomeDir != null) {

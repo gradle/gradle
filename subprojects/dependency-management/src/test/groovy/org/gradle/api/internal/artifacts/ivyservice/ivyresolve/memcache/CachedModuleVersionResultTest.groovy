@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
@@ -25,7 +25,7 @@ class CachedModuleVersionResultTest extends Specification {
     def "knows if result is cachable"() {
         def resolved = Mock(BuildableModuleComponentMetaDataResolveResult) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
-            getMetaData() >> Stub(MutableModuleComponentResolveMetaData)
+            getMetaData() >> Stub(MutableModuleComponentResolveMetadata)
         }
         def missing = Mock(BuildableModuleComponentMetaDataResolveResult) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing
@@ -61,13 +61,13 @@ class CachedModuleVersionResultTest extends Specification {
 
         then:
         1 * resolved.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
-        1 * resolved.metaData >> Stub(MutableModuleComponentResolveMetaData)
+        1 * resolved.metaData >> Stub(MutableModuleComponentResolveMetadata)
     }
 
     def "supplies cached data"() {
-        def suppliedMetaData = Mock(MutableModuleComponentResolveMetaData)
-        def cachedMetaData = Mock(MutableModuleComponentResolveMetaData)
-        def metaData = Mock(MutableModuleComponentResolveMetaData)
+        def suppliedMetaData = Mock(MutableModuleComponentResolveMetadata)
+        def cachedMetaData = Mock(MutableModuleComponentResolveMetadata)
+        def metaData = Mock(MutableModuleComponentResolveMetadata)
         def resolved = Mock(BuildableModuleComponentMetaDataResolveResult) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> metaData

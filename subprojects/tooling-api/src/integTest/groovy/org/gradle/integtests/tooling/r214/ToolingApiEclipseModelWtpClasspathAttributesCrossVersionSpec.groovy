@@ -61,9 +61,9 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
         then:
         externalDependencies.size() == 1
-        externalDependencies[0].classpathAttributes.isEmpty()
+        entryHasNoDeploymentInfo(externalDependencies[0])
         projectDependencies.size() == 1
-        projectDependencies[0].classpathAttributes.isEmpty()
+        entryHasNoDeploymentInfo(projectDependencies[0])
     }
 
     def "Web project dependencies have wtp deployment attributes"() {
@@ -82,8 +82,7 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
         then:
         classpath.size() == 1
-        classpath[0].classpathAttributes.size() == 1
-        classpath[0].classpathAttributes[0].name.startsWith 'org.eclipse.jst.component.'
+        entryHasDeploymentInfo(classpath[0])
 
         where:
         appliedPlugins         | _
@@ -108,12 +107,8 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
         then:
         classpath.size() == 2
-        classpath[0].classpathAttributes.size() == 1
-        classpath[0].classpathAttributes[0].name == 'org.eclipse.jst.component.nondependency'
-        classpath[0].classpathAttributes[0].value == ''
-        classpath[1].classpathAttributes.size() == 1
-        classpath[1].classpathAttributes[0].name == 'org.eclipse.jst.component.nondependency'
-        classpath[1].classpathAttributes[0].value == ''
+        entryNotDeployed(classpath[0])
+        entryNotDeployed(classpath[1])
     }
 
     def "Root wtp dependencies and their transitives are deployed to '/'"() {
@@ -133,18 +128,14 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
         then:
         classpath.size() == 2
-        classpath[0].classpathAttributes.size() == 1
-        classpath[0].classpathAttributes[0].name == 'org.eclipse.jst.component.dependency'
-        classpath[0].classpathAttributes[0].value == '/'
-        classpath[1].classpathAttributes.size() == 1
-        classpath[1].classpathAttributes[0].name == 'org.eclipse.jst.component.dependency'
-        classpath[1].classpathAttributes[0].value == '/'
+        entryIsDeployed(classpath[0], '/')
+        entryIsDeployed(classpath[1], '/')
     }
 
     def "Root wtp dependencies present in minusConfigurations are excluded from deployment"() {
         given:
         buildFile <<
-            """apply plugin: 'java'
+        """apply plugin: 'java'
            apply plugin: 'war'
            apply plugin: 'eclipse-wtp'
            repositories { $localMaven }
@@ -160,15 +151,8 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         Collection<EclipseExternalDependency> classpath = eclipseProject.getClasspath()
 
         then:
-        classpath.size() == 2
-        classpath[0].file.absolutePath.contains 'example-lib'
-        classpath[0].classpathAttributes.size() == 1
-        classpath[0].classpathAttributes[0].name == 'org.eclipse.jst.component.dependency'
-        classpath[0].classpathAttributes[0].value == '/'
-        classpath[1].file.absolutePath.contains 'example-api'
-        classpath[1].classpathAttributes.size() == 1
-        classpath[1].classpathAttributes[0].name == 'org.eclipse.jst.component.nondependency'
-        classpath[1].classpathAttributes[0].value == ''
+        entryNotDeployed(classpath.find { it.file.absolutePath.contains 'example-api' })
+        entryIsDeployed(classpath.find { it.file.absolutePath.contains 'example-lib' }, '/')
     }
 
     def "Library wtp dependencies and their transitives are deployed to '/WEB-INF/lib'"() {
@@ -185,12 +169,8 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
         then:
         classpath.size() == 2
-        classpath[0].classpathAttributes.size() == 1
-        classpath[0].classpathAttributes[0].name == 'org.eclipse.jst.component.dependency'
-        classpath[0].classpathAttributes[0].value == '/WEB-INF/lib'
-        classpath[1].classpathAttributes.size() == 1
-        classpath[1].classpathAttributes[0].name == 'org.eclipse.jst.component.dependency'
-        classpath[1].classpathAttributes[0].value == '/WEB-INF/lib'
+        entryIsDeployed(classpath[0], '/WEB-INF/lib')
+        entryIsDeployed(classpath[1], '/WEB-INF/lib')
     }
 
     def "Lib wtp dependencies present in minusConfigurations are excluded from deployment"() {
@@ -211,24 +191,18 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
         Collection<EclipseExternalDependency> classpath = eclipseProject.getClasspath()
 
         then:
-        classpath.size() == 2
-        classpath[0].file.absolutePath.contains 'example-lib'
-        classpath[0].classpathAttributes.size() == 1
-        classpath[0].classpathAttributes[0].name == 'org.eclipse.jst.component.dependency'
-        classpath[0].classpathAttributes[0].value == '/WEB-INF/lib'
-        classpath[1].file.absolutePath.contains 'example-api'
-        classpath[1].classpathAttributes.size() == 1
-        classpath[1].classpathAttributes[0].name == 'org.eclipse.jst.component.nondependency'
-        classpath[1].classpathAttributes[0].value == ''
+        entryNotDeployed(classpath.find { it.file.absolutePath.contains 'example-api' })
+        entryIsDeployed(classpath.find { it.file.absolutePath.contains 'example-lib' }, '/WEB-INF/lib')
     }
 
     def "Deployment folder follows ear app dir name configuration"() {
         buildFile <<
         """apply plugin: 'ear'
            apply plugin: 'java'
+           apply plugin: 'eclipse'
            repositories { $localMaven }
            dependencies { earlib 'org.example:example-api:1.0' }
-           configurations.compile.extendsFrom configurations.earlib
+           eclipse.classpath.plusConfigurations << configurations.earlib
            ear { libDirName = '/custom/lib/dir' }
         """
 
@@ -238,9 +212,8 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
         then:
         classpath.size() == 1
-        classpath[0].classpathAttributes.size() == 1
-        classpath[0].classpathAttributes[0].name == 'org.eclipse.jst.component.dependency'
-        classpath[0].classpathAttributes[0].value == '/custom/lib/dir'
+        entryIsDeployed(classpath[0], '/custom/lib/dir')
+
     }
 
 
@@ -259,10 +232,8 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
         then:
         classpath.size() == 2
-        classpath[0].classpathAttributes.size() == 1
-        classpath[0].classpathAttributes[0].name == 'org.eclipse.jst.component.nondependency'
-        classpath[1].classpathAttributes.size() == 1
-        classpath[1].classpathAttributes[0].name == 'org.eclipse.jst.component.nondependency'
+        entryNotDeployed(classpath[0])
+        entryNotDeployed(classpath[1])
     }
 
     def "Project dependencies are marked as not deployed"() {
@@ -285,9 +256,30 @@ class ToolingApiEclipseModelWtpClasspathAttributesCrossVersionSpec extends Tooli
 
         then:
         projectDependencies.size() == 1
-        projectDependencies[0].classpathAttributes.size() == 1
-        projectDependencies[0].classpathAttributes[0].name.startsWith 'org.eclipse.jst.component.nondependency'
+        entryNotDeployed(projectDependencies[0])
+    }
 
+
+    private def entryHasDeploymentInfo(entry) {
+        return entry.classpathAttributes.find { it.name == 'org.eclipse.jst.component.nondependency' } ||
+            entry.classpathAttributes.find { it.name == 'org.eclipse.jst.component.dependency' }
+    }
+
+
+    private def entryHasNoDeploymentInfo(entry) {
+        return !entry.classpathAttributes.find { it.name == 'org.eclipse.jst.component.nondependency' } &&
+            !entry.classpathAttributes.find { it.name == 'org.eclipse.jst.component.dependency' }
+    }
+
+
+    private def entryNotDeployed(entry) {
+        return entry.classpathAttributes.find { it.name == 'org.eclipse.jst.component.nondependency' && it.value == '' } &&
+            !entry.classpathAttributes.find { it.name == 'org.eclipse.jst.component.dependency' }
+    }
+
+    private def entryIsDeployed(entry, path) {
+        return !entry.classpathAttributes.find { it.name == 'org.eclipse.jst.component.nondependency' } &&
+            entry.classpathAttributes.find { it.name == 'org.eclipse.jst.component.dependency'  && it.value == path }
     }
 
 }

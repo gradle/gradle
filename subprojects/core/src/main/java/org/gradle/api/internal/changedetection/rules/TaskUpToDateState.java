@@ -17,8 +17,13 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.state.*;
+import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
+import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 
 import java.io.File;
 import java.util.Set;
@@ -28,7 +33,7 @@ import java.util.Set;
  */
 public class TaskUpToDateState {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 3;
-    private final InputFilesTaskStateChanges directInputFileChanges;
+    private final FilesSnapshotSet inputFilesSnapshot;
 
     private TaskStateChanges inputFileChanges;
     private DiscoveredInputsListener discoveredInputsListener;
@@ -37,20 +42,22 @@ public class TaskUpToDateState {
 
     public TaskUpToDateState(TaskInternal task, TaskHistoryRepository.History history,
                              OutputFilesCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter,
-                             FileCollectionSnapshotter discoveredInputsSnapshotter, FileCollectionFactory fileCollectionFactory) {
+                             FileCollectionSnapshotter discoveredInputsSnapshotter, FileCollectionFactory fileCollectionFactory,
+                             ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         TaskExecution thisExecution = history.getCurrentExecution();
         TaskExecution lastExecution = history.getPreviousExecution();
 
         TaskStateChanges noHistoryState = new NoHistoryTaskStateChanges(lastExecution);
-        TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task);
+        TaskStateChanges taskTypeState = new TaskTypeTaskStateChanges(lastExecution, thisExecution, task.getPath(), task.getClass(), task.getActionClassLoaders(), classLoaderHierarchyHasher);
         TaskStateChanges inputPropertiesState = new InputPropertiesTaskStateChanges(lastExecution, thisExecution, task);
 
         // Capture outputs state
         TaskStateChanges outputFileChanges = caching(new OutputFilesTaskStateChanges(lastExecution, thisExecution, task, outputFilesSnapshotter));
 
         // Capture inputs state
-        this.directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, inputFilesSnapshotter);
-        this.inputFileChanges = caching(directInputFileChanges);
+        InputFilesTaskStateChanges inputChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, inputFilesSnapshotter);
+        this.inputFilesSnapshot = inputChanges.getCurrent().getSnapshot();
+        TaskStateChanges inputFileChanges = caching(inputChanges);
 
         // Capture discovered inputs state from previous execution
         DiscoveredInputsTaskStateChanges discoveredChanges = new DiscoveredInputsTaskStateChanges(lastExecution, thisExecution, discoveredInputsSnapshotter, fileCollectionFactory, task);
@@ -59,6 +66,7 @@ public class TaskUpToDateState {
 
         allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges);
         rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges);
+        this.inputFileChanges = inputFileChanges;
     }
 
     private TaskStateChanges caching(TaskStateChanges wrapped) {
@@ -78,7 +86,7 @@ public class TaskUpToDateState {
     }
 
     public FilesSnapshotSet getInputFilesSnapshot() {
-        return directInputFileChanges.getCurrent().getSnapshot();
+        return inputFilesSnapshot;
     }
 
     public void newInputs(Set<File> discoveredInputs) {

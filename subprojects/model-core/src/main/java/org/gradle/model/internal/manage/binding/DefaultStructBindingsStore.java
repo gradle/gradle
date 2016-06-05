@@ -24,16 +24,31 @@ import com.google.common.base.Predicate;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.*;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.api.Named;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.PropertyAccessorType;
+import org.gradle.internal.reflect.Types.TypeVisitor;
 import org.gradle.model.Managed;
 import org.gradle.model.Unmanaged;
-import org.gradle.model.internal.manage.schema.*;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
-import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
+import org.gradle.model.internal.manage.schema.CollectionSchema;
+import org.gradle.model.internal.manage.schema.ManagedImplSchema;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.RuleSourceSchema;
+import org.gradle.model.internal.manage.schema.ScalarCollectionSchema;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
+import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
@@ -42,13 +57,19 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
 import static org.gradle.internal.reflect.Methods.DESCRIPTOR_EQUIVALENCE;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
-import static org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils.walkTypeHierarchy;
-import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.*;
+import static org.gradle.internal.reflect.PropertyAccessorType.*;
+import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
 public class DefaultStructBindingsStore implements StructBindingsStore {
     private final LoadingCache<CacheKey, StructBindings<?>> bindings = CacheBuilder.newBuilder()
@@ -118,7 +139,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
     }
 
     private static <T> void validateTypeHierarchy(final StructBindingValidationProblemCollector problems, ModelType<T> type) {
-        walkTypeHierarchy(type.getConcreteClass(), new ModelSchemaUtils.TypeVisitor<T>() {
+        walkTypeHierarchy(type.getConcreteClass(), new TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
                 if (type.isAnnotationPresent(Managed.class)) {
@@ -301,7 +322,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         // We need to also implement all the interfaces of the delegate type because otherwise
         // BinaryContainer won't recognize managed binaries as BinarySpecInternal
         if (delegateType != null) {
-            ModelSchemaUtils.walkTypeHierarchy(delegateType.getConcreteClass(), new ModelSchemaUtils.TypeVisitor<D>() {
+            walkTypeHierarchy(delegateType.getConcreteClass(), new TypeVisitor<D>() {
                 @Override
                 public void visitType(Class<? super D> type) {
                     if (type.isInterface()) {

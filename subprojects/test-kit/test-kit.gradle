@@ -5,5 +5,16 @@ dependencies {
     testCompile libraries.groovy
 }
 
+task testKitVersionCompatibilityIntegTest(type: Test) {
+    description "Runs the TestKit version compatibility tests"
+    systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
+    systemProperties['org.gradle.integtest.executer'] = 'forking'
+}
+
+crossVersionIntegTest.dependsOn testKitVersionCompatibilityIntegTest
+
 strictCompile()
 useTestFixtures()
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

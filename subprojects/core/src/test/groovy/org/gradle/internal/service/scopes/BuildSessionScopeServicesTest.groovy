@@ -29,10 +29,10 @@ import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.installation.CurrentGradleInstallation
-import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.remote.MessagingServer
+import org.gradle.internal.service.ServiceRegistry
+import org.gradle.process.internal.JavaExecHandleFactory
 import org.gradle.process.internal.worker.DefaultWorkerProcessFactory
-import org.gradle.process.internal.ExecHandleFactory
 import org.gradle.process.internal.worker.WorkerProcessFactory
 import org.gradle.process.internal.worker.child.WorkerProcessClassPathProvider
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -69,7 +69,7 @@ class BuildSessionScopeServicesTest extends Specification {
         setup:
         expectParentServiceLocated(MessagingServer)
         expectParentServiceLocated(TemporaryFileProvider)
-        expectParentServiceLocated(ExecHandleFactory)
+        expectParentServiceLocated(JavaExecHandleFactory)
 
         expect:
         registry.get(WorkerProcessFactory) instanceof DefaultWorkerProcessFactory

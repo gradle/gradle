@@ -17,7 +17,6 @@
 
 package org.gradle.internal.logging.sink
 
-import org.gradle.api.Action
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 import org.gradle.internal.logging.OutputSpecification
@@ -32,11 +31,10 @@ class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final ConsoleStub console = new ConsoleStub()
     private final ConsoleMetaData metaData = Mock()
-    private final Action<OutputEventRenderer> consoleConfigureAction = Mock()
     private OutputEventRenderer renderer
 
     def setup() {
-        renderer = new OutputEventRenderer(consoleConfigureAction)
+        renderer = new OutputEventRenderer()
         renderer.configure(LogLevel.INFO)
     }
 
@@ -188,6 +186,24 @@ class OutputEventRendererTest extends OutputSpecification {
         0 * listener._
     }
 
+    def restoresLogLevelWhenChangedSinceSnapshotWasTaken() {
+        def listener = new TestListener()
+
+        given:
+        renderer.addStandardOutputListener(listener)
+        renderer.configure(LogLevel.INFO)
+        def snapshot = renderer.snapshot()
+        renderer.configure(LogLevel.DEBUG)
+
+        when:
+        renderer.restore(snapshot)
+        renderer.onOutput(event('info', LogLevel.INFO))
+        renderer.onOutput(event('debug', LogLevel.DEBUG))
+
+        then:
+        listener.value.readLines() == ['info']
+    }
+
     def rendersProgressEvents() {
         when:
         renderer.attachSystemOutAndErr()
@@ -212,6 +228,7 @@ class OutputEventRendererTest extends OutputSpecification {
     }
 
     def rendersLogEventsWhenStdOutAndStdErrAreConsole() {
+        def snapshot = renderer.snapshot()
         renderer.addConsole(console, true, true, metaData)
 
         when:
@@ -219,13 +236,14 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
-        renderer.flush()
+        renderer.restore(snapshot) // close console to flush
 
         then:
         console.value.readLines() == ['description', 'info', '{error}error', '{normal}description {progressstatus}status{normal}']
     }
 
     def rendersLogEventsWhenOnlyStdOutIsConsole() {
+        def snapshot = renderer.snapshot()
         renderer.addConsole(console, true, false, metaData)
 
         when:
@@ -233,13 +251,14 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
-        renderer.flush()
+        renderer.restore(snapshot) // close console to flush
 
         then:
         console.value.readLines() == ['description', 'info', 'description {progressstatus}status{normal}']
     }
 
     def rendersLogEventsWhenOnlyStdErrIsConsole() {
+        def snapshot = renderer.snapshot()
         renderer.addConsole(console, false, true, metaData)
 
         when:
@@ -247,7 +266,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
         renderer.onOutput(complete('status'))
-        renderer.flush()
+        renderer.restore(snapshot) // close console to flush
 
         then:
         console.value.readLines() == ['{error}error', '{normal}']
@@ -255,12 +274,13 @@ class OutputEventRendererTest extends OutputSpecification {
 
     def rendersLogEventsInConsoleWhenLogLevelIsDebug() {
         renderer.configure(LogLevel.DEBUG)
+        def snapshot = renderer.snapshot()
         renderer.addConsole(console, true, true, metaData)
 
         when:
         renderer.onOutput(event(tenAm, 'info', LogLevel.INFO))
         renderer.onOutput(event(tenAm, 'error', LogLevel.ERROR))
-        renderer.flush()
+        renderer.restore(snapshot) // close console to flush
 
         then:
         console.value.readLines() == ['10:00:00.000 [INFO] [category] info', '{error}10:00:00.000 [ERROR] [category] error', '{normal}']
@@ -269,10 +289,11 @@ class OutputEventRendererTest extends OutputSpecification {
     def attachesConsoleWhenStdOutAndStdErrAreAttachedToConsole() {
         when:
         renderer.attachSystemOutAndErr()
+        def snapshot = renderer.snapshot()
         renderer.addConsole(console, true, true, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
-        renderer.flush()
+        renderer.restore(snapshot) // close console to flush
 
         then:
         console.value.readLines() == ['info', '{error}error', '{normal}']
@@ -283,10 +304,11 @@ class OutputEventRendererTest extends OutputSpecification {
     def attachesConsoleWhenOnlyStdOutIsAttachedToConsole() {
         when:
         renderer.attachSystemOutAndErr()
+        def snapshot = renderer.snapshot()
         renderer.addConsole(console, true, false, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
-        renderer.flush()
+        renderer.restore(snapshot) // close console to flush
 
         then:
         console.value.readLines() == ['info']
@@ -297,10 +319,11 @@ class OutputEventRendererTest extends OutputSpecification {
     def attachesConsoleWhenOnlyStdErrIsAttachedToConsole() {
         when:
         renderer.attachSystemOutAndErr()
+        def snapshot = renderer.snapshot()
         renderer.addConsole(console, false, true, metaData)
         renderer.onOutput(event('info', LogLevel.INFO))
         renderer.onOutput(event('error', LogLevel.ERROR))
-        renderer.flush()
+        renderer.restore(snapshot) // close console to flush
 
         then:
         console.value.readLines() == ['{error}error', '{normal}']

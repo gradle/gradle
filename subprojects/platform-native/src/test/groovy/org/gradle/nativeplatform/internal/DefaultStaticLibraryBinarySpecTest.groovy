@@ -128,7 +128,7 @@ class DefaultStaticLibraryBinarySpecTest extends Specification {
 
     def "returns create task when defined"() {
         when:
-        final createTask = TestUtil.createTask(CreateStaticLibrary)
+        final createTask = TestUtil.create(tmpDir).task(CreateStaticLibrary)
         tasks.add(createTask)
 
         then:

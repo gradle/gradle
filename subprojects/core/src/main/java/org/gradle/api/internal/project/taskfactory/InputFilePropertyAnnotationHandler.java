@@ -39,12 +39,18 @@ public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHan
         return InputFile.class;
     }
 
-    public void attachActions(PropertyActionContext context) {
+    public boolean attachActions(TaskPropertyActionContext context) {
         context.setValidationAction(inputFileValidation);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
                 task.getInputs().files(futureValue);
             }
         });
+        return true;
+    }
+
+    @Override
+    public boolean getMustNotBeNullByDefault() {
+        return true;
     }
 }

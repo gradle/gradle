@@ -23,6 +23,10 @@ public class DefaultScalaPlatform implements ScalaPlatform {
     private final String scalaCompatibilityVersion;
     private final String scalaVersion;
 
+    public DefaultScalaPlatform() {
+        this("2.10.4"); // default Scala version
+    }
+
     public DefaultScalaPlatform(String scalaVersion) {
         this(VersionNumber.parse(scalaVersion));
     }

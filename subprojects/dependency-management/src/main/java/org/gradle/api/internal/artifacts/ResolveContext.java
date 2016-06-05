@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 /**
  * Represents something that can be resolved.
@@ -29,6 +29,6 @@ public interface ResolveContext {
 
     ResolutionStrategyInternal getResolutionStrategy();
 
-    ComponentResolveMetaData toRootComponentMetaData();
+    ComponentResolveMetadata toRootComponentMetaData();
 
 }

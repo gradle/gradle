@@ -334,7 +334,7 @@ task javadocAll(type: Javadoc) {
     options.encoding = 'utf-8'
     options.docEncoding = 'utf-8'
     options.charSet = 'utf-8'
-    if (JavaVersion.current().isJava8Compatible()) {
+    if (javaVersion.isJava8Compatible()) {
         options.addStringOption 'Xdoclint:none', '-quiet'
     }
     options.addStringOption "stylesheetfile", stylesheetFile.absolutePath
@@ -355,12 +355,12 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/platform/**'
     include 'org/gradle/play/**'
     include 'org/gradle/plugin/devel/*'
+    include 'org/gradle/plugin/repository/*'
     include 'org/gradle/plugin/use/*'
     include 'org/gradle/plugins/**'
     include 'org/gradle/process/**'
     include 'org/gradle/testfixtures/**'
     include 'org/gradle/testing/jacoco/**'
-    include 'org/gradle/sonar/runner/**'
     include 'org/gradle/tooling/**'
     include 'org/gradle/model/**'
     include 'org/gradle/testkit/**'

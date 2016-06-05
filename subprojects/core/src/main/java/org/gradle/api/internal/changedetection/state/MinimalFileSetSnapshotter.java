@@ -22,6 +22,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.cache.CacheAccess;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
 
@@ -38,7 +39,7 @@ import java.util.List;
 public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter {
     private final FileSystem fileSystem;
 
-    public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem) {
+    public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, CacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem) {
         super(snapshotter, cacheAccess, stringInterner, fileResolver);
         this.fileSystem = fileSystem;
     }
@@ -58,7 +59,7 @@ public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter
                 missingFiles.add(file);
             }
         }
-        visitedTrees.add(new DefaultVisitedTree(ImmutableList.<FileTreeElement>copyOf(fileTreeElements), false, -1, null));
+        visitedTrees.add(new DefaultVisitedTree(null, null, ImmutableList.<FileTreeElement>copyOf(fileTreeElements), false, -1, null));
     }
 
     @Override

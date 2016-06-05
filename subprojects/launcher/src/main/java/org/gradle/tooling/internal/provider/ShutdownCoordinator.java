@@ -24,13 +24,13 @@ import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonStartListener;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.context.DaemonInstanceDetails;
+import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
-    private final Set<DaemonInstanceDetails> daemons = new CopyOnWriteArraySet<DaemonInstanceDetails>();
+    private final Set<DaemonConnectDetails> daemons = new CopyOnWriteArraySet<DaemonConnectDetails>();
     private final DaemonClientFactory clientFactory;
     private final OutputEventListener outputEventListener;
 
@@ -39,7 +39,7 @@ public class ShutdownCoordinator implements DaemonStartListener, Stoppable {
         this.outputEventListener = outputEventListener;
     }
 
-    public void daemonStarted(DaemonInstanceDetails daemon) {
+    public void daemonStarted(DaemonConnectDetails daemon) {
         daemons.add(daemon);
     }
 

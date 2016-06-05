@@ -16,13 +16,11 @@
 
 package org.gradle.integtests.tooling.m9
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import spock.lang.Issue
 import spock.lang.Timeout
 
-@TargetGradleVersion('>=1.0-milestone-9')
 class DaemonErrorFeedbackCrossVersionSpec extends ToolingApiSpecification {
 
     @Issue("GRADLE-1799")

@@ -20,9 +20,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.daemon.DaemonTestFixture.killIsolatedDaemons
+
 class BuildSrcPluginTest extends AbstractIntegrationSpec {
 
-    @Issue("GRADLE-2001") // when using the daemon
+    @Issue("GRADLE-2001")
     @LeaksFileHandles
     def "can use plugin from buildSrc that changes"() {
         given:
@@ -62,7 +64,7 @@ class BuildSrcPluginTest extends AbstractIntegrationSpec {
         """
 
 
-        file("buildSrc/testplugin/src/main/resources/META-INF/gradle-plugins/test-plugin.properties") << """\
+        file("buildSrc/testplugin/src/main/resources/META-INF/gradle-plugins/test-plugin.properties") << """
             implementation-class=testplugin.TestPlugin
         """
 
@@ -91,5 +93,44 @@ class BuildSrcPluginTest extends AbstractIntegrationSpec {
 
         then:
         output.contains "hello again"
+
+        cleanup:
+        killIsolatedDaemons(executer)
     }
+
+    def "build src plugin cannot access Gradle implementation dependencies"() {
+        when:
+        requireGradleDistribution()
+        file("buildSrc/src/main/groovy/pkg/BuildSrcPlugin.groovy") << """
+            package pkg
+            import ${com.google.common.collect.ImmutableList.name}
+            class BuildSrcPlugin {
+
+            }
+        """
+
+        then:
+        fails "t"
+        failure.assertHasDescription("Execution failed for task ':compileGroovy'.")
+    }
+
+    def "use of buildSrc does not expose Gradle runtime dependencies to build script"() {
+        when:
+        requireGradleDistribution()
+        file("buildSrc/src/main/groovy/pkg/BuildSrcPlugin.groovy") << """
+            package pkg
+            class BuildSrcPlugin {
+
+            }
+        """
+
+        buildFile << """
+            import ${com.google.common.collect.ImmutableList.name}
+        """
+
+        then:
+        fails "t"
+        failure.assertHasDescription("Could not compile build file '$buildFile.canonicalPath'.")
+    }
+
 }

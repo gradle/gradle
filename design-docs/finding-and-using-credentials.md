@@ -212,7 +212,7 @@ maven {
 * Implement an authentication scheme to facilitate authenticating with S3 no credentials (publicly accessible buckets)
 ~~* Implement an authentication scheme to facilitate preemptive basic authentication with HTTP repositories.~~
 * Implement an authentication scheme to facilitate public key authentication with SFTP repositories.
-* Add a `CredentialsContainer` to `org.gradle.api.internal.project.AbstractProject` similar to `org.gradle.api.artifacts.ConfigurationContainer`
+* Add a `CredentialsContainer` to `org.gradle.api.internal.project.DefaultProject` similar to `org.gradle.api.artifacts.ConfigurationContainer`
 * Credentials, for the most part, should represent where the credentials data lives e.g. 'the private key is located at ~/.ssh/id_rsa'
 * `org.gradle.api.artifacts.repositories.AuthenticationSupported` must remain backward compatible to support the existing DSL for configuring repositories.
 * Upgrade HttpClient to latest version, possibly leveraging improved NTLM support rather than current JCIFS implementation

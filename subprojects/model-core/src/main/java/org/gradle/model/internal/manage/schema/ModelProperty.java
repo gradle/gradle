@@ -23,7 +23,7 @@ import com.google.common.collect.Maps;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Nullable;
 import org.gradle.internal.Cast;
-import org.gradle.model.internal.manage.schema.extract.PropertyAccessorType;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.type.ModelType;
 
@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.model.internal.manage.schema.extract.PropertyAccessorType.hasSetter;
+import static org.gradle.internal.reflect.PropertyAccessorType.hasSetter;
 
 @ThreadSafe
 public class ModelProperty<T> {

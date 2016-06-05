@@ -17,14 +17,14 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 
 import java.util.List;
 
 public class ComponentMetadataDetailsAdapter implements ComponentMetadataDetails {
-    private final MutableModuleComponentResolveMetaData metadata;
+    private final MutableModuleComponentResolveMetadata metadata;
 
-    public ComponentMetadataDetailsAdapter(MutableModuleComponentResolveMetaData metadata) {
+    public ComponentMetadataDetailsAdapter(MutableModuleComponentResolveMetadata metadata) {
         this.metadata = metadata;
     }
 

@@ -20,6 +20,80 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class ModelSetIntegrationTest extends AbstractIntegrationSpec {
 
+    def "provides basic meta-data for set"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Person {
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void people(ModelSet<Person> people) {
+              }
+            }
+
+            apply type: Rules
+
+            model {
+              tasks {
+                create("printPeople") {
+                  doLast {
+                    def people = $.people
+                    println "name: $people.name"
+                    println "display-name: $people.displayName"
+                    println "to-string: ${people.toString()}"
+                  }
+                }
+              }
+            }
+        '''
+
+        then:
+        succeeds "printPeople"
+
+        and:
+        output.contains "name: people"
+        output.contains "display-name: ModelSet<Person> 'people'"
+        output.contains "to-string: ModelSet<Person> 'people'"
+    }
+
+    def "can view as ModelElement"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Person {
+            }
+
+            class Rules extends RuleSource {
+              @Model
+              void people(ModelSet<Person> people) {
+              }
+
+              @Mutate
+              void tasks(ModelMap<Task> tasks, @Path("people") ModelElement people) {
+                tasks.create("printPeople") {
+                  doLast {
+                    println "name: $people.name"
+                    println "display-name: $people.displayName"
+                    println "to-string: ${people.toString()}"
+                  }
+                }
+              }
+            }
+
+            apply type: Rules
+        '''
+
+        then:
+        succeeds "printPeople"
+
+        and:
+        output.contains "name: people"
+        output.contains "display-name: ModelSet<Person> 'people'"
+        output.contains "to-string: ModelSet<Person> 'people'"
+    }
+
     def "rule can create a managed collection of interface backed managed model elements"() {
         when:
         buildScript '''
@@ -64,7 +138,6 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
                   doLast {
                     def people = $.people
                     def names = people*.name.sort().join(", ")
-                    println "people: ${people.toString()}"
                     println "names: $names"
                   }
                 }
@@ -76,7 +149,6 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         succeeds "printPeople"
 
         and:
-        output.contains "people: org.gradle.model.ModelSet<Person> 'people'"
         output.contains 'names: p0, p1, p2, p3, p4'
     }
 
@@ -119,7 +191,7 @@ class ModelSetIntegrationTest extends AbstractIntegrationSpec {
         output.contains 'people: p1, p2'
     }
 
-    def "rule can create a map of various supported types"() {
+    def "rule can create a set of various supported types"() {
         when:
         buildScript '''
             @Managed
@@ -456,7 +528,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#people(ModelSet<Person>)")
-        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelSet<Person>' given to rule 'RulePlugin#people(ModelSet<Person>)'")
+        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelSet<Person>' given to rule RulePlugin#people(ModelSet<Person>)")
     }
 
     def "read methods of ModelSet throw exceptions when used in a mutation rule"() {
@@ -489,7 +561,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#readPeople(ModelSet<Person>)")
-        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelSet<Person>' given to rule 'RulePlugin#readPeople(ModelSet<Person>)'")
+        failure.assertHasCause("Attempt to read from a write only view of model element 'people' of type 'ModelSet<Person>' given to rule RulePlugin#readPeople(ModelSet<Person>)")
     }
 
     def "mutating a managed set that is an input of a rule is not allowed"() {
@@ -517,7 +589,39 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateInputModelSet(ModelMap<Task>, ModelSet<Person>)")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#tryToMutateInputModelSet(ModelMap<Task>, ModelSet<Person>)'")
+        failure.assertHasCause("Attempt to modify a read only view of model element 'people' of type 'ModelSet<Person>' given to rule RulePlugin#tryToMutateInputModelSet(ModelMap<Task>, ModelSet<Person>)")
+    }
+
+    def "mutating a managed set that is the subject of a validation rule is not allowed"() {
+        when:
+        buildScript '''
+            @Managed
+            interface Person {
+            }
+
+            class RulePlugin extends RuleSource {
+                @Model
+                void people(ModelSet<Person> people) {}
+
+                @Validate
+                void check(ModelSet<Person> people) {
+                    people.create { }
+                }
+
+                @Mutate
+                void tryToMutateInputModelSet(ModelMap<Task> tasks, ModelSet<Person> people) {
+                }
+            }
+
+            apply type: RulePlugin
+        '''
+
+        then:
+        fails "tasks"
+
+        and:
+        failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#check(ModelSet<Person>)")
+        failure.assertHasCause("Attempt to modify a read only view of model element 'people' of type 'ModelSet<Person>' given to rule RulePlugin#check(ModelSet<Person>)")
     }
 
     def "mutating a managed set outside of a creation rule is not allowed"() {
@@ -551,7 +655,7 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: RulePlugin#tryToMutateModelSetOutsideOfCreationRule(ModelMap<Task>, ModelSet<Person>)")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'RulePlugin#people(ModelSet<Person>)'")
+        failure.assertHasCause("Attempt to modify a closed view of model element 'people' of type 'ModelSet<Person>' given to rule RulePlugin#people(ModelSet<Person>)")
     }
 
     def "mutating managed set which is an input of a DSL rule is not allowed"() {
@@ -581,6 +685,6 @@ configure p3
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: tasks { ... } @ build.gradle")
-        failure.assertHasCause("Attempt to mutate closed view of model of type 'org.gradle.model.ModelSet<Person>' given to rule 'tasks { ... } @ build.gradle")
+        failure.assertHasCause("Attempt to modify a read only view of model element 'people' of type 'ModelSet<Person>' given to rule tasks { ... } @ build.gradle")
     }
 }

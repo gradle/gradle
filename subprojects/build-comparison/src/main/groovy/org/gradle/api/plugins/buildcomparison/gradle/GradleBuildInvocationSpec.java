@@ -17,6 +17,8 @@
 package org.gradle.api.plugins.buildcomparison.gradle;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 
 import java.io.File;
 import java.util.List;
@@ -34,6 +36,7 @@ public interface GradleBuildInvocationSpec {
      *
      * @return The “root” project directory of the build. Never null.
      */
+    @Internal
     File getProjectDir();
 
     /**
@@ -55,6 +58,7 @@ public interface GradleBuildInvocationSpec {
      *
      * @return The Gradle version to run the build with. Never null.
      */
+    @Input
     String getGradleVersion();
 
     /**
@@ -79,6 +83,7 @@ public interface GradleBuildInvocationSpec {
      *
      * @return The tasks to execute.
      */
+    @Input
     List<String> getTasks();
 
     /**
@@ -93,6 +98,7 @@ public interface GradleBuildInvocationSpec {
      *
      * @return The command line arguments (excluding tasks) to invoke the build with.
      */
+    @Input
     List<String> getArguments();
 
     /**

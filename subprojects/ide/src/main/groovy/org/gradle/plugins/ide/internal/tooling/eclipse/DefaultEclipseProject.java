@@ -70,6 +70,7 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         return identifier;
     }
 
+    @Override
     public String getPath() {
         return path;
     }

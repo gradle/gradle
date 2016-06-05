@@ -52,12 +52,12 @@ public class GradleWrapperMain {
         systemProperties.putAll(converter.convert(options, new HashMap<String, String>()));
 
         File gradleUserHome = gradleUserHome(options);
-        
+
         addSystemProperties(gradleUserHome, rootDir);
-        
+
         Logger logger = logger(options);
 
-        WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile, logger);
+        WrapperExecutor wrapperExecutor = WrapperExecutor.forWrapperPropertiesFile(propertiesFile);
         wrapperExecutor.execute(
                 args,
                 new Install(logger, new Download(logger, "gradlew", wrapperVersion()), new PathAssembler(gradleUserHome)),
@@ -118,7 +118,7 @@ public class GradleWrapperMain {
         }
         return GradleUserHomeLookup.gradleUserHome();
     }
-    
+
     private static Logger logger(ParsedCommandLine options) {
         return new Logger(options.hasOption(GRADLE_QUIET_OPTION));
     }

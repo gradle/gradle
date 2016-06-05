@@ -73,6 +73,7 @@ class GradleVersionTest extends Specification {
                 '1.0-milestone-5',
                 '1.0-milestone-5a',
                 '3.2-rc-2',
+                '3.0-snapshot-1'
         ]
     }
 
@@ -88,6 +89,7 @@ class GradleVersionTest extends Specification {
                 '0.9-20101220110000-0800',
                 '1.2-20120501110000',
                 '1.2-SNAPSHOT',
+                '3.0-snapshot-1'
         ]
     }
 
@@ -198,6 +200,7 @@ class GradleVersionTest extends Specification {
         '0.9'                     | '0.9-20101220100000+1000'
         '0.9'                     | '0.9-20101220100000'
         '0.9'                     | '0.9-SNAPSHOT'
+        '0.9'                     | '0.9-snapshot-1'
     }
 
     def "can get version base"() {
@@ -215,6 +218,7 @@ class GradleVersionTest extends Specification {
         '0.9-20101220100000'                  | "0.9"
         '20.17-20101220100000+1000'           | "20.17"
         '0.9-SNAPSHOT'                        | "0.9"
+        '3.0-snapshot-1'                      | "3.0"
     }
 
     def "milestones are treated as base versions"() {
@@ -240,6 +244,7 @@ class GradleVersionTest extends Specification {
         '0.9-20101220100000'                  | "1.0"
         '20.17-20101220100000+1000'           | "21.0"
         '0.9-SNAPSHOT'                        | "1.0"
+        '3.0-snapshot-1'                      | "4.0"
     }
 
     def "milestones are part of previous major version"() {

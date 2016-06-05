@@ -17,12 +17,13 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.*;
 
 import java.io.File;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.GUtil.uncheckedCall;
 
 public class PathNotationConverter implements NotationConverter<Object, String> {
 
@@ -59,15 +60,11 @@ public class PathNotationConverter implements NotationConverter<Object, String> 
             final Object called = closure.call();
             convert(called, result);
         } else if (notation instanceof Callable) {
-            try {
-                final Callable callableNotation = (Callable) notation;
-                final Object called = callableNotation.call();
-                convert(called, result);
-                if (!result.hasResult()) {
-                    throw new TypeConversionException("Couldn't convert " + notation);
-                }
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+            final Callable callableNotation = (Callable) notation;
+            final Object called = uncheckedCall(callableNotation);
+            convert(called, result);
+            if (!result.hasResult()) {
+                throw new TypeConversionException("Couldn't convert " + notation);
             }
         }
     }

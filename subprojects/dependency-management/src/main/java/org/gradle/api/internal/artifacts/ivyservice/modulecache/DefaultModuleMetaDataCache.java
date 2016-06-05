@@ -15,16 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.IvyXmlModuleDescriptorWriter;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.IvyXmlModuleDescriptorParser;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.ResolverStrategy;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetaData;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
@@ -44,11 +41,11 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     private final ModuleDescriptorStore moduleDescriptorStore;
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> cache;
 
-    public DefaultModuleMetaDataCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager, ResolverStrategy resolverStrategy) {
+    public DefaultModuleMetaDataCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
 
-        moduleDescriptorStore = new ModuleDescriptorStore(new PathKeyFileStore(cacheLockingManager.createMetaDataStore()), new IvyXmlModuleDescriptorWriter(), new IvyXmlModuleDescriptorParser(resolverStrategy));
+        moduleDescriptorStore = new ModuleDescriptorStore(new PathKeyFileStore(cacheLockingManager.createMetaDataStore()), new ModuleDescriptorSerializer());
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> getCache() {
@@ -70,7 +67,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         if (entry.isMissing()) {
             return new DefaultCachedMetaData(entry, null, timeProvider);
         }
-        ModuleDescriptor descriptor = moduleDescriptorStore.getModuleDescriptor(repository, componentId);
+        ModuleDescriptorState descriptor = moduleDescriptorStore.getModuleDescriptor(repository, componentId);
         if (descriptor == null) {
             // Descriptor file has been deleted - ignore the entry
             return null;
@@ -85,9 +82,9 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
-    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetaData metaData) {
-        ModuleDescriptor moduleDescriptor = metaData.getDescriptor();
-        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getModuleRevisionId(), metaData.isChanging());
+    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetadata metaData) {
+        ModuleDescriptorState moduleDescriptor = metaData.getDescriptor();
+        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getComponentIdentifier(), metaData.isChanging());
         LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, metaData.getComponentId(), moduleDescriptor);
         ModuleDescriptorCacheEntry entry = createEntry(metaData, resource.getSha1());
         getCache().put(createKey(repository, metaData.getComponentId()), entry);
@@ -98,7 +95,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new RevisionKey(repository.getId(), id);
     }
 
-    private ModuleDescriptorCacheEntry createEntry(ModuleComponentResolveMetaData metaData, HashValue moduleDescriptorHash) {
+    private ModuleDescriptorCacheEntry createEntry(ModuleComponentResolveMetadata metaData, HashValue moduleDescriptorHash) {
         return ModuleDescriptorCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger());
     }
 

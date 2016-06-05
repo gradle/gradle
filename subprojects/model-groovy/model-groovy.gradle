@@ -20,6 +20,8 @@
  */
 apply plugin: "groovy"
 
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
 dependencies {
     compile libraries.slf4j_api
     compile project(':baseServicesGroovy')

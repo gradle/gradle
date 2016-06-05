@@ -17,13 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
- * A ModuleResolutionFilter that accepts any module that has a name other than the one specified.
- * Accepts all artifacts.
+ * Excludes any module that has a module name matching the one specified.
+ * Does not exclude artifacts.
  */
-class ModuleNameExcludeSpec extends AbstractModuleExcludeRuleFilter {
+class ModuleNameExcludeSpec extends AbstractModuleExclusion {
     final String module;
 
     ModuleNameExcludeSpec(String module) {
@@ -32,41 +31,27 @@ class ModuleNameExcludeSpec extends AbstractModuleExcludeRuleFilter {
 
     @Override
     public String toString() {
-        return String.format("{module %s}", module);
+        return "{module " + module + "}";
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (o == null || o.getClass() != getClass()) {
-            return false;
-        }
+    protected boolean doEquals(Object o) {
         ModuleNameExcludeSpec other = (ModuleNameExcludeSpec) o;
         return module.equals(other.module);
     }
 
     @Override
-    public int hashCode() {
+    protected int doHashCode() {
         return module.hashCode();
     }
 
     @Override
-    public boolean doAcceptsSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    public boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
         ModuleNameExcludeSpec moduleNameExcludeSpec = (ModuleNameExcludeSpec) other;
         return module.equals(moduleNameExcludeSpec.module);
     }
 
-    public boolean acceptModule(ModuleIdentifier element) {
-        return !element.getName().equals(module);
-    }
-
-    public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-        return true;
-    }
-
-    public boolean acceptsAllArtifacts() {
-        return true;
+    public boolean excludeModule(ModuleIdentifier element) {
+        return element.getName().equals(module);
     }
 }

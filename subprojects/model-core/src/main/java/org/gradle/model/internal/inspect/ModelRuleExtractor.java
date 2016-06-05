@@ -29,26 +29,45 @@ import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.RuleInput;
 import org.gradle.model.RuleSource;
 import org.gradle.model.RuleTarget;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelPath;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.ModelView;
+import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.binding.StructBindings;
 import org.gradle.model.internal.manage.binding.StructBindingsStore;
 import org.gradle.model.internal.manage.instance.GeneratedViewState;
 import org.gradle.model.internal.manage.instance.ManagedInstance;
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory;
-import org.gradle.model.internal.manage.schema.*;
-import org.gradle.model.internal.manage.schema.extract.ModelSchemaUtils;
+import org.gradle.model.internal.manage.schema.ModelProperty;
+import org.gradle.model.internal.manage.schema.ModelSchema;
+import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.model.internal.manage.schema.ScalarValueSchema;
+import org.gradle.model.internal.manage.schema.StructSchema;
 import org.gradle.model.internal.method.WeaklyTypeReferencingMethod;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.registry.RuleContext;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.CollectionUtils;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.ExecutionException;
 
 @ThreadSafe
@@ -253,7 +272,7 @@ public class ModelRuleExtractor {
     }
 
     private void validateNonRuleMethod(Method method, RuleSourceValidationProblemCollector problems) {
-        if (!Modifier.isPrivate(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && !method.isSynthetic() && !ModelSchemaUtils.isObjectMethod(method)) {
+        if (!Modifier.isPrivate(method.getModifiers()) && !Modifier.isStatic(method.getModifiers()) && !method.isSynthetic() && !GroovyMethods.isObjectMethod(method)) {
             problems.add(method, "A method that is not annotated as a rule must be private");
         }
     }
@@ -547,18 +566,33 @@ public class ModelRuleExtractor {
 
         @Override
         public Object get(String name) {
-            return values.get(name);
+            ModelProperty<?> property = schema.getProperty(name);
+            if (property.getSchema() instanceof ScalarValueSchema) {
+                return values.get(name);
+            }
+
+            MutableModelNode node = (MutableModelNode) values.get(name);
+            if (node == null) {
+                return null;
+            }
+            return node.asImmutable(property.getType(), RuleContext.get()).getInstance();
         }
 
         @Override
         public void set(String name, Object value) {
-            values.put(name, value);
+            ModelProperty<?> property = schema.getProperty(name);
+            if (property.getSchema() instanceof ScalarValueSchema) {
+                values.put(name, value);
+            } else {
+                MutableModelNode backingNode = ((ManagedInstance) value).getBackingNode();
+                values.put(name, backingNode);
+            }
         }
 
         @Override
         protected ModelPath calculateTarget(MutableModelNode target) {
             if (targetProperty != null) {
-                return ((ManagedInstance) values.get(targetProperty.getName())).getBackingNode().getPath();
+                return ((MutableModelNode)values.get(targetProperty.getName())).getPath();
             }
             return target.getPath();
         }
@@ -568,8 +602,8 @@ public class ModelRuleExtractor {
             List<ModelReference<?>> allInputs = new ArrayList<ModelReference<?>>(inputs.size() + implicitInputs.size());
             allInputs.addAll(inputs);
             for (ModelProperty<?> property : implicitInputs) {
-                ManagedInstance value = (ManagedInstance) values.get(property.getName());
-                allInputs.add(ModelReference.of(value.getBackingNode().getPath()));
+                MutableModelNode backingNode = (MutableModelNode) values.get(property.getName());
+                allInputs.add(ModelReference.of(backingNode.getPath()));
             }
             return allInputs;
         }

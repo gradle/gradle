@@ -27,7 +27,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -69,6 +70,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final PluginRequestsSerializer pluginRequestsSerializer = new PluginRequestsSerializer();
     private final PluginRepositoryRegistry pluginRepositoryRegistry;
+    private final PluginRepositoryFactory pluginRepositoryFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                       Factory<LoggingManagerInternal> loggingManagerFactory,
@@ -79,7 +81,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                                       DirectoryFileTreeFactory directoryFileTreeFactory,
                                       DocumentationRegistry documentationRegistry,
                                       ModelRuleSourceDetector modelRuleSourceDetector,
-                                      PluginRepositoryRegistry pluginRepositoryRegistry) {
+                                      PluginRepositoryRegistry pluginRepositoryRegistry,
+                                      PluginRepositoryFactory pluginRepositoryFactory) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingManagerFactory = loggingManagerFactory;
         this.instantiator = instantiator;
@@ -90,6 +93,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.documentationRegistry = documentationRegistry;
         this.modelRuleSourceDetector = modelRuleSourceDetector;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
+        this.pluginRepositoryFactory = pluginRepositoryFactory;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource, ScriptHandler scriptHandler, ClassLoaderScope targetScope, ClassLoaderScope baseScope, boolean topLevelScript) {
@@ -131,6 +135,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
             services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
             services.add(PluginRepositoryRegistry.class, pluginRepositoryRegistry);
+            services.add(PluginRepositoryFactory.class, pluginRepositoryFactory);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

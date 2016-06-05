@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.ide.idea
 
+import groovy.transform.CompileStatic
+import org.gradle.api.tasks.Internal
 import org.gradle.plugins.ide.api.XmlGeneratorTask
 import org.gradle.plugins.ide.idea.model.IdeaWorkspace
 import org.gradle.plugins.ide.idea.model.Workspace
@@ -23,10 +25,12 @@ import org.gradle.plugins.ide.idea.model.Workspace
  * Generates an IDEA workspace file *only* for root project.
  * There's little you can configure about workspace generation at the moment.
  */
+@CompileStatic
 public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
     /**
      * The Idea workspace model containing the details required to generate the workspace file.
      */
+    @Internal
     IdeaWorkspace workspace
 
     @Override protected Workspace create() {

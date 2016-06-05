@@ -20,7 +20,20 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.internal.BiAction;
-import org.gradle.model.internal.core.*;
+import org.gradle.model.internal.core.ChildNodeInitializerStrategy;
+import org.gradle.model.internal.core.ChildNodeInitializerStrategyAccessor;
+import org.gradle.model.internal.core.ChildNodeInitializerStrategyAccessors;
+import org.gradle.model.internal.core.DirectNodeInputUsingModelAction;
+import org.gradle.model.internal.core.DirectNodeNoInputsModelAction;
+import org.gradle.model.internal.core.ModelAction;
+import org.gradle.model.internal.core.ModelActionRole;
+import org.gradle.model.internal.core.ModelMapModelProjection;
+import org.gradle.model.internal.core.ModelReference;
+import org.gradle.model.internal.core.MutableModelNode;
+import org.gradle.model.internal.core.NodeBackedModelMap;
+import org.gradle.model.internal.core.NodeInitializer;
+import org.gradle.model.internal.core.NodeInitializerRegistry;
+import org.gradle.model.internal.core.SpecializedModelMapProjection;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.manage.schema.SpecializedMapSchema;
 import org.gradle.model.internal.type.ModelType;
@@ -46,7 +59,7 @@ public class SpecializedMapNodeInitializer<T, E> implements NodeInitializer {
                         ChildNodeInitializerStrategyAccessor<E> strategyAccessor = ChildNodeInitializerStrategyAccessors.fromPrivateData();
                         Class<? extends T> implementationType = schema.getImplementationType().asSubclass(schema.getType().getConcreteClass());
                         modelNode.addProjection(new SpecializedModelMapProjection<T, E>(schema.getType(), schema.getElementType(), implementationType, strategyAccessor));
-                        modelNode.addProjection(ModelMapModelProjection.unmanaged(schema.getElementType(), strategyAccessor));
+                        modelNode.addProjection(ModelMapModelProjection.managed(schema.getType(), schema.getElementType(), strategyAccessor));
                     }
                 }
             ))

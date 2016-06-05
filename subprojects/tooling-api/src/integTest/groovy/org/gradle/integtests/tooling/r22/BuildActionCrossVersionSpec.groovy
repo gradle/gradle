@@ -20,13 +20,12 @@ import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 
-@ToolingApiVersion(">=1.8")
+@LeaksFileHandles
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         // disable URL caching
@@ -35,7 +34,6 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     }
 
     @TargetGradleVersion(">=2.2")
-    @LeaksFileHandles("cl1 and cl2 hold action-impl.jar open")
     def "can change the implementation of an action"() {
         // Make sure we reuse the same daemon
         toolingApi.requireIsolatedDaemons()

@@ -18,13 +18,17 @@ package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.reporting.components.ComponentReport
-import org.gradle.api.tasks.diagnostics.*
+import org.gradle.api.tasks.diagnostics.BuildEnvironmentReportTask
+import org.gradle.api.tasks.diagnostics.DependencyInsightReportTask
+import org.gradle.api.tasks.diagnostics.DependencyReportTask
+import org.gradle.api.tasks.diagnostics.ProjectReportTask
+import org.gradle.api.tasks.diagnostics.PropertyReportTask
+import org.gradle.api.tasks.diagnostics.TaskReportTask
 import org.gradle.configuration.Help
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class HelpTasksPluginSpec extends Specification {
-    final project = TestUtil.createRootProject()
+class HelpTasksPluginSpec extends AbstractProjectBuilderSpec {
 
     def "adds help tasks"() {
         when:

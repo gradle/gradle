@@ -18,6 +18,8 @@ package org.gradle.platform.base;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 
 /**
  * The platform or runtime that a binary is designed to run on.
@@ -26,10 +28,14 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface Platform extends Named {
+    @Override
+    @Input
+    String getName();
 
     /**
      * Returns a human consumable name for this platform.
      *
      */
+    @Internal
     String getDisplayName();
 }

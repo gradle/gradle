@@ -79,8 +79,13 @@
             <varlistentry>
                 <term><literal>org.gradle.debug</literal></term>
                 <listitem><para>When set to true, Gradle will run the build with remote debugging enabled, listening on port 5005.
-                    Note that this is the equivalent of adding <literal>-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005</literal> to
+                    Note that this is the equivalent of adding <literal>-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005</literal> to
                     the JVM command line and will suspend the virtual machine until a debugger is attached.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>org.gradle.daemon.performance.enable-monitoring</literal></term>
+                <listitem><para>When set to false, Gradle will not monitor the memory usage of running daemons. See <xref linkend="what_can_go_wrong_with_daemon"/>.</para>
                 </listitem>
             </varlistentry>
         </para>

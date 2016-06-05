@@ -13,7 +13,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'gradle.plugin.me.champeau.gradle:jmh-gradle-plugin:0.3.0'
+        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.3.1'
     }
 }
 
@@ -142,6 +142,7 @@ task multiGroovyScala(type: JvmProjectGeneratorTask, description: 'Generates a m
 task lotDependencies(type: JvmProjectGeneratorTask, description: 'Generates a small multi-project build with a large Dependency Graph') {
     projects = 5
     sourceFiles = 100
+    templateArgs = [resolveDependenciesTask: true]
 
     dependencyGraph {
         size = 200
@@ -600,6 +601,15 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
 
+configure(tasks.withType(JvmProjectGeneratorTask)) {
+    if(project.hasProperty("springDmPluginVersion")) {
+        templateArgs['springDmPluginVersion'] = springDmPluginVersion
+    }
+    if(project.hasProperty("maxProjects")) {
+        projects = maxProjects as Integer
+    }
+}
+
 task all {
     dependsOn tasks.withType(ProjectGeneratorTask)
     group = "Project Setup"
@@ -775,3 +785,6 @@ java9IntegTest {
         excludeCategories 'org.gradle.performance.categories.PerformanceTest'
     }
 }
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

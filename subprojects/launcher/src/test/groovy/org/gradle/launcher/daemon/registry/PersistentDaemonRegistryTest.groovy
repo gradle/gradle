@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.registry
 
 import org.gradle.internal.nativeintegration.ProcessEnvironment
+import org.gradle.internal.nativeintegration.filesystem.Chmod
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.gradle.internal.remote.Address
@@ -34,11 +35,11 @@ class PersistentDaemonRegistryTest extends Specification {
     int addressCounter = 0
     def lockManager = createDefaultFileLockManager()
     def file = tmp.file("registry")
-    def registry = new PersistentDaemonRegistry(file, lockManager)
+    def registry = new PersistentDaemonRegistry(file, lockManager, Stub(Chmod))
 
     def "corrupt registry file is ignored"() {
         given:
-        registry.store(new DaemonInfo(address(), daemonContext(), "password", true))
+        registry.store(new DaemonInfo(address(), daemonContext(), "password".bytes, true))
 
         expect:
         registry.all.size() == 1
@@ -55,7 +56,7 @@ class PersistentDaemonRegistryTest extends Specification {
         def address = address()
 
         and:
-        registry.store(new DaemonInfo(address, daemonContext(), "password", true))
+        registry.store(new DaemonInfo(address, daemonContext(), "password".bytes, true))
 
         when:
         registry.remove(address)
@@ -98,6 +99,41 @@ class PersistentDaemonRegistryTest extends Specification {
 
         then:
         registry.all.empty
+    }
+
+    def "safely removes stop events when empty"() {
+        when:
+        registry.removeStopEvents([])
+
+        then:
+        registry.stopEvents.empty
+    }
+
+    def "clears single stop event when non-empty"() {
+        given:
+        def stopEvent = new DaemonStopEvent(new Date(1L), "STOP_REASON")
+        registry.storeStopEvent(stopEvent)
+
+        when:
+        registry.removeStopEvents([stopEvent])
+
+        then:
+        registry.stopEvents.empty
+    }
+
+    def "clears multiple stop events when non-empty"() {
+        given:
+        def stopEvents = [
+            new DaemonStopEvent(new Date(1L), "STOP_REASON"),
+            new DaemonStopEvent(new Date(42L), "ANOTHER_STOP_REASON")
+        ]
+        stopEvents.each { registry.storeStopEvent(it) }
+
+        when:
+        registry.removeStopEvents(stopEvents)
+
+        then:
+        registry.stopEvents.empty
     }
 
     DaemonContext daemonContext() {

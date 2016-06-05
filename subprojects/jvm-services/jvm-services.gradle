@@ -1,0 +1,14 @@
+/**
+ * JVM invocation and inspection abstractions.
+ */
+
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
+dependencies {
+    compile project(":processServices")
+
+    testCompile libraries.groovy
+}
+
+useTestFixtures()
+useClassycle()

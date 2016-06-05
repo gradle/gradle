@@ -26,6 +26,8 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
+import org.gradle.execution.TaskGraphExecuter
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.environment.GradleBuildEnvironment
 import org.gradle.internal.event.ListenerManager
@@ -47,6 +49,7 @@ class TaskExecutionServicesTest extends Specification {
         CacheRepository cacheRepository = Mock()
         CacheBuilder cacheBuilder = Mock()
         _ * parent.get(Gradle) >> gradle
+        gradle.getTaskGraph() >> Mock(TaskGraphExecuter)
         _ * parent.get(ListenerManager) >> Mock(ListenerManager)
         _ * parent.get(StartParameter) >> Mock(StartParameter)
         _ * parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
@@ -58,6 +61,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(FileSystem) >> Mock(FileSystem)
         _ * parent.get(FileCollectionFactory) >> Mock(FileCollectionFactory)
         _ * parent.get(StringInterner) >> new StringInterner()
+        _ * parent.get(ClassLoaderHierarchyHasher) >> Mock(ClassLoaderHierarchyHasher)
         _ * cacheRepository.cache(gradle, 'taskArtifacts') >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         _ * cacheBuilder.withLockOptions(!null) >> cacheBuilder

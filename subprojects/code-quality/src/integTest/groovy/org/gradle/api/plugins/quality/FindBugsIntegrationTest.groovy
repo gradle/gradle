@@ -15,8 +15,4 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-
-@Requires(TestPrecondition.JDK7_OR_LATER)
 class FindBugsIntegrationTest extends AbstractFindBugsPluginIntegrationTest {}

@@ -5,10 +5,10 @@ allprojects {
 
     idea {
         module {
-            // Inherit this from the idea project's language level.
-            languageLevel = null
-            // Inherit from the root idea project's target bytecode version.
-            targetBytecodeVersion = null
+            // Force everything to Java 6, pending detangling some int test cycles or switching to project-per-source-set mapping
+            languageLevel = new org.gradle.plugins.ide.idea.model.IdeaLanguageLevel("1.6")
+            targetBytecodeVersion = JavaVersion.VERSION_1_6
+
             iml {
                 whenMerged { module ->
                     module.dependencies.removeAll {
@@ -59,9 +59,6 @@ idea {
     project {
         wildcards += ['?*.gradle']
 
-        sourceCompatibility = 1.6
-        targetCompatibility = 1.6
-
         vcs = 'Git'
         ipr {
             withXml { provider ->
@@ -88,15 +85,6 @@ idea {
                                 exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(packageFolder)}", includeSubdirectories: true])
                             }
                         }
-                    }
-                }
-                Collection sourceDirs = groovyProjects.collect { project -> project.sourceSets*.allSource*.srcDirs }.flatten()
-                sourceDirs.each { sourceFolder ->
-                    if (!javaVersion.java7Compatible) {
-                        excludeSource("jdk7", sourceFolder)
-                    }
-                    if (!javaVersion.java6Compatible) {
-                        excludeSource("jdk6", sourceFolder)
                     }
                 }
 
@@ -176,6 +164,7 @@ idea {
                 </codeStyleSettings>
                 <GroovyCodeStyleSettings>
                   <option name="ALIGN_NAMED_ARGS_IN_MAP" value="false" />
+                  <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="999" />
                 </GroovyCodeStyleSettings>
               </value>
             </option>
@@ -226,6 +215,7 @@ idea {
                 "-Dorg.gradle.integtest.daemon.registry=${rootProject.file('build/daemon').absolutePath}",
                 "-DintegTest.distsDir=${rootProject.distsDir.absolutePath}",
                 "-Dorg.gradle.integtest.executer=embedded",
+                "-Dorg.gradle.integtest.versions=latest",
                 "-ea",
                 "-XX:MaxPermSize=512m",
                 "-Xmx512m"

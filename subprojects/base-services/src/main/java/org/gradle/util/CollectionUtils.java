@@ -18,6 +18,7 @@ package org.gradle.util;
 import com.google.common.base.Equivalence;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -552,6 +553,30 @@ public abstract class CollectionUtils {
         return string.toString();
     }
 
+    /**
+     * Partition given Collection into a Pair of Collections.
+     *
+     * <pre>Left</pre> Collection containing entries that satisfy the given predicate
+     * <pre>Right</pre> Collection containing entries that do NOT satisfy the given predicate
+     */
+    public static <T> Pair<Collection<T>, Collection<T>> partition(Iterable<T> items, Spec<? super T> predicate) {
+        Preconditions.checkNotNull(items, "Cannot partition null Collection");
+        Preconditions.checkNotNull(predicate, "Cannot apply null Spec when partitioning");
+
+        Collection<T> left = new LinkedList<T>();
+        Collection<T> right = new LinkedList<T>();
+
+        for (T item : items) {
+            if (predicate.isSatisfiedBy(item)) {
+                left.add(item);
+            } else {
+                right.add(item);
+            }
+        }
+
+        return Pair.of(left, right);
+    }
+
     public static class InjectionStep<T, I> {
         private final T target;
         private final I item;
@@ -626,7 +651,7 @@ public abstract class CollectionUtils {
         return list.isEmpty() ? null : list;
     }
 
-    public static <T> List<T> dedup(Iterable<T> source, final Equivalence<T> equivalence) {
+    public static <T> List<T> dedup(Iterable<T> source, final Equivalence<? super T> equivalence) {
         Iterable<Equivalence.Wrapper<T>> wrappers = Iterables.transform(source, new Function<T, Equivalence.Wrapper<T>>() {
             public Equivalence.Wrapper<T> apply(@Nullable T input) {
                 return equivalence.wrap(input);

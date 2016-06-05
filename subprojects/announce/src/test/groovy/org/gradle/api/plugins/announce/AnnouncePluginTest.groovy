@@ -15,13 +15,10 @@
  */
 package org.gradle.api.plugins.announce
 
-import org.gradle.api.Project
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class AnnouncePluginTest extends Specification {
+class AnnouncePluginTest extends AbstractProjectBuilderSpec {
     AnnouncePlugin announcePlugin = new AnnouncePlugin()
-    Project project = TestUtil.createRootProject()
 
     def addExtensionObject() {
         when:

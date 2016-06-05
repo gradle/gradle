@@ -15,8 +15,17 @@
  */
 package org.gradle.internal.metaobject;
 
-import groovy.lang.*;
+import groovy.lang.GroovyObject;
+import groovy.lang.GroovySystem;
+import groovy.lang.MetaBeanProperty;
+import groovy.lang.MetaClass;
+import groovy.lang.MetaClassImpl;
+import groovy.lang.MetaMethod;
+import groovy.lang.MetaProperty;
+import groovy.lang.MissingMethodException;
+import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.codehaus.groovy.runtime.metaclass.MultipleSetterProperty;
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
 import org.gradle.api.Nullable;
@@ -29,7 +38,12 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A {@link DynamicObject} which uses groovy reflection to provide access to the properties and methods of a bean.
@@ -84,11 +98,14 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     public MetaClassAdapter determineDelegate(Object bean) {
-        if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
+        if (bean instanceof Class) {
+            return new ClassAdapter((Class<?>) bean);
+        } else if (bean instanceof Map) {
+            return new MapAdapter();
+        } else if (bean instanceof DynamicObject || bean instanceof DynamicObjectAware || !(bean instanceof GroovyObject)) {
             return new MetaClassAdapter();
-        } else {
-            return new GroovyObjectAdapter();
         }
+        return new GroovyObjectAdapter();
     }
 
     public BeanDynamicObject withNoProperties() {
@@ -201,15 +218,18 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                         throw e;
                     }
                 }
-            } else if (bean instanceof GroovyObject && !(bean instanceof DynamicObjectAware)) {
-                try {
-                    result.result(((GroovyObject) bean).getProperty(name));
-                } catch (MissingPropertyException e) {
-                    if (!name.equals(e.getProperty())) {
-                        throw e;
-                    }
+            }
+
+            try {
+                getOpaqueProperty(name, result);
+            } catch (MissingPropertyException e) {
+                if (!name.equals(e.getProperty())) {
+                    throw e;
                 }
             }
+        }
+
+        protected void getOpaqueProperty(String name, GetPropertyResult result) {
         }
 
         @Nullable
@@ -233,7 +253,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         }
 
         @Nullable
-        private MetaProperty lookupProperty(MetaClass metaClass, String name) {
+        protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
             if (metaClass instanceof MetaClassImpl) {
                 // MetaClass.getMetaProperty(name) is very expensive when the property is not known. Instead, reach into the meta class to call a much more efficient lookup method
                 try {
@@ -328,16 +348,36 @@ public class BeanDynamicObject extends AbstractDynamicObject {
                 }
                 properties.put(metaProperty.getName(), metaProperty.getProperty(bean));
             }
+            getOpaqueProperties(properties);
             return properties;
         }
 
+        protected void getOpaqueProperties(Map<String, Object> properties) {
+        }
+
         public boolean hasMethod(final String name, final Object... arguments) {
-            return lookupMethod(getMetaClass(), name, arguments) != null;
+            return lookupMethod(getMetaClass(), name, inferTypes(arguments)) != null;
+        }
+
+        private Class[] inferTypes(Object... arguments) {
+            if (arguments == null || arguments.length == 0) {
+                return MetaClassHelper.EMPTY_CLASS_ARRAY;
+            }
+            Class[] classes = new Class[arguments.length];
+            for (int i = 0; i < arguments.length; i++) {
+                Object argType = arguments[i];
+                if (argType == null) {
+                    classes[i] = null;
+                } else {
+                    classes[i] = argType.getClass();
+                }
+            }
+            return classes;
         }
 
         public void invokeMethod(String name, InvokeMethodResult result, Object... arguments) {
             MetaClass metaClass = getMetaClass();
-            MetaMethod metaMethod = lookupMethod(metaClass, name, arguments);
+            MetaMethod metaMethod = lookupMethod(metaClass, name, inferTypes(arguments));
             if (metaMethod != null) {
                 result.result(metaMethod.doMethodInvoke(bean, arguments));
                 return;
@@ -377,7 +417,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             }
         }
 
-        private MetaMethod lookupMethod(MetaClass metaClass, String name, Object[] arguments) {
+        @Nullable
+        protected MetaMethod lookupMethod(MetaClass metaClass, String name, Class[] arguments) {
             return metaClass.getMetaMethod(name, arguments);
         }
 
@@ -398,6 +439,11 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         private final GroovyObject groovyObject = (GroovyObject) bean;
 
         @Override
+        protected void getOpaqueProperty(String name, GetPropertyResult result) {
+            result.result(groovyObject.getProperty(name));
+        }
+
+        @Override
         protected void setOpaqueProperty(MetaClass metaClass, String name, Object value) {
             groovyObject.setProperty(name, value);
         }
@@ -405,6 +451,66 @@ public class BeanDynamicObject extends AbstractDynamicObject {
         @Override
         protected Object invokeOpaqueMethod(MetaClass metaClass, String name, Object[] arguments) {
             return groovyObject.invokeMethod(name, arguments);
+        }
+    }
+
+    private class MapAdapter extends MetaClassAdapter {
+        Map<String, Object> map = (Map<String, Object>) bean;
+
+        @Override
+        public boolean hasProperty(String name) {
+            return map.containsKey(name) || super.hasProperty(name);
+        }
+
+        @Override
+        protected void getOpaqueProperty(String name, GetPropertyResult result) {
+            result.result(map.get(name));
+        }
+
+        @Override
+        protected void getOpaqueProperties(Map<String, Object> properties) {
+            properties.putAll(map);
+        }
+
+        @Override
+        protected void setOpaqueProperty(MetaClass metaClass, String name, Object value) {
+            map.put(name, value);
+        }
+    }
+
+    private class ClassAdapter extends MetaClassAdapter {
+        private final MetaClass classMetaData;
+
+        ClassAdapter(Class<?> cl) {
+            classMetaData = GroovySystem.getMetaClassRegistry().getMetaClass(cl);
+        }
+
+        @Nullable
+        @Override
+        protected MetaProperty lookupProperty(MetaClass metaClass, String name) {
+            MetaProperty metaProperty = super.lookupProperty(metaClass, name);
+            if (metaProperty != null) {
+                return metaProperty;
+            }
+            metaProperty = classMetaData.getMetaProperty(name);
+            if (metaProperty != null && Modifier.isStatic(metaProperty.getModifiers())) {
+                return metaProperty;
+            }
+            return null;
+        }
+
+        @Nullable
+        @Override
+        protected MetaMethod lookupMethod(MetaClass metaClass, String name, Class[] arguments) {
+            MetaMethod metaMethod = super.lookupMethod(metaClass, name, arguments);
+            if (metaMethod != null) {
+                return metaMethod;
+            }
+            metaMethod = classMetaData.getMetaMethod(name, arguments);
+            if (metaMethod != null && Modifier.isStatic(metaMethod.getModifiers())) {
+                return metaMethod;
+            }
+            return null;
         }
     }
 }

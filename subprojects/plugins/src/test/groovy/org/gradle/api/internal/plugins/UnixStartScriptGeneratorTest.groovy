@@ -46,7 +46,7 @@ class UnixStartScriptGeneratorTest extends Specification {
         generator.generateScript(details, destination)
 
         then:
-        destination.toString().split(TextUtil.unixLineSeparator).length == 164
+        destination.toString().split(TextUtil.unixLineSeparator).length == 169
     }
 
     def "defaultJvmOpts is expanded properly in unix script"() {

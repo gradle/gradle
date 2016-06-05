@@ -23,8 +23,14 @@ import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.internal.resource.ResourceExceptions;
@@ -34,15 +40,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
-    private static final Pattern FILENAME_PATTERN = Pattern.compile("[^\\/]+\\.*$");
 
+    private S3ResourceResolver resourceResolver = new S3ResourceResolver();
     private AmazonS3Client amazonS3Client;
     private final S3ConnectionProperties s3ConnectionProperties;
 
@@ -59,13 +62,13 @@ public class S3Client {
 
     private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
         AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
-        S3ClientOptions clientOptions = new S3ClientOptions();
+        S3ClientOptions.Builder clientOptionsBuilder = S3ClientOptions.builder();
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
             amazonS3Client.setEndpoint(endpoint.get().toString());
-            clientOptions.withPathStyleAccess(true);
+            clientOptionsBuilder.setPathStyleAccess(true);
         }
-        amazonS3Client.setS3ClientOptions(clientOptions);
+        amazonS3Client.setS3ClientOptions(clientOptionsBuilder.build());
         return amazonS3Client;
     }
 
@@ -119,51 +122,26 @@ public class S3Client {
         return doGetS3Object(uri, false);
     }
 
-    public List<String> list(URI parent) {
-        List<String> results = new ArrayList<String>();
-
+    public List<String> listDirectChildren(URI parent) {
         S3RegionalResource s3RegionalResource = new S3RegionalResource(parent);
         String bucketName = s3RegionalResource.getBucketName();
         String s3BucketKey = s3RegionalResource.getKey();
         configureClient(s3RegionalResource);
 
         ListObjectsRequest listObjectsRequest = new ListObjectsRequest()
-                .withBucketName(bucketName)
-                .withPrefix(s3BucketKey)
-                .withMaxKeys(1000)
-                .withDelimiter("/");
+            .withBucketName(bucketName)
+            .withPrefix(s3BucketKey)
+            .withMaxKeys(1000)
+            .withDelimiter("/");
         ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
-        results.addAll(resolveResourceNames(objectListing));
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        builder.addAll(resourceResolver.resolveResourceNames(objectListing));
 
         while (objectListing.isTruncated()) {
             objectListing = amazonS3Client.listNextBatchOfObjects(objectListing);
-            results.addAll(resolveResourceNames(objectListing));
+            builder.addAll(resourceResolver.resolveResourceNames(objectListing));
         }
-        return results;
-    }
-
-    private List<String> resolveResourceNames(ObjectListing objectListing) {
-        List<String> results = new ArrayList<String>();
-        List<S3ObjectSummary> objectSummaries = objectListing.getObjectSummaries();
-        if (null != objectSummaries) {
-            for (S3ObjectSummary objectSummary : objectSummaries) {
-                String key = objectSummary.getKey();
-                String fileName = extractResourceName(key);
-                if (null != fileName) {
-                    results.add(fileName);
-                }
-            }
-        }
-        return results;
-    }
-
-    private String extractResourceName(String key) {
-        Matcher matcher = FILENAME_PATTERN.matcher(key);
-        if (matcher.find()) {
-            String group = matcher.group(0);
-            return group.contains(".") ? group : null;
-        }
-        return null;
+        return builder.build();
     }
 
     private S3Object doGetS3Object(URI uri, boolean isLightWeight) {

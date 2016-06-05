@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Input;
 
 import java.util.Set;
 
@@ -75,6 +76,7 @@ public interface TestFilter {
      *
      * @return included test name patterns
      */
+    @Input
     Set<String> getIncludePatterns();
 
     /**
@@ -104,6 +106,7 @@ public interface TestFilter {
      * Returns whether the task should fail if no matching tests where found.
      * The default is true.
      */
+    @Input
     boolean isFailOnNoMatchingTests();
 }
 

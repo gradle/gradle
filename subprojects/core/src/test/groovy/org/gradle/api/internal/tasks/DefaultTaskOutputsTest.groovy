@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks
 
+import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
@@ -44,7 +45,7 @@ class DefaultTaskOutputsTest extends Specification {
 
     public void canRegisterOutputFiles() {
         when:
-        outputs.files('a')
+        outputs.file('a')
 
         then:
         outputs.files.files == [new File('a')] as Set
@@ -60,7 +61,7 @@ class DefaultTaskOutputsTest extends Specification {
 
     public void hasOutputsWhenNonEmptyOutputFilesRegistered() {
         when:
-        outputs.files('a')
+        outputs.file('a')
 
         then:
         outputs.hasOutput
@@ -112,5 +113,35 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'Task history is currently not available for this task.'
+    }
+
+    def "configuration actions are delayed"() {
+        def action = Mock(Action)
+        when:
+        outputs.configure(action)
+
+        then:
+        0 * action.execute(_)
+
+        when:
+        outputs.ensureConfigured()
+        then:
+        1 * action.execute(outputs)
+    }
+
+    def "configuration actions can call configure"() {
+        def action = Mock(Action)
+        when:
+        outputs.configure {
+            it.configure(action)
+        }
+
+        then:
+        0 * action.execute(_)
+
+        when:
+        outputs.ensureConfigured()
+        then:
+        1 * action.execute(outputs)
     }
 }

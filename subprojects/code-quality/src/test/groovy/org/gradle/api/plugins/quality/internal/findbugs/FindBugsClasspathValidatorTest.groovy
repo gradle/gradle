@@ -17,6 +17,7 @@ package org.gradle.api.plugins.quality.internal.findbugs
 
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
+import org.gradle.util.VersionNumber
 import spock.lang.Specification
 
 import static org.gradle.api.plugins.quality.internal.findbugs.FindBugsClasspathValidator.FindBugsVersionTooHighException
@@ -59,5 +60,24 @@ class FindBugsClasspathValidatorTest extends Specification {
         then:
         def ex = thrown(GradleException)
         ex.message.contains('foo.jar')
+    }
+
+    def "finds correct findbugs version in classpath"() {
+
+        when:
+        def version = new FindBugsClasspathValidator(JavaVersion.VERSION_1_8).getFindbugsVersion(classpath)
+
+        then:
+        version.equals(VersionNumber.parse(expectedVersion))
+
+        where:
+        expectedVersion << ['3.0.1', '3.0.0', '2.0.3', '1.3.9']
+
+        classpath << [
+            ['findbugs-jFormatString-1.3.9.jar', 'asm-5.0.4.jar', 'findbugs-annotations-2.0.0.jar', 'findbugs-3.0.1.jar'],
+            ['asm-5.0.4.jar', 'findbugs-annotations-3.0.1.jar', 'findbugs-3.0.0.jar', 'findbugs-jFormatString-2.0.3.jar'],
+            ['findbugs-2.0.3.jar', 'findbugs-annotations-1.3.9.jar', 'findbugs-jFormatString-3.0.1.jar', 'asm-5.0.4.jar'],
+            ['findbugs-annotations-2.0.3.jar', 'findbugs-1.3.9.jar', 'asm-5.0.4.jar', 'findbugs-jFormatString-3.0.0.jar']
+        ]
     }
 }

@@ -14,8 +14,16 @@
  * limitations under the License.
  */
 
+apply from: "$rootDir/gradle/taskProperties.gradle"
+
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
 configurations {
     reports
+}
+
+classpathManifest {
+    optionalProjects = ['gradle-script-kotlin']
 }
 
 dependencies {
@@ -30,6 +38,8 @@ dependencies {
     publishCompile project(":logging")
     publishCompile project(":resources")
 
+    compile project(":processServices")
+    compile project(":jvmServices")
     compile project(":modelCore")
     compile project(":modelGroovy")
     compile libraries.asm
@@ -105,3 +115,6 @@ class PluginsManifest extends DefaultTask {
         propertiesFile.setText(content, "utf-8")
     }
 }
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

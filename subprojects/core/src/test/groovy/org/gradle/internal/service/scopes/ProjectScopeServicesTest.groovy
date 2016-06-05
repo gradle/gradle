@@ -105,6 +105,7 @@ class ProjectScopeServicesTest extends Specification {
         parent.get(ModelRuleSourceDetector) >> modelRuleSourceDetector
         parent.get(ModelRuleExtractor) >> Stub(ModelRuleExtractor)
         parent.get(DependencyInjectingInstantiator.ConstructorCache) >> Stub(DependencyInjectingInstantiator.ConstructorCache)
+        parent.get(ToolingModelBuilderRegistry) >> Mock(ToolingModelBuilderRegistry)
         registry = new ProjectScopeServices(parent, project, loggingManagerInternalFactory)
     }
 

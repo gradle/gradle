@@ -26,7 +26,7 @@ public class NativeServicesTestFixture {
 
     public static synchronized void initialize() {
         if (!initialized) {
-            File nativeDir = new File("build/native-libs");
+            File nativeDir = getNativeServicesDir();
             NativeServices.initialize(nativeDir);
             initialized = true;
         }
@@ -38,5 +38,9 @@ public class NativeServicesTestFixture {
             nativeServices = NativeServices.getInstance();
         }
         return nativeServices;
+    }
+
+    public static File getNativeServicesDir() {
+        return new File("build/native-libs");
     }
 }

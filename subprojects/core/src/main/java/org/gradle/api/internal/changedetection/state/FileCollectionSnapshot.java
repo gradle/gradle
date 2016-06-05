@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.util.ChangeListener;
 
 import java.io.File;
@@ -49,18 +48,6 @@ public interface FileCollectionSnapshot {
 
     interface ChangeIterator<T> {
         boolean next(ChangeListener<T> listener);
-    }
-
-    interface PreCheck {
-        Integer getHash();
-
-        FileCollection getFiles();
-
-        Collection<VisitedTree> getVisitedTrees();
-
-        Collection<File> getMissingFiles();
-
-        boolean isEmpty();
     }
 
     Collection<Long> getTreeSnapshotIds();

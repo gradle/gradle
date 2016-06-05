@@ -20,18 +20,26 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.remote.Address;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
+import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
+import java.security.SecureRandom;
 import java.util.Date;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
 
 /**
  * A long-lived build server that accepts commands via a communication channel.
@@ -42,15 +50,16 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Daemon implements Stoppable {
     private static final Logger LOGGER = Logging.getLogger(Daemon.class);
+    public static final String DAEMON_WILL_STOP_MESSAGE = "Daemon will be stopped at the end of the build ";
+    public static final String DAEMON_STOPPING_IMMEDIATELY_MESSAGE = "Daemon is stopping immediately ";
 
     private final DaemonServerConnector connector;
     private final DaemonRegistry daemonRegistry;
     private final DaemonContext daemonContext;
     private final DaemonCommandExecuter commandExecuter;
-
     private final ScheduledExecutorService scheduledExecutorService;
     private final ExecutorFactory executorFactory;
-    private final String password;
+    private final ListenerManager listenerManager;
 
     private DaemonStateCoordinator stateCoordinator;
 
@@ -66,14 +75,14 @@ public class Daemon implements Stoppable {
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, String password, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory) {
+    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ScheduledExecutorService scheduledExecutorService, ListenerManager listenerManager) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
-        this.password = password;
         this.commandExecuter = commandExecuter;
         this.executorFactory = executorFactory;
-        scheduledExecutorService = Executors.newScheduledThreadPool(1);
+        this.scheduledExecutorService = scheduledExecutorService;
+        this.listenerManager = listenerManager;
     }
 
     public String getUid() {
@@ -105,9 +114,15 @@ public class Daemon implements Stoppable {
                 throw new IllegalStateException("cannot start daemon as it is already running");
             }
 
-            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, password);
+            // Generate an authentication token, which must be provided by the client in any requests it makes
+            SecureRandom secureRandom = new SecureRandom();
+            byte[] token = new byte[16];
+            secureRandom.nextBytes(token);
+
+            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, token);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
+                @Override
                 public void run() {
                     try {
                         daemonRegistry.remove(connectorAddress);
@@ -118,12 +133,14 @@ public class Daemon implements Stoppable {
             });
 
             Runnable onStartCommand = new Runnable() {
+                @Override
                 public void run() {
                     registryUpdater.onStartActivity();
                 }
             };
 
             Runnable onFinishCommand = new Runnable() {
+                @Override
                 public void run() {
                     registryUpdater.onCompleteActivity();
                 }
@@ -136,7 +153,7 @@ public class Daemon implements Stoppable {
             // 4. advertise presence in registry
 
             stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand);
-            connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory);
+            connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory, token);
             Runnable connectionErrorHandler = new Runnable() {
                 @Override
                 public void run() {
@@ -166,6 +183,7 @@ public class Daemon implements Stoppable {
      * What will happen though is that the daemon will immediately disconnect from any clients and remove itself
      * from the registry.
      */
+    @Override
     public void stop() {
         LOGGER.debug("stop() called on daemon");
         lifecycleLock.lock();
@@ -196,11 +214,14 @@ public class Daemon implements Stoppable {
      */
     public void stopOnExpiration(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
         LOGGER.debug("stopOnExpiration() called on daemon");
-
-        DaemonExpirationPeriodicCheck periodicCheck = new DaemonExpirationPeriodicCheck(this, expirationStrategy);
-        scheduledExecutorService.scheduleAtFixedRate(periodicCheck, checkIntervalMills, checkIntervalMills, TimeUnit.MILLISECONDS);
-
+        scheduleExpirationChecks(expirationStrategy, checkIntervalMills);
         awaitExpiration();
+    }
+
+    private void scheduleExpirationChecks(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
+        DaemonExpirationPeriodicCheck periodicCheck = new DaemonExpirationPeriodicCheck(expirationStrategy, listenerManager);
+        listenerManager.addListener(new DefaultDaemonExpirationListener(stateCoordinator, registryUpdater));
+        scheduledExecutorService.scheduleAtFixedRate(periodicCheck, checkIntervalMills, checkIntervalMills, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -223,27 +244,78 @@ public class Daemon implements Stoppable {
         stateCoordinator.awaitStop();
     }
 
-    DaemonStateCoordinator getStateCoordinator() {
+    public DaemonStateCoordinator getStateCoordinator() {
         return stateCoordinator;
     }
 
     private static class DaemonExpirationPeriodicCheck implements Runnable {
-        private final Daemon daemon;
-        private DaemonExpirationStrategy expirationStrategy;
+        private final DaemonExpirationStrategy expirationStrategy;
+        private final ListenerBroadcast<DaemonExpirationListener> listenerBroadcast;
+        private final Lock lock = new ReentrantLock();
 
-        DaemonExpirationPeriodicCheck(Daemon daemon, DaemonExpirationStrategy expirationStrategy) {
-            this.daemon = daemon;
+        DaemonExpirationPeriodicCheck(DaemonExpirationStrategy expirationStrategy, ListenerManager listenerManager) {
             this.expirationStrategy = expirationStrategy;
+            this.listenerBroadcast = listenerManager.createAnonymousBroadcaster(DaemonExpirationListener.class);
         }
 
         @Override
         public void run() {
-            LOGGER.debug("DaemonExpirationPeriodicCheck running");
-            final DaemonExpirationResult expirationCheck = expirationStrategy.checkExpiration(daemon);
-            if (expirationCheck.isExpired()) {
-                LOGGER.info("Daemon expiration criteria met, requesting stop");
-                LOGGER.lifecycle("Daemon stopping because " + expirationCheck.getReason());
-                daemon.getStateCoordinator().requestStop();
+            if (lock.tryLock()) {
+                try {
+                    LOGGER.debug("DaemonExpirationPeriodicCheck running");
+                    final DaemonExpirationResult result = expirationStrategy.checkExpiration();
+                    if (result.getStatus() != DO_NOT_EXPIRE) {
+                        listenerBroadcast.getSource().onExpirationEvent(result);
+                    }
+                } catch (Throwable t) {
+                    LOGGER.error("Problem in daemon expiration check", t);
+                    if (t instanceof Error) {
+                        // never swallow java.lang.Error
+                        throw (Error) t;
+                    }
+                } finally {
+                    lock.unlock();
+                }
+            } else {
+                LOGGER.warn("Previous DaemonExpirationPeriodicCheck was still running when the next run was scheduled.");
+            }
+        }
+    }
+
+    private static class DefaultDaemonExpirationListener implements DaemonExpirationListener {
+        private final DaemonStateControl stateControl;
+        private final DomainRegistryUpdater registryUpdater;
+
+        public DefaultDaemonExpirationListener(DaemonStateControl stateControl, DomainRegistryUpdater registryUpdater) {
+            this.stateControl = stateControl;
+            this.registryUpdater = registryUpdater;
+        }
+
+        @Override
+        public void onExpirationEvent(DaemonExpirationResult result) {
+            switch (result.getStatus()) {
+                case DO_NOT_EXPIRE:
+                    break;
+                case QUIET_EXPIRE:
+                    if (!stateControl.isStopping()) {
+                        LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + result.getReason());
+                        stateControl.requestStop();
+                    }
+                    break;
+                case GRACEFUL_EXPIRE:
+                    if (!stateControl.isStopping()) {
+                        LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + result.getReason());
+                        stateControl.requestStop();
+                        registryUpdater.onExpire(result.getReason());
+                    }
+                    break;
+                case IMMEDIATE_EXPIRE:
+                    if (!stateControl.isStopped()) {
+                        LOGGER.lifecycle(DAEMON_STOPPING_IMMEDIATELY_MESSAGE + result.getReason());
+                        stateControl.requestForcefulStop(result.getReason());
+                        registryUpdater.onExpire(result.getReason());
+                    }
+                    break;
             }
         }
     }

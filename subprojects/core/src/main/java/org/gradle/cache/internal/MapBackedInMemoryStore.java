@@ -23,15 +23,14 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
 import java.util.Map;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class MapBackedInMemoryStore implements PersistentStore {
-    private final Lock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
 
     @Override
     public <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-        return new CacheImpl<K, V>();
+        return new CacheImpl<K, V>(lock);
     }
 
     @Override
@@ -65,23 +64,35 @@ public class MapBackedInMemoryStore implements PersistentStore {
     }
 
     private static class CacheImpl<K, V> implements PersistentIndexedCache<K, V> {
-
+        private final ReentrantLock lock;
         Map<K, V> entries = Maps.newHashMap();
+
+        public CacheImpl(ReentrantLock lock) {
+            this.lock = lock;
+        }
 
         @Override
         public V get(K key) {
+            checkLocked();
             return entries.get(key);
+        }
+
+        private void checkLocked() {
+            if (!lock.isLocked()) {
+                throw new IllegalStateException("A cache should only be accessed within a CacheAccess.useCache block");
+            }
         }
 
         @Override
         public void put(K key, V value) {
+            checkLocked();
             entries.put(key, value);
         }
 
         @Override
         public void remove(K key) {
+            checkLocked();
             entries.remove(key);
-
         }
     }
 }

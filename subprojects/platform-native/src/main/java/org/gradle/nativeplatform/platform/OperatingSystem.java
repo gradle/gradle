@@ -17,6 +17,8 @@ package org.gradle.nativeplatform.platform;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 
 /**
  * A machine operating system.
@@ -46,38 +48,49 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface OperatingSystem extends Named {
+    @Input
+    @Override
+    String getName();
+
     /**
      * Returns a human-consumable display name for this operating system.
      */
+    @Internal
     String getDisplayName();
 
     /**
      * Is this the current OS?
      */
+    @Internal
     boolean isCurrent();
 
     /**
      * Is it Windows?
      */
+    @Internal
     boolean isWindows();
 
     /**
      * Is it Mac OS X?
      */
+    @Internal
     boolean isMacOsX();
 
     /**
      * Is it Linux?
      */
+    @Internal
     boolean isLinux();
 
     /**
      * Is it Solaris?
      */
+    @Internal
     boolean isSolaris();
 
     /**
      * Is it FreeBSD?
      */
+    @Internal
     boolean isFreeBSD();
 }

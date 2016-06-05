@@ -1,9 +1,0 @@
-if(!org.gradle.internal.os.OperatingSystem.current().isWindows()){
-    apply plugin:'jacoco'
-    jacoco {
-        // Pinning to this version to avoid convflicting with older sonar plugin.
-        toolVersion = "0.7.1.201405082137"
-    }
-}
-description = "Sonar Test Java Project"
-

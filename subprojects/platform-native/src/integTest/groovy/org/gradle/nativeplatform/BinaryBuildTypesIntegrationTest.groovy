@@ -19,14 +19,12 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.NativePlatformsTestFixture
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
 class BinaryBuildTypesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def helloWorldApp = new CppHelloWorldApp()
 
-    @LeaksFileHandles("can't delete build/binaries/mainExecutable/integration")
     def "creates debug and release variants"() {
         when:
         helloWorldApp.writeSources(file("src/main"))
@@ -89,7 +87,6 @@ model {
         }
     }
 
-    @LeaksFileHandles
     def "configure component for a single build type"() {
         when:
         helloWorldApp.writeSources(file("src/main"))
@@ -123,7 +120,6 @@ model {
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-    @LeaksFileHandles
     def "executable with build type depends on library with matching build type"() {
         when:
         helloWorldApp.executable.writeSources(file("src/main"))

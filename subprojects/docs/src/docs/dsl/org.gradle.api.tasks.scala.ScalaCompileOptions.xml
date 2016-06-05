@@ -25,14 +25,6 @@
                 </tr>
             </thead>
             <tr>
-                <td>useCompileDaemon</td>
-                <td><literal>false</literal></td>
-            </tr>
-            <tr>
-                <td>daemonServer</td>
-                <td><literal>null</literal></td>
-            </tr>
-            <tr>
                 <td>failOnError</td>
                 <td><literal>true</literal></td>
             </tr>

@@ -30,6 +30,7 @@ import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
+import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.util.Collection;
@@ -42,16 +43,19 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final FileCollectionSnapshotter discoveredInputsSnapshotter;
     private final Instantiator instantiator;
     private final FileCollectionFactory fileCollectionFactory;
+    private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
     public DefaultTaskArtifactStateRepository(TaskHistoryRepository taskHistoryRepository, Instantiator instantiator,
                                               OutputFilesCollectionSnapshotter outputFilesSnapshotter, FileCollectionSnapshotter inputFilesSnapshotter,
-                                              FileCollectionSnapshotter discoveredInputsSnapshotter, FileCollectionFactory fileCollectionFactory) {
+                                              FileCollectionSnapshotter discoveredInputsSnapshotter, FileCollectionFactory fileCollectionFactory,
+                                              ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.taskHistoryRepository = taskHistoryRepository;
         this.instantiator = instantiator;
         this.outputFilesSnapshotter = outputFilesSnapshotter;
         this.inputFilesSnapshotter = inputFilesSnapshotter;
         this.discoveredInputsSnapshotter = discoveredInputsSnapshotter;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
@@ -120,7 +124,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public void beforeTask() {
-            getStates().getAllTaskChanges().snapshotBeforeTask();
         }
 
         public void afterTask() {
@@ -135,14 +138,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             history.update();
         }
 
-        public void finished(boolean wasUpToDate) {
-            history.finished(wasUpToDate);
+        public void finished() {
         }
 
         private TaskUpToDateState getStates() {
             if (states == null) {
                 // Calculate initial state - note this is potentially expensive
-                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, inputFilesSnapshotter, discoveredInputsSnapshotter, fileCollectionFactory);
+                states = new TaskUpToDateState(task, history, outputFilesSnapshotter, inputFilesSnapshotter, discoveredInputsSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher);
             }
             return states;
         }

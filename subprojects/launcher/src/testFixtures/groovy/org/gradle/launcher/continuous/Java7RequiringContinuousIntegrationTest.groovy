@@ -16,9 +16,5 @@
 
 package org.gradle.launcher.continuous
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
-
-@Requires(TestPrecondition.JDK7_OR_LATER)
 abstract class Java7RequiringContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 }

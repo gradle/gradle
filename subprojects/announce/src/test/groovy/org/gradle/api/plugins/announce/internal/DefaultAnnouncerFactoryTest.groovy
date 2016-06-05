@@ -18,15 +18,18 @@ package org.gradle.api.plugins.announce.internal
 import org.gradle.api.internal.ProcessOperations
 import org.gradle.api.plugins.announce.AnnouncePluginExtension
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class DefaultAnnouncerFactoryTest extends Specification {
-    final project = TestUtil.createRootProject()
-    final extension = new AnnouncePluginExtension(project)
+class DefaultAnnouncerFactoryTest extends AbstractProjectBuilderSpec {
     final ProcessOperations processOperations = Mock()
     final IconProvider iconProvider = Mock()
-    final announcerFactory = new DefaultAnnouncerFactory(extension, processOperations, iconProvider)
+    def extension
+    def announcerFactory
+
+    def setup() {
+        extension = new AnnouncePluginExtension(project)
+        announcerFactory = new DefaultAnnouncerFactory(extension, processOperations, iconProvider)
+    }
 
     def createForTwitter() {
         extension.username = 'username'

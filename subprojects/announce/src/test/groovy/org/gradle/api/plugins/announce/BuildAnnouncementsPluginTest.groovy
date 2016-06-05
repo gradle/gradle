@@ -15,12 +15,9 @@
  */
 package org.gradle.api.plugins.announce
 
-import spock.lang.Specification
-import org.gradle.util.TestUtil
-import org.gradle.api.Project
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class BuildAnnouncementsPluginTest extends Specification {
-    final Project project = TestUtil.createRootProject()
+class BuildAnnouncementsPluginTest extends AbstractProjectBuilderSpec {
     final BuildAnnouncementsPlugin plugin = new BuildAnnouncementsPlugin()
 
     def "applies announce plugin"() {

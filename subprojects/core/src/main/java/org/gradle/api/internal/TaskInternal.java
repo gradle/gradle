@@ -24,17 +24,20 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.TaskValidator;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Factory;
-import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.Configurable;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public interface TaskInternal extends Task, Configurable<Task> {
 
     // Can we just override Task.getActions()?
     // Would need to change return type on Task API to: List<? super Action<? super Task>> : not certain this is back-compatible
     List<ContextAwareTaskAction> getTaskActions();
+
+    Set<ClassLoader> getActionClassLoaders();
 
     Spec<? super TaskInternal> getOnlyIf();
 
@@ -46,6 +49,10 @@ public interface TaskInternal extends Task, Configurable<Task> {
 
     void setExecuter(TaskExecuter executer);
 
+    @Override
+    TaskInputsInternal getInputs();
+
+    @Override
     TaskOutputsInternal getOutputs();
 
     List<TaskValidator> getValidators();

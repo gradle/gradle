@@ -18,13 +18,12 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
- * A ModuleResolutionFilter that accepts any module that has a module id other than the one specified.
- * Accepts all artifacts.
+ * Excludes any module that has a module id matching the one specified.
+ * Does not exclude artifacts.
  */
-class ModuleIdExcludeSpec extends AbstractModuleExcludeRuleFilter {
+class ModuleIdExcludeSpec extends AbstractModuleExclusion {
     final ModuleIdentifier moduleId;
 
     public ModuleIdExcludeSpec(String group, String name) {
@@ -33,41 +32,27 @@ class ModuleIdExcludeSpec extends AbstractModuleExcludeRuleFilter {
 
     @Override
     public String toString() {
-        return String.format("{module-id %s}", moduleId);
+        return "{module-id " + moduleId + "}";
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (o == null || o.getClass() != getClass()) {
-            return false;
-        }
+    protected boolean doEquals(Object o) {
         ModuleIdExcludeSpec other = (ModuleIdExcludeSpec) o;
         return moduleId.equals(other.moduleId);
     }
 
     @Override
-    public int hashCode() {
+    protected int doHashCode() {
         return moduleId.hashCode();
     }
 
     @Override
-    protected boolean doAcceptsSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    protected boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
         ModuleIdExcludeSpec moduleIdExcludeSpec = (ModuleIdExcludeSpec) other;
         return moduleId.equals(moduleIdExcludeSpec.moduleId);
     }
 
-    public boolean acceptModule(ModuleIdentifier module) {
-        return !module.equals(moduleId);
-    }
-
-    public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-        return true;
-    }
-
-    public boolean acceptsAllArtifacts() {
-        return true;
+    public boolean excludeModule(ModuleIdentifier module) {
+        return module.equals(moduleId);
     }
 }

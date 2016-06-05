@@ -30,6 +30,9 @@ import java.io.File;
  */
 public class JacocoAgentJar {
 
+    private static final VersionNumber V_0_6_2_0 = VersionNumber.parse("0.6.2.0");
+    private static final VersionNumber V_0_7_6_0 = VersionNumber.parse("0.7.6.0");
+
     private final Project project;
     private FileCollection agentConf;
     private File agentJar;
@@ -75,7 +78,7 @@ public class JacocoAgentJar {
         boolean pre062 = Iterables.any(getAgentConfConventionValue(), new Predicate<File>() {
             @Override
             public boolean apply(File file) {
-                return VersionNumber.parse("0.6.2.0").compareTo(extractVersion(file.getName())) > 0;
+                return V_0_6_2_0.compareTo(extractVersion(file.getName())) > 0;
             }
         });
         return !pre062;
@@ -85,7 +88,7 @@ public class JacocoAgentJar {
         boolean pre076 = Iterables.any(getAgentConfConventionValue(), new Predicate<File>() {
             @Override
             public boolean apply(File file) {
-                return VersionNumber.parse("0.7.6.0").compareTo(extractVersion(file.getName())) > 0;
+                return V_0_7_6_0.compareTo(extractVersion(file.getName())) > 0;
             }
         });
         return !pre076;

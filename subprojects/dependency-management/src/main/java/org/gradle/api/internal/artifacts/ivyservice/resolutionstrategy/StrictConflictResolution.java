@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy;
 
-import org.gradle.api.artifacts.ConflictResolution;
+import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 
 /**
  * Strict type, allows configuring (forcing) certain dependency versions using dependency notation

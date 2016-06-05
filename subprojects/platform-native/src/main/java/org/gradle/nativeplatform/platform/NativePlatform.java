@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.platform;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.tasks.Nested;
 import org.gradle.internal.HasInternalProtocol;
 import org.gradle.platform.base.Platform;
 
@@ -41,6 +42,7 @@ public interface NativePlatform extends Platform {
     /**
      * The cpu architecture being targeted. Defaults to the default architecture produced by the tool chain.
      */
+    @Nested
     Architecture getArchitecture();
 
     /**
@@ -56,6 +58,7 @@ public interface NativePlatform extends Platform {
      * The operating system being targeted.
      * Defaults to the default operating system targeted by the tool chain (normally the current operating system).
      */
+    @Nested
     OperatingSystem getOperatingSystem();
 
     /**

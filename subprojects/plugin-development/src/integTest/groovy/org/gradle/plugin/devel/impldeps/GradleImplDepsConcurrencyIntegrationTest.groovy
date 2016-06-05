@@ -21,7 +21,7 @@ import org.gradle.api.Plugin
 class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
     private static final int CONCURRENT_BUILDS_PROJECT_COUNT = 5
-    private static final int CONCURRENT_TASKS_PROJECT_COUNT = 10
+    private static final int CONCURRENT_TASKS_PROJECT_COUNT = 4
 
     def setup() {
         requireOwnGradleUserHomeDir()
@@ -81,7 +81,6 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
         setupSettingsFile(CONCURRENT_TASKS_PROJECT_COUNT)
 
         when:
-        executer.withBuildJvmOpts('-Xmx2048m')
         executeBuildInParallel('resolveDependencies')
 
         then:
@@ -104,7 +103,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
                 doLast {
                     def files = configurations.gradleImplDeps.resolve()
                     file('deps.txt').text = files.collect {
-                        java.security.MessageDigest.getInstance('MD5').digest(it.bytes).encodeHex().toString()
+                        org.gradle.internal.hash.HashUtil.createHash(it, 'MD5').asByteArray().encodeHex().toString()
                     }.join(',')
                 }
             }
@@ -152,6 +151,7 @@ class GradleImplDepsConcurrencyIntegrationTest extends BaseGradleImplDepsIntegra
     }
 
     private void executeBuildInParallel(String... taskNames) {
+        executer.withBuildJvmOpts('-Xmx1024m')
         args('--parallel')
         succeeds taskNames
     }

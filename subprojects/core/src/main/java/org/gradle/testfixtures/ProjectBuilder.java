@@ -15,6 +15,7 @@
  */
 package org.gradle.testfixtures;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.testfixtures.internal.ProjectBuilderImpl;
 
@@ -41,6 +42,7 @@ import java.io.File;
 public class ProjectBuilder {
 
     private File projectDir;
+    private File gradleUserHomeDir;
     private String name = "test";
     private Project parent;
     private ProjectBuilderImpl impl = new ProjectBuilderImpl();
@@ -62,6 +64,17 @@ public class ProjectBuilder {
      */
     public ProjectBuilder withProjectDir(File dir) {
         projectDir = dir;
+        return this;
+    }
+
+    /**
+     * Specifies the Gradle user home for the builder. If not set, an empty directory under the project directory
+     * will be used.
+     * @return The builder
+     */
+    @Incubating
+    public ProjectBuilder withGradleUserHomeDir(File dir) {
+        gradleUserHomeDir = dir;
         return this;
     }
 
@@ -96,6 +109,6 @@ public class ProjectBuilder {
         if (parent != null) {
             return impl.createChildProject(name, parent, projectDir);
         }
-        return impl.createProject(name, projectDir);
+        return impl.createProject(name, projectDir, gradleUserHomeDir);
     }
 }

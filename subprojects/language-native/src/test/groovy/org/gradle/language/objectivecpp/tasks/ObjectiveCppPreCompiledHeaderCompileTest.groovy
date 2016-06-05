@@ -15,7 +15,6 @@
  */
 
 package org.gradle.language.objectivecpp.tasks
-
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -26,12 +25,14 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.nativeplatform.toolchain.internal.compilespec.ObjectiveCppPCHCompileSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
-
 class ObjectiveCppPreCompiledHeaderCompileTest extends Specification {
-    def testDir = new TestNameTestDirectoryProvider().testDirectory
-    ObjectiveCppPreCompiledHeaderCompile objCppPCHCompile = TestUtil.createTask(ObjectiveCppPreCompiledHeaderCompile)
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+
+    ObjectiveCppPreCompiledHeaderCompile objCppPCHCompile = TestUtil.create(testDir).task(ObjectiveCppPreCompiledHeaderCompile)
     def toolChain = Mock(NativeToolChainInternal)
     def platform = Mock(NativePlatformInternal)
     def platformToolChain = Mock(PlatformToolProvider)
@@ -51,6 +52,7 @@ class ObjectiveCppPreCompiledHeaderCompileTest extends Specification {
 
         then:
         _ * toolChain.outputType >> "objcpp"
+        platform.getName() >> "testPlatform"
         platform.getArchitecture() >> Mock(ArchitectureInternal) { getName() >> "arch" }
         platform.getOperatingSystem() >> Mock(OperatingSystemInternal) { getName() >> "os" }
         1 * toolChain.select(platform) >> platformToolChain

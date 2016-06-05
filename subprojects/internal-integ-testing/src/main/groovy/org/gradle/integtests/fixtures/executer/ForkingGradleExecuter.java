@@ -21,6 +21,8 @@ import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
+import org.gradle.process.internal.AbstractExecHandleBuilder;
+import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
@@ -130,7 +132,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    private ExecHandleBuilder createExecHandleBuilder() {
+    private DefaultExecHandleBuilder createExecHandleBuilder() {
         TestFile gradleHomeDir = getDistribution().getGradleHomeDir();
         if (!gradleHomeDir.isDirectory()) {
             fail(gradleHomeDir + " is not a directory.\n"
@@ -138,7 +140,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         NativeServicesTestFixture.initialize();
-        ExecHandleBuilder builder = new ExecHandleBuilder(TestFiles.resolver()) {
+        DefaultExecHandleBuilder builder = new DefaultExecHandleBuilder(TestFiles.resolver()) {
             @Override
             public File getWorkingDir() {
                 // Override this, so that the working directory is not canonicalised. Some int tests require that
@@ -169,14 +171,14 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public GradleHandle doStart() {
-        return createGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), new Factory<ExecHandleBuilder>() {
-            public ExecHandleBuilder create() {
+        return createGradleHandle(getResultAssertion(), getDefaultCharacterEncoding(), new Factory<DefaultExecHandleBuilder>() {
+            public DefaultExecHandleBuilder create() {
                 return createExecHandleBuilder();
             }
         }).start();
     }
 
-    protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<ExecHandleBuilder> execHandleFactory) {
+    protected ForkingGradleHandle createGradleHandle(Action<ExecutionResult> resultAssertion, String encoding, Factory<? extends AbstractExecHandleBuilder> execHandleFactory) {
         return new ForkingGradleHandle(getStdinPipe(), isUseDaemon(), resultAssertion, encoding, execHandleFactory);
     }
 

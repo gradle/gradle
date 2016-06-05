@@ -23,7 +23,7 @@ import org.gradle.tooling.ProjectConnection
 import org.junit.Rule
 
 @ToolingApiVersion(">=2.1")
-@TargetGradleVersion("<2.1 >=1.0-milestone-8")
+@TargetGradleVersion("<2.1 >=1.2")
 class PreCancellationCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 

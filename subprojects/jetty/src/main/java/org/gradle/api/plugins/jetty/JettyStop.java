@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.jetty;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -70,6 +71,7 @@ public class JettyStop extends ConventionTask {
     /**
      * Returns the TCP port to use to send stop command.
      */
+    @Internal
     public Integer getStopPort() {
         return stopPort;
     }
@@ -86,6 +88,7 @@ public class JettyStop extends ConventionTask {
      *
      * @see #setStopKey(String)
      */
+    @Internal
     public String getStopKey() {
         return stopKey;
     }

@@ -15,12 +15,10 @@
  */
 
 package org.gradle.internal.installation
-
 import org.gradle.internal.concurrent.CompositeStoppable
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
@@ -28,8 +26,8 @@ import org.objectweb.asm.tree.ClassNode
 import spock.lang.Specification
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.JDK7_OR_LATER)
-// so we can close the classloaders and allow files to be cleaned up
+@LeaksFileHandles
+// This test keeps the jars locked on Windows JDK 1.7
 class CurrentGradleInstallationLocatorTest extends Specification {
     @Rule
     final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()

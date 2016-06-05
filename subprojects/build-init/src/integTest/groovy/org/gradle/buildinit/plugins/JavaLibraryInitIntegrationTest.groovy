@@ -24,7 +24,6 @@ import org.gradle.util.Requires
 
 import static org.gradle.buildinit.plugins.internal.JavaLibraryProjectInitDescriptor.TESTNG_JAVA6_WARNING
 import static org.gradle.util.TestPrecondition.JDK6
-import static org.gradle.util.TestPrecondition.JDK7_OR_LATER
 
 class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
@@ -70,7 +69,6 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
         assertTestPassed("someLibraryMethod returns true")
     }
 
-    @Requires(JDK7_OR_LATER)
     def "creates sample source using testng instead of junit"() {
         when:
         succeeds('init', '--type', 'java-library', '--test-framework', 'testng')

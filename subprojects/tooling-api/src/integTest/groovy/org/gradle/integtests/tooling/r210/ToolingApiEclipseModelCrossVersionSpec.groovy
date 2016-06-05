@@ -31,7 +31,7 @@ class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
         settingsFile << "rootProject.name = 'root'"
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8 <2.10")
+    @TargetGradleVersion(">=1.2 <2.10")
     def "older Gradle versions throw exception when querying Java source settings"() {
         when:
         EclipseProject rootProject = loadToolingModel(EclipseProject)

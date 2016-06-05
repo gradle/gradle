@@ -17,4 +17,15 @@
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
     <xsl:import href="html/docbook.xsl"/>
     <xsl:import href="userGuideHtmlCommon.xsl"/>
+
+    <!--
+      Customize HTML page titles to include "User Guide" and version to help
+      with Google results. See issue doc-portal#9.
+    -->
+    <xsl:template match="book" mode="object.title.markup.textonly">
+        <xsl:value-of select="bookinfo/title"/>
+        <xsl:text> Version </xsl:text>
+        <xsl:value-of select="bookinfo/releaseinfo"/>
+        <xsl:text> (Single Page)</xsl:text>
+    </xsl:template>
 </xsl:stylesheet>

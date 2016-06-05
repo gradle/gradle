@@ -15,13 +15,14 @@
  */
 package org.gradle.api.plugins.quality;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.resources.TextResource;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.Set;
 
 /**
  * Configuration options for the CodeNarc plugin.
@@ -29,6 +30,8 @@ import java.util.Arrays;
  * @see CodeNarc
  */
 public class CodeNarcExtension extends CodeQualityExtension {
+
+    private static final Set<String> REPORT_FORMATS = Sets.newHashSet("xml", "html", "console", "text");
 
     private final Project project;
 
@@ -111,7 +114,7 @@ public class CodeNarcExtension extends CodeQualityExtension {
     }
 
     public void setReportFormat(String reportFormat) {
-        if (Arrays.asList("xml", "html", "console", "text").contains(reportFormat)) {
+        if (REPORT_FORMATS.contains(reportFormat)) {
             this.reportFormat = reportFormat;
         } else {
             throw new InvalidUserDataException("'" + reportFormat + "' is not a valid codenarc report format");

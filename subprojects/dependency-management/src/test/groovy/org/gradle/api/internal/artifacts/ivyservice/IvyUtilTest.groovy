@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.internal.artifacts.ivyservice
 
-import org.apache.ivy.core.module.id.ArtifactId
 import org.apache.ivy.core.module.id.ModuleRevisionId
 import spock.lang.Specification
 
@@ -30,16 +29,5 @@ class IvyUtilTest extends Specification {
         l[0] == moduleRevisionId.organisation
         l[1] == moduleRevisionId.name
         l[2] == moduleRevisionId.revision
-    }
-
-    def "create artifact ID"() {
-        when:
-        ArtifactId artifactId = IvyUtil.createArtifactId('org', 'module', 'test', 'jar', 'jar')
-
-        then:
-        artifactId.moduleId == IvyUtil.createModuleId('org', 'module')
-        artifactId.name == 'test'
-        artifactId.type == 'jar'
-        artifactId.ext == 'jar'
     }
 }

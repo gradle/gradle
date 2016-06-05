@@ -18,24 +18,11 @@ package org.gradle.scala.compile
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.TestResources
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
 @TargetCoverage({ScalaCoverage.DEFAULT})
-@LeaksFileHandles
 class ZincScalaCompilerIntegrationTest extends BasicScalaCompilerIntegrationTest {
     @Rule TestResources testResources = new TestResources(temporaryFolder)
-
-    // Explicitly set the options to their default values so that the
-    // test will be robust against future changes to these defaults.
-    String compilerConfiguration() {
-        """
-        compileScala.scalaCompileOptions.with {
-            useAnt = false
-            fork = true
-        }
-        """
-    }
 
     String logStatement() {
         "Compiling with Zinc Scala compiler"

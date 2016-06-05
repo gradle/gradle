@@ -20,10 +20,16 @@ import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable
 import org.gradle.platform.base.internal.DefaultBinaryTasksCollection
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultNativeTestSuiteBinarySpecTest extends Specification {
+    @Rule
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final def testUtil = TestUtil.create(testDir)
+
     def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null))
 
     def "returns null for link, install and run when none defined"() {
@@ -35,7 +41,7 @@ class DefaultNativeTestSuiteBinarySpecTest extends Specification {
 
     def "returns link task when defined"() {
         when:
-        final linkTask = TestUtil.createTask(LinkExecutable)
+        final linkTask = testUtil.task(LinkExecutable)
         tasks.add(linkTask)
 
         then:
@@ -46,7 +52,7 @@ class DefaultNativeTestSuiteBinarySpecTest extends Specification {
 
     def "returns install task when defined"() {
         when:
-        final installTask = TestUtil.createTask(InstallExecutable)
+        final installTask = testUtil.task(InstallExecutable)
         tasks.add(installTask)
 
         then:
@@ -57,7 +63,7 @@ class DefaultNativeTestSuiteBinarySpecTest extends Specification {
 
     def "returns run task when defined"() {
         when:
-        final runTask = TestUtil.createTask(RunTestExecutable)
+        final runTask = testUtil.task(RunTestExecutable)
         tasks.add(runTask)
 
         then:

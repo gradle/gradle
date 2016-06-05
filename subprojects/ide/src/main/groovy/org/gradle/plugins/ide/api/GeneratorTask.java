@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.api;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
@@ -92,6 +93,8 @@ public class GeneratorTask<T> extends ConventionTask {
      *
      * @return The input file.
      */
+    // @Optional @InputFile
+    @Internal
     public File getInputFile() {
         return inputFile != null ? inputFile : getOutputFile();
     }

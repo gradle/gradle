@@ -20,10 +20,10 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UnknownDomainObjectException;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.plugins.DeferredConfigurable;
 import org.gradle.internal.UncheckedException;
 import org.gradle.listener.ActionBroadcast;
+import org.gradle.util.ConfigureUtil;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -64,7 +64,7 @@ public class ExtensionsStorage {
 
     public <T> T configureExtension(String methodName, Object ... arguments) {
         Closure closure = (Closure) arguments[0];
-        ClosureBackedAction<T> action = new ClosureBackedAction<T>(closure);
+        Action<T> action = ConfigureUtil.configureUsing(closure);
         ExtensionHolder<T> extensionHolder = extensions.get(methodName);
         return extensionHolder.configure(action);
     }
@@ -138,7 +138,7 @@ public class ExtensionsStorage {
         }
 
         public T configure(Closure configuration) {
-            return configure(new ClosureBackedAction<T>(configuration));
+            return configure(ConfigureUtil.configureUsing(configuration));
         }
 
         public T configure(Action<? super T> action) {

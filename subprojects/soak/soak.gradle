@@ -1,0 +1,21 @@
+
+useTestFixtures()
+useClassycle()
+
+dependencies {
+    testFixturesCompile project(':internalIntegTesting')
+}
+
+integTest {
+    options {
+        excludeCategories 'org.gradle.soak.categories.SoakTest'
+    }
+}
+
+task('soakTest', type: Test) {
+    systemProperties['org.gradle.soaktest'] = 'true'
+    options {
+        includeCategories 'org.gradle.soak.categories.SoakTest'
+    }
+    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+}

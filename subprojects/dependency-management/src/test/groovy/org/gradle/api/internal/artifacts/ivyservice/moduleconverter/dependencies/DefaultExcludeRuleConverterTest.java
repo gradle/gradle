@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
-import org.apache.ivy.plugins.matcher.ExactPatternMatcher;
-import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -31,19 +31,19 @@ public class DefaultExcludeRuleConverterTest {
         String configurationName = "someConf";
         final String someOrg = "someOrg";
         final String someModule = "someModule";
-        org.apache.ivy.core.module.descriptor.ExcludeRule ivyExcludeRule =
-                new DefaultExcludeRuleConverter().createExcludeRule(configurationName, new DefaultExcludeRule(someOrg, someModule));
-        assertThat(ivyExcludeRule.getId().getModuleId().getOrganisation(),
+        Exclude exclude =
+                new DefaultExcludeRuleConverter().convertExcludeRule(configurationName, new DefaultExcludeRule(someOrg, someModule));
+        assertThat(exclude.getModuleId().getGroup(),
                 Matchers.equalTo(someOrg));
-        assertThat(ivyExcludeRule.getId().getName(),
-                Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
-        assertThat(ivyExcludeRule.getId().getExt(),
-                Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
-        assertThat(ivyExcludeRule.getId().getType(),
-                Matchers.equalTo(PatternMatcher.ANY_EXPRESSION));
-        assertThat((ExactPatternMatcher) ivyExcludeRule.getMatcher(),
-                Matchers.equalTo(ExactPatternMatcher.INSTANCE));
-        assertThat(ivyExcludeRule.getConfigurations(),
+        assertThat(exclude.getModuleId().getName(),
+                Matchers.equalTo(someModule));
+        assertThat(exclude.getArtifact().getExtension(),
+                Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
+        assertThat(exclude.getArtifact().getType(),
+                Matchers.equalTo(PatternMatchers.ANY_EXPRESSION));
+        assertThat(exclude.getMatcher(),
+                Matchers.equalTo(PatternMatchers.EXACT));
+        assertThat(exclude.getConfigurations(),
                 Matchers.equalTo(WrapUtil.toArray(configurationName)));
     }
 }

@@ -21,6 +21,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -42,8 +44,11 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+/**
+ * Base task for linking a native binary from object files and libraries.
+ */
 @Incubating
-abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
+public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
 
     private NativeToolChainInternal toolChain;
     private NativePlatformInternal targetPlatform;
@@ -67,6 +72,7 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
     /**
      * The tool chain used for linking.
      */
+    @Internal
     public NativeToolChain getToolChain() {
         return toolChain;
     }
@@ -78,6 +84,7 @@ abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBina
     /**
      * The platform that the linked binary will run on.
      */
+    @Nested
     public NativePlatform getTargetPlatform() {
         return targetPlatform;
     }

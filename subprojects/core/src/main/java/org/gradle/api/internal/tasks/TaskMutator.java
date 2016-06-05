@@ -38,6 +38,10 @@ public class TaskMutator {
     }
 
     public void assertMutable(String listname, PropertyChangeEvent evt) {
+        if (task.getState().isConfigurable()) {
+            return;
+        }
+
         String method = null;
         if (evt instanceof ObservableList.ElementEvent) {
             switch (((ObservableList.ElementEvent) evt).getChangeType()) {
@@ -64,9 +68,8 @@ public class TaskMutator {
         if (method == null) {
             return;
         }
-        if (!task.getState().isConfigurable()) {
-            throw new IllegalStateException(format(method));
-        }
+
+        throw new IllegalStateException(format(method));
     }
 
     public ContextAwareTaskAction leftShift(final ContextAwareTaskAction action) {
@@ -82,6 +85,11 @@ public class TaskMutator {
 
             public void contextualise(TaskExecutionContext context) {
                 action.contextualise(context);
+            }
+
+            @Override
+            public ClassLoader getClassLoader() {
+                return action.getClassLoader();
             }
         };
     }

@@ -1,5 +1,8 @@
 import org.gradle.build.*
 
+// GradleConnector entry point requires Java 5
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
+
 dependencies {
     compile project(':core')
     compile project(':messaging')
@@ -24,6 +27,7 @@ dependencies {
 useTestFixtures()
 useTestFixtures(project: ":logging")
 useTestFixtures(project: ':dependencyManagement')
+useTestFixtures(project: ':ide')
 
 integTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
@@ -68,6 +72,11 @@ artifacts {
     publishRuntime file: shadedJar.jarFile, name: archivesBaseName, type: 'jar', builtBy: shadedJar
 }
 
+// Remove the default 'jar' publication
+configurations.publishRuntime.artifacts.removeAll {
+    it.file == jar.archivePath
+}
+
 eclipse {
     classpath {
         file.whenMerged { classpath ->
@@ -77,3 +86,6 @@ eclipse {
         }
     }
 }
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

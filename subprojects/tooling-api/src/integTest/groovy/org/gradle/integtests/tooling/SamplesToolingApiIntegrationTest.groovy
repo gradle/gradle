@@ -22,11 +22,9 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TextUtil
 import org.junit.Rule
 
-@LeaksFileHandles
 class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
@@ -171,10 +169,9 @@ repositories {
     private ExecutionResult run(String task = 'run', File dir = sample.dir) {
         try {
             return new GradleContextualExecuter(distribution, temporaryFolder)
-                    .requireGradleHome()
+                    .requireGradleDistribution()
                     .inDirectory(dir)
                     .withTasks(task)
-                    .expectDeprecationWarning() // tapi on java 6
                     .run()
         } catch (Exception e) {
             throw new IntegrationTestHint(e);

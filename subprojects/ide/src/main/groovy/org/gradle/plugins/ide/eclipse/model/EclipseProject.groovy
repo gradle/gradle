@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse.model
+
+import com.google.common.collect.Lists
+import com.google.common.collect.Sets
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
 import org.gradle.api.InvalidUserDataException
 import org.gradle.plugins.ide.api.XmlFileContentMerger
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.DeprecationLogger
-
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
  * <p>
@@ -100,6 +103,7 @@ import org.gradle.util.DeprecationLogger
  * }
  * </pre>
  */
+@CompileStatic
 class EclipseProject {
 
     /**
@@ -140,7 +144,7 @@ class EclipseProject {
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    Set<String> referencedProjects = new LinkedHashSet<String>()
+    Set<String> referencedProjects = Sets.newLinkedHashSet()
 
     /**
      * The referenced projects of this Eclipse project (*not*: java build path project references).
@@ -153,7 +157,7 @@ class EclipseProject {
      */
     void referencedProjects(String... referencedProjects) {
         assert referencedProjects != null
-        this.referencedProjects.addAll(referencedProjects as List)
+        this.referencedProjects.addAll(Arrays.asList(referencedProjects))
     }
 
     /**
@@ -161,7 +165,7 @@ class EclipseProject {
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    List<String> natures = []
+    List<String> natures = Lists.newArrayList()
 
     /**
      * Appends natures entries to the eclipse project.
@@ -172,7 +176,7 @@ class EclipseProject {
      */
     void natures(String... natures) {
         assert natures != null
-        this.natures.addAll(natures as List)
+        this.natures.addAll(Arrays.asList(natures))
     }
 
     /**
@@ -180,7 +184,7 @@ class EclipseProject {
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    List<BuildCommand> buildCommands = []
+    List<BuildCommand> buildCommands = Lists.newArrayList()
 
     /**
      * Adds a build command with arguments to the eclipse project.
@@ -193,7 +197,7 @@ class EclipseProject {
      */
     void buildCommand(Map args, String buildCommand) {
         assert buildCommand != null
-        buildCommands << new BuildCommand(buildCommand, args)
+        buildCommands.add(new BuildCommand(buildCommand, args))
     }
 
     /**
@@ -206,7 +210,7 @@ class EclipseProject {
      */
     void buildCommand(String buildCommand) {
         assert buildCommand != null
-        buildCommands << new BuildCommand(buildCommand)
+        buildCommands.add(new BuildCommand(buildCommand))
     }
 
     /**
@@ -214,7 +218,7 @@ class EclipseProject {
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    Set<Link> linkedResources = new LinkedHashSet<Link>()
+    Set<Link> linkedResources = Sets.newLinkedHashSet()
 
     /**
      * Adds a resource link (aka 'source link') to the eclipse project.
@@ -229,7 +233,7 @@ class EclipseProject {
         if (illegalArgs) {
             throw new InvalidUserDataException("You provided illegal argument for a link: $illegalArgs. Valid link args are: $validKeys")
         }
-        linkedResources << new Link(args.name, args.type, args.location, args.locationUri)
+        linkedResources.add(new Link(args.name, args.type, args.location, args.locationUri))
     }
 
     /**
@@ -263,6 +267,7 @@ class EclipseProject {
         file.whenMerged.execute(decoratedProject)
     }
 
+    @CompileStatic(TypeCheckingMode.SKIP)
     class DeprecationWarningDecoratedProject {
         @Delegate private Project delegate
 
@@ -271,8 +276,7 @@ class EclipseProject {
         }
 
         void setName(String name){
-            DeprecationLogger.nagUserOfDeprecated("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook")
-            this.delegate.setName(name)
+            throw new InvalidUserDataException("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook is not allowed.")
         }
     }
 }

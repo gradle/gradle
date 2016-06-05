@@ -43,8 +43,7 @@
         </sample>
         <para>
             Applying the plugin automatically applies the <link linkend="java_plugin">Java</link> plugin and adds the
-            <literal>gradleApi()</literal> dependency to the compile configuration.  It also decorates the <literal>jar</literal>
-            task with validations.
+            <literal>gradleApi()</literal> dependency to the compile configuration.  It also adds some validations to the build.
         </para>
         <para>
             The following validations are performed:
@@ -53,9 +52,26 @@
             <listitem>There is a plugin descriptor defined for the plugin.</listitem>
             <listitem>The plugin descriptor contains an <literal>implementation-class</literal> property.</listitem>
             <listitem>The <literal>implementation-class</literal> property references a valid class file in the jar.</listitem>
+            <listitem>Each property getter or the corresponding field must be annotated with a property annotation like <literal>@InputFile</literal> and <literal>@OutputDirectory</literal>. Properties that don't participate in up-to-date checks should be annotated with <literal>@Internal</literal>.</listitem>
         </itemizedlist>
         <para>
             Any failed validations will result in a warning message.
         </para>
+        <para>
+            For each plugin you are developing, add an entry to the <code>gradlePlugin {}</code> script block:
+        </para>
+        <sample id="gradlePluginBlock" dir="javaGradlePlugin" title="Using the gradlePlugin {} block.">
+            <sourcefile file="build.gradle" snippet="gradle-plugin-block" />
+        </sample>
+        <para>
+            The <code>gradlePlugin {}</code> block defines the plugins being built by the project including the <code>id</code> and
+            <code>implementationClass</code> of the plugin. From this data about the plugins being developed, Gradle
+            can automatically:
+        </para>
+        <itemizedlist>
+            <listitem>Generate the plugin descriptor in the <literal>jar</literal> file's <literal>META-INF</literal> directory.</listitem>
+            <listitem>Configure the <link linkend="publishing_maven">Maven</link> or <link linkend="publishing_ivy">Ivy</link> publishing
+                plugins to publish a <link linkend="sec:plugin_markers">Plugin Marker Artifact</link> for each plugin.</listitem>
+        </itemizedlist>
     </section>
 </chapter>

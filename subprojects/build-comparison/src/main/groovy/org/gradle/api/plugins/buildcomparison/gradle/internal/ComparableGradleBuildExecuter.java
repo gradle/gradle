@@ -17,7 +17,6 @@
 package org.gradle.api.plugins.buildcomparison.gradle.internal;
 
 import org.gradle.api.plugins.buildcomparison.gradle.GradleBuildInvocationSpec;
-import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.internal.outcomes.ProjectOutcomes;
@@ -29,7 +28,7 @@ import java.util.List;
 public class ComparableGradleBuildExecuter {
 
     public static final GradleVersion PROJECT_OUTCOMES_MINIMUM_VERSION = GradleVersion.version("1.2");
-    public static final GradleVersion EXEC_MINIMUM_VERSION = GradleVersion.version("1.0");
+    public static final GradleVersion EXEC_MINIMUM_VERSION = GradleVersion.version("1.2");
 
     private final GradleBuildInvocationSpec spec;
 
@@ -47,18 +46,6 @@ public class ComparableGradleBuildExecuter {
 
     public GradleVersion getGradleVersion() {
         return GradleVersion.version(getSpec().getGradleVersion());
-    }
-
-    public boolean isCanObtainProjectOutcomesModel() {
-        GradleVersion version = getGradleVersion();
-        boolean isMinimumVersionOrHigher = version.compareTo(PROJECT_OUTCOMES_MINIMUM_VERSION) >= 0;
-        //noinspection SimplifiableIfStatement
-        if (isMinimumVersionOrHigher) {
-            return true;
-        } else {
-            // Special handling for snapshots/RCs of the minimum version
-            return version.getBaseVersion().equals(PROJECT_OUTCOMES_MINIMUM_VERSION);
-        }
     }
 
     private List<String> getImpliedArguments() {
@@ -82,21 +69,11 @@ public class ComparableGradleBuildExecuter {
         List<String> argumentsList = getImpliedArguments();
         String[] arguments = argumentsList.toArray(new String[0]);
 
-        if (isCanObtainProjectOutcomesModel()) {
-            // Run the build and get the build outcomes model
-            ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class);
-            return modelBuilder.
-                    withArguments(arguments).
-                    forTasks(tasks).
-                    get();
-        } else {
-            BuildLauncher buildLauncher = connection.newBuild();
-            buildLauncher.
-                    withArguments(arguments).
-                    forTasks(tasks).
-                    run();
-
-            return null;
-        }
+        // Run the build and get the build outcomes model
+        ModelBuilder<ProjectOutcomes> modelBuilder = connection.model(ProjectOutcomes.class);
+        return modelBuilder.
+            withArguments(arguments).
+            forTasks(tasks).
+            get();
     }
 }

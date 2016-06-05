@@ -20,6 +20,7 @@ dependencies {
     compile project(':core')
     compile project(':publish')
     compile project(':plugins') // for base plugin to get archives conf
+    compile project(':pluginUse')
     compile project(':dependencyManagement')
 
     testCompile libraries.groovy
@@ -33,3 +34,5 @@ useTestFixtures()
 useTestFixtures(project: ":modelCore")
 useTestFixtures(project: ":platformBase")
 useClassycle()
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

@@ -38,7 +38,9 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     abstract String getDistributionLabel()
 
-    abstract int getLibJarsCount()
+    int getLibJarsCount() {
+        165
+    }
 
     def "no duplicate entries"() {
         given:
@@ -108,13 +110,15 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         contentsDir.file('LICENSE').assertIsFile()
 
         // Core libs
-        def coreLibs = contentsDir.file("lib").listFiles().findAll { it.name.startsWith("gradle-") }
-        assert coreLibs.size() == 17
+        def coreLibs = contentsDir.file("lib").listFiles().findAll {
+            it.name.startsWith("gradle-") && !it.name.startsWith("gradle-script-kotlin")
+        }
+        assert coreLibs.size() == 19
         coreLibs.each { assertIsGradleJar(it) }
 
         def toolingApiJar = contentsDir.file("lib/gradle-tooling-api-${version}.jar")
         toolingApiJar.assertIsFile()
-        assert toolingApiJar.length() < 375 * 1024; // tooling api jar is the small plain tooling api jar version and not the fat jar.
+        assert toolingApiJar.length() < 500 * 1024; // tooling api jar is the small plain tooling api jar version and not the fat jar.
 
         // Plugins
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-dependency-management-${version}.jar"))
@@ -125,7 +129,6 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-antlr-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-announce-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-jetty-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-sonar-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-maven-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-osgi-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-signing-${version}.jar"))

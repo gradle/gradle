@@ -20,13 +20,13 @@ import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExcludeRuleFilters;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
-import org.gradle.internal.component.model.ComponentArtifactMetaData;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
-import org.gradle.internal.component.model.ConfigurationMetaData;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultComponentUsage;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
@@ -79,22 +79,22 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode childConfiguration) {
         long id = idGenerator.generateId();
         ResolvedConfigurationIdentifier configurationIdentifier = childConfiguration.getNodeId();
-        ConfigurationMetaData metaData = childConfiguration.getMetaData();
-        ComponentResolveMetaData component = metaData.getComponent();
+        ConfigurationMetadata metaData = childConfiguration.getMetaData();
+        ComponentResolveMetadata component = metaData.getComponent();
 
-        Set<ComponentArtifactMetaData> artifacts = dependency.getArtifacts(metaData);
+        Set<ComponentArtifactMetadata> artifacts = dependency.getArtifacts(metaData);
         if (!artifacts.isEmpty()) {
-            return new DefaultArtifactSet(component.getId(), component.getSource(), ModuleExcludeRuleFilters.excludeNone(), artifacts, artifactResolver, allResolvedArtifacts, id);
+            return new DefaultArtifactSet(component.getId(), component.getSource(), ModuleExclusions.excludeNone(), artifacts, artifactResolver, allResolvedArtifacts, id);
         }
 
         ArtifactSet configurationArtifactSet = artifactSetsByConfiguration.get(configurationIdentifier);
         if (configurationArtifactSet == null) {
             artifacts = doResolve(component, configurationIdentifier);
 
-            configurationArtifactSet = new DefaultArtifactSet(component.getId(), component.getSource(), dependency.getSelector(), artifacts, artifactResolver, allResolvedArtifacts, id);
+            configurationArtifactSet = new DefaultArtifactSet(component.getId(), component.getSource(), dependency.getExclusions(), artifacts, artifactResolver, allResolvedArtifacts, id);
 
             // Only share an ArtifactSet if the artifacts are not filtered by the dependency
-            if (dependency.getSelector().acceptsAllArtifacts()) {
+            if (!dependency.getExclusions().mayExcludeArtifacts()) {
                 artifactSetsByConfiguration.put(configurationIdentifier, configurationArtifactSet);
             }
         }
@@ -103,7 +103,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     }
 
 
-    private Set<ComponentArtifactMetaData> doResolve(ComponentResolveMetaData component, ResolvedConfigurationIdentifier configurationId) {
+    private Set<ComponentArtifactMetadata> doResolve(ComponentResolveMetadata component, ResolvedConfigurationIdentifier configurationId) {
         BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
         artifactResolver.resolveModuleArtifacts(component, new DefaultComponentUsage(configurationId.getConfiguration()), result);
         return result.getArtifacts();

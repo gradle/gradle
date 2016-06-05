@@ -22,8 +22,8 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.internal.Cast;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 
@@ -38,8 +38,8 @@ public class JacocoPluginExtension {
 
     public static final String TASK_EXTENSION_NAME = "jacoco";
 
-    private final Logger logger = Logging.getLogger(getClass());
-    private final Project project;
+    private Logger logger = Logging.getLogger(getClass());
+    protected final Project project;
     private final JacocoAgentJar agent;
 
     private String toolVersion = "0.7.6.201602180812";
@@ -87,17 +87,17 @@ public class JacocoPluginExtension {
      * @param task the task to apply Jacoco to.
      * @see JacocoPluginExtension#TASK_EXTENSION_NAME
      */
-    public void applyTo(final JavaForkOptions task) {
-        final String taskName = ((Task) task).getName();
+    public <T extends Task & JavaForkOptions> void applyTo(final T task) {
+        final String taskName = task.getName();
         logger.debug("Applying Jacoco to " + taskName);
-        final JacocoTaskExtension extension = ((ExtensionAware) task).getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, agent, task);
+        final JacocoTaskExtension extension = task.getExtensions().create(TASK_EXTENSION_NAME, JacocoTaskExtension.class, agent, task);
         ((IConventionAware) extension).getConventionMapping().map("destinationFile", new Callable<File>() {
             @Override
             public File call() {
                 return project.file(String.valueOf(project.getBuildDir()) + "/jacoco/" + taskName + ".exec");
             }
         });
-        ((Task) task).doFirst(new Action<Task>() {
+        task.doFirst(new Action<Task>() {
             @Override
             public void execute(Task input) {
                 if (extension.isEnabled()) {
@@ -112,12 +112,34 @@ public class JacocoPluginExtension {
      *
      * @param tasks the tasks to apply Jacoco to
      */
-    public void applyTo(TaskCollection tasks) {
+    public <T extends Task & JavaForkOptions> void applyTo(TaskCollection tasks) {
         tasks.withType(JavaForkOptions.class, new Action<JavaForkOptions>() {
             @Override
             public void execute(JavaForkOptions task) {
-                applyTo(task);
+                applyTo(Cast.<T>uncheckedCast(task));
             }
         });
+    }
+
+    /**
+     * Logger
+     * @deprecated logger should be considered final.
+     */
+    @Deprecated
+    public Logger getLogger() {
+        return logger;
+    }
+
+    /**
+     * Logger
+     * @deprecated logger should be considered final.
+     */
+    @Deprecated
+    public void setLogger(Logger logger) {
+        this.logger = logger;
+    }
+
+    public static String getTASK_EXTENSION_NAME() {
+        return TASK_EXTENSION_NAME;
     }
 }

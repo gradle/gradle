@@ -21,6 +21,7 @@ import org.gradle.api.internal.BeanWithDynamicProperties
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer
 import org.gradle.api.internal.coerce.PropertySetTransformer
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class BeanDynamicObjectTest extends Specification {
     def "can get value of property of groovy object"() {
@@ -59,7 +60,7 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.getProperty("dyno") == "ok"
     }
 
-    def "can only check for static properties of dynamic groovy object"() {
+    def "can only check for declared properties of dynamic groovy object"() {
         def bean = new BeanWithDynamicProperties(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
 
@@ -117,6 +118,19 @@ class BeanDynamicObjectTest extends Specification {
         then:
         def e = thrown(GroovyRuntimeException)
         e.message == "Cannot get the value of write-only property 'writeOnly' for object of type ${Bean.name}."
+    }
+
+    def "fails when get value of instance property of class object"() {
+        def dynamicObject = new BeanDynamicObject(WithStaticFields)
+
+        when:
+        dynamicObject.getProperty("other")
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.property == "other"
+        e.type == Class
+        e.message == "Could not get unknown property 'other' for class ${WithStaticFields.name} of type ${Class.name}."
     }
 
     def "fails when get value of property of dynamic groovy object and no dynamic requested"() {
@@ -275,6 +289,36 @@ class BeanDynamicObjectTest extends Specification {
         bean.someField == SomeEnum.C
     }
 
+    def "can get and set static property using instance"() {
+        def dynamicObject = new BeanDynamicObject(new WithStaticFields())
+
+        expect:
+        dynamicObject.hasProperty("prop")
+        dynamicObject.setProperty("prop", "value")
+        dynamicObject.getProperty("prop") == "value"
+
+        dynamicObject.hasProperty("other")
+    }
+
+    def "can get and set static property using class object"() {
+        def dynamicObject = new BeanDynamicObject(WithStaticFields.class)
+
+        expect:
+        dynamicObject.hasProperty("prop")
+        dynamicObject.setProperty("prop", "value")
+        dynamicObject.getProperty("prop") == "value"
+
+        !dynamicObject.hasProperty("other")
+    }
+
+    def "can get properties of class object"() {
+        def dynamicObject = new BeanDynamicObject(WithStaticFields.class)
+
+        expect:
+        dynamicObject.hasProperty("classLoader")
+        dynamicObject.getProperty("classLoader") == WithStaticFields.classLoader
+    }
+
     def "fails when set value of unknown property of groovy object"() {
         def bean = new Bean()
         def dynamicObject = new BeanDynamicObject(bean)
@@ -302,6 +346,19 @@ class BeanDynamicObjectTest extends Specification {
         then:
         def e = thrown(GroovyRuntimeException)
         e.message == "Cannot set the value of read-only property 'readOnly' for object of type ${Bean.name}."
+    }
+
+    def "fails when set value of instance property of class object"() {
+        def dynamicObject = new BeanDynamicObject(WithStaticFields)
+
+        when:
+        dynamicObject.setProperty("other", "value")
+
+        then:
+        def e = thrown(MissingPropertyException)
+        e.property == "other"
+        e.type == Class
+        e.message == "Could not set unknown property 'other' for class ${WithStaticFields.name} of type ${Class.name}."
     }
 
     def "fails when set value of unknown property of dynamic groovy object"() {
@@ -352,12 +409,55 @@ class BeanDynamicObjectTest extends Specification {
         e.message == "Could not set unknown property 'unknown' for ${bean} of type ${bean.getClass().name}."
     }
 
+    def "can get properties of map"() {
+        def bean = [:]
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.hasProperty("empty")
+        dynamicObject.getProperty("empty")
+    }
+
+    def "can get and set entries of map as property"() {
+        def bean = [:]
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.getProperty("prop") == null
+        dynamicObject.setProperty("prop", "ok")
+        dynamicObject.getProperty("prop") == "ok"
+    }
+
+    def "can query existence of property of map"() {
+        def bean = [:]
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        !dynamicObject.hasProperty("prop")
+        dynamicObject.setProperty("prop", "ok")
+        dynamicObject.hasProperty("prop")
+    }
+
+    def "can get entries of map as properties"() {
+        def bean = [prop: 12]
+        def dynamicObject = new BeanDynamicObject(bean)
+
+        expect:
+        dynamicObject.properties.keySet() == ['class', 'empty', 'prop'] as Set
+        dynamicObject.properties['empty'] == false
+        dynamicObject.properties.prop == 12
+    }
+
     def "can invoke method of groovy object"() {
         def bean = new Bean()
         def dynamicObject = new BeanDynamicObject(bean)
 
         expect:
         dynamicObject.invokeMethod("m", [12] as Object[]) == "[13]"
+        dynamicObject.invokeMethod("overlap", [Integer] as Object[]) == Class
+        dynamicObject.invokeMethod("overlap", [0] as Object[]) == Number
+        dynamicObject.invokeMethod("methodWithClass", [Integer] as Object[]) == Class
+        dynamicObject.invokeMethod("methodWithValue", [0] as Object[]) == Number
     }
 
     def "can check for methods of groovy object"() {
@@ -368,6 +468,12 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.hasMethod("m", [12] as Object[])
         !dynamicObject.hasMethod("m", [] as Object[])
         !dynamicObject.hasMethod("other", [12] as Object[])
+        dynamicObject.hasMethod("overlap", [Integer] as Object[])
+        dynamicObject.hasMethod("overlap", [0] as Object[])
+        !dynamicObject.hasMethod("methodWithClass", [0] as Object[])
+        dynamicObject.hasMethod("methodWithClass", [Integer] as Object[])
+        dynamicObject.hasMethod("methodWithValue", [0] as Object[])
+        !dynamicObject.hasMethod("methodWithValue", [Integer] as Object[])
     }
 
     def "coerces parameters of method of groovy object"() {
@@ -392,7 +498,35 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.invokeMethod("dyno", [12, "a"] as Object[]) == "[12, a]"
     }
 
-    def "can check for static methods of dynamic groovy object"() {
+    def "can invoke static method using instance of class"() {
+        def dynamicObject = new BeanDynamicObject(new WithStaticFields())
+
+        expect:
+        dynamicObject.hasMethod("thing", ["value"] as Object[])
+        dynamicObject.invokeMethod("thing", ["value"] as Object[]) == "value"
+
+        dynamicObject.hasMethod("other", ["value"] as Object[])
+    }
+
+    def "can invoke methods of class object"() {
+        def dynamicObject = new BeanDynamicObject(WithStaticFields.class)
+
+        expect:
+        dynamicObject.hasMethod("asSubclass", [Object] as Object[])
+        dynamicObject.invokeMethod("asSubclass", [Object] as Object[]) == WithStaticFields
+    }
+
+    def "can invoke static method using class object"() {
+        def dynamicObject = new BeanDynamicObject(WithStaticFields.class)
+
+        expect:
+        dynamicObject.hasMethod("thing", ["value"] as Object[])
+        dynamicObject.invokeMethod("thing", ["value"] as Object[]) == "value"
+
+        !dynamicObject.hasMethod("other", ["value"] as Object[])
+    }
+
+    def "can check for declared methods of dynamic groovy object"() {
         def bean = new BeanWithDynamicProperties(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
 
@@ -411,18 +545,42 @@ class BeanDynamicObjectTest extends Specification {
         dynamicObject.invokeMethod("dyno", [12, "a"] as Object[]) == "[12, a]"
     }
 
-    def "fails when invoke unknown method of groovy object"() {
+    @Unroll
+    def "fails when invoke unknown method [#method(#arguments)] of groovy object"() {
         def bean = new Bean(prop: "value")
         def dynamicObject = new BeanDynamicObject(bean)
-
+        def args = arguments as Object[]
         when:
-        dynamicObject.invokeMethod("unknown", [12] as Object[])
+        dynamicObject.invokeMethod(method, args)
 
         then:
         def e = thrown(MissingMethodException)
-        e.method == "unknown"
-        e.type == Bean
-        e.message == "Could not find method unknown() for arguments [12] on object of type ${Bean.name}."
+        assertMethodMissing(e, method, args)
+
+        where:
+        method            | arguments
+        "unknown"         | [12]
+        "methodWithClass" | [0]
+        "methodWithValue" | [Integer]
+    }
+
+    private void assertMethodMissing(MissingMethodException e, String name, Object... arguments) {
+        assert e.method == name
+        assert e.type == Bean
+        assert e.message == "Could not find method ${name}() for arguments ${arguments} on object of type ${Bean.name}."
+    }
+
+    def "fails when invoke instance method of class object"() {
+        def dynamicObject = new BeanDynamicObject(WithStaticFields)
+
+        when:
+        dynamicObject.invokeMethod("other", ["value"] as Object[])
+
+        then:
+        def e = thrown(MissingMethodException)
+        e.method == "other"
+        e.type == Class
+        e.message == "Could not find method other() for arguments [value] on class ${WithStaticFields.name} of type ${Class.name}."
     }
 
     def "fails when invoke unknown method of dynamic groovy object"() {
@@ -534,6 +692,19 @@ class BeanDynamicObjectTest extends Specification {
         String getFieldProp() {
             return fieldProp
         }
+
+        Class overlap(Class<? extends Number> c) {
+            return Class
+        }
+        Class overlap(Number i) {
+            return Number
+        }
+        Class methodWithClass(Class<? extends Number> c) {
+            return Class
+        }
+        Class methodWithValue(Number i) {
+            return Number
+        }
     }
 
     static class EnumBean {
@@ -569,4 +740,19 @@ class BeanDynamicObjectTest extends Specification {
             return someField
         }
     }
+
+    static class WithStaticFields {
+        static String prop
+
+        String other
+
+        static String thing(String v) {
+            return v
+        }
+
+        String other(String v) {
+            return v
+        }
+    }
+
 }

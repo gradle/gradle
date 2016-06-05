@@ -22,6 +22,9 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.CompositeInitScriptFinder;
 import org.gradle.initialization.DistributionInitScriptFinder;
@@ -30,15 +33,18 @@ import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleInstallation;
-import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
-import org.gradle.api.logging.configuration.LoggingConfiguration;
-import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * <p>{@code StartParameter} defines the configuration used by a Gradle instance to execute a build. The properties of {@code StartParameter} generally correspond to the command-line options of
@@ -118,26 +124,6 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      * {@inheritDoc}
      */
     @Override
-    @Deprecated
-    public boolean isColorOutput() {
-        DeprecationLogger.nagUserOfReplacedProperty("StartParameter.colorOutput", "consoleOutput");
-        return loggingConfiguration.isColorOutput();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @Deprecated
-    public void setColorOutput(boolean colorOutput) {
-        DeprecationLogger.nagUserOfReplacedProperty("StartParameter.colorOutput", "consoleOutput");
-        loggingConfiguration.setColorOutput(colorOutput);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public ConsoleOutput getConsoleOutput() {
         return loggingConfiguration.getConsoleOutput();
     }
@@ -146,8 +132,8 @@ public class StartParameter implements LoggingConfiguration, Serializable {
      * {@inheritDoc}
      */
     @Override
-    public void setConsoleOutput(ConsoleOutput colorOutput) {
-        loggingConfiguration.setConsoleOutput(colorOutput);
+    public void setConsoleOutput(ConsoleOutput consoleOutput) {
+        loggingConfiguration.setConsoleOutput(consoleOutput);
     }
 
     /**
@@ -640,42 +626,9 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     }
 
     /**
-     * Returns the number of parallel threads to use for build execution.
-     *
-     * <0: Automatically determine the optimal number of executors to use. 0: Do not use parallel execution. >0: Use this many parallel execution threads.
-     *
-     * @see #getMaxWorkerCount()
-     * @see #isParallelProjectExecutionEnabled()
-     * @deprecated Use getMaxWorkerCount or isParallelProjectExecutionEnabled instead.
-     */
-    @Deprecated
-    public int getParallelThreadCount() {
-        if (isParallelProjectExecutionEnabled()) {
-            return getMaxWorkerCount();
-        }
-        return 0;
-    }
-
-    /**
-     * Specifies the number of parallel threads to use for build execution.
-     *
-     * @see #getParallelThreadCount()
-     */
-    @Deprecated
-    public void setParallelThreadCount(int parallelThreadCount) {
-        setParallelProjectExecutionEnabled(parallelThreadCount != 0);
-
-        if (parallelThreadCount < 1) {
-            setMaxWorkerCount(Runtime.getRuntime().availableProcessors());
-        } else {
-            setMaxWorkerCount(parallelThreadCount);
-        }
-    }
-
-    /**
      * Returns true if parallel project execution is enabled.
      *
-     * @see #getParallelThreadCount()
+     * @see #getMaxWorkerCount()
      */
     @Incubating
     public boolean isParallelProjectExecutionEnabled() {

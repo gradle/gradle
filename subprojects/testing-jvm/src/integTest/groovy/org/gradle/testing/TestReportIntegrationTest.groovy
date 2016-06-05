@@ -189,7 +189,6 @@ public class SubClassTests extends SuperClassTests {
 
             task otherTests(type: Test) {
                 binResultsDir file("bin")
-                testSrcDirs = []
                 testClassesDir = file("blah")
             }
 

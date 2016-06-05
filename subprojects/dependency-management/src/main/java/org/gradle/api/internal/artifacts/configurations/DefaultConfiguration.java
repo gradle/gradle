@@ -21,13 +21,31 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.DependencyResolutionListener;
+import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.FileCollectionDependency;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.artifacts.ResolvableDependencies;
+import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.artifacts.*;
+import org.gradle.api.internal.artifacts.ConfigurationResolver;
+import org.gradle.api.internal.artifacts.DefaultDependencySet;
+import org.gradle.api.internal.artifacts.DefaultExcludeRule;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
+import org.gradle.api.internal.artifacts.DefaultResolverResults;
+import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
+import org.gradle.api.internal.artifacts.Module;
+import org.gradle.api.internal.artifacts.ResolverResults;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
@@ -41,20 +59,23 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.internal.component.local.model.DefaultLocalComponentMetaData;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.util.*;
-
-import static org.apache.ivy.core.module.descriptor.Configuration.Visibility;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
     private final ConfigurationResolver resolver;
@@ -87,7 +108,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final String path;
     private final String name;
 
-    private Visibility visibility = Visibility.PUBLIC;
+    private boolean visible = true;
     private boolean transitive = true;
     private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
     private String description;
@@ -175,17 +196,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolvedState;
     }
 
-    public ModuleInternal getModule() {
+    public Module getModule() {
         return metaDataProvider.getModule();
     }
 
     public boolean isVisible() {
-        return visibility == Visibility.PUBLIC;
+        return visible;
     }
 
     public Configuration setVisible(boolean visible) {
         validateMutation(MutationType.DEPENDENCIES);
-        this.visibility = visible ? Visibility.PUBLIC : Visibility.PRIVATE;
+        this.visible = visible;
         return this;
     }
 
@@ -355,7 +376,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private void resolveGraphIfRequired(final InternalState requestedState) {
         if (resolvedState == InternalState.RESULTS_RESOLVED) {
             if (dependenciesModified) {
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Attempting to resolve %s that has been resolved previously. Changes made since the configuration was originally resolved are ignored", getDisplayName()));
+                throw new InvalidUserDataException(String.format("Attempted to resolve %s that has been resolved previously.", getDisplayName()));
             }
             return;
         }
@@ -363,7 +384,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             if (!dependenciesModified) {
                 return;
             }
-            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Resolving %s again after modification", getDisplayName()));
+            throw new InvalidUserDataException(String.format("Resolved %s again after modification", getDisplayName()));
         }
 
         ResolvableDependencies incoming = getIncoming();
@@ -506,7 +527,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
 
-        copiedConfiguration.visibility = visibility;
+        copiedConfiguration.visible = visible;
         copiedConfiguration.transitive = transitive;
         copiedConfiguration.description = description;
 
@@ -548,12 +569,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return resolutionStrategy;
     }
 
-    public ComponentResolveMetaData toRootComponentMetaData() {
-        ModuleInternal module = getModule();
+    public ComponentResolveMetadata toRootComponentMetaData() {
+        Module module = getModule();
         Set<? extends Configuration> configurations = getAll();
         ComponentIdentifier componentIdentifier = new DefaultComponentIdentifierFactory().createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
-        DefaultLocalComponentMetaData metaData = new DefaultLocalComponentMetaData(moduleVersionIdentifier, componentIdentifier, module.getStatus());
+        DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus());
         configurationComponentMetaDataBuilder.addConfigurations(metaData, configurations);
         return metaData;
     }
@@ -584,10 +605,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         if (resolvedState == InternalState.RESULTS_RESOLVED) {
-            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of parent of %s after it has been resolved", type, getDisplayName()));
+            throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after it has been resolved", type, getDisplayName()));
         } else if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
             if (type == MutationType.DEPENDENCIES) {
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of parent of %s after task dependencies have been resolved", type, getDisplayName()));
+                throw new InvalidUserDataException(String.format("Cannot change %s of parent of %s after task dependencies have been resolved", type, getDisplayName()));
             }
         }
 
@@ -597,23 +618,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public void validateMutation(MutationType type) {
         if (resolvedState == InternalState.RESULTS_RESOLVED) {
             // The public result for the configuration has been calculated.
-            // It is an error to change anything that would change the dependencies or artifacts,
-            // and deprecated to change the resolution strategy.
-            if (type != MutationType.STRATEGY) {
-                throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been resolved.", type, getDisplayName()));
-            } else {
-                DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after it has been resolved", type, getDisplayName()));
-            }
+            // It is an error to change anything that would change the dependencies or artifacts
+            throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been resolved.", type, getDisplayName()));
         } else if (resolvedState == InternalState.TASK_DEPENDENCIES_RESOLVED) {
             // The task dependencies for the configuration have been calculated using Configuration.getBuildDependencies().
-            // It is deprecated for build logic to change anything about the configuration.
-            DeprecationLogger.nagUserOfDeprecatedBehaviour(String.format("Changed %s of %s after task dependencies have been resolved", type, getDisplayName()));
+            throw new InvalidUserDataException(String.format("Cannot change %s of %s after task dependencies have been resolved", type, getDisplayName()));
         } else if (observedState == InternalState.TASK_DEPENDENCIES_RESOLVED || observedState == InternalState.RESULTS_RESOLVED) {
             // The configuration has been used in a resolution, and it is deprecated for build logic to change any dependencies,
             // exclude rules or parent configurations (values that will affect the resolved graph).
             if (type != MutationType.STRATEGY) {
                 String extraMessage = insideBeforeResolve ? " Use 'defaultDependencies' instead of 'beforeResolve' to specify default dependencies for a configuration." : "";
-                DeprecationLogger.nagUserWith(String.format("Changed %s of %s after it has been included in dependency resolution. This behaviour %s.%s", type, getDisplayName(), DeprecationLogger.getDeprecationMessage(), extraMessage));
+                throw new InvalidUserDataException(String.format("Cannot change %s of %s after it has been included in dependency resolution.%s", type, getDisplayName(), extraMessage));
             }
         }
 

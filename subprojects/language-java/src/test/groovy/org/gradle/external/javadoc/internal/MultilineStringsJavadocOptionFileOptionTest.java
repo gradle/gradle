@@ -53,7 +53,7 @@ public class MultilineStringsJavadocOptionFileOptionTest {
         context.checking(new Expectations() {{
             final List<String> tempList = new ArrayList<String>();
             tempList.add(extDocUrl);
-            one(writerContextMock).writeMultilineValuesOption(optionName, tempList);
+            oneOf(writerContextMock).writeMultilineValuesOption(optionName, tempList);
         }});
 
         linksOption.writeCollectionValue(writerContextMock);
@@ -70,9 +70,9 @@ public class MultilineStringsJavadocOptionFileOptionTest {
         context.checking(new Expectations() {{
             tempList.add(docUrl1);
             tempList.add(docUrl2);
-            one(writerContextMock).writeMultilineValuesOption(optionName, tempList);
+            oneOf(writerContextMock).writeMultilineValuesOption(optionName, tempList);
         }});
-       
+
         linksOption.writeCollectionValue(writerContextMock);
     }
 }

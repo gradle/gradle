@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.cache.ResolutionRules;

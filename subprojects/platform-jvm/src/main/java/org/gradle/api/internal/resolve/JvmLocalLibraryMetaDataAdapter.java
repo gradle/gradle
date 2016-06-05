@@ -28,7 +28,7 @@ import org.gradle.jvm.internal.JarBinarySpecInternal;
 import org.gradle.jvm.internal.JarFile;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.WithJvmAssembly;
-import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData;
+import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
@@ -37,13 +37,13 @@ import java.io.File;
 import java.util.*;
 
 import static org.gradle.jvm.internal.DefaultJvmBinarySpec.collectDependencies;
-import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetaData.newResolvedLibraryMetadata;
+import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata.newResolvedLibraryMetadata;
 
 public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapter {
 
     @Override
     @SuppressWarnings("unchecked")
-    public DefaultLibraryLocalComponentMetaData createLocalComponentMetaData(BinarySpec selectedBinary, String projectPath, boolean toAssembly) {
+    public DefaultLibraryLocalComponentMetadata createLocalComponentMetaData(BinarySpec selectedBinary, String projectPath, boolean toAssembly) {
         EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage = new EnumMap<UsageKind, Iterable<DependencySpec>>(UsageKind.class);
         EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage = new EnumMap<UsageKind, TaskDependency>(UsageKind.class);
         EnumMap<UsageKind, List<PublishArtifact>> artifacts = new EnumMap<UsageKind, List<PublishArtifact>>(UsageKind.class);
@@ -60,8 +60,8 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
         return createResolvedMetaData((BinarySpecInternal) selectedBinary, projectPath, dependenciesPerUsage, buildDependenciesPerUsage, artifacts);
     }
 
-    private DefaultLibraryLocalComponentMetaData createResolvedMetaData(BinarySpecInternal selectedBinary, String projectPath, EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {
-        DefaultLibraryLocalComponentMetaData metadata = newResolvedLibraryMetadata(selectedBinary.getId(), buildDependenciesPerUsage, dependenciesPerUsage, projectPath);
+    private DefaultLibraryLocalComponentMetadata createResolvedMetaData(BinarySpecInternal selectedBinary, String projectPath, EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage, EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage, EnumMap<UsageKind, List<PublishArtifact>> artifacts) {
+        DefaultLibraryLocalComponentMetadata metadata = newResolvedLibraryMetadata(selectedBinary.getId(), buildDependenciesPerUsage, dependenciesPerUsage, projectPath);
         for (Map.Entry<UsageKind, List<PublishArtifact>> entry : artifacts.entrySet()) {
             UsageKind usage = entry.getKey();
             List<PublishArtifact> publishArtifacts = entry.getValue();

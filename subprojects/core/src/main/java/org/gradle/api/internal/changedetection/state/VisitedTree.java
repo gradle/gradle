@@ -18,11 +18,16 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.tasks.util.PatternSet;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface VisitedTree {
+    String getAbsolutePath();
+    PatternSet getPatternSet();
     Collection<FileTreeElement> getEntries();
     TreeSnapshot maybeCreateSnapshot(FileSnapshotter fileSnapshotter, StringInterner stringInterner);
     boolean isShareable();
+    List<FileTreeElement> filter(PatternSet patternSet);
 }

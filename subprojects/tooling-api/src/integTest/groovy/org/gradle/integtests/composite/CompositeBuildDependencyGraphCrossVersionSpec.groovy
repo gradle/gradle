@@ -17,22 +17,15 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.integtests.tooling.fixture.*
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.BuildException
 
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
- * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
- * This is distinct from the specific test coverage for Tooling API access to a composite build.
  */
-@TargetGradleVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
-@RequiresIntegratedComposite
-class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiSpecification {
+class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
     def buildA
     def buildB
-    List builds
     MavenFileRepository mavenRepo
     ResolveTestFixture resolve
     def buildArgs = []
@@ -218,16 +211,25 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
         }
     }
 
-    def "substitutes external dependency with subproject dependency that has transitive project dependency"() {
+    def "substitutes external dependency with subproject dependency that has transitive project dependencies"() {
         given:
         buildA.buildFile << """
             dependencies {
                 compile "org.test:buildB:1.0"
             }
 """
+        buildB.settingsFile << """
+include ':b1:b11'
+"""
         buildB.buildFile << """
             dependencies {
                 compile project(':b1')
+            }
+
+            project(":b1") {
+                dependencies {
+                    compile project("b11") // Relative project path
+                }
             }
 """
 
@@ -238,7 +240,9 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                project("buildB::b1", "org.test:b1:2.0") {}
+                project("buildB::b1", "org.test:b1:2.0") {
+                    project("buildB::b1:b11", "org.test:b11:2.0") {}
+                }
             }
         }
     }
@@ -281,7 +285,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends CompositeToolingApiS
 """
         buildB.buildFile << """
             dependencies {
-                it.'default' "org.test:buildC:1.0"
+                compile "org.test:buildC:1.0"
             }
 """
         def buildC = singleProjectBuild("buildC") {
@@ -724,16 +728,6 @@ afterEvaluate {
     private void checkDependencies() {
         resolve.prepare()
         execute(buildA, ":checkDeps")
-    }
-
-    private void execute(File build, String... tasks) {
-        withCompositeConnection(builds) { connection ->
-            def buildLauncher = connection.newBuild()
-            buildLauncher.setStandardOutput(System.out)
-            buildLauncher.forTasks(build, tasks)
-            buildLauncher.withArguments(buildArgs)
-            buildLauncher.run()
-        }
     }
 
     void checkGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {

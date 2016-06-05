@@ -40,7 +40,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the ModelBuilder API. Support for this is available in Gradle 1.0-milestone-8 and all later versions."
+        e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the ModelBuilder API. Support for this is available in Gradle 1.2 and all later versions."
     }
 
     def "tooling api reports an error when running a build using a gradle version does not implement the tooling api"() {
@@ -49,7 +49,7 @@ class ToolingApiUnsupportedVersionIntegrationTest extends AbstractIntegrationSpe
 
         then:
         UnsupportedVersionException e = thrown()
-        e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the BuildLauncher API. Support for this is available in Gradle 1.0-milestone-8 and all later versions."
+        e.message == "The version of Gradle you are using (Gradle distribution '${distroZip}') does not support the BuildLauncher API. Support for this is available in Gradle 1.2 and all later versions."
     }
 
     def "tooling api reports an error when running a build action using a gradle version does not implement the tooling api"() {

@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.testng;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.testing.TestClassLoaderFactory;
@@ -32,10 +31,10 @@ import org.gradle.api.reporting.DirectoryReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.internal.TimeProvider;
+import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.actor.ActorFactory;
 import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
@@ -50,11 +49,10 @@ public class TestNGTestFramework implements TestFramework {
     private final DefaultTestFilter filter;
     private final TestClassLoaderFactory classLoaderFactory;
 
-    public TestNGTestFramework(Test testTask, DefaultTestFilter filter, Instantiator instantiator, ClassLoaderCache classLoaderCache) {
+    public TestNGTestFramework(final Test testTask, DefaultTestFilter filter, Instantiator instantiator, ClassLoaderCache classLoaderCache) {
         this.testTask = testTask;
         this.filter = filter;
         options = instantiator.newInstance(TestNGOptions.class, testTask.getProject().getProjectDir());
-        options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
         conventionMapOutputDirectory(options, testTask.getReports().getHtml());
         detector = new TestNGDetector(new ClassFileExtractionManager(testTask.getTemporaryDirFactory()));
         classLoaderFactory = new TestClassLoaderFactory(classLoaderCache, testTask);
@@ -73,9 +71,9 @@ public class TestNGTestFramework implements TestFramework {
         verifyConfigFailurePolicy();
         verifyPreserveOrder();
         verifyGroupByInstances();
-        options.setTestResources(testTask.getTestSrcDirs());
         List<File> suiteFiles = options.getSuites(testTask.getTemporaryDir());
-        return new TestClassProcessorFactoryImpl(options.getOutputDirectory(), new TestNGSpec(options, filter), suiteFiles);
+        TestNGSpec spec = new TestNGSpec(options, filter);
+        return new TestClassProcessorFactoryImpl(this.options.getOutputDirectory(), spec, suiteFiles);
     }
 
     private void verifyConfigFailurePolicy() {

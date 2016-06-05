@@ -25,7 +25,8 @@ import org.junit.Test
 
 class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
 
-    @Rule public final Sample sample = new Sample(testDirectoryProvider, 'java/base')
+    @Rule
+    public final Sample sample = new Sample(testDirectoryProvider, 'java/base')
 
     @Test
     public void canBuildAndUploadJar() {
@@ -40,13 +41,13 @@ class SamplesJavaBaseIntegrationTest extends AbstractIntegrationTest {
 
         // Check jar exists
         javaprojectDir.file("prod/build/libs/prod-1.0.jar").assertIsFile()
-        
+
         // Check contents of Jar
         TestFile jarContents = file('jar')
         javaprojectDir.file('prod/build/libs/prod-1.0.jar').unzipTo(jarContents)
         jarContents.assertHasDescendants(
-                'META-INF/MANIFEST.MF',
-                'org/gradle/Person.class'
+            'META-INF/MANIFEST.MF',
+            'org/gradle/Person.class'
         )
     }
 }

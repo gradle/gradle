@@ -141,5 +141,5 @@ public interface DomainObjectCollection<T> extends Collection<T> {
      * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
      *         collection.
      */
-    public Collection<T> findAll(Closure spec);
+    Collection<T> findAll(Closure spec);
 }

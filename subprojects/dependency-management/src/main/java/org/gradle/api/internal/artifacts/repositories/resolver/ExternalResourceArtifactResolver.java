@@ -16,14 +16,14 @@
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetaData;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 public interface ExternalResourceArtifactResolver {
 
     @Nullable
-    LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result);
+    LocallyAvailableExternalResource resolveArtifact(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result);
 
-    boolean artifactExists(ModuleComponentArtifactMetaData artifact, ResourceAwareResolveResult result);
+    boolean artifactExists(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result);
 }

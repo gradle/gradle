@@ -15,6 +15,7 @@
  */
 
 import org.gradle.build.Install
+import org.gradle.cleanup.EmptyDirectoryCheck
 
 defaultTasks 'assemble'
 apply plugin: 'java-base'
@@ -96,6 +97,11 @@ buildTypes {
         tasks "verifyIsProductionBuildEnvironment", "clean", "buildDists", "distributions:integTest"
     }
 
+    // Used to build (experimental) production distros and smoke test them
+    packageBuildExperimental {
+        tasks "verifyIsProductionBuildEnvironment", "buildDists", "distributions:integTest"
+    }
+
     // Used to build production distros and smoke test them
     promotionBuild {
         tasks "verifyIsProductionBuildEnvironment", "clean", "docs:check", "buildDists", "distributions:integTest", "uploadArchives"
@@ -105,6 +111,11 @@ buildTypes {
     java9Build {
         tasks "java9Test", "java9IntegTest"
         projectProperties useIncomingDistributions: true
+    }
+
+    soakTest {
+        tasks "soak:soakTest"
+        projectProperties testAllVersions: true
     }
 }
 
@@ -141,10 +152,10 @@ ext {
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
         'plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven',
-        'ide', 'announce', 'scala', 'sonar', 'signing', 'ear', 'javascript', 'buildComparison',
+        'ide', 'announce', 'scala', 'signing', 'ear', 'javascript', 'buildComparison',
         'diagnostics', 'reporting', 'publish', 'ivy', 'jacoco', 'buildInit', 'platformBase',
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
-        'platformNative', 'platformPlay', 'languageNative', 'ideNative', 'testingBase',
+        'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
         'resourcesSftp', 'resourcesS3', 'toolingApiBuilders'
     ].collect {
@@ -158,8 +169,10 @@ ext {
         project(':baseServices'),
         project(':baseServicesGroovy'),
         project(':messaging'),
+        project(':processServices'),
         project(':resources')
     ]
+    removedProjects = ['sonar']
 }
 
 apply from: "gradle/buildReceipt.gradle"
@@ -181,7 +194,8 @@ allprojects {
     group = 'org.gradle'
 
     repositories {
-        maven { url 'https://repo.gradle.org/gradle/libs' }
+        maven { url 'https://repo.gradle.org/gradle/libs-releases' }
+        maven { url 'https://repo.gradle.org/gradle/libs-milestones' }
     }
 }
 
@@ -208,9 +222,6 @@ subprojects {
 }
 
 configurations {
-    sonar {
-        visible = false
-    }
     runtime {
         visible = false
     }
@@ -227,7 +238,7 @@ dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
-    sonar libraries.logback_classic
+    runtime 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
@@ -259,6 +270,17 @@ task install(type: Install) {
     group = 'build'
     with project(":distributions").binDistImage
     installDirPropertyName = 'gradle_installPath'
+}
+
+subprojects {
+    afterEvaluate {
+        def jar = tasks.findByName('jar')
+        if (jar) {
+            jar.from(sourceSets.main.allSource) {
+                exclude '**/internal/**/*.java'
+            }
+        }
+    }
 }
 
 task installAll(type: Install) {
@@ -306,3 +328,24 @@ gradle.addListener(new TaskExecutionListener() {
         preferencesTraceFile << "$descr , '${task.path}', ${userPrefsDirectory.absolutePath}, ${userPrefsDirectory.exists()}\n"
     }
 })
+
+// Generate a report showing which tests in a subproject are leaving
+// files around.
+//
+// Once a subproject's report is "clean" we should add the following to that
+// subproject's buildscript:
+//
+// verifyTestFilesCleanup.errorWhenNotEmpty = true
+//
+subprojects { prj ->
+    task verifyTestFilesCleanup(type: EmptyDirectoryCheck) {
+        targetDir = prj.fileTree("${prj.buildDir}/tmp/test files")
+        report = prj.file("${prj.buildDir}/reports/remains.txt")
+        errorWhenNotEmpty = true
+    }
+}
+
+task cleanUpRemovedProjects(type: Delete) {
+    delete removedProjects.collect { "subprojects/$it" }
+}
+clean.dependsOn(cleanUpRemovedProjects)

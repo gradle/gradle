@@ -25,6 +25,11 @@ public interface DaemonFixture {
     DaemonContext getContext();
 
     /**
+     * Returns the log for this daemon.
+     */
+    String getLog();
+
+    /**
      * Returns the TCP port used by this daemon.
      */
     int getPort();
@@ -33,6 +38,13 @@ public interface DaemonFixture {
      * Forcefully kills this daemon.
      */
     void kill();
+
+    /**
+     * Changes the authentication token for this daemon in the registry, so that client will see a different token to that expected by this daemon
+     */
+    void changeTokenVisibleToClient();
+
+    void assertRegistryNotWorldReadable();
 
     /**
      * Asserts that this daemon becomes idle within a short timeout. Blocks until this has happened.

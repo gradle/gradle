@@ -16,25 +16,27 @@
 package org.gradle.initialization;
 
 import groovy.lang.Closure;
-import org.gradle.api.internal.plugins.dsl.PluginRepositoryHandler;
-import org.gradle.api.internal.plugins.repositories.PluginRepositoryRegistry;
-import org.gradle.api.internal.plugins.repositories.ScriptScopedPluginRepositoryHandler;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.ConfigureUtil;
+import org.gradle.plugin.repository.PluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 
 /**
  * Endows a {@link SettingsScript} with methods which can only be used when
  * processing top-level blocks on the initial pass through a script.
  */
 public abstract class InitialPassSettingsScript extends SettingsScript {
-    public PluginRepositoryHandler getPluginRepositoryHandler() {
+    private PluginRepositoriesSpec getPluginRepositorySpec() {
         Instantiator instantiator = __scriptServices.get(Instantiator.class);
+        PluginRepositoryFactory pluginRepositoryFactory = __scriptServices.get(PluginRepositoryFactory.class);
         PluginRepositoryRegistry pluginRepositoryRegistry = __scriptServices.get(PluginRepositoryRegistry.class);
         return instantiator.newInstance(
-            ScriptScopedPluginRepositoryHandler.class, pluginRepositoryRegistry, getFileResolver());
+            DefaultPluginRepositoriesSpec.class, pluginRepositoryFactory, pluginRepositoryRegistry, getFileResolver());
     }
 
     public void pluginRepositories(Closure config) {
-        ConfigureUtil.configure(config, getPluginRepositoryHandler());
+        new ClosureBackedAction<PluginRepositoriesSpec>(config, Closure.DELEGATE_ONLY, false).execute(getPluginRepositorySpec());
     }
 }

@@ -148,8 +148,8 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureDefaultOutputPathForJacocoMerge() {
-        project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
+    public Object configureDefaultOutputPathForJacocoMerge() {
+        return project.getTasks().withType(JacocoMerge.class, new Action<JacocoMerge>() {
             @Override
             public void execute(final JacocoMerge task) {
                 ConventionMapping mapping = ((IConventionAware) task).getConventionMapping();
@@ -204,16 +204,19 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
      * @param extension the extension describing the test task names
      */
     private void addDefaultReportTasks(final JacocoPluginExtension extension) {
-        if (project.getPlugins().hasPlugin(JavaPlugin.class)) {
-            project.getTasks().withType(Test.class, new Action<Test>() {
-                @Override
-                public void execute(Test task) {
-                    if (task.getName().equals(JavaPlugin.TEST_TASK_NAME)) {
-                        addDefaultReportTask(extension, task);
+        project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
+            @Override
+            public void execute(JavaPlugin javaPlugin) {
+                project.getTasks().withType(Test.class, new Action<Test>() {
+                    @Override
+                    public void execute(Test task) {
+                        if (task.getName().equals(JavaPlugin.TEST_TASK_NAME)) {
+                            addDefaultReportTask(extension, task);
+                        }
                     }
-                }
-            });
-        }
+                });
+            }
+        });
     }
 
     private void addDefaultReportTask(final JacocoPluginExtension extension, final Test task) {
@@ -243,5 +246,15 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
                 }
             }
         });
+    }
+
+    public static String getAGENT_CONFIGURATION_NAME() {
+        return AGENT_CONFIGURATION_NAME;
+    }
+    public static String getANT_CONFIGURATION_NAME() {
+        return ANT_CONFIGURATION_NAME;
+    }
+    public static String getPLUGIN_EXTENSION_NAME() {
+        return PLUGIN_EXTENSION_NAME;
     }
 }

@@ -18,10 +18,18 @@ package org.gradle.integtests.tooling.fixture
 import org.gradle.integtests.fixtures.AbstractCompatibilityTestRunner
 import org.gradle.integtests.fixtures.AbstractMultiTestRunner
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 
 class CompositeToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     CompositeToolingApiCompatibilitySuiteRunner(Class<? extends CompositeToolingApiSpecification> target) {
         super(target)
+    }
+
+    /**
+     * Composite Tooling API tests will can run against any version back to Gradle 0.8.
+     */
+    protected List<GradleDistribution> choosePreviousVersionsToTest(ReleasedVersionDistributions previousVersions) {
+        return previousVersions.all
     }
 
     @Override

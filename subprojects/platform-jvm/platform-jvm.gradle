@@ -1,3 +1,5 @@
+sourceCompatibility = 1.6
+
 dependencies {
     compile project(":platformBase")
     compile project(":core")

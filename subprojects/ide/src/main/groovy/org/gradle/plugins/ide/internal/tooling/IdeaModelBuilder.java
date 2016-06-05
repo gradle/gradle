@@ -18,35 +18,60 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeProjectDirectoryMapper;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
-import org.gradle.plugins.ide.idea.model.*;
-import org.gradle.plugins.ide.internal.tooling.idea.*;
+import org.gradle.plugins.ide.idea.model.Dependency;
+import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
+import org.gradle.plugins.ide.idea.model.IdeaModel;
+import org.gradle.plugins.ide.idea.model.IdeaModule;
+import org.gradle.plugins.ide.idea.model.IdeaProject;
+import org.gradle.plugins.ide.idea.model.ModuleDependency;
+import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaCompilerOutput;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaContentRoot;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaDependency;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaDependencyScope;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaJavaLanguageSettings;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaLanguageLevel;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaModule;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaModuleDependency;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaProject;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaSingleEntryLibraryDependency;
+import org.gradle.plugins.ide.internal.tooling.idea.DefaultIdeaSourceDirectory;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleModuleVersion;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class IdeaModelBuilder implements ToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
-    private final CompositeProjectDirectoryMapper compositeProjectMapper;
+    private final CompositeBuildIdeProjectResolver compositeProjectMapper;
 
     private boolean offlineDependencyResolution;
 
     public IdeaModelBuilder(GradleProjectBuilder gradleProjectBuilder, ServiceRegistry services) {
         this.gradleProjectBuilder = gradleProjectBuilder;
-        compositeProjectMapper = new CompositeProjectDirectoryMapper(services);
+        compositeProjectMapper = new CompositeBuildIdeProjectResolver(services);
     }
 
+    @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.idea.IdeaProject");
     }
 
+    @Override
     public DefaultIdeaProject buildAll(String modelName, Project project) {
         Project root = project.getRootProject();
         applyIdeaPlugin(root);
@@ -59,7 +84,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (Project p : allProjects) {
             p.getPluginManager().apply(IdeaPlugin.class);
         }
-        ideaPluginFor(root).makeSureModuleNamesAreUnique();
+        ideaPluginFor(root).performPostEvaluationActions();
     }
 
     private DefaultIdeaProject build(Project project, DefaultGradleProject rootGradleProject) {
@@ -100,12 +125,12 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
         for (Dependency dependency : resolved) {
             if (dependency instanceof SingleEntryModuleLibrary) {
                 SingleEntryModuleLibrary d = (SingleEntryModuleLibrary) dependency;
-                DefaultIdeaSingleEntryLibraryDependency defaultDependency = new org.gradle.tooling.internal.idea.DefaultIdeaSingleEntryLibraryDependency()
+                DefaultIdeaSingleEntryLibraryDependency defaultDependency = new DefaultIdeaSingleEntryLibraryDependency()
                     .setFile(d.getLibraryFile())
                     .setSource(d.getSourceFile())
                     .setJavadoc(d.getJavadocFile())
                     .setScope(new DefaultIdeaDependencyScope(d.getScope()))
-                    .setExported(d.getExported());
+                    .setExported(d.isExported());
 
                 if (d.getModuleVersion() != null) {
                     defaultDependency.setGradleModuleVersion(new DefaultGradleModuleVersion(d.getModuleVersion()));
@@ -115,10 +140,10 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 ModuleDependency d = (ModuleDependency) dependency;
                 DefaultIdeaModule targetModule = modules.get(d.getName());
                 File targetProjectDirectory = targetModule == null
-                    ? compositeProjectMapper.transform(d.getGradlePath())
+                    ? compositeProjectMapper.getProjectDirectory(d.getGradlePath())
                     : targetModule.getGradleProject().getProjectDirectory();
-                DefaultIdeaModuleDependency defaultDependency = new org.gradle.tooling.internal.idea.DefaultIdeaModuleDependency()
-                    .setExported(d.getExported())
+                DefaultIdeaModuleDependency defaultDependency = new DefaultIdeaModuleDependency()
+                    .setExported(d.isExported())
                     .setScope(new DefaultIdeaDependencyScope(d.getScope()))
                     .setDependencyModule(targetModule)
                     .setProjectDirectory(targetProjectDirectory);

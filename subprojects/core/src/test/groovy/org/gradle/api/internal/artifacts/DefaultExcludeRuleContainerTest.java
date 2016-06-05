@@ -70,7 +70,7 @@ public class DefaultExcludeRuleContainerTest {
                 }
             }
         }
-        assertThat(Arrays.asList(excludeRuleArgs), equalTo(foundRules));
+        assertThat(new HashSet<Map>(Arrays.asList(excludeRuleArgs)), equalTo(new HashSet<Map>(foundRules)));
     }
 
     private boolean matchingExcludeRule(ExcludeRule excludeRule, Map excludeRuleArg) {

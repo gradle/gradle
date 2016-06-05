@@ -32,7 +32,7 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 
 class TaskProgressCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=2.5")
-    @TargetGradleVersion(">=1.0-milestone-8 <2.5")
+    @TargetGradleVersion(">=1.2 <2.5")
     def "ignores listeners when Gradle version does not generate task events"() {
         given:
         goodCode()

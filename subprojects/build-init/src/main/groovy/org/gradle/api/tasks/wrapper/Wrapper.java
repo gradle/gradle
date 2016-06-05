@@ -125,6 +125,9 @@ public class Wrapper extends DefaultTask {
         return getProject().file(scriptFile);
     }
 
+    /**
+     * The file to write the wrapper script to.
+     */
     public void setScriptFile(Object scriptFile) {
         this.scriptFile = scriptFile;
     }
@@ -146,6 +149,9 @@ public class Wrapper extends DefaultTask {
         return getProject().file(jarFile);
     }
 
+    /**
+     * The file to write the wrapper jar file to.
+     */
     public void setJarFile(Object jarFile) {
         this.jarFile = jarFile;
     }
@@ -223,6 +229,18 @@ public class Wrapper extends DefaultTask {
         }
     }
 
+    /**
+     * The URL to download the gradle distribution from.
+     *
+     * <p>If not set, the download URL is the default for the specified {@link #getGradleVersion()}.
+     *
+     * <p>If {@link #getGradleVersion()} is not set, will return null.
+     *
+     * <p>The wrapper downloads a certain distribution only once and caches it. If your distribution base is the
+     * project, you might submit the distribution to your version control system. That way no download is necessary at
+     * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
+     * don't need to provide a download server then.
+     */
     @Option(option = "gradle-distribution-url", description = "The URL to download the gradle distribution from.")
     public void setDistributionUrl(String url) {
         this.distributionUrl = url;

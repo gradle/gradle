@@ -25,6 +25,8 @@ import org.spockframework.runtime.model.SpecInfo
 class UsesNativeServicesExtension extends AbstractAnnotationDrivenExtension<UsesNativeServices> {
     @Override
     void visitSpecAnnotation(UsesNativeServices annotation, SpecInfo spec) {
+        spec.addSharedInitializerInterceptor(new NativeServicesInitializationInterceptor())
+        spec.addInitializerInterceptor(new NativeServicesInitializationInterceptor())
         spec.addInterceptor(new NativeServicesInitializationInterceptor())
     }
 

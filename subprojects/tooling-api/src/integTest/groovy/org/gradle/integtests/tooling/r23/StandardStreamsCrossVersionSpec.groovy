@@ -121,7 +121,7 @@ task log {
     }
 
     @ToolingApiVersion(">=2.3")
-    @TargetGradleVersion(">=1.0-milestone-8 <2.3")
+    @TargetGradleVersion(">=1.2 <2.3")
     def "can specify color output when target version does not support colored output"() {
         file("build.gradle") << """
 task log {

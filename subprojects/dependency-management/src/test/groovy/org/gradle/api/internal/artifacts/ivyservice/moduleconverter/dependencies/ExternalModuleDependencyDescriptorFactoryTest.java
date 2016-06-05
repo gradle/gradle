@@ -20,9 +20,8 @@ import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import org.gradle.internal.component.local.model.DslOriginDependencyMetaData;
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.hamcrest.Matchers;
-import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -30,11 +29,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
-    private JUnit4Mockery context = new JUnit4Mockery();
 
     ExternalModuleIvyDependencyDescriptorFactory externalModuleDependencyDescriptorFactory =
             new ExternalModuleIvyDependencyDescriptorFactory(excludeRuleConverterStub);
-    
+
     @Test
     public void canConvert() {
         assertThat(externalModuleDependencyDescriptorFactory.canConvert(context.mock(ProjectDependency.class)), Matchers.equalTo(false));
@@ -44,7 +42,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
     @Test
     public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF);
-        DslOriginDependencyMetaData dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, dependency);
+        DslOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, dependency);
         assertThat(dependencyMetaData.getRequested().getGroup(), equalTo(""));
         assertThat(dependencyMetaData.getRequested().getName(), equalTo("gradle-core"));
         assertThat(dependencyMetaData.getRequested().getVersion(), equalTo(""));
@@ -56,7 +54,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
                 "gradle-core", "1.0", TEST_DEP_CONF);
         setUpDependency(moduleDependency);
 
-        DslOriginDependencyMetaData dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, moduleDependency);
+        DslOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, moduleDependency);
 
         assertEquals(moduleDependency.isChanging(), dependencyMetaData.isChanging());
         assertEquals(moduleDependency.isForce(), dependencyMetaData.isForce());

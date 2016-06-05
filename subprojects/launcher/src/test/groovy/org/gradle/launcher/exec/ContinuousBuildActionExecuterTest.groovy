@@ -17,22 +17,25 @@
 package org.gradle.launcher.exec
 
 import org.gradle.StartParameter
-import org.gradle.api.JavaVersion
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.initialization.*
+import org.gradle.initialization.BuildRequestMetaData
+import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.initialization.DefaultBuildRequestContext
+import org.gradle.initialization.NoOpBuildEventConsumer
+import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
 import org.gradle.internal.invocation.BuildAction
+import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
-import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.util.Clock
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
@@ -173,55 +176,6 @@ class ContinuousBuildActionExecuterTest extends Specification {
         }
     }
 
-    def "doesn't prevent use on java 6 when not using continuous"() {
-        given:
-        executer = executer(JavaVersion.VERSION_1_6)
-
-        when:
-        singleBuild()
-
-        and:
-        executeBuild()
-
-        then:
-        noExceptionThrown()
-    }
-
-    def "prevents use on java 6 when using continuous"() {
-        given:
-        executer = executer(JavaVersion.VERSION_1_6)
-
-        when:
-        continuousBuild()
-
-        and:
-        executeBuild()
-
-        then:
-        def e = thrown IllegalStateException
-        e.message == "Continuous build requires Java 7 or later."
-    }
-
-    def "can use on all versions later than 7"() {
-        given:
-        executer = executer(javaVersion)
-
-        when:
-        continuousBuild()
-
-        and:
-        executeBuild()
-
-        then:
-        waiter.wait(_,_) >> {
-            cancellationToken.cancel()
-        }
-        noExceptionThrown()
-
-        where:
-        javaVersion << JavaVersion.values().findAll { it >= JavaVersion.VERSION_1_7 }
-    }
-
     def "closes build session after single build"() {
         when:
         singleBuild()
@@ -259,8 +213,8 @@ class ContinuousBuildActionExecuterTest extends Specification {
         listenerManager.getBroadcaster(TaskInputsListener).onExecute(Mock(TaskInternal), new SimpleFileCollection(file))
     }
 
-    private ContinuousBuildActionExecuter executer(JavaVersion javaVersion = JavaVersion.VERSION_1_7) {
-        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), javaVersion, OperatingSystem.current(), executorFactory, waiterFactory, null)
+    private ContinuousBuildActionExecuter executer() {
+        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), OperatingSystem.current(), executorFactory, waiterFactory, null)
     }
 
 }

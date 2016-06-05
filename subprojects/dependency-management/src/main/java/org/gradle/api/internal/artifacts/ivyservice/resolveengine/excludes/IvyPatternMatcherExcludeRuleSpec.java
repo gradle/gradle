@@ -16,81 +16,76 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
-import org.apache.ivy.core.module.descriptor.ExcludeRule;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 /**
- * A ModuleResolutionFilter that accepts any module/artifact that doesn't match the exclude rule.
+ * A ModuleResolutionFilter that excludes any module/artifact that matches the exclude rule, using an Ivy pattern matcher.
  */
-class IvyPatternMatcherExcludeRuleSpec extends AbstractModuleExcludeRuleFilter {
+class IvyPatternMatcherExcludeRuleSpec extends AbstractModuleExclusion {
     private final ModuleIdentifier moduleId;
     private final IvyArtifactName ivyArtifactName;
     private final PatternMatcher matcher;
     private final boolean isArtifactExclude;
 
-    IvyPatternMatcherExcludeRuleSpec(ExcludeRule rule) {
-        this.moduleId = DefaultModuleIdentifier.newId(rule.getId().getModuleId().getOrganisation(), rule.getId().getModuleId().getName());
-        this.ivyArtifactName = new DefaultIvyArtifactName(rule.getId().getName(), rule.getId().getType(), rule.getId().getExt());
-        this.matcher = rule.getMatcher();
+    IvyPatternMatcherExcludeRuleSpec(Exclude rule) {
+        this.moduleId = rule.getModuleId();
+        this.ivyArtifactName = rule.getArtifact();
+        this.matcher = PatternMatchers.getInstance().getMatcher(rule.getMatcher());
         isArtifactExclude = !isWildcard(ivyArtifactName.getName()) || !isWildcard(ivyArtifactName.getType()) || !isWildcard(ivyArtifactName.getExtension());
     }
 
     @Override
     public String toString() {
-        return String.format("{exclude-rule %s:%s with matcher %s}", moduleId, ivyArtifactName, matcher.getName());
+        return "{exclude-rule " + moduleId + ":" + ivyArtifactName + " with matcher " + matcher.getName() + "}";
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (o == this) {
-            return true;
-        }
-        if (o == null || o.getClass() != getClass()) {
-            return false;
-        }
+    protected boolean doEquals(Object o) {
         IvyPatternMatcherExcludeRuleSpec other = (IvyPatternMatcherExcludeRuleSpec) o;
-        return doAcceptsSameModulesAs(other);
+        return doExcludesSameModulesAs(other);
     }
 
     @Override
-    public int hashCode() {
+    protected int doHashCode() {
         return moduleId.hashCode() ^ ivyArtifactName.hashCode();
     }
 
     @Override
-    protected boolean doAcceptsSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    protected boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
         IvyPatternMatcherExcludeRuleSpec otherSpec = (IvyPatternMatcherExcludeRuleSpec) other;
         return moduleId.equals(otherSpec.moduleId)
-                && ivyArtifactName.equals(otherSpec.ivyArtifactName)
-                && matcher.getName().equals(otherSpec.matcher.getName());
+            && ivyArtifactName.equals(otherSpec.ivyArtifactName)
+            && matcher.getName().equals(otherSpec.matcher.getName());
     }
 
     @Override
-    protected boolean acceptsAllModules() {
+    protected boolean excludesNoModules() {
         return isArtifactExclude;
     }
 
-    public boolean acceptModule(ModuleIdentifier module) {
-        return isArtifactExclude || !(matches(moduleId.getGroup(), module.getGroup()) && matches(moduleId.getName(), module.getName()));
-    }
-
-    public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+    public boolean excludeModule(ModuleIdentifier module) {
         if (isArtifactExclude) {
-            return !(matches(moduleId.getGroup(), module.getGroup())
-                    && matches(moduleId.getName(), module.getName())
-                    && matches(ivyArtifactName.getName(), artifact.getName())
-                    && matches(ivyArtifactName.getExtension(), artifact.getExtension())
-                    && matches(ivyArtifactName.getType(), artifact.getType()));
+            return false;
         }
-        return true;
+        return matches(moduleId.getGroup(), module.getGroup()) && matches(moduleId.getName(), module.getName());
     }
 
-    public boolean acceptsAllArtifacts() {
-        return !isArtifactExclude;
+    public boolean excludeArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
+        if (!isArtifactExclude) {
+            return false;
+        }
+        return matches(moduleId.getGroup(), module.getGroup())
+            && matches(moduleId.getName(), module.getName())
+            && matches(ivyArtifactName.getName(), artifact.getName())
+            && matches(ivyArtifactName.getExtension(), artifact.getExtension())
+            && matches(ivyArtifactName.getType(), artifact.getType());
+    }
+
+    public boolean mayExcludeArtifacts() {
+        return isArtifactExclude;
     }
 
     private boolean matches(String expression, String input) {

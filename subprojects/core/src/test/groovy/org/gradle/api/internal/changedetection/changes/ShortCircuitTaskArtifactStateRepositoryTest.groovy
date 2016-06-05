@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.changes
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
@@ -29,8 +30,9 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
     TaskArtifactStateRepository delegate = Mock(TaskArtifactStateRepository)
     ShortCircuitTaskArtifactStateRepository repository = new ShortCircuitTaskArtifactStateRepository(startParameter, DirectInstantiator.INSTANCE, delegate)
     TaskArtifactState taskArtifactState = Mock(TaskArtifactState)
-    TaskInternal task = Mock(TaskInternal)
-    TaskOutputsInternal outputs = Mock(TaskOutputsInternal)
+    def inputs = Mock(TaskInputsInternal)
+    def outputs = Mock(TaskOutputsInternal)
+    def task = Mock(TaskInternal)
     Spec upToDateSpec = Mock(Spec)
 
     def doesNotLoadHistoryWhenTaskHasNoDeclaredOutputs() {
@@ -40,7 +42,10 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         TaskArtifactState state = repository.getStateFor(task);
 
         then:
-        1 * task.getOutputs() >> outputs
+        _ * task.getInputs() >> inputs
+        _ * task.getOutputs() >> outputs
+        _ * inputs.ensureConfigured()
+        _ * outputs.ensureConfigured()
         1 * outputs.getHasOutput() >> false
         0 * _
 
@@ -55,7 +60,10 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         TaskArtifactState state = repository.getStateFor(task);
 
         then:
-        2 * task.getOutputs() >> outputs
+        _ * task.getInputs() >> inputs
+        _ * task.getOutputs() >> outputs
+        _ * inputs.ensureConfigured()
+        _ * outputs.ensureConfigured()
         1 * outputs.getHasOutput() >> true
         1 * outputs.getUpToDateSpec() >> upToDateSpec
         1 * upToDateSpec.isSatisfiedBy(task) >> true
@@ -73,7 +81,10 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         def state = repository.getStateFor(task)
 
         then:
-        1 * task.getOutputs() >> outputs
+        _ * task.getInputs() >> inputs
+        _ * task.getOutputs() >> outputs
+        _ * inputs.ensureConfigured()
+        _ * outputs.ensureConfigured()
         1 * outputs.getHasOutput() >> true
         1 * delegate.getStateFor(task) >> taskArtifactState
         0 * taskArtifactState._
@@ -93,7 +104,10 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         def state = repository.getStateFor(task)
 
         then:
-        2 * task.getOutputs() >> outputs
+        _ * task.getInputs() >> inputs
+        _ * task.getOutputs() >> outputs
+        _ * inputs.ensureConfigured()
+        _ * outputs.ensureConfigured()
         1 * outputs.getHasOutput() >> true
         1 * outputs.getUpToDateSpec() >> upToDateSpec
         1 * upToDateSpec.isSatisfiedBy(task) >> false

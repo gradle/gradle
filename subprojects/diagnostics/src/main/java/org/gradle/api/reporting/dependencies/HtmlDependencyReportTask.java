@@ -27,6 +27,8 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.dependencies.internal.DefaultDependencyReportContainer;
 import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -57,7 +59,7 @@ import java.util.Set;
 @Incubating
 public class HtmlDependencyReportTask extends ConventionTask implements Reporting<DependencyReportContainer> {
     private Set<Project> projects;
-    private final DefaultDependencyReportContainer reports;
+    private final DependencyReportContainer reports;
 
     public HtmlDependencyReportTask() {
         reports = getInstantiator().newInstance(DefaultDependencyReportContainer.class, this);
@@ -69,6 +71,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
         });
     }
 
+    @Nested
     @Override
     public DependencyReportContainer getReports() {
         return reports;
@@ -112,6 +115,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
      *
      * @return The set of files.
      */
+    @Internal
     public Set<Project> getProjects() {
         return projects;
     }

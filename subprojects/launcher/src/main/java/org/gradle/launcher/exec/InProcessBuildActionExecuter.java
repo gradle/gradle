@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.DefaultGradleLauncher;
@@ -25,7 +24,6 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.util.DeprecationLogger;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final GradleLauncherFactory gradleLauncherFactory;
@@ -41,9 +39,6 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
         try {
             gradleLauncher.addStandardOutputListener(buildRequestContext.getOutputListener());
             gradleLauncher.addStandardErrorListener(buildRequestContext.getErrorListener());
-            if (!JavaVersion.current().isJava7Compatible()) {
-                DeprecationLogger.nagUserWith("Support for running Gradle using Java 6 has been deprecated and will be removed in Gradle 3.0");
-            }
             DefaultBuildController buildController = new DefaultBuildController(gradleLauncher);
             buildActionRunner.run(action, buildController);
             return buildController.result;

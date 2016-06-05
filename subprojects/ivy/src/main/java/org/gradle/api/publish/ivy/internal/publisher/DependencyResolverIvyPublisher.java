@@ -16,41 +16,34 @@
 
 package org.gradle.api.publish.ivy.internal.publisher;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
-import org.apache.ivy.core.module.descriptor.DefaultArtifact;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
-import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetaData;
 import org.gradle.api.internal.artifacts.repositories.PublicationAwareRepository;
 import org.gradle.api.publish.ivy.IvyArtifact;
-import org.gradle.util.GUtil;
+import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetadata;
+import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class DependencyResolverIvyPublisher implements IvyPublisher {
 
     public void publish(IvyNormalizedPublication publication, PublicationAwareRepository repository) {
         ModuleVersionPublisher publisher = repository.createPublisher();
         IvyPublicationIdentity projectIdentity = publication.getProjectIdentity();
-        ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision());
-        ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(moduleRevisionId);
+        ModuleComponentIdentifier moduleVersionIdentifier = DefaultModuleComponentIdentifier.newId(projectIdentity.getOrganisation(), projectIdentity.getModule(), projectIdentity.getRevision());
         // This indicates the IvyPublishMetaData should probably not be responsible for creating a ModuleDescriptor...
-        DefaultIvyModulePublishMetaData publishMetaData = new DefaultIvyModulePublishMetaData(moduleVersionIdentifier, "");
+        BuildableIvyModulePublishMetadata publishMetaData = new DefaultIvyModulePublishMetadata(moduleVersionIdentifier, "");
 
         try {
             for (IvyArtifact publishArtifact : publication.getArtifacts()) {
-                Artifact ivyArtifact = createIvyArtifact(publishArtifact, moduleRevisionId);
-                publishMetaData.addArtifact(ivyArtifact, publishArtifact.getFile());
+                publishMetaData.addArtifact(createIvyArtifact(publishArtifact), publishArtifact.getFile());
             }
 
-            Artifact artifact = DefaultArtifact.newIvyArtifact(moduleRevisionId, null);
+            IvyArtifactName artifact = new DefaultIvyArtifactName("ivy", "ivy", "xml");
             publishMetaData.addArtifact(artifact, publication.getDescriptorFile());
 
             publisher.publish(publishMetaData);
@@ -59,17 +52,7 @@ public class DependencyResolverIvyPublisher implements IvyPublisher {
         }
     }
 
-    private Artifact createIvyArtifact(IvyArtifact ivyArtifact, ModuleRevisionId moduleRevisionId) {
-        Map<String, String> extraAttributes = new HashMap<String, String>();
-        if (GUtil.isTrue(ivyArtifact.getClassifier())) {
-            extraAttributes.put(Dependency.CLASSIFIER, ivyArtifact.getClassifier());
-        }
-        return new DefaultArtifact(
-                moduleRevisionId,
-                null,
-                GUtil.elvis(ivyArtifact.getName(), moduleRevisionId.getName()),
-                ivyArtifact.getType(),
-                ivyArtifact.getExtension(),
-                extraAttributes);
+    private IvyArtifactName createIvyArtifact(IvyArtifact ivyArtifact) {
+        return new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExtension(), ivyArtifact.getClassifier());
     }
 }

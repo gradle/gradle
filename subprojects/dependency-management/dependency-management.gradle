@@ -1,5 +1,7 @@
 apply plugin: "groovy"
 
+sourceCompatibility = 1.6
+
 configurations {
     mvn3Input
 }
@@ -37,9 +39,8 @@ dependencies {
     testFixturesCompile project(":internalIntegTesting")
 }
 
-if (isWindows && javaVersion.java5) {
-    compileTestGroovy.options.fork(memoryMaximumSize: '512m')
-}
-
 useTestFixtures()
 useTestFixtures(project: ":messaging")
+
+verifyTestFilesCleanup.errorWhenNotEmpty = false
+

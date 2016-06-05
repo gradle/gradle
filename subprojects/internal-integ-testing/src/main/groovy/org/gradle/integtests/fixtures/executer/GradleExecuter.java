@@ -175,6 +175,11 @@ public interface GradleExecuter {
     GradleExecuter withNoExplicitTmpDir();
 
     /**
+     * Don't set native services dir explicitly.
+     */
+    GradleExecuter withNoExplicitNativeServicesDir();
+
+    /**
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
      */
@@ -215,6 +220,11 @@ public interface GradleExecuter {
      * @return this executer
      */
     GradleExecuter withDaemonBaseDir(File baseDir);
+
+    /**
+     * Returns the working space for any daemons used by the builds.
+     */
+    File getDaemonBaseDir();
 
     /**
      * Requires that the build run in a separate daemon process.
@@ -276,12 +286,12 @@ public interface GradleExecuter {
     GradleExecuter noExtraLogging();
 
     /**
-     * Requires that there is a gradle home for the execution, which in process execution does not.
+     * Requires that there is a real gradle distribution for the execution, which in-process execution does not.
      *
      * <p>Note: try to avoid using this method. It has some major drawbacks when it comes to development: 1. It requires a Gradle distribution or installation, and this will need to be rebuilt after
      * each change in order to use the test, and 2. it requires that the build run in a different JVM, which makes it very difficult to debug.</p>
      */
-    GradleExecuter requireGradleHome();
+    GradleExecuter requireGradleDistribution();
 
     /**
      * Configures that any daemons used by the execution are unique to the test.
@@ -291,6 +301,11 @@ public interface GradleExecuter {
      * <p>Note: this does not affect the Gradle user home directory.</p>
      */
     GradleExecuter requireIsolatedDaemons();
+
+    /**
+     * Returns true if this executer will share daemons with other executers.
+     */
+    boolean usesSharedDaemons();
 
     /**
      * Configures a unique gradle user home dir for the test.

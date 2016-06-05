@@ -29,24 +29,49 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.services.LoggingServiceRegistry;
+import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.GlobalScopeServices;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.process.internal.streams.SafeStreams;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
+import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.DeprecationLogger;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
+import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.*;
 import static org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult.STACK_TRACE_ELEMENT;
 import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.join;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
+    protected static final ServiceRegistry GLOBAL_SERVICES = ServiceRegistryBuilder.builder()
+        .displayName("Global services")
+        .parent(LoggingServiceRegistry.newCommandLineProcessLogging())
+        .parent(NativeServicesTestFixture.getInstance())
+        .provider(new GlobalScopeServices(true))
+        .build();
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = Sets.newHashSet();
 
     public static void propagateSystemProperty(String name) {
@@ -57,8 +82,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private static final String PROFILE_SYSPROP = "org.gradle.integtest.profile";
 
     protected static final List<String> DEBUG_ARGS = ImmutableList.of(
-        "-Xdebug",
-        "-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
+        "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"
     );
 
     private final Logger logger;
@@ -85,13 +109,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private PipedOutputStream stdinPipe;
     private String defaultCharacterEncoding;
     private Locale defaultLocale;
-    private int daemonIdleTimeoutSecs = 60;
+    private int daemonIdleTimeoutSecs = 120;
     private boolean requireDaemon;
     private File daemonBaseDir = buildContext.getDaemonBaseDir();
     private final List<String> buildJvmOpts = new ArrayList<String>();
     private final List<String> commandLineJvmOpts = new ArrayList<String>();
     private boolean useOnlyRequestedJvmOpts;
-    private boolean requireGradleHome;
+    private boolean requiresGradleDistribution;
 
     private int expectedDeprecationWarnings;
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -109,6 +133,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected boolean interactive;
 
     protected boolean noExplicitTmpDir;
+    protected boolean noExplicitNativeServicesDir;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -233,6 +258,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (noExplicitTmpDir) {
             executer.withNoExplicitTmpDir();
         }
+        if (noExplicitNativeServicesDir) {
+            executer.withNoExplicitNativeServicesDir();
+        }
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
         }
@@ -252,8 +280,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!stackTraceChecksOn) {
             executer.withStackTraceChecksDisabled();
         }
-        if (requireGradleHome) {
-            executer.requireGradleHome();
+        if (requiresGradleDistribution) {
+            executer.requireGradleDistribution();
         }
         if (requireDaemon) {
             executer.requireDaemon();
@@ -373,6 +401,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected List<String> getImplicitBuildJvmArgs() {
         List<String> buildJvmOpts = new ArrayList<String>();
         buildJvmOpts.add("-ea");
+
         if (isDebug()) {
             buildJvmOpts.addAll(DEBUG_ARGS);
         }
@@ -541,6 +570,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
 
+    public boolean usesSharedDaemons() {
+        return isSharedDaemons();
+    }
+
     public File getDaemonBaseDir() {
         return daemonBaseDir;
     }
@@ -556,15 +589,38 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected boolean isUseDaemon() {
-        for (int i = args.size() - 1; i >= 0; i--) {
-            if (args.get(i).equals("--daemon")) {
-                return true;
-            }
-            if (args.get(i).equals("--no-daemon")) {
-                return false;
-            }
+        CliDaemonArgument cliDaemonArgument = resolveCliDaemonArgument();
+        if (cliDaemonArgument == DAEMON) {
+            return true;
         }
         return requireDaemon;
+    }
+
+    enum CliDaemonArgument {
+        NOT_DEFINED,
+        DAEMON,
+        NO_DAEMON,
+        FOREGROUND
+    }
+
+    private CliDaemonArgument resolveCliDaemonArgument() {
+        for (int i = args.size() - 1; i >= 0; i--) {
+            final String arg = args.get(i);
+            if (arg.equals("--daemon")) {
+                return DAEMON;
+            }
+            if (arg.equals("--no-daemon")) {
+                return NO_DAEMON;
+            }
+            if (arg.equals("--foreground")) {
+                return FOREGROUND;
+            }
+        }
+        return NOT_DEFINED;
+    }
+
+    private boolean noDaemonArgumentGiven() {
+        return resolveCliDaemonArgument() == NOT_DEFINED;
     }
 
     protected List<String> getAllArgs() {
@@ -588,8 +644,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (quiet) {
             allArgs.add("--quiet");
         }
-        if (isUseDaemon()) {
-            allArgs.add("--daemon");
+        if (noDaemonArgumentGiven()) {
+            if (isUseDaemon()) {
+                allArgs.add("--daemon");
+            } else {
+                allArgs.add("--no-daemon");
+            }
         }
         allArgs.add("--stacktrace");
         if (taskList) {
@@ -642,6 +702,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         properties.put(GradleProperties.IDLE_TIMEOUT_PROPERTY, "" + (daemonIdleTimeoutSecs * 1000));
         properties.put(GradleProperties.DAEMON_BASE_DIR_PROPERTY, daemonBaseDir.getAbsolutePath());
+        if (!noExplicitNativeServicesDir) {
+            properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
+        }
         properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
 
         if (!noExplicitTmpDir) {
@@ -830,12 +893,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return allowExtraLogging;
     }
 
-    public boolean isRequireGradleHome() {
-        return requireGradleHome;
+    public boolean isRequiresGradleDistribution() {
+        return requiresGradleDistribution;
     }
 
-    public GradleExecuter requireGradleHome() {
-        this.requireGradleHome = true;
+    public GradleExecuter requireGradleDistribution() {
+        this.requiresGradleDistribution = true;
         return this;
     }
 
@@ -859,6 +922,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withNoExplicitTmpDir() {
         noExplicitTmpDir = true;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withNoExplicitNativeServicesDir() {
+        noExplicitNativeServicesDir = true;
         return this;
     }
 

@@ -29,11 +29,15 @@ public class OrSpecTest extends AbstractCompositeSpecTest {
         return new OrSpec(specs);
     }
 
+    public org.gradle.api.specs.CompositeSpec<Object> createOtherCompositeSpec(Spec<Object>... specs) {
+        return new AndSpec<Object>(specs);
+    }
+
     @Test
     public void isSatisfiedWhenNoSpecs() {
         assertTrue(new OrSpec().isSatisfiedBy(new Object()));
     }
-    
+
     @Test
     public void isSatisfiedByWithOneTrue() {
         assertTrue(new OrSpec(createAtomicElements(false, true, false)).isSatisfiedBy(context.mock(Dependency.class)));

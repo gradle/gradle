@@ -1,7 +1,7 @@
 subprojects {
     apply plugin: 'java-base'
 
-    sourceCompatibility = 1.5
+    sourceCompatibility = 1.7
     version = '1.0'
 
     repositories {

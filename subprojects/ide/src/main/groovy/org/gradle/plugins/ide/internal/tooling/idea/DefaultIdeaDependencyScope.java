@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
+import com.google.common.base.Objects;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 
 import java.io.Serializable;
@@ -28,6 +29,7 @@ public class DefaultIdeaDependencyScope implements IdeaDependencyScope, Serializ
         this.scope = scope;
     }
 
+    @Override
     public String getScope() {
         return scope;
     }
@@ -49,12 +51,7 @@ public class DefaultIdeaDependencyScope implements IdeaDependencyScope, Serializ
         }
 
         DefaultIdeaDependencyScope that = (DefaultIdeaDependencyScope) o;
-
-        if (scope != null ? !scope.equals(that.scope) : that.scope != null) {
-            return false;
-        }
-
-        return true;
+        return Objects.equal(scope, that.scope);
     }
 
     @Override

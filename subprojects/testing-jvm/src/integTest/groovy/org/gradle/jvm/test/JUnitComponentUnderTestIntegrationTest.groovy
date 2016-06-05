@@ -17,8 +17,6 @@
 package org.gradle.jvm.test
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
@@ -152,7 +150,6 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         outputContains 'myTestGreeterJarBinaryTest - Runs test suite \'myTest:greeterJarBinary\'.'
     }
 
-    @Requires(TestPrecondition.JDK7_OR_LATER)
     def "one test suite binary is created for each variant of component under test"() {
         given:
         applyJUnitPlugin()

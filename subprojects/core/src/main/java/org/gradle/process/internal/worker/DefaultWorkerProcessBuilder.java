@@ -24,8 +24,8 @@ import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.process.internal.ExecHandle;
-import org.gradle.process.internal.ExecHandleFactory;
 import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
@@ -33,7 +33,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
@@ -51,7 +55,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private int connectTimeoutSeconds;
     private List<URL> implementationClassPath;
 
-    DefaultWorkerProcessBuilder(ExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<?> idGenerator, ApplicationClassesInSystemClassLoaderWorkerFactory workerFactory) {
+    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<?> idGenerator, ApplicationClassesInSystemClassLoaderWorkerFactory workerFactory) {
         this.javaCommand = execHandleFactory.newJavaExec();
         this.server = server;
         this.idGenerator = idGenerator;

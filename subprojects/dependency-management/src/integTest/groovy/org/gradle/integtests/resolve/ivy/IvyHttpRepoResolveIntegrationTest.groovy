@@ -61,4 +61,47 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
             .assertHasCause('Credentials must be an instance of: org.gradle.api.artifacts.repositories.PasswordCredentials')
     }
+
+
+
+    public void "can resolve and cache dependencies with missing status and publication date"() {
+        given:
+        def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
+        module.withXml({
+            def infoAttribs = asNode().info[0].attributes()
+            infoAttribs.remove("status")
+            infoAttribs.remove("publication")
+        }).publish()
+
+        println module.ivyFile.text
+
+        and:
+        buildFile << """
+            repositories {
+                ivy {
+                    url "${server.remoteIvyRepo.uri}"
+                    $server.validCredentials
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'group:projectA:1.2' }
+            task listJars << {
+                assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+            }
+        """
+        when:
+        module.ivy.expectDownload()
+        module.jar.expectDownload()
+
+        then:
+        succeeds 'listJars'
+        progressLogger.downloadProgressLogged(module.ivy.uri)
+        progressLogger.downloadProgressLogged(module.jar.uri)
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds 'listJars'
+    }
 }

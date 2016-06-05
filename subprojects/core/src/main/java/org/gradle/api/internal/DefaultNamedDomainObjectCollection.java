@@ -16,7 +16,11 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.Namer;
+import org.gradle.api.Rule;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.plugins.DefaultConvention;
@@ -24,12 +28,26 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.metaobject.*;
+import org.gradle.internal.metaobject.AbstractDynamicObject;
+import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.GetPropertyResult;
+import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.MixInClosurePropertiesAsMethodsDynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ConfigureUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
 
 public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCollection<T> implements NamedDomainObjectCollection<T>, DynamicObjectAware {
 
@@ -295,7 +313,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return getType().getSimpleName();
     }
 
-    private class ContainerDynamicObject extends CompositeDynamicObject {
+    private class ContainerDynamicObject extends MixInClosurePropertiesAsMethodsDynamicObject {
         private ContainerDynamicObject(ContainerElementsDynamicObject elementsDynamicObject) {
             setObjects(new BeanDynamicObject(DefaultNamedDomainObjectCollection.this), elementsDynamicObject, convention.getExtensionsAsDynamicObject());
         }

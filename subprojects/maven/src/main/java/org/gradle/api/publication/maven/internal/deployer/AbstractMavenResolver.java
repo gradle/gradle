@@ -16,14 +16,20 @@
 package org.gradle.api.publication.maven.internal.deployer;
 
 import groovy.lang.Closure;
-
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DefaultArtifact;
+import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.maven.settings.building.SettingsBuildingException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.maven.*;
-import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.artifacts.maven.MavenDeployment;
+import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.artifacts.maven.MavenResolver;
+import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.artifacts.maven.PublishFilter;
 import org.gradle.api.internal.artifacts.ModuleVersionPublisher;
+import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
@@ -34,13 +40,16 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.publication.maven.internal.ArtifactPomContainer;
 import org.gradle.api.publication.maven.internal.PomFilter;
 import org.gradle.api.publication.maven.internal.action.MavenPublishAction;
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetaData;
-import org.gradle.internal.component.external.model.IvyModulePublishMetaData;
-import org.gradle.listener.ActionBroadcast;
+import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
+import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
+import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.apache.maven.settings.building.SettingsBuildingException;
+import org.gradle.listener.ActionBroadcast;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 abstract class AbstractMavenResolver extends AbstractArtifactRepository implements MavenResolver, ModuleVersionPublisher, ResolutionAwareRepository, PublicationAwareRepository {
@@ -75,9 +84,13 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
 
     protected abstract MavenPublishAction createPublishAction(File pomFile, LocalMavenRepositoryLocator mavenRepositoryLocator);
 
-    public void publish(IvyModulePublishMetaData moduleVersion) {
-        for (IvyModuleArtifactPublishMetaData artifact : moduleVersion.getArtifacts()) {
-            collectArtifact(artifact.toIvyArtifact(), artifact.getFile());
+    public void publish(IvyModulePublishMetadata moduleVersion) {
+        for (IvyModuleArtifactPublishMetadata artifactMetadata : moduleVersion.getArtifacts()) {
+            IvyArtifactName artifact = artifactMetadata.getArtifactName();
+            ModuleRevisionId moduleRevisionId = IvyUtil.createModuleRevisionId(artifactMetadata.getId().getComponentIdentifier());
+            Map<String, String> attributes = Collections.singletonMap("classifier", artifact.getClassifier());
+            Artifact ivyArtifact = new DefaultArtifact(moduleRevisionId, null, artifact.getName(), artifact.getType(), artifact.getExtension(), attributes);
+            collectArtifact(ivyArtifact, artifactMetadata.getFile());
         }
         publish();
     }
@@ -191,7 +204,7 @@ abstract class AbstractMavenResolver extends AbstractArtifactRepository implemen
     }
 
     public void beforeDeployment(Closure action) {
-        beforeDeploymentActions.add(new ClosureBackedAction<MavenDeployment>(action));
+        beforeDeploymentActions.add(ConfigureUtil.configureUsing(action));
     }
 
 }

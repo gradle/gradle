@@ -18,11 +18,9 @@ package org.gradle.integtests.tooling.r18
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.gradle.GradleBuild
 
-@ToolingApiVersion(">=1.8")
 class GradleBuildModelCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         file('settings.gradle') << '''
@@ -39,7 +37,7 @@ allprojects {
 """
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8 <1.8")
+    @TargetGradleVersion(">=1.2 <1.8")
     def "can request GradleBuild model"() {
         when:
         GradleBuild model = withConnection { connection -> connection.getModel(GradleBuild) }

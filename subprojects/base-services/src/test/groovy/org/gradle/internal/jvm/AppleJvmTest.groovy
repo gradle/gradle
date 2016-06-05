@@ -17,7 +17,6 @@ package org.gradle.internal.jvm
 
 import org.gradle.internal.jvm.Jvm.AppleJvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -28,67 +27,18 @@ class AppleJvmTest extends Specification {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock(OperatingSystem)
 
-    AppleJvm getJvm() {
-        new AppleJvm(os)
-    }
-
-    def "looks for runtime Jar in Java home directory"() {
-        TestFile javaHomeDir = tmpDir.createDir('Home')
-        TestFile runtimeJar = javaHomeDir.parentFile.file('Classes/classes.jar').createFile()
-        System.properties['java.home'] = javaHomeDir.absolutePath
+    def "has no tools jar"() {
+        def jvm = new AppleJvm(os)
 
         expect:
-        jvm.javaHome == javaHomeDir
-        jvm.runtimeJar == runtimeJar
-    }
-
-    def "looks for tools Jar in Java home directory"() {
-        TestFile javaHomeDir = tmpDir.createDir('Home')
-        TestFile toolsJar = javaHomeDir.parentFile.file('Classes/classes.jar').createFile()
-        System.properties['java.home'] = javaHomeDir.absolutePath
-
-        expect:
-        jvm.javaHome == javaHomeDir
-        jvm.toolsJar == toolsJar
+        jvm.toolsJar == null
     }
 
     def "filters environment variables"() {
-        Map<String, String> env = ['APP_NAME_1234': 'App', 'JAVA_MAIN_CLASS_1234': 'MainClass', 'OTHER': 'value']
+        def env = ['APP_NAME_1234': 'App', 'JAVA_MAIN_CLASS_1234': 'MainClass', 'OTHER': 'value']
+        def jvm = new AppleJvm(os)
 
         expect:
         jvm.getInheritableEnvironmentVariables(env) == ['OTHER': 'value']
-    }
-
-    def "finds executable if java home supplied"() {
-        given:
-        def home = tmpDir.createDir("home")
-        home.create {
-            bin { file 'java' }
-        }
-        os.getExecutableName(_ as String) >> home.file('bin/java').absolutePath
-
-        AppleJvm jvm = new AppleJvm(os, home)
-
-        expect:
-        jvm.getExecutable('java').absolutePath == home.file('bin/java').absolutePath
-    }
-
-    def "provides decent feedback when executable not found"() {
-        given:
-        def home = tmpDir.createDir("home")
-        home.create {
-            bin { file 'java' }
-        }
-        os.getExecutableName({it.contains('java')}) >> home.file('bin/java').absolutePath
-        os.getExecutableName({it.contains('foobar')}) >> home.file('bin/foobar').absolutePath
-
-        AppleJvm jvm = new AppleJvm(os, home)
-
-        when:
-        jvm.getExecutable('foobar')
-        
-        then:
-        def ex = thrown(JavaHomeException)
-        ex.message.contains('foobar')
     }
 }

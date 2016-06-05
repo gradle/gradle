@@ -27,6 +27,7 @@ public class DefaultIdeaCompilerOutput implements IdeaCompilerOutput, Serializab
     private File outputDir;
     private File testOutputDir;
 
+    @Override
     public boolean getInheritOutputDirs() {
         return inheritOutputDirs;
     }
@@ -36,6 +37,7 @@ public class DefaultIdeaCompilerOutput implements IdeaCompilerOutput, Serializab
         return this;
     }
 
+    @Override
     public File getOutputDir() {
         return outputDir;
     }
@@ -45,6 +47,7 @@ public class DefaultIdeaCompilerOutput implements IdeaCompilerOutput, Serializab
         return this;
     }
 
+    @Override
     public File getTestOutputDir() {
         return testOutputDir;
     }

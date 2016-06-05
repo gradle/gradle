@@ -52,7 +52,7 @@ class SettingsHandlerTest extends Specification {
         gradle.getStartParameter() >> startParameter
         gradle.getServices() >> services
         settingsFinder.find(startParameter) >> settingsLocation
-        1 * buildSourceBuilder.buildAndCreateClassLoader({ StartParameter sp -> sp.currentDir == new File(settingsLocation.getSettingsDir(), BaseSettings.DEFAULT_BUILD_SRC_DIR) }) >> classLoaderScope
+        1 * buildSourceBuilder.buildAndCreateClassLoader({ StartParameter sp -> sp.currentDir == new File(settingsLocation.getSettingsDir(), DefaultSettings.DEFAULT_BUILD_SRC_DIR) }) >> classLoaderScope
         1 * settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter) >> settings
 
         then:

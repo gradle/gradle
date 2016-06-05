@@ -19,6 +19,7 @@ import org.gradle.cache.internal.DefaultFileLockManager
 import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.ProcessMetaDataProvider
 import org.gradle.cache.internal.locklistener.FileLockContentionHandler
+import org.gradle.internal.nativeintegration.filesystem.Chmod
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
@@ -32,6 +33,7 @@ class DaemonRegistryServicesTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     def parent = Mock(ServiceRegistry) {
         get(FileLockManager) >> new DefaultFileLockManager(Stub(ProcessMetaDataProvider), Stub(FileLockContentionHandler))
+        get(Chmod) >> Stub(Chmod)
     }
 
     def registry(baseDir) {
@@ -53,7 +55,7 @@ class DaemonRegistryServicesTest extends Specification {
             concurrent.start {
                 def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [])
                 registry.store(new DaemonInfo(
-                    new SocketInetAddress(new Inet6Address(), 8888 + idx), context, "foo-$idx", true))
+                    new SocketInetAddress(new Inet6Address(), 8888 + idx), context, "foo-$idx".bytes, true))
             }
         }
         concurrent.finished()

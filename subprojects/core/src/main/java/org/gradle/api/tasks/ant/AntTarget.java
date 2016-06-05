@@ -17,6 +17,7 @@ package org.gradle.api.tasks.ant;
 
 import org.apache.tools.ant.Target;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 
 import java.io.File;
@@ -43,6 +44,7 @@ public class AntTarget extends ConventionTask {
     /**
      * Returns the Ant target to execute.
      */
+    @Internal
     public Target getTarget() {
         return target;
     }
@@ -57,6 +59,7 @@ public class AntTarget extends ConventionTask {
     /**
      * Returns the Ant project base directory to use when executing the target.
      */
+    @Internal
     public File getBaseDir() {
         return baseDir;
     }
@@ -71,6 +74,7 @@ public class AntTarget extends ConventionTask {
     /**
      * {@inheritDoc}
      */
+    @Internal
     @Override
     public String getDescription() {
         return target == null ? null : target.getDescription();
@@ -85,5 +89,4 @@ public class AntTarget extends ConventionTask {
             target.setDescription(description);
         }
     }
-
 }

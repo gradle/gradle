@@ -48,14 +48,17 @@ public class BuildInvocationsBuilder extends ProjectSensitiveToolingModelBuilder
         this.taskNameComparator = new TaskNameComparator();
     }
 
+    @Override
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.gradle.BuildInvocations");
     }
 
+    @Override
     public DefaultBuildInvocations buildAll(String modelName, Project project, boolean implicitProject) {
         return buildAll(modelName, implicitProject ? project.getRootProject() : project);
     }
 
+    @Override
     @SuppressWarnings("StringEquality")
     public DefaultBuildInvocations buildAll(String modelName, Project project) {
         if (!canBuild(modelName)) {

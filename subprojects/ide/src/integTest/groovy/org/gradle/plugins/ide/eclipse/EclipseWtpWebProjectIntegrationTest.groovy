@@ -25,23 +25,23 @@ class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec
 
         settingsFile << "rootProject.name = 'web'"
 
-        buildFile << """
-apply plugin: 'eclipse-wtp'
-apply plugin: 'war'
+        buildFile <<
+        """apply plugin: 'war'
+           apply plugin: 'eclipse-wtp'
 
-sourceCompatibility = 1.6
+           sourceCompatibility = 1.6
 
-repositories {
-    jcenter()
-}
+           repositories {
+               jcenter()
+           }
 
-dependencies {
-    compile 'com.google.guava:guava:18.0'
-    compileOnly 'jstl:jstl:1.2'
-    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
-    testCompile "junit:junit:4.12"
-}
-"""
+           dependencies {
+               compile 'com.google.guava:guava:18.0'
+               compileOnly 'jstl:jstl:1.2'
+               providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
+               testCompile "junit:junit:4.12"
+           }
+        """
 
         when:
         run "eclipse"
@@ -55,7 +55,7 @@ dependencies {
         // Classpath
         def classpath = classpath
         classpath.assertHasLibs('guava-18.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.12.jar', 'hamcrest-core-1.3.jar', 'jstl-1.2.jar')
-        classpath.lib('guava-18.0.jar').assertIsExcludedFromDeployment() // Is deployed using component definition instead
+        classpath.lib('guava-18.0.jar').assertIsDeployedTo("/WEB-INF/lib")
         classpath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
         classpath.lib('jstl-1.2.jar').assertIsExcludedFromDeployment()
         classpath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()
@@ -68,14 +68,13 @@ dependencies {
         facets.assertFacetVersion("jst.web", "2.4")
         facets.assertFacetVersion("jst.java", "6.0")
 
-        // Deployment
+        // Component
         def component = wtpComponent
         component.deployName == 'web'
         component.resources.size() == 3
         component.sourceDirectory('src/main/java').assertDeployedAt('/WEB-INF/classes')
         component.sourceDirectory('src/main/resources').assertDeployedAt('/WEB-INF/classes')
         component.sourceDirectory('src/main/webapp').assertDeployedAt('/')
-        component.modules.size() == 1
-        component.lib('guava-18.0.jar').assertDeployedAt('/WEB-INF/lib')
+        component.modules.isEmpty();
     }
 }

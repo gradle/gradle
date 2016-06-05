@@ -38,7 +38,7 @@ public class Jetty6PluginServer implements JettyPluginServer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Jetty6PluginServer.class);
 
     public static final int DEFAULT_MAX_IDLE_TIME = 30000;
-    private Server server;
+    private final Server server;
     private ContextHandlerCollection contexts; //the list of ContextHandlers
     HandlerCollection handlers; //the list of lists of Handlers
     private RequestLogHandler requestLogHandler; //the request log handler
@@ -107,7 +107,12 @@ public class Jetty6PluginServer implements JettyPluginServer {
      * @see org.gradle.api.plugins.jetty.internal.JettyPluginServer#start()
      */
     public void start() throws Exception {
-        LOGGER.info("Starting jetty {} ...", this.server.getClass().getPackage().getImplementationVersion());
+        Package jettyPackage = this.server.getClass().getPackage();
+        if (jettyPackage == null) {
+            throw new RuntimeException("Cannot determine package for Jetty: " + server.getClass());
+        }
+        String implementationVersion = jettyPackage.getImplementationVersion();
+        LOGGER.info("Starting jetty {} ...", implementationVersion);
         this.server.start();
     }
 

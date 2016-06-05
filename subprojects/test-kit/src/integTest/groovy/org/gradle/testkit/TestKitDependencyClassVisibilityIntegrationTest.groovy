@@ -19,7 +19,6 @@ package org.gradle.testkit
 import com.google.common.math.IntMath
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.testkit.runner.GradleRunner
-import spock.lang.Ignore
 
 class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegrationSpec {
 
@@ -39,7 +38,6 @@ class TestKitDependencyClassVisibilityIntegrationTest extends AbstractIntegratio
         result.error.contains "package ${GradleRunner.package.name} does not exist"
     }
 
-    @Ignore("requires gradleTestKit() to be multi-process safe - currently classes are not relocated anymore")
     def "gradle implementation dependencies are not visible to gradleTestKit() users"() {
         when:
         buildScript """

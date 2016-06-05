@@ -17,38 +17,30 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes;
 
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.internal.component.model.IvyArtifactName;
 
-class ExcludeAllModulesSpec extends AbstractModuleExcludeRuleFilter {
+class ExcludeAllModulesSpec extends AbstractModuleExclusion {
     @Override
     public String toString() {
         return "{all modules}";
     }
 
     @Override
-    public boolean equals(Object o) {
-        return o == this || !(o == null || o.getClass() != getClass());
+    protected boolean doEquals(Object o) {
+        return true;
     }
 
     @Override
-    public int hashCode() {
+    protected int doHashCode() {
         return 0;
     }
 
     @Override
-    public boolean doAcceptsSameModulesAs(AbstractModuleExcludeRuleFilter other) {
+    public boolean doExcludesSameModulesAs(AbstractModuleExclusion other) {
         return true;
     }
 
-    public boolean acceptModule(ModuleIdentifier element) {
-        return false;
-    }
-
-    public boolean acceptArtifact(ModuleIdentifier module, IvyArtifactName artifact) {
-        return true;
-    }
-
-    public boolean acceptsAllArtifacts() {
+    @Override
+    public boolean excludeModule(ModuleIdentifier module) {
         return true;
     }
 }

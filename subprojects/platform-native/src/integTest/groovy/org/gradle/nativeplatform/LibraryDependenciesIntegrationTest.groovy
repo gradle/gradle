@@ -19,13 +19,11 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithDiamondDependencyHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.ExeWithLibraryUsingLibraryHelloWorldApp
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
-@LeaksFileHandles
 class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
         settingsFile << "rootProject.name = 'test'"
@@ -123,7 +121,7 @@ model {
 
         where:
         notationName | notation
-        "direct"     | "comp.hello"
+        "direct"     | "\$.components.hello"
         "map"        | "library: 'hello'"
     }
 
@@ -137,7 +135,7 @@ model {
         and:
         buildFile << """
 model {
-    components { comp ->
+    components {
         hello(NativeLibrarySpec)
         main(NativeExecutableSpec) {
             binaries.all { binary ->
@@ -156,7 +154,7 @@ model {
 
         where:
         notationName | notation
-        "direct"     | "comp.hello"
+        "direct"     | "\$.components.hello"
         "map"        | "library: 'hello'"
     }
 

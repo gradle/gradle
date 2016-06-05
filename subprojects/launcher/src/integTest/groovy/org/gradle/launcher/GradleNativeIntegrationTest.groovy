@@ -15,7 +15,6 @@
  */
 
 package org.gradle.launcher
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -24,8 +23,9 @@ import org.gradle.util.TestPrecondition
 class GradleNativeIntegrationTest extends AbstractIntegrationSpec {
     def "caches native binaries in specified user home"() {
         given:
+        executer.withNoExplicitNativeServicesDir()
         executer.requireOwnGradleUserHomeDir()
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
 
         when:
         succeeds "help"

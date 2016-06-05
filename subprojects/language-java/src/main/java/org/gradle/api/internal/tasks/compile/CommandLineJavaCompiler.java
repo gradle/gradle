@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.ExecResult;
+import org.gradle.process.internal.DefaultExecHandleBuilder;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.slf4j.Logger;
@@ -47,7 +48,7 @@ public class CommandLineJavaCompiler implements Compiler<JavaCompileSpec>, Seria
     }
 
     private ExecHandle createCompilerHandle(String executable, JavaCompileSpec spec) {
-        ExecHandleBuilder builder = new ExecHandleBuilder();
+        ExecHandleBuilder builder = new DefaultExecHandleBuilder();
         builder.setWorkingDir(spec.getWorkingDir());
         builder.setExecutable(executable);
         argumentsGenerator.collectArguments(spec, new ExecSpecBackedArgCollector(builder));

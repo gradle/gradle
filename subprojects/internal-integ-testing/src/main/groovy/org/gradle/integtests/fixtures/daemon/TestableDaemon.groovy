@@ -50,6 +50,16 @@ Current registry state is ${lastRegistryState} and current log state is ${lastLo
         assert registryProbe.currentState == state
     }
 
+    @Override
+    void assertRegistryNotWorldReadable() {
+        registryProbe.assertRegistryNotWorldReadable()
+    }
+
+    @Override
+    void changeTokenVisibleToClient() {
+        registryProbe.resetToken()
+    }
+
     String getLog() {
         return logFileProbe.log
     }

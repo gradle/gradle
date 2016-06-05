@@ -72,7 +72,7 @@ project(':b:c') {
         model.taskSelectors.every { TaskSelector ts -> publicSelectors.contains(ts.name) == ts.public }
     }
 
-    @TargetGradleVersion(">=1.0-milestone-8 <2.1")
+    @TargetGradleVersion(">=1.2 <2.1")
     def "no visibility for older launchables"() {
         when:
         BuildInvocations model = withConnection { connection ->

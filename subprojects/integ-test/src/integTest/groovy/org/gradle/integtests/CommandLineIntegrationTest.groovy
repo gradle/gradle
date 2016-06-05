@@ -39,7 +39,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Before
     void setup() {
         NativeServicesTestFixture.initialize()
-        executer.requireGradleHome()
+        executer.requireGradleDistribution()
     }
 
     @Test

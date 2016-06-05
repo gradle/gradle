@@ -16,7 +16,7 @@
 package org.gradle.launcher.daemon.protocol;
 
 public class StopWhenIdle extends Command {
-    public StopWhenIdle(Object identifier) {
-        super(identifier);
+    public StopWhenIdle(Object identifier, byte[] token) {
+        super(identifier, token);
     }
 }
