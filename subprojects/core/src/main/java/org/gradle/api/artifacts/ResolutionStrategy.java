@@ -80,6 +80,14 @@ public interface ResolutionStrategy {
     ResolutionStrategy failOnVersionConflict();
 
     /**
+     * Returns the current {@link #setPreferProjectModules} setting
+     *
+     * @return prefer project modules
+     * @since 3.0
+     */
+    boolean isPreferProjectModules();
+
+    /**
      * Gradle can resolve conflicts purely by version number or prioritize project dependencies over binary.
      * The default is <b>by version number</b>.<p>
      * This applies to both first level and transitive dependencies. See example below:
@@ -88,14 +96,13 @@ public interface ResolutionStrategy {
      * apply plugin: 'java' //so that there are some configurations
      *
      * configurations.all {
-     *   resolutionStrategy.preferProjectModules(true)
+     *   resolutionStrategy.preferProjectModules = true
      * }
      * </pre>
      *
-     * @return this resolution strategy instance
-     * @since 2.15
+     * @since 3.0
      */
-    ResolutionStrategy preferProjectModules(boolean value);
+    void setPreferProjectModules(boolean value);
 
     /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.

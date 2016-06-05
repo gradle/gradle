@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.model.ComponentResolveMetaData;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +36,7 @@ class ProjectDependencyForcingResolver implements ModuleConflictResolver {
         T foundProjectCandidate = null;
         // fine one or more project dependencies among conflicting modules
         for(T candidate: candidates) {
-            ComponentResolveMetaData metaData = candidate.getMetaData();
+            ComponentResolveMetadata metaData = candidate.getMetaData();
             if (metaData!=null && metaData.getComponentId() instanceof ProjectComponentIdentifier) {
                 if (foundProjectCandidate==null) {
                     // found the first project dependency
