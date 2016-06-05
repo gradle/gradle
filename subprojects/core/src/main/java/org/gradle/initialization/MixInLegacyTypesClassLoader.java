@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -68,13 +67,13 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     public MixInLegacyTypesClassLoader(ClassLoader parent, ClassPath classPath) {
         super(parent, classPath);
-        classesToMixInGroovyObject = readClassNames();
-        syntheticClasses = Collections.singleton("org.gradle.messaging.actor.ActorFactory");
+        classesToMixInGroovyObject = readClassNames("converted-types.txt");
+        syntheticClasses = readClassNames("removed-types.txt");
     }
 
-    private Set<String> readClassNames() {
+    private Set<String> readClassNames(String resourceName) {
         Set<String> classNames = new HashSet<String>();
-        URL resource = getClass().getResource("converted-types.txt");
+        URL resource = getClass().getResource(resourceName);
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(resource.openStream()));
             try {
@@ -111,7 +110,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     @Override
     protected byte[] transform(String className, byte[] bytes) {
         ClassReader classReader = new ClassReader(bytes);
-        ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+        ClassWriter classWriter = new ClassWriter(0);
         classReader.accept(new TransformingAdapter(classWriter), 0);
         bytes = classWriter.toByteArray();
         return bytes;
@@ -163,7 +162,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
             // return
             methodVisitor.visitInsn(Opcodes.ARETURN);
-            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitMaxs(3, 2);
             methodVisitor.visitEnd();
         }
 
@@ -182,7 +181,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, META_CLASS_TYPE.getInternalName(), "setProperty",  RETURN_VOID_FROM_OBJECT_STRING_OBJECT, true);
 
             methodVisitor.visitInsn(Opcodes.RETURN);
-            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitMaxs(4, 3);
             methodVisitor.visitEnd();
         }
 
@@ -202,7 +201,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
             // return
             methodVisitor.visitInsn(Opcodes.ARETURN);
-            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitMaxs(4, 3);
             methodVisitor.visitEnd();
         }
 
@@ -220,6 +219,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             methodVisitor.visitInsn(Opcodes.ARETURN);
 
             methodVisitor.visitLabel(lookup);
+            methodVisitor.visitFrame(Opcodes.F_NEW, 1, new Object[]{className}, 1, new Object[]{META_CLASS_TYPE.getInternalName()});
             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0); // for storing to field
 
             // GroovySystem.getMetaClassRegistry()
@@ -240,7 +240,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             methodVisitor.visitFieldInsn(Opcodes.GETFIELD, className, META_CLASS_FIELD, META_CLASS_TYPE.getDescriptor());
 
             methodVisitor.visitInsn(Opcodes.ARETURN);
-            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitMaxs(4, 1);
             methodVisitor.visitEnd();
         }
 
@@ -254,7 +254,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             methodVisitor.visitFieldInsn(Opcodes.PUTFIELD, className, META_CLASS_FIELD, META_CLASS_TYPE.getDescriptor());
 
             methodVisitor.visitInsn(Opcodes.RETURN);
-            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitMaxs(2, 2);
             methodVisitor.visitEnd();
         }
 
