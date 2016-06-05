@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
@@ -89,6 +90,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeTooling
     }
 
     @RequiresIntegratedComposite
+    @TargetGradleVersion(">=3.0")
     def "EclipseProject model honours custom project name"() {
         when:
         buildB.buildFile << """
