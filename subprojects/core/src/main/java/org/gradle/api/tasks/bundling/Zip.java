@@ -141,14 +141,4 @@ public class Zip extends AbstractArchiveTask {
         }
         this.metadataCharset = metadataCharset;
     }
-
-    /**
-     * DO NOT REMOVE.
-     *
-     * Do not use - kept for binary compatibility.
-     */
-    @SuppressWarnings("UnusedDeclaration")
-    @Deprecated
-    protected class ZipCopyActionImpl {
-    }
 }
