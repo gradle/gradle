@@ -506,8 +506,8 @@ public class Module extends XmlPersistableConfigurationObject {
         result = 31 * result + (excludeFolders != null ? excludeFolders.hashCode() : 0);
         result = 31 * result + (inheritOutputDirs ? 1 : 0);
         result = 31 * result + (jdkName != null ? jdkName.hashCode() : 0);
-        result = 31 * result + outputDir.hashCode();
-        result = 31 * result + testOutputDir.hashCode();
+        result = 31 * result + (outputDir != null ? outputDir.hashCode() : 0);
+        result = 31 * result + (testOutputDir != null ? testOutputDir.hashCode() : 0);
         result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
         return result;
     }
