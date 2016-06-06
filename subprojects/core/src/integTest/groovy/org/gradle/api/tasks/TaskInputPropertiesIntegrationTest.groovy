@@ -172,8 +172,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "test"
-        output.contains "The @OutputFiles annotation has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use separate properties for each file annotated with @OutputFile, or reorganize output files under a single output directory annotated with @OutputDirectory."
+        output.contains 'The @OutputFiles annotation has been deprecated and is scheduled to be removed in Gradle 4.0. ' +
+            'Please use separate properties for each file annotated with @OutputFile, or reorganize output files under a single output directory annotated with @OutputDirectory.'
     }
 
     def "deprecation warning printed when @OutputDirectories is used"() {
@@ -196,8 +196,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "test"
-        output.contains "The @OutputDirectories annotation has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use separate properties for each directory annotated with @OutputDirectory, or reorganize output under a single output directory."
+        output.contains 'The @OutputDirectories annotation has been deprecated and is scheduled to be removed in Gradle 4.0. ' +
+            'Please use separate properties for each directory annotated with @OutputDirectory, or reorganize output under a single output directory.'
     }
 
     def "deprecation warning printed when TaskOutputs.files() is used"() {
@@ -210,7 +210,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "test"
-        output.contains "The TaskOutputs.files() method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use the TaskOutputs.file() or the TaskOutputs.dir() method instead."
+        output.contains 'The TaskOutputs.files() method has been deprecated and is scheduled to be removed in Gradle 4.0. ' +
+            'Please use the TaskOutputs.file() or the TaskOutputs.dir() method instead.'
     }
 }
