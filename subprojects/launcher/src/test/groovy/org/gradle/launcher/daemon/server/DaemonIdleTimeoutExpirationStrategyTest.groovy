@@ -39,7 +39,7 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
         result.status == QUIET_EXPIRE
-        result.reason == "to reclaim system memory after being idle for 16 minutes"
+        result.reason == DaemonIdleTimeoutExpirationStrategy.EXPIRATION_REASON + " for 16 minutes"
     }
 
     def "daemon accepts idle timeout closure"() {
@@ -60,7 +60,7 @@ class DaemonIdleTimeoutExpirationStrategyTest extends Specification {
         then:
         DaemonExpirationResult firstResult = expirationStrategy.checkExpiration()
         firstResult.status == QUIET_EXPIRE
-        firstResult.reason == "to reclaim system memory after being idle for 0 minutes"
+        firstResult.reason == DaemonIdleTimeoutExpirationStrategy.EXPIRATION_REASON + " for 0 minutes"
 
         DaemonExpirationResult secondResult = expirationStrategy.checkExpiration()
         secondResult.status == DO_NOT_EXPIRE
