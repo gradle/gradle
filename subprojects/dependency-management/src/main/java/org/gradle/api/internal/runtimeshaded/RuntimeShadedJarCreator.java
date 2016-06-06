@@ -359,12 +359,23 @@ class RuntimeShadedJarCreator {
         }
 
         @Override
-        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        public MethodVisitor visitMethod(int access, final String name, final String desc, String signature, String[] exceptions) {
             return new MethodVisitor(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions)) {
                 @Override
                 public void visitLdcInsn(Object cst) {
                     if (cst instanceof String) {
                         String literal = remappedClassLiterals.get(cst);
+                        if (literal == null) {
+                            // tries to relocate literals in the form of foo/bar/Bar
+                            literal = REMAPPER.maybeRelocateResource((String) cst);
+                        }
+                        if (literal == null) {
+                            // tries to relocate literals in the form of foo.bar.Bar
+                            literal = REMAPPER.maybeRelocateResource(((String) cst).replace('.', '/'));
+                            if (literal != null) {
+                                literal = literal.replace("/", ".");
+                            }
+                        }
                         super.visitLdcInsn(literal != null ? literal : cst);
                     } else {
                         super.visitLdcInsn(cst);
