@@ -49,7 +49,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         1 * repository.getStateFor(task) >> taskArtifactState
         1 * taskArtifactState.isUpToDate(_) >> true
         1 * taskState.upToDate()
-        1 * taskArtifactState.finished()
+        1 * taskArtifactState.finished(true)
         0 * _
     }
 
@@ -77,7 +77,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         1 * task.outputs >> outputs
         1 * outputs.setHistory(null)
         1 * taskContext.setTaskArtifactState(null)
-        1 * taskArtifactState.finished()
+        1 * taskArtifactState.finished(false)
         0 * _
     }
 
@@ -104,7 +104,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         1 * task.outputs >> outputs
         1 * outputs.setHistory(null)
         1 * taskContext.setTaskArtifactState(null)
-        1 * taskArtifactState.finished()
+        1 * taskArtifactState.finished(false)
         0 * _
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.collect.Iterators;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
@@ -29,7 +30,9 @@ public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateCh
     private final TaskExecution currentExecution;
     private final TaskInternal task;
     private final OutputFilesCollectionSnapshotter outputFilesSnapshotter;
-    private final FileCollectionSnapshot outputFilesBefore;
+    private final FileCollectionSnapshot.PreCheck outputFilesBeforePreCheck;
+    private final boolean noChanges;
+    private FileCollectionSnapshot outputFilesBefore;
 
     public OutputFilesTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task, OutputFilesCollectionSnapshotter outputFilesSnapshotter) {
         super(task.getName());
@@ -37,7 +40,8 @@ public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateCh
         this.currentExecution = currentExecution;
         this.task = task;
         this.outputFilesSnapshotter = outputFilesSnapshotter;
-        this.outputFilesBefore = createSnapshot(outputFilesSnapshotter, task.getOutputs().getFiles());
+        outputFilesBeforePreCheck = createSnapshotPreCheck(outputFilesSnapshotter, task.getOutputs().getFiles());
+        this.noChanges = previousExecution != null && previousExecution.getOutputFilesHash() != null && previousExecution.getOutputFilesHash().equals(outputFilesBeforePreCheck.getHash());
     }
 
     @Override
@@ -52,6 +56,9 @@ public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateCh
 
     @Override
     public FileCollectionSnapshot getCurrent() {
+        if (outputFilesBefore == null) {
+            outputFilesBefore = outputFilesSnapshotter.snapshot(outputFilesBeforePreCheck);
+        }
         return outputFilesBefore;
     }
 
@@ -69,12 +76,22 @@ public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateCh
             lastExecutionOutputFiles = previousExecution.getOutputFilesSnapshot();
         }
 
-        FileCollectionSnapshot outputFilesAfter = createSnapshot(outputFilesSnapshotter, task.getOutputs().getFiles());
+        FileCollectionSnapshot.PreCheck outputFilesAfterPreCheck = createSnapshotPreCheck(outputFilesSnapshotter, task.getOutputs().getFiles());
+        FileCollectionSnapshot outputFilesAfter = createSnapshot(outputFilesSnapshotter, outputFilesAfterPreCheck);
         currentExecution.setOutputFilesSnapshot(outputFilesSnapshotter.createOutputSnapshot(lastExecutionOutputFiles, outputFilesBefore, outputFilesAfter, task.getOutputs().getFiles()));
+        currentExecution.setOutputFilesHash(outputFilesAfterPreCheck.getHash());
     }
 
     @Override
     protected boolean isAllowSnapshotReuse() {
         return false;
+    }
+
+    @Override
+    public Iterator<TaskStateChange> iterator() {
+        if (noChanges) {
+            return Iterators.emptyIterator();
+        }
+        return super.iterator();
     }
 }

@@ -30,4 +30,5 @@ public interface VisitedTree {
     TreeSnapshot maybeCreateSnapshot(FileSnapshotter fileSnapshotter, StringInterner stringInterner);
     boolean isShareable();
     List<FileTreeElement> filter(PatternSet patternSet);
+    int calculatePreCheckHash();
 }

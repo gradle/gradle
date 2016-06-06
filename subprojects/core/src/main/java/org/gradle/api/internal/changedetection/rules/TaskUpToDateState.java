@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public class TaskUpToDateState {
     private static final int MAX_OUT_OF_DATE_MESSAGES = 3;
-    private final FilesSnapshotSet inputFilesSnapshot;
+    private final InputFilesTaskStateChanges directInputFileChanges;
 
     private TaskStateChanges inputFileChanges;
     private DiscoveredInputsListener discoveredInputsListener;
@@ -55,9 +55,8 @@ public class TaskUpToDateState {
         TaskStateChanges outputFileChanges = caching(new OutputFilesTaskStateChanges(lastExecution, thisExecution, task, outputFilesSnapshotter));
 
         // Capture inputs state
-        InputFilesTaskStateChanges inputChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, inputFilesSnapshotter);
-        this.inputFilesSnapshot = inputChanges.getCurrent().getSnapshot();
-        TaskStateChanges inputFileChanges = caching(inputChanges);
+        this.directInputFileChanges = new InputFilesTaskStateChanges(lastExecution, thisExecution, task, inputFilesSnapshotter);
+        this.inputFileChanges = caching(directInputFileChanges);
 
         // Capture discovered inputs state from previous execution
         DiscoveredInputsTaskStateChanges discoveredChanges = new DiscoveredInputsTaskStateChanges(lastExecution, thisExecution, discoveredInputsSnapshotter, fileCollectionFactory, task);
@@ -66,7 +65,6 @@ public class TaskUpToDateState {
 
         allTaskChanges = new SummaryTaskStateChanges(MAX_OUT_OF_DATE_MESSAGES, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges, inputFileChanges, discoveredInputFilesChanges);
         rebuildChanges = new SummaryTaskStateChanges(1, noHistoryState, taskTypeState, inputPropertiesState, outputFileChanges);
-        this.inputFileChanges = inputFileChanges;
     }
 
     private TaskStateChanges caching(TaskStateChanges wrapped) {
@@ -86,7 +84,7 @@ public class TaskUpToDateState {
     }
 
     public FilesSnapshotSet getInputFilesSnapshot() {
-        return inputFilesSnapshot;
+        return directInputFileChanges.getCurrent().getSnapshot();
     }
 
     public void newInputs(Set<File> discoveredInputs) {

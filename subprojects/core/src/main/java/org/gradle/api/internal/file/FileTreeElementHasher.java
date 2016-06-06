@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.file;
 
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.Encoder;
@@ -29,7 +31,7 @@ public class FileTreeElementHasher {
     private static final byte HASH_FIELD_SEPARATOR = (byte) '\t';
     private static final byte HASH_RECORD_SEPARATOR = (byte) '\n';
 
-    public static int calculateHashForFileMetadata(Collection<? extends FileTreeElement> allFileTreeElements) {
+    public static final int calculateHashForFileMetadata(Collection<? extends FileTreeElement> allFileTreeElements) {
         FileTreeElement[] sortedFileTreeElement = sortForHashing(allFileTreeElements);
 
         BufferedStreamingHasher hasher = new BufferedStreamingHasher();
@@ -54,7 +56,11 @@ public class FileTreeElementHasher {
         }
     }
 
-    public static int calculateHashForFilePaths(Collection<? extends FileTreeElement> allFileTreeElements) {
+    public static Hasher createHasher() {
+        return Hashing.crc32().newHasher();
+    }
+
+    public static final int calculateHashForFilePaths(Collection<? extends FileTreeElement> allFileTreeElements) {
         FileTreeElement[] sortedFileTreeElement = sortForHashing(allFileTreeElements);
 
         BufferedStreamingHasher hasher = new BufferedStreamingHasher();

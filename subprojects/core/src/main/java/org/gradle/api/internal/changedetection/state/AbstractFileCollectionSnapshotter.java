@@ -19,10 +19,14 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.BufferedStreamingHasher;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheAccess;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.serialize.Encoder;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,13 +49,34 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap());
     }
 
-    public FileCollectionSnapshot snapshot(final FileCollection input, final boolean allowReuse) {
-        final List<VisitedTree> fileTreeElements = Lists.newLinkedList();
-        final List<File> missingFiles = Lists.newArrayList();
+    public FileCollectionSnapshot.PreCheck preCheck(final FileCollection files, final boolean allowReuse) {
+        return new DefaultFileCollectionSnapshotPreCheck(files, allowReuse);
+    }
 
-        visitFiles(input, fileTreeElements, missingFiles, allowReuse);
+    private Integer calculatePreCheckHash(Collection<VisitedTree> visitedTrees) {
+        BufferedStreamingHasher hasher = new BufferedStreamingHasher();
+        Encoder encoder = hasher.getEncoder();
+        try {
+            List<VisitedTree> sortedTrees = new ArrayList<VisitedTree>();
+            Collections.sort(sortedTrees, DefaultVisitedTree.VisitedTreeComparator.INSTANCE);
+            for (VisitedTree tree : visitedTrees) {
+                if (tree.getAbsolutePath() != null) {
+                    encoder.writeString(tree.getAbsolutePath());
+                }
+                if (tree.getPatternSet() != null) {
+                    encoder.writeInt(tree.getPatternSet().hashCode());
+                }
+                encoder.writeInt(tree.getEntries().size());
+                encoder.writeInt(tree.calculatePreCheckHash());
+            }
+            return hasher.checksum();
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
 
-        if (fileTreeElements.isEmpty() && missingFiles.isEmpty()) {
+    public FileCollectionSnapshot snapshot(final FileCollectionSnapshot.PreCheck preCheck) {
+        if (preCheck.isEmpty()) {
             return emptySnapshot();
         }
 
@@ -59,15 +84,15 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {
                 final List<VisitedTree> nonShareableTrees = new ArrayList<VisitedTree>();
-                for (VisitedTree tree : fileTreeElements) {
+                for (VisitedTree tree : preCheck.getVisitedTrees()) {
                     if (tree.isShareable()) {
                         treeSnapshots.add(tree.maybeCreateSnapshot(snapshotter, stringInterner));
                     } else {
                         nonShareableTrees.add(tree);
                     }
                 }
-                if (!nonShareableTrees.isEmpty() || !missingFiles.isEmpty()) {
-                    VisitedTree nonShareableTree = createJoinedTree(nonShareableTrees, missingFiles);
+                if (!nonShareableTrees.isEmpty() || !preCheck.getMissingFiles().isEmpty()) {
+                    VisitedTree nonShareableTree = createJoinedTree(nonShareableTrees, preCheck.getMissingFiles());
                     treeSnapshots.add(nonShareableTree.maybeCreateSnapshot(snapshotter, stringInterner));
                 }
             }
@@ -75,8 +100,66 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         return new FileCollectionSnapshotImpl(treeSnapshots);
     }
 
+    private Collection<FileSnapshotWithKey> createMissingFileSnapshots(Collection<File> missingFiles) {
+        List<FileSnapshotWithKey> missingFileSnapshots = new ArrayList<FileSnapshotWithKey>();
+        for (File missingFile : missingFiles) {
+            missingFileSnapshots.add(new FileSnapshotWithKey(getInternedAbsolutePath(missingFile), MissingFileSnapshot.getInstance()));
+        }
+        return missingFileSnapshots;
+    }
+
     abstract VisitedTree createJoinedTree(List<VisitedTree> nonShareableTrees, Collection<File> missingFiles);
+
+    private String getInternedAbsolutePath(File file) {
+        return stringInterner.intern(file.getAbsolutePath());
+    }
 
     abstract protected void visitFiles(FileCollection input, List<VisitedTree> visitedTrees, List<File> missingFiles, boolean allowReuse);
 
+    private final class DefaultFileCollectionSnapshotPreCheck implements FileCollectionSnapshot.PreCheck {
+        private final List<VisitedTree> visitedTrees;
+        private final List<File> missingFiles;
+        private final FileCollection files;
+        private Integer hash;
+
+        public DefaultFileCollectionSnapshotPreCheck(FileCollection files, boolean allowReuse) {
+            this.files = files;
+            visitedTrees = Lists.newLinkedList();
+            missingFiles = Lists.newArrayList();
+            visitFiles(files, visitedTrees, missingFiles, allowReuse);
+        }
+
+        @Override
+        public Integer getHash() {
+            if (hash == null) {
+                hash = calculatePreCheckHash(visitedTrees);
+            }
+            return hash;
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return files;
+        }
+
+        @Override
+        public Collection<VisitedTree> getVisitedTrees() {
+            return visitedTrees;
+        }
+
+        @Override
+        public Collection<File> getMissingFiles() {
+            return missingFiles;
+        }
+
+        @Override
+        public boolean isEmpty() {
+            for (VisitedTree tree : visitedTrees) {
+                if (!tree.getEntries().isEmpty()) {
+                    return false;
+                }
+            }
+            return missingFiles.isEmpty();
+        }
+    }
 }

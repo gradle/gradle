@@ -23,10 +23,14 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.file.BufferedStreamingHasher;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
+import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +40,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Takes a snapshot of the output files of a task.
@@ -60,8 +66,8 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse) {
-        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, allowReuse));
+    public FileCollectionSnapshot.PreCheck preCheck(FileCollection files, boolean allowReuse) {
+        return new OutputFileCollectionSnapshotPreCheck(getRoots(files), snapshotter.preCheck(files, allowReuse));
     }
 
     private Map<String, Boolean> getRoots(FileCollection files) {
@@ -107,6 +113,11 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             filesSnapshot = ((OutputFilesSnapshot) filesSnapshot).filesSnapshot;
         }
         return new OutputFilesSnapshot(getRoots(roots), filesSnapshot);
+    }
+
+    @Override
+    public FileCollectionSnapshot snapshot(FileCollectionSnapshot.PreCheck preCheck) {
+        return new OutputFilesSnapshot(getRoots(preCheck.getFiles()), snapshotter.snapshot(preCheck));
     }
 
     static class OutputFilesSnapshot implements FileCollectionSnapshot {
@@ -184,6 +195,61 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
                     return endOfData();
                 }
             };
+        }
+    }
+
+    private static class OutputFileCollectionSnapshotPreCheck implements FileCollectionSnapshot.PreCheck {
+        private final Map<String, Boolean> roots;
+        private final FileCollectionSnapshot.PreCheck delegate;
+        private Integer hash;
+
+        public OutputFileCollectionSnapshotPreCheck(Map<String, Boolean> roots, FileCollectionSnapshot.PreCheck preCheck) {
+            this.roots = roots;
+            this.delegate = preCheck;
+        }
+
+        @Override
+        public Integer getHash() {
+            if (hash == null) {
+                hash = calculatePreCheckHash();
+            }
+            return hash;
+        }
+
+        private Integer calculatePreCheckHash() {
+            BufferedStreamingHasher hasher = new BufferedStreamingHasher();
+            Encoder encoder = hasher.getEncoder();
+            try {
+                encoder.writeInt(delegate.getHash());
+                SortedMap<String, Boolean> sortedRoots = new TreeMap<String, Boolean>(roots);
+                for (Map.Entry<String, Boolean> entry : sortedRoots.entrySet()) {
+                    encoder.writeString(entry.getKey());
+                    encoder.writeBoolean(entry.getValue());
+                }
+                return hasher.checksum();
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return delegate.getFiles();
+        }
+
+        @Override
+        public Collection<VisitedTree> getVisitedTrees() {
+            return delegate.getVisitedTrees();
+        }
+
+        @Override
+        public Collection<File> getMissingFiles() {
+            return delegate.getMissingFiles();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return delegate.isEmpty();
         }
     }
 }
