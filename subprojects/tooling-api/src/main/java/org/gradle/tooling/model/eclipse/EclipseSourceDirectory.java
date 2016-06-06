@@ -15,7 +15,10 @@
  */
 package org.gradle.tooling.model.eclipse;
 
+import org.gradle.api.Incubating;
 import org.gradle.tooling.model.SourceDirectory;
+
+import java.util.List;
 
 /**
  * A source directory in an Eclipse project.
@@ -27,4 +30,24 @@ public interface EclipseSourceDirectory extends SourceDirectory {
      * @return The path for this source directory. Does not return null.
      */
     String getPath();
+
+    /**
+     * Returns the include patterns for this source directory.
+     *
+     * @return The list of patterns to include. Does not return null.
+     *
+     * @since 3.0
+     */
+    @Incubating
+    List<String> getIncludes();
+
+    /**
+     * Returns the exclude patterns for this source directory.
+     *
+     * @return The list of patterns to exclude. Does not return null.
+     *
+     * @since 3.0
+     */
+    @Incubating
+    List<String> getExcludes();
 }

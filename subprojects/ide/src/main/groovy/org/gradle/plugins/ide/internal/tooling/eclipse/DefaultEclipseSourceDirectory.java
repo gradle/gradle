@@ -17,14 +17,19 @@ package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
 public class DefaultEclipseSourceDirectory implements Serializable {
     private final String path;
     private final File directory;
+    private final List<String> excludes;
+    private final List<String> includes;
 
-    public DefaultEclipseSourceDirectory(String path, File directory) {
+    public DefaultEclipseSourceDirectory(String path, File directory, List<String> excludes, List<String> includes) {
         this.path = path;
         this.directory = directory;
+        this.excludes = excludes;
+        this.includes = includes;
     }
 
     @Override
@@ -38,5 +43,13 @@ public class DefaultEclipseSourceDirectory implements Serializable {
 
     public String getPath() {
         return path;
+    }
+
+    public List<String> getExcludes() {
+        return excludes;
+    }
+
+    public List<String> getIncludes() {
+        return includes;
     }
 }

@@ -30,12 +30,14 @@ public class HasCompatibilityMapping {
     private final Action<SourceObjectMapping> ideaProjectCompatibilityMapper;
     private final Action<SourceObjectMapping> eclipseProjectDependencyCompatibilityMapper;
     private final Action<SourceObjectMapping> gradleProjectIdentifierMapper;
+    private final Action<SourceObjectMapping> eclipseSourceFolderExcludeIncludeCompatibilityMapper;
 
     public HasCompatibilityMapping(VersionDetails versionDetails) {
         taskPropertyHandlerMapper = new TaskDisplayNameCompatibilityMapping(versionDetails);
         ideaProjectCompatibilityMapper = new IdeaModelCompatibilityMapping(versionDetails);
         eclipseProjectDependencyCompatibilityMapper = new EclipseModelCompatibilityMapping(versionDetails);
         gradleProjectIdentifierMapper = new GradleProjectIdentifierCompatibilityMapping();
+        this.eclipseSourceFolderExcludeIncludeCompatibilityMapper = new ElipseSourceDirectoryExcludeIncludeCompatibilityMapping(versionDetails);
     }
 
     public Action<SourceObjectMapping> getCompatibilityMapping(ConsumerOperationParameters parameters) {
@@ -54,6 +56,7 @@ public class HasCompatibilityMapping {
             .add(ideaProjectCompatibilityMapper)
             .add(eclipseProjectDependencyCompatibilityMapper)
             .add(gradleProjectIdentifierMapper)
+            .add(eclipseSourceFolderExcludeIncludeCompatibilityMapper)
             .add(requestScopedMapping)
             .build();
     }
