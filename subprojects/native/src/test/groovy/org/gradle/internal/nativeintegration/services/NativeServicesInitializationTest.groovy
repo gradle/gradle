@@ -18,11 +18,14 @@ package org.gradle.internal.nativeintegration.services
 
 import org.gradle.internal.reflect.JavaMethod
 import org.gradle.internal.reflect.JavaReflectionUtil
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
 import java.lang.reflect.Constructor
 
 class NativeServicesInitializationTest extends Specification {
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "cannot get an instance of NativeServices without initializing first" () {
         // Construct an isolated classloader so we can load a pristine NativeServices class
         // that's guaranteed not to have been initialized before
