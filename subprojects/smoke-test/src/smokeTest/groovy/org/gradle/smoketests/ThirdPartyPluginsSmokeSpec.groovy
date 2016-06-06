@@ -14,24 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.plugins
+package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import spock.lang.Ignore
 
-class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
-    def setup() {
-        executer.requireGradleDistribution()
-    }
-
-    @Rule
-    final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
+class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
+    @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def 'shadow plugin'() {
-        when:
-        buildScript """
+        given:
+        buildFile << """
             import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
 
             plugins {
@@ -57,14 +52,17 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
             }
             """.stripIndent()
 
+        when:
+        def result = runner().withArguments('shadowJar').build()
+
         then:
-        succeeds 'shadowJar'
+        result.task(':shadowJar').outcome == TaskOutcome.SUCCESS
     }
 
     def 'kotlin plugin'() {
-        when:
+        given:
         def kotlinVersion = '1.0.2'
-        buildScript """
+        buildFile << """
             buildscript {
                ext.kotlin_version = '$kotlinVersion'
 
@@ -104,15 +102,16 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         }
         """
 
+        when:
+        def result = runner().withArguments('build').build()
+
         then:
-        executer.expectDeprecationWarning().withStackTraceChecksDisabled()
-        succeeds 'build'
+        result.task(':compileKotlin').outcome == TaskOutcome.SUCCESS
     }
 
-    @Ignore
     def 'asciidoctor plugin'() {
         given:
-        buildScript """
+        buildFile << """
             buildscript {
                 repositories {
                     jcenter()
@@ -134,14 +133,16 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
             Topazes are blue.
             """
 
-        expect:
-        succeeds 'asciidoc'
+        when:
+        runner().withArguments('asciidoc').build()
+
+        then:
         file('build/asciidoc').isDirectory()
     }
 
     def 'docker plugin'() {
         given:
-        buildScript """
+        buildFile << """
             buildscript {
                 repositories {
                     jcenter()
@@ -167,14 +168,17 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
             }
             """.stripIndent()
 
-        expect:
-        succeeds 'dockerCopyDistResources'
+        when:
+        def result = runner().withArguments(':dockerCopyDistResources', "-s").build()
+
+        then:
+        result.task(':dockerCopyDistResources').outcome == TaskOutcome.SUCCESS
     }
 
-    @Ignore
+    @Ignore("No service of type StyledTextOutputFactory available in ProjectScopeServices")
     def 'spring dependency management plugin'() {
         given:
-        buildScript """
+        buildFile << """
             plugins {
                 id "io.spring.dependency-management" version "0.5.6.RELEASE"
             }
@@ -199,7 +203,7 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
             """.stripIndent()
 
         expect:
-        succeeds "dependencies", "--configuration", "compile"
+        runner().withArguments("dependencies", "--configuration", "compile", "-s").build()
     }
 
     def 'tomcat plugin'() {
@@ -207,7 +211,7 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
         def httpPort = portAllocator.assignPort()
         def httpsPort = portAllocator.assignPort()
         def stopPort = portAllocator.assignPort()
-        buildScript """
+        buildFile << """
             buildscript {
                 repositories {
                     jcenter()
@@ -264,6 +268,6 @@ class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
             """.stripIndent()
 
         expect:
-        succeeds 'integrationTest'
+        runner().withArguments('integrationTest').build()
     }
 }

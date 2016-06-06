@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.plugins
+package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 
-class JavascriptPluginsSmokeSpec extends AbstractIntegrationSpec {
+class JavascriptPluginsSmokeSpec extends AbstractSmokeSpec {
 
     @Ignore("Currently broken because of removed methods from ConfigureUtil")
     def 'js and css plugin'() {
         given:
-        buildScript """
+        buildFile << """
             plugins {
               id "com.eriwen.gradle.js" version "2.12.0"
               id "com.eriwen.gradle.css" version "2.12.0"
@@ -78,6 +77,6 @@ class JavascriptPluginsSmokeSpec extends AbstractIntegrationSpec {
             """.stripIndent()
 
         expect:
-        succeeds 'tasks'
+        runner().withArguments('tasks', '-s').build()
     }
 }
