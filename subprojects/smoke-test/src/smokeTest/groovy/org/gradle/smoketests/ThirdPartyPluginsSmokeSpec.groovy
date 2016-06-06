@@ -149,7 +149,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
                 }
 
                 dependencies {
-                    classpath 'com.bmuschko:gradle-docker-plugin:2.6.8'
+                    classpath 'com.bmuschko:gradle-docker-plugin:3.0.0'
                 }
             }
 
@@ -218,7 +218,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
                 }
 
                 dependencies {
-                    classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.4'
+                    classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.5'
                 }
             }
 
