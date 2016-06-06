@@ -49,7 +49,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
 
     @Override
     public void visit(String name, Object value) {
-        annotationValues.add(new SimpleAnnotationValue(name, value));
+        annotationValues.add(new SimpleAnnotationValue(name == null ? "value" : name, value));
         super.visit(name, value);
     }
 
