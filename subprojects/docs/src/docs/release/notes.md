@@ -255,6 +255,7 @@ We would like to thank the following community members for making contributions 
  - [Mahmoud  Khater](https://github.com/mahmoud-k) - Fix a problem with determining the version of Findbugs on the classpath (GRADLE-3457)
  - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.6
  - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
+ - [Ramon Wirsch](https://github.com/ramonwirsch) - Fix NullPointerException when processing annotations in the new Java software model
   
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
