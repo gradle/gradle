@@ -44,8 +44,8 @@ import org.gradle.api.Incubating;
  * </p>
  * <ul>
  * <li>Only {@link #id(String)} method calls may be top level statements</li>
- * <li>{@link #id(String)} calls may only be followed by a {@link PluginDependencySpec#version(String)} method call on the returned object</li>
- * <li>{@link #id(String)} and {@link PluginDependencySpec#version(String)} methods must be called with a literal literal argument (i.e. not a variable)</li>
+ * <li>{@link #id(String)} calls may only be followed by a {@link PluginDependencySpec#version(String)} and/or {@link PluginDependencySpec#apply(boolean)} method call on the returned object</li>
+ * <li>{@link #id(String)}, {@link PluginDependencySpec#version(String)} and {@link PluginDependencySpec#apply(boolean)} methods must be called with a literal argument (i.e. not a variable)</li>
  * <li>The <code>plugins {}</code> script block must follow any <code>buildscript {}</code> script block, but must precede all other logic in the script</li>
  * </ul>
  * <h3>Available Plugins</h3>
@@ -101,6 +101,16 @@ public interface PluginDependenciesSpec {
      *     id "org.company.myplugin" version "1.3"
      * }
      * </pre>
+     *
+     * Plugins are automatically applied to the current script by default. This can be disabled using the {@code apply false} option:
+     *
+     * <pre>
+     * plugins {
+     *     id "org.company.myplugin" version "1.3" apply false
+     * }
+     * </pre>
+     *
+     * This is useful to reuse task classes from a plugin or to apply it to some other target than the current script.
      *
      * @param id the id of the plugin to depend on
      * @return a mutable plugin dependency specification that can be used to further refine the dependency
