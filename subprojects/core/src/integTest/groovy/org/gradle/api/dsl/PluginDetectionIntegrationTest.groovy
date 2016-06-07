@@ -18,6 +18,7 @@ package org.gradle.api.dsl
 import org.gradle.api.Plugin
 import org.gradle.api.plugins.AppliedPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -61,6 +62,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         detectedBy << JAVA_PLUGIN_IDS + JAVA_PLUGIN_IDS.reverse()
     }
 
+    @LeaksFileHandles
     def "unqualified ids from classpath are detectable"() {
         def pluginBuilder = new PluginBuilder(testDirectory)
         pluginBuilder.addPlugin("")
@@ -68,15 +70,11 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         pluginBuilder.publishTo(executer, file("plugin.jar"))
 
         buildFile << """
-            buildscript {
-                dependencies {
-                    classpath files("plugin.jar")
-                }
-            }
-
             def operations = []
-            def pluginClass = Class.forName("${pluginBuilder.packageName}.TestPlugin")
-            def ruleSourceClass = Class.forName("${pluginBuilder.packageName}.TestRuleSource")
+
+            def loader = new URLClassLoader([file("plugin.jar").toURL()] as URL[], getClass().classLoader)
+            def pluginClass = loader.loadClass("${pluginBuilder.packageName}.TestPlugin")
+            def ruleSourceClass = loader.loadClass("${pluginBuilder.packageName}.TestRuleSource")
 
             plugins.withType(pluginClass) {
                 operations << 'withType'
