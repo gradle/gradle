@@ -3,9 +3,9 @@
  */
 package criterion
 
-fun benchmark(config: BenchmarkConfig, block: () -> Unit): BenchmarkResult {
-    warmUp(config, block)
-    val observations = collectObservations(config, block)
+fun benchmark(config: BenchmarkConfig, experiment: () -> Unit): BenchmarkResult {
+    warmUp(config, experiment)
+    val observations = collectObservations(config, experiment)
     return BenchmarkResult(observations)
 }
 
@@ -20,13 +20,13 @@ class BenchmarkResult(observations: List<Duration>) : Result<Duration>(observati
         get() = Duration(this)
 }
 
-private fun warmUp(config: BenchmarkConfig, block: () -> Unit) {
+private fun warmUp(config: BenchmarkConfig, experiment: () -> Unit) {
     for (i in 1..config.warmUpRuns) {
-        block()
+        experiment()
     }
 }
 
-private fun collectObservations(config: BenchmarkConfig, block: () -> Unit): List<Duration> =
+private fun collectObservations(config: BenchmarkConfig, experiment: () -> Unit): List<Duration> =
     (1..config.observationRuns).map {
-        durationOf(block)
+        durationOf(experiment)
     }
