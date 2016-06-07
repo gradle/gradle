@@ -19,9 +19,6 @@ package org.gradle.api.reporting.dependents.internal;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer;
-import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
-import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
@@ -60,21 +57,20 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
                 output.withStyle(Description).text(" - Components that depend on " + component.getDisplayName());
             }
         }, true);
-        DependentBinaryNodeRenderer nodeRenderer = new DependentBinaryNodeRenderer();
-        DependencyGraphRenderer dependencyGraphRenderer = new DependencyGraphRenderer(renderer, nodeRenderer);
-        RenderableDependency root = getRenderableDependencyOf(component, internalProtocol);
+        DependentComponentsGraphRenderer dependentsGraphRenderer = new DependentComponentsGraphRenderer(renderer);
+        DependentComponentsRenderableDependency root = getRenderableDependencyOf(component, internalProtocol);
         if (root.getChildren().isEmpty()) {
             output.withStyle(Info).text("No dependents");
             output.println();
         } else {
-            dependencyGraphRenderer.render(root);
+            dependentsGraphRenderer.render(root);
         }
-        if (nodeRenderer.seenTestSuite) {
+        if (dependentsGraphRenderer.hasSeenTestSuite()) {
             seenTestSuite = true;
         }
     }
 
-    private RenderableDependency getRenderableDependencyOf(final ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
+    private DependentComponentsRenderableDependency getRenderableDependencyOf(final ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
         if (resolver != null && componentSpec instanceof VariantComponentSpec) {
             VariantComponentSpec variantComponentSpec = (VariantComponentSpec) componentSpec;
             LinkedHashSet<DependentComponentsRenderableDependency> children = Sets.newLinkedHashSet();
@@ -88,34 +84,10 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         }
     }
 
-    void resetSeenTestSuite() {
-        seenTestSuite = false;
-    }
-
-    void renderLegend(TextReportBuilder builder) {
+    public void printLegend(TextReportBuilder builder) {
         if (seenTestSuite) {
             builder.getOutput().println();
             builder.getOutput().withStyle(Info).println("(t) - Test suite binary");
-        }
-    }
-
-    private static class DependentBinaryNodeRenderer implements NodeRenderer {
-
-        private boolean seenTestSuite;
-
-        @Override
-        public void renderNode(StyledTextOutput output, RenderableDependency node, boolean alreadyRendered) {
-            output.text(node.getName());
-            if (node instanceof DependentComponentsRenderableDependency) {
-                DependentComponentsRenderableDependency dep = (DependentComponentsRenderableDependency) node;
-                if (dep.isTestSuite()) {
-                    output.withStyle(Info).text(" (t)");
-                    seenTestSuite = true;
-                }
-                if (!dep.isBuildable()) {
-                    output.withStyle(Info).text(" NOT BUILDABLE");
-                }
-            }
         }
     }
 }

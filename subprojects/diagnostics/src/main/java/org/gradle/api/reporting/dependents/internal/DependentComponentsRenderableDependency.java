@@ -80,10 +80,6 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
     private final boolean testSuite;
     private final LinkedHashSet<? extends RenderableDependency> children;
 
-    public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable, boolean testSuite) {
-        this(id, name, description, buildable, testSuite, null);
-    }
-
     public DependentComponentsRenderableDependency(Object id, String name, String description, boolean buildable, boolean testSuite, LinkedHashSet<? extends RenderableDependency> children) {
         checkNotNull(id, "id must not be null");
         checkNotNull(emptyToNull(name), "name must not be null nor empty");
