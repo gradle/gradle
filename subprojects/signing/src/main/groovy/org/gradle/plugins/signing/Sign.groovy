@@ -77,7 +77,7 @@ class Sign extends DefaultTask implements SignatureSpec {
         inputs.property("signatory") { (getSignatory() as PgpSignatory)?.keyId?.asHex }
 
         inputs.configure { TaskInputs inputs ->
-            getSignatures().each { inputs.includeFile(it.toSign).withPropertyName("signatures.${it.name}") }
+            getSignatures().each { inputs.includeFile(it.toSign) }
         }
         outputs.configure { TaskOutputs outputs ->
             getSignatures().each { outputs.file it.toSign }

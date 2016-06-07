@@ -28,7 +28,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
             task createClasspathManifest {
                 def outputDir = file("\$buildDir/\$name")
 
-                inputs.files sourceSets.main.runtimeClasspath
+                inputs.includeFiles sourceSets.main.runtimeClasspath
                 outputs.dir outputDir
 
                 doLast {

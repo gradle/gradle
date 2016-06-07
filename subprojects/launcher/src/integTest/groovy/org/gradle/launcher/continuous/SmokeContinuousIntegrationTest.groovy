@@ -38,7 +38,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         buildFile << """
             task echo {
-              inputs.files file("marker")
+              inputs.includeFiles "marker"
               doLast {
                 println "value: " + file("marker").text
               }
@@ -67,7 +67,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         buildFile << """
             task build {
               def f = file("marker")
-              inputs.files f
+              inputs.includeFiles f
               doLast {
                 if (f.file) {
                   println "value: " + f.text
@@ -107,11 +107,11 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         when:
         buildFile << """
             task a {
-              inputs.file "a"
+              inputs.includeFile "a"
               doLast {}
             }
             task b {
-              inputs.file "b"
+              inputs.includeFile "b"
               doLast {}
             }
         """
@@ -184,7 +184,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         buildFile << """
             task echo {
-              inputs.files file("marker")
+              inputs.includeFiles file("marker")
               doLast {
                 println "value: " + file("marker").text
                 println "reuse: " + Reuse.initialized
@@ -231,7 +231,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         when:
         buildScript """
             task a {
-                inputs.files files({ throw new Exception("boom") })
+                inputs.includeFiles files({ throw new Exception("boom") })
                 doLast {}
             }
         """
@@ -245,11 +245,11 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         when:
         buildScript """
             task a {
-                inputs.files file("inputA")
+                inputs.includeFiles file("inputA")
                 doLast {}
             }
             task b {
-                inputs.files files({ throw new Exception("boom") })
+                inputs.includeFiles files({ throw new Exception("boom") })
                 dependsOn a
                 doLast {}
             }
@@ -265,12 +265,12 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         def bFlag = file("bFlag")
         buildScript """
             task a {
-                inputs.files file("inputA")
+                inputs.includeFiles file("inputA")
                 doLast {}
             }
             task b {
                 def bFlag = file("bFlag")
-                inputs.files files({
+                inputs.includeFiles files({
                     if (!bFlag.exists()) {
                         return bFlag
                     }
@@ -297,8 +297,8 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         when:
         buildScript """
             task build {
-              inputs.source fileTree("source")
-              inputs.files fileTree("ancillary")
+              inputs.includeFiles(fileTree("source")).skipWhenEmpty()
+              inputs.includeFiles fileTree("ancillary")
               doLast {}
             }
         """
@@ -330,7 +330,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         def aFile = file("A")
         buildFile << """
         task a {
-            inputs.dir projectDir
+            inputs.includeDir projectDir
             doLast {}
         }
         """
@@ -366,7 +366,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "exit hint does not mention enter when not on windows"() {
         when:
-        buildScript "task a { inputs.file 'a'; doLast {} }"
+        buildScript "task a { inputs.includeFile 'a'; doLast {} }"
 
         then:
         succeeds "a"
@@ -376,7 +376,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
     @Requires(TestPrecondition.WINDOWS)
     def "exit hint mentions enter when on windows"() {
         when:
-        buildScript "task a { inputs.file 'a'; doLast {} }"
+        buildScript "task a { inputs.includeFile 'a'; doLast {} }"
 
         then:
         succeeds "a"
@@ -390,13 +390,13 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         def nestedFile = file("src/subdirectory/nested.txt").createFile()
         buildFile << """
         task inner {
-            inputs.file "src/topLevel.txt"
+            inputs.includeFile "src/topLevel.txt"
             doLast {}
         }
 
         task outer {
             dependsOn inner
-            inputs.dir "src"
+            inputs.includeDir "src"
             doLast {}
         }
         """
