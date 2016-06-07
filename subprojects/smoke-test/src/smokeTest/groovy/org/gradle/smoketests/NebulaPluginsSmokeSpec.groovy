@@ -43,7 +43,7 @@ class NebulaPluginsSmokeSpec extends AbstractSmokeSpec {
             """
 
         then:
-        runner().withArguments('build').build()
+        runner('build').build()
     }
 
     @Ignore("""org.codehaus.groovy.runtime.typehandling.GroovyCastException: Cannot cast object 'root project 'junit870421439514898935'' with class 'org.gradle.api.internal.project.DefaultProject_Decorated' to class 'org.gradle.api.internal.project.AbstractProject'
@@ -68,7 +68,7 @@ class NebulaPluginsSmokeSpec extends AbstractSmokeSpec {
         """
 
         then:
-        runner().withArguments('groovydoc', '-s').build()
+        runner('groovydoc').build()
     }
 
     @Ignore("No service of type StyledTextOutputFactory available in ProjectScopeServices")
@@ -88,7 +88,7 @@ class NebulaPluginsSmokeSpec extends AbstractSmokeSpec {
         """.stripIndent()
 
         then:
-        runner().withArguments('buildEnvironment', 'lintGradle', '-s').build()
+        runner('buildEnvironment', 'lintGradle').build()
     }
 
     def 'nebula dependency lock plugin jcenter'() {
@@ -109,6 +109,6 @@ class NebulaPluginsSmokeSpec extends AbstractSmokeSpec {
         """.stripIndent()
 
         then:
-        runner().withArguments('buildEnvironment', 'generateLock', '-s').build()
+        runner('buildEnvironment', 'generateLock').build()
     }
 }

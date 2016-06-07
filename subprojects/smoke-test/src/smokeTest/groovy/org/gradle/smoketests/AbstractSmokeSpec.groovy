@@ -36,11 +36,12 @@ abstract class AbstractSmokeSpec extends Specification {
         file
     }
 
-    GradleRunner runner() {
+    GradleRunner runner(String... tasks) {
         GradleRunner.create()
             .withGradleInstallation(fileFromSystemProperty('smokeTest.gradleHomeDir'))
             .withTestKitDir(fileFromSystemProperty('smokeTest.gradleUserHomeDir'))
             .withProjectDir(testProjectDir.root)
+            .withArguments(tasks.toList() + ['-s'])
     }
 
     private File fileFromSystemProperty(String propertyName) {

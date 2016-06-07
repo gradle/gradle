@@ -77,6 +77,6 @@ class JavascriptPluginsSmokeSpec extends AbstractSmokeSpec {
             """.stripIndent()
 
         expect:
-        runner().withArguments('tasks', '-s').build()
+        runner('tasks').build()
     }
 }

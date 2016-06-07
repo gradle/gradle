@@ -16,10 +16,11 @@
 
 package org.gradle.smoketests
 
-import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import spock.lang.Ignore
+
+import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
     @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
@@ -53,10 +54,10 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             """.stripIndent()
 
         when:
-        def result = runner().withArguments('shadowJar').build()
+        def result = runner('shadowJar').build()
 
         then:
-        result.task(':shadowJar').outcome == TaskOutcome.SUCCESS
+        result.task(':shadowJar').outcome == SUCCESS
     }
 
     def 'kotlin plugin'() {
@@ -103,10 +104,10 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         """.stripIndent()
 
         when:
-        def result = runner().withArguments('build').build()
+        def result = runner('build').build()
 
         then:
-        result.task(':compileKotlin').outcome == TaskOutcome.SUCCESS
+        result.task(':compileKotlin').outcome == SUCCESS
     }
 
     def 'asciidoctor plugin'() {
@@ -134,7 +135,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             """.stripIndent()
 
         when:
-        runner().withArguments('asciidoc').build()
+        runner('asciidoc').build()
 
         then:
         file('build/asciidoc').isDirectory()
@@ -169,10 +170,10 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             """.stripIndent()
 
         when:
-        def result = runner().withArguments(':dockerCopyDistResources', "-s").build()
+        def result = runner(':dockerCopyDistResources').build()
 
         then:
-        result.task(':dockerCopyDistResources').outcome == TaskOutcome.SUCCESS
+        result.task(':dockerCopyDistResources').outcome == SUCCESS
     }
 
     @Ignore("No service of type StyledTextOutputFactory available in ProjectScopeServices")
@@ -203,7 +204,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             """.stripIndent()
 
         expect:
-        runner().withArguments("dependencies", "--configuration", "compile", "-s").build()
+        runner("dependencies", "--configuration", "compile").build()
     }
 
     def 'tomcat plugin'() {
@@ -268,7 +269,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             """.stripIndent()
 
         expect:
-        runner().withArguments('integrationTest').build()
+        runner('integrationTest').build()
     }
 
     def 'gosu plugin'() { // Requires JDK 8 or later
@@ -303,9 +304,38 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
 
 
         when:
-        def result = runner().withArguments('build').build()
+        def result = runner('build').build()
 
         then:
-        result.task(':compileGosu').outcome == TaskOutcome.SUCCESS
+        result.task(':compileGosu').outcome == SUCCESS
+    }
+
+    def 'xtend plugin'() {
+        given:
+        buildFile << """
+            plugins {
+              id "org.xtext.xtend" version "1.0.5"
+            }
+
+            repositories.jcenter()
+
+            dependencies {
+              compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
+            }
+            """.stripIndent()
+
+        file('src/main/java/HelloWorld.xtend') << """
+            class HelloWorld {
+              def static void main(String[] args) {
+                println("Hello World")
+              }
+            }
+            """
+
+        when:
+        def result = runner('build').build()
+
+        then:
+        result.task(':generateXtext').outcome == SUCCESS
     }
 }
