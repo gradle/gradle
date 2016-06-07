@@ -52,6 +52,10 @@ try {
     assert false: 'should fail'
 } catch (ClassNotFoundException e) {
     // expected
+} finally {
+    if (buildscript.classLoader instanceof Closeable) {
+        buildscript.classLoader.close()
+    }
 }
 """
         testFile('build.gradle') << 'task doStuff'
