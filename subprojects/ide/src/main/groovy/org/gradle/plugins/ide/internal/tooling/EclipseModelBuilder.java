@@ -193,7 +193,8 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 String path = sourceFolder.getPath();
                 List<String> excludes = sourceFolder.getExcludes();
                 List<String> includes = sourceFolder.getIncludes();
-                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, createAttributes(sourceFolder)));
+                String output = sourceFolder.getOutput();
+                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, output, createAttributes(sourceFolder)));
             } else if (entry instanceof Container) {
                 final Container container = (Container) entry;
                 classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(), createAttributes(container)));

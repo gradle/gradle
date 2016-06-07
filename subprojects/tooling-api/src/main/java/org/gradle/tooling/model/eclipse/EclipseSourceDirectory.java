@@ -16,6 +16,7 @@
 package org.gradle.tooling.model.eclipse;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.SourceDirectory;
 import org.gradle.tooling.model.UnsupportedMethodException;
@@ -54,6 +55,16 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      */
     @Incubating
     List<String> getExcludes() throws UnsupportedMethodException;
+
+    /**
+     * Returns the output location of this source directory. If {@code null}, then the compiled classses are placed in the project's default output location.
+     *
+     * @return The output location of this source directory.
+     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     */
+    @Incubating
+    @Nullable
+    String getOutput() throws UnsupportedMethodException;
 
     /**
      * {@inheritDoc}
