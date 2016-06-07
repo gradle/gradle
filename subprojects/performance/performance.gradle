@@ -717,8 +717,8 @@ task largeJavaProjectWithBuildReceiptPlugin(type: JvmProjectGeneratorTask) {
 
     projects = 100
     sourceFiles = 50
-    subProjectTemplates = ['project-with-source', 'with-junit']
-    templateArgs = [fullTestLogging: true, testMethodCount: 20] // 50 test files with 20 tests per project
+    subProjectTemplates = ['project-with-source', 'with-verbose-junit']
+    templateArgs = [fullTestLogging: true, testMethodCount: 20, halfTestsFail: true] // 50 test files with 20 tests per project
 }
 
 task buildReceiptPluginPerformanceTest(type: Test) {
