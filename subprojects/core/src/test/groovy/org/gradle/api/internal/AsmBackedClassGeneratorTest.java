@@ -20,7 +20,6 @@ import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.Convention;
@@ -38,7 +37,12 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -232,19 +236,8 @@ public class AsmBackedClassGeneratorTest {
         // String[]
         paramType = constructor.getGenericParameterTypes()[9];
 
-        /*
-            Java 7 fixed http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=5041784
-            The net effect is that non generic arrays are incorrectly encoded as generic
-            array types pre Java 7 and correctly encoded as plain object arrays Java 7 and up.
-         */
-        if (JavaVersion.current().isJava7Compatible()) {
-            assertThat(paramType, equalTo((Type) String[].class));
-            assertThat(((Class<?>) paramType).getComponentType(), equalTo((Type) String.class));
-        } else {
-            assertThat(paramType, instanceOf(GenericArrayType.class));
-            arrayType = (GenericArrayType) paramType;
-            assertThat(arrayType.getGenericComponentType(), equalTo((Type) String.class));
-        }
+        assertThat(paramType, equalTo((Type) String[].class));
+        assertThat(((Class<?>) paramType).getComponentType(), equalTo((Type) String.class));
 
         // List<? extends String>[]
         paramType = constructor.getGenericParameterTypes()[10];
