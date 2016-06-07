@@ -19,49 +19,48 @@ package org.gradle.integtests.tooling.r30
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion(">=3.0")
-class ToolingApiEclipseModelClasspathAttributesCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingApiSpecification {
 
-    def "Eclipse model provides javadoc location via classpath attributes"() {
+    @TargetGradleVersion(">=1.2 <3.0")
+    def "Old versions throw runtime exception when querying classpath containers"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
-        """apply plugin: 'java'
-           apply plugin: 'eclipse'
-           repositories { jcenter() }
-           dependencies { compile 'com.google.guava:guava:18.0' }
-           eclipse {
-               classpath {
-                   downloadJavadoc = true
-               }
-           }
-        """
 
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
-        def attributes = project.classpath[0].classpathAttributes
+        project.getClasspathContainers()
 
         then:
-        attributes.find { it.name == 'javadoc_location' && it.value.contains('guava-18.0-javadoc.jar') }
+        thrown UnsupportedMethodException
     }
 
-    def "Eclipse model provides classpath container attributes"() {
+    def "Project has no classpath containers"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
-        buildFile <<
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject)
+
+        then:
+        project.classpathContainers.isEmpty()
+    }
+
+    def "Project has some classpath containers"() {
+        setup:
+        settingsFile << 'rootProject.name = "root"'
         """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {
                    file {
                        whenMerged { classpath ->
-                           def container = new org.gradle.plugins.ide.eclipse.model.Container('containerPath')
-                           container.entryAttributes.customKey = 'customValue'
-                           classpath.entries.add(container)
-
+                           classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Container('containerPath1'))
+                           classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Container('containerPath2'))
                        }
                    }
                }
@@ -70,14 +69,10 @@ class ToolingApiEclipseModelClasspathAttributesCrossVersionSpec extends ToolingA
 
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
-        def container = project.classpathContainers[0]
 
         then:
-        container.classpathAttributes.size() == 1
-        container.classpathAttributes[0].name == 'customKey'
-        container.classpathAttributes[0].value == 'customValue'
-
+        project.classpathContainers.size() == 2
+        project.classpathContainers[0].path == 'containerPath1'
+        project.classpathContainers[1].path == 'containerPath2'
     }
-
-
 }
