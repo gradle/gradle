@@ -70,7 +70,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         !output.contains(simpleCppUtilDependents())
     }
 
-    def "displays non-buildable dependents"() {
+    def "hide non-buildable dependents by default"() {
         given:
         buildScript simpleCppBuild() + '''
             model {
@@ -86,6 +86,39 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         when:
         run 'dependentComponents'
+
+        then:
+        output.contains '''
+            lib - Components that depend on native library 'lib'
+
+            main - Components that depend on native executable 'main'
+            \\--- main:executable
+
+            util - Components that depend on native library 'util'
+            +--- util:sharedLibrary
+            |    \\--- main:executable
+            \\--- util:staticLibrary
+
+            Some non-buildable binaries were hidden, use --all to show them.
+        '''.stripIndent()
+    }
+
+    def "displays non-buildable dependents when using --all"() {
+        given:
+        buildScript simpleCppBuild() + '''
+            model {
+                components {
+                    lib {
+                        binaries.all {
+                            buildable = false
+                        }
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'dependentComponents', '--all'
 
         then:
         output.contains '''

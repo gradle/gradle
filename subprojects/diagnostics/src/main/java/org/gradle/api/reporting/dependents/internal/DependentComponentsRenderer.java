@@ -39,10 +39,14 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
 
     private final DependentBinariesResolver resolver;
-    private boolean seenTestSuite;
+    private final boolean detail;
 
-    public DependentComponentsRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver) {
+    private boolean seenTestSuite;
+    private boolean hiddenNonBuildable;
+
+    public DependentComponentsRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver, boolean detail) {
         this.resolver = dependentBinariesResolver;
+        this.detail = detail;
     }
 
     @Override
@@ -57,7 +61,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
                 output.withStyle(Description).text(" - Components that depend on " + component.getDisplayName());
             }
         }, true);
-        DependentComponentsGraphRenderer dependentsGraphRenderer = new DependentComponentsGraphRenderer(renderer);
+        DependentComponentsGraphRenderer dependentsGraphRenderer = new DependentComponentsGraphRenderer(renderer, detail);
         DependentComponentsRenderableDependency root = getRenderableDependencyOf(component, internalProtocol);
         if (root.getChildren().isEmpty()) {
             output.withStyle(Info).text("No dependents");
@@ -67,6 +71,9 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         }
         if (dependentsGraphRenderer.hasSeenTestSuite()) {
             seenTestSuite = true;
+        }
+        if (dependentsGraphRenderer.hasHiddenNonBuildable()) {
+            hiddenNonBuildable = true;
         }
     }
 
@@ -85,9 +92,16 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
     }
 
     public void printLegend(TextReportBuilder builder) {
-        if (seenTestSuite) {
-            builder.getOutput().println();
-            builder.getOutput().withStyle(Info).println("(t) - Test suite binary");
+        if (seenTestSuite || hiddenNonBuildable) {
+            StyledTextOutput output = builder.getOutput();
+            if (seenTestSuite) {
+                output.println();
+                output.withStyle(Info).println("(t) - Test suite binary");
+            }
+            if (hiddenNonBuildable) {
+                output.println();
+                output.withStyle(Info).println("Some non-buildable binaries were hidden, use --all to show them.");
+            }
         }
     }
 }

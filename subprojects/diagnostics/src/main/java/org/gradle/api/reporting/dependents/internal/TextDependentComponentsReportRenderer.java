@@ -29,8 +29,8 @@ public class TextDependentComponentsReportRenderer extends TextReportRenderer {
 
     private final DependentComponentsRenderer dependentComponentsRenderer;
 
-    public TextDependentComponentsReportRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver) {
-        this.dependentComponentsRenderer = new DependentComponentsRenderer(dependentBinariesResolver);
+    public TextDependentComponentsReportRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver, boolean detail) {
+        this.dependentComponentsRenderer = new DependentComponentsRenderer(dependentBinariesResolver, detail);
     }
 
     public void renderComponents(Set<ComponentSpec> components) {

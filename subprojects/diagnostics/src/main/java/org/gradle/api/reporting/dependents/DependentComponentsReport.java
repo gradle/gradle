@@ -43,7 +43,17 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
 @Incubating
 public class DependentComponentsReport extends DefaultTask {
 
+    private boolean detail;
     private List<String> components;
+
+    public boolean isDetail() {
+        return detail;
+    }
+
+    @Option(option = "all", description = "Show non-buildables dependents and detail.")
+    public void setDetail(boolean detail) {
+        this.detail = detail;
+    }
 
     /**
      * Returns the components to generate the report for.
@@ -83,7 +93,7 @@ public class DependentComponentsReport extends DefaultTask {
         DependentBinariesResolver dependentBinariesResolver = modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);
 
         StyledTextOutput textOutput = getTextOutputFactory().create(DependentComponentsReport.class);
-        TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(dependentBinariesResolver);
+        TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(dependentBinariesResolver, detail);
 
         reportRenderer.setOutput(textOutput);
         reportRenderer.startProject(project);

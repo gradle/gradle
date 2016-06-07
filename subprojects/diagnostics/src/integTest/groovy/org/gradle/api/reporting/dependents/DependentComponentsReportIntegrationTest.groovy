@@ -30,6 +30,7 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         output.contains("Displays the dependent components of root project 'test'. [incubating]")
+        output.contains("--all     Show non-buildables dependents and detail.")
         output.contains("--component     Component to generate the report for, repeatable.")
     }
 

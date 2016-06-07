@@ -16,6 +16,8 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
@@ -30,14 +32,16 @@ public class DependentComponentsGraphRenderer {
 
     private final GraphRenderer renderer;
     private final DependentBinaryNodeRenderer nodeRenderer;
+    private final DetailPredicate detailPredicate;
 
-    public DependentComponentsGraphRenderer(GraphRenderer renderer) {
+    public DependentComponentsGraphRenderer(GraphRenderer renderer, boolean detail) {
         this.renderer = renderer;
         this.nodeRenderer = new DependentBinaryNodeRenderer();
+        this.detailPredicate = new DetailPredicate(detail);
     }
 
     public void render(DependentComponentsRenderableDependency root) {
-        renderChildren(root.getChildren());
+        renderChildren(getChildren(root));
     }
 
     private void renderChildren(Set<? extends RenderableDependency> children) {
@@ -56,11 +60,19 @@ public class DependentComponentsGraphRenderer {
                 nodeRenderer.renderNode(output, node, false);
             }
         }, last);
-        renderChildren(node.getChildren());
+        renderChildren(getChildren(node));
     }
 
     public boolean hasSeenTestSuite() {
         return nodeRenderer.seenTestSuite;
+    }
+
+    public boolean hasHiddenNonBuildable() {
+        return detailPredicate.hiddenNonBuildable;
+    }
+
+    private Set<? extends RenderableDependency> getChildren(RenderableDependency node) {
+        return Sets.filter(node.getChildren(), detailPredicate);
     }
 
     private static class DependentBinaryNodeRenderer implements NodeRenderer {
@@ -80,6 +92,29 @@ public class DependentComponentsGraphRenderer {
                     output.withStyle(Info).text(" NOT BUILDABLE");
                 }
             }
+        }
+    }
+
+    private static class DetailPredicate implements Predicate<RenderableDependency> {
+        private final boolean detail;
+
+        private boolean hiddenNonBuildable;
+
+        private DetailPredicate(boolean detail) {
+            this.detail = detail;
+        }
+
+        @Override
+        public boolean apply(RenderableDependency node) {
+            if (node instanceof DependentComponentsRenderableDependency) {
+                DependentComponentsRenderableDependency dep = (DependentComponentsRenderableDependency) node;
+                boolean allow = dep.isBuildable() || detail;
+                if (!allow) {
+                    hiddenNonBuildable = true;
+                }
+                return allow;
+            }
+            return false;
         }
     }
 }
