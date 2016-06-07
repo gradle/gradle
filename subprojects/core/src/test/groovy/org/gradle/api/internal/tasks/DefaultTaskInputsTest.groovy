@@ -34,7 +34,13 @@ class DefaultTaskInputsTest extends Specification {
     ] as FileResolver
 
     private def taskStatusNagger = Stub(TaskMutator) {
-        mutate(_, _) >> { String method, Runnable action -> action.run() }
+        mutate(_, _) >> { String method, Object action ->
+            if (action instanceof Runnable) {
+                action.run()
+            } else if (action instanceof Callable) {
+                return action.call()
+            }
+        }
     }
     private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, "test", taskStatusNagger)
 

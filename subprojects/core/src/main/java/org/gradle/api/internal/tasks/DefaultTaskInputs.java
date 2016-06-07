@@ -202,7 +202,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     private TaskFileInputPropertySpecInternal addSpec(String taskName, boolean skipWhenEmpty, Object paths) {
-        DefaultTaskFilePropertyInputSpec spec = new DefaultTaskFilePropertyInputSpec(taskName, skipWhenEmpty, paths);
+        DefaultTaskFilePropertyInputSpec spec = new DefaultTaskFilePropertyInputSpec(taskName, skipWhenEmpty, resolver, paths);
         fileProperties.add(spec);
         return spec;
     }
@@ -291,8 +291,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private boolean skipWhenEmpty;
         private boolean optional;
 
-        public DefaultTaskFilePropertyInputSpec(String taskName, boolean skipWhenEmpty, Object paths) {
-            this.files = new TaskPropertyFileCollection(taskName, "input", this, paths);
+        public DefaultTaskFilePropertyInputSpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
+            this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
             this.skipWhenEmpty = skipWhenEmpty;
         }
 
