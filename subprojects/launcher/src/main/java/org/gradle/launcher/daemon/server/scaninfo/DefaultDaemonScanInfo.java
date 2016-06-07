@@ -21,6 +21,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats;
 
 public class DefaultDaemonScanInfo implements DaemonScanInfo {
@@ -59,11 +60,21 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
 
     @Override
     public void notifyOnUnhealthy(final Action<? super String> listener) {
+        /*
+            The semantics of this method are that the given action should be notified if the
+            Daemon is going to be terminated at the end of this build.
+            It is not a generic outlet for “expiry events”.
+
+            Ideally, the value given would describe the problem and not be phrased in terms of why we are shutting down,
+            but this is a practical compromise born out of piggy backing on the expiration listener mechanism to implement it.
+         */
         listenerManager.addListener(
             new DaemonExpirationListener() {
                 @Override
                 public void onExpirationEvent(DaemonExpirationResult result) {
-                    listener.execute(result.getReason());
+                    if (result.getStatus() == DaemonExpirationStatus.GRACEFUL_EXPIRE) {
+                        listener.execute(result.getReason());
+                    }
                 }
             }
         );
