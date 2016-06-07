@@ -17,6 +17,7 @@ package org.gradle.tooling.model.eclipse;
 
 import org.gradle.api.Incubating;
 import org.gradle.tooling.model.SourceDirectory;
+import org.gradle.tooling.model.UnsupportedMethodException;
 
 import java.util.List;
 
@@ -35,19 +36,21 @@ public interface EclipseSourceDirectory extends SourceDirectory {
      * Returns the include patterns for this source directory.
      *
      * @return The list of patterns to include. Does not return null.
+     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
      *
      * @since 3.0
      */
     @Incubating
-    List<String> getIncludes();
+    List<String> getIncludes() throws UnsupportedMethodException;
 
     /**
      * Returns the exclude patterns for this source directory.
      *
      * @return The list of patterns to exclude. Does not return null.
+     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
      *
      * @since 3.0
      */
     @Incubating
-    List<String> getExcludes();
+    List<String> getExcludes() throws UnsupportedMethodException;
 }

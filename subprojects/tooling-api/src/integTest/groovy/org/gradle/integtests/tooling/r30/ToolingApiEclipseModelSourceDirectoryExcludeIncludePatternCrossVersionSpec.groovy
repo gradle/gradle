@@ -19,7 +19,9 @@ package org.gradle.integtests.tooling.r30
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.tooling.model.eclipse.EclipseSourceDirectory
 
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion(">=3.0")
@@ -41,14 +43,20 @@ class ToolingApiEclipseModelSourceDirectoryExcludeIncludePatternCrossVersionSpec
            }
         """
         file('src/main/java').mkdirs()
+        EclipseProject project = loadToolingModel(EclipseProject)
+        EclipseSourceDirectory sourceDirectory = project.sourceDirectories.find { it.path == 'src/main/java' }
 
         when:
-        EclipseProject project = loadToolingModel(EclipseProject)
+        sourceDirectory.excludes
 
         then:
-        project.sourceDirectories.size() == 1
-        project.sourceDirectories[0].excludes.isEmpty()
-        project.sourceDirectories[0].includes.isEmpty()
+        thrown UnsupportedMethodException
+
+        when:
+        sourceDirectory.includes
+
+        then:
+        thrown UnsupportedMethodException
     }
 
     def "Source folder has no exclude and include patterns defined"() {
