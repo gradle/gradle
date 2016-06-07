@@ -281,6 +281,58 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         imlHasDependencies "b1-renamed", "b2"
     }
 
+    def "builds IDEA when one participant does not have IDEA plugin applied"() {
+        given:
+        dependency "org.test:buildB:1.0"
+        dependency "org.test:buildC:1.0"
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
+        builds << buildC
+
+        when:
+        idea()
+
+        then:
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
+        // TODO:DAZ This is invalid: no `buildC.iml` file exists in the project. Should not substitute?
+        imlHasDependencies "buildB", "buildC"
+    }
+
+    def "builds IDEA metadata when not all projects have IDEA plugin applied"() {
+        given:
+        dependency "org.test:b1:1.0"
+        dependency "org.test:buildC:1.0"
+        dependency "org.test:c2:1.0"
+
+        def buildC = multiProjectBuild("buildC", ['c1', 'c2']) {
+            buildFile << """
+                allprojects {
+                    apply plugin: 'java'
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
+                project(":c2") {
+                    apply plugin: 'idea'
+                }
+"""
+        }
+
+        builds << buildC
+
+        when:
+        idea()
+
+        then:
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../buildC/c2/c2.iml"
+        // TODO:DAZ This is invalid: no `buildC.iml` file exists in the project. Should not substitute?
+        imlHasDependencies "b1", "buildC", "c2"
+    }
+
     def dependency(TestFile buildRoot = buildA, String notation) {
         buildRoot.buildFile << """
             dependencies {
