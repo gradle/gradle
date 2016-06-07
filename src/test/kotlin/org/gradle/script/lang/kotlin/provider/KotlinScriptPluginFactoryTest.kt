@@ -17,7 +17,7 @@ import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.initialization.DefaultClassLoaderRegistry
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry
 
-import org.gradle.internal.classloader.DefaultClassLoaderFactory
+import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -100,10 +100,11 @@ class KotlinScriptPluginFactoryTest {
     }
 
     private fun classLoaderScopeRegistryFor(classPathRegistry: DefaultClassPathRegistry): DefaultClassLoaderScopeRegistry {
-        val classLoaderFactory = DefaultClassLoaderFactory()
+        val classPathSnapshotter = HashClassPathSnapshotter(DefaultHasher())
+        val classLoaderFactory = DefaultHashingClassLoaderFactory(classPathSnapshotter)
         return DefaultClassLoaderScopeRegistry(
             DefaultClassLoaderRegistry(classPathRegistry, classLoaderFactory),
-            DefaultClassLoaderCache(classLoaderFactory, HashClassPathSnapshotter(DefaultHasher())))
+            DefaultClassLoaderCache(classLoaderFactory, classPathSnapshotter))
     }
 
     private fun scriptSourceFor(code: String): ScriptSource =
