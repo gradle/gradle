@@ -40,9 +40,7 @@ task copyCurrentDistro(type: Copy) {
     doLast {
         copyDetails.each { FileCopyDetails details ->
             def target = new File(customInstallation, details.path)
-            if (target.exists()) {
-                target.setLastModified(details.lastModified)
-            }
+            target.setLastModified(details.lastModified)
         }
     }
 
