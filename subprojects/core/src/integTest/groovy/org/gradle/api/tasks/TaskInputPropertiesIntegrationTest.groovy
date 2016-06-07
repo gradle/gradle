@@ -64,9 +64,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
     def "task is not up-to-date after file moved between properties"() {
         (1..3).each {
-            def fileName = "input${it}.txt"
-            println ">> $fileName"
-            file(fileName).createNewFile() }
+            file("input${it}.txt").createNewFile()
+        }
         file("buildSrc/src/main/groovy/TaskWithTwoFileCollectionInputs.groovy") << """
             import org.gradle.api.*
             import org.gradle.api.file.*
@@ -242,5 +241,23 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         "source(Object)"    | "includeFile(Object)"     | 'source("a")'
         "sourceDir(Object)" | "includeDir(Object)"      | 'sourceDir("a")'
         "source(Object...)" | "includeFiles(Object...)" | 'source("a", "b")'
+    }
+
+    def "task depends on other task whose outputs are its inputs"() {
+        buildFile << """
+            task a {
+                outputs.file 'a.txt'
+                doLast {
+                    file('a.txt') << "Data"
+                }
+            }
+
+            task b {
+                inputs.includeFiles tasks.a.outputs.files
+            }
+        """
+
+        expect:
+        succeeds "b" assertTasksExecuted ":a", ":b"
     }
 }

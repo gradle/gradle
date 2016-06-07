@@ -16,33 +16,25 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.Sets;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.GUtil;
-
-import java.util.Arrays;
-import java.util.Set;
 
 public class TaskPropertyFileCollection extends CompositeFileCollection {
     private final String taskName;
     private final String type;
     private final TaskFileInputPropertySpecInternal property;
-    private final PathToFileResolver resolver;
-    private final Set<Object> files = Sets.newLinkedHashSet();
+    private final Object paths;
     private String displayName;
 
-    public TaskPropertyFileCollection(String taskName, String type, TaskFileInputPropertySpecInternal property, PathToFileResolver resolver) {
+    public TaskPropertyFileCollection(String taskName, String type, TaskFileInputPropertySpecInternal property, Object paths) {
         this.taskName = taskName;
         this.type = type;
         this.property = property;
-        this.resolver = resolver;
+        this.paths = paths;
     }
 
-    public TaskPropertyFileCollection from(Object... paths) {
-        GUtil.addToCollection(files, Arrays.asList(paths));
-        return this;
+    public Object getPaths() {
+        return paths;
     }
 
     @Override
@@ -55,7 +47,6 @@ public class TaskPropertyFileCollection extends CompositeFileCollection {
 
     @Override
     public void visitContents(FileCollectionResolveContext context) {
-        FileCollectionResolveContext nested = context.push(resolver);
-        nested.add(files);
+        context.add(paths);
     }
 }

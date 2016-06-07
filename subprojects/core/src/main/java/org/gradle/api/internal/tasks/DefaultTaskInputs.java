@@ -22,8 +22,9 @@ import groovy.lang.GString;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
+import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.UnionFileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.TaskFileInputPropertySpec;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.util.ConfigureUtil;
@@ -39,6 +40,8 @@ import java.util.concurrent.Callable;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskInputs implements TaskInputsInternal {
+    private final FileCollection allInputFiles;
+    private final FileCollection allSourceFiles;
     private final FileResolver resolver;
     private final String taskName;
     private final TaskMutator taskMutator;
@@ -51,6 +54,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         this.resolver = resolver;
         this.taskName = taskName;
         this.taskMutator = taskMutator;
+        this.allInputFiles = new TaskInputUnionFileCollection("task '" + taskName + "' input files", false);
+        this.allSourceFiles = new TaskInputUnionFileCollection("task '" + taskName + "' source files", true);
     }
 
     @Override
@@ -60,11 +65,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public FileCollection getFiles() {
-        UnionFileCollection files = new UnionFileCollection();
-        for (DefaultTaskFilePropertyInputSpec propertySpec : fileProperties) {
-            files.add(propertySpec.getFiles());
-        }
-        return files;
+        return allInputFiles;
     }
 
     @Override
@@ -80,38 +81,68 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskFileInputPropertySpec includeFile(Object path) {
-        return include("includeFile(Object)", new DefaultTaskFilePropertyInputSpec(taskName, resolver), new AddFilesAction(path));
+    public TaskFileInputPropertySpec includeFile(final Object path) {
+        return taskMutator.mutate("TaskInputs.includeFile(Object)", new Callable<TaskFileInputPropertySpec>() {
+            @Override
+            public TaskFileInputPropertySpec call() throws Exception {
+                return addSpec(taskName, path);
+            }
+        });
     }
 
     @Override
-    public TaskFileInputPropertySpec includeDir(Object path) {
-        return include("includeDir(Object)", new DefaultTaskFilePropertyInputSpec(taskName, resolver), new AddDirAction(path));
+    public TaskFileInputPropertySpec includeDir(final Object path) {
+        return taskMutator.mutate("TaskInputs.includeDir(Object)", new Callable<TaskFileInputPropertySpec>() {
+            @Override
+            public TaskFileInputPropertySpec call() {
+                return addSpec(taskName, resolver.resolveFilesAsTree(path));
+            }
+        });
     }
 
     @Override
-    public TaskFileInputPropertySpec includeFiles(Object... paths) {
-        return include("includeFiles(Object...)", new DefaultTaskFilePropertyInputSpec(taskName, resolver), new AddFilesAction(paths));
+    public TaskFileInputPropertySpec includeFiles(final Object... paths) {
+        return taskMutator.mutate("TaskInputs.includeFiles(Object...)", new Callable<TaskFileInputPropertySpec>() {
+            @Override
+            public TaskFileInputPropertySpec call() {
+                return addSpec(taskName, paths);
+            }
+        });
     }
 
     @Override
-    public TaskInputs files(Object... paths) {
+    public TaskInputs files(final Object... paths) {
         DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.files(Object...)", "TaskInputs.includeFiles(Object...)");
-        include("files(Object...)", new DefaultTaskFilePropertyInputSpec(taskName, resolver), new AddFilesAction(paths));
+        taskMutator.mutate("TaskInputs.files(Object...)", new Runnable() {
+            @Override
+            public void run() {
+                addSpec(taskName, paths);
+            }
+        });
         return this;
     }
 
     @Override
-    public TaskInputs file(Object path) {
+    public TaskInputs file(final Object path) {
         DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.file(Object)", "TaskInputs.includeFile(Object)");
-        include("file(Object)", new DefaultTaskFilePropertyInputSpec(taskName, resolver), new AddFilesAction(path));
+        taskMutator.mutate("TaskInputs.file(Object)", new Runnable() {
+            @Override
+            public void run() {
+                addSpec(taskName, path);
+            }
+        });
         return this;
     }
 
     @Override
-    public TaskInputs dir(Object dirPath) {
+    public TaskInputs dir(final Object dirPath) {
         DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.dir(Object)", "TaskInputs.includeDir(Object)");
-        include("dir(Object)", new DefaultTaskFilePropertyInputSpec(taskName, resolver), new AddDirAction(dirPath));
+        taskMutator.mutate("TaskInputs.dir(Object)", new Runnable() {
+            @Override
+            public void run() {
+                addSpec(taskName, resolver.resolveFilesAsTree(dirPath));
+            }
+        });
         return this;
     }
 
@@ -127,47 +158,52 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public FileCollection getSourceFiles() {
-        UnionFileCollection files = new UnionFileCollection();
-        for (DefaultTaskFilePropertyInputSpec propertySpec : fileProperties) {
-            if (propertySpec.isSkipWhenEmpty()) {
-                files.add(propertySpec.getFiles());
-            }
-        }
-        return files;
+        return allSourceFiles;
     }
 
     @Override
-    public TaskInputs source(Object... paths) {
+    public TaskInputs source(final Object... paths) {
         DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.source(Object...)", "TaskInputs.includeFiles(Object...)");
-        include("source(Object...)", new DefaultTaskFilePropertyInputSpec(taskName, true, resolver),
-            new AddFilesAction(paths));
-        return this;
-    }
-
-    @Override
-    public TaskInputs source(Object path) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.source(Object)", "TaskInputs.includeFile(Object)");
-        include("source(Object)", new DefaultTaskFilePropertyInputSpec(taskName, true, resolver),
-            new AddFilesAction(path));
-        return this;
-    }
-
-    @Override
-    public TaskInputs sourceDir(Object path) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.sourceDir(Object)", "TaskInputs.includeDir(Object)");
-        include("sourceDir(Object)", new DefaultTaskFilePropertyInputSpec(taskName, true, resolver),
-            new AddDirAction(path));
-        return this;
-    }
-
-    private TaskFileInputPropertySpec include(String method, final DefaultTaskFilePropertyInputSpec spec, final Action<? super TaskPropertyFileCollection> addPathsAction) {
-        taskMutator.mutate("TaskInputs." + method, new Runnable() {
+        taskMutator.mutate("TaskInputs.source(Object...)", new Runnable() {
             @Override
             public void run() {
-                addPathsAction.execute(spec.getFiles());
-                fileProperties.add(spec);
+                addSpec(taskName, true, paths);
             }
         });
+        return this;
+    }
+
+    @Override
+    public TaskInputs source(final Object path) {
+        DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.source(Object)", "TaskInputs.includeFile(Object)");
+        taskMutator.mutate("TaskInputs.source(Object)", new Runnable() {
+            @Override
+            public void run() {
+                addSpec(taskName, true, path);
+            }
+        });
+        return this;
+    }
+
+    @Override
+    public TaskInputs sourceDir(final Object path) {
+        DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.sourceDir(Object)", "TaskInputs.includeDir(Object)");
+        taskMutator.mutate("TaskInputs.sourceDir(Object)", new Runnable() {
+            @Override
+            public void run() {
+                addSpec(taskName, true, resolver.resolveFilesAsTree(path));
+            }
+        });
+        return this;
+    }
+
+    private TaskFileInputPropertySpecInternal addSpec(String taskName, Object paths) {
+        return addSpec(taskName, false, paths);
+    }
+
+    private TaskFileInputPropertySpecInternal addSpec(String taskName, boolean skipWhenEmpty, Object paths) {
+        DefaultTaskFilePropertyInputSpec spec = new DefaultTaskFilePropertyInputSpec(taskName, skipWhenEmpty, paths);
+        fileProperties.add(spec);
         return spec;
     }
 
@@ -255,12 +291,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private boolean skipWhenEmpty;
         private boolean optional;
 
-        public DefaultTaskFilePropertyInputSpec(String taskName, FileResolver resolver) {
-            this(taskName, false, resolver);
-        }
-
-        public DefaultTaskFilePropertyInputSpec(String taskName, boolean skipWhenEmpty, FileResolver resolver) {
-            this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver);
+        public DefaultTaskFilePropertyInputSpec(String taskName, boolean skipWhenEmpty, Object paths) {
+            this.files = new TaskPropertyFileCollection(taskName, "input", this, paths);
             this.skipWhenEmpty = skipWhenEmpty;
         }
 
@@ -313,29 +345,27 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private static class AddFilesAction implements Action<TaskPropertyFileCollection> {
-        private final Object paths;
+    private class TaskInputUnionFileCollection extends CompositeFileCollection {
+        private final boolean skipWhenEmptyOnly;
+        private final String displayName;
 
-        public AddFilesAction(Object paths) {
-            this.paths = paths;
+        public TaskInputUnionFileCollection(String displayName, boolean skipWhenEmptyOnly) {
+            this.displayName = displayName;
+            this.skipWhenEmptyOnly = skipWhenEmptyOnly;
         }
 
         @Override
-        public void execute(TaskPropertyFileCollection files) {
-            files.from(paths);
-        }
-    }
-
-    private class AddDirAction implements Action<TaskPropertyFileCollection> {
-        private final Object path;
-
-        public AddDirAction(Object path) {
-            this.path = path;
+        public String getDisplayName() {
+            return displayName;
         }
 
         @Override
-        public void execute(TaskPropertyFileCollection files) {
-            files.from(resolver.resolveFilesAsTree(path));
+        public void visitContents(FileCollectionResolveContext context) {
+            for (DefaultTaskFilePropertyInputSpec fileProperty : fileProperties) {
+                if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
+                    context.add(fileProperty.getFiles());
+                }
+            }
         }
     }
 }
