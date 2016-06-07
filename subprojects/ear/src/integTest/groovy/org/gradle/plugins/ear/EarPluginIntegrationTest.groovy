@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.util.TextUtil
 import org.hamcrest.Matchers
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class EarPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -263,4 +264,36 @@ ear {
         roles[1].description.text() == 'This is the SUPERGIRL role'
     }
 
+    @Issue("GRADLE-3471")
+    def "does not fail when an ear has a war to deploy and a module defined with the same path"() {
+        buildFile << """
+apply plugin: 'ear'
+apply plugin: 'war'
+
+dependencies {
+    deploy files(tasks.war)
+}
+
+ear {
+    deploymentDescriptor {
+        applicationName = "OurAppName"
+        webModule("root.war", "anywhere")
+    }
+}
+
+"""
+        when:
+        run 'assemble'
+        and:
+        file("build/libs/root.ear").unzipTo(file("unzipped"))
+
+        then:
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("META-INF/MANIFEST.MF")
+        ear.assertContainsFile("META-INF/application.xml")
+        def appXml = new XmlSlurper().parse(file('unzipped/META-INF/application.xml'))
+        def module = appXml.module[0].web
+        module."web-uri" == "root.war"
+        module."context-root" == "anywhere"
+    }
 }
