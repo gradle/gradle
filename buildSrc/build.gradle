@@ -18,7 +18,6 @@ dependencies {
     compile gradleApi()
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion"
-    compile "org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion"
     testCompile 'junit:junit:4.12'
 }
 
