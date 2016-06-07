@@ -45,13 +45,14 @@ import java.util.Map;
 import java.util.Set;
 
 abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges, FilesSnapshotSet {
-    private final Map<String, FileCollectionSnapshot.PreCheck> preChecks;
-    private final HashCode preCheckHash;
-    private Map<String, FileCollectionSnapshot> fileSnapshots;
+    private final PreCheckSet preChecksBefore;
+    private Map<String, FileCollectionSnapshot> fileSnapshotsBeforeExecution;
     private final String taskName;
-    private final FileCollectionSnapshotter snapshotter;
+    private final boolean allowSnapshotReuse;
     private final String title;
+    protected final Collection<? extends TaskFilePropertySpecInternal> fileProperties;
     private final boolean noChanges;
+    private final FileCollectionSnapshotter snapshotter;
     protected final TaskExecution previous;
     protected final TaskExecution current;
 
@@ -60,7 +61,20 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         this.previous = previous;
         this.current = current;
         this.snapshotter = snapshotter;
+        this.allowSnapshotReuse = allowSnapshotReuse;
         this.title = title;
+        this.fileProperties = fileProperties;
+        this.preChecksBefore = buildPreCheckSet(taskName, snapshotter, allowSnapshotReuse, title, fileProperties);
+        this.noChanges = previous != null
+            && getPreviousPreCheckHash() != null
+            && getPreviousPreCheckHash() == getPreCheckHash();
+    }
+
+    protected PreCheckSet buildPreCheckSet() {
+        return buildPreCheckSet(taskName, snapshotter, allowSnapshotReuse, title, fileProperties);
+    }
+
+    private static PreCheckSet buildPreCheckSet(String taskName, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, Collection<? extends TaskFilePropertySpecInternal> fileProperties) {
         Hasher hasher = Hashing.md5().newHasher();
         ImmutableSortedMap.Builder<String, FileCollectionSnapshot.PreCheck> builder = ImmutableSortedMap.naturalOrder();
         for (TaskFilePropertySpecInternal fileProperty : fileProperties) {
@@ -76,11 +90,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
             hasher.putString(propertyName, Charsets.UTF_8);
             hasher.putInt(result.getHash());
         }
-        this.preChecks = builder.build();
-        this.preCheckHash = hasher.hash();
-        this.noChanges = previous != null
-            && getPreviousPreCheckHash() != null
-            && getPreviousPreCheckHash() == getPreCheckHash();
+        return new PreCheckSet(builder.build(), hasher.hash());
     }
 
     protected abstract Set<FileCollectionSnapshot.ChangeFilter> getFileChangeFilters();
@@ -88,27 +98,39 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
 
     protected abstract void saveCurrent();
 
+    protected FileCollectionSnapshotter getSnapshotter() {
+        return snapshotter;
+    }
+
     protected Map<String, FileCollectionSnapshot> getCurrent() {
-        if (fileSnapshots == null) {
-            ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
-            for (Map.Entry<String, FileCollectionSnapshot.PreCheck> entry : preChecks.entrySet()) {
-                String propertyName = entry.getKey();
-                FileCollectionSnapshot.PreCheck preCheck = entry.getValue();
-                FileCollectionSnapshot result;
-                try {
-                    result = snapshotter.snapshot(preCheck);
-                } catch (UncheckedIOException e) {
-                    throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertyName), e);
-                }
-                builder.put(propertyName, result);
-            }
-            fileSnapshots = builder.build();
+        if (fileSnapshotsBeforeExecution == null) {
+            fileSnapshotsBeforeExecution = buildSnapshots(preChecksBefore);
         }
-        return fileSnapshots;
+        return fileSnapshotsBeforeExecution;
+    }
+
+    protected Map<String, FileCollectionSnapshot> buildSnapshots(PreCheckSet preCheckSet) {
+        return buildSnapshots(taskName, snapshotter, title, preCheckSet);
+    }
+
+    private static Map<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotter snapshotter, String title, PreCheckSet preCheckSet) {
+        ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
+        for (Map.Entry<String, FileCollectionSnapshot.PreCheck> entry : preCheckSet.getPreChecks().entrySet()) {
+            String propertyName = entry.getKey();
+            FileCollectionSnapshot.PreCheck preCheck = entry.getValue();
+            FileCollectionSnapshot result;
+            try {
+                result = snapshotter.snapshot(preCheck);
+            } catch (UncheckedIOException e) {
+                throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertyName), e);
+            }
+            builder.put(propertyName, result);
+        }
+        return builder.build();
     }
 
     protected HashCode getPreCheckHash() {
-        return preCheckHash;
+        return preChecksBefore.getHash();
     }
 
     abstract protected HashCode getPreviousPreCheckHash();
@@ -148,8 +170,8 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
                 String propertyName = entry.getKey();
                 FileCollectionSnapshot currentSnapshot = entry.getValue();
                 FileCollectionSnapshot previousSnapshot = getPrevious().get(propertyName);
-                String title = AbstractNamedFileSnapshotTaskStateChanges.this.title + " property '" + propertyName + "'";
-                return currentSnapshot.iterateContentChangesSince(previousSnapshot, title, getFileChangeFilters());
+                String propertyTitle = title + " property '" + propertyName + "'";
+                return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, getFileChangeFilters());
             }
         }).iterator());
     }
@@ -178,5 +200,23 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
             }
         }
         return null;
+    }
+
+    protected static class PreCheckSet {
+        private final Map<String, FileCollectionSnapshot.PreCheck> preChecks;
+        private final HashCode hashCode;
+
+        public PreCheckSet(Map<String, FileCollectionSnapshot.PreCheck> preChecks, HashCode hashCode) {
+            this.preChecks = preChecks;
+            this.hashCode = hashCode;
+        }
+
+        public Map<String, FileCollectionSnapshot.PreCheck> getPreChecks() {
+            return preChecks;
+        }
+
+        public HashCode getHash() {
+            return hashCode;
+        }
     }
 }

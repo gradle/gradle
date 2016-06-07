@@ -23,12 +23,12 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 public class TaskPropertyFileCollection extends CompositeFileCollection {
     private final String taskName;
     private final String type;
-    private final TaskFileInputPropertySpecInternal property;
+    private final TaskFilePropertySpecInternal property;
     private final FileResolver resolver;
     private final Object paths;
     private String displayName;
 
-    public TaskPropertyFileCollection(String taskName, String type, TaskFileInputPropertySpecInternal property, FileResolver resolver, Object paths) {
+    public TaskPropertyFileCollection(String taskName, String type, TaskFilePropertySpecInternal property, FileResolver resolver, Object paths) {
         this.taskName = taskName;
         this.type = type;
         this.property = property;

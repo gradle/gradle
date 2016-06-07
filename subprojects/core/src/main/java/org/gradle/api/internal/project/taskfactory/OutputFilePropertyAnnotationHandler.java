@@ -42,7 +42,7 @@ public class OutputFilePropertyAnnotationHandler extends AbstractOutputFilePrope
 
     @Override
     protected void update(TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
-        task.getOutputs().file(futureValue);
+        task.getOutputs().includeFile(futureValue).withPropertyName(context.getName());
         task.prependParallelSafeAction(new Action<Task>() {
             public void execute(Task task) {
                 File file = (File) uncheckedCall(futureValue);

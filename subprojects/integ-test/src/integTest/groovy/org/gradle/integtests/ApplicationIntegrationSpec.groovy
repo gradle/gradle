@@ -393,7 +393,7 @@ class Main {
             task createDocs {
                 def docs = file("\$buildDir/docs")
 
-                outputs.dir docs
+                outputs.includeDir docs
 
                 doLast {
                     assert docs.mkdirs()

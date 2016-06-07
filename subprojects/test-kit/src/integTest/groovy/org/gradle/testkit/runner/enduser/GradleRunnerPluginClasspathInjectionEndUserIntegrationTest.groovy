@@ -29,7 +29,7 @@ class GradleRunnerPluginClasspathInjectionEndUserIntegrationTest extends BaseTes
                 def outputDir = file("\$buildDir/\$name")
 
                 inputs.includeFiles sourceSets.main.runtimeClasspath
-                outputs.dir outputDir
+                outputs.includeDir outputDir
 
                 doLast {
                     outputDir.mkdirs()

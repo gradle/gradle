@@ -106,8 +106,8 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         buildFile << """
-            aPing.outputs.file "dir"
-            bPing.outputs.file "dir/file"
+            aPing.outputs.includeFile "dir"
+            bPing.outputs.includeFile "dir/file"
         """
         expect:
         GradleHandle handle

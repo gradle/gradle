@@ -97,6 +97,8 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "outputs.file('a')"                                         | "TaskOutputs.file(Object)"
         "outputs.files('a')"                                        | "TaskOutputs.files(Object...)"
         "outputs.dir('a')"                                          | "TaskOutputs.dir(Object)"
+        "outputs.includeFile('a')"                                  | "TaskOutputs.includeFile(Object)"
+        "outputs.includeDir('a')"                                   | "TaskOutputs.includeDir(Object)"
         "outputs.configure {}"                                      | "TaskOutputs.configure(Action)"
     }
 }

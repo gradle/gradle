@@ -25,7 +25,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
         file("src", "main", "java").mkdirs()
-        
+
         file("src", "main", "java", "Driver.java").write """
             package driver;
 
@@ -60,13 +60,13 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
     def "java exec is not incremental by default"() {
         when:
         run "run"
-        
+
         then:
         ":run" in nonSkippedTasks
-        
+
         when:
         run "run"
-        
+
         then:
         ":run" in nonSkippedTasks
     }
@@ -76,7 +76,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << """
-            run.outputs.file "out.txt"
+            run.outputs.includeFile "out.txt"
         """
 
         when:
@@ -90,13 +90,13 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         ":run" in skippedTasks
-        
+
         when:
         file("out.txt").delete()
-        
+
         and:
         run "run"
-        
+
         then:
         ":run" in nonSkippedTasks
     }

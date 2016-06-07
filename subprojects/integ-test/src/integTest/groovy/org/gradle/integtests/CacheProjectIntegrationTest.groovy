@@ -167,7 +167,7 @@ dependencies { compile 'commons-io:commons-io:1.4@jar' }
             content += """
 task 'hello$i' {
     File file = file('$TEST_FILE')
-    outputs.file file
+    outputs.includeFile file
     doLast {
         configurations.compile.resolve()
         file.parentFile.mkdirs()
@@ -192,7 +192,7 @@ dependencies { other 'commons-lang:commons-lang:2.6@jar' }
 
 task newTask {
     File file = file('$TEST_FILE')
-    outputs.file file
+    outputs.includeFile file
     doLast {
         configurations.other.resolve()
         file.parentFile.mkdirs()

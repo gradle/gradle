@@ -118,7 +118,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
               dependsOn upper
               tasks = ["upper"]
               startParameter.searchUpwards = false
-              outputs.file "build.gradle" // having an output (or input) triggers the bug
+              outputs.includeFile "build.gradle" // having an output (or input) triggers the bug
             }
         """
 

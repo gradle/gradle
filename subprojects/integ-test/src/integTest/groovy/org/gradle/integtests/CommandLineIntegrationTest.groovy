@@ -155,7 +155,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void allowsReconfiguringProjectCacheDirWithRelativeDir() {
         //given
-        file("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
+        file("build.gradle").write "task foo { outputs.includeFile file('out'); doLast { } }"
 
         //when
         executer.withTasks("foo").withArguments("--project-cache-dir", ".foo").run()
@@ -167,7 +167,7 @@ public class CommandLineIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void allowsReconfiguringProjectCacheDirWithAbsoluteDir() {
         //given
-        file("build.gradle").write "task foo { outputs.file file('out'); doLast { } }"
+        file("build.gradle").write "task foo { outputs.includeFile file('out'); doLast { } }"
         File someAbsoluteDir = file("foo/bar/baz").absoluteFile
         assert someAbsoluteDir.absolute
 

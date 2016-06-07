@@ -80,7 +80,7 @@ class Sign extends DefaultTask implements SignatureSpec {
             getSignatures().each { inputs.includeFile(it.toSign) }
         }
         outputs.configure { TaskOutputs outputs ->
-            getSignatures().each { outputs.file it.toSign }
+            getSignatures().each { outputs.includeFile it.toSign }
         }
     }
 

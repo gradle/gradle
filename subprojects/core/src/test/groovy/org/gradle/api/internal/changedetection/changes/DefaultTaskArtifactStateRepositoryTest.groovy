@@ -709,7 +709,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
                 task.getInputs().properties(inputProperties)
             }
             if (outputs != null) {
-                outputs.each { task.getOutputs().file(it) }
+                outputs.each { task.getOutputs().includeFile(it) }
             }
             task.doLast(new org.gradle.api.Action<Object>() {
                 public void execute(Object o) {
