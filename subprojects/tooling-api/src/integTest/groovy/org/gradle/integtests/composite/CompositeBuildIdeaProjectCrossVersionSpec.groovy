@@ -70,6 +70,7 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
 
         and:
         executed ":ideaModule", ":buildB:ideaModule", ":buildB:b1:ideaModule", ":buildB:b2:ideaModule"
+        !result.executedTasks.contains(":buildA:ideaModule")
         imlHasNoDependencies(buildB)
         imlHasNoDependencies(buildB.file("b1"))
         imlHasNoDependencies(buildB.file("b2"))

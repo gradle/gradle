@@ -22,6 +22,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.ConfigureUtil;
 
@@ -302,10 +303,15 @@ public class IdeaProject {
 
     // TODO:DAZ Make this a `whenMerged` hook registered by composite build?
     private void includeModulesFromComposite(Project xmlProject) {
+        // TODO:DAZ This is yet another crappy conversion to qualified project id
+        ProjectComponentIdentifier thisProjectId = DefaultProjectComponentIdentifier.newId(project.getRootProject().getName() + ":" + project.getPath());
         PathFactory pathFactory = getPathFactory();
         Set<ProjectComponentIdentifier> projectsInComposite = moduleToProjectMapper.getProjectsInComposite();
-        for (ProjectComponentIdentifier project : projectsInComposite) {
-            File imlFile = moduleToProjectMapper.resolveArtifactFile(project, "iml");
+        for (ProjectComponentIdentifier otherProjectId : projectsInComposite) {
+            if (thisProjectId.equals(otherProjectId)) {
+                continue;
+            }
+            File imlFile = moduleToProjectMapper.resolveArtifactFile(otherProjectId, "iml");
             if (imlFile != null) {
                 xmlProject.getModulePaths().add(pathFactory.relativePath("PROJECT_DIR", imlFile));
             }
