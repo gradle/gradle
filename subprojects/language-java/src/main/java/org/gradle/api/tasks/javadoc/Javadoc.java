@@ -81,6 +81,8 @@ import java.util.List;
  */
 @ParallelizableTask
 public class Javadoc extends SourceTask {
+    private File destinationDir;
+
     private boolean failOnError = true;
 
     private String title;
@@ -95,6 +97,12 @@ public class Javadoc extends SourceTask {
 
     @TaskAction
     protected void generate() {
+        final File destinationDir = getDestinationDir();
+
+        if (options.getDestinationDirectory() == null) {
+            options.destinationDirectory(destinationDir);
+        }
+
         options.classpath(new ArrayList<File>(getClasspath().getFiles()));
 
         if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
@@ -171,16 +179,25 @@ public class Javadoc extends SourceTask {
      *
      * @return The directory.
      */
-    @OutputDirectory
+    @Internal
     public File getDestinationDir() {
-        return options.getDestinationDirectory();
+        return destinationDir;
+    }
+
+    @OutputDirectory
+    protected File getOutputDirectory() {
+        File destinationDir = getDestinationDir();
+        if (destinationDir == null) {
+            destinationDir = options.getDestinationDirectory();
+        }
+        return destinationDir;
     }
 
     /**
      * <p>Sets the directory to generate the documentation into.</p>
      */
     public void setDestinationDir(File destinationDir) {
-        this.options.setDestinationDirectory(destinationDir);
+        this.destinationDir = destinationDir;
     }
 
     /**
