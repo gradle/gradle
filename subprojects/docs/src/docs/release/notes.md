@@ -253,7 +253,6 @@ eclipse.project {
 * Removed `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`
 * Removed old wrapper properties `urlRoot`, `distributionName`, `distributionVersion` and `distributionClassifier`
 * Removed deprecated `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
-* Removed deprecated constructor `DefaultSourceDirectorySet(String name, FileResolver fileResolver)`
 
 ### Tooling API changes
 

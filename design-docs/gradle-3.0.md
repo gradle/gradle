@@ -25,7 +25,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 - Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
 - Merge `Module` and `ModuleInternal`, now that `Module` is internal (Done)
 - Internal `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter` (Done)
-- Constructor on `DefaultSourceDirectorySet` (Done)
+- Constructor on `DefaultSourceDirectorySet` - not for 3.0, deprecation only happened in 2.14 and it is widely used
 
 ## Change minimum version for running Gradle to Java 7
 
