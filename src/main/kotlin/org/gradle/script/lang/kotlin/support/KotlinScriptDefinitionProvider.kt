@@ -19,13 +19,9 @@ package org.gradle.script.lang.kotlin.support
 import org.gradle.api.Project
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
-
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.loggerFor
-
-import org.jetbrains.kotlin.script.KotlinConfigurableScriptDefinition
-import org.jetbrains.kotlin.script.KotlinScriptConfig
-import org.jetbrains.kotlin.script.KotlinScriptParameterConfig
+import org.jetbrains.kotlin.script.*
 
 import java.io.File
 
@@ -62,6 +58,9 @@ object KotlinScriptDefinitionProvider {
             emptyMap())
     }
 
+    fun scriptDefinitionFromTemplate(classpathRegistry: ClassPathRegistry): KotlinScriptDefinition =
+        KotlinScriptDefinitionFromTemplate(KotlinBuildScript::class, classpathRegistry)
+
     private fun includeInClassPath(name: String): Boolean {
         return name.startsWith("kotlin-stdlib-")
             || name.startsWith("kotlin-reflect-")
@@ -70,3 +69,5 @@ object KotlinScriptDefinitionProvider {
             || name.startsWith("gradle-")
     }
 }
+
+

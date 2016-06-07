@@ -21,6 +21,7 @@ import org.gradle.script.lang.kotlin.loggerFor
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.BUILDSCRIPT_PROTOTYPE
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.scriptDefinitionFor
+import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.scriptDefinitionFromTemplate
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.selectGradleApiJars
 
 import org.gradle.api.Project
@@ -100,7 +101,7 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
         selectGradleApiJars(classPathRegistry)
 
     private fun compileScriptFile(scriptFile: File, classPath: List<File>, targetScope: ClassLoaderScope): Class<*> {
-        val scriptDef = scriptDefinitionFor(classPath)
+        val scriptDef = scriptDefinitionFromTemplate(classPathRegistry)
         val classLoader = classLoaderFor(targetScope)
         return compileKotlinScript(scriptFile, scriptDef, classLoader, logger)
     }

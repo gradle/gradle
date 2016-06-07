@@ -34,6 +34,8 @@ import org.jetbrains.kotlin.org.jdom.output.XMLOutputter
 import org.jetbrains.kotlin.script.KotlinConfigurableScriptDefinition
 
 import org.jetbrains.kotlin.com.intellij.util.xmlb.XmlSerializer
+import org.gradle.script.lang.kotlin.KotlinBuildScript
+import org.jetbrains.kotlin.script.KotlinScripDeftConfig
 
 import java.io.File
 import java.io.StringWriter
@@ -65,10 +67,16 @@ open class GenerateKtsConfig : DefaultTask() {
     @TaskAction
     fun generate() =
         effectiveOutputFile.writeText(
-            toXml(scriptDefinitionFor(classPath)))
+            toXml(scriptDefFor(classPath)))
+
+    private fun scriptDefFor(classPath: List<File>) =
+        KotlinScripDeftConfig().apply {
+            def = KotlinBuildScript::class.qualifiedName!!
+            classpath.addAll(classPath.map { it.absolutePath })
+        }
 
     private fun defaultOutputFile() =
-        project.file("gradle.ktscfg.xml")
+        project.file("gradle.ktsdef.xml")
 
     private fun computeClassPath() =
         selectGradleApiJars(classPathRegistry)
@@ -80,18 +88,15 @@ open class GenerateKtsConfig : DefaultTask() {
 }
 
 private
-fun toXml(scriptDefinition: KotlinConfigurableScriptDefinition) =
+fun toXml(scriptDefinition: KotlinScripDeftConfig) =
     prettyPrint(xmlDocumentFor(scriptDefinition))
 
 private
-fun xmlDocumentFor(scriptDefinition: KotlinConfigurableScriptDefinition): Document {
-    val doc = Document(Element("KotlinScriptDefinitions"))
-    scriptDefinition.config.let {
-        val element = XmlSerializer.serialize(it)
-        doc.rootElement.addContent(element)
+fun xmlDocumentFor(scriptDefinition: KotlinScripDeftConfig): Document =
+    Document(Element("KotlinScriptDefs")).apply {
+        val element = XmlSerializer.serialize(scriptDefinition)
+        rootElement.addContent(element)
     }
-    return doc
-}
 
 internal
 fun prettyPrint(doc: Document): String {
