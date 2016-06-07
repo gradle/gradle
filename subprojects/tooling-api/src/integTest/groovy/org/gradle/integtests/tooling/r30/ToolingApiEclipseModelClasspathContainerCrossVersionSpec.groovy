@@ -26,11 +26,12 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 @TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingApiSpecification {
 
+    def setup() {
+        settingsFile << 'rootProject.name = "root"'
+    }
+
     @TargetGradleVersion(">=1.2 <3.0")
     def "Old versions throw runtime exception when querying classpath containers"() {
-        setup:
-        settingsFile << 'rootProject.name = "root"'
-
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
         project.getClasspathContainers()
@@ -40,9 +41,6 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     }
 
     def "Project has no classpath containers"() {
-        setup:
-        settingsFile << 'rootProject.name = "root"'
-
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
 
@@ -51,8 +49,6 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     }
 
     def "Project has some classpath containers"() {
-        setup:
-        settingsFile << 'rootProject.name = "root"'
         buildFile <<
         """apply plugin: 'java'
            apply plugin: 'eclipse'
@@ -67,7 +63,107 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
         EclipseProject project = loadToolingModel(EclipseProject)
 
         then:
+        project.classpathContainers.size() == 3
+        project.classpathContainers.find { it.path.startsWith 'org.eclipse.jdt.launching.JRE_CONTAINER' }
         project.classpathContainers.find { it.path == 'containerPath1' }
         project.classpathContainers.find { it.path == 'containerPath2' }
+    }
+
+    def "Classpath container defined in beforeMerged"() {
+        buildFile <<
+        """apply plugin: 'java'
+           apply plugin: 'eclipse'
+           eclipse {
+               classpath {
+                   file {
+                      beforeMerged { classpath ->
+                          classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Container('beforeMergedContainerPath'))
+                      }
+                   }
+               }
+           }
+        """
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject)
+
+        then:
+        project.classpathContainers.find { it.path == 'beforeMergedContainerPath' }
+    }
+
+    def "Classpath container defined in whenMerged"() {
+        buildFile <<
+        """apply plugin: 'java'
+           apply plugin: 'eclipse'
+           eclipse {
+               classpath {
+                   file {
+                      whenMerged { classpath ->
+                          classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Container('whenMergedContainerPath'))
+                      }
+                   }
+               }
+           }
+        """
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject)
+
+        then:
+        project.classpathContainers.find { it.path == 'whenMergedContainerPath' }
+    }
+
+    def "Respects targetCompatibility customization"() {
+        setup:
+        buildFile <<
+        """apply plugin: 'java'
+           apply plugin: 'eclipse'
+           targetCompatibility = 1.4
+        """
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject)
+
+        then:
+        project.classpathContainers.find { it.path.startsWith('org.eclipse.jdt.launching.JRE_CONTAINER') && it.path.contains('1.4') }
+    }
+
+    def "Respects javaRuntimeName customization"() {
+        setup:
+        buildFile <<
+        """apply plugin: 'java'
+           apply plugin: 'eclipse'
+           eclipse {
+               jdt {
+                    javaRuntimeName = "customJavaRuntime"
+               }
+           }
+        """
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject)
+
+        then:
+        project.classpathContainers.find { it.path.startsWith('org.eclipse.jdt.launching.JRE_CONTAINER') && it.path.contains('customJavaRuntime') }
+    }
+
+    def "javaRuntimeName customization wins over targetCompatibility"() {
+        setup:
+        buildFile <<
+        """apply plugin: 'java'
+           apply plugin: 'eclipse'
+           targetCompatibility = 1.4
+           eclipse {
+               jdt {
+                    javaRuntimeName = "customJavaRuntime"
+               }
+           }
+        """
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject)
+
+        then:
+        project.classpathContainers.find { it.path.startsWith('org.eclipse.jdt.launching.JRE_CONTAINER') && it.path.contains('customJavaRuntime') }
     }
 }
