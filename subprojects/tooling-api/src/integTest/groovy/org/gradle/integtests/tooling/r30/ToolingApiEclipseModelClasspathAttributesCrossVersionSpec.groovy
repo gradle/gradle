@@ -56,12 +56,10 @@ class ToolingApiEclipseModelClasspathAttributesCrossVersionSpec extends ToolingA
            apply plugin: 'eclipse'
            eclipse {
                classpath {
+                   containers 'containerPath'
                    file {
                        whenMerged { classpath ->
-                           def container = new org.gradle.plugins.ide.eclipse.model.Container('containerPath')
-                           container.entryAttributes.customKey = 'customValue'
-                           classpath.entries.add(container)
-
+                           classpath.entries.find { it.path == 'containerPath' }.entryAttributes.customKey = 'customValue'
                        }
                    }
                }
@@ -70,7 +68,7 @@ class ToolingApiEclipseModelClasspathAttributesCrossVersionSpec extends ToolingA
 
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
-        def container = project.classpathContainers[0]
+        def container = project.classpathContainers.find { it.path == 'containerPath' }
 
         then:
         container.classpathAttributes.size() == 1

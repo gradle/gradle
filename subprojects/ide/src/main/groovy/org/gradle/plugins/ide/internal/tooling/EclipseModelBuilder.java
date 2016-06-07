@@ -238,6 +238,8 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             );
         }
 
+        eclipseProject.setClasspathContainers(classpathContainers);
+
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
         }

@@ -53,16 +53,12 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
     def "Project has some classpath containers"() {
         setup:
         settingsFile << 'rootProject.name = "root"'
+        buildFile <<
         """apply plugin: 'java'
            apply plugin: 'eclipse'
            eclipse {
                classpath {
-                   file {
-                       whenMerged { classpath ->
-                           classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Container('containerPath1'))
-                           classpath.entries.add(new org.gradle.plugins.ide.eclipse.model.Container('containerPath2'))
-                       }
-                   }
+                   containers 'containerPath1', 'containerPath2'
                }
            }
         """
@@ -71,8 +67,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
         EclipseProject project = loadToolingModel(EclipseProject)
 
         then:
-        project.classpathContainers.size() == 2
-        project.classpathContainers[0].path == 'containerPath1'
-        project.classpathContainers[1].path == 'containerPath2'
+        project.classpathContainers.find { it.path == 'containerPath1' }
+        project.classpathContainers.find { it.path == 'containerPath2' }
     }
 }
