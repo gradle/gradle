@@ -190,7 +190,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 String path = sourceFolder.getPath();
                 List<String> excludes = sourceFolder.getExcludes();
                 List<String> includes = sourceFolder.getIncludes();
-                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes));
+                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, createAttributes(sourceFolder)));
             }
         }
 

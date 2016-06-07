@@ -16,16 +16,16 @@
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.List;
 
-public class DefaultEclipseSourceDirectory implements Serializable {
+public class DefaultEclipseSourceDirectory extends DefaultEclipseClasspathEntry {
     private final String path;
     private final File directory;
     private final List<String> excludes;
     private final List<String> includes;
 
-    public DefaultEclipseSourceDirectory(String path, File directory, List<String> excludes, List<String> includes) {
+    public DefaultEclipseSourceDirectory(String path, File directory, List<String> excludes, List<String> includes, List<DefaultClasspathAttribute> classpathAttributes) {
+        super(classpathAttributes);
         this.path = path;
         this.directory = directory;
         this.excludes = excludes;

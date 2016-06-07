@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
+import java.io.Serializable;
 import java.util.List;
 
-public abstract class DefaultEclipseDependency extends DefaultEclipseClasspathEntry {
-    private final boolean isExported;
+public abstract class DefaultEclipseClasspathEntry implements Serializable {
 
-    public DefaultEclipseDependency(boolean isExported, List<DefaultClasspathAttribute> classpathAttributes) {
-        super(classpathAttributes);
-        this.isExported = isExported;
+    private final List<DefaultClasspathAttribute> classpathAttributes;
+
+    public DefaultEclipseClasspathEntry(List<DefaultClasspathAttribute> classpathAttributes) {
+        this.classpathAttributes = classpathAttributes;
     }
-
-    public boolean isExported() {
-        return isExported;
+    public List<DefaultClasspathAttribute> getClasspathAttributes() {
+        return classpathAttributes;
     }
 }

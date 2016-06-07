@@ -16,6 +16,7 @@
 package org.gradle.tooling.model.eclipse;
 
 import org.gradle.api.Incubating;
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.SourceDirectory;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
@@ -24,7 +25,7 @@ import java.util.List;
 /**
  * A source directory in an Eclipse project.
  */
-public interface EclipseSourceDirectory extends SourceDirectory {
+public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspathEntry {
     /**
      * Returns the relative path for this source directory.
      *
@@ -53,4 +54,11 @@ public interface EclipseSourceDirectory extends SourceDirectory {
      */
     @Incubating
     List<String> getExcludes() throws UnsupportedMethodException;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     */
+    DomainObjectSet<? extends ClasspathAttribute> getClasspathAttributes() throws UnsupportedMethodException;
 }
