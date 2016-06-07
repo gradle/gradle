@@ -37,9 +37,12 @@ open class Benchmark : DefaultTask() {
         val result = QuotientResult(quotients)
         if (result.median > maxQuotient) {
             throw IllegalStateException(
-                "Latest snapshot is %.2f%% slower than baseline.".format(result.median))
+                "Latest snapshot is around %.2f%% slower than baseline. Unacceptable!".format(
+                    quotientToPercentage(result.median)))
         }
     }
+
+    private fun quotientToPercentage(quotient: Double) = (quotient - 1) * 100
 
     private fun benchmark(sampleDir: File, config: BenchmarkConfig): Double {
         val relativeSampleDir = sampleDir.relativeTo(project.projectDir)
@@ -99,12 +102,12 @@ open class Benchmark : DefaultTask() {
     }
 
     private val commitHash by lazy {
-        val bos = ByteArrayOutputStream()
+        val stdout = ByteArrayOutputStream()
         project.exec {
             it.commandLine("git", "rev-parse", "HEAD")
-            it.standardOutput = bos
+            it.standardOutput = stdout
         }
-        String(bos.toByteArray()).trim()
+        String(stdout.toByteArray()).trim()
     }
 }
 
