@@ -138,10 +138,10 @@ inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
  * Forces a new daemon process to be started by basing the registry on an unique temp dir.
  */
 inline fun <T> withUniqueDaemonRegistry(block: () -> T) =
-    withSystemProperty(
-        "org.gradle.daemon.registry.base",
-        createTempDir("gradle-script-kotlin-benchmark").path,
-        block)
+    withDaemonRegistry(createTempDir("gradle-script-kotlin-benchmark"), block)
+
+inline fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
+    withSystemProperty("org.gradle.daemon.registry.base", registryBase.path, block)
 
 inline fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
     val originalValue = System.getProperty(key)
