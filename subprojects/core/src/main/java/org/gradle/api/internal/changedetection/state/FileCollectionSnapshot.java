@@ -41,7 +41,7 @@ public interface FileCollectionSnapshot {
      *
      * <p>Note: Ignores changes to file meta-data, such as last modified time. This should be made a {@link ChangeFilter} at some point.
      */
-    Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType, Set<ChangeFilter> filters);
+    Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String title, Set<ChangeFilter> filters);
 
     Collection<File> getFiles();
 

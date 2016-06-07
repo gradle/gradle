@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.TaskFileInputPropertySpecInternal;
-import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskFileInputPropertySpec;
 
-import java.util.Collection;
-
-public interface TaskInputsInternal extends TaskInputs {
-    void ensureConfigured();
-
-    Collection<TaskFileInputPropertySpecInternal> getFileProperties();
+public interface TaskFileInputPropertySpecInternal extends TaskFileInputPropertySpec, TaskFilePropertySpecInternal {
+    boolean isSkipWhenEmpty();
+    boolean isOptional();
 }

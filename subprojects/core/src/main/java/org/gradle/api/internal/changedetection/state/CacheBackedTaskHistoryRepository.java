@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
@@ -72,8 +73,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 cacheAccess.useCache("Update task history", new Runnable() {
                     public void run() {
                         history.configurations.add(0, currentExecution);
-                        if (currentExecution.inputFilesSnapshotId == null && currentExecution.inputFilesSnapshot != null) {
-                            currentExecution.inputFilesSnapshotId = snapshotRepository.add(currentExecution.inputFilesSnapshot);
+                        if (currentExecution.inputFilesSnapshotIds == null && currentExecution.inputFilesSnapshot != null) {
+                            ImmutableSortedMap.Builder<String, Long> builder = ImmutableSortedMap.naturalOrder();
+                            for (Map.Entry<String, FileCollectionSnapshot> entry : currentExecution.inputFilesSnapshot.entrySet()) {
+                                builder.put(entry.getKey(), snapshotRepository.add(entry.getValue()));
+                            }
+                            currentExecution.inputFilesSnapshotIds = builder.build();
                         }
                         if (currentExecution.outputFilesSnapshotId == null && currentExecution.outputFilesSnapshot != null) {
                             currentExecution.outputFilesSnapshotId = snapshotRepository.add(currentExecution.outputFilesSnapshot);
@@ -83,8 +88,10 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                         }
                         while (history.configurations.size() > TaskHistory.MAX_HISTORY_ENTRIES) {
                             LazyTaskExecution execution = history.configurations.remove(history.configurations.size() - 1);
-                            if (execution.inputFilesSnapshotId != null) {
-                                snapshotRepository.remove(execution.inputFilesSnapshotId);
+                            if (execution.inputFilesSnapshotIds != null) {
+                                for (Long id : execution.inputFilesSnapshotIds.values()) {
+                                    snapshotRepository.remove(id);
+                                }
                             }
                             if (execution.outputFilesSnapshotId != null) {
                                 snapshotRepository.remove(execution.outputFilesSnapshotId);
@@ -221,11 +228,11 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     //TODO SF extract & unit test
     private static class LazyTaskExecution extends TaskExecution {
-        private Long inputFilesSnapshotId;
+        private Map<String, Long> inputFilesSnapshotIds;
         private Long outputFilesSnapshotId;
         private Long discoveredFilesSnapshotId;
         private transient FileSnapshotRepository snapshotRepository;
-        private transient FileCollectionSnapshot inputFilesSnapshot;
+        private transient Map<String, FileCollectionSnapshot> inputFilesSnapshot;
         private transient FileCollectionSnapshot outputFilesSnapshot;
         private transient FileCollectionSnapshot discoveredFilesSnapshot;
         private transient TaskArtifactStateCacheAccess cacheAccess;
@@ -251,7 +258,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @Override
-        public void setInputFilesHash(Integer inputFilesHash) {
+        public void setInputFilesHash(HashCode inputFilesHash) {
             if (taskHistory != null) {
                 taskHistory.modified = true;
             }
@@ -259,11 +266,15 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @Override
-        public FileCollectionSnapshot getInputFilesSnapshot() {
+        public Map<String, FileCollectionSnapshot> getInputFilesSnapshot() {
             if (inputFilesSnapshot == null) {
-                inputFilesSnapshot = cacheAccess.useCache("fetch input files", new Factory<FileCollectionSnapshot>() {
-                    public FileCollectionSnapshot create() {
-                        return snapshotRepository.get(inputFilesSnapshotId);
+                inputFilesSnapshot = cacheAccess.useCache("fetch input files", new Factory<Map<String, FileCollectionSnapshot>>() {
+                    public Map<String, FileCollectionSnapshot> create() {
+                        ImmutableSortedMap.Builder<String, FileCollectionSnapshot> builder = ImmutableSortedMap.naturalOrder();
+                        for (Map.Entry<String, Long> entry : inputFilesSnapshotIds.entrySet()) {
+                            builder.put(entry.getKey(), snapshotRepository.get(entry.getValue()));
+                        }
+                        return builder.build();
                     }
                 });
             }
@@ -271,9 +282,9 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         }
 
         @Override
-        public void setInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot) {
+        public void setInputFilesSnapshot(Map<String, FileCollectionSnapshot> inputFilesSnapshot) {
             this.inputFilesSnapshot = inputFilesSnapshot;
-            this.inputFilesSnapshotId = null;
+            this.inputFilesSnapshotIds = null;
         }
 
         @Override
@@ -323,8 +334,17 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             public LazyTaskExecution read(Decoder decoder) throws Exception {
                 LazyTaskExecution execution = new LazyTaskExecution();
-                execution.inputFilesSnapshotId = decoder.readLong();
-                execution.setInputFilesHash(decoder.readInt());
+
+                int inputFilesSnapshotIdCount = decoder.readInt();
+                ImmutableSortedMap.Builder<String, Long> inputFilesSnapshotIds = ImmutableSortedMap.naturalOrder();
+                for (int snapshotIdx = 0; snapshotIdx < inputFilesSnapshotIdCount; snapshotIdx++) {
+                    String property = decoder.readString();
+                    long id = decoder.readLong();
+                    inputFilesSnapshotIds.put(property, id);
+                }
+                execution.inputFilesSnapshotIds = inputFilesSnapshotIds.build();
+                execution.setInputFilesHash(HashCode.fromBytes(decoder.readBinary()));
+
                 execution.outputFilesSnapshotId = decoder.readLong();
                 execution.setOutputFilesHash(decoder.readInt());
                 execution.discoveredFilesSnapshotId = decoder.readLong();
@@ -353,8 +373,13 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             public void write(Encoder encoder, LazyTaskExecution execution) throws Exception {
-                encoder.writeLong(execution.inputFilesSnapshotId);
-                encoder.writeInt(execution.getInputFilesHash());
+                encoder.writeInt(execution.inputFilesSnapshotIds.size());
+                for (Map.Entry<String, Long> entry : execution.inputFilesSnapshotIds.entrySet()) {
+                    encoder.writeString(entry.getKey());
+                    encoder.writeLong(entry.getValue());
+                }
+                encoder.writeBinary(execution.getInputFilesHash().asBytes());
+
                 encoder.writeLong(execution.outputFilesSnapshotId);
                 encoder.writeInt(execution.getOutputFilesHash());
                 encoder.writeLong(execution.discoveredFilesSnapshotId);

@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.tasks;
 
-import org.gradle.api.internal.tasks.TaskFileInputPropertySpecInternal;
-import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
 
-import java.util.Collection;
-
-public interface TaskInputsInternal extends TaskInputs {
-    void ensureConfigured();
-
-    Collection<TaskFileInputPropertySpecInternal> getFileProperties();
+/**
+ * Describes a property of a task that contains zero or more files.
+ */
+@Incubating
+@HasInternalProtocol
+public interface TaskFilePropertySpec {
+    TaskFilePropertySpec withPropertyName(String propertyName);
 }

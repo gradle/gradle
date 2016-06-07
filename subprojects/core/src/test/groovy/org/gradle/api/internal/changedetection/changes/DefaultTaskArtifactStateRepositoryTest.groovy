@@ -703,7 +703,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         TaskInternal task() {
             final TaskInternal task = TestUtil.createTask(type, project, path)
             if (inputs != null) {
-                task.getInputs().files(inputs)
+                task.getInputs().includeFiles(inputs)
             }
             if (inputProperties != null) {
                 task.getInputs().properties(inputProperties)

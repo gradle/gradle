@@ -19,6 +19,7 @@ package org.gradle.api.tasks
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -61,8 +62,11 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
-    @NotYetImplemented
     def "task is not up-to-date after file moved between properties"() {
+        (1..3).each {
+            def fileName = "input${it}.txt"
+            println ">> $fileName"
+            file(fileName).createNewFile() }
         file("buildSrc/src/main/groovy/TaskWithTwoFileCollectionInputs.groovy") << """
             import org.gradle.api.*
             import org.gradle.api.file.*
@@ -101,10 +105,12 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "test"
+        succeeds "test", "--info"
 
         then:
         skippedTasks.isEmpty()
+        outputContains "Input property 'inputs1' file ${file("input2.txt")} has been removed."
+        outputContains "Input property 'inputs2' file ${file("input2.txt")} has been added."
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
@@ -212,5 +218,29 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
         output.contains 'The TaskOutputs.files() method has been deprecated and is scheduled to be removed in Gradle 4.0. ' +
             'Please use the TaskOutputs.file() or the TaskOutputs.dir() method instead.'
+    }
+
+    @Unroll("deprecation warning printed when TaskInputs.#method method is used")
+    def "deprecation warning printed when deprecated TaskInputs method is used"() {
+        buildFile << """
+            task test {
+                inputs.$call
+            }
+        """
+        executer.expectDeprecationWarning()
+
+        expect:
+        succeeds "test"
+        outputContains "The TaskInputs.$method method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
+            "Please use the TaskInputs.$replacementMethod method instead."
+
+        where:
+        method              | replacementMethod         | call
+        "file(Object)"      | "includeFile(Object)"     | 'file("a")'
+        "dir(Object)"       | "includeDir(Object)"      | 'dir("a")'
+        "files(Object...)"  | "includeFiles(Object...)" | 'files("a")'
+        "source(Object)"    | "includeFile(Object)"     | 'source("a")'
+        "sourceDir(Object)" | "includeDir(Object)"      | 'sourceDir("a")'
+        "source(Object...)" | "includeFiles(Object...)" | 'source("a", "b")'
     }
 }

@@ -16,60 +16,40 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.Iterators;
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import java.util.Iterator;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
-public class InputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateChanges {
-    private final TaskExecution previous;
-    private final TaskExecution current;
-    private final FileCollectionSnapshotter snapshotter;
-    private final FileCollectionSnapshot.PreCheck inputFilesSnapshotPreCheck;
-    private FileCollectionSnapshot inputFilesSnapshot;
-    private final boolean noChanges;
-
+public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotter snapshotter) {
-        super(task.getName());
-        this.previous = previous;
-        this.current = current;
-        this.snapshotter = snapshotter;
-        inputFilesSnapshotPreCheck = createSnapshotPreCheck(snapshotter, task.getInputs().getFiles());
-        this.noChanges = previous != null && previous.getInputFilesHash() != null && previous.getInputFilesHash().equals(inputFilesSnapshotPreCheck.getHash());
+        super(task.getName(), previous, current, snapshotter, true, "Input", task.getInputs().getFileProperties());
     }
 
     @Override
-    public FileCollectionSnapshot getPrevious() {
+    protected Map<String, FileCollectionSnapshot> getPrevious() {
         return previous.getInputFilesSnapshot();
     }
 
     @Override
-    public FileCollectionSnapshot getCurrent() {
-        if (inputFilesSnapshot == null) {
-            inputFilesSnapshot = createSnapshot(snapshotter, inputFilesSnapshotPreCheck);
-        }
-        return inputFilesSnapshot;
+    protected HashCode getPreviousPreCheckHash() {
+        return previous.getInputFilesHash();
     }
 
     @Override
     public void saveCurrent() {
         // Inputs are considered to be unchanged during task execution
-        current.setInputFilesHash(inputFilesSnapshotPreCheck.getHash());
+        current.setInputFilesHash(getPreCheckHash());
         current.setInputFilesSnapshot(getCurrent());
     }
 
-    public Iterator<TaskStateChange> iterator() {
-        if (noChanges) {
-            return Iterators.emptyIterator();
-        }
-        return super.iterator();
-    }
-
     @Override
-    protected String getInputFileType() {
-        return "Input";
+    protected Set<FileCollectionSnapshot.ChangeFilter> getFileChangeFilters() {
+        return Collections.emptySet();
     }
 }

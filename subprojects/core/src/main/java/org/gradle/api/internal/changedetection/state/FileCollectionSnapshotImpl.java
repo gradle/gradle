@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import org.gradle.api.Nullable;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
@@ -32,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class FileCollectionSnapshotImpl implements FileCollectionSnapshot {
+class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapshotSet {
     final Map<String, IncrementalFileSnapshot> snapshots;
     final List<TreeSnapshot> treeSnapshots;
 
@@ -71,16 +72,19 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot {
         return snapshots;
     }
 
+    @Nullable
+    @Override
+    public FileSnapshot findSnapshot(File file) {
+        IncrementalFileSnapshot s = snapshots.get(file.getAbsolutePath());
+        if (s instanceof FileSnapshot) {
+            return (FileSnapshot) s;
+        }
+        return null;
+    }
+
+    @Override
     public FilesSnapshotSet getSnapshot() {
-        return new FilesSnapshotSet() {
-            public FileSnapshot findSnapshot(File file) {
-                IncrementalFileSnapshot s = snapshots.get(file.getAbsolutePath());
-                if (s instanceof FileSnapshot) {
-                    return (FileSnapshot) s;
-                }
-                return null;
-            }
-        };
+        return this;
     }
 
     @Override
