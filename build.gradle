@@ -13,9 +13,55 @@ buildscript {
 
 apply from: 'build.gradle.kts'
 
-// -- Performance testing ----------------------------------------------
+
+// -- Integration testing ---------------------------------------------
 task checkSamples(type: integration.CheckSamples)
 check.dependsOn checkSamples
+
+
+// -- Performance testing ----------------------------------------------
+//
+// 1. Creates a custom Gradle installation with latest gradle-script-kotlin jar
+//
+// 2. Benchmarks latest installation against configured wrapper
+//
+def customInstallation = file("$buildDir/custom/gradle-${gradle.gradleVersion}")
+
+task copyCurrentDistro(type: Copy) {
+    description "Copies the current Gradle distro into '${customInstallation}'."
+
+    from gradle.gradleHomeDir
+    into customInstallation
+
+    // preserve last modified date on each file to make it easier
+    // to check which files were patched by next step
+    def copyDetails = []
+    eachFile { copyDetails << it }
+    doLast {
+        copyDetails.each { FileCopyDetails details ->
+            def target = new File(customInstallation, details.path)
+            if (target.exists()) {
+                target.setLastModified(details.lastModified)
+            }
+        }
+    }
+
+    // don't bother recreating it
+    onlyIf { !customInstallation.exists() }
+}
+
+task patchCustomInstallation(type: Copy, dependsOn: copyCurrentDistro) {
+    description "Copies latest gradle-script-kotlin snapshot over the custom installation."
+
+    from configurations.compile
+    from tasks.jar
+    into "$customInstallation/lib"
+}
+
+task benchmark(type: integration.Benchmark, dependsOn: patchCustomInstallation) {
+    latestInstallation = customInstallation
+}
+
 
 // --- classpath.properties --------------------------------------------
 File generatedResourcesDir = file("$buildDir/generate-resources/main")

@@ -1,13 +1,13 @@
 package integration
 
-import org.apache.tools.ant.util.TeeOutputStream
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.tooling.GradleConnector.newConnector
-import org.gradle.tooling.ProjectConnection
+
+import org.apache.tools.ant.util.TeeOutputStream
+
 import java.io.File
 import java.io.FileOutputStream
 
@@ -18,7 +18,7 @@ open class CheckSamples : DefaultTask() {
 
     @get:InputFiles
     val samples: FileCollection by lazy {
-        project.fileTree(samplesDir).apply {
+        project.fileTree(project.samplesDir()).apply {
             include("**/*.gradle.kts")
             include("**/gradle-wrapper.properties")
         }
@@ -31,19 +31,12 @@ open class CheckSamples : DefaultTask() {
 
     @TaskAction
     fun run() {
-        sampleDirs().forEach { sampleDir ->
+        project.sampleDirs().forEach { sampleDir ->
             println("Checking ${relativeFile(sampleDir)}...")
             OutputStreamForResultOf(sampleDir).use { stdout ->
                 runGradleHelpOn(sampleDir, stdout)
             }
         }
-    }
-
-    private fun sampleDirs() =
-        samplesDir.listFiles().filter { it.isDirectory }
-
-    private val samplesDir: File by lazy {
-        project.file("samples")
     }
 
     private fun OutputStreamForResultOf(sampleDir: File) =
@@ -53,17 +46,12 @@ open class CheckSamples : DefaultTask() {
         file.relativeTo(project.projectDir)
 
     private fun runGradleHelpOn(projectDir: File, stdout: FileOutputStream) {
-        connectionFor(projectDir)
-            .newBuild()
-            .forTasks("help")
-            .setStandardOutput(TeeOutputStream(System.out, stdout))
-            .setStandardError(TeeOutputStream(System.err, stdout))
-            .run()
+        withConnectionFrom(connectorFor(projectDir)) {
+            newBuild()
+                .forTasks("help")
+                .setStandardOutput(TeeOutputStream(System.out, stdout))
+                .setStandardError(TeeOutputStream(System.err, stdout))
+                .run()
+        }
     }
-
-    private fun connectionFor(projectDir: File): ProjectConnection =
-        newConnector()
-            .forProjectDirectory(projectDir)
-            .useBuildDistribution()
-            .connect()
 }
