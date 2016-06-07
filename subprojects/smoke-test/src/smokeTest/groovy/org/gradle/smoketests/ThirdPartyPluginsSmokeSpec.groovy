@@ -84,7 +84,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             dependencies {
               compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
             }
-        """
+        """.stripIndent()
 
         file('src/main/kotlin/pkg/HelloWorld.kt') << """
         package pkg
@@ -100,7 +100,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         fun main(args: Array<String>) {
             println(getGreeting())
         }
-        """
+        """.stripIndent()
 
         when:
         def result = runner().withArguments('build').build()
@@ -131,7 +131,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
 
             Rubies are red,
             Topazes are blue.
-            """
+            """.stripIndent()
 
         when:
         runner().withArguments('asciidoc').build()
@@ -269,5 +269,43 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
 
         expect:
         runner().withArguments('integrationTest').build()
+    }
+
+    def 'gosu plugin'() { // Requires JDK 8 or later
+        given:
+        buildFile << """
+            plugins {
+                id "org.gosu-lang.gosu" version "0.1.3"
+            }
+
+            apply plugin: "org.gosu-lang.gosu"
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.10'
+            }
+            """.stripIndent()
+
+        file('src/main/gosu/example/Foo.gs') << """
+            package example
+
+            public class Foo {
+
+              function doSomething(arg : String) : String {
+                return "Hello, got the argument '\${arg}'"
+              }
+
+            }
+            """.stripIndent()
+
+
+        when:
+        def result = runner().withArguments('build').build()
+
+        then:
+        result.task(':compileGosu').outcome == TaskOutcome.SUCCESS
     }
 }
