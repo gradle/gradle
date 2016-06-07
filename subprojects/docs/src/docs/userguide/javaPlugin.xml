@@ -1563,7 +1563,7 @@
         <para>Gradle can only run on Java version 7 or higher but it is possible to compile and run tests for Java 6. In order
             to do this you need to configure
             <itemizedlist>
-                <listitem>the <literal>JavaCompileTask</literal> to fork, use the correct <literal>javac</literal> executable and <literal>bootclasspath</literal></listitem>
+                <listitem>the <literal>JavaCompile</literal> task to fork, use the correct <literal>javac</literal> executable and <literal>bootclasspath</literal></listitem>
                 <listitem>the <literal>Javadoc</literal> task to use the correct <literal>javadoc</literal> executable</listitem>
                 <listitem>the <literal>Test</literal> and the <literal>JavaExec</literal> task to use the correct <literal>java</literal> executable.</listitem>
             </itemizedlist>
