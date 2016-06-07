@@ -14,11 +14,6 @@ buildscript {
 apply from: 'build.gradle.kts'
 
 
-// -- Integration testing ---------------------------------------------
-task checkSamples(type: integration.CheckSamples)
-check.dependsOn checkSamples
-
-
 // -- Performance testing ----------------------------------------------
 //
 // 1. Creates a custom Gradle installation with latest gradle-script-kotlin jar
@@ -59,6 +54,13 @@ task patchCustomInstallation(type: Copy, dependsOn: copyCurrentDistro) {
 task benchmark(type: integration.Benchmark, dependsOn: patchCustomInstallation) {
     latestInstallation = customInstallation
 }
+
+
+// -- Integration testing ---------------------------------------------
+task checkSamples(type: integration.CheckSamples, dependsOn: patchCustomInstallation) {
+    installation = customInstallation
+}
+check.dependsOn checkSamples
 
 
 // --- classpath.properties --------------------------------------------

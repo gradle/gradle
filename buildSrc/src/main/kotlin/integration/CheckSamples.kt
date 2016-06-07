@@ -2,6 +2,7 @@ package integration
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
@@ -15,6 +16,9 @@ open class CheckSamples : DefaultTask() {
 
     override fun getDescription() =
         "Checks each sample by running `gradle help` on it."
+
+    @get:InputDirectory
+    var installation: File? = null
 
     @get:InputFiles
     val samples: FileCollection by lazy {
@@ -46,12 +50,14 @@ open class CheckSamples : DefaultTask() {
         file.relativeTo(project.projectDir)
 
     private fun runGradleHelpOn(projectDir: File, stdout: FileOutputStream) {
-        withConnectionFrom(connectorFor(projectDir)) {
-            newBuild()
-                .forTasks("help")
-                .setStandardOutput(TeeOutputStream(System.out, stdout))
-                .setStandardError(TeeOutputStream(System.err, stdout))
-                .run()
+        withUniqueDaemonRegistry {
+            withConnectionFrom(connectorFor(projectDir).useInstallation(installation!!)) {
+                newBuild()
+                    .forTasks("help")
+                    .setStandardOutput(TeeOutputStream(System.out, stdout))
+                    .setStandardError(TeeOutputStream(System.err, stdout))
+                    .run()
+            }
         }
     }
 }
