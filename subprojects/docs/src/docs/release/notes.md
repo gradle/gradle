@@ -138,6 +138,7 @@ The `EclipseProject` model was supplemented with a set of new features:
     - classpath attributes: [getClasspathAttributes()](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html#getClasspathAttributes%28%29),
     - output folder: [getOutput()](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html#getOutput%28%29).
 - The classpath container definition is available via the [EclipseProject.getClasspathContainers()](javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getClasspathContainers%28%29) method.
+- All classpath entries (project and external dependencies, classpath containers and source folders) expose their access rules via [EclipseClasspathEntry.getAccessRules()](javadoc/org/gradle/tooling/model/eclipse/EclipseClasspathEntry.html#getAccessRules%28%29).
 
 With these features Tooling API clients can provide a more complete IDE integration. Buildship will make use of them very soon.
 
