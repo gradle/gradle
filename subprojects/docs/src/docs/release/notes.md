@@ -290,6 +290,7 @@ We would like to thank the following community members for making contributions 
  - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.6
  - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
  - [Ramon Wirsch](https://github.com/ramonwirsch) - Fix NullPointerException when processing annotations in the new Java software model
+ - [Vladislav Bauer](https://github.com/vbauer) - ShadeJar: Use ClassRemapper instead of deprecated RemappingClassAdapter
   
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
