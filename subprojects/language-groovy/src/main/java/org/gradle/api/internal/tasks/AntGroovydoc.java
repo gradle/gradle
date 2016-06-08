@@ -77,7 +77,7 @@ public class AntGroovydoc {
         args.put("sourcepath", tmpDir.toString());
         args.put("destdir", destDir);
         args.put("use", use);
-        if (isAtLeast(version, "2.4.6")) {
+        if (isAtLeast(version, "2.4.7")) {
             args.put("noTimestamp", noTimestamp);
             args.put("noVersionStamp", noVersionStamp);
         }
