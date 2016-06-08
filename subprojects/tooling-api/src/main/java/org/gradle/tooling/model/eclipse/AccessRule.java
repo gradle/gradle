@@ -19,7 +19,7 @@ package org.gradle.tooling.model.eclipse;
 import org.gradle.api.Incubating;
 
 /**
- * Access rule associated to an Eclipse classpath entry.
+ * Access rule associated with an Eclipse classpath entry.
  *
  * @see <a href="http://help.eclipse.org/mars/topic/org.eclipse.jdt.doc.isv/reference/api/org/eclipse/jdt/core/IAccessRule.html">IAccessRule Javadoc</a>
  *
@@ -37,7 +37,6 @@ public interface AccessRule {
      * </ul>
      *
      * @return The type of this access rule.
-     * @see
      */
     int getKind();
 

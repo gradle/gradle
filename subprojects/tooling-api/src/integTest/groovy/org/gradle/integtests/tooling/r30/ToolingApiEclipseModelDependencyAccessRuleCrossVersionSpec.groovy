@@ -58,7 +58,7 @@ class ToolingApiEclipseModelDependencyAccessRuleCrossVersionSpec extends Tooling
     }
 
     @TargetGradleVersion(">=1.2 <3.0")
-    def "Older versions throw runtime exception when querying classpath attributes"() {
+    def "Older versions throw runtime exception when querying access rules"() {
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
         EclipseProjectDependency projectDependency = project.projectDependencies.find { it.path.contains 'sub' }
