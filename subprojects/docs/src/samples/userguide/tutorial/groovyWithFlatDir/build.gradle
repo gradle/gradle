@@ -10,7 +10,7 @@ repositories {
 }
 
 dependencies {
-    compile module('org.codehaus.groovy:groovy:2.4.6') {
+    compile module('org.codehaus.groovy:groovy:2.4.7') {
         dependency('asm:asm-all:2.2.3')
         dependency('antlr:antlr:2.7.7')
         dependency('commons-cli:commons-cli:1.2')
