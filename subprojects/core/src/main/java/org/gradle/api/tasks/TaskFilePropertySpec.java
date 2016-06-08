@@ -25,5 +25,12 @@ import org.gradle.internal.HasInternalProtocol;
 @Incubating
 @HasInternalProtocol
 public interface TaskFilePropertySpec {
+    /**
+     * Sets the name for this property. The name must be a valid Java identifier,
+     * or a series of valid Java identifiers separated with dots ('.').
+     *
+     * <p>If the method is not called, or if it is called with {@code null}, a name
+     * will be assigned to the property automatically.</p>
+     */
     TaskFilePropertySpec withPropertyName(String propertyName);
 }

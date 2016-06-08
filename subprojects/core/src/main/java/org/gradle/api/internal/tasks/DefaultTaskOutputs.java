@@ -208,28 +208,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
     }
 
-    private class PropertySpec implements TaskOutputFilePropertySpecInternal {
-        private final TaskPropertyFileCollection files;
-        private String propertyName;
+    private class PropertySpec extends AbstractTaskFilePropertySpec implements TaskOutputFilePropertySpecInternal {
         private boolean optional;
 
         public PropertySpec(String taskName, FileResolver resolver, Object paths) {
-            this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, paths);
-        }
-
-        @Override
-        public TaskPropertyFileCollection getPropertyFiles() {
-            return files;
-        }
-
-        @Override
-        public String getPropertyName() {
-            return propertyName;
+            super(taskName, "output", resolver, paths);
         }
 
         @Override
         public TaskOutputFilePropertySpec withPropertyName(String propertyName) {
-            this.propertyName = propertyName;
+            setPropertyName(propertyName);
             return this;
         }
 
@@ -247,11 +235,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         public TaskOutputFilePropertySpec optional(boolean optional) {
             this.optional = optional;
             return this;
-        }
-
-        @Override
-        public String toString() {
-            return propertyName == null ? "<unnamed>" : propertyName;
         }
 
         // --- Deprecated delegate methods

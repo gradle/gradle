@@ -248,32 +248,20 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private class PropertySpec implements TaskInputFilePropertySpecInternal {
+    private class PropertySpec extends AbstractTaskFilePropertySpec implements TaskInputFilePropertySpecInternal {
 
-        private final TaskPropertyFileCollection files;
-        private String propertyName;
         private boolean skipWhenEmpty;
         private boolean optional;
 
         public PropertySpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
-            this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
+            super(taskName, "input", resolver, paths);
             this.skipWhenEmpty = skipWhenEmpty;
         }
 
         @Override
-        public String getPropertyName() {
-            return propertyName;
-        }
-
-        @Override
         public TaskInputFilePropertySpec withPropertyName(String propertyName) {
-            this.propertyName = propertyName;
+            setPropertyName(propertyName);
             return this;
-        }
-
-        @Override
-        public TaskPropertyFileCollection getPropertyFiles() {
-            return files;
         }
 
         @Override
@@ -306,11 +294,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         @Override
         public TaskInputFilePropertySpec optional() {
             return optional(true);
-        }
-
-        @Override
-        public String toString() {
-            return propertyName == null ? "<unnamed>" : propertyName;
         }
 
         // --- Deprecated delegate methods
