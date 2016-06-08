@@ -11,28 +11,30 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.+'
 }
 
-// START SNIPPET cross-compilation
+// START SNIPPET java-cross-compilation
 sourceCompatibility = 1.6
 
-ext.java = java6Home + '/bin/java'
-ext.javac = java6Home + '/bin/javac'
-ext.javadoc = java6Home + '/bin/javadoc'
-
+assert hasProperty('java6Home') : "Set the property 'java6Home' in your your gradle.properties pointing to a Java 6 installation"
+def javaExecutablesPath = new File(java6Home, 'bin')
+assert javaExecutablesPath.exists() : "The Java 6 Home directory '${javaExecutablesPath}' does not exist"
+def javaExecutables = [:].withDefault { execName ->
+    def executable = new File(javaExecutablesPath, execName)
+    assert executable.exists() : "There is no ${execName} executable in ${javaExecutablesPath}"
+    executable
+}
 tasks.withType(JavaCompile) {
     options.with {
         fork = true
-        bootClasspath = fileTree(java6Home + '/../Classes') { include '*.jar' }.asPath
-        forkOptions.executable = javac
+        forkOptions.executable = javaExecutables.javac
     }
 }
 tasks.withType(Javadoc) {
-    executable = javadoc
+    executable = javaExecutables.javadoc
 }
 tasks.withType(Test) {
-    executable = java
+    executable = javaExecutables.java
 }
 tasks.withType(JavaExec) {
-    executable = java
+    executable = javaExecutables.java
 }
-
-// END SNIPPET cross-compilation
+// END SNIPPET java-cross-compilation
