@@ -46,6 +46,7 @@ public class DependentComponentsReport extends DefaultTask {
     private boolean detail;
     private List<String> components;
 
+    @Console
     public boolean isDetail() {
         return detail;
     }
