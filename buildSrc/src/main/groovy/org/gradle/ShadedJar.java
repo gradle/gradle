@@ -23,8 +23,8 @@ import org.gradle.api.tasks.*;
 import org.gradle.internal.exceptions.Contextual;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.commons.ClassRemapper;
 import org.objectweb.asm.commons.Remapper;
-import org.objectweb.asm.commons.RemappingClassAdapter;
 import com.google.common.io.ByteStreams;
 
 import java.util.jar.JarOutputStream;
@@ -177,7 +177,7 @@ public class ShadedJar extends DefaultTask {
                         final ClassDetails details = classes.get(reader.getClassName());
                         details.visited = true;
                         ClassWriter classWriter = new ClassWriter(0);
-                        reader.accept(new RemappingClassAdapter(classWriter, new Remapper() {
+                        reader.accept(new ClassRemapper(classWriter, new Remapper() {
                             public String map(String name) {
                                 if (ignored.matches(name)) {
                                     return name;
