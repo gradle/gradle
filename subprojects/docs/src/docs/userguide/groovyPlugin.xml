@@ -359,4 +359,23 @@
             </tr>
         </table>
     </section>
+
+    <section id='sec:groovy_cross_compilation'>
+        <title>Compiling and testing for Java 6</title>
+        <para>
+            Everything which is necessary for running a Java build on Java 6 is also necessary for Groovy. Please have a look at
+            <xref linkend="sec:java_cross_compilation"/>.
+        </para>
+        <para>
+            Currently the Groovy compiler will always be executed with the same Java version which was used to start Gradle. This means
+            it cannot be executed for Java 6. This means the only thing possible now is to set the
+            <literal>sourceCompatibility</literal> and <literal>targetCompatibility</literal> to <literal>1.6</literal>.
+            For joint compilation the Java Compiler used by the Groovy compiler
+            used for compiling the Java source files in the Grooyv source directory (e.g. <literal>src/main/groovy</literal>) can be set.
+            <sample id="groovyCrossCompilation" dir="groovy/crossCompilation" title="Configure Java 6 build for Groovy">
+                <sourcefile file="gradle.properties" />
+                <sourcefile file="build.gradle" snippet="groovy-cross-compilation" />
+            </sample>
+        </para>
+    </section>
 </chapter>

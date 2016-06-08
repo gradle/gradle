@@ -248,7 +248,9 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
 
-        def java6CrossCompilation = samplesByDir.get('java/crossCompilation') + samplesByDir.get('scala/crossCompilation')
+        def java6CrossCompilation = ['java', 'groovy', 'scala'].collectMany {
+            samplesByDir.get(it + '/crossCompilation')
+        }
 
         def java6jdks = AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_6)
         if (java6jdks.empty) {
