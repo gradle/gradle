@@ -48,7 +48,6 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
     private final FileResolver resolver;
     private final String taskName;
     private final TaskMutator taskMutator;
-    private int legacyFilePropertyCounter;
     private Queue<Action<? super TaskOutputs>> configureActions;
 
     public DefaultTaskOutputs(FileResolver resolver, final TaskInternal task, TaskMutator taskMutator) {
@@ -155,10 +154,6 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
         PropertySpec spec = new PropertySpec(taskName, resolver, paths);
         fileProperties.add(spec);
         return spec;
-    }
-
-    private String nextLegacyPropertyName() {
-        return "$" + (++legacyFilePropertyCounter);
     }
 
     @Override
