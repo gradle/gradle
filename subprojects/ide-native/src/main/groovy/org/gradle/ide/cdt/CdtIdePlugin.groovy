@@ -65,7 +65,7 @@ class CdtIdePlugin implements Plugin<Project> {
                 }
             }
 
-            inputs.includeFiles({ task.settings.includeRoots }).withPropertyName("settings.includeRoots")
+            inputs.files({ task.settings.includeRoots }).withPropertyName("settings.includeRoots")
             inputFile = project.file(".cproject")
             outputFile = project.file(".cproject")
             factory { new CprojectDescriptor() }

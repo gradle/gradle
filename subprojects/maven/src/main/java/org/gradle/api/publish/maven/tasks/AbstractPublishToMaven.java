@@ -42,7 +42,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
 
     public AbstractPublishToMaven() {
         // Allow the publication to participate in incremental build
-        getInputs().includeFiles(new Callable<FileCollection>() {
+        getInputs().files(new Callable<FileCollection>() {
             public FileCollection call() throws Exception {
                 MavenPublicationInternal publicationInternal = getPublicationInternal();
                 return publicationInternal == null ? null : publicationInternal.getPublishableFiles();

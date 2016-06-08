@@ -27,13 +27,13 @@ class InputOutputEnsuringTaskExecuterIntegrationTest extends AbstractIntegration
                     it.configure {
                         println "Inputs are configured via nested configure()"
                     }
-                    it.includeFile("input.txt")
+                    it.file("input.txt")
                 }
                 outputs.configure {
                     it.configure {
                         println "Outputs are configured via nested configure()"
                     }
-                    it.includeFile("output.txt")
+                    it.file("output.txt")
                 }
                 doLast {
                     file("output.txt") << file("input.txt")

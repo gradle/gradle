@@ -307,7 +307,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
         private void configureApiJarInputs(ApiJar apiJarTask, JvmAssembly assembly) {
             int counter = 0;
             for (File classDir : assembly.getClassDirectories()) {
-                apiJarTask.getInputs().includeDir(classDir).withPropertyName("classes$" + (++counter)).skipWhenEmpty();
+                apiJarTask.getInputs().dir(classDir).withPropertyName("classes$" + (++counter)).skipWhenEmpty();
             }
         }
 

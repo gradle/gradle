@@ -68,7 +68,7 @@ public class OutputDirectoriesPropertyAnnotationHandler extends AbstractOutputDi
                 if (directories != null) {
                     int counter = 0;
                     for (File directory : directories) {
-                        taskOutputs.includeDir(directory).withPropertyName(context.getName() + "$" + (++counter));
+                        taskOutputs.dir(directory).withPropertyName(context.getName() + "$" + (++counter));
                     }
                 }
             }

@@ -53,24 +53,8 @@ class DefaultTaskInputsTest extends Specification {
         inputs.sourceFiles.empty
     }
 
-    def canRegisterInputFiles() {
-        when:
-        inputs.files('a')
-
-        then:
-        inputs.files.files == [new File('a')] as Set
-    }
-
-    def canRegisterInputDir() {
-        when:
-        inputs.dir('a')
-
-        then:
-        inputs.files.files == [treeFile] as Set
-    }
-
     def "can register input file"() {
-        when: inputs.includeFile("a")
+        when: inputs.file("a")
         then:
         inputs.files.files.toList() == [new File('a')]
         inputs.fileProperties*.propertyName.toList() == ['$1']
@@ -78,7 +62,7 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def "can register input file with property name"() {
-        when: inputs.includeFile("a").withPropertyName("prop")
+        when: inputs.file("a").withPropertyName("prop")
         then:
         inputs.files.files.toList() == [new File('a')]
         inputs.fileProperties*.propertyName.toList() == ['prop']
@@ -86,7 +70,7 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def "can register input files"() {
-        when: inputs.includeFiles("a", "b")
+        when: inputs.files("a", "b")
         then:
         inputs.files.files.toList() == [new File("a"), new File("b")]
         inputs.fileProperties*.propertyName == ['$1']
@@ -94,7 +78,7 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def "can register input files with property naem"() {
-        when: inputs.includeFiles("a", "b").withPropertyName("prop")
+        when: inputs.files("a", "b").withPropertyName("prop")
         then:
         inputs.files.files.sort() == [new File("a"), new File("b")]
         inputs.fileProperties*.propertyName == ['prop']
@@ -102,7 +86,7 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def "can register input dir"() {
-        when: inputs.includeDir("a")
+        when: inputs.dir("a")
         then:
         inputs.files.files.toList() == [treeFile]
         inputs.fileProperties*.propertyName == ['$1']
@@ -110,7 +94,7 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def "can register input dir with property name"() {
-        when: inputs.includeDir("a").withPropertyName("prop")
+        when: inputs.dir("a").withPropertyName("prop")
         then:
         inputs.files.files.toList() == [treeFile]
         inputs.fileProperties*.propertyName == ['prop']
@@ -177,12 +161,12 @@ class DefaultTaskInputsTest extends Specification {
     }
 
     def "can register source files"() {
-        when: inputs.includeFiles("a", "b").withPropertyName("prop")
+        when: inputs.files("a", "b").withPropertyName("prop")
         then:
         inputs.hasInputs
         !inputs.hasSourceFiles
 
-        when: inputs.includeFiles(["s1", "s2"]).skipWhenEmpty()
+        when: inputs.files(["s1", "s2"]).skipWhenEmpty()
         then:
         inputs.hasSourceFiles
         inputs.files.files.toList() == [new File("a"), new File("b"), new File("s1"), new File("s2")]

@@ -46,7 +46,7 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
         final boolean skipWhenEmpty = context.isAnnotationPresent(SkipWhenEmpty.class);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().includeDir(futureValue).withPropertyName(context.getName()).skipWhenEmpty(skipWhenEmpty);
+                task.getInputs().dir(futureValue).withPropertyName(context.getName()).skipWhenEmpty(skipWhenEmpty);
             }
         });
         return true;

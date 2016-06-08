@@ -45,7 +45,7 @@ public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputDire
 
     @Override
     protected void update(TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
-        task.getOutputs().includeDir(futureValue).withPropertyName(context.getName());
+        task.getOutputs().dir(futureValue).withPropertyName(context.getName());
         task.prependParallelSafeAction(new Action<Task>() {
             public void execute(Task task) {
                 File directory = uncheckedCast(uncheckedCall(futureValue));

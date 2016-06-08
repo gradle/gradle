@@ -31,7 +31,7 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
         final boolean skipWhenEmpty = context.isAnnotationPresent(SkipWhenEmpty.class);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().includeFiles(futureValue).withPropertyName(context.getName()).skipWhenEmpty(skipWhenEmpty);
+                task.getInputs().files(futureValue).withPropertyName(context.getName()).skipWhenEmpty(skipWhenEmpty);
             }
         });
         return true;

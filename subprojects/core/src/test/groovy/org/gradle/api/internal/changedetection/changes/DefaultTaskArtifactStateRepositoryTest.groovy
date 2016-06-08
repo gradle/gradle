@@ -703,13 +703,13 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         TaskInternal task() {
             final TaskInternal task = TestUtil.createTask(type, project, path)
             if (inputs != null) {
-                task.getInputs().includeFiles(inputs)
+                task.getInputs().files(inputs)
             }
             if (inputProperties != null) {
                 task.getInputs().properties(inputProperties)
             }
             if (outputs != null) {
-                outputs.each { task.getOutputs().includeFile(it) }
+                outputs.each { task.getOutputs().file(it) }
             }
             task.doLast(new org.gradle.api.Action<Object>() {
                 public void execute(Object o) {

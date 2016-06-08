@@ -69,7 +69,7 @@ public class OutputFilesPropertyAnnotationHandler extends AbstractOutputFileProp
                 if (files != null) {
                     int counter = 0;
                     for (File file : files) {
-                        taskOutputs.includeFile(file).withPropertyName(context.getName() + "$" + (++counter));
+                        taskOutputs.file(file).withPropertyName(context.getName() + "$" + (++counter));
                     }
                 }
             }

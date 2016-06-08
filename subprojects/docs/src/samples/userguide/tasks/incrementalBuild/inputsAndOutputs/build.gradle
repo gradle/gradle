@@ -2,8 +2,8 @@
 task transform {
     ext.srcFile = file('mountains.xml')
     ext.destDir = new File(buildDir, 'generated')
-    inputs.includeFile srcFile
-    outputs.includeDir destDir
+    inputs.file srcFile
+    outputs.dir destDir
 // END SNIPPET declare-inputs-and-outputs
     doLast {
         println "Transforming source file."

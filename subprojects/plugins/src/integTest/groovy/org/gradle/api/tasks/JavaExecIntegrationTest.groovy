@@ -76,7 +76,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << """
-            run.outputs.includeFile "out.txt"
+            run.outputs.file "out.txt"
         """
 
         when:

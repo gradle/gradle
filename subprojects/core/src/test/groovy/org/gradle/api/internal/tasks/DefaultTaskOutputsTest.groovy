@@ -55,7 +55,7 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register output file"() {
-        when: outputs.includeFile("a")
+        when: outputs.file("a")
         then:
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName.toList() == ['$1']
@@ -63,7 +63,7 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register output file with property name"() {
-        when: outputs.includeFile("a").withPropertyName("prop")
+        when: outputs.file("a").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName.toList() == ['prop']
@@ -71,7 +71,7 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register output dir"() {
-        when: outputs.includeDir("a")
+        when: outputs.file("a")
         then:
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName.toList() == ['$1']
@@ -79,7 +79,7 @@ class DefaultTaskOutputsTest extends Specification {
     }
 
     def "can register output dir with property name"() {
-        when: outputs.includeDir("a").withPropertyName("prop")
+        when: outputs.dir("a").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName.toList() == ['prop']

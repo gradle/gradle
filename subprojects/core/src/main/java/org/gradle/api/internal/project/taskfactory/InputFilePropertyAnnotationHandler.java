@@ -43,7 +43,7 @@ public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHan
         context.setValidationAction(inputFileValidation);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().includeFiles(futureValue).withPropertyName(context.getName());
+                task.getInputs().files(futureValue).withPropertyName(context.getName());
             }
         });
         return true;
