@@ -133,6 +133,11 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Remove duplicate types
+
+- `Jar` and `Jar`
+- `CreateStartScripts` and `CreateStartScripts`
+
 ## Simplify definition of public API
 
 - Ensure all internal packages have `internal` in their name
