@@ -28,7 +28,7 @@ abstract class AbstractCacheReuseCrossVersionIntegrationTest extends CrossVersio
      * **** README ****
      *
      * If this test fails:
-     *  1. Make sure BasicGradleDistribution.artifactCacheVersion settings are correct
+     *  1. Make sure DefaultGradleDistribution.getArtifactCacheLayoutVersion settings are correct
      *  2. Think about improving this test so that we don't have to manually fix things ;)
      */
 
