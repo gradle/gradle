@@ -103,10 +103,20 @@ public interface EclipseProject extends HierarchicalEclipseProject {
     /**
      * Returns the Eclipse classpath containers defined on the project.
      *
-     * @return the list of classpath containers.
+     * @return The list of classpath containers.
      * @since 3.0
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
      */
     @Incubating
     DomainObjectSet<? extends EclipseClasspathContainer> getClasspathContainers() throws UnsupportedMethodException;
+
+    /**
+     * Returns the output location of this project.
+     *
+     * @return The project's output location.
+     * @since 3.0
+     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     */
+    @Incubating
+    EclipseOutputLocation getOutputLocation() throws UnsupportedMethodException;
 }

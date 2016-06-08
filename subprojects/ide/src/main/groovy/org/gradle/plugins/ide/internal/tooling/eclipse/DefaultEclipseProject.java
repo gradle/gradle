@@ -46,6 +46,7 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
     private List<DefaultEclipseBuildCommand> buildCommands;
     private DefaultEclipseJavaSourceSettings javaSourceSettings;
     private List<DefaultEclipseClasspathContainer> classpathContainers;
+    private DefaultEclipseOutputLocation outputLocation;
 
     public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children) {
         this.identifier = new DefaultEclipseProjectIdentifier(projectDirectory);
@@ -180,5 +181,13 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
 
     public void setClasspathContainers(List<DefaultEclipseClasspathContainer> classpathContainers) {
         this.classpathContainers = classpathContainers;
+    }
+
+    public DefaultEclipseOutputLocation getOutputLocation() {
+        return outputLocation;
+    }
+
+    public void setOutputLocation(DefaultEclipseOutputLocation outputLocation) {
+        this.outputLocation = outputLocation;
     }
 }

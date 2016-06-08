@@ -35,6 +35,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.plugins.ide.eclipse.model.Library;
 import org.gradle.plugins.ide.eclipse.model.Link;
+import org.gradle.plugins.ide.eclipse.model.Output;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultAccessRule;
@@ -44,6 +45,7 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseClasspathCo
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseExternalDependency;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseJavaSourceSettings;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseLinkedResource;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseOutputLocation;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProject;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProjectDependency;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseProjectNature;
@@ -167,6 +169,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         final List<DefaultEclipseProjectDependency> projectDependencies = new LinkedList<DefaultEclipseProjectDependency>();
         final List<DefaultEclipseSourceDirectory> sourceDirectories = new LinkedList<DefaultEclipseSourceDirectory>();
         final List<DefaultEclipseClasspathContainer> classpathContainers = new LinkedList<DefaultEclipseClasspathContainer>();
+        DefaultEclipseOutputLocation outputLocation = null;
 
         for (ClasspathEntry entry : classpathEntries) {
             //we don't handle Variables at the moment because users didn't request it yet
@@ -200,6 +203,8 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             } else if (entry instanceof Container) {
                 final Container container = (Container) entry;
                 classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(), createAttributes(container), createAccessRules(container)));
+            } else if (entry instanceof Output) {
+                outputLocation = new DefaultEclipseOutputLocation(((Output)entry).getPath());
             }
         }
 
@@ -241,6 +246,8 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         }
 
         eclipseProject.setClasspathContainers(classpathContainers);
+
+        eclipseProject.setOutputLocation(outputLocation != null ? outputLocation : new DefaultEclipseOutputLocation("bin"));
 
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
