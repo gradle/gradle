@@ -40,8 +40,10 @@ import java.util.Queue;
 import java.util.concurrent.Callable;
 
 public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs.PropertySpec> implements TaskOutputsInternal {
+    private static AndSpec<TaskInternal> EMPTY_AND_SPEC = new AndSpec<TaskInternal>();
+
     private final FileCollection allOutputFiles;
-    private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
+    private AndSpec<TaskInternal> upToDateSpec = EMPTY_AND_SPEC;
     private TaskExecutionHistory history;
     private final FileResolver resolver;
     private final String taskName;
@@ -103,7 +105,7 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
 
     @Override
     public boolean getHasOutput() {
-        return !fileProperties.isEmpty() || !upToDateSpec.getSpecs().isEmpty();
+        return !fileProperties.isEmpty() || !upToDateSpec.isEmpty();
     }
 
     @Override

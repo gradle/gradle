@@ -15,9 +15,12 @@
  */
 package org.gradle.api.specs;
 
-import java.util.ArrayList;
+import com.google.common.collect.Iterators;
+
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -26,18 +29,43 @@ import java.util.List;
  * @param <T> The target type for this Spec
  */
 public abstract class CompositeSpec<T> implements Spec<T> {
+    private static final Spec<?>[] EMPTY = new Spec[0];
+
     private final Spec<? super T>[] specs;
 
+    protected CompositeSpec() {
+        this.specs = uncheckedCast(EMPTY);
+    }
+
     protected CompositeSpec(Spec<? super T>... specs) {
-        this(Arrays.asList(specs));
+        if (specs.length == 0) {
+            this.specs = uncheckedCast(EMPTY);
+        } else {
+            this.specs = specs.clone();
+        }
     }
 
     protected CompositeSpec(Iterable<? extends Spec<? super T>> specs) {
-        List<Spec<? super T>> copy = new ArrayList<Spec<? super T>>();
-        for (Spec<? super T> spec : specs) {
-            copy.add(spec);
+        if (specs instanceof Collection) {
+            Collection<Spec<? super T>> specCollection = uncheckedCast(specs);
+            if (specCollection.isEmpty()) {
+                this.specs = uncheckedCast(EMPTY);
+            } else {
+                this.specs = uncheckedCast(specCollection.toArray(EMPTY));
+            }
+        } else {
+            Iterator<? extends Spec<? super T>> iterator = specs.iterator();
+            if (!iterator.hasNext()) {
+                this.specs = uncheckedCast(EMPTY);
+            } else {
+                this.specs = uncheckedCast(Iterators.toArray(iterator, Spec.class));
+            }
         }
-        this.specs = copy.toArray(new Spec[0]);
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T> T uncheckedCast(Object object) {
+        return (T) object;
     }
 
     // Not public. Evaluation of these specs is a major hot spot for large builds, so use an array for iteration
@@ -47,6 +75,10 @@ public abstract class CompositeSpec<T> implements Spec<T> {
 
     public List<Spec<? super T>> getSpecs() {
         return Collections.unmodifiableList(Arrays.asList(specs));
+    }
+
+    public boolean isEmpty() {
+        return specs.length == 0;
     }
 
     @Override

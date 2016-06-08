@@ -103,7 +103,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String group;
 
-    private AndSpec<Task> onlyIfSpec = new AndSpec<Task>(createNewOnlyIfSpec());
+    private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
     private TaskExecuter executer;
 

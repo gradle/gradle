@@ -15,12 +15,9 @@
  */
 package org.gradle.api.specs;
 
+import com.google.common.collect.ObjectArrays;
 import groovy.lang.Closure;
 import org.gradle.api.specs.internal.ClosureSpec;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * A {@link org.gradle.api.specs.CompositeSpec} which requires all its specs to be true in order to evaluate to true.
@@ -29,6 +26,10 @@ import java.util.List;
  * @param <T> The target type for this Spec
  */
 public class AndSpec<T> extends CompositeSpec<T> {
+    public AndSpec() {
+        super();
+    }
+
     public AndSpec(Spec<? super T>... specs) {
         super(specs);
     }
@@ -48,12 +49,18 @@ public class AndSpec<T> extends CompositeSpec<T> {
     }
 
     public AndSpec<T> and(Spec<? super T>... specs) {
-        List<Spec<? super T>> specs1 = getSpecs();
-        List<Spec<? super T>> specs2 = Arrays.asList(specs);
-        List<Spec<? super T>> combined = new ArrayList<Spec<? super T>>(specs1.size() + specs2.size());
-        combined.addAll(specs1);
-        combined.addAll(specs2);
-        return new AndSpec<T>(combined);
+        if (specs.length == 0) {
+            return this;
+        }
+        Spec<? super T>[] thisSpecs = getSpecsArray();
+        int thisLength = thisSpecs.length;
+        if (thisLength == 0) {
+            return new AndSpec<T>(specs);
+        }
+        Spec<? super T>[] combinedSpecs = uncheckedCast(ObjectArrays.newArray(Spec.class, thisLength + specs.length));
+        System.arraycopy(thisSpecs, 0, combinedSpecs, 0, thisLength);
+        System.arraycopy(specs, 0, combinedSpecs, thisLength, specs.length);
+        return new AndSpec<T>(combinedSpecs);
     }
 
     public AndSpec<T> and(Closure spec) {
