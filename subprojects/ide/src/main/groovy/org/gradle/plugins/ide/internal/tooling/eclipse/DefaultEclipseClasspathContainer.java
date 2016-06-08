@@ -20,8 +20,8 @@ import java.util.List;
 public class DefaultEclipseClasspathContainer extends DefaultEclipseClasspathEntry {
     private final String path;
 
-    public DefaultEclipseClasspathContainer(String path, List<DefaultClasspathAttribute> classpathAttributes) {
-        super(classpathAttributes);
+    public DefaultEclipseClasspathContainer(String path, List<DefaultClasspathAttribute> classpathAttributes, List<DefaultAccessRule> accessRules) {
+        super(classpathAttributes, accessRules);
         this.path = path;
     }
 

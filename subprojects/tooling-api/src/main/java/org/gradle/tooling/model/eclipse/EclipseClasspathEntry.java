@@ -28,10 +28,18 @@ import org.gradle.tooling.model.UnsupportedMethodException;
 public interface EclipseClasspathEntry {
 
     /**
-     * Returns the classpath attributes associated with this element.
+     * Returns the classpath attributes associated to this classpath entry.
      *
      * @return The classpath attributes.
      * @throws UnsupportedMethodException For Gradle versions older than 2.14, where this method is not supported.
      */
     DomainObjectSet<? extends ClasspathAttribute> getClasspathAttributes() throws UnsupportedMethodException;
+
+    /**
+     * Returns the access rules associated to this classpath entry.
+     *
+     * @return The access rules.
+     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     */
+    DomainObjectSet<? extends AccessRule> getAccessRules() throws UnsupportedMethodException;
 }

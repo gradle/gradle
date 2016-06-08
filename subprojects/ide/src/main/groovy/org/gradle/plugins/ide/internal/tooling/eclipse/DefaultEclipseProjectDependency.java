@@ -27,15 +27,15 @@ public class DefaultEclipseProjectDependency extends DefaultEclipseDependency im
 
     private final DefaultEclipseProject targetProject;
 
-    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject targetProject, boolean exported, List<DefaultClasspathAttribute> attributes) {
-        super(exported, attributes);
+    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject targetProject, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+        super(exported, attributes, accessRules);
         this.targetProject = targetProject;
         this.path = path;
         this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProject.getProjectDirectory());
     }
 
-    public DefaultEclipseProjectDependency(String path, File targetProjectDirectory, boolean exported, List<DefaultClasspathAttribute> attributes) {
-        super(exported, attributes);
+    public DefaultEclipseProjectDependency(String path, File targetProjectDirectory, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+        super(exported, attributes, accessRules);
         this.targetProject = null;
         this.path = path;
         this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProjectDirectory);

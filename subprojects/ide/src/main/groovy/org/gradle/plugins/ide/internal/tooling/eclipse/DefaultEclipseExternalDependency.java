@@ -33,8 +33,8 @@ public class DefaultEclipseExternalDependency extends DefaultEclipseDependency i
     private final ModuleVersionIdentifier identifier;
     private final GradleModuleVersion moduleVersion;
 
-    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes) {
-        super(exported, attributes);
+    public DefaultEclipseExternalDependency(File file, File javadoc, File source, ModuleVersionIdentifier identifier, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+        super(exported, attributes, accessRules);
         this.file = file;
         this.javadoc = javadoc;
         this.source = source;

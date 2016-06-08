@@ -25,6 +25,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
+import org.gradle.plugins.ide.eclipse.model.AccessRule;
 import org.gradle.plugins.ide.eclipse.model.BuildCommand;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
@@ -36,6 +37,7 @@ import org.gradle.plugins.ide.eclipse.model.Library;
 import org.gradle.plugins.ide.eclipse.model.Link;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
+import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultAccessRule;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultClasspathAttribute;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseBuildCommand;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseClasspathContainer;
@@ -174,7 +176,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 final File file = library.getLibrary().getFile();
                 final File source = library.getSourcePath() == null ? null : library.getSourcePath().getFile();
                 final File javadoc = library.getJavadocPath() == null ? null : library.getJavadocPath().getFile();
-                DefaultEclipseExternalDependency dependency = new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library));
+                DefaultEclipseExternalDependency dependency = new DefaultEclipseExternalDependency(file, javadoc, source, library.getModuleVersion(), library.isExported(), createAttributes(library), createAccessRules(library));
                 externalDependencies.add(dependency);
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
@@ -183,9 +185,9 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 DefaultEclipseProjectDependency dependency;
                 if (targetProject == null) {
                     File projectDirectory = compositeProjectMapper.getProjectDirectory(projectDependency.getGradlePath());
-                    dependency = new DefaultEclipseProjectDependency(path, projectDirectory, projectDependency.isExported(), createAttributes(projectDependency));
+                    dependency = new DefaultEclipseProjectDependency(path, projectDirectory, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
                 } else {
-                    dependency = new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported(), createAttributes(projectDependency));
+                    dependency = new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
                 }
                 projectDependencies.add(dependency);
             } else if (entry instanceof SourceFolder) {
@@ -194,10 +196,10 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 List<String> excludes = sourceFolder.getExcludes();
                 List<String> includes = sourceFolder.getIncludes();
                 String output = sourceFolder.getOutput();
-                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, output, createAttributes(sourceFolder)));
+                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, output, createAttributes(sourceFolder), createAccessRules(sourceFolder)));
             } else if (entry instanceof Container) {
                 final Container container = (Container) entry;
-                classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(), createAttributes(container)));
+                classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(), createAttributes(container), createAccessRules(container)));
             }
         }
 
@@ -256,4 +258,11 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         return result;
     }
 
+    private static List<DefaultAccessRule> createAccessRules(AbstractClasspathEntry classpathEntry) {
+        List<DefaultAccessRule> result = Lists.newArrayList();
+        for(AccessRule accessRule : classpathEntry.getAccessRules()) {
+            result.add(new DefaultAccessRule(Integer.parseInt(accessRule.getKind()), accessRule.getPattern()));
+        }
+        return result;
+    }
 }

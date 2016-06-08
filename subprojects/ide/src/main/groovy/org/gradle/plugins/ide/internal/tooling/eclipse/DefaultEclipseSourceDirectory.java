@@ -25,8 +25,8 @@ public class DefaultEclipseSourceDirectory extends DefaultEclipseClasspathEntry 
     private final List<String> includes;
     private final String output;
 
-    public DefaultEclipseSourceDirectory(String path, File directory, List<String> excludes, List<String> includes, String output, List<DefaultClasspathAttribute> classpathAttributes) {
-        super(classpathAttributes);
+    public DefaultEclipseSourceDirectory(String path, File directory, List<String> excludes, List<String> includes, String output, List<DefaultClasspathAttribute> classpathAttributes, List<DefaultAccessRule> accessRules) {
+        super(classpathAttributes, accessRules);
         this.path = path;
         this.directory = directory;
         this.excludes = excludes;

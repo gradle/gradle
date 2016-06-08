@@ -22,11 +22,18 @@ import java.util.List;
 public abstract class DefaultEclipseClasspathEntry implements Serializable {
 
     private final List<DefaultClasspathAttribute> classpathAttributes;
+    private final List<DefaultAccessRule> accessRules;
 
-    public DefaultEclipseClasspathEntry(List<DefaultClasspathAttribute> classpathAttributes) {
+    public DefaultEclipseClasspathEntry(List<DefaultClasspathAttribute> classpathAttributes, List<DefaultAccessRule> accessRules) {
         this.classpathAttributes = classpathAttributes;
+        this.accessRules = accessRules;
     }
+
     public List<DefaultClasspathAttribute> getClasspathAttributes() {
         return classpathAttributes;
+    }
+
+    public List<DefaultAccessRule> getAccessRules() {
+        return accessRules;
     }
 }

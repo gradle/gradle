@@ -13,19 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import java.util.List;
+import java.io.Serializable;
 
-public abstract class DefaultEclipseDependency extends DefaultEclipseClasspathEntry {
-    private final boolean isExported;
+public class DefaultAccessRule implements Serializable {
 
-    public DefaultEclipseDependency(boolean isExported, List<DefaultClasspathAttribute> classpathAttributes, List<DefaultAccessRule> accessRules) {
-        super(classpathAttributes, accessRules);
-        this.isExported = isExported;
+    private final int kind;
+    private final String pattern;
+
+    public DefaultAccessRule(int kind, String pattern) {
+        this.kind = kind;
+        this.pattern = pattern;
     }
 
-    public boolean isExported() {
-        return isExported;
+    public int getKind() {
+        return kind;
+    }
+
+    public String getPattern() {
+        return pattern;
     }
 }
