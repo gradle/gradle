@@ -131,7 +131,7 @@ If a project applies the `war` or `ear` plugins, then applying the `eclipse` plu
 
 ### Tooling API exposes more information via the `EclipseProject` model.
 
-The `EclipseProject` model is supplemented a set of new features:
+The `EclipseProject` model was supplemented with a set of new features:
 
 - The [EclipseSourceDirectory](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html) exposes the following information:
     - exclude and include patterns: [getExcludes()](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html#getExcludes%28%29) and [getIncludes()](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html#getIncludes%28%29),
