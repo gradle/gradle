@@ -268,6 +268,10 @@ eclipse.project {
 * Removed old wrapper properties `urlRoot`, `distributionName`, `distributionVersion` and `distributionClassifier`
 * Removed deprecated `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
 
+### Types no longer extend `GroovyObject`
+
+* org.gradle.api.tasks.bundling.Jar
+
 ### Tooling API changes
 
 TBD - Requires tooling API version 2.0 or later.

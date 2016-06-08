@@ -94,7 +94,7 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             taskClasses.remove(JavaCompile)
         }
 
-        Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.simpleName, it.name] }
+        Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.name.replace(".", "_"), it.name] }
 
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
@@ -137,7 +137,7 @@ apply plugin: SomePlugin
 
         expect:
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current withTasks 'tasks' run()
+        version current withTasks 'tasks' requireGradleDistribution() run()
     }
 
     def "task can use all methods declared by Task interface that AbstractTask specialises"() {
