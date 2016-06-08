@@ -22,7 +22,7 @@ def javaExecutables = [:].withDefault { execName ->
     executable
 }
 def osName = System.getProperty("os.name").toLowerCase()
-def jdkLibDirectory = (osName.contains('mac os') || osName.contains('darwin')) ? new File(java6Home, '../Classes') : new File(java6Home, '/lib')
+def jdkLibDirectory = (osName.contains('mac os') || osName.contains('darwin')) ? new File(java6Home, '../Classes') : new File(java6Home, '/jre/lib')
 
 tasks.withType(AbstractCompile) {
     options.with {
