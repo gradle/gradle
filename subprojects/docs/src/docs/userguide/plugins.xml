@@ -67,10 +67,9 @@
             plugin, and then it needs to <emphasis>apply</emphasis> the plugin to the target, usually a <apilink class='org.gradle.api.Project'/>.)
         </para>
         <para>
-            <emphasis>Resolving</emphasis> a plugin means finding the correct version of the class which implements a given plugin and adding it to
-            the classpath used to locate build logic (the <emphasis>build classpath</emphasis>). Once a plugin is resolved, any classes it provides
-            publicly can be used in a buildscript or by other plugins. Script plugins and Core binary plugins provided as part of the Gradle
-            distribution are automatically resolved.
+            <emphasis>Resolving</emphasis> a plugin means finding the correct version of the class which implements a given plugin and adding it the
+            script classpath. Once a plugin is resolved, its API can be used in a buildscript. Script plugins and Core binary plugins provided as part
+            of the Gradle distribution are automatically resolved.
         </para>
         <para>
             <emphasis>Applying</emphasis> a plugin means actually executing the plugin's <apilink class="org.gradle.api.Plugin" method="apply(T)"/>
@@ -181,7 +180,7 @@
                 </para>
                 <programlisting>
                     plugins {
-                    id «plugin id» version «plugin version» [apply «true|false»]
+                    id «plugin id» version «plugin version» [apply «false»]
                     }
                 </programlisting>
                 <para>
