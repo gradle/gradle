@@ -208,6 +208,34 @@
                 <link linkend="sec:applying_plugins_buildscript">buildscript {} block</link>.
             </para>
         </section>
+        <section id="sec:subprojects_plugins_dsl">
+            <title>Applying plugins to subprojects</title>
+            <para>
+                If you have a <link linkend="multi_project_builds">multi-project build</link>, you probably want to apply plugins to some or
+                all of the subprojects in your build but, not the <literal>root</literal> or <literal>master</literal> project. The default
+                behavior of the <literal>plugins {}</literal> block is to immediately <literal>resolve</literal> and <literal>apply</literal>
+                the plugins. But, you can use the <literal>apply false</literal> syntax to tell Gradle not to apply the plugin to the current
+                project:
+            </para>
+            <sample id="pluginsOnSubprojects" dir="plugins/multiproject" title="Applying plugins only on certain subprojects.">
+                <sourcefile file="settings.gradle" snippet="include-subprojects" />
+                <sourcefile file="build.gradle" snippet="plugins-on-subprojects" />
+            </sample>
+            <para>
+                If you then run <literal>gradle hello</literal> you'll see that only the helloA and helloB subprojects had the hello plugin
+                applied.
+            </para>
+            <programlisting>
+                gradle/subprojects/docs/src/samples/plugins/multiproject $> gradle hello
+                Parallel execution is an incubating feature.
+                :helloA:hello
+                :helloB:hello
+                Hello!
+                Hello!
+
+                BUILD SUCCESSFUL
+            </programlisting>
+        </section>
         <section id="sec:custom_plugin_repositories">
             <title>Custom Plugin Repositories</title>
             <note>
