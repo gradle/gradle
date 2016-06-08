@@ -36,18 +36,16 @@ import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 
-public class DefaultTaskOutputs implements TaskOutputsInternal {
+public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs.PropertySpec> implements TaskOutputsInternal {
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
     private TaskExecutionHistory history;
     private final FileResolver resolver;
     private final String taskName;
     private final TaskMutator taskMutator;
-    private final List<PropertySpec> fileProperties = Lists.newArrayList();
     private int legacyFilePropertyCounter;
     private Queue<Action<? super TaskOutputs>> configureActions;
 
@@ -116,15 +114,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     @Override
     public Collection<TaskOutputFilePropertySpecInternal> getFileProperties() {
         ImmutableList.Builder<TaskOutputFilePropertySpecInternal> builder = ImmutableList.builder();
-        for (PropertySpec propertySpec : fileProperties) {
-            if (propertySpec.getPropertyName() == null) {
-                propertySpec.withPropertyName(nextLegacyPropertyName());
-            }
-            builder.add(propertySpec);
-        }
+        collectFileProperties(builder);
         return builder.build();
     }
-
 
     @Override
     public TaskOutputFilePropertySpec file(final Object path) {
@@ -208,7 +200,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
     }
 
-    private class PropertySpec extends AbstractTaskFilePropertySpec implements TaskOutputFilePropertySpecInternal {
+    class PropertySpec extends AbstractTaskFilePropertySpec implements TaskOutputFilePropertySpecInternal {
         private boolean optional;
 
         public PropertySpec(String taskName, FileResolver resolver, Object paths) {

@@ -86,6 +86,16 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
     }
 
+    def "cannot register output file with same property name"() {
+        outputs.file("a").withPropertyName("alma")
+        outputs.file("b").withPropertyName("alma")
+        when:
+        outputs.fileProperties
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Multiple file properties with name 'alma'"
+    }
+
     public void canRegisterOutputFiles() {
         when:
         outputs.file('a')

@@ -32,22 +32,19 @@ import org.gradle.util.DeprecationLogger;
 
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
 
-public class DefaultTaskInputs implements TaskInputsInternal {
+public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.PropertySpec> implements TaskInputsInternal {
     private final FileCollection allInputFiles;
     private final FileCollection allSourceFiles;
     private final FileResolver resolver;
     private final String taskName;
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
-    private final List<PropertySpec> fileProperties = Lists.newArrayList();
-    private int legacyFilePropertyCounter;
     private Queue<Action<? super TaskInputs>> configureActions;
 
     public DefaultTaskInputs(FileResolver resolver, String taskName, TaskMutator taskMutator) {
@@ -71,12 +68,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     @Override
     public Collection<TaskInputFilePropertySpecInternal> getFileProperties() {
         ImmutableList.Builder<TaskInputFilePropertySpecInternal> builder = ImmutableList.builder();
-        for (PropertySpec propertySpec : fileProperties) {
-            if (propertySpec.getPropertyName() == null) {
-                propertySpec.withPropertyName(nextLegacyPropertyName());
-            }
-            builder.add(propertySpec);
-        }
+        collectFileProperties(builder);
         return builder.build();
     }
 
@@ -171,10 +163,6 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return spec;
     }
 
-    private String nextLegacyPropertyName() {
-        return "$" + (++legacyFilePropertyCounter);
-    }
-
     public Map<String, Object> getProperties() {
         Map<String, Object> actualProperties = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
@@ -248,7 +236,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private class PropertySpec extends AbstractTaskFilePropertySpec implements TaskInputFilePropertySpecInternal {
+    class PropertySpec extends AbstractTaskFilePropertySpec implements TaskInputFilePropertySpecInternal {
 
         private boolean skipWhenEmpty;
         private boolean optional;

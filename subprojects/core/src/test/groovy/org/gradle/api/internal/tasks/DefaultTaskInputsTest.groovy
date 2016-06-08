@@ -101,6 +101,16 @@ class DefaultTaskInputsTest extends Specification {
         inputs.fileProperties*.propertyFiles*.files.flatten() == [treeFile]
     }
 
+    def "cannot register input file with same property name"() {
+        inputs.file("a").withPropertyName("alma")
+        inputs.file("b").withPropertyName("alma")
+        when:
+        inputs.fileProperties
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Multiple file properties with name 'alma'"
+    }
+
     def canRegisterInputProperty() {
         when:
         inputs.property('a', 'value')
