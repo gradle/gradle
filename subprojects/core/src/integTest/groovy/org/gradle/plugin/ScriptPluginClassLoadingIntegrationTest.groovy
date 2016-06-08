@@ -18,12 +18,10 @@ package org.gradle.plugin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsText
 
-@LeaksFileHandles
 class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
 
     def pluginBuilder = new PluginBuilder(file("plugin"))
@@ -215,6 +213,8 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
                 assert false
             } catch (ClassNotFoundException ignore) {
                 println "not in root"
+            } finally {
+                getClass().classLoader.close()
             }
 
         """
@@ -268,6 +268,8 @@ class ScriptPluginClassLoadingIntegrationTest extends AbstractIntegrationSpec {
                 assert false
             } catch (ClassNotFoundException ignore) {
                 println "not in script"
+            } finally {
+                getClass().classLoader.close()
             }
         """
 
