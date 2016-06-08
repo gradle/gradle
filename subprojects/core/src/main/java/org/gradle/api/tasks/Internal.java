@@ -35,4 +35,8 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
 public @interface Internal {
+    /**
+     * The reason for ignoring this element.
+     */
+    String value() default "";
 }
