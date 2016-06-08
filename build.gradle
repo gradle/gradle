@@ -1,6 +1,9 @@
 buildscript {
-    ext.kotlinVersion = '1.1.0-dev-372'
+    ext.kotlinVersion = '1.1.0-dev-998'
     repositories {
+        maven {
+            url 'https://dl.bintray.com/kotlin/kotlin-dev'
+        }
         maven {
             url 'https://repo.gradle.org/gradle/repo'
         }
@@ -8,6 +11,15 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.1.1'
+    }
+}
+
+repositories {
+    maven {
+        url 'https://dl.bintray.com/kotlin/kotlin-dev'
+    }
+    maven {
+        url 'https://repo.gradle.org/gradle/repo'
     }
 }
 

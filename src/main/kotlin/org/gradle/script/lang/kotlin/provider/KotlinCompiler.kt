@@ -25,13 +25,13 @@ import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileScript
-import org.jetbrains.kotlin.cli.jvm.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 
 import org.jetbrains.kotlin.codegen.CompilationException
 
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
 import org.jetbrains.kotlin.config.addKotlinSourceRoots
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
@@ -39,8 +39,8 @@ import org.jetbrains.kotlin.script.KotlinScriptExtraImport
 
 import org.jetbrains.kotlin.utils.PathUtil
 
-import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer.newDisposable
+import org.jetbrains.kotlin.com.intellij.openapi.Disposable
+import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 
 import org.slf4j.Logger
 
@@ -52,7 +52,7 @@ fun compileKotlinScript(scriptFile: File, scriptDef: KotlinScriptDefinition, cla
     try {
         val configuration = compilerConfigFor(scriptFile, scriptDef, null, messageCollector)
         val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable)
-        return compileScript(classLoader, environment)
+        return compileScript(environment, classLoader)
             ?: throw IllegalStateException("Internal error: unable to compile script, see log for details")
     } catch (ex: CompilationException) {
         messageCollector.report(
@@ -72,10 +72,10 @@ private fun compilerConfigFor(sourceFile: File, scriptDef: KotlinScriptDefinitio
         addKotlinSourceRoots(listOf(sourceFile.canonicalPath))
         addJvmClasspathRoots(PathUtil.getJdkClassesRoots())
         extraImport?.let {
-            put(CommonConfigurationKeys.SCRIPTS_EXTRA_IMPORTS_KEY, sourceFile.absolutePath, extraImport)
+            put(JVMConfigurationKeys.SCRIPTS_EXTRA_IMPORTS, sourceFile.absolutePath, extraImport)
         }
-        add(CommonConfigurationKeys.SCRIPT_DEFINITIONS_KEY, scriptDef)
-        put(JVMConfigurationKeys.MODULE_NAME, "buildscript")
+        add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, scriptDef)
+        put(CommonConfigurationKeys.MODULE_NAME, "buildscript")
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
@@ -83,18 +83,22 @@ private fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootD
     KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 
 private fun messageCollectorFor(log: Logger): MessageCollector =
-    MessageCollector { severity, message, location ->
-        fun msg() =
-            if (location == CompilerMessageLocation.NO_LOCATION) "$message"
-            else "$message ($location)"
+    object : MessageCollector {
+        override fun hasErrors(): Boolean = false
 
-        when (severity) {
-            in CompilerMessageSeverity.ERRORS -> log.error("Error: " + msg())
-            CompilerMessageSeverity.ERROR -> log.error(msg())
-            CompilerMessageSeverity.WARNING -> log.info("Warning: " + msg())
-            CompilerMessageSeverity.LOGGING -> log.info(msg())
-            CompilerMessageSeverity.INFO -> log.info(msg())
-            else -> {
+        override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation) {
+            fun msg() =
+                    if (location == CompilerMessageLocation.NO_LOCATION) "$message"
+                    else "$message ($location)"
+
+            when (severity) {
+                in CompilerMessageSeverity.ERRORS -> log.error("Error: " + msg())
+                CompilerMessageSeverity.ERROR -> log.error(msg())
+                CompilerMessageSeverity.WARNING -> log.info("Warning: " + msg())
+                CompilerMessageSeverity.LOGGING -> log.info(msg())
+                CompilerMessageSeverity.INFO -> log.info(msg())
+                else -> {
+                }
             }
         }
     }

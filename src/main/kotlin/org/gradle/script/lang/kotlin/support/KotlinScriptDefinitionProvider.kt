@@ -26,7 +26,6 @@ import org.gradle.script.lang.kotlin.loggerFor
 import org.jetbrains.kotlin.script.KotlinConfigurableScriptDefinition
 import org.jetbrains.kotlin.script.KotlinScriptConfig
 import org.jetbrains.kotlin.script.KotlinScriptParameterConfig
-import org.jetbrains.kotlin.script.KotlinScriptSuperclassParameterConfig
 
 import java.io.File
 
@@ -41,8 +40,7 @@ object KotlinScriptDefinitionProvider {
         supertypes = arrayListOf(KotlinBuildScript::class.qualifiedName!!),
         parameters = arrayListOf(
             KotlinScriptParameterConfig("_project_hidden_", Project::class.qualifiedName!!)),
-        superclassParamsMapping = arrayListOf(
-            KotlinScriptSuperclassParameterConfig("_project_hidden_", Project::class.qualifiedName!!)))
+        superclassParamsMapping = arrayListOf("_project_hidden_"))
 
     fun selectGradleApiJars(classPathRegistry: ClassPathRegistry) =
         gradleApi(classPathRegistry).asFiles.filter { includeInClassPath(it.name) }

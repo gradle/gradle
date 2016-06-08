@@ -16,15 +16,15 @@
 
 package org.gradle.script.lang.kotlin.tasks
 
-import com.intellij.openapi.util.JDOMUtil.loadDocument
+import org.jetbrains.kotlin.com.intellij.openapi.util.JDOMUtil.loadDocument
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.selectGradleApiJars
-import org.jetbrains.kotlin.relocated.org.jdom.Document
-import org.jetbrains.kotlin.relocated.org.jdom.Element
+import org.jetbrains.kotlin.org.jdom.Document
+import org.jetbrains.kotlin.org.jdom.Element
 import java.io.File
 import javax.inject.Inject
 

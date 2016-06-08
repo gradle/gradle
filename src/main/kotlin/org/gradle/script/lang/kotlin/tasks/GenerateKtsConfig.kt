@@ -27,13 +27,13 @@ import org.gradle.api.tasks.TaskAction
 
 import org.gradle.api.internal.ClassPathRegistry
 
-import org.jetbrains.kotlin.relocated.org.jdom.Document
-import org.jetbrains.kotlin.relocated.org.jdom.Element
-import org.jetbrains.kotlin.relocated.org.jdom.output.Format
-import org.jetbrains.kotlin.relocated.org.jdom.output.XMLOutputter
+import org.jetbrains.kotlin.org.jdom.Document
+import org.jetbrains.kotlin.org.jdom.Element
+import org.jetbrains.kotlin.org.jdom.output.Format
+import org.jetbrains.kotlin.org.jdom.output.XMLOutputter
 import org.jetbrains.kotlin.script.KotlinConfigurableScriptDefinition
 
-import com.intellij.util.xmlb.XmlSerializer
+import org.jetbrains.kotlin.com.intellij.util.xmlb.XmlSerializer
 
 import java.io.File
 import java.io.StringWriter
