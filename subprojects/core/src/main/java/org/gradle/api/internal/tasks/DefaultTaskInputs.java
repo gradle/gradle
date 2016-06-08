@@ -81,28 +81,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskInputFilePropertySpec includeFile(final Object path) {
-        return taskMutator.mutate("TaskInputs.includeFile(Object)", new Callable<TaskInputFilePropertySpec>() {
-            @Override
-            public TaskInputFilePropertySpec call() throws Exception {
-                return addSpec(path);
-            }
-        });
-    }
-
-    @Override
-    public TaskInputFilePropertySpec includeDir(final Object path) {
-        return taskMutator.mutate("TaskInputs.includeDir(Object)", new Callable<TaskInputFilePropertySpec>() {
-            @Override
-            public TaskInputFilePropertySpec call() {
-                return addSpec(resolver.resolveFilesAsTree(path));
-            }
-        });
-    }
-
-    @Override
-    public TaskInputFilePropertySpec includeFiles(final Object... paths) {
-        return taskMutator.mutate("TaskInputs.includeFiles(Object...)", new Callable<TaskInputFilePropertySpec>() {
+    public TaskInputFilePropertySpec files(final Object... paths) {
+        return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertySpec>() {
             @Override
             public TaskInputFilePropertySpec call() {
                 return addSpec(paths);
@@ -111,39 +91,23 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskInputs files(final Object... paths) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.files(Object...)", "TaskInputs.includeFiles(Object...)");
-        taskMutator.mutate("TaskInputs.files(Object...)", new Runnable() {
+    public TaskInputFilePropertySpec file(final Object path) {
+        return taskMutator.mutate("TaskInputs.file(Object)", new Callable<TaskInputFilePropertySpec>() {
             @Override
-            public void run() {
-                addSpec(paths);
+            public TaskInputFilePropertySpec call() {
+                return addSpec(path);
             }
         });
-        return this;
     }
 
     @Override
-    public TaskInputs file(final Object path) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.file(Object)", "TaskInputs.includeFile(Object)");
-        taskMutator.mutate("TaskInputs.file(Object)", new Runnable() {
+    public TaskInputFilePropertySpec dir(final Object dirPath) {
+        return taskMutator.mutate("TaskInputs.dir(Object)", new Callable<TaskInputFilePropertySpec>() {
             @Override
-            public void run() {
-                addSpec(path);
+            public TaskInputFilePropertySpec call() {
+                return addSpec(resolver.resolveFilesAsTree(dirPath));
             }
         });
-        return this;
-    }
-
-    @Override
-    public TaskInputs dir(final Object dirPath) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.dir(Object)", "TaskInputs.includeDir(Object)");
-        taskMutator.mutate("TaskInputs.dir(Object)", new Runnable() {
-            @Override
-            public void run() {
-                addSpec(resolver.resolveFilesAsTree(dirPath));
-            }
-        });
-        return this;
     }
 
     @Override
@@ -163,7 +127,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public TaskInputs source(final Object... paths) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.source(Object...)", "TaskInputs.includeFiles(Object...)");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.source(Object...)", "Please use TaskInputs.files(Object...).skipWhenEmpty() instead.");
         taskMutator.mutate("TaskInputs.source(Object...)", new Runnable() {
             @Override
             public void run() {
@@ -175,7 +139,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public TaskInputs source(final Object path) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.source(Object)", "TaskInputs.includeFile(Object)");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.source(Object)", "Please use TaskInputs.file(Object).skipWhenEmpty() instead.");
         taskMutator.mutate("TaskInputs.source(Object)", new Runnable() {
             @Override
             public void run() {
@@ -187,7 +151,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
     @Override
     public TaskInputs sourceDir(final Object path) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskInputs.sourceDir(Object)", "TaskInputs.includeDir(Object)");
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskInputs.sourceDir(Object)", "Please use TaskInputs.dir(Object).skipWhenEmpty() instead.");
         taskMutator.mutate("TaskInputs.sourceDir(Object)", new Runnable() {
             @Override
             public void run() {
@@ -284,7 +248,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private static class PropertySpec implements TaskInputFilePropertySpecInternal {
+    private class PropertySpec implements TaskInputFilePropertySpecInternal {
 
         private final TaskPropertyFileCollection files;
         private String propertyName;
@@ -347,6 +311,91 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         @Override
         public String toString() {
             return propertyName == null ? "<unnamed>" : propertyName;
+        }
+
+        // --- Deprecated delegate methods
+
+        private TaskInputs getTaskInputs(String method) {
+            DeprecationLogger.nagUserOfDiscontinuedMethod("chaining of the " + method, String.format("Please use the %s method on TaskInputs directly instead.", method));
+            return DefaultTaskInputs.this;
+        }
+
+        @Override
+        public boolean getHasInputs() {
+            return getTaskInputs("getHasInputs()").getHasInputs();
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return getTaskInputs("getFiles()").getFiles();
+        }
+
+        @Override
+        public TaskInputFilePropertySpec files(Object... paths) {
+            return getTaskInputs("files(Object...)").files(paths);
+        }
+
+        @Override
+        public TaskInputFilePropertySpec file(Object path) {
+            return getTaskInputs("file(Object)").file(path);
+        }
+
+        @Override
+        public TaskInputFilePropertySpec dir(Object dirPath) {
+            return getTaskInputs("dir(Object)").dir(dirPath);
+        }
+
+        @Override
+        public Map<String, Object> getProperties() {
+            return getTaskInputs("getProperties()").getProperties();
+        }
+
+        @Override
+        public TaskInputs property(String name, Object value) {
+            return getTaskInputs("property(String, Object)").property(name, value);
+        }
+
+        @Override
+        public TaskInputs properties(Map<String, ?> properties) {
+            return getTaskInputs("properties(Map)").properties(properties);
+        }
+
+        @Override
+        public boolean getHasSourceFiles() {
+            return getTaskInputs("getHasSourceFiles()").getHasSourceFiles();
+        }
+
+        @Override
+        public FileCollection getSourceFiles() {
+            return getTaskInputs("getSourceFiles()").getSourceFiles();
+        }
+
+        @Override
+        @Deprecated
+        public TaskInputs source(Object... paths) {
+            return getTaskInputs("source(Object...)").source(paths);
+        }
+
+        @Override
+        @Deprecated
+        public TaskInputs source(Object path) {
+            return getTaskInputs("source(Object)").source(path);
+        }
+
+        @Override
+        @Deprecated
+        public TaskInputs sourceDir(Object path) {
+            return getTaskInputs("sourceDir(Object)").sourceDir(path);
+        }
+
+        @Override
+        public TaskInputs configure(Action<? super TaskInputs> action) {
+            return getTaskInputs("configure(Action)").configure(action);
+        }
+
+        @Override
+        public TaskInputs configure(Closure action) {
+            return getTaskInputs("configure(Closure)").configure(action);
         }
     }
 

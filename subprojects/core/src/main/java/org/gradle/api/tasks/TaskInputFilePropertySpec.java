@@ -16,15 +16,20 @@
 
 package org.gradle.api.tasks;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
+
+import java.util.Map;
 
 /**
  * Describes an input property of a task that contains zero or more files.
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskInputFilePropertySpec extends TaskFilePropertySpec {
+public interface TaskInputFilePropertySpec extends TaskFilePropertySpec, TaskInputs {
     /**
      * {@inheritDoc}
      */
@@ -54,4 +59,139 @@ public interface TaskInputFilePropertySpec extends TaskFilePropertySpec {
      * specified for the property, but any value specified must meet the validation constraints for the property.
      */
     TaskInputFilePropertySpec optional(boolean optional);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#getHasInputs()} directly instead.
+     */
+    @Deprecated
+    @Override
+    boolean getHasInputs();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#getFiles()} directly instead.
+     */
+    @Deprecated
+    @Override
+    FileCollection getFiles();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#files(Object...)} directly instead.
+     */
+    @Deprecated
+    @Override
+    TaskInputFilePropertySpec files(Object... paths);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#file(Object)} directly instead.
+     */
+    @Deprecated
+    @Override
+    TaskInputFilePropertySpec file(Object path);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#dir(Object)} directly instead.
+     */
+    @Deprecated
+    @Override
+    TaskInputFilePropertySpec dir(Object dirPath);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#getProperties()} directly instead.
+     */
+    @Deprecated
+    @Override
+    Map<String, Object> getProperties();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#property(String, Object)} directly instead.
+     */
+    @Deprecated
+    @Override
+    TaskInputs property(String name, Object value);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#properties(Map)} directly instead.
+     */
+    @Deprecated
+    @Override
+    TaskInputs properties(Map<String, ?> properties);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#getHasSourceFiles()} directly instead.
+     */
+    @Deprecated
+    @Override
+    boolean getHasSourceFiles();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#getSourceFiles()} directly instead.
+     */
+    @Deprecated
+    @Override
+    FileCollection getSourceFiles();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#source(Object...)} directly instead.
+     */
+    @Deprecated
+    @Override
+    TaskInputs source(Object... paths);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#source(Object)} directly instead.
+     */
+    @Deprecated
+    @Override
+    TaskInputs source(Object path);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#sourceDir(Object)} directly instead.
+     */
+    @Deprecated
+    @Override
+    TaskInputs sourceDir(Object path);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#configure(Action)} directly instead.
+     */
+    @Deprecated
+    @Override
+    TaskInputs configure(Action<? super TaskInputs> action);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskInputs#configure(Closure)} directly instead.
+     */
+    @Deprecated
+    @Override
+    TaskInputs configure(Closure action);
 }

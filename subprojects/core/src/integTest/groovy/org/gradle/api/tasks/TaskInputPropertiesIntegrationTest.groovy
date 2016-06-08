@@ -27,7 +27,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             task foo {
                 inputs.property "a", "hello"
                 inputs.property "b", new Foo()
-                outputs.includeFile "foo.txt"
+                outputs.file "foo.txt"
                 doLast { file("foo.txt") << "" }
             }
 
@@ -45,7 +45,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task foo {
                 inputs.property "a", "hello \${new Foo()}"
-                outputs.includeFile "foo.txt"
+                outputs.file "foo.txt"
                 doLast { file("foo.txt") << "" }
             }
 
@@ -219,46 +219,62 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "test"
         output.contains 'The TaskOutputs.files(Object...) method has been deprecated and is scheduled to be removed in Gradle 4.0. ' +
-            'Please use the TaskOutputs.includeFile(Object) or the TaskOutputs.includeDir(Object) method instead.'
+            'Please use the TaskOutputs.file(Object) or the TaskOutputs.dir(Object) method instead.'
     }
 
-    @Unroll("deprecation warning printed when #method method is called on Task#what.capitalize()")
-    def "deprecation warning printed when deprecated method is used"() {
+    @Unroll("deprecation warning printed when TaskInputs.#method is called")
+    def "deprecation warning printed when deprecated source method is used"() {
         buildFile << """
             task test {
-                ${what}.${call}
+                inputs.${call}
             }
         """
         executer.expectDeprecationWarning()
 
         expect:
         succeeds "test"
-        outputContains "The Task${what.capitalize()}.$method method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use the Task${what.capitalize()}.$replacementMethod method instead."
+        outputContains "The TaskInputs.${method} method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
+            "Please use TaskInputs.${replacementMethod}.skipWhenEmpty() instead."
 
         where:
-        what      | method              | replacementMethod         | call
-        "inputs"  | "file(Object)"      | "includeFile(Object)"     | 'file("a")'
-        "inputs"  | "dir(Object)"       | "includeDir(Object)"      | 'dir("a")'
-        "inputs"  | "files(Object...)"  | "includeFiles(Object...)" | 'files("a")'
-        "inputs"  | "source(Object)"    | "includeFile(Object)"     | 'source("a")'
-        "inputs"  | "sourceDir(Object)" | "includeDir(Object)"      | 'sourceDir("a")'
-        "inputs"  | "source(Object...)" | "includeFiles(Object...)" | 'source("a", "b")'
-        "outputs" | "file(Object)"      | "includeFile(Object)"     | 'file("a")'
-        "outputs" | "dir(Object)"       | "includeDir(Object)"      | 'dir("a")'
+        method              | replacementMethod  | call
+        "source(Object)"    | "file(Object)"     | 'source("a")'
+        "sourceDir(Object)" | "dir(Object)"      | 'sourceDir("a")'
+        "source(Object...)" | "files(Object...)" | 'source("a", "b")'
+    }
+
+    @Unroll
+    def "deprecation warning printed when inputs calls are chained"() {
+        buildFile << """
+            task test {
+                ${what}.${call}.${call}
+            }
+        """
+        executer.expectDeprecationWarning()
+
+        expect:
+        succeeds "test"
+        outputContains "The chaining of the ${method} method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
+            "Please use the ${method} method on Task${what.capitalize()} directly instead."
+
+        where:
+        what     | method              | call
+        "inputs" | "file(Object)"      | 'file("a")'
+        "inputs" | "dir(Object)"       | 'dir("a")'
+        "inputs" | "files(Object...)"  | 'files("a", "b")'
     }
 
     def "task depends on other task whose outputs are its inputs"() {
         buildFile << """
             task a {
-                outputs.includeFile 'a.txt'
+                outputs.file 'a.txt'
                 doLast {
                     file('a.txt') << "Data"
                 }
             }
 
             task b {
-                inputs.includeFiles tasks.a.outputs.files
+                inputs.files tasks.a.outputs.files
             }
         """
 

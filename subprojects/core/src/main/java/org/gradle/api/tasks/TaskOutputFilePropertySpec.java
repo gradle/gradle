@@ -16,7 +16,12 @@
 
 package org.gradle.api.tasks;
 
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Task;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -24,7 +29,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
+public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec, TaskOutputs {
     /**
      * {@inheritDoc}
      */
@@ -42,4 +47,85 @@ public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
      * specified for the property, but any value specified must meet the validation constraints for the property.
      */
     TaskOutputFilePropertySpec optional(boolean optional);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskOutputs#upToDateWhen(Closure)} instead.
+     */
+    @Deprecated
+    @Override
+    void upToDateWhen(Closure upToDateClosure);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskOutputs#upToDateWhen(Spec)} instead.
+     */
+    @Deprecated
+    @Override
+    void upToDateWhen(Spec<? super Task> upToDateSpec);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskOutputs#getHasOutput()} instead.
+     */
+    @Deprecated
+    @Override
+    boolean getHasOutput();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskOutputs#getFiles()} instead.
+     */
+    @Deprecated
+    @Override
+    FileCollection getFiles();
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskOutputs#files(Object...)} instead.
+     */
+    @Deprecated
+    @Override
+    TaskOutputs files(Object... paths);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskOutputs#file(Object)} instead.
+     */
+    @Deprecated
+    @Override
+    TaskOutputFilePropertySpec file(Object path);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskOutputs#dir(Object)} instead.
+     */
+    @Deprecated
+    @Override
+    TaskOutputFilePropertySpec dir(Object path);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskOutputs#configure(Action)} instead.
+     */
+    @Deprecated
+    @Override
+    TaskOutputs configure(Action<? super TaskOutputs> action);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated Use {@link TaskOutputs#configure(Closure)} instead.
+     */
+    @Deprecated
+    @Override
+    TaskOutputs configure(Closure action);
 }

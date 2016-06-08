@@ -127,8 +127,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
 
     @Override
-    public TaskOutputFilePropertySpec includeFile(final Object path) {
-        return taskMutator.mutate("TaskOutputs.includeFile(Object)", new Callable<TaskOutputFilePropertySpec>() {
+    public TaskOutputFilePropertySpec file(final Object path) {
+        return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertySpec>() {
             @Override
             public TaskOutputFilePropertySpec call() throws Exception {
                 return addSpec(path);
@@ -137,8 +137,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public TaskOutputFilePropertySpec includeDir(final Object path) {
-        return taskMutator.mutate("TaskOutputs.includeDir(Object)", new Callable<TaskOutputFilePropertySpec>() {
+    public TaskOutputFilePropertySpec dir(final Object path) {
+        return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertySpec>() {
             @Override
             public TaskOutputFilePropertySpec call() throws Exception {
                 return addSpec(path);
@@ -147,36 +147,14 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public TaskOutputs files(final Object... paths) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskOutputs.files(Object...)", "Please use the TaskOutputs.includeFile(Object) or the TaskOutputs.includeDir(Object) method instead.");
-        taskMutator.mutate("TaskOutputs.files(Object...)", new Runnable() {
-            public void run() {
-                addSpec(paths);
+    public TaskOutputFilePropertySpec files(final Object... paths) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskOutputs.files(Object...)", "Please use the TaskOutputs.file(Object) or the TaskOutputs.dir(Object) method instead.");
+        return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertySpec>() {
+            @Override
+            public TaskOutputFilePropertySpec call() throws Exception {
+                return addSpec(paths);
             }
         });
-        return this;
-    }
-
-    @Override
-    public TaskOutputs file(final Object path) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskOutputs.file(Object)", "TaskOutputs.includeFile(Object)");
-        taskMutator.mutate("TaskOutputs.file(Object)", new Runnable() {
-            public void run() {
-                addSpec(path);
-            }
-        });
-        return this;
-    }
-
-    @Override
-    public TaskOutputs dir(final Object path) {
-        DeprecationLogger.nagUserOfReplacedMethod("TaskOutputs.dir(Object)", "TaskOutputs.includeDir(Object)");
-        taskMutator.mutate("TaskOutputs.dir(Object)", new Runnable() {
-            public void run() {
-                addSpec(path);
-            }
-        });
-        return this;
     }
 
     private TaskOutputFilePropertySpecInternal addSpec(Object paths) {
@@ -230,7 +208,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
     }
 
-    private static class PropertySpec implements TaskOutputFilePropertySpecInternal {
+    private class PropertySpec implements TaskOutputFilePropertySpecInternal {
         private final TaskPropertyFileCollection files;
         private String propertyName;
         private boolean optional;
@@ -274,6 +252,59 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         @Override
         public String toString() {
             return propertyName == null ? "<unnamed>" : propertyName;
+        }
+
+        // --- Deprecated delegate methods
+
+        private TaskOutputs getTaskOutputs(String method) {
+            DeprecationLogger.nagUserOfDiscontinuedMethod("chaining of the " + method, String.format("Use '%s' on TaskOutputs directly instead.", method));
+            return DefaultTaskOutputs.this;
+        }
+
+        @Override
+        public void upToDateWhen(Closure upToDateClosure) {
+            getTaskOutputs("upToDateWhen(Closure)").upToDateWhen(upToDateClosure);
+        }
+
+        @Override
+        public void upToDateWhen(Spec<? super Task> upToDateSpec) {
+            getTaskOutputs("upToDateWhen(Spec)").upToDateWhen(upToDateSpec);
+        }
+
+        @Override
+        public boolean getHasOutput() {
+            return getTaskOutputs("getHasOutput()").getHasOutput();
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return getTaskOutputs("getFiles()").getFiles();
+        }
+
+        @Override
+        @Deprecated
+        public TaskOutputs files(Object... paths) {
+            return getTaskOutputs("files(Object...)").files(paths);
+        }
+
+        @Override
+        public TaskOutputFilePropertySpec file(Object path) {
+            return getTaskOutputs("file(Object)").file(path);
+        }
+
+        @Override
+        public TaskOutputFilePropertySpec dir(Object path) {
+            return getTaskOutputs("dir(Object)").dir(path);
+        }
+
+        @Override
+        public TaskOutputs configure(Action<? super TaskOutputs> action) {
+            return getTaskOutputs("configure(Action)").configure(action);
+        }
+
+        @Override
+        public TaskOutputs configure(Closure action) {
+            return getTaskOutputs("configure(Closure)").configure(action);
         }
     }
 }

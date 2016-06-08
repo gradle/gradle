@@ -49,22 +49,16 @@ public interface TaskInputs {
      *
      * @param paths The input files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
-     *
-     * @deprecated Use {@link #includeFiles(Object...)} instead.
      */
-    @Deprecated
-    TaskInputs files(Object... paths);
+    TaskInputFilePropertySpec files(Object... paths);
 
     /**
      * Registers some input file for this task.
      *
      * @param path The input file. The given path is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
-     *
-     * @deprecated Use {@link #includeFile(Object)} instead.
      */
-    @Deprecated
-    TaskInputs file(Object path);
+    TaskInputFilePropertySpec file(Object path);
 
     /**
      * Registers an input directory hierarchy. All files found under the given directory are treated as input files for
@@ -72,36 +66,8 @@ public interface TaskInputs {
      *
      * @param dirPath The directory. The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
-     *
-     * @deprecated Use {@link #includeDir(Object)} instead.
      */
-    @Deprecated
-    TaskInputs dir(Object dirPath);
-
-    /**
-     * Registers some input file for this task property.
-     *
-     * @param paths The input file. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * @return the property spec.
-     */
-    TaskInputFilePropertySpec includeFile(Object path);
-
-    /**
-     * Registers an input directory hierarchy. All files found under the given directory are treated as input files for
-     * this task.
-     *
-     * @param paths The input file. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * @return the property spec.
-     */
-    TaskInputFilePropertySpec includeDir(Object path);
-
-    /**
-     * Registers some input files for this task property.
-     *
-     * @param paths The input files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * @return the property spec.
-     */
-    TaskInputFilePropertySpec includeFiles(Object... paths);
+    TaskInputFilePropertySpec dir(Object dirPath);
 
     /**
      * Returns the set of input properties for this task.
@@ -154,7 +120,7 @@ public interface TaskInputs {
      * @param paths The paths. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      *
-     * @deprecated Use {@link #includeFiles(Object...)} instead and set {@code skipWhenEmpty} to {@code true}.
+     * @deprecated Use {@link #files(Object...)} instead and set {@code skipWhenEmpty} to {@code true}.
      */
     @Deprecated
     TaskInputs source(Object... paths);
@@ -166,7 +132,7 @@ public interface TaskInputs {
      * @param path The path. This is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      *
-     * @deprecated Use {@link #includeFile(Object)} instead and set {@code skipWhenEmpty} to {@code true}.
+     * @deprecated Use {@link #file(Object)} instead and set {@code skipWhenEmpty} to {@code true}.
      */
     @Deprecated
     TaskInputs source(Object path);
@@ -178,7 +144,7 @@ public interface TaskInputs {
      * @param path The path. This is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
      *
-     * @deprecated Use {@link #includeDir(Object)} instead and set {@code skipWhenEmpty} to {@code true}.
+     * @deprecated Use {@link #dir(Object)} instead and set {@code skipWhenEmpty} to {@code true}.
      */
     @Deprecated
     TaskInputs sourceDir(Object path);
