@@ -21,23 +21,20 @@ def javaExecutables = [:].withDefault { execName ->
     assert executable.exists() : "There is no ${execName} executable in ${javaExecutablesPath}"
     executable
 }
-def osName = System.getProperty("os.name").toLowerCase()
-def jdkLibDirectory = (osName.contains('mac os') || osName.contains('darwin')) ? new File(java6Home, '../Classes') : new File(java6Home, '/jre/lib')
 
 tasks.withType(AbstractCompile) {
     options.with {
-        bootClasspath = fileTree(jdkLibDirectory) { include '*.jar' }.asPath
         fork = true
         forkOptions.executable = javaExecutables.javac
     }
-}
-tasks.withType(Javadoc) {
-    executable = javaExecutables.javadoc
 }
 tasks.withType(Test) {
     executable = javaExecutables.java
 }
 tasks.withType(JavaExec) {
     executable = javaExecutables.java
+}
+tasks.withType(Javadoc) {
+    executable = javaExecutables.javadoc
 }
 // END SNIPPET scala-cross-compilation
