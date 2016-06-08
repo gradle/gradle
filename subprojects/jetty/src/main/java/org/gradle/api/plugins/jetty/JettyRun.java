@@ -372,9 +372,7 @@ public class JettyRun extends AbstractJettyRunTask {
     /**
      * Returns the {@code web.xml} file to use. When {@code null}, no {@code web.xml} file is used.
      */
-//    @InputFile
-//    @Optional
-    @Internal
+    @Optional @InputFile
     public File getWebXml() {
         return webXml;
     }
