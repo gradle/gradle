@@ -1,4 +1,5 @@
 dependencies {
+    compile project(':core')
     compile project(':toolingApi')
     compile libraries.commons_io
     runtime project(':native')
