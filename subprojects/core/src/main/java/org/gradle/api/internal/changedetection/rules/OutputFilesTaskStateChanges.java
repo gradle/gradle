@@ -60,7 +60,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
         for (TaskFilePropertySpecInternal propertySpec : fileProperties) {
             String propertyName = propertySpec.getPropertyName();
-            FileCollection roots = propertySpec.getFiles();
+            FileCollection roots = propertySpec.getPropertyFiles();
             FileCollectionSnapshot beforeExecution = getCurrent().get(propertyName);
             FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
             FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);

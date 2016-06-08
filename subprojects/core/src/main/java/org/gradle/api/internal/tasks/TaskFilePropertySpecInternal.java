@@ -21,5 +21,5 @@ import org.gradle.api.tasks.TaskFilePropertySpec;
 
 public interface TaskFilePropertySpecInternal extends TaskFilePropertySpec {
     String getPropertyName();
-    FileCollection getFiles();
+    FileCollection getPropertyFiles();
 }

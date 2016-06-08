@@ -59,7 +59,7 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName.toList() == ['$1']
-        outputs.fileProperties*.files*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
     }
 
     def "can register output file with property name"() {
@@ -67,7 +67,7 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName.toList() == ['prop']
-        outputs.fileProperties*.files*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
     }
 
     def "can register output dir"() {
@@ -75,7 +75,7 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName.toList() == ['$1']
-        outputs.fileProperties*.files*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
     }
 
     def "can register output dir with property name"() {
@@ -83,7 +83,7 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName.toList() == ['prop']
-        outputs.fileProperties*.files*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
     }
 
     public void canRegisterOutputFiles() {

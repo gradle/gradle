@@ -108,7 +108,7 @@ public interface TaskOutputs {
      * @param path The output file. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
      */
-    TaskFileOutputPropertySpec includeFile(Object path);
+    TaskOutputFilePropertySpec includeFile(Object path);
 
     /**
      * Registers an output directory for this task.
@@ -116,7 +116,7 @@ public interface TaskOutputs {
      * @param path The output directory. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
      */
-    TaskFileOutputPropertySpec includeDir(Object path);
+    TaskOutputFilePropertySpec includeDir(Object path);
 
     /**
      * Executes the given configuration action on the {@code TaskOutputs}. The action is executed before the task is executed.

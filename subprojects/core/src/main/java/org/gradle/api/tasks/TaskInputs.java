@@ -84,7 +84,7 @@ public interface TaskInputs {
      * @param paths The input file. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return the property spec.
      */
-    TaskFileInputPropertySpec includeFile(Object path);
+    TaskInputFilePropertySpec includeFile(Object path);
 
     /**
      * Registers an input directory hierarchy. All files found under the given directory are treated as input files for
@@ -93,7 +93,7 @@ public interface TaskInputs {
      * @param paths The input file. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return the property spec.
      */
-    TaskFileInputPropertySpec includeDir(Object path);
+    TaskInputFilePropertySpec includeDir(Object path);
 
     /**
      * Registers some input files for this task property.
@@ -101,7 +101,7 @@ public interface TaskInputs {
      * @param paths The input files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return the property spec.
      */
-    TaskFileInputPropertySpec includeFiles(Object... paths);
+    TaskInputFilePropertySpec includeFiles(Object... paths);
 
     /**
      * Returns the set of input properties for this task.

@@ -25,7 +25,7 @@ import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.tasks.TaskFileInputPropertySpec;
+import org.gradle.api.tasks.TaskInputFilePropertySpec;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -69,8 +69,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public Collection<TaskFileInputPropertySpecInternal> getFileProperties() {
-        ImmutableList.Builder<TaskFileInputPropertySpecInternal> builder = ImmutableList.builder();
+    public Collection<TaskInputFilePropertySpecInternal> getFileProperties() {
+        ImmutableList.Builder<TaskInputFilePropertySpecInternal> builder = ImmutableList.builder();
         for (PropertySpec propertySpec : fileProperties) {
             if (propertySpec.getPropertyName() == null) {
                 propertySpec.withPropertyName(nextLegacyPropertyName());
@@ -81,30 +81,30 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskFileInputPropertySpec includeFile(final Object path) {
-        return taskMutator.mutate("TaskInputs.includeFile(Object)", new Callable<TaskFileInputPropertySpec>() {
+    public TaskInputFilePropertySpec includeFile(final Object path) {
+        return taskMutator.mutate("TaskInputs.includeFile(Object)", new Callable<TaskInputFilePropertySpec>() {
             @Override
-            public TaskFileInputPropertySpec call() throws Exception {
+            public TaskInputFilePropertySpec call() throws Exception {
                 return addSpec(path);
             }
         });
     }
 
     @Override
-    public TaskFileInputPropertySpec includeDir(final Object path) {
-        return taskMutator.mutate("TaskInputs.includeDir(Object)", new Callable<TaskFileInputPropertySpec>() {
+    public TaskInputFilePropertySpec includeDir(final Object path) {
+        return taskMutator.mutate("TaskInputs.includeDir(Object)", new Callable<TaskInputFilePropertySpec>() {
             @Override
-            public TaskFileInputPropertySpec call() {
+            public TaskInputFilePropertySpec call() {
                 return addSpec(resolver.resolveFilesAsTree(path));
             }
         });
     }
 
     @Override
-    public TaskFileInputPropertySpec includeFiles(final Object... paths) {
-        return taskMutator.mutate("TaskInputs.includeFiles(Object...)", new Callable<TaskFileInputPropertySpec>() {
+    public TaskInputFilePropertySpec includeFiles(final Object... paths) {
+        return taskMutator.mutate("TaskInputs.includeFiles(Object...)", new Callable<TaskInputFilePropertySpec>() {
             @Override
-            public TaskFileInputPropertySpec call() {
+            public TaskInputFilePropertySpec call() {
                 return addSpec(paths);
             }
         });
@@ -197,11 +197,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return this;
     }
 
-    private TaskFileInputPropertySpecInternal addSpec(Object paths) {
+    private TaskInputFilePropertySpecInternal addSpec(Object paths) {
         return addSpec(paths, false);
     }
 
-    private TaskFileInputPropertySpecInternal addSpec(Object paths, boolean skipWhenEmpty) {
+    private TaskInputFilePropertySpecInternal addSpec(Object paths, boolean skipWhenEmpty) {
         PropertySpec spec = new PropertySpec(taskName, skipWhenEmpty, resolver, paths);
         fileProperties.add(spec);
         return spec;
@@ -284,7 +284,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
     }
 
-    private static class PropertySpec implements TaskFileInputPropertySpecInternal {
+    private static class PropertySpec implements TaskInputFilePropertySpecInternal {
 
         private final TaskPropertyFileCollection files;
         private String propertyName;
@@ -302,13 +302,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskFileInputPropertySpec withPropertyName(String propertyName) {
+        public TaskInputFilePropertySpec withPropertyName(String propertyName) {
             this.propertyName = propertyName;
             return this;
         }
 
         @Override
-        public TaskPropertyFileCollection getFiles() {
+        public TaskPropertyFileCollection getPropertyFiles() {
             return files;
         }
 
@@ -318,13 +318,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskFileInputPropertySpecInternal skipWhenEmpty(boolean skipWhenEmpty) {
+        public TaskInputFilePropertySpecInternal skipWhenEmpty(boolean skipWhenEmpty) {
             this.skipWhenEmpty = skipWhenEmpty;
             return this;
         }
 
         @Override
-        public TaskFileInputPropertySpec skipWhenEmpty() {
+        public TaskInputFilePropertySpec skipWhenEmpty() {
             return skipWhenEmpty(true);
         }
 
@@ -334,13 +334,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskFileInputPropertySpecInternal optional(boolean optional) {
+        public TaskInputFilePropertySpecInternal optional(boolean optional) {
             this.optional = optional;
             return this;
         }
 
         @Override
-        public TaskFileInputPropertySpec optional() {
+        public TaskInputFilePropertySpec optional() {
             return optional(true);
         }
 
@@ -368,7 +368,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         public void visitContents(FileCollectionResolveContext context) {
             for (PropertySpec fileProperty : fileProperties) {
                 if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
-                    context.add(fileProperty.getFiles());
+                    context.add(fileProperty.getPropertyFiles());
                 }
             }
         }

@@ -24,22 +24,22 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskFileOutputPropertySpec extends TaskFilePropertySpec {
+public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
     /**
      * {@inheritDoc}
      */
     @Override
-    TaskFileOutputPropertySpec withPropertyName(String propertyName);
+    TaskOutputFilePropertySpec withPropertyName(String propertyName);
 
     /**
      * Marks a task property as optional. This means that a value does not have to be specified for the property, but any
      * value specified must meet the validation constraints for the property.
      */
-    TaskFileOutputPropertySpec optional();
+    TaskOutputFilePropertySpec optional();
 
     /**
      * Sets whether the task property is optional. If the task property is optional, it means that a value does not have to be
      * specified for the property, but any value specified must meet the validation constraints for the property.
      */
-    TaskFileOutputPropertySpec optional(boolean optional);
+    TaskOutputFilePropertySpec optional(boolean optional);
 }

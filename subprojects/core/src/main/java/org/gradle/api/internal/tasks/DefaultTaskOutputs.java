@@ -30,7 +30,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.TaskFileOutputPropertySpec;
+import org.gradle.api.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -68,7 +68,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             @Override
             public void visitContents(FileCollectionResolveContext context) {
                 for (PropertySpec fileProperty : fileProperties) {
-                    context.add(fileProperty.getFiles());
+                    context.add(fileProperty.getPropertyFiles());
                 }
             }
 
@@ -114,8 +114,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public Collection<TaskFileOutputPropertySpecInternal> getFileProperties() {
-        ImmutableList.Builder<TaskFileOutputPropertySpecInternal> builder = ImmutableList.builder();
+    public Collection<TaskOutputFilePropertySpecInternal> getFileProperties() {
+        ImmutableList.Builder<TaskOutputFilePropertySpecInternal> builder = ImmutableList.builder();
         for (PropertySpec propertySpec : fileProperties) {
             if (propertySpec.getPropertyName() == null) {
                 propertySpec.withPropertyName(nextLegacyPropertyName());
@@ -127,20 +127,20 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
 
     @Override
-    public TaskFileOutputPropertySpec includeFile(final Object path) {
-        return taskMutator.mutate("TaskOutputs.includeFile(Object)", new Callable<TaskFileOutputPropertySpec>() {
+    public TaskOutputFilePropertySpec includeFile(final Object path) {
+        return taskMutator.mutate("TaskOutputs.includeFile(Object)", new Callable<TaskOutputFilePropertySpec>() {
             @Override
-            public TaskFileOutputPropertySpec call() throws Exception {
+            public TaskOutputFilePropertySpec call() throws Exception {
                 return addSpec(path);
             }
         });
     }
 
     @Override
-    public TaskFileOutputPropertySpec includeDir(final Object path) {
-        return taskMutator.mutate("TaskOutputs.includeDir(Object)", new Callable<TaskFileOutputPropertySpec>() {
+    public TaskOutputFilePropertySpec includeDir(final Object path) {
+        return taskMutator.mutate("TaskOutputs.includeDir(Object)", new Callable<TaskOutputFilePropertySpec>() {
             @Override
-            public TaskFileOutputPropertySpec call() throws Exception {
+            public TaskOutputFilePropertySpec call() throws Exception {
                 return addSpec(path);
             }
         });
@@ -179,7 +179,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return this;
     }
 
-    private TaskFileOutputPropertySpecInternal addSpec(Object paths) {
+    private TaskOutputFilePropertySpecInternal addSpec(Object paths) {
         PropertySpec spec = new PropertySpec(taskName, resolver, paths);
         fileProperties.add(spec);
         return spec;
@@ -230,7 +230,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
     }
 
-    private static class PropertySpec implements TaskFileOutputPropertySpecInternal {
+    private static class PropertySpec implements TaskOutputFilePropertySpecInternal {
         private final TaskPropertyFileCollection files;
         private String propertyName;
         private boolean optional;
@@ -240,7 +240,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
 
         @Override
-        public TaskPropertyFileCollection getFiles() {
+        public TaskPropertyFileCollection getPropertyFiles() {
             return files;
         }
 
@@ -250,7 +250,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
 
         @Override
-        public TaskFileOutputPropertySpec withPropertyName(String propertyName) {
+        public TaskOutputFilePropertySpec withPropertyName(String propertyName) {
             this.propertyName = propertyName;
             return this;
         }
@@ -261,12 +261,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
 
         @Override
-        public TaskFileOutputPropertySpec optional() {
+        public TaskOutputFilePropertySpec optional() {
             return optional(true);
         }
 
         @Override
-        public TaskFileOutputPropertySpec optional(boolean optional) {
+        public TaskOutputFilePropertySpec optional(boolean optional) {
             this.optional = optional;
             return this;
         }

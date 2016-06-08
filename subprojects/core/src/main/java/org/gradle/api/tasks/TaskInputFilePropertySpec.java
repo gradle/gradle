@@ -24,34 +24,34 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskFileInputPropertySpec extends TaskFilePropertySpec {
+public interface TaskInputFilePropertySpec extends TaskFilePropertySpec {
     /**
      * {@inheritDoc}
      */
     @Override
-    TaskFileInputPropertySpec withPropertyName(String propertyName);
+    TaskInputFilePropertySpec withPropertyName(String propertyName);
 
     /**
      * Skip executing the task if the property contains no files.
      * If there are multiple properties with {code skipWhenEmpty = true}, then they all need to be empty for the task to be skipped.
      */
-    TaskFileInputPropertySpec skipWhenEmpty();
+    TaskInputFilePropertySpec skipWhenEmpty();
 
     /**
      * Sets whether executing the task should be skipped if the property contains no files.
      * If there are multiple properties with {code skipWhenEmpty = true}, then they all need to be empty for the task to be skipped.
      */
-    TaskFileInputPropertySpec skipWhenEmpty(boolean skipWhenEmpty);
+    TaskInputFilePropertySpec skipWhenEmpty(boolean skipWhenEmpty);
 
     /**
      * Marks a task property as optional. This means that a value does not have to be specified for the property, but any
      * value specified must meet the validation constraints for the property.
      */
-    TaskFileInputPropertySpec optional();
+    TaskInputFilePropertySpec optional();
 
     /**
      * Sets whether the task property is optional. If the task property is optional, it means that a value does not have to be
      * specified for the property, but any value specified must meet the validation constraints for the property.
      */
-    TaskFileInputPropertySpec optional(boolean optional);
+    TaskInputFilePropertySpec optional(boolean optional);
 }

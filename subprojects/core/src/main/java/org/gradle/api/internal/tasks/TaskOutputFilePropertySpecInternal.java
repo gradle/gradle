@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.TaskFileOutputPropertySpec;
+import org.gradle.api.tasks.TaskOutputFilePropertySpec;
 
-public interface TaskFileOutputPropertySpecInternal extends TaskFileOutputPropertySpec, TaskFilePropertySpecInternal {
+public interface TaskOutputFilePropertySpecInternal extends TaskOutputFilePropertySpec, TaskFilePropertySpecInternal {
     boolean isOptional();
 }
