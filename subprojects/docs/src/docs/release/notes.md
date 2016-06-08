@@ -88,6 +88,27 @@ A `configure()` method with an `Action` or `Closure` parameter was added to both
 
 Previously if a task's implementation class name changed, the class was deemed out-of-date even if its inputs and outputs matched the previous execution. However, if only the code of the task, or a dependent library changed, the task was still considered up-to-date. Since this version Gradle notices if the code of a task or its dependencies change between executions, and marks tasks as out-of-date when needed.
 
+### `plugins` DSL can resolve plugins without applying them
+
+There are times when you want to resolve a plugin without actually applying it to the current project, e.g.
+
+- you only want to reuse a task class from that plugin
+- you want to apply that plugin to subprojects of the current one
+
+This is now possible using the following syntax
+
+```
+plugins {
+    id 'my.special.plugin' version '1.0' apply false
+}
+
+subprojects {
+    if (someCondition) {
+        apply plugin 'my.special.plugin'
+    }
+}
+```
+
 ### Improved handling of external dependencies in `eclipse-wtp` plugin
 
 Before Gradle 3.0, the `eclipse-wtp` plugin always defined external dependencies the WTP component descriptor. This caused several problems, listed at [GRADLE-2123](https://issues.gradle.org/browse/GRADLE-2123). To resolve this, the plugin now defines external dependencies in the Eclipse classpath and marks them as deployed/non-deployed accordingly. For each library a classpath entry similar to the one below is generated:
@@ -232,7 +253,6 @@ eclipse.project {
 * Removed `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`
 * Removed old wrapper properties `urlRoot`, `distributionName`, `distributionVersion` and `distributionClassifier`
 * Removed deprecated `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
-* Removed deprecated constructor `DefaultSourceDirectorySet(String name, FileResolver fileResolver)`
 
 ### Tooling API changes
 
@@ -255,6 +275,7 @@ We would like to thank the following community members for making contributions 
  - [Mahmoud  Khater](https://github.com/mahmoud-k) - Fix a problem with determining the version of Findbugs on the classpath (GRADLE-3457)
  - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.6
  - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
+ - [Ramon Wirsch](https://github.com/ramonwirsch) - Fix NullPointerException when processing annotations in the new Java software model
   
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)

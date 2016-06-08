@@ -361,6 +361,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         when:
         TaskArtifactState state = repository.getStateFor(task1)
         state.isUpToDate([])
+        state.beforeTask()
         outputDirFile.createFile()
         state.afterTask()
 
@@ -378,6 +379,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         !state.isUpToDate([])
 
         when:
+        state.beforeTask()
         outputDirFile2.createFile()
         state.afterTask()
 
@@ -490,6 +492,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         !state.isUpToDate([])
 
         when:
+        state.beforeTask()
         task.execute()
         otherFile.write("new content")
         state.afterTask()
@@ -619,6 +622,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         for (TaskInternal task : tasks) {
             TaskArtifactState state = repository.getStateFor(task)
             state.isUpToDate([])
+            state.beforeTask()
             task.execute()
             state.afterTask()
         }
@@ -699,13 +703,13 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
         TaskInternal task() {
             final TaskInternal task = TestUtil.createTask(type, project, path)
             if (inputs != null) {
-                task.getInputs().files(inputs)
+                task.getInputs().includeFiles(inputs)
             }
             if (inputProperties != null) {
                 task.getInputs().properties(inputProperties)
             }
             if (outputs != null) {
-                outputs.each { task.getOutputs().file(it) }
+                outputs.each { task.getOutputs().includeFile(it) }
             }
             task.doLast(new org.gradle.api.Action<Object>() {
                 public void execute(Object o) {

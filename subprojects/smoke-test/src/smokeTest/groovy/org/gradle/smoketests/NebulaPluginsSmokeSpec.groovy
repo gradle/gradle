@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.plugins
+package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 
-class NebulaPluginsSmokeSpec extends AbstractIntegrationSpec {
+class NebulaPluginsSmokeSpec extends AbstractSmokeSpec {
     def 'nebula recommender plugin'() {
         when:
-        buildScript """
+        buildFile << """
             plugins {
               id "nebula.dependency-recommender" version "3.3.0"
             }
@@ -44,10 +43,11 @@ class NebulaPluginsSmokeSpec extends AbstractIntegrationSpec {
             """
 
         then:
-        succeeds 'build'
+        runner('build').build()
     }
 
-    @Ignore
+    @Ignore("""org.codehaus.groovy.runtime.typehandling.GroovyCastException: Cannot cast object 'root project 'junit870421439514898935'' with class 'org.gradle.api.internal.project.DefaultProject_Decorated' to class 'org.gradle.api.internal.project.AbstractProject'
+               at nebula.plugin.responsible.NebulaFacetPlugin.container(NebulaFacetPlugin.groovy:119)""")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
@@ -68,47 +68,47 @@ class NebulaPluginsSmokeSpec extends AbstractIntegrationSpec {
         """
 
         then:
-        succeeds 'groovydoc'
+        runner('groovydoc').build()
     }
 
-    @Ignore
+    @Ignore("No service of type StyledTextOutputFactory available in ProjectScopeServices")
     def 'nebula lint plugin jcenter'() {
         when:
         buildFile << """
-buildscript {
-  repositories {
-    jcenter()
-  }
-  dependencies {
-    classpath "com.netflix.nebula:gradle-lint-plugin:0.30.4"
-  }
-}
+            buildscript {
+              repositories {
+                jcenter()
+              }
+              dependencies {
+                classpath "com.netflix.nebula:gradle-lint-plugin:0.30.4"
+              }
+            }
 
-apply plugin: "nebula.lint"
-        """
+            apply plugin: "nebula.lint"
+        """.stripIndent()
 
         then:
-        succeeds 'buildEnvironment', 'lintGradle', '-s'
+        runner('buildEnvironment', 'lintGradle').build()
     }
 
     def 'nebula dependency lock plugin jcenter'() {
         when:
         buildFile << """
-buildscript {
-  repositories {
-    maven {
-      url "https://plugins.gradle.org/m2/"
-    }
-  }
-  dependencies {
-    classpath "com.netflix.nebula:gradle-dependency-lock-plugin:4.3.0"
-  }
-}
+            buildscript {
+              repositories {
+                maven {
+                  url "https://plugins.gradle.org/m2/"
+                }
+              }
+              dependencies {
+                classpath "com.netflix.nebula:gradle-dependency-lock-plugin:4.3.0"
+              }
+            }
 
-apply plugin: "nebula.dependency-lock"
-        """
+            apply plugin: "nebula.dependency-lock"
+        """.stripIndent()
 
         then:
-        succeeds 'buildEnvironment', 'generateLock', '-s'
+        runner('buildEnvironment', 'generateLock').build()
     }
 }

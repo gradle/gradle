@@ -15,16 +15,61 @@
  */
 package org.gradle.tooling.model.eclipse;
 
+import org.gradle.api.Incubating;
+import org.gradle.api.Nullable;
+import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.SourceDirectory;
+import org.gradle.tooling.model.UnsupportedMethodException;
+
+import java.util.List;
 
 /**
  * A source directory in an Eclipse project.
  */
-public interface EclipseSourceDirectory extends SourceDirectory {
+public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspathEntry {
     /**
      * Returns the relative path for this source directory.
      *
      * @return The path for this source directory. Does not return null.
      */
     String getPath();
+
+    /**
+     * Returns the include patterns for this source directory.
+     *
+     * @return The list of patterns to include. Does not return null.
+     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     *
+     * @since 3.0
+     */
+    @Incubating
+    List<String> getIncludes() throws UnsupportedMethodException;
+
+    /**
+     * Returns the exclude patterns for this source directory.
+     *
+     * @return The list of patterns to exclude. Does not return null.
+     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     *
+     * @since 3.0
+     */
+    @Incubating
+    List<String> getExcludes() throws UnsupportedMethodException;
+
+    /**
+     * Returns the output location of this source directory. If {@code null}, then the compiled classses are placed in the project's default output location.
+     *
+     * @return The output location of this source directory.
+     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     */
+    @Incubating
+    @Nullable
+    String getOutput() throws UnsupportedMethodException;
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     */
+    DomainObjectSet<? extends ClasspathAttribute> getClasspathAttributes() throws UnsupportedMethodException;
 }

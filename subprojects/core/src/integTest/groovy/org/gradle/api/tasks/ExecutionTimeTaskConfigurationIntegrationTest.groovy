@@ -84,6 +84,9 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "inputs.file('a')"                                          | "TaskInputs.file(Object)"
         "inputs.files('a')"                                         | "TaskInputs.files(Object...)"
         "inputs.dir('a')"                                           | "TaskInputs.dir(Object)"
+        "inputs.includeFile('a')"                                   | "TaskInputs.includeFile(Object)"
+        "inputs.includeFiles('a')"                                  | "TaskInputs.includeFiles(Object...)"
+        "inputs.includeDir('a')"                                    | "TaskInputs.includeDir(Object)"
         "inputs.property('key', 'value')"                           | "TaskInputs.property(String, Object)"
         "inputs.properties([key: 'value'])"                         | "TaskInputs.properties(Map)"
         "inputs.source('a')"                                        | "TaskInputs.source(Object)"
@@ -94,6 +97,8 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "outputs.file('a')"                                         | "TaskOutputs.file(Object)"
         "outputs.files('a')"                                        | "TaskOutputs.files(Object...)"
         "outputs.dir('a')"                                          | "TaskOutputs.dir(Object)"
+        "outputs.includeFile('a')"                                  | "TaskOutputs.includeFile(Object)"
+        "outputs.includeDir('a')"                                   | "TaskOutputs.includeDir(Object)"
         "outputs.configure {}"                                      | "TaskOutputs.configure(Action)"
     }
 }

@@ -61,14 +61,15 @@ public class OutputFilesPropertyAnnotationHandler extends AbstractOutputFileProp
     }
 
     @Override
-    protected void update(TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
+    protected void update(final TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
         task.getOutputs().configure(new Action<TaskOutputs>() {
             @Override
             public void execute(TaskOutputs taskOutputs) {
                 Iterable<File> files = uncheckedCast(uncheckedCall(futureValue));
                 if (files != null) {
+                    int counter = 0;
                     for (File file : files) {
-                        taskOutputs.file(file);
+                        taskOutputs.includeFile(file).withPropertyName(context.getName() + "$" + (++counter));
                     }
                 }
             }

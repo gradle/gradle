@@ -70,7 +70,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
     }
 
-    public void applyPlugins(PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
+    public void applyPlugins(final PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
         if (requests.isEmpty()) {
             defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.<PluginImplementation<?>>emptyList());
             return;
@@ -167,7 +167,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             final PluginId id = entry.getValue();
             applyPlugin(request, id, new Runnable() {
                 public void run() {
-                    target.apply(id.toString());
+                    if (request.isApply()) {
+                        target.apply(id.toString());
+                    }
                 }
             });
         }
@@ -176,7 +178,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
             final Result result = entry.getKey();
             applyPlugin(result.request, result.found.getPluginId(), new Runnable() {
                 public void run() {
-                    target.apply(entry.getValue());
+                    if (result.request.isApply()) {
+                      target.apply(entry.getValue());
+                    }
                 }
             });
         }

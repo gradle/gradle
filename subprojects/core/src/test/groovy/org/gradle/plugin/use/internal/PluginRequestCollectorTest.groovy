@@ -34,7 +34,7 @@ class PluginRequestCollectorTest extends Specification {
     }
 
     List<PluginRequest> requests(Map<String, String> requests) {
-        requests.collect { new DefaultPluginRequest(it.key, it.value, LINE_NUMBER, scriptSource) }
+        requests.collect { new DefaultPluginRequest(it.key, it.value, true, LINE_NUMBER, scriptSource) }
     }
 
     def "can use spec dsl to build one request"() {

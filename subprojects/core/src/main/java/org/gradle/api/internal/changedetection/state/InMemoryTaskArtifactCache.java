@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalCause;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
+import com.google.common.cache.*;
 import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -32,11 +29,13 @@ import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class InMemoryTaskArtifactCache implements CacheDecorator {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
     private final static Object NULL = new Object();
     private static final Map<String, Integer> CACHE_CAPS = new CacheCapSizer().calculateCaps();
+    private static final Set<String> WEAK_REFERENCE_CACHES = ImmutableSet.copyOf(new String[]{"fileSnapshots"});
 
     static class CacheCapSizer {
         private static final Map<String, Integer> DEFAULT_CAP_SIZES = new HashMap<String, Integer>();
@@ -142,7 +141,12 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
                 assert maxSize != null : "Unknown cache.";
                 LOG.info("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
                 LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
-                theData = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener).build();
+                CacheBuilder<Object, Object> builder = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
+                if (WEAK_REFERENCE_CACHES.contains(cacheName)) {
+                    builder.weakValues();
+                }
+                theData = builder.build();
+
                 evictionListener.setCache(theData);
                 this.cache.put(cacheId, theData);
             }

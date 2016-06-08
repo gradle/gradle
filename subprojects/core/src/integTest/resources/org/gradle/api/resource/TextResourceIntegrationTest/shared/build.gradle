@@ -12,7 +12,7 @@ class MyTask extends DefaultTask {
 }
 
 task generateConfigFile {
-    outputs.file "config.txt"
+    outputs.includeFile "config.txt"
     doLast {
         file("config.txt").text = "my config"
     }

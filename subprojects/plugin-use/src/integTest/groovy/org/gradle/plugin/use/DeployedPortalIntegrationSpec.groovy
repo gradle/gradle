@@ -37,6 +37,26 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         when:
         buildScript """
             plugins {
+                id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION" apply false
+            }
+
+            task customHello(type: org.gradle.plugin.HelloWorldTask)
+        """
+
+        then:
+        succeeds("customHello")
+
+        and:
+        output.contains("Hello World!")
+
+        and:
+        fails("helloWorld")
+    }
+
+    def "can resolve and apply a plugin from portal"() {
+        when:
+        buildScript """
+            plugins {
                 id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION"
             }
         """

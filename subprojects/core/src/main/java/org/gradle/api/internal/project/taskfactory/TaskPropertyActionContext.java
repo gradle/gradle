@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import java.lang.reflect.AnnotatedElement;
+import java.lang.annotation.Annotation;
 
 public interface TaskPropertyActionContext {
     /**
@@ -37,9 +37,9 @@ public interface TaskPropertyActionContext {
     Class<?> getInstanceVariableType();
 
     /**
-     * Returns the target for this property.
+     * Returns whether the given annotation is present on the field or any of the methods declaring the property.
      */
-    AnnotatedElement getTarget();
+    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
     /**
      * Specifies the action used to validate the value of this property. This action is only executed when the property

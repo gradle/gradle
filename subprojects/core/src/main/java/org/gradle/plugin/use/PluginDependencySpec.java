@@ -33,7 +33,7 @@ public interface PluginDependencySpec {
 
     /**
      * Specify the version of the plugin to depend on.
-     * <p>
+     * <p/>
      * <pre>
      * plugins {
      *     id "org.company.myplugin" version "1.0"
@@ -41,12 +41,38 @@ public interface PluginDependencySpec {
      * </pre>
      * <p>
      * By default, dependencies have no (i.e. {@code null}) version.
-     * <p>
+     * </p>
      * Core plugins must not include a version number specification.
      * Community plugins must include a version number specification.
      *
      * @param version the version string ({@code null} for no specified version, which is the default)
+     * @return this
      */
-    void version(@Nullable String version);
+    PluginDependencySpec version(@Nullable String version);
+
+    /**
+     * Specifies whether the plugin should be applied to the current project. Otherwise it is only put
+     * on the project's classpath.
+     * <p/>
+     * This is useful when reusing classes from a plugin or to apply a plugin to sub-projects:
+     *
+     * <p>
+     * <pre>
+     * plugins {
+     *     id "org.company.myplugin" version "1.0" apply false
+     * }
+     *
+     * subprojects {
+     *     if (someCondition) {
+     *         apply plugin: "org.company.myplugin"
+     *     }
+     * }
+     * </pre>
+     * </p>
+     *
+     * @param apply whether to apply the plugin to the current project or not. Defaults to true
+     * @return this
+     */
+    PluginDependencySpec apply(boolean apply);
 
 }

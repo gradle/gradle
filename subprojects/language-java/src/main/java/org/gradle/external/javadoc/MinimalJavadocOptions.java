@@ -21,7 +21,6 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
@@ -75,7 +74,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions source(String source);
 
-    @InputFiles
+    @Internal
     List<File> getClasspath();
 
     void setClasspath(List<File> classpath);
@@ -147,7 +146,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions optionFiles(File ... argumentFiles);
 
-    @Optional @OutputDirectory
+    @Internal
     File getDestinationDirectory();
 
     void setDestinationDirectory(File directory);
@@ -170,7 +169,7 @@ public interface MinimalJavadocOptions {
 
     void write(File outputFile) throws IOException;
 
-    @Optional @Input
+    @Internal
     List<String> getSourceNames();
 
     void setSourceNames(List<String> sourceNames);

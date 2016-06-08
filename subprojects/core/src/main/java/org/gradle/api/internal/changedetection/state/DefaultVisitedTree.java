@@ -17,16 +17,19 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.commons.lang.builder.CompareToBuilder;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.FileTreeElementHasher;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 
 class DefaultVisitedTree implements VisitedTree {
@@ -37,6 +40,7 @@ class DefaultVisitedTree implements VisitedTree {
     private final List<FileTreeElement> entries;
     private final Collection<File> missingFiles;
     private TreeSnapshot treeSnapshot;
+    private Integer preCheckHash;
 
     public DefaultVisitedTree(String absolutePath, PatternSet patternSet, List<FileTreeElement> entries, boolean shareable, long nextId, Collection<File> missingFiles) {
         this.absolutePath = absolutePath;
@@ -73,6 +77,14 @@ class DefaultVisitedTree implements VisitedTree {
             }
         }
         return filtered.build();
+    }
+
+    @Override
+    public synchronized int calculatePreCheckHash() {
+        if (preCheckHash == null) {
+            preCheckHash = FileTreeElementHasher.calculateHashForFileMetadata(entries);
+        }
+        return preCheckHash;
     }
 
     @Override
@@ -149,6 +161,29 @@ class DefaultVisitedTree implements VisitedTree {
                 storeEntryAction.execute(assignedId);
             }
             return assignedId;
+        }
+    }
+
+    static class VisitedTreeComparator implements Comparator<VisitedTree> {
+        public static final VisitedTreeComparator INSTANCE = new VisitedTreeComparator();
+
+        private VisitedTreeComparator() {
+
+        }
+
+        @Override
+        public int compare(VisitedTree o1, VisitedTree o2) {
+            CompareToBuilder compareToBuilder = new CompareToBuilder();
+            compareToBuilder.append(o1.getAbsolutePath(), o2.getAbsolutePath());
+            if (compareToBuilder.toComparison() != 0) {
+                return compareToBuilder.toComparison();
+            }
+            compareToBuilder.append(o1.getPatternSet() != null ? o1.getPatternSet().hashCode() : 0, o2.getPatternSet() != null ? o2.getPatternSet().hashCode() : 0);
+            if (compareToBuilder.toComparison() != 0) {
+                return compareToBuilder.toComparison();
+            }
+            compareToBuilder.append(o1.hashCode(), o2.hashCode());
+            return compareToBuilder.toComparison();
         }
     }
 }

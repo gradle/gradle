@@ -112,11 +112,11 @@ class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> 
     /**
      * Specifies the rule priority threshold.
      *
-	 * @see PmdExtension#rulePriority
-	 */
+     * @see PmdExtension#rulePriority
+     */
     @Input
     @Incubating
-	int rulePriority
+    int rulePriority
 
     /**
      * Sets the rule priority threshold.

@@ -15,23 +15,17 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import java.io.Serializable;
 import java.util.List;
 
-public abstract class DefaultEclipseDependency implements Serializable {
+public abstract class DefaultEclipseDependency extends DefaultEclipseClasspathEntry {
     private final boolean isExported;
-    private final List<DefaultClasspathAttribute> classpathAttributes;
 
     public DefaultEclipseDependency(boolean isExported, List<DefaultClasspathAttribute> classpathAttributes) {
+        super(classpathAttributes);
         this.isExported = isExported;
-        this.classpathAttributes = classpathAttributes;
     }
 
     public boolean isExported() {
         return isExported;
-    }
-
-    public List<DefaultClasspathAttribute> getClasspathAttributes() {
-        return classpathAttributes;
     }
 }

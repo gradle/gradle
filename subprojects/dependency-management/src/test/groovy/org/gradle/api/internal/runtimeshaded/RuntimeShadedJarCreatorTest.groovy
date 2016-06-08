@@ -17,6 +17,7 @@
 package org.gradle.api.internal.runtimeshaded
 
 import org.apache.ivy.core.settings.IvySettings
+import org.cyberneko.html.xercesbridge.XercesBridge
 import org.gradle.api.Action
 import org.gradle.internal.IoActions
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
@@ -153,7 +154,7 @@ org.gradle.api.internal.tasks.CompileServices"""
                                       'org/apache/xerces/parsers/SAXParser',
                                       'org/w3c/dom/Document',
                                       'org/xml/sax/XMLReader']
-        def relocationClassNames = ['org/apache/commons/lang3/StringUtils',
+        def relocationClassNames = ['org/apache/commons/lang/StringUtils',
                                     'com/google/common/collect/Lists']
         def classNames = noRelocationClassNames + relocationClassNames
         def inputFilesDir = tmpDir.createDir('inputFiles')
@@ -190,7 +191,7 @@ org.gradle.api.internal.tasks.CompileServices"""
             assert jar.getJarEntry('org/apache/xerces/parsers/SAXParser.class')
             assert jar.getJarEntry('org/w3c/dom/Document.class')
             assert jar.getJarEntry('org/xml/sax/XMLReader.class')
-            assert jar.getJarEntry('org/gradle/internal/impldep/org/apache/commons/lang3/StringUtils.class')
+            assert jar.getJarEntry('org/gradle/internal/impldep/org/apache/commons/lang/StringUtils.class')
             assert jar.getJarEntry('org/gradle/internal/impldep/com/google/common/collect/Lists.class')
         }
     }
@@ -213,6 +214,42 @@ org.gradle.api.internal.tasks.CompileServices"""
         bytecode.contains('static synthetic Ljava/lang/Class; class$org$gradle$internal$impldep$org$apache$ivy$core$settings$IvySettings')
         bytecode.contains('GETSTATIC org/gradle/internal/impldep/org/apache/ivy/core/settings/IvySettings.class$org$gradle$internal$impldep$org$apache$ivy$core$settings$IvySettings : Ljava/lang/Class;')
         bytecode.contains('LDC "org.gradle.internal.impldep.org.apache.ivy.core.settings.IvySettings"')
+    }
+
+    def "remaps class literals in strings"() {
+        given:
+        def clazz = XercesBridge
+        byte[] classData = clazz.getClassLoader().getResourceAsStream("${clazz.name.replace('.','/')}.class").bytes
+
+        when:
+        def remapped = relocatedJarCreator.remapClass(clazz.name, classData)
+        def cr = new ClassReader(remapped)
+        def writer = new StringWriter()
+        def tcv = new TraceClassVisitor(new PrintWriter(writer))
+        cr.accept(tcv, 0)
+
+        then:
+        def bytecode = writer.toString()
+        !bytecode.contains('LDC "org.cyberneko.html.xercesbridge.XercesBridge_2_3"')
+        bytecode.contains('LDC "org.gradle.internal.impldep.org.cyberneko.html.xercesbridge.XercesBridge_2_3"')
+    }
+
+    def "remaps class literals in strings with slashes"() {
+        given:
+        def clazz = JavaAdapter
+        byte[] classData = clazz.getClassLoader().getResourceAsStream("${clazz.name.replace('.','/')}.class").bytes
+
+        when:
+        def remapped = relocatedJarCreator.remapClass(clazz.name, classData)
+        def cr = new ClassReader(remapped)
+        def writer = new StringWriter()
+        def tcv = new TraceClassVisitor(new PrintWriter(writer))
+        cr.accept(tcv, 0)
+
+        then:
+        def bytecode = writer.toString()
+        !bytecode.contains('LDC "org/mozilla/javascript/Context"')
+        bytecode.contains('LDC "org/gradle/internal/impldep/org/mozilla/javascript/Context"')
     }
 
     def "remaps resources"() {
@@ -311,6 +348,14 @@ org.gradle.api.internal.tasks.CompileServices"""
             if (jarFile != null) {
                 jarFile.close()
             }
+        }
+    }
+
+    public static class JavaAdapter {
+        // emulates what is found in org.mozilla.javascript.JavaAdapter
+        // (we can't use it directly because not found on test classpath)
+        void foo() {
+            String[] classes = ['org/mozilla/javascript/Context']
         }
     }
 }

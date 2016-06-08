@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.AbstractIterator;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.util.ChangeListener;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -38,13 +36,21 @@ abstract class AbstractFileSnapshotTaskStateChanges implements TaskStateChanges 
     protected abstract FileCollectionSnapshot getCurrent();
     protected abstract void saveCurrent();
 
-    protected FileCollectionSnapshot.ChangeIterator<String> getChanges() {
-        return getCurrent().iterateContentChangesSince(getPrevious(), Collections.<FileCollectionSnapshot.ChangeFilter>emptySet());
+    protected Iterator<TaskStateChange> getChanges(String fileType) {
+        return getCurrent().iterateContentChangesSince(getPrevious(), fileType, Collections.<FileCollectionSnapshot.ChangeFilter>emptySet());
     }
 
-    protected FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
+    protected FileCollectionSnapshot.PreCheck createSnapshotPreCheck(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
         try {
-            return snapshotter.snapshot(fileCollection, isAllowSnapshotReuse());
+            return snapshotter.preCheck(fileCollection, isAllowSnapshotReuse());
+        } catch (UncheckedIOException e) {
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' during up-to-date check.", getInputFileType().toLowerCase(), taskName), e);
+        }
+    }
+
+    protected FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollectionSnapshot.PreCheck preCheck) {
+        try {
+            return snapshotter.snapshot(preCheck);
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' during up-to-date check.", getInputFileType().toLowerCase(), taskName), e);
         }
@@ -58,43 +64,14 @@ abstract class AbstractFileSnapshotTaskStateChanges implements TaskStateChanges 
         if (getPrevious() == null) {
             return Collections.<TaskStateChange>singleton(new DescriptiveChange(getInputFileType() + " file history is not available.")).iterator();
         }
+        return getChanges(getInputFileType());
+    }
 
-        return new AbstractIterator<TaskStateChange>() {
-            final FileCollectionSnapshot.ChangeIterator<String> changeIterator = getChanges();
-            final ChangeListenerAdapter listenerAdapter = new ChangeListenerAdapter(getInputFileType());
-
-            @Override
-            protected TaskStateChange computeNext() {
-                if (changeIterator.next(listenerAdapter)) {
-                    return listenerAdapter.lastChange;
-                }
-                return endOfData();
-            }
-        };
+    public void snapshotBeforeTask() {
+        getCurrent();
     }
 
     public void snapshotAfterTask() {
         saveCurrent();
-    }
-
-    private static class ChangeListenerAdapter implements ChangeListener<String> {
-        public FileChange lastChange;
-        private final String inputFileType;
-
-        private ChangeListenerAdapter(String inputFileType) {
-            this.inputFileType = inputFileType;
-        }
-
-        public void added(String fileName) {
-            lastChange = new FileChange(fileName, ChangeType.ADDED, inputFileType);
-        }
-
-        public void removed(String fileName) {
-            lastChange = new FileChange(fileName, ChangeType.REMOVED, inputFileType);
-        }
-
-        public void changed(String fileName) {
-            lastChange = new FileChange(fileName, ChangeType.MODIFIED, inputFileType);
-        }
     }
 }

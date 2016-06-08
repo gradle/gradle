@@ -118,7 +118,7 @@ class BasePluginTest extends Specification {
     public void addsACleanRule() {
         given:
         Task test = project.task('test')
-        test.outputs.dir(project.buildDir)
+        test.outputs.includeDir(project.buildDir)
 
         when:
         project.pluginManager.apply(BasePlugin)

@@ -23,13 +23,24 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+import java.util.concurrent.Callable
+
 @UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {
 
     private TaskMutator taskStatusNagger = Stub() {
-        mutate(_, _) >> { String method, Runnable action -> action.run() }
+        mutate(_, _) >> { String method, def action ->
+            if (action instanceof Runnable) {
+                action.run()
+            } else if (action instanceof Callable) {
+                action.call()
+            }
+        }
     }
-    private final TaskInternal task = [toString: {'task'}] as TaskInternal
+    def task = Mock(TaskInternal) {
+        getName() >> "task"
+        toString() >> "task 'task'"
+    }
     private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task, taskStatusNagger)
 
     public void hasNoOutputsByDefault() {
@@ -41,6 +52,38 @@ class DefaultTaskOutputsTest extends Specification {
     public void outputFileCollectionIsBuiltByTask() {
         setup:
         assert outputs.files.buildDependencies.getDependencies(task) == [task] as Set
+    }
+
+    def "can register output file"() {
+        when: outputs.includeFile("a")
+        then:
+        outputs.files.files.toList() == [new File('a')]
+        outputs.fileProperties*.propertyName.toList() == ['$1']
+        outputs.fileProperties*.files*.files.flatten() == [new File("a")]
+    }
+
+    def "can register output file with property name"() {
+        when: outputs.includeFile("a").withPropertyName("prop")
+        then:
+        outputs.files.files.toList() == [new File('a')]
+        outputs.fileProperties*.propertyName.toList() == ['prop']
+        outputs.fileProperties*.files*.files.flatten() == [new File("a")]
+    }
+
+    def "can register output dir"() {
+        when: outputs.includeDir("a")
+        then:
+        outputs.files.files.toList() == [new File('a')]
+        outputs.fileProperties*.propertyName.toList() == ['$1']
+        outputs.fileProperties*.files*.files.flatten() == [new File("a")]
+    }
+
+    def "can register output dir with property name"() {
+        when: outputs.includeDir("a").withPropertyName("prop")
+        then:
+        outputs.files.files.toList() == [new File('a')]
+        outputs.fileProperties*.propertyName.toList() == ['prop']
+        outputs.fileProperties*.files*.files.flatten() == [new File("a")]
     }
 
     public void canRegisterOutputFiles() {

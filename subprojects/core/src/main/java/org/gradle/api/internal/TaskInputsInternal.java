@@ -16,8 +16,13 @@
 
 package org.gradle.api.internal;
 
+import org.gradle.api.internal.tasks.TaskFileInputPropertySpecInternal;
 import org.gradle.api.tasks.TaskInputs;
+
+import java.util.Collection;
 
 public interface TaskInputsInternal extends TaskInputs {
     void ensureConfigured();
+
+    Collection<TaskFileInputPropertySpecInternal> getFileProperties();
 }

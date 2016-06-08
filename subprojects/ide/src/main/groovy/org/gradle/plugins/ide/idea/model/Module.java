@@ -505,17 +505,7 @@ public class Module extends XmlPersistableConfigurationObject {
 
     @Override
     public int hashCode() {
-        int result;
-        result = sourceFolders != null ? sourceFolders.hashCode() : 0;
-        result = 31 * result + (generatedSourceFolders != null ? generatedSourceFolders.hashCode() : 0);
-        result = 31 * result + (testSourceFolders != null ? testSourceFolders.hashCode() : 0);
-        result = 31 * result + (excludeFolders != null ? excludeFolders.hashCode() : 0);
-        result = 31 * result + (inheritOutputDirs ? 1 : 0);
-        result = 31 * result + (jdkName != null ? jdkName.hashCode() : 0);
-        result = 31 * result + outputDir.hashCode();
-        result = 31 * result + testOutputDir.hashCode();
-        result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
-        return result;
+        return Objects.hashCode(sourceFolders, generatedSourceFolders, testSourceFolders, excludeFolders, inheritOutputDirs, jdkName, outputDir, testOutputDir, dependencies);
     }
 
     public static String getINHERITED() {

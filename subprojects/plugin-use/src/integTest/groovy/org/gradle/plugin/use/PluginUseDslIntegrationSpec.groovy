@@ -185,26 +185,28 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
         2          | "def a = null"                         | BASE_MESSAGE
         2          | "def a = id('foo')"                    | BASE_MESSAGE
         2          | "delegate.id('a')"                     | BASE_MESSAGE
-        2          | "id()"                                 | INVALID_ARGUMENT_LIST
-        2          | "id(1)"                                | INVALID_ARGUMENT_LIST
-        2          | "id(System.getProperty('foo'))"        | INVALID_ARGUMENT_LIST
-        2          | "id('a' + 'b')"                        | INVALID_ARGUMENT_LIST
-        2          | "id(\"\${'foo'}\")"                    | INVALID_ARGUMENT_LIST
+        2          | "id()"                                 | NEED_SINGLE_STRING
+        2          | "id(1)"                                | NEED_SINGLE_STRING
+        2          | "id(System.getProperty('foo'))"        | NEED_SINGLE_STRING
+        2          | "id('a' + 'b')"                        | NEED_SINGLE_STRING
+        2          | "id(\"\${'foo'}\")"                    | NEED_SINGLE_STRING
         2          | "version('foo')"                       | BASE_MESSAGE
-        2          | "id('foo').version(1)"                 | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' version 1"                   | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' bah '1'"                     | VERSION_MESSAGE
+        2          | "id('foo').version(1)"                 | NEED_SINGLE_STRING
+        2          | "id 'foo' version 1"                   | NEED_SINGLE_STRING
+        2          | "id 'foo' bah '1'"                     | EXTENDED_MESSAGE
         2          | "foo 'foo' version '1'"                | BASE_MESSAGE
         3          | "id('foo')\nfoo 'bar'"                 | BASE_MESSAGE
         2          | "if (true) id 'foo'"                   | BASE_MESSAGE
         2          | "id 'foo';version 'bar'"               | BASE_MESSAGE
-        2          | "id('foo').\"\${'version'}\" 'bar'"    | BASE_MESSAGE
+        2          | "apply false"                          | BASE_MESSAGE
+        2          | "id 'foo' apply"                       | BASE_MESSAGE
+        2          | "id 'foo' apply('foo')"                | NEED_SINGLE_BOOLEAN
         2          | "id ' '"                               | invalidPluginIdCharMessage(' ' as char)
         2          | "id '\$'"                              | invalidPluginIdCharMessage('$' as char)
-        2          | "id ''"                                | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' version ''"                  | INVALID_ARGUMENT_LIST
-        2          | "id null"                              | INVALID_ARGUMENT_LIST
-        2          | "id 'foo' version null"                | INVALID_ARGUMENT_LIST
+        2          | "id ''"                                | NEED_SINGLE_STRING
+        2          | "id 'foo' version ''"                  | NEED_SINGLE_STRING
+        2          | "id null"                              | NEED_SINGLE_STRING
+        2          | "id 'foo' version null"                | NEED_SINGLE_STRING
         2          | "id '.foo'"                            | ID_SEPARATOR_ON_START_OR_END
         2          | "id 'foo.'"                            | ID_SEPARATOR_ON_START_OR_END
         2          | "id '.'"                               | ID_SEPARATOR_ON_START_OR_END
@@ -233,6 +235,11 @@ class PluginUseDslIntegrationSpec extends AbstractIntegrationSpec {
                 "id('java')\nid('noop')",
                 "id('noop').version('bar');id('java')",
                 "id('noop').version('bar')\nid('java')",
+                "id 'noop' apply false",
+                "id('noop').apply(false)",
+                "id('noop').apply(false);id('java')",
+                "id 'noop' version 'bar' apply false",
+                "id('noop').version('bar').apply(false)",
         ]
     }
 }

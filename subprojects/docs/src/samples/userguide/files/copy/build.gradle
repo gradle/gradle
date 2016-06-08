@@ -51,8 +51,8 @@ task copyMethod << {
 // START SNIPPET copy-method-with-dependency
 task copyMethodWithExplicitDependencies{
     // up-to-date check for inputs, plus add copyTask as dependency
-    inputs.file copyTask
-    outputs.dir 'some-dir' // up-to-date check for outputs
+    inputs.includeFile copyTask
+    outputs.includeDir 'some-dir' // up-to-date check for outputs
     doLast{
         copy {
             // Copy the output of copyTask

@@ -16,13 +16,21 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.Iterators;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.rules.ChangeType;
+import org.gradle.api.internal.changedetection.rules.FileChange;
+import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.file.BufferedStreamingHasher;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
+import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.SerializerRegistry;
-import org.gradle.util.ChangeListener;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -32,6 +40,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Takes a snapshot of the output files of a task.
@@ -56,8 +66,8 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse) {
-        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, allowReuse));
+    public FileCollectionSnapshot.PreCheck preCheck(FileCollection files, boolean allowReuse) {
+        return new OutputFileCollectionSnapshotPreCheck(getRoots(files), snapshotter.preCheck(files, allowReuse));
     }
 
     private Map<String, Boolean> getRoots(FileCollection files) {
@@ -105,6 +115,11 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         return new OutputFilesSnapshot(getRoots(roots), filesSnapshot);
     }
 
+    @Override
+    public FileCollectionSnapshot snapshot(FileCollectionSnapshot.PreCheck preCheck) {
+        return new OutputFilesSnapshot(getRoots(preCheck.getFiles()), snapshotter.snapshot(preCheck));
+    }
+
     static class OutputFilesSnapshot implements FileCollectionSnapshot {
         final Map<String, Boolean> roots;
         final FileCollectionSnapshot filesSnapshot;
@@ -138,25 +153,14 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         @Override
-        public ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, Set<ChangeFilter> filters) {
+        public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType, Set<ChangeFilter> filters) {
             final OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
-            final ChangeIterator<String> rootFileIdIterator = iterateRootFileIdChanges(other);
-            final ChangeIterator<String> fileIterator = filesSnapshot.iterateContentChangesSince(other.filesSnapshot, filters);
-
-            return new ChangeIterator<String>() {
-                public boolean next(final ChangeListener<String> listener) {
-                    if (rootFileIdIterator.next(listener)) {
-                        return true;
-                    }
-                    if (fileIterator.next(listener)) {
-                        return true;
-                    }
-                    return false;
-                }
-            };
+            final Iterator<TaskStateChange> rootFileIdIterator = iterateRootFileIdChanges(other, fileType);
+            final Iterator<TaskStateChange> fileIterator = filesSnapshot.iterateContentChangesSince(other.filesSnapshot, fileType, filters);
+            return Iterators.concat(rootFileIdIterator, fileIterator);
         }
 
-        private ChangeIterator<String> iterateRootFileIdChanges(final OutputFilesSnapshot other) {
+        private Iterator<TaskStateChange> iterateRootFileIdChanges(final OutputFilesSnapshot other, final String fileType) {
             Map<String, Boolean> added = new HashMap<String, Boolean>(roots);
             added.keySet().removeAll(other.roots.keySet());
             final Iterator<String> addedIterator = added.keySet().iterator();
@@ -175,24 +179,77 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             }
             final Iterator<String> changedIterator = changed.iterator();
 
-            return new ChangeIterator<String>() {
-                public boolean next(ChangeListener<String> listener) {
+            return new AbstractIterator<TaskStateChange>() {
+                @Override
+                protected TaskStateChange computeNext() {
                     if (addedIterator.hasNext()) {
-                        listener.added(addedIterator.next());
-                        return true;
+                        return new FileChange(addedIterator.next(), ChangeType.ADDED, fileType);
                     }
                     if (removedIterator.hasNext()) {
-                        listener.removed(removedIterator.next());
-                        return true;
+                        return new FileChange(removedIterator.next(), ChangeType.REMOVED, fileType);
                     }
                     if (changedIterator.hasNext()) {
-                        listener.changed(changedIterator.next());
-                        return true;
+                        return new FileChange(changedIterator.next(), ChangeType.MODIFIED, fileType);
                     }
 
-                    return false;
+                    return endOfData();
                 }
             };
+        }
+    }
+
+    private static class OutputFileCollectionSnapshotPreCheck implements FileCollectionSnapshot.PreCheck {
+        private final Map<String, Boolean> roots;
+        private final FileCollectionSnapshot.PreCheck delegate;
+        private Integer hash;
+
+        public OutputFileCollectionSnapshotPreCheck(Map<String, Boolean> roots, FileCollectionSnapshot.PreCheck preCheck) {
+            this.roots = roots;
+            this.delegate = preCheck;
+        }
+
+        @Override
+        public Integer getHash() {
+            if (hash == null) {
+                hash = calculatePreCheckHash();
+            }
+            return hash;
+        }
+
+        private Integer calculatePreCheckHash() {
+            BufferedStreamingHasher hasher = new BufferedStreamingHasher();
+            Encoder encoder = hasher.getEncoder();
+            try {
+                encoder.writeInt(delegate.getHash());
+                SortedMap<String, Boolean> sortedRoots = new TreeMap<String, Boolean>(roots);
+                for (Map.Entry<String, Boolean> entry : sortedRoots.entrySet()) {
+                    encoder.writeString(entry.getKey());
+                    encoder.writeBoolean(entry.getValue());
+                }
+                return hasher.checksum();
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return delegate.getFiles();
+        }
+
+        @Override
+        public Collection<VisitedTree> getVisitedTrees() {
+            return delegate.getVisitedTrees();
+        }
+
+        @Override
+        public Collection<File> getMissingFiles() {
+            return delegate.getMissingFiles();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return delegate.isEmpty();
         }
     }
 }

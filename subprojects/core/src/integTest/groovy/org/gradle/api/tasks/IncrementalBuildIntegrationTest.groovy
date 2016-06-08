@@ -398,15 +398,15 @@ task b(type: DirTransformerTask) {
     public void canUseUpToDatePredicateToForceTaskToExecute() {
         testFile('build.gradle') << '''
 task inputsAndOutputs {
-    inputs.files 'src.txt'
-    outputs.file 'src.a.txt'
+    inputs.includeFiles 'src.txt'
+    outputs.includeFile 'src.a.txt'
     outputs.upToDateWhen { project.hasProperty('uptodate') }
     doFirst {
         outputs.files.singleFile.text = "[${inputs.files.singleFile.text}]"
     }
 }
 task noOutputs {
-    inputs.files 'src.txt'
+    inputs.includeFile 'src.txt'
     outputs.upToDateWhen { project.hasProperty('uptodate') }
     doFirst { }
 }

@@ -16,41 +16,40 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-public class InputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateChanges {
-    private final TaskExecution previous;
-    private final TaskExecution current;
-    private final FileCollectionSnapshot inputFilesSnapshot;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
+public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotter snapshotter) {
-        super(task.getName());
-        this.previous = previous;
-        this.current = current;
-        inputFilesSnapshot = createSnapshot(snapshotter, task.getInputs().getFiles());
+        super(task.getName(), previous, current, snapshotter, true, "Input", task.getInputs().getFileProperties());
     }
 
     @Override
-    public FileCollectionSnapshot getPrevious() {
+    protected Map<String, FileCollectionSnapshot> getPrevious() {
         return previous.getInputFilesSnapshot();
     }
 
     @Override
-    public FileCollectionSnapshot getCurrent() {
-        return inputFilesSnapshot;
+    protected HashCode getPreviousPreCheckHash() {
+        return previous.getInputFilesHash();
     }
 
     @Override
     public void saveCurrent() {
         // Inputs are considered to be unchanged during task execution
-        current.setInputFilesSnapshot(inputFilesSnapshot);
+        current.setInputFilesHash(getPreCheckHash());
+        current.setInputFilesSnapshot(getCurrent());
     }
 
     @Override
-    protected String getInputFileType() {
-        return "Input";
+    protected Set<FileCollectionSnapshot.ChangeFilter> getFileChangeFilters() {
+        return Collections.emptySet();
     }
 }
