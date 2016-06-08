@@ -30,7 +30,7 @@ class ArtifactRepositoryPluginResolverTest extends Specification {
     def resolver = new ArtifactRepositoryPluginResolver("maven", null, versionSelectorScheme);
 
     PluginRequest request(String id, String version = null) {
-        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
+        new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))
     }
 
     def "fail pluginRequests without versions"() {

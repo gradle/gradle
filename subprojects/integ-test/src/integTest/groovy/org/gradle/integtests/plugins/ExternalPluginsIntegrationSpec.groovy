@@ -14,20 +14,24 @@
  * limitations under the License.
  */
 
-package org.gradle.smoketests
+package org.gradle.integtests.plugins
 
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import spock.lang.Ignore
 
-import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+class ExternalPluginsIntegrationSpec extends AbstractIntegrationSpec {
+    def setup() {
+        executer.requireGradleDistribution()
+    }
 
-class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
-    @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
+    @Rule
+    final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def 'shadow plugin'() {
-        given:
-        buildFile << """
+        when:
+        buildScript """
             import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
 
             plugins {
@@ -53,17 +57,14 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             }
             """.stripIndent()
 
-        when:
-        def result = runner('shadowJar').build()
-
         then:
-        result.task(':shadowJar').outcome == SUCCESS
+        succeeds 'shadowJar'
     }
 
     def 'kotlin plugin'() {
-        given:
+        when:
         def kotlinVersion = '1.0.2'
-        buildFile << """
+        buildScript """
             buildscript {
                ext.kotlin_version = '$kotlinVersion'
 
@@ -85,7 +86,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             dependencies {
               compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
             }
-        """.stripIndent()
+        """
 
         file('src/main/kotlin/pkg/HelloWorld.kt') << """
         package pkg
@@ -101,18 +102,17 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         fun main(args: Array<String>) {
             println(getGreeting())
         }
-        """.stripIndent()
-
-        when:
-        def result = runner('build').build()
+        """
 
         then:
-        result.task(':compileKotlin').outcome == SUCCESS
+        executer.expectDeprecationWarning().withStackTraceChecksDisabled()
+        succeeds 'build'
     }
 
+    @Ignore
     def 'asciidoctor plugin'() {
         given:
-        buildFile << """
+        buildScript """
             buildscript {
                 repositories {
                     jcenter()
@@ -132,25 +132,23 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
 
             Rubies are red,
             Topazes are blue.
-            """.stripIndent()
+            """
 
-        when:
-        runner('asciidoc').build()
-
-        then:
+        expect:
+        succeeds 'asciidoc'
         file('build/asciidoc').isDirectory()
     }
 
     def 'docker plugin'() {
         given:
-        buildFile << """
+        buildScript """
             buildscript {
                 repositories {
                     jcenter()
                 }
 
                 dependencies {
-                    classpath 'com.bmuschko:gradle-docker-plugin:3.0.0'
+                    classpath 'com.bmuschko:gradle-docker-plugin:2.6.8'
                 }
             }
 
@@ -169,17 +167,14 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             }
             """.stripIndent()
 
-        when:
-        def result = runner(':dockerCopyDistResources').build()
-
-        then:
-        result.task(':dockerCopyDistResources').outcome == SUCCESS
+        expect:
+        succeeds 'dockerCopyDistResources'
     }
 
-    @Ignore("No service of type StyledTextOutputFactory available in ProjectScopeServices")
+    @Ignore
     def 'spring dependency management plugin'() {
         given:
-        buildFile << """
+        buildScript """
             plugins {
                 id "io.spring.dependency-management" version "0.5.6.RELEASE"
             }
@@ -204,7 +199,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             """.stripIndent()
 
         expect:
-        runner("dependencies", "--configuration", "compile").build()
+        succeeds "dependencies", "--configuration", "compile"
     }
 
     def 'tomcat plugin'() {
@@ -212,14 +207,14 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         def httpPort = portAllocator.assignPort()
         def httpsPort = portAllocator.assignPort()
         def stopPort = portAllocator.assignPort()
-        buildFile << """
+        buildScript """
             buildscript {
                 repositories {
                     jcenter()
                 }
 
                 dependencies {
-                    classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.5'
+                    classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.4'
                 }
             }
 
@@ -269,73 +264,6 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             """.stripIndent()
 
         expect:
-        runner('integrationTest').build()
-    }
-
-    def 'gosu plugin'() { // Requires JDK 8 or later
-        given:
-        buildFile << """
-            plugins {
-                id "org.gosu-lang.gosu" version "0.1.3"
-            }
-
-            apply plugin: "org.gosu-lang.gosu"
-
-            repositories {
-                mavenCentral()
-            }
-
-            dependencies {
-                compile group: 'org.gosu-lang.gosu', name: 'gosu-core-api', version: '1.10'
-            }
-            """.stripIndent()
-
-        file('src/main/gosu/example/Foo.gs') << """
-            package example
-
-            public class Foo {
-
-              function doSomething(arg : String) : String {
-                return "Hello, got the argument '\${arg}'"
-              }
-
-            }
-            """.stripIndent()
-
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':compileGosu').outcome == SUCCESS
-    }
-
-    def 'xtend plugin'() {
-        given:
-        buildFile << """
-            plugins {
-              id "org.xtext.xtend" version "1.0.5"
-            }
-
-            repositories.jcenter()
-
-            dependencies {
-              compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
-            }
-            """.stripIndent()
-
-        file('src/main/java/HelloWorld.xtend') << """
-            class HelloWorld {
-              def static void main(String[] args) {
-                println("Hello World")
-              }
-            }
-            """
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':generateXtext').outcome == SUCCESS
+        succeeds 'integrationTest'
     }
 }

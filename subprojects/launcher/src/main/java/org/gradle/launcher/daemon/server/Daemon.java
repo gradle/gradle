@@ -209,6 +209,9 @@ public class Daemon implements Stoppable {
         }
     }
 
+    /**
+     * Given a DaemonExpirationStrategy and a check interval, schedule periodic check and
+     */
     public void stopOnExpiration(DaemonExpirationStrategy expirationStrategy, int checkIntervalMills) {
         LOGGER.debug("stopOnExpiration() called on daemon");
         scheduleExpirationChecks(expirationStrategy, checkIntervalMills);

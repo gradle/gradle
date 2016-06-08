@@ -30,12 +30,12 @@ public class CompositeScopeServices {
         this.compositeServices = compositeServices;
     }
 
-    ProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext, GradleLauncherFactory  gradleLauncherFactory) {
-        return new CompositeProjectArtifactBuilder(compositeBuildContext, gradleLauncherFactory, startParameter, compositeServices);
+    ProjectArtifactBuilder createCompositeProjectArtifactBuilder(GradleLauncherFactory  gradleLauncherFactory) {
+        return new CompositeProjectArtifactBuilder(gradleLauncherFactory, startParameter, compositeServices);
     }
 
-    DependencySubstitutionRuleProvider createCompositeBuildDependencySubstitutions(CompositeBuildContext compositeBuildContext) {
-        return new CompositeBuildDependencySubstitutions(compositeBuildContext);
+    DependencySubstitutionRuleProvider createCompositeBuildDependencySubstitutions(CompositeBuildContext projectComponentRegistry) {
+        return new CompositeBuildDependencySubstitutions(projectComponentRegistry);
     }
 
 }

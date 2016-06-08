@@ -41,12 +41,16 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
         return InputDirectory.class;
     }
 
-    public boolean attachActions(final TaskPropertyActionContext context) {
+    public boolean attachActions(TaskPropertyActionContext context) {
         context.setValidationAction(inputDirValidation);
-        final boolean skipWhenEmpty = context.isAnnotationPresent(SkipWhenEmpty.class);
+        final boolean isSourceDir = context.getTarget().getAnnotation(SkipWhenEmpty.class) != null;
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().includeDir(futureValue).withPropertyName(context.getName()).skipWhenEmpty(skipWhenEmpty);
+                if (isSourceDir) {
+                    task.getInputs().sourceDir(futureValue);
+                } else {
+                    task.getInputs().dir(futureValue);
+                }
             }
         });
         return true;

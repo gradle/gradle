@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ear.descriptor.internal;
 
-import com.google.common.base.Objects;
 import org.gradle.plugins.ear.descriptor.EarSecurityRole;
 
 import javax.inject.Inject;
@@ -75,6 +74,12 @@ public class DefaultEarSecurityRole implements EarSecurityRole {
             return false;
         }
         DefaultEarSecurityRole that = (DefaultEarSecurityRole) o;
-        return Objects.equal(description, that.description) && Objects.equal(roleName, that.roleName);
+        if (!description.equals(that.description)) {
+            return false;
+        }
+        if (!roleName.equals(that.roleName)) {
+            return false;
+        }
+        return true;
     }
 }

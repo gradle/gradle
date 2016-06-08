@@ -152,7 +152,10 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(wbModuleEntries, deployName, contextPath);
+        int result;
+        result = wbModuleEntries.hashCode();
+        result = 31 * result + deployName.hashCode();
+        return result;
     }
 
     @Override

@@ -18,8 +18,6 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.rules.ChangeType
-import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.DefaultHasher
@@ -255,28 +253,17 @@ class OutputFilesCollectionSnapshotterTest extends Specification {
         0 * listener._
     }
 
-    private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
-        newSnapshot.iterateContentChangesSince(oldSnapshot, "TYPE", [] as Set).each { FileChange change ->
-            switch (change.type) {
-                case ChangeType.ADDED:
-                    listener.added(change.path)
-                    break;
-                case ChangeType.MODIFIED:
-                    listener.changed(change.path)
-                    break;
-                case ChangeType.REMOVED:
-                    listener.removed(change.path)
-                    break;
-            }
+    private void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
+        changes(newSnapshot.iterateContentChangesSince(oldSnapshot, [] as Set), listener)
+    }
+
+    private void changes(FileCollectionSnapshot.ChangeIterator<String> changes, ChangeListener<String> listener) {
+        while (changes.next(listener)) {
         }
     }
 
     private OutputFilesCollectionSnapshotter.OutputFilesSnapshot createInitialOutputSnapshot() {
         snapshotter.createOutputSnapshot(null, snapshotter.emptySnapshot(), createSnapshot(rootDir), files(rootDir))
-    }
-
-    private FileCollectionSnapshot snapshotFiles(File... filesToSnapshot) {
-        snapshotter.snapshot(snapshotter.preCheck(files(filesToSnapshot), false))
     }
 
     private void snapshotBeforeAndAfterTasks(Closure betweenTasksClosure, Closure taskActionClosure) {
@@ -296,15 +283,15 @@ class OutputFilesCollectionSnapshotterTest extends Specification {
         changes(target, previous, listener)
     }
 
-    private FileCollection files(File... files) {
+    private static FileCollection files(File... files) {
         new SimpleFileCollection(files)
     }
 
     private FileCollectionSnapshot createSnapshot(File dir) {
-        snapshotter.snapshot(snapshotter.preCheck(createFileCollection(dir), false))
+        snapshotter.snapshot(createFileCollection(dir), false)
     }
 
-    private FileCollection createFileCollection(File dir) {
+    private static FileCollection createFileCollection(File dir) {
         TestFiles.fileCollectionFactory().fixed("root", dir)
     }
 }

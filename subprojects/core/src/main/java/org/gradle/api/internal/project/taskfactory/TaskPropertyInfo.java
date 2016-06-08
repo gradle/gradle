@@ -16,18 +16,14 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Callable;
 
 public class TaskPropertyInfo implements TaskPropertyActionContext {
@@ -55,13 +51,11 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
     private final TaskPropertyInfo parent;
     private final String propertyName;
     private final Method method;
-    // Would be more correct as a Set, but lists are cheaper and duplicates don't actually cause any trouble here
-    private final List<Annotation> annotations = Lists.newLinkedList();
     private ValidationAction validationAction = NO_OP_VALIDATION_ACTION;
     private ValidationAction notNullValidator = NO_OP_VALIDATION_ACTION;
     private UpdateAction configureAction = NO_OP_CONFIGURATION_ACTION;
     private boolean validationRequired;
-    private Field instanceVariableField;
+    private final Field instanceVariableField;
 
     TaskPropertyInfo(TaskClassValidator validator, TaskPropertyInfo parent, String propertyName, Method method, Field instanceVariableField) {
         this.validator = validator;
@@ -86,31 +80,14 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
         return method.getReturnType();
     }
 
-    public Field getInstanceVariableField() {
-        return instanceVariableField;
-    }
-
-    public void setInstanceVariableField(Field instanceVariableField) {
-        this.instanceVariableField = instanceVariableField;
-    }
-
     @Override
     public Class<?> getInstanceVariableType() {
         return instanceVariableField != null ? instanceVariableField.getType() : null;
     }
 
-    public void addAnnotations(Annotation... annotations) {
-        Collections.addAll(this.annotations, annotations);
-    }
-
     @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        for (Annotation annotation : annotations) {
-            if (annotationType.isInstance(annotation)) {
-                return true;
-            }
-        }
-        return false;
+    public Method getTarget() {
+        return method;
     }
 
     @Override

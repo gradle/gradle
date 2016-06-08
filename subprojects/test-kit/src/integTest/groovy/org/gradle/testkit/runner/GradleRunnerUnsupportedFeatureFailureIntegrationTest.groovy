@@ -27,12 +27,12 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @NonCrossVersion
-@Requires(TestPrecondition.JDK8_OR_EARLIER)
 class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()
     private final PluginUnderTest plugin = new PluginUnderTest(file("pluginDir"))
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "fails informatively when trying to inspect executed tasks with unsupported gradle version"() {
         def maxUnsupportedVersion = getMaxUnsupportedVersion(TestKitFeature.CAPTURE_BUILD_RESULT_TASKS)
         def minSupportedVersion = TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since.version

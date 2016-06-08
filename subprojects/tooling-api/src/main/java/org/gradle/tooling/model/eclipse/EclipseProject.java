@@ -99,14 +99,4 @@ public interface EclipseProject extends HierarchicalEclipseProject {
      */
     @Incubating
     DomainObjectSet<? extends EclipseBuildCommand> getBuildCommands() throws UnsupportedMethodException;
-
-    /**
-     * Returns the Eclipse classpath containers defined on the project.
-     *
-     * @return the list of classpath containers.
-     * @since 3.0
-     * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
-     */
-    @Incubating
-    DomainObjectSet<? extends EclipseClasspathContainer> getClasspathContainers() throws UnsupportedMethodException;
 }

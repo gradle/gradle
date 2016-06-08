@@ -21,7 +21,6 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Region;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -169,14 +168,10 @@ public class S3Client {
     }
 
     private void configureClient(S3RegionalResource s3RegionalResource) {
-        Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
-        if (endpoint.isPresent()) {
-            amazonS3Client.setEndpoint(endpoint.get().toString());
+        if (s3ConnectionProperties.getEndpoint().isPresent()) {
+            amazonS3Client.setEndpoint(s3ConnectionProperties.getEndpoint().get().toString());
         } else {
-            Optional<Region> region = s3RegionalResource.getRegion();
-            if (region.isPresent()) {
-                amazonS3Client.setRegion(region.get());
-            }
+            amazonS3Client.setRegion(s3RegionalResource.getRegion());
         }
     }
 }

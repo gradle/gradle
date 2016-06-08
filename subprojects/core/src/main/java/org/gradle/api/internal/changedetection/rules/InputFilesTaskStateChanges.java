@@ -16,40 +16,41 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
+public class InputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateChanges {
+    private final TaskExecution previous;
+    private final TaskExecution current;
+    private final FileCollectionSnapshot inputFilesSnapshot;
 
-public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotter snapshotter) {
-        super(task.getName(), previous, current, snapshotter, true, "Input", task.getInputs().getFileProperties());
+        super(task.getName());
+        this.previous = previous;
+        this.current = current;
+        inputFilesSnapshot = createSnapshot(snapshotter, task.getInputs().getFiles());
     }
 
     @Override
-    protected Map<String, FileCollectionSnapshot> getPrevious() {
+    public FileCollectionSnapshot getPrevious() {
         return previous.getInputFilesSnapshot();
     }
 
     @Override
-    protected HashCode getPreviousPreCheckHash() {
-        return previous.getInputFilesHash();
+    public FileCollectionSnapshot getCurrent() {
+        return inputFilesSnapshot;
     }
 
     @Override
     public void saveCurrent() {
         // Inputs are considered to be unchanged during task execution
-        current.setInputFilesHash(getPreCheckHash());
-        current.setInputFilesSnapshot(getCurrent());
+        current.setInputFilesSnapshot(inputFilesSnapshot);
     }
 
     @Override
-    protected Set<FileCollectionSnapshot.ChangeFilter> getFileChangeFilters() {
-        return Collections.emptySet();
+    protected String getInputFileType() {
+        return "Input";
     }
 }

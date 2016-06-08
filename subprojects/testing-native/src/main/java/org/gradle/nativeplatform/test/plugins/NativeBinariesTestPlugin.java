@@ -80,7 +80,7 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             NativeTestSuiteBinarySpec.TasksCollection tasks = testSuiteBinary.getTasks();
             InstallExecutable installTask = (InstallExecutable) tasks.getInstall();
             RunTestExecutable runTask = (RunTestExecutable) tasks.getRun();
-            runTask.getInputs().includeFiles(installTask.getOutputs().getFiles()).withPropertyName("installTask.outputs");
+            runTask.getInputs().files(installTask.getOutputs().getFiles());
             runTask.setExecutable(installTask.getRunScript().getPath());
             Project project = runTask.getProject();
             runTask.setOutputDir(namingScheme.getOutputDirectory(project.getBuildDir(), "test-results"));

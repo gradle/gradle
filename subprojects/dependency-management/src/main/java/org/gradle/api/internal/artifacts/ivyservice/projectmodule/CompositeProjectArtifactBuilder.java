@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -36,18 +35,15 @@ import java.util.List;
 import java.util.Set;
 
 public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
-    private final CompositeBuildContext compositeBuildContext;
     private final GradleLauncherFactory gradleLauncherFactory;
     private final StartParameter requestedStartParameter;
     private final ServiceRegistry serviceRegistry;
     private final Set<ProjectComponentIdentifier> executingProjects = Sets.newHashSet();
     private final Multimap<ProjectComponentIdentifier, String> executedTasks = LinkedHashMultimap.create();
 
-    public CompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext,
-                                           GradleLauncherFactory gradleLauncherFactory,
+    public CompositeProjectArtifactBuilder(GradleLauncherFactory gradleLauncherFactory,
                                            StartParameter requestedStartParameter,
                                            ServiceRegistry serviceRegistry) {
-        this.compositeBuildContext = compositeBuildContext;
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.requestedStartParameter = requestedStartParameter;
         this.serviceRegistry = serviceRegistry;
@@ -68,26 +64,24 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     public void build(ComponentArtifactMetadata artifact) {
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata artifactMetaData = (CompositeProjectComponentArtifactMetadata) artifact;
-            build(artifactMetaData.getComponentId(), artifactMetaData.getTasks());
+            build(artifactMetaData.getComponentId(), artifactMetaData.getRootDirectory(), artifactMetaData.getTasks());
         }
     }
 
-    private void build(ProjectComponentIdentifier project, Iterable<String> taskNames) {
+    private void build(ProjectComponentIdentifier project, File buildDirectory, Iterable<String> taskNames) {
         buildStarted(project);
         try {
-            doBuild(project, taskNames);
+            doBuild(project, buildDirectory, taskNames);
         } finally {
             buildCompleted(project);
         }
     }
 
-    private void doBuild(ProjectComponentIdentifier project, Iterable<String> taskPaths) {
-        // TODO:DAZ This is actually the project directory, not the build dir. Doesn't matter if the tasks are fully qualified.
-        File buildDirectory = determineBuildDirectory(project);
+    private void doBuild(ProjectComponentIdentifier project, File buildDirectory, Iterable<String> taskNames) {
         List<String> tasksToExecute = Lists.newArrayList();
-        for (String taskPath : taskPaths) {
-            if (executedTasks.put(project, taskPath)) {
-                tasksToExecute.add(taskPath);
+        for (String taskName : taskNames) {
+            if (executedTasks.put(project, taskName)) {
+                tasksToExecute.add(taskName);
             }
         }
         if (tasksToExecute.isEmpty()) {
@@ -104,13 +98,5 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
         } finally {
             launcher.stop();
         }
-    }
-
-    private File determineBuildDirectory(ProjectComponentIdentifier project) {
-        // TODO:DAZ There are too many places that this sort of thing is required
-        String buildName = project.getProjectPath().split("::", 2)[0];
-        ProjectComponentIdentifier rootProjectIdentifier = DefaultProjectComponentIdentifier.newId(buildName + "::");
-
-        return compositeBuildContext.getProjectDirectory(rootProjectIdentifier);
     }
 }

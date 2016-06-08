@@ -24,7 +24,6 @@ import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl
 import org.gradle.api.reporting.Reporting
 import org.gradle.api.resources.TextResource
-import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
@@ -138,7 +137,7 @@ class Checkstyle extends SourceTask implements VerificationTask, Reporting<Check
     /**
      * Whether or not rule violations are to be displayed on the console.
      */
-    @Console
+    @Input
     boolean showViolations = true
 
     @CompileStatic(TypeCheckingMode.SKIP)

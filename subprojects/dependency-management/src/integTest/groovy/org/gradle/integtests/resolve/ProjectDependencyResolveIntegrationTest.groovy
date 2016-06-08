@@ -350,7 +350,7 @@ project(":b") {
     configurations { compile }
     dependencies { compile(project(':a')) { artifact { name = 'y'; type = 'jar' } } }
     task test {
-        inputs.includeFiles configurations.compile
+        inputs.files configurations.compile
         doFirst {
             assert configurations.compile.files.collect { it.name } == ['y.jar', 'externalA-1.5.jar']
         }
@@ -382,7 +382,7 @@ project(":b") {
     configurations { compile }
     dependencies { compile(project(':a')) { artifact { name = 'b'; type = 'jar' } } }
     task test {
-        inputs.includeFiles configurations.compile
+        inputs.files configurations.compile
         doFirst {
             assert configurations.compile.files.collect { it.name } == ['a-b.jar', 'externalA-1.5.jar']
         }

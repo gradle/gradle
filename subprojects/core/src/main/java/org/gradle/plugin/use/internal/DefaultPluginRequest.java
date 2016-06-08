@@ -23,26 +23,24 @@ public class DefaultPluginRequest implements PluginRequest {
 
     private final PluginId id;
     private final String version;
-    private final boolean apply;
     private final int lineNumber;
     private final String scriptDisplayName;
 
-    public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(PluginId.of(id), version, apply, lineNumber, scriptSource);
+    public DefaultPluginRequest(String id, String version, int lineNumber, ScriptSource scriptSource) {
+        this(PluginId.of(id), version, lineNumber, scriptSource);
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, ScriptSource scriptSource) {
-        this(id, version, apply, lineNumber, scriptSource.getDisplayName());
+    public DefaultPluginRequest(PluginId id, String version, int lineNumber, ScriptSource scriptSource) {
+        this(id, version, lineNumber, scriptSource.getDisplayName());
     }
 
-    public DefaultPluginRequest(String id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
-        this(PluginId.of(id), version, apply, lineNumber, scriptDisplayName);
+    public DefaultPluginRequest(String id, String version, int lineNumber, String scriptDisplayName) {
+        this(PluginId.of(id), version, lineNumber, scriptDisplayName);
     }
 
-    public DefaultPluginRequest(PluginId id, String version, boolean apply, int lineNumber, String scriptDisplayName) {
+    public DefaultPluginRequest(PluginId id, String version, int lineNumber, String scriptDisplayName) {
         this.id = id;
         this.version = version;
-        this.apply = apply;
         this.lineNumber = lineNumber;
         this.scriptDisplayName = scriptDisplayName;
     }
@@ -55,10 +53,6 @@ public class DefaultPluginRequest implements PluginRequest {
         return version;
     }
 
-    public boolean isApply() {
-        return apply;
-    }
-
     public int getLineNumber() {
         return lineNumber;
     }
@@ -69,16 +63,11 @@ public class DefaultPluginRequest implements PluginRequest {
 
     @Override
     public String toString() {
-        StringBuilder b = new StringBuilder();
-        b.append("[id: '").append(id).append("'");
-        if (version != null) {
-            b.append(", version: '").append(version).append("'");
+        if (version == null) {
+            return String.format("[id: '%s']", id);
+        } else {
+            return String.format("[id: '%s', version: '%s']", id, version);
         }
-        if (!apply) {
-            b.append(", apply: false");
-        }
-        b.append("]");
-        return b.toString();
     }
 
     public String getDisplayName() {
@@ -96,21 +85,22 @@ public class DefaultPluginRequest implements PluginRequest {
 
         DefaultPluginRequest that = (DefaultPluginRequest) o;
 
-        if (apply != that.apply) {
-            return false;
-        }
         if (!id.equals(that.id)) {
             return false;
         }
-        return version != null ? version.equals(that.version) : that.version == null;
+        if (version != null ? !version.equals(that.version) : that.version != null) {
+            return false;
+        }
 
+        return true;
     }
 
     @Override
     public int hashCode() {
         int result = id.hashCode();
         result = 31 * result + (version != null ? version.hashCode() : 0);
-        result = 31 * result + (apply ? 1 : 0);
         return result;
     }
+
+
 }

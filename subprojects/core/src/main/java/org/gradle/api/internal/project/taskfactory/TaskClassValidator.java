@@ -37,6 +37,7 @@ import org.gradle.internal.reflect.Types;
 
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.AnnotatedElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -115,7 +116,6 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
     }
 
     public <T> void attachActions(final TaskPropertyInfo parent, Class<T> type) {
-        final Map<String, TaskPropertyInfo> properties = Maps.newHashMap();
         Types.walkTypeHierarchy(type, IGNORED_SUPER_CLASSES, new Types.TypeVisitor<T>() {
             @Override
             public void visitType(Class<? super T> type) {
@@ -130,35 +130,21 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
                     Field field = fields.get(fieldName);
                     String propertyName = parent != null ? parent.getName() + '.' + fieldName : fieldName;
 
-                    TaskPropertyInfo propertyInfo = properties.get(propertyName);
-                    if (propertyInfo == null) {
-                        propertyInfo = new TaskPropertyInfo(TaskClassValidator.this, parent, propertyName, method, field);
-                        properties.put(propertyName, propertyInfo);
-                    } else {
-                        if (propertyInfo.getInstanceVariableField() == null && field != null) {
-                            propertyInfo.setInstanceVariableField(field);
-                        }
+                    TaskPropertyInfo propertyInfo = new TaskPropertyInfo(TaskClassValidator.this, parent, propertyName, method, field);
+
+                    boolean annotationFound = attachValidationActions(propertyInfo, field);
+
+                    if (propertyInfo.isValidationRequired()) {
+                        validatedProperties.add(propertyInfo);
                     }
-                    propertyInfo.addAnnotations(method.getDeclaredAnnotations());
-                    if (field != null) {
-                        propertyInfo.addAnnotations(field.getDeclaredAnnotations());
+
+                    allPropertyNames.add(propertyName);
+                    if (annotationFound) {
+                        annotatedPropertyNames.add(propertyName);
                     }
                 }
             }
         });
-        for (TaskPropertyInfo propertyInfo : properties.values()) {
-            boolean annotationFound = attachValidationActions(propertyInfo);
-
-            if (propertyInfo.isValidationRequired()) {
-                validatedProperties.add(propertyInfo);
-            }
-
-            String propertyName = propertyInfo.getName();
-            allPropertyNames.add(propertyName);
-            if (annotationFound) {
-                annotatedPropertyNames.add(propertyName);
-            }
-        }
     }
 
     public boolean hasAnythingToValidate() {
@@ -181,22 +167,29 @@ public class TaskClassValidator implements TaskValidator, Action<Task> {
         return fields;
     }
 
-    private boolean attachValidationActions(TaskPropertyInfo propertyInfo) {
+    private boolean attachValidationActions(TaskPropertyInfo propertyInfo, Field field) {
+        final Method method = propertyInfo.getTarget();
         boolean annotationFound = false;
         for (PropertyAnnotationHandler handler : HANDLERS) {
-            annotationFound |= attachValidationAction(handler, propertyInfo);
+            annotationFound |= attachValidationAction(handler, propertyInfo, method, field);
         }
         return annotationFound;
     }
 
-    private boolean attachValidationAction(PropertyAnnotationHandler handler, TaskPropertyInfo propertyInfo) {
+    private boolean attachValidationAction(PropertyAnnotationHandler handler, TaskPropertyInfo propertyInfo, Method method, Field field) {
         Class<? extends Annotation> annotationType = handler.getAnnotationType();
 
-        if (!propertyInfo.isAnnotationPresent(annotationType)) {
+        AnnotatedElement annotationTarget = null;
+        if (method.getAnnotation(annotationType) != null) {
+            annotationTarget = method;
+        } else if (field != null && field.getAnnotation(annotationType) != null) {
+            annotationTarget = field;
+        }
+        if (annotationTarget == null) {
             return false;
         }
 
-        if (handler.getMustNotBeNullByDefault() && !propertyInfo.isAnnotationPresent(Optional.class)) {
+        if (handler.getMustNotBeNullByDefault() && !annotationTarget.isAnnotationPresent(Optional.class)) {
             propertyInfo.setNotNullValidator(NOT_NULL_VALIDATOR);
         }
 

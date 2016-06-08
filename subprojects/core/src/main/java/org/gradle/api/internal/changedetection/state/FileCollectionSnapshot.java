@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.util.ChangeListener;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,7 +38,7 @@ public interface FileCollectionSnapshot {
      *
      * <p>Note: Ignores changes to file meta-data, such as last modified time. This should be made a {@link ChangeFilter} at some point.
      */
-    Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String title, Set<ChangeFilter> filters);
+    ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, Set<ChangeFilter> filters);
 
     Collection<File> getFiles();
 
@@ -49,16 +46,8 @@ public interface FileCollectionSnapshot {
 
     FilesSnapshotSet getSnapshot();
 
-    interface PreCheck {
-        Integer getHash();
-
-        FileCollection getFiles();
-
-        Collection<VisitedTree> getVisitedTrees();
-
-        Collection<File> getMissingFiles();
-
-        boolean isEmpty();
+    interface ChangeIterator<T> {
+        boolean next(ChangeListener<T> listener);
     }
 
     Collection<Long> getTreeSnapshotIds();

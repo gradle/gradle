@@ -60,15 +60,14 @@ public class OutputDirectoriesPropertyAnnotationHandler extends AbstractOutputDi
     }
 
     @Override
-    protected void update(final TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
+    protected void update(TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
         task.getOutputs().configure(new Action<TaskOutputs>() {
             @Override
             public void execute(TaskOutputs taskOutputs) {
                 Iterable<File> directories = uncheckedCast(uncheckedCall(futureValue));
                 if (directories != null) {
-                    int counter = 0;
                     for (File directory : directories) {
-                        taskOutputs.includeDir(directory).withPropertyName(context.getName() + "$" + (++counter));
+                        taskOutputs.dir(directory);
                     }
                 }
             }

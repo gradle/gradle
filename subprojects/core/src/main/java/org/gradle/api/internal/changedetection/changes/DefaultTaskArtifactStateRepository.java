@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -25,7 +24,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChanges;
 import org.gradle.api.internal.changedetection.rules.TaskUpToDateState;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
@@ -35,7 +33,6 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.io.File;
 import java.util.Collection;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -116,11 +113,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         public FileCollection getOutputFiles() {
             TaskExecution lastExecution = history.getPreviousExecution();
             if (lastExecution != null && lastExecution.getOutputFilesSnapshot() != null) {
-                ImmutableSet.Builder<File> builder = ImmutableSet.builder();
-                for (FileCollectionSnapshot snapshot : lastExecution.getOutputFilesSnapshot().values()) {
-                    builder.addAll(snapshot.getFiles());
-                }
-                return fileCollectionFactory.fixed("Task " + task.getPath() + " outputs", builder.build());
+                return fileCollectionFactory.fixed("Task " + task.getPath() + " outputs", lastExecution.getOutputFilesSnapshot().getFiles());
             } else {
                 return fileCollectionFactory.empty("Task " + task.getPath() + " outputs");
             }
@@ -131,7 +124,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public void beforeTask() {
-            getStates().getAllTaskChanges().snapshotBeforeTask();
         }
 
         public void afterTask() {
@@ -146,8 +138,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             history.update();
         }
 
-        public void finished(boolean wasUpToDate) {
-            history.finished(wasUpToDate);
+        public void finished() {
         }
 
         private TaskUpToDateState getStates() {

@@ -19,7 +19,6 @@ package org.gradle.internal.resource.transport.aws.s3;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.regions.Regions;
-import com.google.common.base.Optional;
 
 import java.net.URI;
 import java.util.regex.Matcher;
@@ -30,7 +29,7 @@ public class S3RegionalResource {
     private static final Region DEFAULT_REGION = Region.getRegion(Regions.US_EAST_1);
 
     private final URI uri;
-    private Optional<Region> region;
+    private Region region;
     private String bucketName;
     private String key;
 
@@ -39,7 +38,7 @@ public class S3RegionalResource {
         configure();
     }
 
-    public Optional<Region> getRegion() {
+    public Region getRegion() {
         return region;
     }
 
@@ -65,11 +64,11 @@ public class S3RegionalResource {
                 derivedRegion = RegionUtils.getRegion(region);
             }
 
-            this.region = Optional.of(derivedRegion);
+            this.region = derivedRegion;
             this.bucketName = bucketName;
             this.key = key;
         } else {
-            this.region = Optional.absent();
+            this.region = DEFAULT_REGION;
             this.bucketName = getBucketName(uri.getHost());
             this.key = getS3BucketKey(uri);
         }

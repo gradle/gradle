@@ -214,8 +214,6 @@ idea {
                 "-DintegTest.libsRepo=${rootProject.file('build/repo').absolutePath}",
                 "-Dorg.gradle.integtest.daemon.registry=${rootProject.file('build/daemon').absolutePath}",
                 "-DintegTest.distsDir=${rootProject.distsDir.absolutePath}",
-                "-DsmokeTest.gradleHomeDir=${rootProject.intTestImage.destinationDir.absolutePath}",
-                "-DsmokeTest.gradleUserHomeDir=${rootProject.file('intTestHomeDir').absolutePath}",
                 "-Dorg.gradle.integtest.executer=embedded",
                 "-Dorg.gradle.integtest.versions=latest",
                 "-ea",

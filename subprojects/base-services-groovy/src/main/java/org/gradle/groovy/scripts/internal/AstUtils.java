@@ -198,23 +198,18 @@ public abstract class AstUtils {
         });
     }
 
-    public static boolean isOfType(ConstantExpression constantExpression, Class<?> type) {
-        return constantExpression.getType().getName().equals(type.getName());
+    public static boolean isString(ConstantExpression constantExpression) {
+        return constantExpression.getType().getName().equals(String.class.getName());
     }
 
     @Nullable
     public static ConstantExpression hasSingleConstantStringArg(MethodCallExpression call) {
-        return hasSingleConstantArgOfType(call, String.class);
-    }
-
-    @Nullable
-    public static ConstantExpression hasSingleConstantArgOfType(MethodCallExpression call, Class<?> type) {
         ArgumentListExpression argumentList = (ArgumentListExpression) call.getArguments();
         if (argumentList.getExpressions().size() == 1) {
             Expression argumentExpression = argumentList.getExpressions().get(0);
             if (argumentExpression instanceof ConstantExpression) {
                 ConstantExpression constantArgumentExpression = (ConstantExpression) argumentExpression;
-                if (isOfType(constantArgumentExpression, type)) {
+                if (isString(constantArgumentExpression)) {
                     return constantArgumentExpression;
                 }
             }

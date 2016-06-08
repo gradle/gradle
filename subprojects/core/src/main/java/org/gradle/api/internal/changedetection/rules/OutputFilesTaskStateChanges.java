@@ -16,77 +16,64 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.hash.HashCode;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot.ChangeFilter;
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.tasks.TaskFilePropertySpecInternal;
 
 import java.util.EnumSet;
-import java.util.Map;
-import java.util.Set;
 
-public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    private static final EnumSet<ChangeFilter> IGNORE_ADDED_FILES = EnumSet.of(ChangeFilter.IgnoreAddedFiles);
+public class OutputFilesTaskStateChanges extends AbstractFileSnapshotTaskStateChanges {
+    private final TaskExecution previousExecution;
+    private final TaskExecution currentExecution;
+    private final TaskInternal task;
+    private final OutputFilesCollectionSnapshotter outputFilesSnapshotter;
+    private final FileCollectionSnapshot outputFilesBefore;
 
-    public OutputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, OutputFilesCollectionSnapshotter snapshotter) {
-        super(task.getName(), previous, current, snapshotter, false, "Output", task.getOutputs().getFileProperties());
+    public OutputFilesTaskStateChanges(TaskExecution previousExecution, TaskExecution currentExecution, TaskInternal task, OutputFilesCollectionSnapshotter outputFilesSnapshotter) {
+        super(task.getName());
+        this.previousExecution = previousExecution;
+        this.currentExecution = currentExecution;
+        this.task = task;
+        this.outputFilesSnapshotter = outputFilesSnapshotter;
+        this.outputFilesBefore = createSnapshot(outputFilesSnapshotter, task.getOutputs().getFiles());
     }
 
     @Override
-    public Map<String, FileCollectionSnapshot> getPrevious() {
-        return previous.getOutputFilesSnapshot();
+    protected String getInputFileType() {
+        return "Output";
     }
 
     @Override
-    protected HashCode getPreviousPreCheckHash() {
-        return previous.getOutputFilesHash();
+    public FileCollectionSnapshot getPrevious() {
+        return previousExecution.getOutputFilesSnapshot();
     }
 
     @Override
-    protected Set<ChangeFilter> getFileChangeFilters() {
-        return IGNORE_ADDED_FILES;
+    public FileCollectionSnapshot getCurrent() {
+        return outputFilesBefore;
+    }
+
+    @Override
+    protected FileCollectionSnapshot.ChangeIterator<String> getChanges() {
+        return getCurrent().iterateContentChangesSince(getPrevious(), EnumSet.of(FileCollectionSnapshot.ChangeFilter.IgnoreAddedFiles));
     }
 
     @Override
     public void saveCurrent() {
-        PreCheckSet outputFilesAfterPreCheck = buildPreCheckSet();
-        Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(outputFilesAfterPreCheck);
-
-        ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
-        for (TaskFilePropertySpecInternal propertySpec : fileProperties) {
-            String propertyName = propertySpec.getPropertyName();
-            FileCollection roots = propertySpec.getFiles();
-            FileCollectionSnapshot beforeExecution = getCurrent().get(propertyName);
-            FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
-            FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-            FileCollectionSnapshot outputSnapshot = getSnapshotter().createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution, roots);
-            builder.put(propertyName, outputSnapshot);
+        FileCollectionSnapshot lastExecutionOutputFiles;
+        if (previousExecution == null || previousExecution.getOutputFilesSnapshot() == null) {
+            lastExecutionOutputFiles = outputFilesSnapshotter.emptySnapshot();
+        } else {
+            lastExecutionOutputFiles = previousExecution.getOutputFilesSnapshot();
         }
 
-        current.setOutputFilesSnapshot(builder.build());
-        current.setOutputFilesHash(outputFilesAfterPreCheck.getHash());
-    }
-
-    private FileCollectionSnapshot getSnapshotAfterPreviousExecution(String propertyName) {
-        if (previous != null) {
-            Map<String, FileCollectionSnapshot> previousSnapshots = previous.getOutputFilesSnapshot();
-            if (previousSnapshots != null) {
-                FileCollectionSnapshot afterPreviousExecution = previousSnapshots.get(propertyName);
-                if (afterPreviousExecution != null) {
-                    return afterPreviousExecution;
-                }
-            }
-        }
-        return getSnapshotter().emptySnapshot();
+        FileCollectionSnapshot outputFilesAfter = createSnapshot(outputFilesSnapshotter, task.getOutputs().getFiles());
+        currentExecution.setOutputFilesSnapshot(outputFilesSnapshotter.createOutputSnapshot(lastExecutionOutputFiles, outputFilesBefore, outputFilesAfter, task.getOutputs().getFiles()));
     }
 
     @Override
-    protected OutputFilesCollectionSnapshotter getSnapshotter() {
-        return (OutputFilesCollectionSnapshotter) super.getSnapshotter();
+    protected boolean isAllowSnapshotReuse() {
+        return false;
     }
 }

@@ -21,9 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 
 import java.beans.PropertyChangeEvent;
-import java.util.concurrent.Callable;
-
-import static org.gradle.util.GUtil.uncheckedCall;
 
 public class TaskMutator {
     private final TaskInternal task;
@@ -38,13 +35,6 @@ public class TaskMutator {
             throw new IllegalStateException(format(method));
         }
         action.run();
-    }
-
-    public <T> T mutate(String method, Callable<T> action) {
-        if (!task.getState().isConfigurable()) {
-            throw new IllegalStateException(format(method));
-        }
-        return uncheckedCall(action);
     }
 
     public void assertMutable(String listname, PropertyChangeEvent evt) {

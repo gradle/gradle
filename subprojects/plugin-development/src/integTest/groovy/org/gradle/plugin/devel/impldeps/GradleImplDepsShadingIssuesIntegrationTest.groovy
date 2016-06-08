@@ -94,27 +94,4 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
         then:
         succeeds 'test'
     }
-
-    def "can initialize Xerces bridge"() {
-        when:
-        buildFile << testableGroovyProject()
-
-        file('src/main/groovy/MyPlugin.groovy') << '''
-            import org.gradle.api.Plugin
-            import org.gradle.api.Project
-
-            class MyPlugin implements Plugin<Project> {
-
-                void apply(Project project) {
-                    Class xercesBridge = Class.forName('org.gradle.internal.impldep.org.cyberneko.html.xercesbridge.XercesBridge')
-                    assert xercesBridge.instance
-                }
-            }
-        '''
-        file('src/test/groovy/MyPluginTest.groovy') << pluginTest()
-
-        then:
-        succeeds 'test'
-
-    }
 }

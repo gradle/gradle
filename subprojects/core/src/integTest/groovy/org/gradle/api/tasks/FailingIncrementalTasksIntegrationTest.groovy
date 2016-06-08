@@ -23,7 +23,7 @@ class FailingIncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
     def "consecutively failing task has correct up-to-date status and failure"() {
         buildFile << """
             task foo {
-                outputs.includeFile("out.txt")
+                outputs.file("out.txt")
                 doLast {
                     if (project.file("out.txt").exists()) {
                         throw new RuntimeException("Boo!")

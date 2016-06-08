@@ -27,11 +27,15 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
         return InputFiles.class;
     }
 
-    public boolean attachActions(final TaskPropertyActionContext context) {
-        final boolean skipWhenEmpty = context.isAnnotationPresent(SkipWhenEmpty.class);
+    public boolean attachActions(TaskPropertyActionContext context) {
+        final boolean isSourceFiles = context.getTarget().getAnnotation(SkipWhenEmpty.class) != null;
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().includeFiles(futureValue).withPropertyName(context.getName()).skipWhenEmpty(skipWhenEmpty);
+                if (isSourceFiles) {
+                    task.getInputs().source(futureValue);
+                } else {
+                    task.getInputs().files(futureValue);
+                }
             }
         });
         return true;

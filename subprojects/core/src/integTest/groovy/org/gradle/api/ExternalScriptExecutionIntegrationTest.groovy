@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.matchers.UserAgentMatcher
 import org.gradle.util.GradleVersion
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 import org.junit.Test
 
@@ -36,6 +37,7 @@ public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationT
     public final HttpServer server = new HttpServer()
 
     @Test
+    @LeaksFileHandles
     public void executesExternalScriptAgainstAProjectWithCorrectEnvironment() {
         createExternalJar()
         createBuildSrc()
@@ -63,10 +65,6 @@ try {
     assert false: 'should fail'
 } catch (ClassNotFoundException e) {
     // expected
-} finally {
-    if (buildscript.classLoader instanceof Closeable) {
-        buildscript.classLoader.close()
-    }
 }
 
 task doStuff

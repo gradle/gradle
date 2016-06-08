@@ -58,8 +58,7 @@ class MinimalFileSetSnapshotterTest extends Specification {
         def collection = new SimpleFileCollection(included, missing, includedDirectory)
 
         when:
-        FileCollectionSnapshot.PreCheck preCheck = minimalFileSnapshotter.preCheck(collection, true)
-        snapshot = minimalFileSnapshotter.snapshot(preCheck)
+        snapshot = minimalFileSnapshotter.snapshot(collection, true)
 
         then:
         findSnapshot(included) instanceof FileHashSnapshot

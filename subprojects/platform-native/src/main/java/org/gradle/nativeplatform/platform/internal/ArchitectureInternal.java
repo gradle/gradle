@@ -15,21 +15,16 @@
  */
 package org.gradle.nativeplatform.platform.internal;
 
-import org.gradle.api.tasks.Internal;
 import org.gradle.nativeplatform.platform.Architecture;
 
 public interface ArchitectureInternal extends Architecture {
     enum InstructionSet { X86, ITANIUM, PPC, SPARC, ARM }
 
-    @Internal
     boolean isI386();
 
-    @Internal
     boolean isAmd64();
 
-    @Internal
     boolean isIa64();
 
-    @Internal
     boolean isArm();
 }

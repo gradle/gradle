@@ -1221,7 +1221,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse POM ${pomFile}"
-        e.cause.message.contains('"modelVersion"')
+        e.cause.message.contains('Element type "modelVersion"')
     }
 
 

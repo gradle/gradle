@@ -21,7 +21,6 @@ public class ${testClassName} {
             System.out.println("Some test output from ${testClassName}.testTwo - " + i);
             System.err.println("Some test error  from ${testClassName}.testTwo - " + i);
         }
-        String expected = <%= binding.hasVariable("halfTestsFail") && binding.halfTestsFail ? "\"foo\"" : "\"value\"" %>;
-        assertEquals(production.getProperty(), expected);
+        assertEquals(production.getProperty(), "value");
     }
 }

@@ -45,7 +45,6 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
     private List<DefaultEclipseProjectNature> projectNatures;
     private List<DefaultEclipseBuildCommand> buildCommands;
     private DefaultEclipseJavaSourceSettings javaSourceSettings;
-    private List<DefaultEclipseClasspathContainer> classpathContainers;
 
     public DefaultEclipseProject(String name, String path, String description, File projectDirectory, Iterable<? extends DefaultEclipseProject> children) {
         this.identifier = new DefaultEclipseProjectIdentifier(projectDirectory);
@@ -60,7 +59,6 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
         this.projectDependencies = Collections.emptyList();
         this.projectNatures = Collections.emptyList();
         this.buildCommands = Collections.emptyList();
-        this.classpathContainers = Collections.emptyList();
     }
 
     @Override
@@ -172,13 +170,5 @@ public class DefaultEclipseProject implements Serializable, GradleProjectIdentit
 
     public void setJavaSourceSettings(DefaultEclipseJavaSourceSettings javaSourceSettings) {
         this.javaSourceSettings = javaSourceSettings;
-    }
-
-    public List<DefaultEclipseClasspathContainer> getClasspathContainers() {
-        return classpathContainers;
-    }
-
-    public void setClasspathContainers(List<DefaultEclipseClasspathContainer> classpathContainers) {
-        this.classpathContainers = classpathContainers;
     }
 }

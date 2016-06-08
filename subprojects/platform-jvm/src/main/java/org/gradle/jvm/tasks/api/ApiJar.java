@@ -63,8 +63,9 @@ import static org.gradle.internal.IoActions.withResource;
  * {@link UnsupportedOperationException} in the unlikely event that they are present on
  * the classpath and invoked at runtime.</p>
  *
- * <p>The inputs to this task are Java class files which must be provided via
- * {@link org.gradle.api.tasks.TaskInputs}.</p>
+ * <p>The inputs to this task are Java class files which must be provided via one of the
+ * many {@link org.gradle.api.tasks.TaskInputs#sourceDir(Object)} and
+ * {@link org.gradle.api.tasks.TaskInputs#source(Object)} overloads.</p>
  *
  * @since 2.10
  * @see org.gradle.jvm.plugins.JvmComponentPlugin

@@ -179,17 +179,8 @@ public class Javadoc extends SourceTask {
      *
      * @return The directory.
      */
-    @Internal
-    public File getDestinationDir() {
-        return destinationDir;
-    }
-
     @OutputDirectory
-    protected File getOutputDirectory() {
-        File destinationDir = getDestinationDir();
-        if (destinationDir == null) {
-            destinationDir = options.getDestinationDirectory();
-        }
+    public File getDestinationDir() {
         return destinationDir;
     }
 

@@ -79,7 +79,6 @@ include 'platformPlay'
 include 'testKit'
 include 'installationBeacon'
 include 'soak'
-include 'smokeTest'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

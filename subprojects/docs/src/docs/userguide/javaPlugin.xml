@@ -1558,23 +1558,4 @@
         </para>
     </section>
 
-    <section id='sec:crosscompilation'>
-        <title>Cross compilation for Java 6</title>
-        <para>Gradle can only run on Java version 7 or higher but it is possible to compile and run tests for Java 6. In order
-            to do this you need to configure
-            <itemizedlist>
-                <listitem>the <literal>JavaCompile</literal> task to fork, use the correct <literal>javac</literal> executable and <literal>bootclasspath</literal></listitem>
-                <listitem>the <literal>Javadoc</literal> task to use the correct <literal>javadoc</literal> executable</listitem>
-                <listitem>the <literal>Test</literal> and the <literal>JavaExec</literal> task to use the correct <literal>java</literal> executable.</listitem>
-            </itemizedlist>
-            The following sample shows how the <literal>build.gradle</literal> needs to be adjusted. In order to be able to make the build machine
-            independent, the location of the Java 6 home should be configured in <literal>gradle.properties</literal> on each developer machine, as also shown in
-            the example.
-            <sample id="crosscompilation" dir="java/crossCompilation" title="Configure cross-compilation">
-                <sourcefile file="gradle.properties" />
-                <sourcefile file="build.gradle" snippet="cross-compilation" />
-            </sample>
-        </para>
-    </section>
-
 </chapter>

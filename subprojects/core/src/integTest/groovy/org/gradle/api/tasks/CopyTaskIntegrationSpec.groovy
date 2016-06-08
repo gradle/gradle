@@ -367,13 +367,13 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             configurations { compile }
             dependencies { compile files('a.jar') }
             task fileProducer {
-                outputs.includeFile 'build/out.txt'
+                outputs.file 'build/out.txt'
                 doLast {
                     file('build/out.txt').text = 'some content'
                 }
             }
             task dirProducer {
-                outputs.includeDir 'build/outdir'
+                outputs.dir 'build/outdir'
                 doLast {
                     file('build/outdir').mkdirs()
                     file('build/outdir/file1.txt').text = 'some content'
@@ -404,13 +404,13 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             configurations { compile }
             dependencies { compile files('a.jar') }
             task fileProducer {
-                outputs.includeFile 'build/out.txt'
+                outputs.file 'build/out.txt'
                 doLast {
                     file('build/out.txt').text = 'some content'
                 }
             }
             task dirProducer {
-                outputs.includeDir 'build/outdir'
+                outputs.dir 'build/outdir'
                 doLast {
                     file('build/outdir').mkdirs()
                     file('build/outdir/file1.txt').text = 'some content'

@@ -77,10 +77,6 @@ public class PropertiesToDaemonParametersConverter {
         if (daemonEnabledPropertyValue != null) {
             target.setEnabled(isTrue(daemonEnabledPropertyValue));
         }
-
-        final String debugEnabledPropertyValue = properties.get(DEBUG_MODE_PROPERTY);
-        if (debugEnabledPropertyValue != null) {
-            target.setDebug(isTrue(debugEnabledPropertyValue));
-        }
+        target.setDebug(isTrue(properties.get(DEBUG_MODE_PROPERTY)));
     }
 }

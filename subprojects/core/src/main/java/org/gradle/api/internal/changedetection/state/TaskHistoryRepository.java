@@ -26,7 +26,5 @@ public interface TaskHistoryRepository {
         TaskExecution getCurrentExecution();
 
         void update();
-
-        void finished(boolean wasUpToDate);
     }
 }

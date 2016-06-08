@@ -20,7 +20,7 @@ import org.gradle.api.tasks.incremental.InputFileDetails;
 
 import java.io.File;
 
-public class FileChange implements TaskStateChange, InputFileDetails {
+class FileChange implements TaskStateChange, InputFileDetails {
     private final String path;
     private final ChangeType change;
     private final String fileType;
@@ -46,10 +46,6 @@ public class FileChange implements TaskStateChange, InputFileDetails {
 
     public File getFile() {
         return new File(path);
-    }
-
-    public ChangeType getType() {
-        return change;
     }
 
     public boolean isAdded() {

@@ -71,7 +71,7 @@ public class CompositeBuildIdeProjectResolver {
     public File resolveArtifactFile(ProjectComponentIdentifier project, String type) {
         ComponentArtifactMetadata artifactMetaData = resolveArtifact(project, type);
         if (artifactMetaData == null) {
-            return null;
+            throw new IllegalArgumentException("No artifact registered for type: " + type);
         }
         for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
             artifactBuilder.build(artifactMetaData);

@@ -26,16 +26,11 @@ import org.gradle.api.internal.changedetection.state.FilesSnapshotSet
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.TaskFileInputPropertySpecInternal
-import org.gradle.api.internal.tasks.TaskFileOutputPropertySpecInternal
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Issue
 import spock.lang.Specification
 
 class TaskUpToDateStateTest extends Specification {
-    def mockInputs = Mock(TaskInputsInternal)
-    def mockOutputs = Mock(TaskOutputsInternal)
     private TaskInternal stubTask
     private TaskHistoryRepository.History stubHistory
     private OutputFilesCollectionSnapshotter stubOutputFileSnapshotter
@@ -45,10 +40,12 @@ class TaskUpToDateStateTest extends Specification {
     private classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
 
     def setup() {
+        def stubInputs = Stub(TaskInputsInternal)
+        def stubOutputs = Stub(TaskOutputsInternal)
         this.stubTask = Stub(TaskInternal) {
             _ * getName() >> { "testTask" }
-            _ * getInputs() >> mockInputs
-            _ * getOutputs() >> mockOutputs
+            _ * getInputs() >> stubInputs
+            _ * getOutputs() >> stubOutputs
         }
         this.stubHistory = Stub(TaskHistoryRepository.History)
         this.stubOutputFileSnapshotter = Stub(OutputFilesCollectionSnapshotter)
@@ -58,66 +55,33 @@ class TaskUpToDateStateTest extends Specification {
 
     def "constructor invokes snapshots" () {
         setup:
-        def mockInputProperty = Mock(TaskFileInputPropertySpecInternal) {
-            getPropertyName() >> "prop"
-            getFiles() >> {
-                new SimpleFileCollection(new File("a"))
-            }
-        }
-        def mockOutputProperty = Mock(TaskFileOutputPropertySpecInternal) {
-            getPropertyName() >> "out"
-            getFiles() >> {
-                new SimpleFileCollection(new File("b"))
-            }
-        }
         FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot) {
             _ * getSnapshot() >> Stub(FilesSnapshotSet)
         }
         OutputFilesCollectionSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         FileCollectionSnapshotter mockDiscoveredInputFileSnapshotter = Mock(FileCollectionSnapshotter)
-        FileCollectionSnapshot.PreCheck inputPreCheck = Mock(FileCollectionSnapshot.PreCheck)
-        FileCollectionSnapshot.PreCheck outputPreCheck = Mock(FileCollectionSnapshot.PreCheck)
+
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotter, mockDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
 
         then:
         noExceptionThrown()
-        1 * mockInputs.getProperties() >> [:]
-        1 * mockInputs.getFileProperties() >> [mockInputProperty]
-        1 * mockOutputs.getFileProperties() >> [mockOutputProperty]
-        1 * mockOutputFileSnapshotter.preCheck(_, _) >> outputPreCheck
-        1 * mockInputFileSnapshotter.preCheck(_, _) >> inputPreCheck
-        1 * inputPreCheck.getHash() >> 123
-        1 * outputPreCheck.getHash() >> 345
+        1 * mockOutputFileSnapshotter.snapshot(_, _)
+        1 * mockInputFileSnapshotter.snapshot(_, _) >> stubSnapshot
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when input snapshot throws UncheckedIOException" () {
         setup:
-        def mockInputProperty = Mock(TaskFileInputPropertySpecInternal) {
-            getPropertyName() >> "prop"
-            getFiles() >> {
-                new SimpleFileCollection(new File("a"))
-            }
-        }
-        def mockOutputProperty = Mock(TaskFileOutputPropertySpecInternal) {
-            getPropertyName() >> "out"
-            getFiles() >> {
-                new SimpleFileCollection(new File("b"))
-            }
-        }
         def cause = new UncheckedIOException("thrown from stub")
-        _ * stubInputFileSnapshotter.preCheck(_, _) >> { throw cause }
+        _ * stubInputFileSnapshotter.snapshot(_, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
 
         then:
-        1 * mockInputs.getProperties() >> [:]
-        1 * mockInputs.getFileProperties() >> [mockInputProperty]
-        1 * mockOutputs.getFileProperties() >> [mockOutputProperty]
         def e = thrown(UncheckedIOException)
         e.message.contains(stubTask.getName())
         e.message.contains("up-to-date")
@@ -128,21 +92,13 @@ class TaskUpToDateStateTest extends Specification {
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when output snapshot throws UncheckedIOException" () {
         setup:
-        def mockOutputProperty = Mock(TaskFileOutputPropertySpecInternal) {
-            getPropertyName() >> "out"
-            getFiles() >> {
-                new SimpleFileCollection(new File("b"))
-            }
-        }
         def cause = new UncheckedIOException("thrown from stub")
-         _ * stubOutputFileSnapshotter.preCheck(_, _) >> { throw cause }
+        _ * stubOutputFileSnapshotter.snapshot(_, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
 
         then:
-        1 * mockInputs.getProperties() >> [:]
-        1 * mockOutputs.getFileProperties() >> [mockOutputProperty]
         def e = thrown(UncheckedIOException)
         e.message.contains(stubTask.getName())
         e.message.contains("up-to-date")

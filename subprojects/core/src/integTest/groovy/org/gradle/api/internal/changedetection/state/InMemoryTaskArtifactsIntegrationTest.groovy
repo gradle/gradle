@@ -27,7 +27,7 @@ class InMemoryTaskArtifactsIntegrationTest extends DaemonIntegrationSpec {
 task someTask {
     inputs.property "someEnum", SomeEnum.E1
     def f = new File("build/e1")
-    outputs.includeDir f
+    outputs.dir f
     doLast {
         f.mkdirs()
     }

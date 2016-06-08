@@ -75,7 +75,7 @@ public interface TaskOutputs {
      * @param paths The output files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      *
-     * @deprecated Use {@link #includeFile(Object)} or {@link #includeDir(Object)} instead.
+     * @deprecated Use {@link #file(Object)} or {@link #dir(Object)} instead.
      */
     @Deprecated
     TaskOutputs files(Object... paths);
@@ -85,10 +85,7 @@ public interface TaskOutputs {
      *
      * @param path The output file. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
-     *
-     * @deprecated Use {@link #includeFile(Object)} instead.
      */
-    @Deprecated
     TaskOutputs file(Object path);
 
     /**
@@ -96,27 +93,8 @@ public interface TaskOutputs {
      *
      * @param path The output directory. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
-     *
-     * @deprecated Use {@link #includeDir(Object)} instead.
      */
-    @Deprecated
     TaskOutputs dir(Object path);
-
-    /**
-     * Registers some output file for this task.
-     *
-     * @param path The output file. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * @return this
-     */
-    TaskFileOutputPropertySpec includeFile(Object path);
-
-    /**
-     * Registers an output directory for this task.
-     *
-     * @param path The output directory. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * @return this
-     */
-    TaskFileOutputPropertySpec includeDir(Object path);
 
     /**
      * Executes the given configuration action on the {@code TaskOutputs}. The action is executed before the task is executed.

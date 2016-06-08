@@ -28,7 +28,6 @@ import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
 import org.gradle.plugins.ide.eclipse.model.BuildCommand;
 import org.gradle.plugins.ide.eclipse.model.Classpath;
 import org.gradle.plugins.ide.eclipse.model.ClasspathEntry;
-import org.gradle.plugins.ide.eclipse.model.Container;
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 import org.gradle.plugins.ide.eclipse.model.EclipseJdt;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
@@ -38,7 +37,6 @@ import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultClasspathAttribute;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseBuildCommand;
-import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseClasspathContainer;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseExternalDependency;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseJavaSourceSettings;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseLinkedResource;
@@ -164,7 +162,6 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         final List<DefaultEclipseExternalDependency> externalDependencies = new LinkedList<DefaultEclipseExternalDependency>();
         final List<DefaultEclipseProjectDependency> projectDependencies = new LinkedList<DefaultEclipseProjectDependency>();
         final List<DefaultEclipseSourceDirectory> sourceDirectories = new LinkedList<DefaultEclipseSourceDirectory>();
-        final List<DefaultEclipseClasspathContainer> classpathContainers = new LinkedList<DefaultEclipseClasspathContainer>();
 
         for (ClasspathEntry entry : classpathEntries) {
             //we don't handle Variables at the moment because users didn't request it yet
@@ -191,13 +188,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             } else if (entry instanceof SourceFolder) {
                 final SourceFolder sourceFolder = (SourceFolder) entry;
                 String path = sourceFolder.getPath();
-                List<String> excludes = sourceFolder.getExcludes();
-                List<String> includes = sourceFolder.getIncludes();
-                String output = sourceFolder.getOutput();
-                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, output, createAttributes(sourceFolder)));
-            } else if (entry instanceof Container) {
-                final Container container = (Container) entry;
-                classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(), createAttributes(container)));
+                sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir()));
             }
         }
 
@@ -237,8 +228,6 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 .setJdk(DefaultInstalledJdk.current())
             );
         }
-
-        eclipseProject.setClasspathContainers(classpathContainers);
 
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
