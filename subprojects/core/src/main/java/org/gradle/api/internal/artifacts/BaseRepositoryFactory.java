@@ -34,4 +34,6 @@ public interface BaseRepositoryFactory {
     IvyArtifactRepository createIvyRepository();
 
     MavenArtifactRepository createMavenRepository();
+
+    MavenArtifactRepository createGradlePluginPortalRepository();
 }
