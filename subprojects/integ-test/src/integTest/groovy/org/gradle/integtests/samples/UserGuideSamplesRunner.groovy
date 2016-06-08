@@ -253,11 +253,11 @@ class UserGuideSamplesRunner extends Runner {
             samplesByDir.get(it + '/crossCompilation')
         }
 
-        def java6jdks = AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_6)
-        if (java6jdks.empty || OperatingSystem.current().isWindows()) {
+        def java6jdk = AvailableJavaHomes.getJdk(JavaVersion.VERSION_1_6)
+        if (!java6jdk || OperatingSystem.current().isWindows()) {
             java6CrossCompilation*.expectFailure = true
         } else {
-            java6CrossCompilation*.args = ['build', "-Pjava6Home=${java6jdks.first().javaHome.absolutePath}"]
+            java6CrossCompilation*.args = ['build', "-Pjava6Home=${java6jdk.javaHome.absolutePath}"]
         }
 
         Map<String, SampleRun> samplesById = new TreeMap<String, SampleRun>()
