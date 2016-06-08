@@ -239,6 +239,7 @@ dependencies {
     runtime project(':wrapper')
     runtime project(":installationBeacon")
     runtime 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
+    gradlePlugins 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
