@@ -30,6 +30,7 @@ import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.SystemProperties
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.maven.M2Installation
@@ -253,7 +254,7 @@ class UserGuideSamplesRunner extends Runner {
         }
 
         def java6jdks = AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_6)
-        if (java6jdks.empty) {
+        if (java6jdks.empty || OperatingSystem.current().isWindows()) {
             java6CrossCompilation*.expectFailure = true
         } else {
             java6CrossCompilation*.args = ['build', "-Pjava6Home=${java6jdks.first().javaHome.absolutePath}"]
