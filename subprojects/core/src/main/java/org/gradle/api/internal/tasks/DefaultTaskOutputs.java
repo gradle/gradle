@@ -40,7 +40,7 @@ import java.util.Queue;
 import java.util.concurrent.Callable;
 
 public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs.PropertySpec> implements TaskOutputsInternal {
-    private static AndSpec<TaskInternal> EMPTY_AND_SPEC = new AndSpec<TaskInternal>();
+    private static final AndSpec<TaskInternal> EMPTY_AND_SPEC = new AndSpec<TaskInternal>();
 
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = EMPTY_AND_SPEC;
