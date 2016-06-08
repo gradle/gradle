@@ -698,6 +698,10 @@ performanceTestTasks.all {
     dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
     finalizedBy report
     maxParallelForks = 1
+
+    // Some performance builds generate a lot of output,
+    // that is buffered until the test finishes via GradleExecuter.
+    maxHeapSize "4g"
 }
 
 task largeJavaProjectWithBuildReceiptPlugin(type: JvmProjectGeneratorTask) {
