@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.java
+package org.gradle.groovy
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
@@ -26,9 +26,9 @@ import org.gradle.util.TextUtil
 import org.junit.Assume
 
 @TargetVersions(["1.6", "1.7", "1.8"])
-class ScalaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
+class GroovyCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
     JavaVersion getJavaVersion() {
-        JavaVersion.toVersion(version)
+        JavaVersion.toVersion(MultiVersionIntegrationSpec.version)
     }
 
     JavaInfo getTarget() {
@@ -41,18 +41,18 @@ class ScalaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
         def javac = TextUtil.escapeString(target.getExecutable("javac"))
 
         buildFile << """
-apply plugin: 'scala'
-sourceCompatibility = ${version}
-targetCompatibility = ${version}
+apply plugin: 'groovy'
+sourceCompatibility = ${MultiVersionIntegrationSpec.version}
+targetCompatibility = ${MultiVersionIntegrationSpec.version}
 repositories { mavenCentral() }
 
 dependencies {
-    compile 'org.scala-lang:scala-library:2.11.1'
+    compile 'org.codehaus.groovy:groovy-all:2.4.6'
 }
 
 tasks.withType(AbstractCompile) {
-sourceCompatibility = ${version}
-targetCompatibility = ${version}
+sourceCompatibility = ${MultiVersionIntegrationSpec.version}
+targetCompatibility = ${MultiVersionIntegrationSpec.version}
     options.with {
         fork = true
         forkOptions.executable = "$javac"
@@ -67,31 +67,28 @@ tasks.withType(JavaExec) {
 
 """
 
-        file("src/main/scala/Thing.java") << """
+        file("src/main/groovy/Thing.java") << """
 /** Some thing. */
 public class Thing { }
 """
 
-        file("src/main/scala/ScalaThing.scala") << """
-/** Some scala thing. */
-class ScalaThing { }
+        file("src/main/groovy/GroovyThing.groovy") << """
+/** Some groovy thing. */
+class GroovyThing { }
 """
     }
 
     def "can compile source and run JUnit tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testCompile 'junit:junit:4.12' }
+dependencies { testCompile 'org.spockframework:spock-core:1.0-groovy-2.4' }
 """
 
-        file("src/test/scala/ThingTest.scala") << """
-import _root_.org.junit.Test;
-import _root_.org.junit.Assert._;
-
-class ThingTest {
-    @Test
+        file("src/test/groovy/ThingSpec.groovy") << """
+class ThingSpec {
     def verify() {
-        assertTrue(System.getProperty("java.version").startsWith("${version}."))
+        expect:
+        System.getProperty("java.version").startsWith('${MultiVersionIntegrationSpec.version}.')
     }
 }
 """
@@ -99,9 +96,7 @@ class ThingTest {
         expect:
         succeeds 'test'
         new ClassFile(file("build/classes/main/Thing.class")).javaVersion == javaVersion
-
-        // The Scala 2.11 compiler only produces Java 6 bytecode
-        new ClassFile(file("build/classes/main/ScalaThing.class")).javaVersion == JavaVersion.VERSION_1_6
-        new ClassFile(file("build/classes/test/ThingTest.class")).javaVersion == JavaVersion.VERSION_1_6
+        new ClassFile(file("build/classes/main/GroovyThing.class")).javaVersion == javaVersion
+        new ClassFile(file("build/classes/test/ThingSpec.class")).javaVersion == javaVersion
     }
 }
