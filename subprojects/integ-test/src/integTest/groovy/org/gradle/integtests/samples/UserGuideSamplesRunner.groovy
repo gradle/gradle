@@ -14,14 +14,21 @@
  * limitations under the License.
  */
 package org.gradle.integtests.samples
+
 import com.google.common.collect.ArrayListMultimap
 import groovy.io.PlatformLineWriter
 import org.apache.tools.ant.taskdefs.Delete
+import org.gradle.api.JavaVersion
 import org.gradle.api.Transformer
 import org.gradle.api.reporting.components.JvmComponentReportOutputFormatter
 import org.gradle.api.reporting.components.NativeComponentReportOutputFormatter
 import org.gradle.api.reporting.components.PlayComponentReportOutputFormatter
-import org.gradle.integtests.fixtures.executer.*
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -238,9 +245,17 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/buildlifecycle/taskExecutionEvents')*.expectFailure = true
         samplesByDir.get('userguide/buildlifecycle/buildProjectEvaluateEvents')*.expectFailure = true
         samplesByDir.get('userguide/tasks/finalizersWithFailure')*.expectFailure = true
-        samplesByDir.get('java/crossCompilation')*.expectFailure = true
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
+
+        def javaCrossCompilation = samplesByDir.get('java/crossCompilation')
+
+        def java6jdks = AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_6)
+        if (java6jdks.empty) {
+            javaCrossCompilation*.expectFailure = true
+        } else {
+            javaCrossCompilation*.args = ['build', "-Pjava6Home=${java6jdks.first().javaHome.absolutePath}"]
+        }
 
         Map<String, SampleRun> samplesById = new TreeMap<String, SampleRun>()
 

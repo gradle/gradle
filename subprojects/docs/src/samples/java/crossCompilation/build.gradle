@@ -16,7 +16,6 @@ sourceCompatibility = 1.6
 
 assert hasProperty('java6Home') : "Set the property 'java6Home' in your your gradle.properties pointing to a Java 6 installation"
 def javaExecutablesPath = new File(java6Home, 'bin')
-assert javaExecutablesPath.exists() : "The Java 6 Home directory '${javaExecutablesPath}' does not exist"
 def javaExecutables = [:].withDefault { execName ->
     def executable = new File(javaExecutablesPath, execName)
     assert executable.exists() : "There is no ${execName} executable in ${javaExecutablesPath}"
