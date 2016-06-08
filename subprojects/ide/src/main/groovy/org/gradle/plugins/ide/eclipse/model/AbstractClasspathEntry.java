@@ -66,8 +66,8 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         Preconditions.checkNotNull(path);
         this.path = normalizePath(path);
         this.exported = false;
-        this.accessRules = Sets.newHashSet();
-        entryAttributes = Maps.newHashMap();
+        this.accessRules = Sets.newLinkedHashSet();
+        this.entryAttributes = Maps.newLinkedHashMap();
     }
 
     public String getPath() {
@@ -114,11 +114,11 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
 
     @Override
     public void appendNode(Node node) {
-        addClasspathEntry(node, Maps.<String, Object>newHashMap());
+        addClasspathEntry(node, Maps.<String, Object>newLinkedHashMap());
     }
 
     protected Node addClasspathEntry(Node node, Map<String, ?> attributes) {
-        Map<String, Object> allAttributes = Maps.newHashMap();
+        Map<String, Object> allAttributes = Maps.newLinkedHashMap();
         for (String key : attributes.keySet()) {
             Object value = attributes.get(key);
             if (value != null && !String.valueOf(value).isEmpty()) {
@@ -144,7 +144,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     }
 
     private Set<AccessRule> readAccessRules(Node node) {
-        Set<AccessRule> accessRules = Sets.newHashSet();
+        Set<AccessRule> accessRules = Sets.newLinkedHashSet();
         NodeList accessRulesNodes = (NodeList) node.get("accessrules");
         for (Object accessRulesNode : accessRulesNodes) {
             NodeList accessRuleNodes = (NodeList) ((Node) accessRulesNode).get("accessrule");
@@ -168,7 +168,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
             accessRulesNode = (Node) accessRulesNodes.get(0);
         }
         for (AccessRule rule : accessRules) {
-            Map<String, Object> attributes  = Maps.newHashMap();
+            Map<String, Object> attributes  = Maps.newLinkedHashMap();
             attributes.put("kind", rule.getKind());
             attributes.put("pattern", rule.getPattern());
             accessRulesNode.appendNode("accessrule", attributes);
@@ -176,7 +176,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     }
 
     private Map<String, Object> readEntryAttributes(Node node) {
-        Map<String, Object> attributes = Maps.newHashMap();
+        Map<String, Object> attributes = Maps.newLinkedHashMap();
         NodeList attributesNodes = (NodeList) node.get("attributes");
         for (Object attributesEntry : attributesNodes) {
             NodeList attributeNodes = (NodeList) ((Node) attributesEntry).get("attribute");
@@ -189,7 +189,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
     }
 
     public void writeEntryAttributes(Node node) {
-        Map<String, Object> effectiveEntryAttrs = Maps.newHashMap();
+        Map<String, Object> effectiveEntryAttrs = Maps.newLinkedHashMap();
         for (String key : entryAttributes.keySet()) {
             Object value = entryAttributes.get(key);
             if (value != null) {
@@ -211,7 +211,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
 
         for (String key : effectiveEntryAttrs.keySet()) {
             Object value = effectiveEntryAttrs.get(key);
-            Map<String, Object> attrs = Maps.newHashMap();
+            Map<String, Object> attrs = Maps.newLinkedHashMap();
             attrs.put("name", key);
             attrs.put("value", value);
             attributesNode.appendNode("attribute", attrs);
