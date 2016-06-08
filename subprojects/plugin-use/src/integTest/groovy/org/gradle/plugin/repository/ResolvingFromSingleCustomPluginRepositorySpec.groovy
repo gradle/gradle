@@ -118,6 +118,33 @@ class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyRe
     }
 
     @Unroll
+    def "can apply plugin from #repoType repo to subprojects"() {
+        given:
+        publishTestPlugin(repoType)
+        buildScript """
+          plugins {
+              id "org.example.plugin" version "1.0" apply false
+          }
+
+          subprojects {
+            apply plugin: 'org.example.plugin'
+          }
+        """
+
+        and:
+        useCustomRepository(repoType, PathType.ABSOLUTE)
+        settingsFile << """
+            include 'sub'
+        """
+
+        expect:
+        succeeds("sub:pluginTask")
+
+        where:
+        repoType << [IVY, MAVEN]
+    }
+
+    @Unroll
     def "custom #repoType repo is not mentioned in plugin resolution errors if none is defined"() {
         given:
         publishTestPlugin(repoType)

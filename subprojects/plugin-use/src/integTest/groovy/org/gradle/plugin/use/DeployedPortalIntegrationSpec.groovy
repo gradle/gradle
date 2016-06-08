@@ -33,7 +33,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         requireOwnGradleUserHomeDir()
     }
 
-    def "can resolve a plugin from portal"() {
+    def "Can access plugin classes when resolved but not applied"() {
         when:
         buildScript """
             plugins {
@@ -51,6 +51,29 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
 
         and:
         fails("helloWorld")
+    }
+
+    def "Can apply plugins to subprojects"() {
+        when:
+        settingsFile << """
+            include 'sub'
+        """
+        buildScript """
+            plugins {
+                id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION" apply false
+            }
+
+            subprojects {
+                apply plugin: "$HELLO_WORLD_PLUGIN_ID"
+            }
+        """
+
+        then:
+        succeeds("sub:helloWorld")
+
+        and:
+        output.contains("Hello World!")
+
     }
 
     def "can resolve and apply a plugin from portal"() {

@@ -100,7 +100,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         });
     }
 
-    protected PluginRegistry createPluginRegistry(PluginRegistry parentRegistry) {
+    protected PluginRegistry createPluginRegistry(PluginRegistry rootRegistry) {
+        PluginRegistry parentRegistry;
+        if (project.getParent() == null) {
+            parentRegistry = rootRegistry;
+        } else {
+            parentRegistry = project.getParent().getServices().get(PluginRegistry.class);
+        }
         return parentRegistry.createChild(project.getClassLoaderScope().createChild("plugins").lock());
     }
 
