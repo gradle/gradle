@@ -70,18 +70,11 @@ class RuntimeShadedJarCreator {
     private static final String CLASS_DESC = "Ljava/lang/Class;";
 
     private final ProgressLoggerFactory progressLoggerFactory;
-    private volatile ImplementationDependencyRelocator remapper;
+    private final ImplementationDependencyRelocator remapper;
 
-    public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory) {
+    public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory, ImplementationDependencyRelocator remapper) {
         this.progressLoggerFactory = progressLoggerFactory;
-    }
-
-    private ImplementationDependencyRelocator getRemapper() {
-        ImplementationDependencyRelocator r = remapper;
-        if (r == null) {
-            remapper = r = new ImplementationDependencyRelocator();
-        }
-        return r;
+        this.remapper = remapper;
     }
 
     public void create(final File outputJar, final Iterable<? extends File> files) {
@@ -94,7 +87,6 @@ class RuntimeShadedJarCreator {
         try {
             createFatJar(outputJar, files, progressLogger);
         } finally {
-            remapper = null;
             progressLogger.completed();
         }
     }
@@ -227,7 +219,7 @@ class RuntimeShadedJarCreator {
     private void processServiceDescriptor(InputStream inputStream, ZipEntry zipEntry, byte[] buffer, Map<String, List<String>> services) throws IOException {
         String descriptorName = zipEntry.getName().substring(SERVICES_DIR_PREFIX.length());
         String descriptorApiClass = periodsToSlashes(descriptorName);
-        String relocatedApiClassName = getRemapper().maybeRelocateResource(descriptorApiClass);
+        String relocatedApiClassName = remapper.maybeRelocateResource(descriptorApiClass);
         if (relocatedApiClassName == null) {
             relocatedApiClassName = descriptorApiClass;
         }
@@ -235,7 +227,7 @@ class RuntimeShadedJarCreator {
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         String entry = new String(bytes, Charsets.UTF_8).replaceAll("(?m)^#.*", "").trim(); // clean up comments and new lines
         String descriptorImplClass = periodsToSlashes(entry);
-        String relocatedImplClassName = getRemapper().maybeRelocateResource(descriptorImplClass);
+        String relocatedImplClassName = remapper.maybeRelocateResource(descriptorImplClass);
         if (relocatedImplClassName == null) {
             relocatedImplClassName = descriptorImplClass;
         }
@@ -268,13 +260,13 @@ class RuntimeShadedJarCreator {
         int i = originalName.lastIndexOf("/");
         String path = i == -1 ? null : originalName.substring(0, i);
 
-        if (getRemapper().keepOriginalResource(path)) {
+        if (remapper.keepOriginalResource(path)) {
             // we're writing 2 copies of the resource: one relocated, the other not, in order to support `getResource/getResourceAsStream` with
             // both absolute and relative paths
             writeResourceEntry(outputStream, new ByteArrayInputStream(resource), buffer, zipEntry.getName());
         }
 
-        String remappedResourceName = path != null ? getRemapper().maybeRelocateResource(path) : null;
+        String remappedResourceName = path != null ? remapper.maybeRelocateResource(path) : null;
         if (remappedResourceName != null) {
             String newFileName = remappedResourceName + originalName.substring(i);
             writeResourceEntry(outputStream, new ByteArrayInputStream(resource), buffer, newFileName);
@@ -299,7 +291,7 @@ class RuntimeShadedJarCreator {
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         byte[] remappedClass = remapClass(className, bytes);
 
-        String remappedClassName = getRemapper().maybeRelocateResource(className);
+        String remappedClassName = remapper.maybeRelocateResource(className);
         String newFileName = (remappedClassName == null ? className : remappedClassName).concat(".class");
 
         writeEntry(outputStream, newFileName, remappedClass);
@@ -308,7 +300,7 @@ class RuntimeShadedJarCreator {
     private byte[] remapClass(String className, byte[] bytes) {
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter classWriter = new ClassWriter(0);
-        ClassVisitor remappingVisitor = new ShadingClassRemapper(classWriter, getRemapper());
+        ClassVisitor remappingVisitor = new ShadingClassRemapper(classWriter, remapper);
 
         try {
             classReader.accept(remappingVisitor, ClassReader.EXPAND_FRAMES);

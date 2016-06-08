@@ -45,7 +45,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
 
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def progressLogger = Mock(ProgressLogger)
-    def relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory)
+    def relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API))
     def outputJar = new File(tmpDir.testDirectory, 'gradle-api.jar')
 
     def "creates JAR file for input directory"() {

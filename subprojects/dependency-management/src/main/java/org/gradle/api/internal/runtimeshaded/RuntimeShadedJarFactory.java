@@ -38,11 +38,11 @@ public class RuntimeShadedJarFactory implements Closeable {
 
     private final String gradleVersion;
     private final PersistentCache cache;
-    private final RuntimeShadedJarCreator creator;
+    private final ProgressLoggerFactory progressLoggerFactory;
 
     public RuntimeShadedJarFactory(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory, String gradleVersion) {
-        this.creator = new RuntimeShadedJarCreator(progressLoggerFactory);
         this.gradleVersion = gradleVersion;
+        this.progressLoggerFactory = progressLoggerFactory;
         this.cache = cacheRepository
             .cache(CACHE_KEY)
             .withDisplayName(CACHE_DISPLAY_NAME)
@@ -50,12 +50,16 @@ public class RuntimeShadedJarFactory implements Closeable {
             .open();
     }
 
-    public File get(RuntimeShadedJarType type, final Collection<? extends File> classpath) {
+    public File get(final RuntimeShadedJarType type, final Collection<? extends File> classpath) {
         final File jarFile = jarFile(cache, type);
         if (!jarFile.exists()) {
             cache.useCache("Generating " + jarFile.getName(), new Runnable() {
                 public void run() {
                     if (!jarFile.exists()) {
+                        RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
+                            progressLoggerFactory,
+                            new ImplementationDependencyRelocator(type)
+                        );
                         creator.create(jarFile, classpath);
                     }
                 }
