@@ -248,13 +248,13 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.get('userguide/multiproject/dependencies/firstMessages/messages')*.brokenForParallel = true
         samplesByDir.get('userguide/multiproject/dependencies/messagesHack/messages')*.brokenForParallel = true
 
-        def javaCrossCompilation = samplesByDir.get('java/crossCompilation')
+        def java6CrossCompilation = samplesByDir.get('java/crossCompilation') + samplesByDir.get('scala/crossCompilation')
 
         def java6jdks = AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_6)
         if (java6jdks.empty) {
-            javaCrossCompilation*.expectFailure = true
+            java6CrossCompilation*.expectFailure = true
         } else {
-            javaCrossCompilation*.args = ['build', "-Pjava6Home=${java6jdks.first().javaHome.absolutePath}"]
+            java6CrossCompilation*.args = ['build', "-Pjava6Home=${java6jdks.first().javaHome.absolutePath}"]
         }
 
         Map<String, SampleRun> samplesById = new TreeMap<String, SampleRun>()
