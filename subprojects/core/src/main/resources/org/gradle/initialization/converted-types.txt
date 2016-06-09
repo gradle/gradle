@@ -18,7 +18,6 @@ org.gradle.api.plugins.quality.FindBugsPlugin
 org.gradle.api.plugins.quality.JDependPlugin
 org.gradle.api.plugins.scala.ScalaBasePlugin
 org.gradle.api.plugins.scala.ScalaPlugin
-org.gradle.api.tasks.bundling.War
 org.gradle.api.tasks.diagnostics.DependencyInsightReportTask
 org.gradle.ide.cdt.model.CprojectDescriptor
 org.gradle.ide.cdt.model.ProjectDescriptor
