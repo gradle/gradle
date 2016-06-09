@@ -17,12 +17,13 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.BasicPerformanceTest
+import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(BasicPerformanceTest)
+@Category([Experiment, BasicPerformanceTest])
 class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' dependency report")
     def "dependency report"() {
