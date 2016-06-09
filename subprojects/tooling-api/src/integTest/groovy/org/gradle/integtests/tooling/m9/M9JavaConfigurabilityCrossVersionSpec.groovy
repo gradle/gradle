@@ -72,12 +72,12 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
     }
 
     def "tooling api provided java home takes precedence over gradle.properties"() {
-        def jdk = AvailableJavaHomes.getAvailableJdk { targetDist.isToolingApiTargetJvmSupported(it.javaVersion) }
+        File currentJavaHome = new File(System.getProperty("java.home")).canonicalFile
+        def jdk = AvailableJavaHomes.getAvailableJdk { targetDist.isToolingApiTargetJvmSupported(it.javaVersion) && it.javaHome != currentJavaHome }
         Assume.assumeNotNull(jdk)
         File javaHome = jdk.javaHome
         String javaHomePath = TextUtil.escapeString(javaHome.canonicalPath)
-        File otherJava = new File(System.getProperty("java.home"))
-        String otherJavaPath = TextUtil.escapeString(otherJava.canonicalPath)
+        String otherJavaPath = TextUtil.escapeString(currentJavaHome.canonicalPath)
         file('build.gradle') << "assert new File(System.getProperty('java.home')).canonicalPath.startsWith('$javaHomePath')"
         file('gradle.properties') << "org.gradle.java.home=$otherJavaPath"
 
@@ -92,6 +92,6 @@ class M9JavaConfigurabilityCrossVersionSpec extends ToolingApiSpecification {
         then:
         env != null
         env.java.javaHome == javaHome
-        env.java.javaHome != otherJava
+        env.java.javaHome != currentJavaHome
     }
 }
