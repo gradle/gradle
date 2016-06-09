@@ -177,11 +177,12 @@ The following APIs have been deprecated:
 
 ## Potential breaking changes
 
-### Supported Java versions
+### Running Gradle on Java 6 is no longer supported.
 
-TBD - Gradle requires Java 7 or later to run.
-TBD - Gradle tooling API requires Java 7 or later to run.
-TBD - Test execution in Gradle requires Java 6 or later.
+Gradle itself now requires Java 7 or better to run, but compiling project sources and running tests with Java 6 remains supported.
+See [Compiling and testing for Java 6](userguide/java_plugin.html#sec:java_cross_compilation) in the Userguide. There are also
+instructions on how to compile and test [Groovy](userguide/groovy_plugin.html#sec:groovy_cross_compilation) and
+[Scala](userguide/scala_plugin.html#sec:scala_cross_compilation) for Java 6. 
 
 ### Sonar plugin has been removed
 

@@ -60,7 +60,6 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
     - `GradleRunner`
     - old `gradlew`
     - old `GradleConnector`
-    - old `GradleRunner`
 
 ## Change minimum version for building and testing Java source to Java 6
 
@@ -68,10 +67,10 @@ Change cross-compilation and test execution to require Java 6 or later.
 Building against Java 5 requires that the compiler daemon and test execution infrastructure still support Java 5.
 
 - Document minimum version in user guide
-- Add samples and documentation to show how to compile, test and run using a different Java version.
-- Clean up `DefaultClassLoaderFactory`.
-- Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
-- Replace usages of `guava-jdk5`.
+- Add samples and documentation to show how to compile, test and run using a different Java version. (DONE)
+- Clean up `DefaultClassLoaderFactory`. - Not possible, the workaround is still necessary for Java 6
+- Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`. (DONE)
+- Replace usages of `guava-jdk5`. - Not for Gradle 3.0
 
 ### Test coverage
 
@@ -156,6 +155,15 @@ Currently, we look first for a method and if not found, look for a property with
 - Methods inherited from an ancestor project can silently shadow these properties.
 - Method matching is inconsistent with how methods are matched on POJO/POGO objects, where a method is selected only when the args can be coerced to those accepted by the method, and if not, searching continues with the next object. Should do something similar for property-as-a-method matching.
 - Type conversion is not applied to the parameters to a closure, or to static methods
+
+## Isolate dependencies to Java 5 and Java 6
+
+Currently, many projects are limited to Java 5 and Java 6 because of the project structure. Only then entry points
+need to run on Java 5 to be able to give a meaningful error message. For Java 6 it is enough that we can run tests
+there. If we isolate the necessary classes to dedicated subprojects we can use Java 7 in more places in our code base.
+The same is true for the next Java version upgrade.
+
+This also makes it possible to upgrade Guava from `guava-jdk5` to a current version.
 
 ## Remove Gradle GUI
 
