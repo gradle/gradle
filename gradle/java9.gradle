@@ -7,6 +7,15 @@ task java9IntegTest(type: Test) {
     excludes = [
         // Broken api jar construction due to ASM not working with Java 9 bytecode
         "MixedLegacyAndComponentJvmPluginIntegrationTest",
+        "JavaCompilationAgainstApiJarIntegrationTest",
+        "JavaLanguageIntegrationTest",
+        "SampleJavaLanguageIntegrationTest",
+        "CustomComponentJarBinariesIntegrationTest",
+        "JarBinaryTypeVariantsTest",
+        "JavaJvmAssemblyIntegrationTest",
+        "JavaLanguageCustomLibraryDependencyResolutionIntegrationTest",
+        "JavaLanguageDependencyResolutionIntegrationTest",
+        "JavaLanguageIncrementalBuildIntegrationTest",
 
         // Broken scala and twirl compilation, broken api jar construction
         "MixedPlayAndJvmLibraryProjectIntegrationTest",
@@ -66,6 +75,8 @@ task java9IntegTest(type: Test) {
         "ToolingApiUnsupportedClientJvmCrossVersionSpec",
         "MavenConversionIntegrationTest",
         "IncrementalJavaCompileIntegrationTest",
+        "SampleTestNGIntegrationTest",
+        "TestNGIntegrationTest",
 
         // Jetty version does not work on Java 9
         "JettyIntegrationSpec",
@@ -76,6 +87,11 @@ task java9IntegTest(type: Test) {
         "IvyPublishS3IntegrationTest",
         "IvyS3UploadArchivesIntegrationTest",
         "MavenPublishS3IntegrationTest",
+
+        // Test detection fails as ASM does not understand Java 9 bytecode
+        "JUnitComponentUnderTestIntegrationTest",
+        "JUnitIncrementalTestExecutionTest",
+        "JUnitStandaloneTestExecutionIntegrationTest",
 
         // Test assumes there is a tools.jar
         "IvyPublishHttpIntegTest",
@@ -95,11 +111,22 @@ task java9IntegTest(type: Test) {
         "DaemonGroovyCompilerIntegrationTest",
         "InProcessJavaCompilerIntegrationTest",
         "DaemonJavaCompilerIntegrationTest",
+        "EclipseClasspathIntegrationTest",
+        "EclipseIntegrationTest",
+        "IdeaJavaLanguageSettingsIntegrationTest",
 
         // Various problems, eg scala compile
         "UserGuideSamplesIntegrationTest",
 
         // ??
+        "JavaCompileIntegrationTest",
+        "BuildDashboardPluginIntegrationTest",
+        "JavaLanguageExternalDependencyResolutionIntegrationTest",
+        "JavadocIntegrationTest",
+        "JUnitConsoleLoggingIntegrationTest",
+        "JUnitIntegrationTest",
+        "TestNGConsoleLoggingIntegrationTest",
+        "JacocoPluginIntegrationTest",
         "EnvJsPluginIntegrationTest",
         "GradleRunnerSamplesEndUserIntegrationTest",
         "MultiRequestWorkerProcessIntegrationTest",
@@ -122,8 +149,26 @@ task java9Test(type: Test) {
 
         // Affected by hack in JavaPluginConvention to force source and target compatibility to Java 8
         "JavaPluginConventionTest",
+        "EclipseModelBuilderTest",
+        "IdeaModelBuilderTest",
+
+        // Classes used by junit execution tests
+        "ABrokenJunit3TestClass",
+        "ABrokenTestClass",
+        "ATestClassWhichCannotBeLoaded",
+        "ATestClassWithBrokenBeforeAndAfterMethod",
+        "ATestClassWithBrokenBeforeClassMethod",
+        "ATestClassWithBrokenBeforeMethod",
+        "ATestClassWithBrokenConstructor",
+        "ATestClassWithBrokenRunner",
+        "ATestClassWithRunnerThatBreaksAfterRunningSomeTests",
+        "ATestClassWithSeveralMethods",
+        "ATestClassWithUnconstructibleRunner",
 
         // ??
+        "DefaultJavaToolChainTest",
+        "JdkToolsTest",
+        "JdkToolsTest",
         "PayloadSerializerTest",
         "GeneratedArchiveBuildOutcomeComparatorTest",
         "ArchiveEntryTest",
