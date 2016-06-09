@@ -30,12 +30,13 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.project.taskfactory.OutputPropertyAnnotationUtil.validateFile;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirectoryExists;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 @SuppressWarnings("deprecation")
-public class OutputFilesPropertyAnnotationHandler extends AbstractOutputFilePropertyAnnotationHandler {
+public class OutputFilesPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
 
     private static final String DEPRECATION_MESSAGE = String.format("Please use separate properties for each file annotated with @%s, or reorganize output files under a single output directory annotated with @%s.",
         OutputFile.class.getSimpleName(), OutputDirectory.class.getSimpleName());

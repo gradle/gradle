@@ -29,12 +29,13 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.project.taskfactory.OutputPropertyAnnotationUtil.validateDirectory;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 @SuppressWarnings("deprecation")
-public class OutputDirectoriesPropertyAnnotationHandler extends AbstractOutputDirectoryPropertyAnnotationHandler {
+public class OutputDirectoriesPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
 
     private static final String DEPRECATION_MESSAGE = String.format("Please use separate properties for each directory annotated with @%s, or reorganize output under a single output directory.",
         OutputDirectory.class.getSimpleName());

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project.taskfactory;
 
 import java.io.File;
 import java.util.Collection;
 
-public abstract class AbstractOutputFilePropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
-    protected static void validateFile(String propertyName, File file, Collection<String> messages) {
+class OutputPropertyAnnotationUtil {
+    public static void validateFile(String propertyName, File file, Collection<String> messages) {
         if (file.exists() && file.isDirectory()) {
             messages.add(String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
         }
@@ -28,6 +29,20 @@ public abstract class AbstractOutputFilePropertyAnnotationHandler extends Abstra
             if (candidate.exists() && !candidate.isDirectory()) {
                 messages.add(String.format("Cannot write to file '%s' specified for property '%s', as ancestor '%s' is not a directory.", file, propertyName, candidate));
                 break;
+            }
+        }
+    }
+
+    public static void validateDirectory(String propertyName, File directory, Collection<String> messages) {
+        if (directory.exists() && !directory.isDirectory()) {
+            messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
+            return;
+        }
+
+        for (File candidate = directory; candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
+            if (candidate.exists() && !candidate.isDirectory()) {
+                messages.add(String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", directory, propertyName, candidate));
+                return;
             }
         }
     }

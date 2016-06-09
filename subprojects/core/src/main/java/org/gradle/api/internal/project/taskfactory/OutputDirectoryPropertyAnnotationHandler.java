@@ -25,11 +25,12 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.project.taskfactory.OutputPropertyAnnotationUtil.validateDirectory;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.util.GUtil.uncheckedCall;
 
-public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputDirectoryPropertyAnnotationHandler {
+public class OutputDirectoryPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
 
     @Override
     public Class<? extends Annotation> getAnnotationType() {
