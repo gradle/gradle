@@ -32,6 +32,8 @@
                 <listitem>from system properties, e.g. when <literal>-Dsome.property</literal> is set on the command line.</listitem>
             </itemizedlist>
         </para>
+        <para>When setting these properties you should keep in mind that Gradle requires a Java JDK or JRE of version 7 or higher to run.
+        </para>
         <para>
             The following properties can be used to configure the Gradle build environment:
             <varlistentry>

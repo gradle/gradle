@@ -27,11 +27,11 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 - Internal `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter` (Done)
 - Constructor on `DefaultSourceDirectorySet` - not for 3.0, deprecation only happened in 2.14 and it is widely used
 
-## Change minimum version for running Gradle to Java 7
+## Change minimum version for running Gradle to Java 7 (DONE)
 
 No longer support running Gradle, the wrapper or the Tooling api client on Java 6. Instead, we'd support Java source compilation and test execution on Java 6 and later, as we do for Java 1.5 now.
 
-- Allow Java 6 to be used for findbugs execution?
+- Allow Java 6 to be used for findbugs execution? - No
 - Update project target versions 
 - Remove customisations for IDEA project generation.
 - Remove Java 7 checks, eg from continuous build.
@@ -61,15 +61,15 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
     - old `gradlew`
     - old `GradleConnector`
 
-## Change minimum version for building and testing Java source to Java 6
+## Change minimum version for building and testing Java source to Java 6 (DONE)
 
 Change cross-compilation and test execution to require Java 6 or later.
-Building against Java 5 requires that the compiler daemon and test execution infrastructure still support Java 5.
+Building against Java 6 requires that the compiler daemon and test execution infrastructure still support Java 6.
 
 - Document minimum version in user guide
-- Add samples and documentation to show how to compile, test and run using a different Java version. (DONE)
+- Add samples and documentation to show how to compile, test and run using a different Java version.
 - Clean up `DefaultClassLoaderFactory`. - Not possible, the workaround is still necessary for Java 6
-- Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`. (DONE)
+- Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
 - Replace usages of `guava-jdk5`. - Not for Gradle 3.0
 
 ### Test coverage

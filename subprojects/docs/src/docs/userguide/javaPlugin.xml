@@ -1562,6 +1562,7 @@
         <title>Compiling and testing for Java 6</title>
         <para>Gradle can only run on Java version 7 or higher. Gradle 3.x still
             supports compiling, testing, generating Javadoc and executing applications for Java 6.
+            Java 5 is not supported
         </para>
         <para>
             The code quality plugins like Findbugs and Pmd do not support choosing a different Java version

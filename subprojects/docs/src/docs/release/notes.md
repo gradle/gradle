@@ -184,6 +184,8 @@ See [Compiling and testing for Java 6](userguide/java_plugin.html#sec:java_cross
 instructions on how to compile and test [Groovy](userguide/groovy_plugin.html#sec:groovy_cross_compilation) and
 [Scala](userguide/scala_plugin.html#sec:scala_cross_compilation) for Java 6. 
 
+Support for compiling and testing on Java 5 has been dropped.
+
 ### Sonar plugin has been removed
 
 The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
