@@ -17,8 +17,9 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.tasks.TaskFilePropertyBuilder;
 
-abstract class AbstractTaskFilePropertySpec implements TaskFilePropertySpecInternal {
+abstract class AbstractTaskFilePropertySpec implements TaskFilePropertySpec, TaskFilePropertyBuilder {
     private final TaskPropertyFileCollection files;
     private String propertyName;
 

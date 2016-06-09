@@ -29,24 +29,24 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec, TaskOutputs {
+public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, TaskOutputs {
     /**
      * {@inheritDoc}
      */
     @Override
-    TaskOutputFilePropertySpec withPropertyName(String propertyName);
+    TaskOutputFilePropertyBuilder withPropertyName(String propertyName);
 
     /**
      * Marks a task property as optional. This means that a value does not have to be specified for the property, but any
      * value specified must meet the validation constraints for the property.
      */
-    TaskOutputFilePropertySpec optional();
+    TaskOutputFilePropertyBuilder optional();
 
     /**
      * Sets whether the task property is optional. If the task property is optional, it means that a value does not have to be
      * specified for the property, but any value specified must meet the validation constraints for the property.
      */
-    TaskOutputFilePropertySpec optional(boolean optional);
+    TaskOutputFilePropertyBuilder optional(boolean optional);
 
     /**
      * {@inheritDoc}
@@ -100,7 +100,7 @@ public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec, TaskOu
      */
     @Deprecated
     @Override
-    TaskOutputFilePropertySpec file(Object path);
+    TaskOutputFilePropertyBuilder file(Object path);
 
     /**
      * {@inheritDoc}
@@ -109,7 +109,7 @@ public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec, TaskOu
      */
     @Deprecated
     @Override
-    TaskOutputFilePropertySpec dir(Object path);
+    TaskOutputFilePropertyBuilder dir(Object path);
 
     /**
      * {@inheritDoc}

@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.TaskFilePropertySpec;
-
-public interface TaskFilePropertySpecInternal extends TaskFilePropertySpec {
-    String getPropertyName();
-    FileCollection getPropertyFiles();
+public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
+    boolean isOptional();
 }

@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.TaskFilePropertySpec
+import org.gradle.api.tasks.TaskFilePropertyBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -26,7 +26,7 @@ class AbstractTaskFilePropertySpecTest extends Specification {
     def resolver = Mock(FileResolver)
     def spec = new AbstractTaskFilePropertySpec("test", "test", resolver, "test.txt") {
         @Override
-        TaskFilePropertySpec withPropertyName(String propertyName) {
+        TaskFilePropertyBuilder withPropertyName(String propertyName) {
             setPropertyName(propertyName)
             return this
         }

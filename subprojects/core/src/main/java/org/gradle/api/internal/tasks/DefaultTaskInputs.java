@@ -25,7 +25,7 @@ import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
@@ -66,37 +66,37 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
     }
 
     @Override
-    public Collection<TaskInputFilePropertySpecInternal> getFileProperties() {
-        ImmutableList.Builder<TaskInputFilePropertySpecInternal> builder = ImmutableList.builder();
+    public Collection<TaskInputFilePropertySpec> getFileProperties() {
+        ImmutableList.Builder<TaskInputFilePropertySpec> builder = ImmutableList.builder();
         collectFileProperties(builder);
         return builder.build();
     }
 
     @Override
-    public TaskInputFilePropertySpec files(final Object... paths) {
-        return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertySpec>() {
+    public TaskInputFilePropertyBuilder files(final Object... paths) {
+        return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertyBuilder>() {
             @Override
-            public TaskInputFilePropertySpec call() {
+            public TaskInputFilePropertyBuilder call() {
                 return addSpec(paths);
             }
         });
     }
 
     @Override
-    public TaskInputFilePropertySpec file(final Object path) {
-        return taskMutator.mutate("TaskInputs.file(Object)", new Callable<TaskInputFilePropertySpec>() {
+    public TaskInputFilePropertyBuilder file(final Object path) {
+        return taskMutator.mutate("TaskInputs.file(Object)", new Callable<TaskInputFilePropertyBuilder>() {
             @Override
-            public TaskInputFilePropertySpec call() {
+            public TaskInputFilePropertyBuilder call() {
                 return addSpec(path);
             }
         });
     }
 
     @Override
-    public TaskInputFilePropertySpec dir(final Object dirPath) {
-        return taskMutator.mutate("TaskInputs.dir(Object)", new Callable<TaskInputFilePropertySpec>() {
+    public TaskInputFilePropertyBuilder dir(final Object dirPath) {
+        return taskMutator.mutate("TaskInputs.dir(Object)", new Callable<TaskInputFilePropertyBuilder>() {
             @Override
-            public TaskInputFilePropertySpec call() {
+            public TaskInputFilePropertyBuilder call() {
                 return addSpec(resolver.resolveFilesAsTree(dirPath));
             }
         });
@@ -153,11 +153,11 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
         return this;
     }
 
-    private TaskInputFilePropertySpecInternal addSpec(Object paths) {
+    private TaskInputFilePropertyBuilder addSpec(Object paths) {
         return addSpec(paths, false);
     }
 
-    private TaskInputFilePropertySpecInternal addSpec(Object paths, boolean skipWhenEmpty) {
+    private TaskInputFilePropertyBuilder addSpec(Object paths, boolean skipWhenEmpty) {
         PropertySpec spec = new PropertySpec(taskName, skipWhenEmpty, resolver, paths);
         fileProperties.add(spec);
         return spec;
@@ -236,7 +236,7 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
         }
     }
 
-    class PropertySpec extends AbstractTaskFilePropertySpec implements TaskInputFilePropertySpecInternal {
+    class PropertySpec extends AbstractTaskFilePropertySpec implements TaskInputFilePropertySpec, TaskInputFilePropertyBuilder {
 
         private boolean skipWhenEmpty;
         private boolean optional;
@@ -247,7 +247,7 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
         }
 
         @Override
-        public TaskInputFilePropertySpec withPropertyName(String propertyName) {
+        public TaskInputFilePropertyBuilder withPropertyName(String propertyName) {
             setPropertyName(propertyName);
             return this;
         }
@@ -258,13 +258,13 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
         }
 
         @Override
-        public TaskInputFilePropertySpecInternal skipWhenEmpty(boolean skipWhenEmpty) {
+        public TaskInputFilePropertyBuilder skipWhenEmpty(boolean skipWhenEmpty) {
             this.skipWhenEmpty = skipWhenEmpty;
             return this;
         }
 
         @Override
-        public TaskInputFilePropertySpec skipWhenEmpty() {
+        public TaskInputFilePropertyBuilder skipWhenEmpty() {
             return skipWhenEmpty(true);
         }
 
@@ -274,13 +274,13 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
         }
 
         @Override
-        public TaskInputFilePropertySpecInternal optional(boolean optional) {
+        public TaskInputFilePropertyBuilder optional(boolean optional) {
             this.optional = optional;
             return this;
         }
 
         @Override
-        public TaskInputFilePropertySpec optional() {
+        public TaskInputFilePropertyBuilder optional() {
             return optional(true);
         }
 
@@ -302,17 +302,17 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
         }
 
         @Override
-        public TaskInputFilePropertySpec files(Object... paths) {
+        public TaskInputFilePropertyBuilder files(Object... paths) {
             return getTaskInputs("files(Object...)").files(paths);
         }
 
         @Override
-        public TaskInputFilePropertySpec file(Object path) {
+        public TaskInputFilePropertyBuilder file(Object path) {
             return getTaskInputs("file(Object)").file(path);
         }
 
         @Override
-        public TaskInputFilePropertySpec dir(Object dirPath) {
+        public TaskInputFilePropertyBuilder dir(Object dirPath) {
             return getTaskInputs("dir(Object)").dir(dirPath);
         }
 
@@ -386,7 +386,7 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
 
         @Override
         public void visitContents(FileCollectionResolveContext context) {
-            for (PropertySpec fileProperty : fileProperties) {
+            for (TaskInputFilePropertySpec fileProperty : fileProperties) {
                 if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
                     context.add(fileProperty.getPropertyFiles());
                 }

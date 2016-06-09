@@ -29,36 +29,36 @@ import java.util.Map;
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskInputFilePropertySpec extends TaskFilePropertySpec, TaskInputs {
+public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, TaskInputs {
     /**
      * {@inheritDoc}
      */
     @Override
-    TaskInputFilePropertySpec withPropertyName(String propertyName);
+    TaskInputFilePropertyBuilder withPropertyName(String propertyName);
 
     /**
      * Skip executing the task if the property contains no files.
      * If there are multiple properties with {code skipWhenEmpty = true}, then they all need to be empty for the task to be skipped.
      */
-    TaskInputFilePropertySpec skipWhenEmpty();
+    TaskInputFilePropertyBuilder skipWhenEmpty();
 
     /**
      * Sets whether executing the task should be skipped if the property contains no files.
      * If there are multiple properties with {code skipWhenEmpty = true}, then they all need to be empty for the task to be skipped.
      */
-    TaskInputFilePropertySpec skipWhenEmpty(boolean skipWhenEmpty);
+    TaskInputFilePropertyBuilder skipWhenEmpty(boolean skipWhenEmpty);
 
     /**
      * Marks a task property as optional. This means that a value does not have to be specified for the property, but any
      * value specified must meet the validation constraints for the property.
      */
-    TaskInputFilePropertySpec optional();
+    TaskInputFilePropertyBuilder optional();
 
     /**
      * Sets whether the task property is optional. If the task property is optional, it means that a value does not have to be
      * specified for the property, but any value specified must meet the validation constraints for the property.
      */
-    TaskInputFilePropertySpec optional(boolean optional);
+    TaskInputFilePropertyBuilder optional(boolean optional);
 
     /**
      * {@inheritDoc}
@@ -85,7 +85,7 @@ public interface TaskInputFilePropertySpec extends TaskFilePropertySpec, TaskInp
      */
     @Deprecated
     @Override
-    TaskInputFilePropertySpec files(Object... paths);
+    TaskInputFilePropertyBuilder files(Object... paths);
 
     /**
      * {@inheritDoc}
@@ -94,7 +94,7 @@ public interface TaskInputFilePropertySpec extends TaskFilePropertySpec, TaskInp
      */
     @Deprecated
     @Override
-    TaskInputFilePropertySpec file(Object path);
+    TaskInputFilePropertyBuilder file(Object path);
 
     /**
      * {@inheritDoc}
@@ -103,7 +103,7 @@ public interface TaskInputFilePropertySpec extends TaskFilePropertySpec, TaskInp
      */
     @Deprecated
     @Override
-    TaskInputFilePropertySpec dir(Object dirPath);
+    TaskInputFilePropertyBuilder dir(Object dirPath);
 
     /**
      * {@inheritDoc}

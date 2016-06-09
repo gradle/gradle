@@ -19,11 +19,12 @@ package org.gradle.api.internal.tasks;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.gradle.api.tasks.TaskFilePropertyBuilder;
 
 import java.util.List;
 import java.util.Set;
 
-public class FilePropertyContainer<T extends TaskFilePropertySpecInternal> {
+public class FilePropertyContainer<T extends TaskFilePropertySpec & TaskFilePropertyBuilder> {
     private int legacyFilePropertyCounter;
     protected final List<T> fileProperties = Lists.newArrayList();
 

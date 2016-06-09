@@ -33,7 +33,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.tasks.TaskFilePropertySpecInternal;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
@@ -50,13 +50,13 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     private final String taskName;
     private final boolean allowSnapshotReuse;
     private final String title;
-    protected final Collection<? extends TaskFilePropertySpecInternal> fileProperties;
+    protected final Collection<? extends TaskFilePropertySpec> fileProperties;
     private final boolean noChanges;
     private final FileCollectionSnapshotter snapshotter;
     protected final TaskExecution previous;
     protected final TaskExecution current;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, Collection<? extends TaskFilePropertySpecInternal> fileProperties) {
+    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, Collection<? extends TaskFilePropertySpec> fileProperties) {
         this.taskName = taskName;
         this.previous = previous;
         this.current = current;
@@ -74,10 +74,10 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return buildPreCheckSet(taskName, snapshotter, allowSnapshotReuse, title, fileProperties);
     }
 
-    private static PreCheckSet buildPreCheckSet(String taskName, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, Collection<? extends TaskFilePropertySpecInternal> fileProperties) {
+    private static PreCheckSet buildPreCheckSet(String taskName, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, Collection<? extends TaskFilePropertySpec> fileProperties) {
         Hasher hasher = Hashing.md5().newHasher();
         ImmutableSortedMap.Builder<String, FileCollectionSnapshot.PreCheck> builder = ImmutableSortedMap.naturalOrder();
-        for (TaskFilePropertySpecInternal fileProperty : fileProperties) {
+        for (TaskFilePropertySpec fileProperty : fileProperties) {
             String propertyName = fileProperty.getPropertyName();
             FileCollectionSnapshot.PreCheck result;
             try {

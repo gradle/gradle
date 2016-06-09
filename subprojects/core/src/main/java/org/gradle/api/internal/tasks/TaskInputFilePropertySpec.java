@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.TaskInputFilePropertySpec;
-
-public interface TaskInputFilePropertySpecInternal extends TaskInputFilePropertySpec, TaskFilePropertySpecInternal {
+public interface TaskInputFilePropertySpec extends TaskFilePropertySpec {
     boolean isSkipWhenEmpty();
     boolean isOptional();
 }

@@ -50,7 +50,7 @@ public interface TaskInputs {
      * @param paths The input files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
-    TaskInputFilePropertySpec files(Object... paths);
+    TaskInputFilePropertyBuilder files(Object... paths);
 
     /**
      * Registers some input file for this task.
@@ -58,7 +58,7 @@ public interface TaskInputs {
      * @param path The input file. The given path is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
-    TaskInputFilePropertySpec file(Object path);
+    TaskInputFilePropertyBuilder file(Object path);
 
     /**
      * Registers an input directory hierarchy. All files found under the given directory are treated as input files for
@@ -67,7 +67,7 @@ public interface TaskInputs {
      * @param dirPath The directory. The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
      */
-    TaskInputFilePropertySpec dir(Object dirPath);
+    TaskInputFilePropertyBuilder dir(Object dirPath);
 
     /**
      * Returns the set of input properties for this task.
