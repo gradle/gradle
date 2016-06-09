@@ -78,7 +78,7 @@
         </para>
         <para>
             The most common use case for using a plugin is to both resolve and apply the plugin to the current Project. Since this is such a common
-            use case, Gradle now recommends that build authors use the <link linkend="sec:plugins_block">plugins DSL</link> to both resolve and apply
+            use case, Gradle recommends that build authors use the <link linkend="sec:plugins_block">plugins DSL</link> to both resolve and apply
             plugins in one step. The feature is technically still incubating, but it works well, and should be used by most users.
         </para>
     </section>
@@ -140,11 +140,6 @@
         <sample id="useCommunityPluginDSL" dir="plugins/dsl" title="Applying a community plugin">
             <sourcefile file="build.gradle" snippet="use-community-plugin"/>
         </sample>
-        <para>
-            No further configuration is necessary.  Specifically, there is no need to configure the buildscript classpath
-            (see  <xref linkend="sec:applying_plugins_buildscript" />.) Gradle will resolve the plugin from the plugin portal to make it
-            available to the build.
-        </para>
         <para>
             See <apilink class="org.gradle.plugin.use.PluginDependenciesSpec" /> for more information on using the Plugin DSL.
         </para>
