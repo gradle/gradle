@@ -701,7 +701,7 @@ performanceTestTasks.all {
 
     // Some performance builds generate a lot of output,
     // that is buffered until the test finishes via GradleExecuter.
-    maxHeapSize "4g"
+    maxHeapSize "8g"
 }
 
 task largeJavaProjectWithBuildReceiptPlugin(type: JvmProjectGeneratorTask) {
