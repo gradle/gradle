@@ -48,7 +48,7 @@ assert System.getProperty('some-prop') == 'some-value'
     }
 
     def "tooling api honours java home specified in gradle.properties"() {
-        def jdk = AvailableJavaHomes.differentJdk
+        def jdk = AvailableJavaHomes.getAvailableJdk { targetDist.isToolingApiTargetJvmSupported(it.javaVersion) }
         Assume.assumeNotNull(jdk)
         String javaHomePath = TextUtil.escapeString(jdk.javaHome.canonicalPath)
 
