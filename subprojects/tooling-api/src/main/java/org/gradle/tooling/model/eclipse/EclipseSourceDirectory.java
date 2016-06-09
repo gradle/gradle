@@ -61,6 +61,8 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      *
      * @return The output location of this source directory.
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     *
+     * @since 3.0
      */
     @Incubating
     @Nullable
