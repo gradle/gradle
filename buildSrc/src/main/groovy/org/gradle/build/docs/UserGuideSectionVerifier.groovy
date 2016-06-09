@@ -16,10 +16,12 @@ import javax.xml.xpath.XPathFactory
 
 
 /**
- * Created by pledbrook on 03/05/2016.
+ * This is a Gradle task that runs through the user guide's source XML files
+ * and checks that all sections have {@code id} attributes and there are no
+ * duplicate section IDs.
  */
 @CompileStatic
-class UserGuideSectionVerifierTask extends DefaultTask {
+class UserGuideSectionVerifier extends DefaultTask {
     @InputFiles
     FileCollection docbookFiles
 
@@ -29,7 +31,7 @@ class UserGuideSectionVerifierTask extends DefaultTask {
     @TaskAction
     void verify() {
         Map<String, ValidationResult> allResults = docbookFiles.collectEntries { f ->
-            [f.name, this.validateSections(f)]
+            [f.name, validateSections(f)]
         }
 
         def duplicateSectionIds = allResults.collectMany { filename, result ->
@@ -41,12 +43,20 @@ class UserGuideSectionVerifierTask extends DefaultTask {
             sum + result.missingSectionIdCount
         }
 
-        if (duplicateSectionIds || allResults.any { filename, result -> result.missingSectionIdCount }) {
-            throw new GradleException(generateExceptionMessage(duplicateSectionIds, allResults))
+        def exceptionMessage = new StringBuilder()
+        if (duplicateSectionIds) {
+            appendDuplicatesMessagePart(exceptionMessage, duplicateSectionIds, allResults)
+        }
+        if (hasMissingSectionIds(allResults)) {
+            appendMissingIdsMessagePart(exceptionMessage, allResults)
+        }
+
+        if (exceptionMessage.size() > 0) {
+            throw new GradleException(exceptionMessage.toString())
         }
     }
 
-    public ValidationResult validateSections(File file) {
+    private ValidationResult validateSections(File file) {
         final doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
         final xpath = XPathFactory.newInstance().newXPath()
 
@@ -63,20 +73,11 @@ class UserGuideSectionVerifierTask extends DefaultTask {
                 sectionIds: idList)
     }
 
-    private String generateExceptionMessage(
-            Collection<String> duplicateSectionIds,
-            Map<String, ValidationResult> allResults) {
-        def msg = new StringBuilder()
-        if (duplicateSectionIds) {
-            msg << "The following section IDs have duplicates"
-            msg << " - all IDs should be unique across the whole user guide:\n\n"
-            duplicateSectionIds.each { id ->
-                msg << " " * 4
-                msg << "- ${id} (" + allResults.findAll { fn, r -> id in r.sectionIds }.keySet().join(", ") + ")\n"
-            }
-            msg << "\n"
-        }
+    private boolean hasMissingSectionIds(Map<String, ValidationResult> allResults) {
+        return allResults.any { filename, result -> result.missingSectionIdCount }
+    }
 
+    private StringBuilder appendMissingIdsMessagePart(StringBuilder msg, Map<String, ValidationResult> allResults) {
         if (allResults.any { filename, result -> result.missingSectionIdCount }) {
             msg << "The following files have sections without IDs"
             msg << " - all sections across the user guide should have IDs:\n\n"
@@ -86,7 +87,21 @@ class UserGuideSectionVerifierTask extends DefaultTask {
             }
             msg << "\n"
         }
-        return msg.toString()
+        return msg
+    }
+
+    private StringBuilder appendDuplicatesMessagePart(
+            StringBuilder msg,
+            Collection<String> duplicateSectionIds,
+            Map<String, ValidationResult> allResults) {
+        msg << "The following section IDs have duplicates"
+        msg << " - all IDs should be unique across the whole user guide:\n\n"
+        duplicateSectionIds.each { id ->
+            msg << " " * 4
+            msg << "- ${id} (" + allResults.findAll { fn, r -> id in r.sectionIds }.keySet().join(", ") + ")\n"
+        }
+        msg << "\n"
+        return msg
     }
 
     @ToString
