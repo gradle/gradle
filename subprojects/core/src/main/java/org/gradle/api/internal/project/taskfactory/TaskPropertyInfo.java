@@ -81,11 +81,6 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
         return propertyName;
     }
 
-    @Override
-    public Class<?> getType() {
-        return method.getReturnType();
-    }
-
     public Field getInstanceVariableField() {
         return instanceVariableField;
     }
@@ -95,8 +90,8 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
     }
 
     @Override
-    public Class<?> getInstanceVariableType() {
-        return instanceVariableField != null ? instanceVariableField.getType() : null;
+    public Class<?> getType() {
+        return instanceVariableField != null ? instanceVariableField.getType() : method.getReturnType();
     }
 
     public void addAnnotations(Annotation... annotations) {

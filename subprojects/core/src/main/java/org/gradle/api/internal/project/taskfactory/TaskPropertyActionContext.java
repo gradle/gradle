@@ -24,17 +24,11 @@ public interface TaskPropertyActionContext {
     String getName();
 
     /**
-     * Returns the declared type of this property.
+     * Returns the declared type of this property. If the property has an instance variable,
+     * then returns the declared type of the instance variable. Otherwise returns the return
+     * type of the declaring method.
      */
     Class<?> getType();
-
-    /**
-     * If the property has an instance variable, returns the declared type of the instance variable.
-     *
-     * This may be different to {@link #getType()} if the public getter has a different return type.
-     * If there is no instance variable for this property, will return null.
-     */
-    Class<?> getInstanceVariableType();
 
     /**
      * Returns whether the given annotation is present on the field or any of the methods declaring the property.
