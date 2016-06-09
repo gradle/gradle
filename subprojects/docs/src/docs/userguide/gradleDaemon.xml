@@ -110,7 +110,7 @@
                 Most Gradle users choose the second option and add the entry to the user <literal>gradle.properties</literal> file.
             </para>
             <para>
-                On Windows, this command will enable the Daemon for the current user:
+                On Windows, this command will disable the Daemon for the current user:
                 <programlisting>
                     (if not exist "%USERPROFILE%/.gradle" mkdir "%USERPROFILE%/.gradle") &amp;&amp; (echo org.gradle.daemon=false >> "%USERPROFILE%/.gradle/gradle.properties")
                 </programlisting>
@@ -129,7 +129,7 @@
             <title>How do I enable the Gradle Daemon?</title>
             <para>
                 The Gradle Daemon is enabled by default.
-                However, it is sometimes desirable to enable for some projects or for some build invocations.
+                However, it is sometimes desirable to explicitly enable for some projects or for some build invocations.
             </para>
             <para>
                 The <literal>--daemon</literal> command line switch can be used to ensure that a Daemon be used for that build.
