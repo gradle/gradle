@@ -90,7 +90,7 @@
         <para>
             Script plugins are automatically resolved and can be applied from a script on the local filesystem or at a remote location.
             Filesystem locations are relative to the project directory, while remote script locations are specified with an HTTP URL.
-            Multiple script plugins (of either form) can be applied to a given build.
+            Multiple script plugins (of either form) can be applied to a given target.
         </para>
     </section>
     <section>
