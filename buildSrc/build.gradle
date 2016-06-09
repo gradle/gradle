@@ -2,7 +2,6 @@ buildscript {
     ext.kotlinVersion = '1.1.0-dev-998'
 
     repositories {
-        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
         maven { url 'https://repo.gradle.org/gradle/repo' }
     }
 
@@ -21,6 +20,5 @@ dependencies {
 }
 
 repositories {
-    maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
     maven { url 'https://repo.gradle.org/gradle/repo' }
 }
