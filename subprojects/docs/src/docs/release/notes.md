@@ -295,6 +295,7 @@ We would like to thank the following community members for making contributions 
  - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
  - [Ramon Wirsch](https://github.com/ramonwirsch) - Fix NullPointerException when processing annotations in the new Java software model
  - [Vladislav Bauer](https://github.com/vbauer) - ShadeJar: Use ClassRemapper instead of deprecated RemappingClassAdapter
+ - [Matias Hernandez](https://github.com/matiash) - Removed 4NT-specific code in bat files (GRADLE-3476)
   
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
