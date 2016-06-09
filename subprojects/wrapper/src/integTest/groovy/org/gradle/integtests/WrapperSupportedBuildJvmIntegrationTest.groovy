@@ -35,4 +35,18 @@ class WrapperSupportedBuildJvmIntegrationTest extends AbstractWrapperIntegration
         where:
         jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
+
+    @Unroll
+    def "provides reasonable failure message when attempting to run build under java #jdk.javaVersion"() {
+        given:
+        prepareWrapper()
+        file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
+
+        expect:
+        def failure = wrapperExecuter.withTasks("help").runWithFailure()
+        failure.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+    }
 }
