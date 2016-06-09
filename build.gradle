@@ -369,7 +369,7 @@ if (isCiServer) {
                 def htmlTestReportDirs = tasks.withType(Test).collect { it.reports.html.destination }.unique()
 
                 htmlTestReportDirs.each { htmlReportDir ->
-                    logger.info "[$it.name] Deleting test reports directory '$htmlReportDir'."
+                    logger.info "Deleting test reports directory '$htmlReportDir'."
                     def success = htmlReportDir.deleteDir()
 
                     if (!success) {
