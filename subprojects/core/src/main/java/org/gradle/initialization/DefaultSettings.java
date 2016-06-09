@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ProjectDescriptor;
@@ -35,6 +36,8 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collections;
+import java.util.List;
 
 public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
@@ -53,6 +56,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope rootClassLoaderScope;
     private final ServiceRegistry services;
+    private final List<String> includedBuilds = Lists.newArrayList();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
@@ -227,5 +231,15 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     @Inject
     public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void includeBuild(String[] projectPaths) {
+        Collections.addAll(includedBuilds, projectPaths);
+    }
+
+    @Override
+    public List<String> getIncludedBuilds() {
+        return includedBuilds;
     }
 }

@@ -15,19 +15,28 @@
  */
 package org.gradle.initialization;
 
+import com.google.common.collect.Lists;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
+import org.gradle.internal.composite.CompositeContextBuilder;
+import org.gradle.internal.composite.DefaultGradleParticipantBuild;
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.logging.LoggingManagerInternal;
+
+import java.io.File;
+import java.util.List;
 
 public class DefaultGradleLauncher extends GradleLauncher {
 
@@ -116,7 +125,14 @@ public class DefaultGradleLauncher extends GradleLauncher {
         initScriptHandler.executeScripts(gradle);
 
         // Calculate projects
-        settingsLoader.findAndLoadSettings(gradle);
+        SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
+
+        List<GradleParticipantBuild> participantBuilds = getBuildRoots(settings);
+        if (!participantBuilds.isEmpty()) {
+            BuildRequestMetaData metaData = buildServices.get(BuildRequestMetaData.class);
+            CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
+            compositeContextBuilder.addToCompositeContext(participantBuilds, metaData.getClient(), true);
+        }
 
         // Configure build
         buildOperationExecutor.run("Configure build", new Runnable() {
@@ -156,6 +172,15 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         assert upTo == Stage.Build;
+    }
+
+    private List<GradleParticipantBuild> getBuildRoots(SettingsInternal settings) {
+        List<GradleParticipantBuild> participantBuilds = Lists.newArrayList();
+        for (String buildPath : settings.getIncludedBuilds()) {
+            File buildDir = buildServices.get(FileResolver.class).resolve(buildPath);
+            participantBuilds.add(new DefaultGradleParticipantBuild(buildDir, null, null, null));
+        }
+        return participantBuilds;
     }
 
     /**

@@ -172,4 +172,7 @@ public interface Settings extends PluginAware {
      * @return The Gradle instance. Never returns null.
      */
     Gradle getGradle();
+
+    void includeBuild(String[] projectPaths);
+
 }

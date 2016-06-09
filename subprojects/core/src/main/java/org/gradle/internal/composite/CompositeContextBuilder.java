@@ -16,10 +16,12 @@
 
 package org.gradle.internal.composite;
 
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildRequestContext;
 
 import java.util.List;
 
 public interface CompositeContextBuilder {
     void addToCompositeContext(List<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, boolean propagateFailures);
+    void addToCompositeContext(List<GradleParticipantBuild> participantBuilds, BuildClientMetaData client, boolean propagateFailures);
 }

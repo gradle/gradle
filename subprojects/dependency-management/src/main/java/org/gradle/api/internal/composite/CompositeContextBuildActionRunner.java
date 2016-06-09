@@ -64,7 +64,6 @@ public class CompositeContextBuildActionRunner {
             }
         } catch (ReportedException e) {
             maybeRethrow(e);
-
         } catch (RuntimeException e) {
             exceptionReporter.execute(e);
             maybeRethrow(new ReportedException(e));

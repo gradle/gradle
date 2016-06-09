@@ -16,14 +16,15 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.composite.fixtures.ProjectTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
 class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
-    def buildA
-    def buildB
+    ProjectTestFile buildA
+    ProjectTestFile buildB
     MavenFileRepository mavenRepo
     ResolveTestFixture resolve
     def buildArgs = []
@@ -119,6 +120,29 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBui
                 compile "org.test:buildB:1.0"
             }
 """
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
+        }
+    }
+
+    def "substitutes external dependency with root project dependency using settings.gradle"() {
+        given:
+        buildA.settingsFile << """
+            includeBuild '${buildB.absolutePath}'
+"""
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:buildB:1.0"
+            }
+"""
+        builds = []
 
         when:
         checkDependencies()

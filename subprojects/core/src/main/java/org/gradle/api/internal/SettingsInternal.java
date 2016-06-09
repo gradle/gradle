@@ -24,6 +24,8 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 
+import java.util.List;
+
 public interface SettingsInternal extends Settings {
     /**
      * Returns the scope containing classes that should be visible to all settings and build scripts invoked by this build.
@@ -44,4 +46,6 @@ public interface SettingsInternal extends Settings {
     ProjectDescriptor getDefaultProject();
 
     void setDefaultProject(ProjectDescriptor defaultProject);
+
+    List<String> getIncludedBuilds();
 }
