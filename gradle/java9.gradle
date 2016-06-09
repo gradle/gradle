@@ -16,6 +16,7 @@ task java9IntegTest(type: Test) {
         "JavaLanguageCustomLibraryDependencyResolutionIntegrationTest",
         "JavaLanguageDependencyResolutionIntegrationTest",
         "JavaLanguageIncrementalBuildIntegrationTest",
+        "MixedNativeAndJvmProjectIntegrationTest",
 
         // Broken scala and twirl compilation, broken api jar construction
         "MixedPlayAndJvmLibraryProjectIntegrationTest",
@@ -64,6 +65,7 @@ task java9IntegTest(type: Test) {
         "ZincScalaCompilerIntegrationTest",
         "ScalaTestIntegrationTest",
         "ScalaLibraryInitIntegrationTest",
+        "ZincScalaCompilerMultiVersionIntegrationTest",
 
         // Sample attempts to set max perm space
         "SamplesScalaZincIntegrationTest",
@@ -119,6 +121,8 @@ task java9IntegTest(type: Test) {
         "UserGuideSamplesIntegrationTest",
 
         // ??
+        "ApplicationPluginIntegrationTest",
+        "SamplesJavaMultiProjectIntegrationTest",
         "JavaCompileIntegrationTest",
         "BuildDashboardPluginIntegrationTest",
         "JavaLanguageExternalDependencyResolutionIntegrationTest",
@@ -160,12 +164,17 @@ task java9Test(type: Test) {
         "ATestClassWithBrokenBeforeClassMethod",
         "ATestClassWithBrokenBeforeMethod",
         "ATestClassWithBrokenConstructor",
+        "ATestClassWithRunner",
         "ATestClassWithBrokenRunner",
         "ATestClassWithRunnerThatBreaksAfterRunningSomeTests",
         "ATestClassWithSeveralMethods",
         "ATestClassWithUnconstructibleRunner",
 
+        // Needs to be reworked to test pre java 9 and java 9 layouts
+        "JvmTest",
+
         // ??
+        "FilteringClassLoaderTest",
         "DefaultJavaToolChainTest",
         "JdkToolsTest",
         "JdkToolsTest",
