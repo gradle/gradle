@@ -5,6 +5,9 @@ String jdkVarName = 'JAVA_9'
 
 task java9IntegTest(type: Test) {
     excludes = [
+        // Broken api jar construction due to ASM not working with Java 9 bytecode
+        "MixedLegacyAndComponentJvmPluginIntegrationTest",
+
         // Broken scala and twirl compilation, broken api jar construction
         "MixedPlayAndJvmLibraryProjectIntegrationTest",
         "PlayAppWithFailingTestsIntegrationTest",
@@ -34,6 +37,27 @@ task java9IntegTest(type: Test) {
         "PlayRunIntegrationTest",
         "TwirlCompileIntegrationTest",
         "TwirlVersionIntegrationTest",
+        "PlayIdeaPluginAdvancedIntegrationTest",
+        "PlayIdeaPluginBasicIntegrationTest",
+        "PlayIdeaPluginMultiprojectIntegrationTest",
+        "ProjectLayoutIntegrationTest",
+        "SamplesMixedJavaAndScalaIntegrationTest",
+        "SamplesScalaCustomizedLayoutIntegrationTest",
+        "SamplesScalaQuickstartIntegrationTest",
+        "JointScalaLangIntegrationTest",
+        "SampleScalaLanguageIntegrationTest",
+        "ScalaCompileParallelIntegrationTest",
+        "ScalaCompilerContinuousIntegrationTest",
+        "ScalaLanguageIncrementalBuildIntegrationTest",
+        "ScalaLanguageIntegrationTest",
+        "ScalaCrossCompilationIntegrationTest",
+        "IncrementalScalaCompileIntegrationTest",
+        "ZincScalaCompilerIntegrationTest",
+        "ScalaTestIntegrationTest",
+        "ScalaLibraryInitIntegrationTest",
+
+        // Sample attempts to set max perm space
+        "SamplesScalaZincIntegrationTest",
 
         // Cannot build Gradle with Java 9, compiler bug
         "SrcDistributionIntegrationSpec",
@@ -41,9 +65,11 @@ task java9IntegTest(type: Test) {
         // Test compiles for Java 5
         "ToolingApiUnsupportedClientJvmCrossVersionSpec",
         "MavenConversionIntegrationTest",
+        "IncrementalJavaCompileIntegrationTest",
 
         // Jetty version does not work on Java 9
         "JettyIntegrationSpec",
+        "SamplesWebQuickstartIntegrationTest",
 
         // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
         "S3ClientIntegrationTest",
@@ -55,7 +81,34 @@ task java9IntegTest(type: Test) {
         "IvyPublishHttpIntegTest",
         "IvyHttpPublishIntegrationTest",
 
+        // Codenarc does not work on Java 9
+        "IsolatedAntBuilderMemoryLeakIntegrationTest",
+
+        // Attempts to run Gradle 2.8 on Java 9
+        "HeterogeneousCompositeBuildCrossVersionSpec",
+
+        // Affected by hack in JavaPluginConvention to force source and target compatibility to Java 8
+        "ToolingApiEclipseModelCrossVersionSpec",
+        "CommandLineJavaCompilerIntegrationTest",
+        "InProcessGroovyCompilerIntegrationTest",
+        "InvokeDynamicGroovyCompilerSpec",
+        "DaemonGroovyCompilerIntegrationTest",
+        "InProcessJavaCompilerIntegrationTest",
+        "DaemonJavaCompilerIntegrationTest",
+
+        // Various problems, eg scala compile
+        "UserGuideSamplesIntegrationTest",
+
         // ??
+        "EnvJsPluginIntegrationTest",
+        "GradleRunnerSamplesEndUserIntegrationTest",
+        "MultiRequestWorkerProcessIntegrationTest",
+        "SingleRequestWorkerProcessIntegrationTest",
+        "WorkerProcessIntegrationTest",
+        "PathLimitationIntegrationTest",
+        "DirectoryScanningIntegTest",
+        "DeprecationHandlingIntegrationTest",
+        "BuildSourceBuilderIntegrationTest",
         "ClientShutdownCrossVersionSpec",
         "CompositeBuildDependencyArtifactsCrossVersionSpec",
         "CompositeBuildDependencyGraphCrossVersionSpec",
@@ -64,6 +117,18 @@ task java9IntegTest(type: Test) {
 
 task java9Test(type: Test) {
     excludes = [
+        // ASM doesn't work with Java 9 bytecode
+        "MixInLegacyTypesClassLoaderTest",
+
+        // Affected by hack in JavaPluginConvention to force source and target compatibility to Java 8
+        "JavaPluginConventionTest",
+
+        // ??
+        "PayloadSerializerTest",
+        "GeneratedArchiveBuildOutcomeComparatorTest",
+        "ArchiveEntryTest",
+        "GroovyStackTraceSpecTest",
+        "DefaultFileOperationsTest"
     ].collect { "**/*${it}*" }
 }
 
