@@ -26,7 +26,7 @@ dependencies {
     compile("javax.inject:javax.inject:1")
     compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
     compile("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:${kotlinVersion}")
+    compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
 
     testRuntime("org.slf4j:slf4j-simple:1.7.10")
     testCompile(gradle("core"))

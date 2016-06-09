@@ -1,12 +1,8 @@
 buildscript {
     ext.kotlinVersion = '1.1.0-dev-998'
     repositories {
-        maven {
-            url 'https://dl.bintray.com/kotlin/kotlin-dev'
-        }
-        maven {
-            url 'https://repo.gradle.org/gradle/repo'
-        }
+        maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
+        maven { url 'https://repo.gradle.org/gradle/repo' }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
@@ -15,12 +11,8 @@ buildscript {
 }
 
 repositories {
-    maven {
-        url 'https://dl.bintray.com/kotlin/kotlin-dev'
-    }
-    maven {
-        url 'https://repo.gradle.org/gradle/repo'
-    }
+    maven { url 'https://dl.bintray.com/kotlin/kotlin-dev' }
+    maven { url 'https://repo.gradle.org/gradle/repo' }
 }
 
 apply from: 'build.gradle.kts'
