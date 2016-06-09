@@ -4,9 +4,67 @@
 String jdkVarName = 'JAVA_9'
 
 task java9IntegTest(type: Test) {
+    excludes = [
+        // Broken scala and twirl compilation, broken api jar construction
+        "MixedPlayAndJvmLibraryProjectIntegrationTest",
+        "PlayAppWithFailingTestsIntegrationTest",
+        "PlayMultiProjectApplicationIntegrationTest",
+        "PlayPlatformIntegrationTest",
+        "PlayBinaryAdvancedAppIntegrationTest",
+        "PlayDistributionAdvancedAppIntegrationTest",
+        "PlayBinaryBasicAppIntegrationTest",
+        "PlayDistributionBasicAppIntegrationTest",
+        "PlayTestBasicAppIntegrationTest",
+        "PlayContinuousBuildIntegrationTest",
+        "PlayMultiProjectContinuousBuildIntegrationTest",
+        "PlayMultiProjectReloadIntegrationTest",
+        "PlayReloadIntegrationTest",
+        "PlayTwirlCompilerContinuousIntegrationTest",
+        "PlayBinaryAppWithDependenciesIntegrationTest",
+        "PlayDistributionAppWithDependenciesIntegrationTest",
+        "PlayTestAppWithDependenciesIntegrationTest",
+        "AdvancedPlaySampleIntegrationTest",
+        "BasicPlaySampleIntegrationTest",
+        "MultiprojectPlaySampleIntegrationTest",
+        "UserGuidePlaySamplesIntegrationTest",
+        "PlayApplicationPluginIntegrationTest",
+        "Play23RoutesCompileIntegrationTest",
+        "Play24RoutesCompileIntegrationTest",
+        "PlayAssetsJarIntegrationTest",
+        "PlayRunIntegrationTest",
+        "TwirlCompileIntegrationTest",
+        "TwirlVersionIntegrationTest",
+
+        // Cannot build Gradle with Java 9, compiler bug
+        "SrcDistributionIntegrationSpec",
+
+        // Test compiles for Java 5
+        "ToolingApiUnsupportedClientJvmCrossVersionSpec",
+        "MavenConversionIntegrationTest",
+
+        // Jetty version does not work on Java 9
+        "JettyIntegrationSpec",
+
+        // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
+        "S3ClientIntegrationTest",
+        "IvyPublishS3IntegrationTest",
+        "IvyS3UploadArchivesIntegrationTest",
+        "MavenPublishS3IntegrationTest",
+
+        // Test assumes there is a tools.jar
+        "IvyPublishHttpIntegTest",
+        "IvyHttpPublishIntegrationTest",
+
+        // ??
+        "ClientShutdownCrossVersionSpec",
+        "CompositeBuildDependencyArtifactsCrossVersionSpec",
+        "CompositeBuildDependencyGraphCrossVersionSpec",
+    ].collect { "**/*${it}*" }
 }
 
 task java9Test(type: Test) {
+    excludes = [
+    ].collect { "**/*${it}*" }
 }
 
 tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
