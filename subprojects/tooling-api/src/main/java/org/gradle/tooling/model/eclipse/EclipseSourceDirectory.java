@@ -72,6 +72,8 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      * {@inheritDoc}
      *
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
+     *
+     * @since 3.0
      */
     DomainObjectSet<? extends ClasspathAttribute> getClasspathAttributes() throws UnsupportedMethodException;
 }
