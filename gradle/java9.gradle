@@ -17,6 +17,7 @@ task java9IntegTest(type: Test) {
         "JavaLanguageDependencyResolutionIntegrationTest",
         "JavaLanguageIncrementalBuildIntegrationTest",
         "MixedNativeAndJvmProjectIntegrationTest",
+        "JavaCompilationAgainstDependenciesIntegrationTest",
 
         // Broken scala and twirl compilation, broken api jar construction
         "MixedPlayAndJvmLibraryProjectIntegrationTest",
