@@ -106,7 +106,7 @@ public class GeneratorTask<T> extends ConventionTask {
         File inputFile = getInputFile();
         if (inputFile == null) {
             File outputFile = getOutputFile();
-            if (outputFile.exists()) {
+            if (outputFile != null && outputFile.exists()) {
                 return outputFile;
             } else {
                 return null;
