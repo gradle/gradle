@@ -16,147 +16,14 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
 import org.objectweb.asm.commons.Remapper;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class ImplementationDependencyRelocator extends Remapper {
 
     private final Pattern classPattern = Pattern.compile("(\\[*)?L(.+)");
-    private final Trie prefixes = readPrefixes();
-
-    private static class Trie {
-        private final char c;
-        private final boolean terminal;
-        private final Trie[] transitions;
-
-        private Trie(char c, boolean terminal, Trie[] transitions) {
-            this.c = c;
-            this.terminal = terminal;
-            this.transitions = transitions;
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder sb = new StringBuilder();
-            return dump(sb);
-        }
-
-        private String dump(StringBuilder sb) {
-            sb.append(c).append(terminal ? "(terminal)\n" : "\n");
-            sb.append("Next: ");
-            for (Trie transition : transitions) {
-               sb.append(transition.c).append(" ");
-            }
-            sb.append("\n");
-            return sb.toString();
-        }
-
-        public boolean find(CharSequence seq) {
-            if (seq.length() == 0) {
-                return false;
-            }
-            int idx = 0;
-            Trie cur = this;
-            while (idx < seq.length()) {
-                char c = seq.charAt(idx);
-                boolean found = false;
-                for (Trie transition : cur.transitions) {
-                    if (transition.c == c) {
-                        cur = transition;
-                        idx++;
-                        found = true;
-                        if (idx == seq.length()) {
-                            return cur.terminal;
-                        }
-                        break;
-                    } else if (transition.c > c) {
-                        return false;
-                    }
-                }
-                if (!found) {
-                    return false;
-                }
-            }
-            return cur.terminal;
-        }
-
-        private static class Builder {
-            private final char c;
-
-            private boolean terminal;
-            private List<Builder> transitions = new ArrayList<Builder>();
-
-            private Builder(char c) {
-                this.c = c;
-            }
-
-            public Builder addTransition(char c, boolean terminal) {
-                Builder b = null;
-                for (Builder transition : transitions) {
-                    if (transition.c == c) {
-                        b = transition;
-                        break;
-                    }
-                }
-                if (b == null) {
-                    b = new Builder(c);
-                    transitions.add(b);
-                }
-                b.terminal |= terminal;
-                return b;
-            }
-
-            public Trie build() {
-                Trie[] transitions = new Trie[this.transitions.size()];
-                for (int i = 0; i < this.transitions.size(); i++) {
-                    Builder transition = this.transitions.get(i);
-                    transitions[i] = transition.build();
-                }
-                Arrays.sort(transitions, new Comparator<Trie>() {
-                    @Override
-                    public int compare(Trie o1, Trie o2) {
-                        return o1.c - o2.c;
-                    }
-                });
-                return new Trie(c, terminal, transitions);
-            }
-        }
-    }
-
-    private static Trie readPrefixes() {
-        final Trie.Builder builder = new Trie.Builder('\0');
-        IoActions.withResource(ImplementationDependencyRelocator.class.getResourceAsStream("relocated.txt"), new ErroringAction<InputStream>() {
-            @Override
-            protected void doExecute(InputStream thing) throws Exception {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(thing, Charset.forName("UTF-8")));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    if (line.length() > 0) {
-                        Trie.Builder cur = builder;
-                        char[] chars = line.toCharArray();
-                        for (int i = 0; i < chars.length; i++) {
-                            char c = chars[i];
-                            cur = cur.addTransition(c, i == chars.length - 1);
-                        }
-                    }
-                }
-            }
-        });
-        return builder.build();
-    }
 
     public String map(String name) {
         String value = name;
@@ -178,10 +45,27 @@ class ImplementationDependencyRelocator extends Remapper {
     }
 
     public String maybeRelocateResource(String resource) {
-        if (prefixes.find(resource)) {
+        if (
+            resource.startsWith("META-INF")
+                || resource.startsWith("org/gradle")
+                || resource.startsWith("java")
+                || resource.startsWith("javax")
+                || resource.startsWith("groovy")
+                || resource.startsWith("groovyjarjarantlr")
+                || resource.startsWith("net/rubygrapefruit")
+                || resource.startsWith("org/codehaus/groovy")
+                || resource.startsWith("org/apache/tools/ant")
+                || resource.startsWith("org/apache/commons/logging")
+                || resource.startsWith("org/slf4j")
+                || resource.startsWith("org/apache/log4j")
+                || resource.startsWith("org/apache/xerces")
+                || resource.startsWith("org/w3c/dom")
+                || resource.startsWith("org/xml/sax")
+            ) {
+            return null;
+        } else {
             return "org/gradle/internal/impldep/" + resource;
         }
-        return null;
     }
 
     public boolean keepOriginalResource(String resource) {
