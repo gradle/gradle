@@ -37,7 +37,6 @@ import java.lang.annotation.Target;
  *
  * <p>Example:</p>
  * <pre autoTested="true">
- * {@code
  * class MyReportTask extends DefaultTask {
  *     {@literal @}OutputFiles
  *     Map<String, File> getReportDirectories() {
@@ -47,7 +46,6 @@ import java.lang.annotation.Target;
  *             html: new File(reportsDir, "html")
  *         ]
  *     }
- * }
  * }
  * </pre>
  */
