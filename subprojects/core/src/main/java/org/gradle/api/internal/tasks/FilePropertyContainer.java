@@ -16,34 +16,39 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import org.gradle.api.tasks.TaskFilePropertyBuilder;
+import com.google.common.collect.Maps;
+import org.gradle.api.file.FileCollection;
 
 import java.util.List;
-import java.util.Set;
+import java.util.SortedMap;
 
-public class FilePropertyContainer<T extends TaskFilePropertySpec & TaskFilePropertyBuilder> {
-    private int legacyFilePropertyCounter;
+public class FilePropertyContainer<T extends TaskFilePropertySpec> {
     protected final List<T> fileProperties = Lists.newArrayList();
+    private final String displayName;
+    private SortedMap<String, FileCollection> filePropertiesMap;
 
-    protected void collectFileProperties(ImmutableList.Builder<? super T> builder) {
-        Set<String> propertyNames = Sets.newHashSetWithExpectedSize(fileProperties.size());
-        for (T propertySpec : fileProperties) {
-            String propertyName = propertySpec.getPropertyName();
-            if (propertyName == null) {
-                propertyName = nextLegacyPropertyName();
-                propertySpec.withPropertyName(propertyName);
-            }
-            if (!propertyNames.add(propertyName)) {
-                throw new IllegalArgumentException(String.format("Multiple file properties with name '%s'", propertyName));
-            }
-            builder.add(propertySpec);
-        }
+    public FilePropertyContainer(String displayName) {
+        this.displayName = displayName;
     }
 
-    private String nextLegacyPropertyName() {
-        return "$" + (++legacyFilePropertyCounter);
+    // Note: sorted map used to keep order of properties consistent
+    public SortedMap<String, FileCollection> getFileProperties() {
+        if (filePropertiesMap == null) {
+            int unnamedPropertyCounter = 0;
+            SortedMap<String, FileCollection> filePropertiesMap = Maps.newTreeMap();
+            for (T propertySpec : fileProperties) {
+                String propertyName = propertySpec.getPropertyName();
+                if (propertyName == null) {
+                    propertyName = "$" + (++unnamedPropertyCounter);
+                }
+                if (filePropertiesMap.containsKey(propertyName)) {
+                    throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", displayName, propertyName));
+                }
+                filePropertiesMap.put(propertyName, propertySpec.getPropertyFiles());
+            }
+            this.filePropertiesMap = filePropertiesMap;
+        }
+        return filePropertiesMap;
     }
 }

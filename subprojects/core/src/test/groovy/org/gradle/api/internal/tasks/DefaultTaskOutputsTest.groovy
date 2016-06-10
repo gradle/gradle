@@ -58,32 +58,32 @@ class DefaultTaskOutputsTest extends Specification {
         when: outputs.file("a")
         then:
         outputs.files.files.toList() == [new File('a')]
-        outputs.fileProperties*.propertyName.toList() == ['$1']
-        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties.keySet().toList() == ['$1']
+        outputs.fileProperties.values()*.files.flatten() == [new File("a")]
     }
 
     def "can register output file with property name"() {
         when: outputs.file("a").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a')]
-        outputs.fileProperties*.propertyName.toList() == ['prop']
-        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties.keySet().toList() == ['prop']
+        outputs.fileProperties.values()*.files.flatten() == [new File("a")]
     }
 
     def "can register output dir"() {
         when: outputs.file("a")
         then:
         outputs.files.files.toList() == [new File('a')]
-        outputs.fileProperties*.propertyName.toList() == ['$1']
-        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties.keySet().toList() == ['$1']
+        outputs.fileProperties.values().files.flatten() == [new File("a")]
     }
 
     def "can register output dir with property name"() {
         when: outputs.dir("a").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a')]
-        outputs.fileProperties*.propertyName.toList() == ['prop']
-        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties.keySet().toList() == ['prop']
+        outputs.fileProperties.values().files.flatten() == [new File("a")]
     }
 
     def "cannot register output file with same property name"() {
@@ -93,7 +93,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.fileProperties
         then:
         def ex = thrown IllegalArgumentException
-        ex.message == "Multiple file properties with name 'alma'"
+        ex.message == "Multiple output file properties with name 'alma'"
     }
 
     public void canRegisterOutputFiles() {

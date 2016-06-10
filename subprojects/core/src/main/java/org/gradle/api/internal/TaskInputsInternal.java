@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal;
 
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskInputs;
 
-import java.util.Collection;
+import java.util.SortedMap;
 
 public interface TaskInputsInternal extends TaskInputs {
     void ensureConfigured();
 
-    Collection<TaskInputFilePropertySpec> getFileProperties();
+    SortedMap<String, FileCollection> getFileProperties();
 }

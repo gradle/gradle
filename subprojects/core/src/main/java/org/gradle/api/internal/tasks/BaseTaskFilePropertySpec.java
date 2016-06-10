@@ -17,13 +17,12 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.tasks.TaskFilePropertyBuilder;
 
-abstract class AbstractTaskFilePropertySpec implements TaskFilePropertySpec, TaskFilePropertyBuilder {
+class BaseTaskFilePropertySpec implements TaskFilePropertySpec {
     private final TaskPropertyFileCollection files;
     private String propertyName;
 
-    public AbstractTaskFilePropertySpec(String taskName, String title, FileResolver resolver, Object paths) {
+    public BaseTaskFilePropertySpec(String taskName, String title, FileResolver resolver, Object paths) {
         this.files = new TaskPropertyFileCollection(taskName, title, this, resolver, paths);
     }
 

@@ -22,13 +22,11 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.FilesSnapshotSet
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec
+import org.gradle.api.internal.tasks.TaskFilePropertySpec
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Issue
 import spock.lang.Specification
@@ -58,21 +56,6 @@ class TaskUpToDateStateTest extends Specification {
 
     def "constructor invokes snapshots" () {
         setup:
-        def mockInputProperty = Mock(TaskInputFilePropertySpec) {
-            getPropertyName() >> "prop"
-            getFiles() >> {
-                new SimpleFileCollection(new File("a"))
-            }
-        }
-        def mockOutputProperty = Mock(TaskOutputFilePropertySpec) {
-            getPropertyName() >> "out"
-            getFiles() >> {
-                new SimpleFileCollection(new File("b"))
-            }
-        }
-        FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot) {
-            _ * getSnapshot() >> Stub(FilesSnapshotSet)
-        }
         OutputFilesCollectionSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         FileCollectionSnapshotter mockDiscoveredInputFileSnapshotter = Mock(FileCollectionSnapshotter)
@@ -85,8 +68,8 @@ class TaskUpToDateStateTest extends Specification {
         then:
         noExceptionThrown()
         1 * mockInputs.getProperties() >> [:]
-        1 * mockInputs.getFileProperties() >> [mockInputProperty]
-        1 * mockOutputs.getFileProperties() >> [mockOutputProperty]
+        1 * mockInputs.getFileProperties() >> (["prop": new SimpleFileCollection(new File("a"))] as TreeMap)
+        1 * mockOutputs.getFileProperties() >> (["out": new SimpleFileCollection(new File("b"))] as TreeMap)
         1 * mockOutputFileSnapshotter.preCheck(_, _) >> outputPreCheck
         1 * mockInputFileSnapshotter.preCheck(_, _) >> inputPreCheck
         1 * inputPreCheck.getHash() >> 123
@@ -96,18 +79,6 @@ class TaskUpToDateStateTest extends Specification {
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when input snapshot throws UncheckedIOException" () {
         setup:
-        def mockInputProperty = Mock(TaskInputFilePropertySpec) {
-            getPropertyName() >> "prop"
-            getFiles() >> {
-                new SimpleFileCollection(new File("a"))
-            }
-        }
-        def mockOutputProperty = Mock(TaskOutputFilePropertySpec) {
-            getPropertyName() >> "out"
-            getFiles() >> {
-                new SimpleFileCollection(new File("b"))
-            }
-        }
         def cause = new UncheckedIOException("thrown from stub")
         _ * stubInputFileSnapshotter.preCheck(_, _) >> { throw cause }
 
@@ -116,8 +87,8 @@ class TaskUpToDateStateTest extends Specification {
 
         then:
         1 * mockInputs.getProperties() >> [:]
-        1 * mockInputs.getFileProperties() >> [mockInputProperty]
-        1 * mockOutputs.getFileProperties() >> [mockOutputProperty]
+        1 * mockInputs.getFileProperties() >> (["prop": new SimpleFileCollection(new File("a"))] as TreeMap)
+        1 * mockOutputs.getFileProperties() >> (["out": new SimpleFileCollection(new File("b"))] as TreeMap)
         def e = thrown(UncheckedIOException)
         e.message.contains(stubTask.getName())
         e.message.contains("up-to-date")
@@ -128,7 +99,7 @@ class TaskUpToDateStateTest extends Specification {
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when output snapshot throws UncheckedIOException" () {
         setup:
-        def mockOutputProperty = Mock(TaskOutputFilePropertySpec) {
+        def mockOutputProperty = Mock(TaskFilePropertySpec) {
             getPropertyName() >> "out"
             getFiles() >> {
                 new SimpleFileCollection(new File("b"))
@@ -142,7 +113,7 @@ class TaskUpToDateStateTest extends Specification {
 
         then:
         1 * mockInputs.getProperties() >> [:]
-        1 * mockOutputs.getFileProperties() >> [mockOutputProperty]
+        1 * mockOutputs.getFileProperties() >> (["out": new SimpleFileCollection(new File("b"))] as TreeMap)
         def e = thrown(UncheckedIOException)
         e.message.contains(stubTask.getName())
         e.message.contains("up-to-date")

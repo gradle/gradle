@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.rules;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -28,21 +27,21 @@ import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 
 abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges, FilesSnapshotSet {
     private final PreCheckSet preChecksBefore;
@@ -50,13 +49,13 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     private final String taskName;
     private final boolean allowSnapshotReuse;
     private final String title;
-    protected final Collection<? extends TaskFilePropertySpec> fileProperties;
+    protected final SortedMap<String, FileCollection> fileProperties;
     private final boolean noChanges;
     private final FileCollectionSnapshotter snapshotter;
     protected final TaskExecution previous;
     protected final TaskExecution current;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, Collection<? extends TaskFilePropertySpec> fileProperties) {
+    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, SortedMap<String, FileCollection> fileProperties) {
         this.taskName = taskName;
         this.previous = previous;
         this.current = current;
@@ -74,14 +73,15 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return buildPreCheckSet(taskName, snapshotter, allowSnapshotReuse, title, fileProperties);
     }
 
-    private static PreCheckSet buildPreCheckSet(String taskName, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, Collection<? extends TaskFilePropertySpec> fileProperties) {
+    private static PreCheckSet buildPreCheckSet(String taskName, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, SortedMap<String, FileCollection> fileProperties) {
         Hasher hasher = Hashing.md5().newHasher();
-        ImmutableSortedMap.Builder<String, FileCollectionSnapshot.PreCheck> builder = ImmutableSortedMap.naturalOrder();
-        for (TaskFilePropertySpec fileProperty : fileProperties) {
-            String propertyName = fileProperty.getPropertyName();
+        ImmutableMap.Builder<String, FileCollectionSnapshot.PreCheck> builder = ImmutableMap.builder();
+        for (Map.Entry<String, FileCollection> entry : fileProperties.entrySet()) {
+            String propertyName = entry.getKey();
+            FileCollection files = entry.getValue();
             FileCollectionSnapshot.PreCheck result;
             try {
-                result = snapshotter.preCheck(fileProperty.getPropertyFiles(), allowSnapshotReuse);
+                result = snapshotter.preCheck(files, allowSnapshotReuse);
             } catch (UncheckedIOException e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertyName), e);
             }

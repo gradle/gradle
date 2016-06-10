@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -35,7 +34,6 @@ import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.Collection;
 import java.util.Queue;
 import java.util.concurrent.Callable;
 
@@ -51,6 +49,7 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
     private Queue<Action<? super TaskOutputs>> configureActions;
 
     public DefaultTaskOutputs(FileResolver resolver, final TaskInternal task, TaskMutator taskMutator) {
+        super("output");
         this.resolver = resolver;
         this.taskName = task.getName();
         this.taskMutator = taskMutator;
@@ -110,13 +109,6 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
     @Override
     public FileCollection getFiles() {
         return allOutputFiles;
-    }
-
-    @Override
-    public Collection<TaskOutputFilePropertySpec> getFileProperties() {
-        ImmutableList.Builder<TaskOutputFilePropertySpec> builder = ImmutableList.builder();
-        collectFileProperties(builder);
-        return builder.build();
     }
 
     @Override
@@ -197,7 +189,7 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
         }
     }
 
-    class PropertySpec extends AbstractTaskFilePropertySpec implements TaskOutputFilePropertySpec, TaskOutputFilePropertyBuilder {
+    class PropertySpec extends BaseTaskFilePropertySpec implements TaskOutputFilePropertyBuilder {
         private boolean optional;
 
         public PropertySpec(String taskName, FileResolver resolver, Object paths) {
@@ -210,7 +202,6 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
             return this;
         }
 
-        @Override
         public boolean isOptional() {
             return optional;
         }

@@ -17,20 +17,13 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.tasks.TaskFilePropertyBuilder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class AbstractTaskFilePropertySpecTest extends Specification {
+class BaseTaskFilePropertySpecTest extends Specification {
 
     def resolver = Mock(FileResolver)
-    def spec = new AbstractTaskFilePropertySpec("test", "test", resolver, "test.txt") {
-        @Override
-        TaskFilePropertyBuilder withPropertyName(String propertyName) {
-            setPropertyName(propertyName)
-            return this
-        }
-    }
+    def spec = new BaseTaskFilePropertySpec("test", "test", resolver, "test.txt")
 
     def "can register nested property name"() {
         when:

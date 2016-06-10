@@ -17,16 +17,15 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
 
-import java.util.Collection;
+import java.util.SortedMap;
 
 public interface TaskOutputsInternal extends TaskOutputs {
     Spec<? super TaskInternal> getUpToDateSpec();
 
-    Collection<TaskOutputFilePropertySpec> getFileProperties();
+    SortedMap<String, FileCollection> getFileProperties();
 
     FileCollection getPreviousFiles();
 

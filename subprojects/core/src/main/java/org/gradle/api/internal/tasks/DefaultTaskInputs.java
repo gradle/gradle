@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import groovy.lang.GString;
@@ -30,7 +29,6 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Queue;
@@ -48,6 +46,7 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
     private Queue<Action<? super TaskInputs>> configureActions;
 
     public DefaultTaskInputs(FileResolver resolver, String taskName, TaskMutator taskMutator) {
+        super("input");
         this.resolver = resolver;
         this.taskName = taskName;
         this.taskMutator = taskMutator;
@@ -63,13 +62,6 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
     @Override
     public FileCollection getFiles() {
         return allInputFiles;
-    }
-
-    @Override
-    public Collection<TaskInputFilePropertySpec> getFileProperties() {
-        ImmutableList.Builder<TaskInputFilePropertySpec> builder = ImmutableList.builder();
-        collectFileProperties(builder);
-        return builder.build();
     }
 
     @Override
@@ -236,7 +228,7 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
         }
     }
 
-    class PropertySpec extends AbstractTaskFilePropertySpec implements TaskInputFilePropertySpec, TaskInputFilePropertyBuilder {
+    class PropertySpec extends BaseTaskFilePropertySpec implements TaskInputFilePropertyBuilder {
 
         private boolean skipWhenEmpty;
         private boolean optional;
@@ -252,7 +244,6 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
             return this;
         }
 
-        @Override
         public boolean isSkipWhenEmpty() {
             return skipWhenEmpty;
         }
@@ -268,7 +259,6 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
             return skipWhenEmpty(true);
         }
 
-        @Override
         public boolean isOptional() {
             return optional;
         }
@@ -386,7 +376,7 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
 
         @Override
         public void visitContents(FileCollectionResolveContext context) {
-            for (TaskInputFilePropertySpec fileProperty : fileProperties) {
+            for (PropertySpec fileProperty : fileProperties) {
                 if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
                     context.add(fileProperty.getPropertyFiles());
                 }
