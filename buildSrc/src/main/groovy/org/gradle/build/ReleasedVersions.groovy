@@ -26,6 +26,7 @@ class ReleasedVersions {
     private static final int MILLIS_PER_DAY = 24 * 60 * 60 * 1000
 
     private lowestInterestingVersion = GradleVersion.version("0.8")
+    private currentVersion = GradleVersion.current()
     private def versions
     private def snapshots
 
@@ -114,7 +115,7 @@ $standardErr""")
             it.version = GradleVersion.version(it.version)
             it
         }.findAll {
-            it.version >= lowestInterestingVersion
+            it.version >= lowestInterestingVersion && it.version <= currentVersion
         }.sort {
             it.version
         }.reverse()
