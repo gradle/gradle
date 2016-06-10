@@ -93,6 +93,13 @@ public enum JavaVersion {
         throw new IllegalArgumentException(String.format("Could not determine java version from '%d'.", classVersion));
     }
 
+    public static JavaVersion forClass(byte[] classData) {
+        if (classData.length<8) {
+            throw new IllegalArgumentException("Invalid class format. Should contain at least 8 bytes");
+        }
+        return forClassVersion(classData[7] & 0xFF);
+    }
+
     public boolean isJava5() {
         return this == VERSION_1_5;
     }

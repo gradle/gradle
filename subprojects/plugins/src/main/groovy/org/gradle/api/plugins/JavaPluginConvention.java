@@ -126,9 +126,7 @@ public class JavaPluginConvention {
     }
 
     private JavaVersion resolveDefaultSourceCompatibility() {
-        final JavaVersion current = JavaVersion.current();
-        // TODO LH Remove this hack after upgrading to ASM version that supports class file v53; Also remove test exclusions
-        return current.isJava9Compatible() ? JavaVersion.VERSION_1_8 : current;
+        return srcCompat != null ? srcCompat : JavaVersion.current();
     }
 
     /**

@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.testing.detection;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -136,10 +137,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
     private static byte[] getClassBytes(InputStream classStream) throws IOException {
         byte[] classData = IOUtils.toByteArray(classStream);
-        int classVersion = classData[7] & 0xFF;
-
-        if (classVersion == 53) {
-            // 53 == Java 9 class format
+        if (JavaVersion.forClass(classData) == JavaVersion.VERSION_1_9) {
             // TODO: CC, until ASM6 is out, let's pretend we're parsing a Java 8 class format
             classData[7] = 52;
         }
