@@ -85,11 +85,13 @@ configure(project(":projectA")){
 
         then:
         project.assertHasLinkedResource('README.md', '1', 'PARENT-1-PROJECT_LOC/README.md')
+        project.assertHasLinkedResources('README.md')
 
         and:
         run 'eclipse'
 
         then:
         project.assertHasLinkedResource('README.md', '1', 'PARENT-1-PROJECT_LOC/README.md')
+        project.assertHasLinkedResources('README.md')
     }
 }
