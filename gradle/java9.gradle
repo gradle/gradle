@@ -152,11 +152,6 @@ task java9Test(type: Test) {
         // ASM doesn't work with Java 9 bytecode
         "MixInLegacyTypesClassLoaderTest",
 
-        // Affected by hack in JavaPluginConvention to force source and target compatibility to Java 8
-        "JavaPluginConventionTest",
-        "EclipseModelBuilderTest",
-        "IdeaModelBuilderTest",
-
         // Classes used by junit execution tests
         "ABrokenJunit3TestClass",
         "ABrokenTestClass",
