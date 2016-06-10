@@ -195,6 +195,9 @@ public abstract class AvailableJavaHomes {
             jvms.addAll(new DevInfrastructureJvmLocator(fileCanonicalizer).findJvms());
             InstalledJvmLocator installedJvmLocator = new InstalledJvmLocator(OperatingSystem.current(), Jvm.current(), nativeServices.get(WindowsRegistry.class), nativeServices.get(SystemInfo.class), fileCanonicalizer);
             jvms.addAll(installedJvmLocator.findJvms());
+            if (OperatingSystem.current().isLinux()) {
+                jvms.addAll(new BaseDirJvmLocator(fileCanonicalizer, new File("/opt")).findJvms());
+            }
             jvms.addAll(new HomeDirJvmLocator(fileCanonicalizer).findJvms());
             // Order from most recent to least recent
             Collections.sort(jvms, new Comparator<JvmInstallation>() {
@@ -242,18 +245,20 @@ public abstract class AvailableJavaHomes {
         }
     }
 
-    private static class HomeDirJvmLocator {
+    private static class BaseDirJvmLocator {
         private static final Pattern JDK_DIR = Pattern.compile("jdk(\\d+\\.\\d+\\.\\d+(_\\d+)?)");
-        final FileCanonicalizer fileCanonicalizer;
+        private final FileCanonicalizer fileCanonicalizer;
+        private final File baseDir;
 
-        private HomeDirJvmLocator(FileCanonicalizer fileCanonicalizer) {
+        private BaseDirJvmLocator(FileCanonicalizer fileCanonicalizer, File baseDir) {
             this.fileCanonicalizer = fileCanonicalizer;
+            this.baseDir = baseDir;
         }
 
         public List<JvmInstallation> findJvms() {
             Set<File> javaHomes = new HashSet<File>();
             List<JvmInstallation> jvms = new ArrayList<JvmInstallation>();
-            for (File file : new File(SystemProperties.getInstance().getUserHome()).listFiles()) {
+            for (File file : baseDir.listFiles()) {
                 Matcher matcher = JDK_DIR.matcher(file.getName());
                 if (!matcher.matches()) {
                     continue;
@@ -269,6 +274,13 @@ public abstract class AvailableJavaHomes {
                 jvms.add(new JvmInstallation(JavaVersion.toVersion(version), version, file, true, JvmInstallation.Arch.Unknown));
             }
             return jvms;
+        }
+    }
+
+    private static class HomeDirJvmLocator extends BaseDirJvmLocator {
+
+        private HomeDirJvmLocator(FileCanonicalizer fileCanonicalizer) {
+            super(fileCanonicalizer, new File(SystemProperties.getInstance().getUserHome()));
         }
     }
 }
