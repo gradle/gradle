@@ -130,6 +130,6 @@ class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyH
      *
      * @see DependencyHandler.add
      */
-    operator fun String.invoke(dependencyNotation: String) =
+    operator fun String.invoke(dependencyNotation: Any) =
         dependencies.add(this, dependencyNotation)
 }
