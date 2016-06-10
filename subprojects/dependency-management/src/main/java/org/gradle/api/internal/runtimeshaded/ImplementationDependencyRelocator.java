@@ -16,43 +16,14 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
 import org.objectweb.asm.commons.Remapper;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 class ImplementationDependencyRelocator extends Remapper {
 
     private final Pattern classPattern = Pattern.compile("(\\[*)?L(.+)");
-    private final Trie prefixes;
-
-    private static Trie readPrefixes(RuntimeShadedJarType type) {
-        final Trie.Builder builder = new Trie.Builder();
-        IoActions.withResource(ImplementationDependencyRelocator.class.getResourceAsStream(type.getIdentifier() + "-relocated.txt"), new ErroringAction<InputStream>() {
-            @Override
-            protected void doExecute(InputStream thing) throws Exception {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(thing, Charset.forName("UTF-8")));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.trim();
-                    if (line.length() > 0) {
-                        builder.addWord(line);
-                    }
-                }
-            }
-        });
-        return builder.build();
-    }
-
-    public ImplementationDependencyRelocator(RuntimeShadedJarType type) {
-        prefixes = readPrefixes(type);
-    }
 
     public String map(String name) {
         String value = name;
@@ -74,10 +45,28 @@ class ImplementationDependencyRelocator extends Remapper {
     }
 
     public String maybeRelocateResource(String resource) {
-        if (prefixes.find(resource)) {
+        if (
+            resource.startsWith("META-INF")
+                || resource.startsWith("org/gradle")
+                || resource.startsWith("java")
+                || resource.startsWith("javax")
+                || resource.startsWith("groovy")
+                || resource.startsWith("groovyjarjarantlr")
+                || resource.startsWith("net/rubygrapefruit")
+                || resource.startsWith("org/codehaus/groovy")
+                || resource.startsWith("org/apache/tools/ant")
+                || resource.startsWith("org/apache/commons/logging")
+                || resource.startsWith("org/slf4j")
+                || resource.startsWith("org/apache/log4j")
+                || resource.startsWith("org/apache/xerces")
+                || resource.startsWith("org/cyberneko/html")
+                || resource.startsWith("org/w3c/dom")
+                || resource.startsWith("org/xml/sax")
+            ) {
+            return null;
+        } else {
             return "org/gradle/internal/impldep/" + resource;
         }
-        return null;
     }
 
     public boolean keepOriginalResource(String resource) {

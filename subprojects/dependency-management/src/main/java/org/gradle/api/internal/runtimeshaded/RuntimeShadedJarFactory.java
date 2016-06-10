@@ -57,8 +57,7 @@ public class RuntimeShadedJarFactory implements Closeable {
                 public void run() {
                     if (!jarFile.exists()) {
                         RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
-                            progressLoggerFactory,
-                            new ImplementationDependencyRelocator(type)
+                            progressLoggerFactory
                         );
                         creator.create(jarFile, classpath);
                     }
