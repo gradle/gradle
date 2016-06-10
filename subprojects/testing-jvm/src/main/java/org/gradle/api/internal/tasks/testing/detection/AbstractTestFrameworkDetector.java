@@ -136,7 +136,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
     private static byte[] getClassBytes(InputStream classStream) throws IOException {
         byte[] classData = IOUtils.toByteArray(classStream);
-        int classVersion = (classData[7] & 0xFF);
+        int classVersion = classData[7] & 0xFF;
 
         if (classVersion == 53) {
             // 53 == Java 9 class format
