@@ -346,6 +346,35 @@ However, if you were previously using Gradle implementation dependencies in the 
 For example, if the tests for your plugins use the Guava version shipped by Gradle, you will know need to explicitly declare Guava as a test time dependency.
 The good news though is that you are now able to choose your own version of Guava (and other Gradle internal dependencies) to use at test time, instead of being bound to the version that Gradle uses.
 
+### Changes to dynamic property look-up
+
+Many Gradle objects are [`ExtensionAware`](dsl/org.gradle.api.plugins.ExtensionAware.html), which means extra properties or methods can be added to them through the `extensions` container or [`ext`](dsl/org.gradle.api.plugins.ExtraPropertiesExtension.html).
+
+For [custom task types](userguide/custom_tasks.html) and [custom extension types](userguide/custom_plugins.html#customPluginWithConvention), you may also use Groovy meta-programming capabilities, such as [`propertyMissing()`](http://groovy-lang.org/metaprogramming.html#_propertymissing). For most use cases, we would recommend that you rely on Gradle's provided extension mechanisms.
+
+In earlier versions, the order in which Gradle searched for dynamic properties and methods did not respect `propertyMissing()` when implemented by a custom type. Changes have been made to improve the performance of dynamic property look-up and make the order consistent.
+
+The order is:
+
+- Custom type properties
+- Custom type `propertyMissing()`
+- Extra properties
+- Extensions
+
+Before Gradle 2.14, the order was:
+
+- Custom type properties
+- Extra properties
+- Extensions
+- Custom type `propertyMissing()`
+
+Many builds should not be impacted, but custom tasks or extensions that use both `propertyMissing()` and `ext` need to be careful to implement `propertyMissing()` with the appropriate semantics:
+
+- If a property is found, return its value (null is OK).
+- If a property is _not found_, `propertyMissing()` _must_ throw a `new MissingPropertyException(nameOfProperty, message)`.
+
+If `propertyMissing()` always returns a value, the extra properties extension (`ext`) will stop working as expected.
+
 ### Change in plugin id
 
 `ComponentModelBasePlugin` can no longer be applied using id `component-base`. Its new id is `component-model-base`.
