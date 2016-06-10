@@ -116,7 +116,7 @@
             <para>If versions are unclear you can introduce subtle bugs which are very hard to find. For example there might be a project which uses Hibernate 2.5. Think about a developer who decides
                 to install version 3.0.5 of Hibernate on her machine to fix a critical security bug but forgets to notify others in the team of this change. She may address the security bug
                 successfully, but she also may have introduced subtle bugs into a codebase that was using a now-deprecated feature from Hibernate. Weeks later there is an exception on the integration
-                machine which can't be reproduced on anyone's machine. Multiple developers then spend days on this issue only finally realising that the error would have easy to uncover if they knew
+                machine which can't be reproduced on anyone's machine. Multiple developers then spend days on this issue only finally realising that the error would have been easy to uncover if they knew
                 that Hibernate had been upgraded from 2.5 to 3.0.5.
             </para>
             <para>Versions in jar names increase the expressiveness of your project and make them easier to maintain. This practice also reduces the potential for error.
