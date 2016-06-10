@@ -15,7 +15,6 @@
  */
 
 package org.gradle.plugin.devel.impldeps
-import groovy.transform.NotYetImplemented
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Issue
 
