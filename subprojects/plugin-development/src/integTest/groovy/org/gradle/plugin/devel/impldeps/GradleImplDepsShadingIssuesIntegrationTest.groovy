@@ -15,7 +15,6 @@
  */
 
 package org.gradle.plugin.devel.impldeps
-
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Issue
 
@@ -106,7 +105,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
             class MyPlugin implements Plugin<Project> {
 
                 void apply(Project project) {
-                    Class xercesBridge = Class.forName('org.gradle.internal.impldep.org.cyberneko.html.xercesbridge.XercesBridge')
+                    Class xercesBridge = Class.forName('org.cyberneko.html.xercesbridge.XercesBridge')
                     assert xercesBridge.instance
                 }
             }

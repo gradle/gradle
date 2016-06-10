@@ -27,6 +27,7 @@ class ReleasedVersions {
 
     private lowestInterestingVersion = GradleVersion.version("0.8")
     private lowestTestedVersion = GradleVersion.version("1.0")
+    private currentVersion = GradleVersion.current()
     private def versions
     private def testedVersions
     private def snapshots
@@ -95,7 +96,7 @@ $standardErr""")
     }
 
     String getMostRecentFinalRelease() {
-        return versions.findAll { it.rcFor == "" }.first().version.version
+        return versions.findAll { it.current == true }.first().version.version
     }
 
     String getMostRecentSnapshot() {
@@ -121,7 +122,7 @@ $standardErr""")
             it.version = GradleVersion.version(it.version)
             it
         }.findAll {
-            it.version >= startingAt
+            it.version >= startingAt && it.version <= currentVersion
         }.sort {
             it.version
         }.reverse()
