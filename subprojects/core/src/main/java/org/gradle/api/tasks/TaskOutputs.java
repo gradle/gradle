@@ -17,11 +17,13 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
+
+import java.util.Map;
+import java.util.concurrent.Callable;
 
 /**
  * <p>A {@code TaskOutputs} represents the outputs of a task.</p>
@@ -75,10 +77,14 @@ public interface TaskOutputs {
      * @param paths The output files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      *
-     * @deprecated Use {@link #file(Object)} or {@link #dir(Object)} instead.
+     * @deprecated Use {@link #namedFiles(Map)} or {@link #namedFiles(Callable)} instead.
      */
     @Deprecated
     TaskOutputs files(Object... paths);
+
+    TaskOutputFilePropertyBuilder namedFiles(Callable<Map<?, ?>> paths);
+
+    TaskOutputFilePropertyBuilder namedFiles(Map<?, ?> paths);
 
     /**
      * Registers some output file for this task.
@@ -95,20 +101,4 @@ public interface TaskOutputs {
      * @return this
      */
     TaskOutputFilePropertyBuilder dir(Object path);
-
-    /**
-     * Executes the given configuration action on the {@code TaskOutputs}. The action is executed before the task is executed.
-     *
-     * @param action the configuration action to execute.
-     * @return this
-     */
-    TaskOutputs configure(Action<? super TaskOutputs> action);
-
-    /**
-     * Executes the given configuration action on the {@code TaskOutputs}. The action is executed before the task is executed.
-     *
-     * @param action the configuration action to execute.
-     * @return this
-     */
-    TaskOutputs configure(Closure action);
 }

@@ -44,8 +44,6 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         then:
         _ * task.getInputs() >> inputs
         _ * task.getOutputs() >> outputs
-        _ * inputs.ensureConfigured()
-        _ * outputs.ensureConfigured()
         1 * outputs.getHasOutput() >> false
         0 * _
 
@@ -62,8 +60,6 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         then:
         _ * task.getInputs() >> inputs
         _ * task.getOutputs() >> outputs
-        _ * inputs.ensureConfigured()
-        _ * outputs.ensureConfigured()
         1 * outputs.getHasOutput() >> true
         1 * outputs.getUpToDateSpec() >> upToDateSpec
         1 * upToDateSpec.isSatisfiedBy(task) >> true
@@ -83,8 +79,6 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         then:
         _ * task.getInputs() >> inputs
         _ * task.getOutputs() >> outputs
-        _ * inputs.ensureConfigured()
-        _ * outputs.ensureConfigured()
         1 * outputs.getHasOutput() >> true
         1 * delegate.getStateFor(task) >> taskArtifactState
         0 * taskArtifactState._
@@ -106,8 +100,6 @@ public class ShortCircuitTaskArtifactStateRepositoryTest extends Specification {
         then:
         _ * task.getInputs() >> inputs
         _ * task.getOutputs() >> outputs
-        _ * inputs.ensureConfigured()
-        _ * outputs.ensureConfigured()
         1 * outputs.getHasOutput() >> true
         1 * outputs.getUpToDateSpec() >> upToDateSpec
         1 * upToDateSpec.isSatisfiedBy(task) >> false

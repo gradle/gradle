@@ -16,79 +16,74 @@
 
 package org.gradle.api.reporting.internal;
 
-import org.gradle.api.Action;
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reporting.Report;
-import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputDirectories;
+import org.gradle.api.tasks.OutputFiles;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.TreeSet;
-import java.util.concurrent.Callable;
+import java.util.Map;
+import java.util.SortedSet;
 
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
-import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirectoryExists;
+import static com.google.common.base.Predicates.not;
+import static com.google.common.collect.Iterables.filter;
+import static com.google.common.collect.Maps.transformValues;
+import static com.google.common.collect.Maps.uniqueIndex;
 
 public abstract class TaskReportContainer<T extends Report> extends DefaultReportContainer<T> {
 
-    private static final Transformer<String, Report> REPORT_NAME = new Transformer<String, Report>() {
-        public String transform(Report report) {
+    private static final Function<Report, String> REPORT_NAME = new Function<Report, String>() {
+        @Override
+        public String apply(Report report) {
             return report.getName();
         }
     };
 
+    private static final Function<Report, File> TO_FILE = new Function<Report, File>() {
+        @Override
+        public File apply(Report report) {
+            return report.getDestination();
+        }
+    };
+
+    private static final Predicate<Report> IS_DIRECTORY_OUTPUT_TYPE = new Predicate<Report>() {
+        @Override
+        public boolean apply(Report report) {
+            return report.getOutputType() == Report.OutputType.DIRECTORY;
+        }
+    };
+
+    private final TaskInternal task;
+
     public TaskReportContainer(Class<? extends T> type, final Task task) {
         super(type, ((ProjectInternal) task.getProject()).getServices().get(Instantiator.class));
-        task.getInputs().property("reports.enabledReportNames", new Callable<Collection<String>>() {
-            @Override
-            public Collection<String> call() throws Exception {
-                return CollectionUtils.collect(getEnabled(), new TreeSet<String>(), REPORT_NAME);
-            }
-        });
-        task.getOutputs().configure(new Action<TaskOutputs>() {
-            @Override
-            public void execute(TaskOutputs taskOutputs) {
-                for (final Report report : getEnabled()) {
-                    Callable<File> futureFile = new Callable<File>() {
-                        @Override
-                        public File call() throws Exception {
-                            return report.getDestination();
-                        }
-                    };
-                    switch (report.getOutputType()) {
-                        case FILE:
-                            taskOutputs.file(futureFile).withPropertyName("reports." + report.getName());
-                            break;
-                        case DIRECTORY:
-                            taskOutputs.dir(futureFile).withPropertyName("reports." + report.getName());
-                            break;
-                        default:
-                            throw new AssertionError();
-                    }
-                }
-                ((TaskInternal) task).prependParallelSafeAction(new Action<Task>() {
-                    @Override
-                    public void execute(Task task) {
-                        for (Report report : getEnabled()) {
-                            switch (report.getOutputType()) {
-                                case FILE:
-                                    ensureParentDirectoryExists(report.getDestination());
-                                    break;
-                                case DIRECTORY:
-                                    ensureDirectoryExists(report.getDestination());
-                                    break;
-                                default:
-                                    throw new AssertionError();
-                            }
-                        }
-                    }
-                });
-            }
-        });
+        this.task = (TaskInternal) task;
+    }
+
+    protected Task getTask() {
+        return task;
+    }
+
+    @OutputDirectories
+    public Map<String, File> getEnabledDirectoryReportDestinations() {
+        return transformValues(uniqueIndex(filter(getEnabled(), IS_DIRECTORY_OUTPUT_TYPE), REPORT_NAME), TO_FILE);
+    }
+
+    @OutputFiles
+    public Map<String, File> getEnabledFileReportDestinations() {
+        return transformValues(uniqueIndex(filter(getEnabled(), not(IS_DIRECTORY_OUTPUT_TYPE)), REPORT_NAME), TO_FILE);
+    }
+
+    @Input
+    public SortedSet<String> getEnabledReportNames() {
+        return Sets.newTreeSet(Iterables.transform(getEnabled(), REPORT_NAME));
     }
 }

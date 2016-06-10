@@ -22,7 +22,5 @@ import org.gradle.api.tasks.TaskInputs;
 import java.util.SortedMap;
 
 public interface TaskInputsInternal extends TaskInputs {
-    void ensureConfigured();
-
     SortedMap<String, FileCollection> getFileProperties();
 }

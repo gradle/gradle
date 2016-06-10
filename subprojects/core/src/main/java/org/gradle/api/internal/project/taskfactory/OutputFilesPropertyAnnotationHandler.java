@@ -15,31 +15,25 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
-import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.internal.Cast;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
-import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.project.taskfactory.OutputPropertyAnnotationUtil.validateFile;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirectoryExists;
-import static org.gradle.internal.Cast.uncheckedCast;
-import static org.gradle.util.GUtil.uncheckedCall;
 
 @SuppressWarnings("deprecation")
-public class OutputFilesPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
+public class OutputFilesPropertyAnnotationHandler extends AbstractPluralOutputPropertyAnnotationHandler {
 
-    private static final String DEPRECATION_MESSAGE = String.format("Please use separate properties for each file annotated with @%s, or reorganize output files under a single output directory annotated with @%s.",
-        OutputFile.class.getSimpleName(), OutputDirectory.class.getSimpleName());
+    private static final String DEPRECATION_MESSAGE = String.format(
+        "Please use separate properties for each file annotated with @%s, "
+        + "reorganize output files under a single output directory annotated with @%s, "
+        + "or change the property type to Map.",
+        OutputFile.class.getSimpleName(), OutputDirectory.class.getSimpleName()
+    );
 
     @Override
     public Class<? extends Annotation> getAnnotationType() {
@@ -47,43 +41,17 @@ public class OutputFilesPropertyAnnotationHandler extends AbstractOutputProperty
     }
 
     @Override
-    public boolean attachActions(TaskPropertyActionContext context) {
-        DeprecationLogger.nagUserOfDiscontinuedAnnotation(OutputFiles.class, DEPRECATION_MESSAGE);
-        return super.attachActions(context);
+    protected String getDeprecatedIterableMessage() {
+        return DEPRECATION_MESSAGE;
     }
 
     @Override
-    protected void validate(String propertyName, Object value, Collection<String> messages) {
-        if (value != null) {
-            for (File file : Cast.<Iterable<File>>uncheckedCast(value)) {
-                validateFile(propertyName, file, messages);
-            }
-        }
+    protected void doValidate(String propertyName, File file, Collection<String> messages) {
+        OutputPropertyAnnotationUtil.validateFile(propertyName, file, messages);
     }
 
     @Override
-    protected void update(final TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
-        task.getOutputs().configure(new Action<TaskOutputs>() {
-            @Override
-            public void execute(TaskOutputs taskOutputs) {
-                Iterable<File> files = uncheckedCast(uncheckedCall(futureValue));
-                if (files != null) {
-                    int counter = 0;
-                    for (File file : files) {
-                        taskOutputs.file(file).withPropertyName(context.getName() + "$" + (++counter));
-                    }
-                }
-            }
-        });
-        task.prependParallelSafeAction(new Action<Task>() {
-            public void execute(Task task) {
-                Iterable<File> files = uncheckedCast(uncheckedCall(futureValue));
-                if (files != null) {
-                    for (File file : files) {
-                        ensureParentDirectoryExists(file);
-                    }
-                }
-            }
-        });
+    protected void doEnsureExists(File file) {
+        ensureParentDirectoryExists(file);
     }
 }

@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.signing
 
+import com.google.common.collect.ArrayListMultimap
+import com.google.common.collect.Maps
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.DomainObjectSet
@@ -26,17 +28,16 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
-import org.gradle.api.tasks.TaskInputs
-import org.gradle.api.tasks.TaskOutputs
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.plugins.signing.signatory.Signatory
 import org.gradle.plugins.signing.signatory.pgp.PgpSignatory
 import org.gradle.plugins.signing.type.SignatureType
 
 import javax.inject.Inject
-
 /**
  * A task for creating digital signature files for one or more; tasks, files, publishable artifacts or configurations.
  *
@@ -67,21 +68,41 @@ class Sign extends DefaultTask implements SignatureSpec {
     final private DefaultDomainObjectSet<Signature> signatures = new DefaultDomainObjectSet<Signature>(Signature)
 
     Sign() {
-
         // If we aren't required and don't have a signatory then we just don't run
         onlyIf {
             isRequired() || getSignatory() != null
         }
 
-        // Have to include this in the up-to-date checks because the signatory may have changed
         inputs.property("signatory") { (getSignatory() as PgpSignatory)?.keyId?.asHex }
+    }
 
-        inputs.configure { TaskInputs inputs ->
-            getSignatures().each { inputs.file it.toSign }
+    @InputFiles
+    public Iterable<File> getInputFiles() {
+        return getSignatures()*.toSign
+    }
+
+    @OutputFiles
+    public Map<String, File> getOutputFiles() {
+        def filesWithPotentialNameCollisions = ArrayListMultimap.<String, File>create()
+        for (signature in getSignatures()) {
+            def name = signature.name.replaceAll(/[^\p{javaJavaIdentifierPart}]/, "_")
+            if (name.length() > 0 && !Character.isJavaIdentifierStart(name.codePointAt(0))) {
+                name = "_" + name.substring(1)
+            }
+            filesWithPotentialNameCollisions.put(name, signature.toSign)
         }
-        outputs.configure { TaskOutputs outputs ->
-            getSignatures().each { outputs.file it.toSign }
+        def files = Maps.<String, File>newHashMap()
+        for (Map.Entry<String, Collection<File>> entry in filesWithPotentialNameCollisions.asMap().entrySet()) {
+            Collection<File> filesWithSameName = entry.value
+            filesWithSameName.eachWithIndex { File file, int index ->
+                String key = entry.key
+                if (filesWithSameName.size() > 1) {
+                    key += '$' + (index + 1)
+                }
+                files.put(key, file)
+            }
         }
+        return files
     }
 
     /**

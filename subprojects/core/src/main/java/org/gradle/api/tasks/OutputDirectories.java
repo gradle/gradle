@@ -30,10 +30,27 @@ import java.lang.annotation.Target;
  * <p>This will cause the task to be considered out-of-date when the directory paths or task
  * output to those directories have been modified since the task was last run.</p>
  *
- * @deprecated Use separate properties annotated with {@literal @}{@link OutputDirectory} instead, or
- * reorganize outputs under a single output directory.
+ * <p>The type of the property must be {@link java.util.Map}, the String keys uniquely identifying each file value.
+ * The keys of the map should not be {@code null}, and they must be
+ * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>}.
+ * The values will be evaluated to individual files as per {@link org.gradle.api.Project#file(Object)}.</p>
+ *
+ * <p>Example:</p>
+ * <pre autoTested="true">
+ * {@code
+ * class MyReportTask extends DefaultTask {
+ *     {@literal @}OutputFiles
+ *     Map<String, File> getReportDirectories() {
+ *         def reportsDir = new File("reports")
+ *         [
+ *             xml: new File(reportsDir, "xml"),
+ *             html: new File(reportsDir, "html")
+ *         ]
+ *     }
+ * }
+ * }
+ * </pre>
  */
-@Deprecated
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

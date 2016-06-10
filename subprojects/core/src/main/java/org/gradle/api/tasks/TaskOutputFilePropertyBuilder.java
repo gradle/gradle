@@ -17,7 +17,6 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
@@ -29,7 +28,7 @@ import org.gradle.internal.HasInternalProtocol;
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, TaskOutputs {
+public interface TaskOutputFilePropertyBuilder extends TaskPropertyBuilder, TaskOutputs {
     /**
      * {@inheritDoc}
      */
@@ -110,22 +109,4 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder, 
     @Deprecated
     @Override
     TaskOutputFilePropertyBuilder dir(Object path);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskOutputs#configure(Action)} instead.
-     */
-    @Deprecated
-    @Override
-    TaskOutputs configure(Action<? super TaskOutputs> action);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskOutputs#configure(Closure)} instead.
-     */
-    @Deprecated
-    @Override
-    TaskOutputs configure(Closure action);
 }
