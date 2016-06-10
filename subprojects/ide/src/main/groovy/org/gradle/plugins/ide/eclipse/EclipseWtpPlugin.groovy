@@ -64,21 +64,21 @@ class EclipseWtpPlugin extends IdePlugin {
     @Override protected void onApply(Project project) {
         project.pluginManager.apply(EclipsePlugin)
 
-            def model = project.extensions.getByType(EclipseModel)
-            model.wtp = instantiator.newInstance(EclipseWtp, model.classpath)
+        def model = project.extensions.getByType(EclipseModel)
+        model.wtp = instantiator.<EclipseWtp>newInstance(EclipseWtp)
 
-            lifecycleTask.description = 'Generates Eclipse wtp configuration files.'
-            cleanTask.description = 'Cleans Eclipse wtp configuration files.'
+        lifecycleTask.description = 'Generates Eclipse wtp configuration files.'
+        cleanTask.description = 'Cleans Eclipse wtp configuration files.'
 
-            project.tasks.getByName(EclipsePlugin.ECLIPSE_TASK_NAME).dependsOn(lifecycleTask)
-            project.tasks.getByName(cleanName(EclipsePlugin.ECLIPSE_TASK_NAME)).dependsOn(cleanTask)
+        project.tasks.getByName(EclipsePlugin.ECLIPSE_TASK_NAME).dependsOn(lifecycleTask)
+        project.tasks.getByName(cleanName(EclipsePlugin.ECLIPSE_TASK_NAME)).dependsOn(cleanTask)
 
-            configureEclipseProject(project)
-            configureEclipseWtpComponent(project, model)
-            configureEclipseWtpFacet(project, model)
+        configureEclipseProject(project)
+        configureEclipseWtpComponent(project, model)
+        configureEclipseWtpFacet(project, model)
 
-            // do this after wtp is configured because wtp config is required to update classpath properly
-            configureEclipseClasspath(project, model)
+        // do this after wtp is configured because wtp config is required to update classpath properly
+        configureEclipseClasspath(project, model)
     }
 
     private void configureEclipseClasspath(Project project, EclipseModel model) {

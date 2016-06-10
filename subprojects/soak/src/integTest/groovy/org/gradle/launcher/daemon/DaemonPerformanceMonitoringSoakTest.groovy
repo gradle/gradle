@@ -21,7 +21,10 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.fixtures.DaemonMultiJdkIntegrationTest
 import org.gradle.launcher.daemon.fixtures.JdkVendor
+import org.gradle.launcher.daemon.server.Daemon
+import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
+import org.gradle.launcher.daemon.server.health.GcThrashingDaemonExpirationStrategy
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.junit.experimental.categories.Category
@@ -48,24 +51,6 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
             "org.gradle.java.home": jdk.javaHome.absolutePath,
             "org.gradle.jvmargs": jvmArgs + " " + version.gc.jvmArgs
         )
-    }
-
-    def "when build leaks quickly daemon is expired eagerly"() {
-        assumeTrue(version.vendor != JdkVendor.IBM)
-
-        when:
-        setupBuildScript = tenuredHeapLeak
-        maxBuilds = builds
-        heapSize = heap
-        leakRate = rate
-
-        then:
-        daemonIsExpiredEagerly()
-
-        where:
-        builds | heap    | rate
-        10     | "200m"  | 2500
-        10     | "1024m" | 13000
     }
 
     def "when build leaks slowly daemon is eventually expired"() {
@@ -132,7 +117,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains("Daemon will be stopped at the end of the build after running out of JVM memory")
+        daemons.daemon.log.contains(Daemon.DAEMON_WILL_STOP_MESSAGE)
     }
 
     def "when build leaks permgen space daemon is expired"() {
@@ -176,13 +161,13 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains("Daemon is stopping immediately after the JVM garbage collector started thrashing")
+        daemons.daemon.log.contains(Daemon.DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
 
         when:
         ExecutionFailure failure = gradle.waitForFailure()
 
         then:
-        failure.assertOutputContains("Gradle build daemon has been stopped: after the JVM garbage collector started thrashing")
+        failure.assertOutputContains(DaemonStoppedException.MESSAGE + ": " + GcThrashingDaemonExpirationStrategy.EXPIRATION_REASON)
     }
 
     private boolean daemonIsExpiredEagerly() {

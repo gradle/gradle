@@ -352,7 +352,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
             //configure inputs so that the test task is skipped when there are no source files.
             //unfortunately, this only applies when 'test.single' is *not* applied
             //We should fix this distinction, the behavior with 'test.single' or without it should be the same
-            test.getInputs().source(test.getCandidateClassFiles());
+            test.getInputs().files(test.getCandidateClassFiles()).withPropertyName("test.candidateClassFiles").skipWhenEmpty();
             return;
         }
         test.prependParallelSafeAction(new Action<Task>() {

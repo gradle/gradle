@@ -149,7 +149,7 @@ class PersistentCachingPluginResolutionServiceClientTest extends Specification {
     }
 
     static PluginRequest request(String id, String version = "1") {
-        new DefaultPluginRequest(id, version, 1, new StringScriptSource("test", "test"))
+        new DefaultPluginRequest(id, version, true, 1, new StringScriptSource("test", "test"))
     }
 
 }

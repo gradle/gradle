@@ -23,16 +23,14 @@ import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 
 public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHandler {
+    @Override
     public Class<? extends Annotation> getAnnotationType() {
         return Nested.class;
     }
 
+    @Override
     public boolean attachActions(final TaskPropertyActionContext context) {
-        Class<?> nestedType = context.getInstanceVariableType();
-        if (nestedType == null) {
-            nestedType = context.getType();
-        }
-        context.attachActions(nestedType);
+        context.attachActions(context.getType());
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, final Callable<Object> futureValue) {
                 task.getInputs().property(context.getName() + ".class", new Callable<Object>() {
@@ -47,7 +45,7 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
-    public boolean isNotBeNullByDefault() {
+    public boolean getMustNotBeNullByDefault() {
         return true;
     }
 }

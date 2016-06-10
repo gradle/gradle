@@ -23,13 +23,24 @@ import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
+import java.util.concurrent.Callable
+
 @UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {
 
     private TaskMutator taskStatusNagger = Stub() {
-        mutate(_, _) >> { String method, Runnable action -> action.run() }
+        mutate(_, _) >> { String method, def action ->
+            if (action instanceof Runnable) {
+                action.run()
+            } else if (action instanceof Callable) {
+                action.call()
+            }
+        }
     }
-    private final TaskInternal task = [toString: {'task'}] as TaskInternal
+    def task = Mock(TaskInternal) {
+        getName() >> "task"
+        toString() >> "task 'task'"
+    }
     private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task, taskStatusNagger)
 
     public void hasNoOutputsByDefault() {
@@ -41,6 +52,48 @@ class DefaultTaskOutputsTest extends Specification {
     public void outputFileCollectionIsBuiltByTask() {
         setup:
         assert outputs.files.buildDependencies.getDependencies(task) == [task] as Set
+    }
+
+    def "can register output file"() {
+        when: outputs.file("a")
+        then:
+        outputs.files.files.toList() == [new File('a')]
+        outputs.fileProperties.keySet().toList() == ['$1']
+        outputs.fileProperties.values()*.files.flatten() == [new File("a")]
+    }
+
+    def "can register output file with property name"() {
+        when: outputs.file("a").withPropertyName("prop")
+        then:
+        outputs.files.files.toList() == [new File('a')]
+        outputs.fileProperties.keySet().toList() == ['prop']
+        outputs.fileProperties.values()*.files.flatten() == [new File("a")]
+    }
+
+    def "can register output dir"() {
+        when: outputs.file("a")
+        then:
+        outputs.files.files.toList() == [new File('a')]
+        outputs.fileProperties.keySet().toList() == ['$1']
+        outputs.fileProperties.values().files.flatten() == [new File("a")]
+    }
+
+    def "can register output dir with property name"() {
+        when: outputs.dir("a").withPropertyName("prop")
+        then:
+        outputs.files.files.toList() == [new File('a')]
+        outputs.fileProperties.keySet().toList() == ['prop']
+        outputs.fileProperties.values().files.flatten() == [new File("a")]
+    }
+
+    def "cannot register output file with same property name"() {
+        outputs.file("a").withPropertyName("alma")
+        outputs.file("b").withPropertyName("alma")
+        when:
+        outputs.fileProperties
+        then:
+        def ex = thrown IllegalArgumentException
+        ex.message == "Multiple output file properties with name 'alma'"
     }
 
     public void canRegisterOutputFiles() {

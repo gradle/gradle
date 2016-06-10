@@ -38,7 +38,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         buildFile << """
             task echo {
-              inputs.files file("marker")
+              inputs.files "marker"
               doLast {
                 println "value: " + file("marker").text
               }
@@ -297,7 +297,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         when:
         buildScript """
             task build {
-              inputs.source fileTree("source")
+              inputs.files(fileTree("source")).skipWhenEmpty()
               inputs.files fileTree("ancillary")
               doLast {}
             }

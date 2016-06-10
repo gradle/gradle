@@ -33,6 +33,8 @@ public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStra
     private Function<?, Long> idleTimeout;
     private final Daemon daemon;
 
+    public static final String EXPIRATION_REASON = "after being idle";
+
     public DaemonIdleTimeoutExpirationStrategy(Daemon daemon, int idleTimeout, TimeUnit timeUnit) {
         this(daemon, Functions.constant(timeUnit.toMillis(idleTimeout)));
     }
@@ -48,7 +50,7 @@ public class DaemonIdleTimeoutExpirationStrategy implements DaemonExpirationStra
         boolean idleTimeoutExceeded = idleMillis > idleTimeout.apply(null);
         if (idleTimeoutExceeded) {
             LOG.info("Idle timeout: daemon has been idle for {} milliseconds. Expiring.", idleMillis);
-            return new DaemonExpirationResult(QUIET_EXPIRE, "to reclaim system memory after being idle for " + (idleMillis / 60000) + " minutes");
+            return new DaemonExpirationResult(QUIET_EXPIRE, EXPIRATION_REASON + " for " + (idleMillis / 60000) + " minutes");
         }
         return DaemonExpirationResult.NOT_TRIGGERED;
     }

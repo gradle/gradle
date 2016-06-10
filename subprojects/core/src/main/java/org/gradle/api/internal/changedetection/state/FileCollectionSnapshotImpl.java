@@ -16,14 +16,24 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.util.ChangeListener;
+import org.gradle.api.Nullable;
+import org.gradle.api.internal.changedetection.rules.ChangeType;
+import org.gradle.api.internal.changedetection.rules.FileChange;
+import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-class FileCollectionSnapshotImpl implements FileCollectionSnapshot {
+class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapshotSet {
     final Map<String, IncrementalFileSnapshot> snapshots;
     final List<TreeSnapshot> treeSnapshots;
 
@@ -62,16 +72,19 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot {
         return snapshots;
     }
 
+    @Nullable
+    @Override
+    public FileSnapshot findSnapshot(File file) {
+        IncrementalFileSnapshot s = snapshots.get(file.getAbsolutePath());
+        if (s instanceof FileSnapshot) {
+            return (FileSnapshot) s;
+        }
+        return null;
+    }
+
+    @Override
     public FilesSnapshotSet getSnapshot() {
-        return new FilesSnapshotSet() {
-            public FileSnapshot findSnapshot(File file) {
-                IncrementalFileSnapshot s = snapshots.get(file.getAbsolutePath());
-                if (s instanceof FileSnapshot) {
-                    return (FileSnapshot) s;
-                }
-                return null;
-            }
-        };
+        return this;
     }
 
     @Override
@@ -92,27 +105,26 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot {
         return snapshots.isEmpty();
     }
 
+
     @Override
-    public ChangeIterator<String> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, final Set<ChangeFilter> filters) {
+    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, final String fileType, final Set<ChangeFilter> filters) {
         final Map<String, IncrementalFileSnapshot> otherSnapshots = new HashMap<String, IncrementalFileSnapshot>(oldSnapshot.getSnapshots());
         final Iterator<String> currentFiles = snapshots.keySet().iterator();
         final boolean includeAdded = !filters.contains(ChangeFilter.IgnoreAddedFiles);
-
-        return new ChangeIterator<String>() {
+        return new AbstractIterator<TaskStateChange>() {
             private Iterator<String> removedFiles;
 
-            public boolean next(ChangeListener<String> listener) {
+            @Override
+            protected TaskStateChange computeNext() {
                 while (currentFiles.hasNext()) {
                     String currentFile = currentFiles.next();
                     IncrementalFileSnapshot otherFile = otherSnapshots.remove(currentFile);
                     if (otherFile == null) {
                         if (includeAdded) {
-                            listener.added(currentFile);
-                            return true;
+                            return new FileChange(currentFile, ChangeType.ADDED, fileType);
                         }
                     } else if (!snapshots.get(currentFile).isContentUpToDate(otherFile)) {
-                        listener.changed(currentFile);
-                        return true;
+                        return new FileChange(currentFile, ChangeType.MODIFIED, fileType);
                     }
                 }
 
@@ -122,11 +134,10 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot {
                 }
 
                 if (removedFiles.hasNext()) {
-                    listener.removed(removedFiles.next());
-                    return true;
+                    return new FileChange(removedFiles.next(), ChangeType.REMOVED, fileType);
                 }
 
-                return false;
+                return endOfData();
             }
         };
     }

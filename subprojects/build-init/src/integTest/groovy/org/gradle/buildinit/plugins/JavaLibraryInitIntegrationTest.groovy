@@ -20,10 +20,6 @@ import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestExecutionResult
-import org.gradle.util.Requires
-
-import static org.gradle.buildinit.plugins.internal.JavaLibraryProjectInitDescriptor.TESTNG_JAVA6_WARNING
-import static org.gradle.util.TestPrecondition.JDK6
 
 class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
@@ -85,15 +81,6 @@ class JavaLibraryInitIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         assertTestPassed("someLibraryMethodReturnsTrue")
-    }
-
-    @Requires(JDK6)
-    def "prints a warning when testng is used with java 6"() {
-        when:
-        succeeds('init', '--type', 'java-library', '--test-framework', 'testng')
-
-        then:
-        result.output.contains(TESTNG_JAVA6_WARNING)
     }
 
     def "setupProjectLayout is skipped when java sources detected"() {

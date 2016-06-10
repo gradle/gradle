@@ -48,4 +48,34 @@ class ToolingApiEclipseModelClasspathAttributesCrossVersionSpec extends ToolingA
         attributes.find { it.name == 'javadoc_location' && it.value.contains('guava-18.0-javadoc.jar') }
     }
 
+    def "Eclipse model provides classpath container attributes"() {
+        setup:
+        settingsFile << 'rootProject.name = "root"'
+        buildFile <<
+        """apply plugin: 'java'
+           apply plugin: 'eclipse'
+           eclipse {
+               classpath {
+                   containers 'containerPath'
+                   file {
+                       whenMerged { classpath ->
+                           classpath.entries.find { it.path == 'containerPath' }.entryAttributes.customKey = 'customValue'
+                       }
+                   }
+               }
+           }
+        """
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject)
+        def container = project.classpathContainers.find { it.path == 'containerPath' }
+
+        then:
+        container.classpathAttributes.size() == 1
+        container.classpathAttributes[0].name == 'customKey'
+        container.classpathAttributes[0].value == 'customValue'
+
+    }
+
+
 }

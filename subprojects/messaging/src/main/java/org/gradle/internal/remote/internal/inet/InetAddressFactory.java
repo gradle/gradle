@@ -15,14 +15,13 @@
  */
 package org.gradle.internal.remote.internal.inet;
 
-import org.gradle.api.Transformer;
-import org.gradle.internal.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -136,9 +135,6 @@ public class InetAddressFactory {
             return;
         }
 
-        Transformer<Boolean, NetworkInterface> loopback = loopback();
-        Transformer<Boolean, NetworkInterface> multicast = multicast();
-
         localAddresses = new ArrayList<InetAddress>();
         remoteAddresses = new ArrayList<InetAddress>();
         multicastInterfaces = new ArrayList<NetworkInterface>();
@@ -148,26 +144,16 @@ public class InetAddressFactory {
             NetworkInterface networkInterface = interfaces.nextElement();
             LOGGER.debug("Adding IP addresses for network interface {}", networkInterface.getDisplayName());
             try {
-                Boolean isLoopbackInterface = loopback.transform(networkInterface);
+                boolean isLoopbackInterface = networkInterface.isLoopback();
                 LOGGER.debug("Is this a loopback interface? {}", isLoopbackInterface);
-                Boolean isMulticast = multicast.transform(networkInterface);
+                boolean isMulticast = networkInterface.supportsMulticast();
                 LOGGER.debug("Is this a multicast interface? {}", isMulticast);
                 boolean isRemote = false;
 
                 Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
                 while (candidates.hasMoreElements()) {
                     InetAddress candidate = candidates.nextElement();
-                    if (isLoopbackInterface == null) {
-                        // Don't know if this is a loopback interface or not
-                        if (candidate.isLoopbackAddress()) {
-                            LOGGER.debug("Adding loopback address {}", candidate);
-                            localAddresses.add(candidate);
-                        } else {
-                            LOGGER.debug("Adding remote address {}", candidate);
-                            remoteAddresses.add(candidate);
-                            isRemote = true;
-                        }
-                    } else if (isLoopbackInterface) {
+                    if (isLoopbackInterface) {
                         if (candidate.isLoopbackAddress()) {
                             LOGGER.debug("Adding loopback address {}", candidate);
                             localAddresses.add(candidate);
@@ -230,55 +216,6 @@ public class InetAddressFactory {
             localAddresses.add(openshiftBindAddress);
         } else {
             localBindingAddress = new InetSocketAddress(0).getAddress();
-        }
-    }
-
-    private Transformer<Boolean, NetworkInterface> loopback() {
-        try {
-            Method method = NetworkInterface.class.getMethod("isLoopback");
-            return new MethodBackedTransformer(method);
-        } catch (NoSuchMethodException e) {
-            return new Unknown();
-        }
-    }
-
-    private Transformer<Boolean, NetworkInterface> multicast() {
-        try {
-            Method method = NetworkInterface.class.getMethod("supportsMulticast");
-            return new MethodBackedTransformer(method);
-        } catch (NoSuchMethodException e) {
-            return new Unknown();
-        }
-
-    }
-
-    private static class Unknown implements Transformer<Boolean, NetworkInterface> {
-        public Boolean transform(NetworkInterface original) {
-            return null;
-        }
-    }
-
-    private static class MethodBackedTransformer implements Transformer<Boolean, NetworkInterface> {
-        private final Method method;
-
-        public MethodBackedTransformer(Method method) {
-            this.method = method;
-        }
-
-        public Boolean transform(NetworkInterface original) {
-            try {
-                try {
-                    return (Boolean) method.invoke(original);
-                } catch (InvocationTargetException e) {
-                    if (!(e.getCause() instanceof SocketException)) {
-                        throw e.getCause();
-                    }
-                    // Ignore - treat as if we don't know
-                    return null;
-                }
-            } catch (Throwable throwable) {
-                throw UncheckedException.throwAsUncheckedException(throwable);
-            }
         }
     }
 }

@@ -18,6 +18,8 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.rules.ChangeType
+import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.hash.DefaultHasher
@@ -253,12 +255,19 @@ class OutputFilesCollectionSnapshotterTest extends Specification {
         0 * listener._
     }
 
-    private void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
-        changes(newSnapshot.iterateContentChangesSince(oldSnapshot, [] as Set), listener)
-    }
-
-    private void changes(FileCollectionSnapshot.ChangeIterator<String> changes, ChangeListener<String> listener) {
-        while (changes.next(listener)) {
+    private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
+        newSnapshot.iterateContentChangesSince(oldSnapshot, "TYPE", [] as Set).each { FileChange change ->
+            switch (change.type) {
+                case ChangeType.ADDED:
+                    listener.added(change.path)
+                    break;
+                case ChangeType.MODIFIED:
+                    listener.changed(change.path)
+                    break;
+                case ChangeType.REMOVED:
+                    listener.removed(change.path)
+                    break;
+            }
         }
     }
 

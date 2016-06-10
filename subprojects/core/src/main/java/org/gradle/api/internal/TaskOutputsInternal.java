@@ -20,8 +20,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
 
+import java.util.SortedMap;
+
 public interface TaskOutputsInternal extends TaskOutputs {
     Spec<? super TaskInternal> getUpToDateSpec();
+
+    SortedMap<String, FileCollection> getFileProperties();
 
     FileCollection getPreviousFiles();
 

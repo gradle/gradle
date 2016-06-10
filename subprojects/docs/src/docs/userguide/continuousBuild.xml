@@ -133,15 +133,6 @@
                 In other cases, you can use <literal>--info</literal> logging to find the task that is out-of-date due to the identified files.
             </para>
         </section>
-        <section id="continuous_build_limitations_jdk">
-            <title>Requires Java 7 or later</title>
-            <para>
-                Gradle uses the JDK's <ulink url="http://docs.oracle.com/javase/7/docs/api/java/nio/file/WatchService.html"><literal>WatchService</literal></ulink>
-                to receive notification of changes to files between builds.
-                This API was introduced in Java 7.
-                As such, Gradle's continuous build is not currently supported when building with Java 6.
-            </para>
-        </section>
         <section>
             <title>Performance and stability</title>
             <para>

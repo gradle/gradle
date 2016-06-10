@@ -88,12 +88,13 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         cl.package.name == "org.gradle.api.plugins"
     }
 
-    def "mixes in empty classes for old types that were removed"() {
+    def "mixes in empty interfaces for old types that were removed"() {
         expect:
         def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath())
 
         def cl = loader.loadClass("org.gradle.messaging.actor.ActorFactory")
         cl.classLoader.is(loader)
+        cl.interface
         cl.protectionDomain.codeSource.location == null
         cl.package.name == "org.gradle.messaging.actor"
     }

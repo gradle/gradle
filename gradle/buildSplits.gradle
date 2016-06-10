@@ -27,7 +27,8 @@ def buckets = [
         ":jvmServices",
         ":docs",
         ":distributions",
-        ":soak"
+        ":soak",
+        ":smokeTest"
     ],
 
     "3": [

@@ -78,7 +78,6 @@ public class Delete extends ConventionTask implements DeleteSpec {
      * @return The files. Never returns null.
      */
     @Internal
-    // TODO:LPTR Investigate why changing this to @InputFiles breaks EclipseClasspathIntegrationTest
     public FileCollection getTargetFiles() {
         return getProject().files(delete);
     }

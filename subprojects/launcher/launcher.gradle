@@ -1,7 +1,7 @@
 import org.gradle.internal.jvm.Jvm
 
 // Main entry point requires Java 5
-sourceCompatibility = 1.5
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 configurations {
     startScriptGenerator
@@ -26,7 +26,7 @@ dependencies {
     testFixturesCompile project(':internalIntegTesting')
 
     // Needed for testing debug command line option
-    testFixturesCompile files(Jvm.current().toolsJar)
+    testFixturesCompile files(Jvm.current().toolsJar?:[])
 
     startScriptGenerator project(':plugins')
 }

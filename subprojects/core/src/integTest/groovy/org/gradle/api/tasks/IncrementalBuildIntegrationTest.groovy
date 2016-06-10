@@ -406,7 +406,7 @@ task inputsAndOutputs {
     }
 }
 task noOutputs {
-    inputs.files 'src.txt'
+    inputs.file 'src.txt'
     outputs.upToDateWhen { project.hasProperty('uptodate') }
     doFirst { }
 }

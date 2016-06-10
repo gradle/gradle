@@ -34,7 +34,7 @@ public class NoOpPropertyAnnotationHandler implements PropertyAnnotationHandler 
     }
 
     @Override
-    public boolean isNotBeNullByDefault() {
+    public boolean getMustNotBeNullByDefault() {
         return false;
     }
 }

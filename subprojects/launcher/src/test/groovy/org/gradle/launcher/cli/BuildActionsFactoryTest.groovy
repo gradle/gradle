@@ -20,8 +20,9 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.cli.SystemPropertiesCommandLineConverter
 import org.gradle.initialization.DefaultCommandLineConverter
 import org.gradle.initialization.LayoutCommandLineConverter
-import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.invocation.BuildActionRunner
+import org.gradle.internal.jvm.Jvm
+import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.logging.text.StyledTextOutputFactory
@@ -40,7 +41,6 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
-import spock.lang.IgnoreIf
 import spock.lang.Specification
 
 @UsesNativeServices
@@ -52,13 +52,14 @@ class BuildActionsFactoryTest extends Specification {
     ServiceRegistry loggingServices = Mock()
     PropertiesToDaemonParametersConverter propertiesToDaemonParametersConverter = Stub()
     PropertiesToStartParameterConverter propertiesToStartParameterConverter = Stub()
+    JvmVersionDetector jvmVersionDetector = Stub()
     ParametersConverter parametersConverter = new ParametersConverter(
             Stub(LayoutCommandLineConverter), Stub(SystemPropertiesCommandLineConverter),
             Stub(LayoutToPropertiesConverter), propertiesToStartParameterConverter,
             new DefaultCommandLineConverter(), new DaemonCommandLineConverter(),
             propertiesToDaemonParametersConverter)
 
-    BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter)
+    BuildActionsFactory factory = new BuildActionsFactory(loggingServices, parametersConverter, jvmVersionDetector)
 
     def setup() {
         _ * loggingServices.get(OutputEventListener) >> Mock(OutputEventListener)
@@ -121,10 +122,12 @@ class BuildActionsFactoryTest extends Specification {
         action instanceof ForegroundDaemonAction
     }
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     def "executes with single use daemon if java home is not current"() {
         given:
-        def jvm = AvailableJavaHomes.differentJdk
+        def javaHome = tmpDir.file("java-home")
+        javaHome.file("bin/java").createFile()
+        javaHome.file("bin/java.exe").createFile()
+        def jvm = Jvm.forHome(javaHome)
         propertiesToDaemonParametersConverter.convert(_, _) >> { Map p, DaemonParameters params -> params.jvm = jvm }
 
         when:

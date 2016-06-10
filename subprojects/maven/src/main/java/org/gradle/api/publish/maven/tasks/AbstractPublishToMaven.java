@@ -47,7 +47,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
                 MavenPublicationInternal publicationInternal = getPublicationInternal();
                 return publicationInternal == null ? null : publicationInternal.getPublishableFiles();
             }
-        });
+        }).withPropertyName("publication.publishableFiles");
 
         // Should repositories be able to participate in incremental?
         // At the least, they may be able to express themselves as output files

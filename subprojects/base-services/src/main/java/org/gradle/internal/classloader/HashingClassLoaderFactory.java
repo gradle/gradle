@@ -15,74 +15,18 @@
  */
 package org.gradle.internal.classloader;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+/**
+ * A {@link ClassLoaderFactory} that also stores the hash of each created classloader which is later retrievable via {@link #getHash(ClassLoader)}.
+ */
+public interface HashingClassLoaderFactory extends ClassLoaderFactory, ClassLoaderHasher {
+    /**
+     * Creates a custom {@link ClassLoader} with the given parent and classpath. The hash of the created classloader is stored.
+     */
+    ClassLoader createCustomClassLoader(ClassLoader parent, ClassPath classPath, CustomClassLoaderFactory factory);
 
-public class HashingClassLoaderFactory extends DefaultClassLoaderFactory implements ClassLoaderHasher {
-    private final ClassPathSnapshotter snapshotter;
-    private final Map<ClassLoader, HashCode> hashCodes = new WeakHashMap<ClassLoader, HashCode>();
-
-    public HashingClassLoaderFactory(ClassPathSnapshotter snapshotter) {
-        this.snapshotter = snapshotter;
-    }
-
-    @Override
-    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath) {
-        ClassLoader classLoader = super.doCreateClassLoader(parent, classPath);
-        hashCodes.put(classLoader, calculateClassLoaderHash(classPath));
-        return classLoader;
-    }
-
-    @Override
-    protected ClassLoader doCreateFilteringClassLoader(ClassLoader parent, FilteringClassLoader.Spec spec) {
-        ClassLoader classLoader = super.doCreateFilteringClassLoader(parent, spec);
-        hashCodes.put(classLoader, calculateFilterSpecHash(spec));
-        return classLoader;
-    }
-
-    @Override
-    protected ClassLoader doCreateClassLoader(ClassLoader parent, ClassPath classPath, ClassLoaderCreator creator) {
-        ClassLoader classLoader = super.doCreateClassLoader(parent, classPath, creator);
-        hashCodes.put(classLoader, calculateClassLoaderHash(classPath));
-        return classLoader;
-    }
-
-    @Override
-    public HashCode getHash(ClassLoader classLoader) {
-        return hashCodes.get(classLoader);
-    }
-
-    private HashCode calculateClassLoaderHash(ClassPath classPath) {
-        return snapshotter.snapshot(classPath).getStrongHash();
-    }
-
-    private static HashCode calculateFilterSpecHash(FilteringClassLoader.Spec spec) {
-        Hasher hasher = Hashing.md5().newHasher();
-        addToHash(hasher, spec.getClassNames());
-        addToHash(hasher, spec.getPackageNames());
-        addToHash(hasher, spec.getPackagePrefixes());
-        addToHash(hasher, spec.getResourcePrefixes());
-        addToHash(hasher, spec.getResourceNames());
-        addToHash(hasher, spec.getDisallowedClassNames());
-        addToHash(hasher, spec.getDisallowedPackagePrefixes());
-        return hasher.hash();
-    }
-
-    private static void addToHash(Hasher hasher, Iterable<String> items) {
-        List<String> sortedItems = Lists.newArrayList(items);
-        Collections.sort(sortedItems);
-        for (String item : sortedItems) {
-            hasher.putInt(0);
-            hasher.putString(item, Charsets.UTF_8);
-        }
+    interface CustomClassLoaderFactory {
+        ClassLoader create(ClassLoader parent, ClassPath classPath);
     }
 }

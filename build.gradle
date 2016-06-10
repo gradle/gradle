@@ -222,8 +222,12 @@ subprojects {
 }
 
 configurations {
+    gradleKotlin {
+        visible = false
+    }
     runtime {
         visible = false
+        extendsFrom gradleKotlin
     }
     gradlePlugins {
         visible = false
@@ -238,7 +242,7 @@ dependencies {
     runtime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
-    runtime 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
+    gradleKotlin 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
@@ -349,3 +353,30 @@ task cleanUpRemovedProjects(type: Delete) {
     delete removedProjects.collect { "subprojects/$it" }
 }
 clean.dependsOn(cleanUpRemovedProjects)
+
+/*
+ * When run from a Continuous Integration environment HTML test reports will usually only be inspected
+ * if the build failed e.g. due to failed or flaky tests.
+ *
+ * Deletes HTML test reports so they are not archived on TeamCity and use up unnecessary disk space.
+ */
+if (isCiServer) {
+    gradle.buildFinished { buildResult ->
+        if (!buildResult.failure) {
+            logger.quiet "Deleting HTML test reports..."
+
+            subprojects {
+                def htmlTestReportDirs = tasks.withType(Test).collect { it.reports.html.destination }.unique()
+
+                htmlTestReportDirs.each { htmlReportDir ->
+                    logger.info "Deleting test reports directory '$htmlReportDir'."
+                    def success = htmlReportDir.deleteDir()
+
+                    if (!success) {
+                        logger.warn "Unable to delete test report directory '$htmlReportDir'."
+                    }
+                }
+            }
+        }
+    }
+}

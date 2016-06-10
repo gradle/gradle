@@ -65,4 +65,33 @@ configure(project(":projectA")){
         file("projectC/source-c").mkdirs()
         file("src").mkdirs()
     }
+
+    def "can use linked resources and generate metadata twice"() {
+        given:
+        settingsFile.text = 'rootProject.name = "root"'
+        buildScript '''
+            plugins {
+                id 'eclipse'
+            }
+            eclipse {
+                project {
+                    linkedResource name: 'README.md', type: '1', locationUri: 'PARENT-1-PROJECT_LOC/README.md'
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'eclipse'
+
+        then:
+        project.assertHasLinkedResource('README.md', '1', 'PARENT-1-PROJECT_LOC/README.md')
+        project.assertHasLinkedResources('README.md')
+
+        and:
+        run 'eclipse'
+
+        then:
+        project.assertHasLinkedResource('README.md', '1', 'PARENT-1-PROJECT_LOC/README.md')
+        project.assertHasLinkedResources('README.md')
+    }
 }

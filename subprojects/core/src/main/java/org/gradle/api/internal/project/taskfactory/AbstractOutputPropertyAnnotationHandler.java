@@ -44,7 +44,7 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
     protected abstract void update(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);
 
     @Override
-    public boolean isNotBeNullByDefault() {
+    public boolean getMustNotBeNullByDefault() {
         return true;
     }
 }

@@ -268,6 +268,29 @@ class EclipseModelBuilderTest extends Specification {
         true         | [WarPlugin, EarPlugin]
     }
 
+    def "sets source folder exclude and include patterns"() {
+        given:
+        def modelBuilder = createEclipseModelBuilder()
+        new File(project.getProjectDir(), 'src/main/java').mkdirs()
+        project.plugins.apply(JavaPlugin)
+        includes.each { project.sourceSets.main.java.include it }
+        excludes.each { project.sourceSets.main.java.exclude it }
+
+        when:
+        def eclipseModel = modelBuilder.buildAll("org.gradle.tooling.model.eclipse.EclipseProject", project)
+
+        then:
+        eclipseModel.sourceDirectories[0].includes == includes
+        eclipseModel.sourceDirectories[0].excludes == excludes
+
+        where:
+        excludes     | includes
+        ['e']        | []
+        []           | ['i']
+        ['e']        | ['i']
+        ['e1', 'e2'] | ['i1', 'i2']
+    }
+
     private def createEclipseModelBuilder() {
         def gradleProjectBuilder = Mock(GradleProjectBuilder)
         gradleProjectBuilder.buildAll(_) >> Mock(DefaultGradleProject)

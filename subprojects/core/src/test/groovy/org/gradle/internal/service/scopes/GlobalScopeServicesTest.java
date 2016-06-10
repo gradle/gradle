@@ -45,7 +45,7 @@ import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
-import org.gradle.internal.classloader.HashingClassLoaderFactory;
+import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.DefaultListenerManager;
@@ -140,7 +140,7 @@ public class GlobalScopeServicesTest {
 
     @Test
     public void providesAClassLoaderFactory() {
-        assertThat(registry().get(ClassLoaderFactory.class), instanceOf(HashingClassLoaderFactory.class));
+        assertThat(registry().get(ClassLoaderFactory.class), instanceOf(DefaultHashingClassLoaderFactory.class));
     }
 
     @Test

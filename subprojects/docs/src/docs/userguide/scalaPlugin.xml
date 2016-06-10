@@ -363,6 +363,26 @@
         </para>
     </section>
 
+    <section id='sec:scala_cross_compilation'>
+        <title>Compiling and testing for Java 6</title>
+        <para>
+            Everything which is necessary for running a Java build on Java 6 is also necessary for Scala. Please have a look at
+            <xref linkend="sec:java_cross_compilation"/>.
+        </para>
+        <para>
+            Currently the Scala compiler will always be executed with the same Java version which was used to start Gradle. This means
+            it cannot be executed for Java 6. It is also not possible to configure the <literal>–javabootclasspath</literal> option
+            for the Scala compiler from a Gradle build. This means the only thing possible now is to set the
+            <literal>sourceCompatibility</literal> and <literal>targetCompatibility</literal> to <literal>1.6</literal> for joint compilation.
+            Scala 2.11 compiles Scala files to Bytecode for Java 6 regardless of the compatibility setting and Scala 2.12 compiles them to
+            Bytecode for Java 8.
+            <sample id="scalaCrossCompilation" dir="scala/crossCompilation" title="Configure Java 6 build for Scala">
+                <sourcefile file="gradle.properties" />
+                <sourcefile file="build.gradle" snippet="scala-cross-compilation" />
+            </sample>
+        </para>
+    </section>
+
     <section>
         <title>Eclipse Integration</title>
         <para>

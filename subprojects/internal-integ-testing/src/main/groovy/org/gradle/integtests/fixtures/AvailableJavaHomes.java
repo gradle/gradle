@@ -24,6 +24,8 @@ import net.rubygrapefruit.platform.WindowsRegistry;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Nullable;
 import org.gradle.api.specs.Spec;
+import org.gradle.integtests.fixtures.executer.GradleDistribution;
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution;
 import org.gradle.integtests.fixtures.jvm.InstalledJvmLocator;
 import org.gradle.integtests.fixtures.jvm.JvmInstallation;
 import org.gradle.internal.SystemProperties;
@@ -52,6 +54,7 @@ import java.util.regex.Pattern;
  */
 public abstract class AvailableJavaHomes {
     private static List<JvmInstallation> jvms;
+    private static GradleDistribution underTest = new UnderDevelopmentGradleDistribution();
 
     @Nullable
     public static Jvm getJava5() {
@@ -136,8 +139,8 @@ public abstract class AvailableJavaHomes {
         return Iterables.getFirst(getAvailableJdks(filter), null);
     }
 
-    private static boolean isSupportedVersion(JavaVersion javaVersion) {
-        return javaVersion.compareTo(JavaVersion.VERSION_1_6) >=0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
+    private static boolean isSupportedVersion(JvmInstallation jvmInstallation) {
+        return underTest.worksWith(Jvm.discovered(jvmInstallation.getJavaHome(), jvmInstallation.getJavaVersion()));
     }
 
     /**
@@ -148,7 +151,7 @@ public abstract class AvailableJavaHomes {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
-                return !element.getJavaHome().equals(Jvm.current().getJavaHome()) && isSupportedVersion(element.getJavaVersion());
+                return !element.getJavaHome().equals(Jvm.current().getJavaHome()) && isSupportedVersion(element);
             }
         });
     }
@@ -161,7 +164,7 @@ public abstract class AvailableJavaHomes {
         return getAvailableJdk(new Spec<JvmInstallation>() {
             @Override
             public boolean isSatisfiedBy(JvmInstallation element) {
-                return !element.getJavaVersion().equals(Jvm.current().getJavaVersion()) && isSupportedVersion(element.getJavaVersion());
+                return !element.getJavaVersion().equals(Jvm.current().getJavaVersion()) && isSupportedVersion(element);
             }
         });
     }

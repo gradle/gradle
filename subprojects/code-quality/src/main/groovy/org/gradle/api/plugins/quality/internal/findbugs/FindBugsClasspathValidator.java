@@ -33,12 +33,6 @@ public class FindBugsClasspathValidator {
 
     public void validateClasspath(Iterable<String> fileNamesOnClasspath) {
         VersionNumber v = getFindbugsVersion(fileNamesOnClasspath);
-        boolean java6orLess = javaVersion.compareTo(JavaVersion.VERSION_1_7) < 0;
-        boolean findbugs3orMore = v.getMajor() > 2;
-        if (java6orLess && findbugs3orMore) {
-            throw new FindBugsVersionTooHighException("The version of FindBugs (" + v + ") inferred from FindBugs classpath is too high to work with currently used Java version (" + javaVersion + ")."
-                    + " Please use lower version of FindBugs or use newer version of Java. Inspected FindBugs classpath: " + fileNamesOnClasspath);
-        }
         boolean java8orMore = javaVersion.compareTo(JavaVersion.VERSION_1_7) > 0;
         boolean findbugs2orLess = v.getMajor() < 3;
         if (java8orMore && findbugs2orLess) {
@@ -49,11 +43,6 @@ public class FindBugsClasspathValidator {
 
     static class FindBugsVersionTooLowException extends GradleException {
         FindBugsVersionTooLowException(String message) {
-            super(message);
-        }
-    }
-    static class FindBugsVersionTooHighException extends GradleException {
-        FindBugsVersionTooHighException(String message) {
             super(message);
         }
     }

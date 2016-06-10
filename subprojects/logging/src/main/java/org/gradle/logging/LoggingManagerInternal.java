@@ -17,10 +17,20 @@
 package org.gradle.logging;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.logging.StandardOutputListener;
 
+import java.io.OutputStream;
+
+/**
+ * This type was accidentally leaked into the public API, please do not refer to it.
+ * Use {@link org.gradle.api.logging.LoggingManager} instead.
+ */
 @Deprecated
-@SuppressWarnings("deprecation")
-public interface LoggingManagerInternal extends org.gradle.internal.logging.LoggingManagerInternal, StandardOutputCapture {
+public interface LoggingManagerInternal extends LoggingManager, StandardOutputCapture {
+    LogLevel getLevel();
+
+    LoggingManagerInternal setLevel(LogLevel logLevel);
 
     LoggingManagerInternal start();
 
@@ -32,6 +42,23 @@ public interface LoggingManagerInternal extends org.gradle.internal.logging.Logg
 
     LoggingManagerInternal captureStandardError(LogLevel level);
 
-    LoggingManagerInternal setLevelInternal(LogLevel logLevel);
+    LogLevel getStandardErrorCaptureLevel();
 
+    LogLevel getStandardOutputCaptureLevel();
+
+    void addStandardOutputListener(OutputStream outputStream);
+
+    void addStandardErrorListener(OutputStream outputStream);
+
+    void addStandardOutputListener(StandardOutputListener listener);
+
+    void addStandardErrorListener(StandardOutputListener listener);
+
+    void removeStandardOutputListener(StandardOutputListener listener);
+
+    void removeStandardErrorListener(StandardOutputListener listener);
+
+    void attachAnsiConsole(OutputStream outputStream);
+
+    void attachSystemOutAndErr();
 }

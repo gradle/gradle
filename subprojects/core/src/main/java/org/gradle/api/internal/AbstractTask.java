@@ -103,7 +103,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String group;
 
-    private AndSpec<Task> onlyIfSpec = new AndSpec<Task>(createNewOnlyIfSpec());
+    private AndSpec<Task> onlyIfSpec = createNewOnlyIfSpec();
 
     private TaskExecuter executer;
 
@@ -160,7 +160,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 taskMutator.assertMutable("Task.getActions()", evt);
             }
         });
-        taskInputs = new DefaultTaskInputs(project.getFileResolver(), this, taskMutator);
+        taskInputs = new DefaultTaskInputs(project.getFileResolver(), getName(), taskMutator);
         taskOutputs = new DefaultTaskOutputs(project.getFileResolver(), this, taskMutator);
     }
 

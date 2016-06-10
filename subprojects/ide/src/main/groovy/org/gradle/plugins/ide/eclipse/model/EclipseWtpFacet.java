@@ -31,8 +31,7 @@ import java.util.Map;
  * Advanced configuration closures beforeMerged and whenMerged receive {@link WtpFacet} object as parameter.
  *
  * <pre autoTested=''>
- * apply plugin: 'java'
- * apply plugin: 'war'
+ * apply plugin: 'war' //or 'ear' or 'java'
  * apply plugin: 'eclipse-wtp'
  *
  * eclipse {

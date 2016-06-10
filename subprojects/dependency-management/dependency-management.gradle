@@ -44,3 +44,27 @@ useTestFixtures(project: ":messaging")
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 
+task generateGradleApiPackageList(type: org.gradle.api.internal.runtimeshaded.PackageListGenerator) {
+    outputFile = file("$buildDir/generated-resources/main/org/gradle/api/internal/runtimeshaded/api-relocated.txt")
+    // todo: find away to workaround the circular dependency in a cleaner way
+    classpath = files([])
+    doFirst {
+        classpath = files(
+            rootProject.configurations.gradleKotlin,
+            [':core', ':dependencyManagement', ':pluginUse', ":toolingApi"].collect() {
+                project(it).configurations.compile + project(it).configurations.runtime
+            }, project(':').configurations.gradlePlugins)
+    }
+}
+
+task generateTestKitPackageList(type: org.gradle.api.internal.runtimeshaded.PackageListGenerator) {
+    outputFile = file("$buildDir/generated-resources/main/org/gradle/api/internal/runtimeshaded/test-kit-relocated.txt")
+    // todo: find away to workaround the circular dependency in a cleaner way
+    classpath = files([])
+    doFirst {
+        classpath = project(':testKit').configurations.compile
+    }
+}
+
+jar.dependsOn(generateGradleApiPackageList, generateTestKitPackageList)
+

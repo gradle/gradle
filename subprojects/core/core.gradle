@@ -16,7 +16,7 @@
 
 apply from: "$rootDir/gradle/taskProperties.gradle"
 
-sourceCompatibility = 1.5
+sourceCompatibility = javaVersion.java9Compatible ? 1.6 : 1.5
 
 configurations {
     reports

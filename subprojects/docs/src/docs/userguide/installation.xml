@@ -20,7 +20,7 @@
 <section>
     <title>Prerequisites</title>
 
-    <para>Gradle requires a Java JDK or JRE to be installed, version 6 or higher (to check, use <userinput>java -version</userinput>).
+    <para>Gradle requires a Java JDK or JRE to be installed, version 7 or higher (to check, use <userinput>java -version</userinput>).
     	Gradle ships with its own Groovy library, therefore Groovy does not need to be installed. Any existing Groovy installation is ignored by Gradle.
     </para>
 
@@ -28,6 +28,7 @@
         Alternatively, you can set the <envar>JAVA_HOME</envar> environment variable to point to the installation directory
         of the desired JDK.
     </para>
+
 </section>
 
 <section>
@@ -61,8 +62,8 @@
 <section>
 <title>Environment variables</title>
 
-<para>For running Gradle, firstly add the environment variable <envar>GRADLE_HOME</envar>. This should point to the unpacked files from the 
-    Gradle website. Next add <filename><replaceable>GRADLE_HOME</replaceable>/bin</filename> to your <envar>PATH</envar> environment variable. 
+<para>For running Gradle, firstly add the environment variable <envar>GRADLE_HOME</envar>. This should point to the unpacked files from the
+    Gradle website. Next add <filename><replaceable>GRADLE_HOME</replaceable>/bin</filename> to your <envar>PATH</envar> environment variable.
     Usually, this is sufficient to run Gradle.
 </para>
 </section>

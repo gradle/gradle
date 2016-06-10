@@ -15,6 +15,7 @@
  */
 package org.gradle.plugins.ear.descriptor.internal;
 
+import com.google.common.base.Objects;
 import groovy.util.Node;
 import groovy.xml.QName;
 import org.apache.commons.lang.StringUtils;
@@ -85,12 +86,6 @@ public class DefaultEarModule implements EarModule {
             return false;
         }
         DefaultEarModule that = (DefaultEarModule) o;
-        if (!altDeployDescriptor.equals(that.altDeployDescriptor)) {
-            return false;
-        }
-        if (!path.equals(that.path)) {
-            return false;
-        }
-        return true;
+        return Objects.equal(path, that.path) && Objects.equal(altDeployDescriptor, that.altDeployDescriptor);
     }
 }

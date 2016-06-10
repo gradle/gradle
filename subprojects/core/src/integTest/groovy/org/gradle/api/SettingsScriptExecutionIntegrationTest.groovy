@@ -19,7 +19,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Test
 
 import static org.hamcrest.Matchers.containsString
@@ -28,7 +27,6 @@ import static org.junit.Assert.assertThat
 
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
-    @LeaksFileHandles
     public void executesSettingsScriptWithCorrectEnvironment() {
         createExternalJar()
         createBuildSrc()
@@ -52,6 +50,10 @@ try {
     assert false: 'should fail'
 } catch (ClassNotFoundException e) {
     // expected
+} finally {
+    if (buildscript.classLoader instanceof Closeable) {
+        buildscript.classLoader.close()
+    }
 }
 """
         testFile('build.gradle') << 'task doStuff'

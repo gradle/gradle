@@ -84,7 +84,7 @@ public class TaskUpToDateState {
     }
 
     public FilesSnapshotSet getInputFilesSnapshot() {
-        return directInputFileChanges.getCurrent().getSnapshot();
+        return directInputFileChanges.getUnifiedSnapshot();
     }
 
     public void newInputs(Set<File> discoveredInputs) {

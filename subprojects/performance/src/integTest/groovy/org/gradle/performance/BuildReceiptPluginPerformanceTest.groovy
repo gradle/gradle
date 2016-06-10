@@ -64,6 +64,7 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         given:
         def sourceProject = "largeJavaProjectWithBuildReceiptPlugin"
         def tasks = ['clean', 'build']
+        def gradleOpts = ['-Xms4g', '-Xmx4g', '-XX:MaxPermSize=512m']
 
         runner.testGroup = "build receipt plugin"
         runner.testId = "large java project with and without build receipt"
@@ -71,6 +72,7 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         runner.baseline {
             projectName(sourceProject).displayName(WITHOUT_PLUGIN_LABEL).invocation {
                 tasksToRun(*tasks)
+                invocation { gradleOptions = gradleOpts }
             }
         }
 
@@ -78,6 +80,7 @@ class BuildReceiptPluginPerformanceTest extends Specification {
             projectName(sourceProject).displayName(WITH_PLUGIN_LABEL).invocation {
                 args("-Dreceipt", "-Dreceipt.dump")
                 tasksToRun(*tasks)
+                invocation { gradleOptions = gradleOpts }
             }
         }
 
@@ -92,7 +95,7 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         // cannot be more than one second slower
         with.totalTime.average - without.totalTime.average < millis(1500)
 
-        // cannot use 20MB more “memory”
+        // cannot use 40MB more “memory”
         with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(40)
     }
 

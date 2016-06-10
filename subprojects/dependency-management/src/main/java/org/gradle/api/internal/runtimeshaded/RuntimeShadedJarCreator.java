@@ -67,13 +67,14 @@ class RuntimeShadedJarCreator {
     private static final int BUFFER_SIZE = 8192;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
     private static final int ADDITIONAL_PROGRESS_STEPS = 2;
-    private static final ImplementationDependencyRelocator REMAPPER = new ImplementationDependencyRelocator();
     private static final String CLASS_DESC = "Ljava/lang/Class;";
 
     private final ProgressLoggerFactory progressLoggerFactory;
+    private final ImplementationDependencyRelocator remapper;
 
-    public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory) {
+    public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory, ImplementationDependencyRelocator remapper) {
         this.progressLoggerFactory = progressLoggerFactory;
+        this.remapper = remapper;
     }
 
     public void create(final File outputJar, final Iterable<? extends File> files) {
@@ -218,7 +219,7 @@ class RuntimeShadedJarCreator {
     private void processServiceDescriptor(InputStream inputStream, ZipEntry zipEntry, byte[] buffer, Map<String, List<String>> services) throws IOException {
         String descriptorName = zipEntry.getName().substring(SERVICES_DIR_PREFIX.length());
         String descriptorApiClass = periodsToSlashes(descriptorName);
-        String relocatedApiClassName = REMAPPER.maybeRelocateResource(descriptorApiClass);
+        String relocatedApiClassName = remapper.maybeRelocateResource(descriptorApiClass);
         if (relocatedApiClassName == null) {
             relocatedApiClassName = descriptorApiClass;
         }
@@ -226,7 +227,7 @@ class RuntimeShadedJarCreator {
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         String entry = new String(bytes, Charsets.UTF_8).replaceAll("(?m)^#.*", "").trim(); // clean up comments and new lines
         String descriptorImplClass = periodsToSlashes(entry);
-        String relocatedImplClassName = REMAPPER.maybeRelocateResource(descriptorImplClass);
+        String relocatedImplClassName = remapper.maybeRelocateResource(descriptorImplClass);
         if (relocatedImplClassName == null) {
             relocatedImplClassName = descriptorImplClass;
         }
@@ -259,13 +260,13 @@ class RuntimeShadedJarCreator {
         int i = originalName.lastIndexOf("/");
         String path = i == -1 ? null : originalName.substring(0, i);
 
-        if (REMAPPER.keepOriginalResource(path)) {
+        if (remapper.keepOriginalResource(path)) {
             // we're writing 2 copies of the resource: one relocated, the other not, in order to support `getResource/getResourceAsStream` with
             // both absolute and relative paths
             writeResourceEntry(outputStream, new ByteArrayInputStream(resource), buffer, zipEntry.getName());
         }
 
-        String remappedResourceName = path != null ? REMAPPER.maybeRelocateResource(path) : null;
+        String remappedResourceName = path != null ? remapper.maybeRelocateResource(path) : null;
         if (remappedResourceName != null) {
             String newFileName = remappedResourceName + originalName.substring(i);
             writeResourceEntry(outputStream, new ByteArrayInputStream(resource), buffer, newFileName);
@@ -290,7 +291,7 @@ class RuntimeShadedJarCreator {
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         byte[] remappedClass = remapClass(className, bytes);
 
-        String remappedClassName = REMAPPER.maybeRelocateResource(className);
+        String remappedClassName = remapper.maybeRelocateResource(className);
         String newFileName = (remappedClassName == null ? className : remappedClassName).concat(".class");
 
         writeEntry(outputStream, newFileName, remappedClass);
@@ -299,7 +300,7 @@ class RuntimeShadedJarCreator {
     private byte[] remapClass(String className, byte[] bytes) {
         ClassReader classReader = new ClassReader(bytes);
         ClassWriter classWriter = new ClassWriter(0);
-        ClassVisitor remappingVisitor = new ShadingClassRemapper(classWriter);
+        ClassVisitor remappingVisitor = new ShadingClassRemapper(classWriter, remapper);
 
         try {
             classReader.accept(remappingVisitor, ClassReader.EXPAND_FRAMES);
@@ -344,9 +345,11 @@ class RuntimeShadedJarCreator {
 
     private static class ShadingClassRemapper extends ClassRemapper {
         Map<String, String> remappedClassLiterals;
+        private final ImplementationDependencyRelocator remapper;
 
-        public ShadingClassRemapper(ClassWriter classWriter) {
-            super(classWriter, RuntimeShadedJarCreator.REMAPPER);
+        public ShadingClassRemapper(ClassWriter classWriter, ImplementationDependencyRelocator remapper) {
+            super(classWriter, remapper);
+            this.remapper = remapper;
             remappedClassLiterals = new HashMap<String, String>();
         }
 
@@ -354,7 +357,7 @@ class RuntimeShadedJarCreator {
         public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
             ImplementationDependencyRelocator.ClassLiteralRemapping remapping = null;
             if (CLASS_DESC.equals(desc)) {
-                remapping = REMAPPER.maybeRemap(name);
+                remapping = remapper.maybeRemap(name);
                 if (remapping != null) {
                     remappedClassLiterals.put(remapping.getLiteral(), remapping.getLiteralReplacement().replace("/", "."));
                 }
@@ -363,12 +366,23 @@ class RuntimeShadedJarCreator {
         }
 
         @Override
-        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+        public MethodVisitor visitMethod(int access, final String name, final String desc, String signature, String[] exceptions) {
             return new MethodVisitor(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions)) {
                 @Override
                 public void visitLdcInsn(Object cst) {
                     if (cst instanceof String) {
                         String literal = remappedClassLiterals.get(cst);
+                        if (literal == null) {
+                            // tries to relocate literals in the form of foo/bar/Bar
+                            literal = remapper.maybeRelocateResource((String) cst);
+                        }
+                        if (literal == null) {
+                            // tries to relocate literals in the form of foo.bar.Bar
+                            literal = remapper.maybeRelocateResource(((String) cst).replace('.', '/'));
+                            if (literal != null) {
+                                literal = literal.replace("/", ".");
+                            }
+                        }
                         super.visitLdcInsn(literal != null ? literal : cst);
                     } else {
                         super.visitLdcInsn(cst);
@@ -378,7 +392,7 @@ class RuntimeShadedJarCreator {
                 @Override
                 public void visitFieldInsn(int opcode, String owner, String name, String desc) {
                     if ((opcode == Opcodes.GETSTATIC || opcode == Opcodes.PUTSTATIC) && CLASS_DESC.equals(desc)) {
-                        ImplementationDependencyRelocator.ClassLiteralRemapping remapping = REMAPPER.maybeRemap(name);
+                        ImplementationDependencyRelocator.ClassLiteralRemapping remapping = remapper.maybeRemap(name);
                         if (remapping != null) {
                             super.visitFieldInsn(opcode, owner, remapping.getFieldNameReplacement(), desc);
                             return;

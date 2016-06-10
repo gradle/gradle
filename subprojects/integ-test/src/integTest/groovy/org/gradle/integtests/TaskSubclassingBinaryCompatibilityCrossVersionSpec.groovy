@@ -25,8 +25,6 @@ import org.gradle.api.plugins.quality.Pmd
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.Sync
-import org.gradle.api.tasks.application.CreateStartScripts
-import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.War
 import org.gradle.api.tasks.bundling.Zip
@@ -36,9 +34,12 @@ import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.testing.Test
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.plugins.ear.Ear
+import org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath
+import org.gradle.plugins.ide.eclipse.GenerateEclipseJdt
 import org.gradle.plugins.signing.Sign
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
+import org.junit.Assume
 
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
@@ -54,11 +55,13 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             Copy,
             Sync,
             Zip,
-            Jar,
+            org.gradle.api.tasks.bundling.Jar,
             Tar,
             War,
+            JavaCompile,
             GroovyCompile,
             ScalaCompile,
+            Test,
             CodeNarc,
             Checkstyle,
             Ear,
@@ -66,21 +69,32 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             Pmd,
             JDepend,
             Sign,
-            CreateStartScripts
+            org.gradle.api.tasks.application.CreateStartScripts,
+            GenerateEclipseJdt,
+            GenerateEclipseClasspath
         ]
+
+        // Task types added after 1.0
+
+        if (previous.version >= GradleVersion.version("2.4")) {
+            taskClasses << org.gradle.jvm.application.tasks.CreateStartScripts
+        }
+        if (previous.version >= GradleVersion.version("2.3")) {
+            taskClasses << org.gradle.jvm.tasks.Jar
+        }
 
         // Some breakages that were not detected prior to release. Please do not add any more exceptions
 
-        if (previous.version >= GradleVersion.version("1.1")) {
+        if (previous.version < GradleVersion.version("1.1")) {
             // Breaking changes were made to Test between 1.0 and 1.1
-            taskClasses << Test
+            taskClasses.remove(Test)
         }
-        if (previous.version >= GradleVersion.version("2.0")) {
+        if (previous.version < GradleVersion.version("2.0")) {
             // Breaking changes were made to JavaCompile prior to 2.0
-            taskClasses << JavaCompile
+            taskClasses.remove(JavaCompile)
         }
 
-        Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.simpleName, it.name] }
+        Map<String, String> subclasses = taskClasses.collectEntries { ["custom" + it.name.replace(".", "_"), it.name] }
 
         file("producer/build.gradle") << """
             apply plugin: 'groovy'
@@ -123,11 +137,12 @@ apply plugin: SomePlugin
 
         expect:
         version previous withTasks 'assemble' inDirectory(file("producer")) run()
-        version current withTasks 'tasks' run()
+        version current withTasks 'tasks' requireGradleDistribution() run()
     }
 
     def "task can use all methods declared by Task interface that AbstractTask specialises"() {
-        given:
+        // Don't run these for RC 3, as stuff did change during the RCs
+        Assume.assumeFalse(previous.version == GradleVersion.version("2.14-rc-3"))
 
         when:
         file("producer/build.gradle") << """

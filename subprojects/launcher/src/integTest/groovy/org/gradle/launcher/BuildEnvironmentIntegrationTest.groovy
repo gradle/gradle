@@ -116,6 +116,10 @@ task check << {
         succeeds 'check'
     }
 
+    Locale getTurkishLocale() {
+        new Locale("tr", "TR")
+    }
+
     Locale getNonDefaultLocale() {
         [new Locale('de'), new Locale('en')].find { it != Locale.default }
     }
@@ -199,5 +203,13 @@ task check << {
     protected ExecutionResult succeeds(String... tasks) {
         executer.useDefaultBuildJvmArgs()
         return super.succeeds(tasks)
+    }
+
+    @Issue("GRADLE-3470")
+    def "command-line options are not affected by locale"() {
+        given:
+        executer.withCommandLineGradleOpts("-Duser.language=${turkishLocale.language}", "-Duser.country=${turkishLocale.country}")
+        expect:
+        succeeds 'help', '--console=PLAIN'
     }
 }

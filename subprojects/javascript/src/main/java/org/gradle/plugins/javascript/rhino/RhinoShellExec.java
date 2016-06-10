@@ -18,6 +18,7 @@ package org.gradle.plugins.javascript.rhino;
 
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.Optional;
 import org.gradle.process.JavaExecSpec;
@@ -51,7 +52,7 @@ public class RhinoShellExec extends JavaExec {
         this.rhinoOptions.addAll(Arrays.asList(rhinoOptions));
     }
 
-    @Input
+    @Internal("Represented as part of args")
     public List<String> getScriptArgs() {
         return CollectionUtils.stringize(scriptArgs);
     }
@@ -75,7 +76,6 @@ public class RhinoShellExec extends JavaExec {
     }
 
     @Override
-    @Input
     public List<String> getArgs() {
         List<String> args = new ArrayList<String>(rhinoOptions.size() + 1 + scriptArgs.size());
         args.addAll(getRhinoOptions());

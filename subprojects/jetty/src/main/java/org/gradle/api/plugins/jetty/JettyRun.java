@@ -372,11 +372,20 @@ public class JettyRun extends AbstractJettyRunTask {
     /**
      * Returns the {@code web.xml} file to use. When {@code null}, no {@code web.xml} file is used.
      */
-//    @InputFile
-//    @Optional
-    @Internal
+    @Internal("See webXmlIfExists")
     public File getWebXml() {
         return webXml;
+    }
+
+    // Workaround for non-existent web.xml passed to this task
+    @Optional @InputFile
+    protected File getWebXmlIfExists() {
+        File webXml = getWebXml();
+        if (webXml != null && webXml.exists()) {
+            return webXml;
+        } else {
+            return null;
+        }
     }
 
     public void setWebXml(File webXml) {

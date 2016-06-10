@@ -18,7 +18,9 @@ package org.gradle.plugins.ide.api;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Specs;
+import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
@@ -63,8 +65,8 @@ public class GeneratorTask<T> extends ConventionTask {
     @SuppressWarnings("UnusedDeclaration")
     @TaskAction
     void generate() {
-        File inputFile = getInputFile();
-        if (inputFile != null && inputFile.exists()) {
+        File inputFile = getInputFileIfExists();
+        if (inputFile != null) {
             try {
                 domainObject = generator.read(inputFile);
             } catch (RuntimeException e) {
@@ -93,10 +95,27 @@ public class GeneratorTask<T> extends ConventionTask {
      *
      * @return The input file.
      */
-    // @Optional @InputFile
-    @Internal
+    @Internal("Covered by inputFileIfExists")
     public File getInputFile() {
         return inputFile != null ? inputFile : getOutputFile();
+    }
+
+    // Workaround for when the task is given an input file that doesn't exist
+    @Optional @InputFile
+    protected File getInputFileIfExists() {
+        File inputFile = getInputFile();
+        if (inputFile == null) {
+            File outputFile = getOutputFile();
+            if (outputFile != null && outputFile.exists()) {
+                return outputFile;
+            } else {
+                return null;
+            }
+        } else if (inputFile.exists()) {
+            return inputFile;
+        } else {
+            return null;
+        }
     }
 
     /**

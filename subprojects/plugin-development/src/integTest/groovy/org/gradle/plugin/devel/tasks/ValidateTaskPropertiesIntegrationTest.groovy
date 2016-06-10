@@ -64,7 +64,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                     return 0;
                 }
 
-                // Ignored because not public
+                // Ignored because injected
                 @javax.inject.Inject
                 public org.gradle.api.internal.file.FileResolver getInjected() {
                     throw new UnsupportedOperationException();

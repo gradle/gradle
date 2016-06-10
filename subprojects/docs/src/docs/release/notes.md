@@ -74,11 +74,11 @@ Add-->
     
 ### Improved Gradle Daemon, now enabled by default
 
-The performance improvement gained by using the Daemon is staggering: our performance tests [show that builds could be up to 75% faster](TODO(ew) link blog post), just by enabling the Gradle Daemon.
+The performance improvement gained by using the Daemon is staggering: our performance tests [show that builds could be up to 75% faster](http://gradle.org/blog/gradle-3-0-m1-unleash-the-daemon/), just by enabling the Gradle Daemon.
 
 We have been working hard to make the Gradle Daemon aware of its health and impact on the system it's running on; and we believe that it is now robust enough to be **enabled by default**.
 
-We encourage you to give the improved Daemon a try. If for some reason you encounter problems, you can [disable the Daemon](userguide/gradle_daemon.html#daemon_faq). Please [submit feedback to us](https://discuss.gradle.org/c/bugs/) if you encounter instability so that we can make further improvements.
+We encourage you to give the improved Daemon a try. If for some reason you encounter problems, you can [disable the Daemon](userguide/gradle_daemon.html#daemon_faq). Please [submit feedback to us](https://discuss.gradle.org/c/3-0-m1/) if you encounter instability so that we can make further improvements.
 
 ### Delayed configuration of task inputs and outputs
 
@@ -88,23 +88,60 @@ A `configure()` method with an `Action` or `Closure` parameter was added to both
 
 Previously if a task's implementation class name changed, the class was deemed out-of-date even if its inputs and outputs matched the previous execution. However, if only the code of the task, or a dependent library changed, the task was still considered up-to-date. Since this version Gradle notices if the code of a task or its dependencies change between executions, and marks tasks as out-of-date when needed.
 
-### Improved file generation in `eclipse-wtp` plugin
+### `plugins` DSL can resolve plugins without applying them
 
-Before Gradle 3.0, the `eclipse-wtp` plugin defined dependencies and deployment information in the Eclipse component descriptor. This caused several problems, listed at [GRADLE-2123](https://issues.gradle.org/browse/GRADLE-2123). To resolve this, the plugin now defines dependencies and deployment in the Eclipse classpath for Java projects. For each library a classpath entry similar to the one below is generated:
+There are times when you want to resolve a plugin without actually applying it to the current project, e.g.
+
+- you only want to reuse a task class from that plugin
+- you want to apply that plugin to subprojects of the current one
+
+This is now possible using the following syntax
+
+```
+plugins {
+    id 'my.special.plugin' version '1.0' apply false
+}
+
+subprojects {
+    if (someCondition) {
+        apply plugin 'my.special.plugin'
+    }
+}
+```
+
+### Improved handling of external dependencies in `eclipse-wtp` plugin
+
+Before Gradle 3.0, the `eclipse-wtp` plugin always defined external dependencies the WTP component descriptor. This caused several problems, listed at [GRADLE-2123](https://issues.gradle.org/browse/GRADLE-2123). To resolve this, the plugin now defines external dependencies in the Eclipse classpath and marks them as deployed/non-deployed accordingly. For each library a classpath entry similar to the one below is generated:
 
     <classpathentry kind="lib" path=“/path/to/lib-1.0.0.jar" exported=“false">
         <attributes>
             <attribute name="org.eclipse.jst.component.dependency" value="WEB-INF/lib"/>
         </attributes>
     </classpath>
+    
+If the project is not a Java project (and thus has no classpath), the dependencies are added to the component descriptor as before.
 
 ### Improved dependency resolution for `eclipse-wtp` plugin
 
-The plugin no longer uses a customised dependency resolution algorithm. As a result, all dependency customisations like substitution rules and forced versions work.
+The `eclipse-wtp` plugin now fully leverages Gradle's dependency resolution engine. As a result, all dependency customisations like substitution rules and forced versions work in WTP projects.
 
 ### `eclipse` plugin also applies `eclipse-wtp` for web projects
 
-If a project applies `war` or `ear` plugins, then applying the `eclipse` plugin also applies `eclipse-wtp`. This ensures that the necessary configurations like the wtp deployment information (above) to be present.
+If a project applies the `war` or `ear` plugins, then applying the `eclipse` plugin also applies `eclipse-wtp`. This improves the out-of-the box experience for Eclipse Buildship users.
+
+### Tooling API exposes more information via the `EclipseProject` model.
+
+The `EclipseProject` model was supplemented with a set of new features:
+
+- The [EclipseSourceDirectory](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html) exposes the following information:
+    - exclude and include patterns: [getExcludes()](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html#getExcludes%28%29) and [getIncludes()](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html#getIncludes%28%29),
+    - classpath attributes: [getClasspathAttributes()](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html#getClasspathAttributes%28%29),
+    - output folder: [getOutput()](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html#getOutput%28%29).
+- The classpath container definition is available via the [EclipseProject.getClasspathContainers()](javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getClasspathContainers%28%29) method.
+- The project output location is available via the [EclipseProject.getOutputLocation()](javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getOutputLocation%28%29) method.
+- All classpath entries (project and external dependencies, classpath containers and source folders) expose their access rules via [EclipseClasspathEntry.getAccessRules()](javadoc/org/gradle/tooling/model/eclipse/EclipseClasspathEntry.html#getAccessRules%28%29).
+
+With these features Tooling API clients can provide a more complete IDE integration. Buildship will make use of them very soon.
 
 ## Promoted features
 
@@ -140,11 +177,14 @@ The following APIs have been deprecated:
 
 ## Potential breaking changes
 
-### Supported Java versions
+### Running Gradle on Java 6 is no longer supported.
 
-TBD - Gradle requires Java 7 or later to run.
-TBD - Gradle tooling API requires Java 7 or later to run.
-TBD - Test execution in Gradle requires Java 6 or later.
+Gradle itself now requires Java 7 or better to run, but compiling project sources and running tests with Java 6 remains supported.
+See [Compiling and testing for Java 6](userguide/java_plugin.html#sec:java_cross_compilation) in the Userguide. There are also
+instructions on how to compile and test [Groovy](userguide/groovy_plugin.html#sec:groovy_cross_compilation) and
+[Scala](userguide/scala_plugin.html#sec:scala_cross_compilation) for Java 6. 
+
+Support for compiling and testing on Java 5 has been dropped.
 
 ### Sonar plugin has been removed
 
@@ -169,6 +209,21 @@ since they are not needed any more.
 ### Task property annotations on implemented interfaces
 
 In previous versions, annotations on task properties like `@InputFile` and `@OutputDirectory` were only taken into account when they were declared on the task class itself, or one of its super-classes. Since Gradle 3.0 annotations declared on implemented interfaces are also taken into account.
+
+### `eclipse-wtp` handling of external dependencies changed
+
+For Java projects, the `eclipse-wtp` plugin no longer adds external dependencies to the WTP component file, but to the classpath instead. Any customizations related to external dependencies that were made in the `eclipse.wtp.component.file` hooks now need to be done in the `eclipse.classpath.file` hooks instead.
+
+### `eclipse-wtp` is automatically applied when the `war` or `ear` plugins are applied
+
+User who are building `war` projects with Eclipse, but for any reason do not want to have WTP enabled can deactivate WTP like this:
+
+```
+eclipse.project {
+    natures.removeAll { it.startsWith('org.eclipse.wst') }
+    buildCommands.removeAll { it.name.startsWith('org.eclipse.wst') }
+}
+```
 
 ### Changes to previously deprecated APIs
 
@@ -215,16 +270,21 @@ In previous versions, annotations on task properties like `@InputFile` and `@Out
 * Removed `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER`
 * Removed old wrapper properties `urlRoot`, `distributionName`, `distributionVersion` and `distributionClassifier`
 * Removed deprecated `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
-* Removed deprecated constructor `DefaultSourceDirectorySet(String name, FileResolver fileResolver)`
+
+### Types no longer extend `GroovyObject`
+
+* org.gradle.api.tasks.bundling.Jar
 
 ### Tooling API changes
 
 TBD - Requires tooling API version 2.0 or later.
 TBD - Tooling API supports only Gradle 1.2 and later.
 
-### `eclipse-wtp` plugin dependency resolution and generated file format changed
+#### Eclipse model contains classpath attributes for project and external dependencies
 
-As explained above, the behaviour how files are generated by the `eclipse-wtp` plugin is changed, which is a potentially breaking change. Also, because the dependency resolution has been updated, it can affect clients upgrading to the current release.
+The `EclipseProjectDependency` and `EclipseExternalDependency` models now contain `ClasspathAttribute`s. By default the JavaDoc location attribute and WTP deployment attributes are populated.
+ 
+Any customizations done via `eclipse.classpath.file.beforeMerged` and `eclipse.classpath.file.whenMerged` are also reflected in these tooling models. 
 
 ## External contributions
 
@@ -236,6 +296,9 @@ We would like to thank the following community members for making contributions 
  - [Mahmoud  Khater](https://github.com/mahmoud-k) - Fix a problem with determining the version of Findbugs on the classpath (GRADLE-3457)
  - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.6
  - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
+ - [Ramon Wirsch](https://github.com/ramonwirsch) - Fix NullPointerException when processing annotations in the new Java software model
+ - [Vladislav Bauer](https://github.com/vbauer) - ShadeJar: Use ClassRemapper instead of deprecated RemappingClassAdapter
+ - [Matias Hernandez](https://github.com/matiash) - Removed 4NT-specific code in bat files (GRADLE-3476)
   
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)

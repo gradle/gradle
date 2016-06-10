@@ -147,4 +147,18 @@ class PropertiesToDaemonParametersConverterTest extends Specification {
         true    | true
         false   | false
     }
+
+    def "enable debug mode from JVM args when default debug argument is used"() {
+        when:
+        converter.convert([
+            (JVM_ARGS_PROPERTY)                 : "-Xmx256m $debugArgs".toString(),
+        ], params)
+
+        then:
+        params.debug
+
+        where:
+        debugArgs << ['-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005', '-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
+    }
+
 }

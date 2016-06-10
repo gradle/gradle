@@ -15,11 +15,15 @@
  */
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
 import org.junit.Assume
+import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.daemon.DaemonTestFixture.killIsolatedDaemons
 
@@ -28,7 +32,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         requireOwnGradleUserHomeDir()
     }
 
-    public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
+    void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(previous, current)
 
@@ -39,7 +43,7 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
         cleanupDaemons(executer, current)
     }
 
-    public void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
+    void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
         when:
         GradleExecuter executer = prepareWrapperExecuter(current, previous)
 
@@ -48,6 +52,35 @@ class WrapperCrossVersionIntegrationTest extends CrossVersionIntegrationSpec {
 
         cleanup:
         cleanupDaemons(executer, previous)
+    }
+
+    @Unroll
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
+    def 'provides reasonable failure message when attempting to run current Version with previous wrapper under java #jdk.javaVersion'() {
+        when:
+        GradleExecuter executor = prepareWrapperExecuter(previous, current).withJavaHome(jdk.javaHome)
+
+        then:
+        def result = executor.usingExecutable('gradlew').withArgument('help').runWithFailure()
+        result.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. You are currently using Java ${jdk.javaVersion.majorVersion}.")
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
+    }
+
+    @Unroll
+    @Requires(adhoc = { AvailableJavaHomes.getJdks("1.5", "1.6") })
+    def 'provides reasonable failure message when attempting to run with previous wrapper and the build is configured to use Java #jdk.javaVersion'() {
+        when:
+        GradleExecuter executor = prepareWrapperExecuter(previous, current)
+        file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.canonicalPath)
+
+        then:
+        def result = executor.usingExecutable('gradlew').withArgument('help').runWithFailure()
+        result.assertHasDescription("Gradle ${GradleVersion.current().version} requires Java 7 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}.")
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5", "1.6")
     }
 
     private GradleExecuter prepareWrapperExecuter(GradleDistribution wrapperVersion, GradleDistribution executionVersion) {

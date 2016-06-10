@@ -1558,4 +1558,30 @@
         </para>
     </section>
 
+    <section id='sec:java_cross_compilation'>
+        <title>Compiling and testing for Java 6</title>
+        <para>Gradle can only run on Java version 7 or higher. Gradle 3.x still
+            supports compiling, testing, generating Javadoc and executing applications for Java 6.
+            Java 5 is not supported
+        </para>
+        <para>
+            The code quality plugins like Findbugs and Pmd do not support choosing a different Java version
+            for running the analysis. As a consequence these tools need to be compatible to Java 7 in order to be used in Gradle 3.x.
+        </para>
+        <para>To use Java 6 the following tasks need to be configured:
+            <itemizedlist>
+                <listitem><literal>JavaCompile</literal> task to fork and use the correct <literal>javac</literal> executable</listitem>
+                <listitem><literal>Javadoc</literal> task to use the correct <literal>javadoc</literal> executable</listitem>
+                <listitem><literal>Test</literal> and the <literal>JavaExec</literal> task to use the correct <literal>java</literal> executable.</listitem>
+            </itemizedlist>
+            The following sample shows how the <literal>build.gradle</literal> needs to be adjusted. In order to be able to make the build machine-independent,
+            the location of the Java 6 home should be configured in <literal>gradle.properties</literal> on each developer machine, as also shown in
+            the example.
+            <sample id="javaCrossCompilation" dir="java/crossCompilation" title="Configure Java 6 build">
+                <sourcefile file="gradle.properties" />
+                <sourcefile file="build.gradle" snippet="java-cross-compilation" />
+            </sample>
+        </para>
+    </section>
+
 </chapter>

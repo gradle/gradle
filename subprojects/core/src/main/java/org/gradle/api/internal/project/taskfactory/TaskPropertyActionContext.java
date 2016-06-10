@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import java.lang.reflect.AnnotatedElement;
+import java.lang.annotation.Annotation;
 
 public interface TaskPropertyActionContext {
     /**
@@ -24,22 +24,16 @@ public interface TaskPropertyActionContext {
     String getName();
 
     /**
-     * Returns the declared type of this property.
+     * Returns the declared type of this property. If the property has an instance variable,
+     * then returns the declared type of the instance variable. Otherwise returns the return
+     * type of the declaring method.
      */
     Class<?> getType();
 
     /**
-     * If the property has an instance variable, returns the declared type of the instance variable.
-     *
-     * This may be different to {@link #getType()} if the public getter has a different return type.
-     * If there is no instance variable for this property, will return null.
+     * Returns whether the given annotation is present on the field or any of the methods declaring the property.
      */
-    Class<?> getInstanceVariableType();
-
-    /**
-     * Returns the target for this property.
-     */
-    AnnotatedElement getTarget();
+    boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
     /**
      * Specifies the action used to validate the value of this property. This action is only executed when the property

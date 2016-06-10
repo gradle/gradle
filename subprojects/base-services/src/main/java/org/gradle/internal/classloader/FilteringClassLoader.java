@@ -298,31 +298,31 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
                     ^ disallowedPackagePrefixes.hashCode();
         }
 
-        public Set<String> getPackageNames() {
+        Set<String> getPackageNames() {
             return packageNames;
         }
 
-        public Set<String> getPackagePrefixes() {
+        Set<String> getPackagePrefixes() {
             return packagePrefixes;
         }
 
-        public Set<String> getResourcePrefixes() {
+        Set<String> getResourcePrefixes() {
             return resourcePrefixes;
         }
 
-        public Set<String> getResourceNames() {
+        Set<String> getResourceNames() {
             return resourceNames;
         }
 
-        public Set<String> getClassNames() {
+        Set<String> getClassNames() {
             return classNames;
         }
 
-        public Set<String> getDisallowedClassNames() {
+        Set<String> getDisallowedClassNames() {
             return disallowedClassNames;
         }
 
-        public Set<String> getDisallowedPackagePrefixes() {
+        Set<String> getDisallowedPackagePrefixes() {
             return disallowedPackagePrefixes;
         }
     }

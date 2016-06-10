@@ -16,9 +16,9 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -61,8 +61,10 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
-    @NotYetImplemented
     def "task is not up-to-date after file moved between properties"() {
+        (1..3).each {
+            file("input${it}.txt").createNewFile()
+        }
         file("buildSrc/src/main/groovy/TaskWithTwoFileCollectionInputs.groovy") << """
             import org.gradle.api.*
             import org.gradle.api.file.*
@@ -101,14 +103,15 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "test"
+        succeeds "test", "--info"
 
         then:
         skippedTasks.isEmpty()
+        outputContains "Input property 'inputs1' file ${file("input2.txt")} has been removed."
+        outputContains "Input property 'inputs2' file ${file("input2.txt")} has been added."
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
-    @NotYetImplemented
     def "task is not up-to-date after swapping output directories between properties"() {
         file("buildSrc/src/main/groovy/TaskWithTwoOutputDirectoriesProperties.groovy") << """
             import org.gradle.api.*
@@ -147,10 +150,15 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds "test"
+        succeeds "test", "--info"
 
         then:
         skippedTasks.isEmpty()
+        outputContains "Output property 'outputs1' file ${file("build/output2")} has been added."
+        outputContains "Output property 'outputs1' file ${file("build/output1")} has been removed."
+        outputContains "Output property 'outputs2' file ${file("build/output1")} has been added."
+        // Note: "Output property 'outputs2' file ${file("build/output2")} has been removed." is missing
+        // due to limitation of only 3 changes printed
     }
 
     def "deprecation warning printed when @OutputFiles is used"() {
@@ -172,8 +180,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "test"
-        output.contains "The @OutputFiles annotation has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use separate properties for each file annotated with @OutputFile, or reorganize output files under a single output directory annotated with @OutputDirectory."
+        output.contains 'The @OutputFiles annotation has been deprecated and is scheduled to be removed in Gradle 4.0. ' +
+            'Please use separate properties for each file annotated with @OutputFile, or reorganize output files under a single output directory annotated with @OutputDirectory.'
     }
 
     def "deprecation warning printed when @OutputDirectories is used"() {
@@ -196,11 +204,11 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "test"
-        output.contains "The @OutputDirectories annotation has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use separate properties for each directory annotated with @OutputDirectory, or reorganize output under a single output directory."
+        output.contains 'The @OutputDirectories annotation has been deprecated and is scheduled to be removed in Gradle 4.0. ' +
+            'Please use separate properties for each directory annotated with @OutputDirectory, or reorganize output under a single output directory.'
     }
 
-    def "deprecation warning printed when TaskOutputs.files() is used"() {
+    def "deprecation warning printed when TaskOutputs.files(Object...) is used"() {
         buildFile << """
             task test {
                 outputs.files("output.txt")
@@ -210,7 +218,67 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds "test"
-        output.contains "The TaskOutputs.files() method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
-            "Please use the TaskOutputs.file() or the TaskOutputs.dir() method instead."
+        output.contains 'The TaskOutputs.files(Object...) method has been deprecated and is scheduled to be removed in Gradle 4.0. ' +
+            'Please use the TaskOutputs.file(Object) or the TaskOutputs.dir(Object) method instead.'
+    }
+
+    @Unroll("deprecation warning printed when TaskInputs.#method is called")
+    def "deprecation warning printed when deprecated source method is used"() {
+        buildFile << """
+            task test {
+                inputs.${call}
+            }
+        """
+        executer.expectDeprecationWarning()
+
+        expect:
+        succeeds "test"
+        outputContains "The TaskInputs.${method} method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
+            "Please use TaskInputs.${replacementMethod}.skipWhenEmpty() instead."
+
+        where:
+        method              | replacementMethod  | call
+        "source(Object)"    | "file(Object)"     | 'source("a")'
+        "sourceDir(Object)" | "dir(Object)"      | 'sourceDir("a")'
+        "source(Object...)" | "files(Object...)" | 'source("a", "b")'
+    }
+
+    @Unroll
+    def "deprecation warning printed when inputs calls are chained"() {
+        buildFile << """
+            task test {
+                ${what}.${call}.${call}
+            }
+        """
+        executer.expectDeprecationWarning()
+
+        expect:
+        succeeds "test"
+        outputContains "The chaining of the ${method} method has been deprecated and is scheduled to be removed in Gradle 4.0. " +
+            "Please use the ${method} method on Task${what.capitalize()} directly instead."
+
+        where:
+        what     | method              | call
+        "inputs" | "file(Object)"      | 'file("a")'
+        "inputs" | "dir(Object)"       | 'dir("a")'
+        "inputs" | "files(Object...)"  | 'files("a", "b")'
+    }
+
+    def "task depends on other task whose outputs are its inputs"() {
+        buildFile << """
+            task a {
+                outputs.file 'a.txt'
+                doLast {
+                    file('a.txt') << "Data"
+                }
+            }
+
+            task b {
+                inputs.files tasks.a.outputs.files
+            }
+        """
+
+        expect:
+        succeeds "b" assertTasksExecuted ":a", ":b"
     }
 }

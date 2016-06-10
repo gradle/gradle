@@ -178,7 +178,7 @@ public class Project extends XmlPersistableConfigurationObject {
                 nameNode != null ? nameNode.text() : null,
                 typeNode != null ? typeNode.text() : null,
                 locationNode != null ? locationNode.text() : null,
-                locationUriNode != null ? locationNode.text() : null
+                locationUriNode != null ? locationUriNode.text() : null
             ));
         }
     }

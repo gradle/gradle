@@ -29,6 +29,22 @@
         chapter toc,title
     </xsl:param>
 
+    <!--
+      Customize HTML page titles to include "User Guide" and version to help
+      with Google results. See issue doc-portal#9.
+    -->
+    <xsl:template match="book" mode="object.title.markup.textonly">
+        <xsl:value-of select="bookinfo/title"/>
+        <xsl:text> Version </xsl:text>
+        <xsl:value-of select="bookinfo/releaseinfo"/>
+    </xsl:template>
+
+    <xsl:template match="chapter" mode="object.title.markup.textonly">
+        <xsl:value-of select="title"/>
+        <xsl:text> - </xsl:text>
+        <xsl:apply-templates select="/book" mode="object.title.markup.textonly"/>
+    </xsl:template>
+
     <!-- HEADERS AND FOOTERS -->
 
     <!-- Use custom header -->

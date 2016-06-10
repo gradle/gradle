@@ -5,70 +5,159 @@ String jdkVarName = 'JAVA_9'
 
 task java9IntegTest(type: Test) {
     excludes = [
-            'SrcDistributionIntegrationSpec', // source compat 1.5 unsupported
-            'MavenConversionIntegrationTest', // source compat 1.5 unsupported
-            'ScalaLibraryInitIntegrationTest', // scala compile broken
-            'ApplicationIntegrationSpec', // test fixture problem
-            'ProjectLayoutIntegrationTest', //  scala compile broken
-            'SamplesApplicationIntegrationTest', // test fixture problem
-            'SamplesJavaBaseIntegrationTest', // source compat 1.5 unsupported
-            'UserGuideSamplesIntegrationTest', // source compat 1.5 unsupported
-            'IvyPublishHttpIntegTest', // uses tools.jar as large test file
-            'IvyHttpPublishIntegrationTest', // uses tools.jar as large test file
-            'JavadocIntegrationTest',
-            'JavaLanguageIntegrationTest', // source compat 1.5 unsupported
-            'SampleJavaLanguageIntegrationTest', // source compat 1.5 unsupported
-            'JointScalaLangIntegrationTest', // scala compile broken
-            'SampleScalaLanguageIntegrationTest', // scala compile broken
-            'ScalaCompilerContinuousIntegrationTest', // scala compile broken
-            'ScalaLanguageIncrementalBuildIntegrationTest', // scala compile broken
-            'ScalaLanguageIntegrationTest', // scala compile broken
-            'ScalaCompileParallelIntegrationTest', // scala compile broken
-            'SystemClassLoaderTest', // system classpath changed, test expectation is wrong
-            'MultipleNativeToolChainIntegrationTest',
-            'Play', // scala runtime doesn't load, scala compile broken
-            'Twirl', // scala runtime doesn't load, scala compile broken
-            'InProcessGroovyCompilerIntegrationTest',
-            'InvokeDynamicGroovyCompilerSpec',
-            'InProcessJavaCompilerIntegrationTest',
-            'IncrementalJavaCompileIntegrationTest', // source compat 1.5 unsupported
-            'SamplesJavaQuickstartIntegrationTest', // source compat 1.5 unsupported
-            'JUnitIntegrationTest', // system classloader changed, test expectation is wrong
-            'SampleTestNGIntegrationTest', // source compat 1.4 and 1.5 unsupported
-            'TestNGIntegrationTest', // source compat 1.4 and 1.5 unsupported
-            'SamplesMixedJavaAndScalaIntegrationTest', // scala compile broken
-            'SamplesScalaCustomizedLayoutIntegrationTest', // scala compile broken
-            'SamplesScalaQuickstartIntegrationTest', // scala compile broken
-            'SamplesScalaZincIntegrationTest', // scala compile broken
-            'AntForkingScalaCompilerIntegrationTest', // scala compile broken
-            'AntInProcessScalaCompilerIntegrationTest', // scala compile broken
-            'IncrementalScalaCompileIntegrationTest', // scala compile broken
-            'ZincScalaCompilerIntegrationTest', // scala compile broken
-            'ZincScalaCompilerMultiVersionIntegrationTest', // scala compile broken
-            'ScalaTestIntegrationTest', // scala compile broken
-            'FunctionalReleaseNotesTest',
-            'StaticReleaseNotesTest',
-            'M9JavaConfigurabilityCrossVersionSpec',
-            'ClientShutdownCrossVersionSpec',
-            'ToolingApiUnsupportedClientJvmCrossVersionSpec' // source compat 1.5 unsupported
+        // Broken api jar construction due to ASM not working with Java 9 bytecode
+        "MixedLegacyAndComponentJvmPluginIntegrationTest",
+        "JavaCompilationAgainstApiJarIntegrationTest",
+        "JavaLanguageIntegrationTest",
+        "SampleJavaLanguageIntegrationTest",
+        "CustomComponentJarBinariesIntegrationTest",
+        "JarBinaryTypeVariantsTest",
+        "JavaJvmAssemblyIntegrationTest",
+        "JavaLanguageCustomLibraryDependencyResolutionIntegrationTest",
+        "JavaLanguageDependencyResolutionIntegrationTest",
+        "JavaLanguageIncrementalBuildIntegrationTest",
+        "MixedNativeAndJvmProjectIntegrationTest",
+        "JavaCompilationAgainstDependenciesIntegrationTest",
+
+        // Broken scala and twirl compilation, broken api jar construction
+        "MixedPlayAndJvmLibraryProjectIntegrationTest",
+        "PlayAppWithFailingTestsIntegrationTest",
+        "PlayMultiProjectApplicationIntegrationTest",
+        "PlayPlatformIntegrationTest",
+        "PlayBinaryAdvancedAppIntegrationTest",
+        "PlayDistributionAdvancedAppIntegrationTest",
+        "PlayBinaryBasicAppIntegrationTest",
+        "PlayDistributionBasicAppIntegrationTest",
+        "PlayTestBasicAppIntegrationTest",
+        "PlayContinuousBuildIntegrationTest",
+        "PlayMultiProjectContinuousBuildIntegrationTest",
+        "PlayMultiProjectReloadIntegrationTest",
+        "PlayReloadIntegrationTest",
+        "PlayTwirlCompilerContinuousIntegrationTest",
+        "PlayBinaryAppWithDependenciesIntegrationTest",
+        "PlayDistributionAppWithDependenciesIntegrationTest",
+        "PlayTestAppWithDependenciesIntegrationTest",
+        "AdvancedPlaySampleIntegrationTest",
+        "BasicPlaySampleIntegrationTest",
+        "MultiprojectPlaySampleIntegrationTest",
+        "UserGuidePlaySamplesIntegrationTest",
+        "PlayApplicationPluginIntegrationTest",
+        "Play23RoutesCompileIntegrationTest",
+        "Play24RoutesCompileIntegrationTest",
+        "PlayAssetsJarIntegrationTest",
+        "PlayRunIntegrationTest",
+        "TwirlCompileIntegrationTest",
+        "TwirlVersionIntegrationTest",
+        "PlayIdeaPluginAdvancedIntegrationTest",
+        "PlayIdeaPluginBasicIntegrationTest",
+        "PlayIdeaPluginMultiprojectIntegrationTest",
+        "ProjectLayoutIntegrationTest",
+        "SamplesMixedJavaAndScalaIntegrationTest",
+        "SamplesScalaCustomizedLayoutIntegrationTest",
+        "SamplesScalaQuickstartIntegrationTest",
+        "JointScalaLangIntegrationTest",
+        "SampleScalaLanguageIntegrationTest",
+        "ScalaCompileParallelIntegrationTest",
+        "ScalaCompilerContinuousIntegrationTest",
+        "ScalaLanguageIncrementalBuildIntegrationTest",
+        "ScalaLanguageIntegrationTest",
+        "ScalaCrossCompilationIntegrationTest",
+        "IncrementalScalaCompileIntegrationTest",
+        "ZincScalaCompilerIntegrationTest",
+        "ScalaTestIntegrationTest",
+        "ScalaLibraryInitIntegrationTest",
+        "ZincScalaCompilerMultiVersionIntegrationTest",
+
+        // Sample attempts to set max perm space
+        "SamplesScalaZincIntegrationTest",
+
+        // Cannot build Gradle with Java 9, compiler bug
+        "SrcDistributionIntegrationSpec",
+
+        // Test compiles for Java 5
+        "ToolingApiUnsupportedClientJvmCrossVersionSpec",
+        "MavenConversionIntegrationTest",
+        "IncrementalJavaCompileIntegrationTest",
+        "SampleTestNGIntegrationTest",
+        "TestNGIntegrationTest",
+
+        // Jetty version does not work on Java 9
+        "JettyIntegrationSpec",
+        "SamplesWebQuickstartIntegrationTest",
+
+        // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
+        "S3ClientIntegrationTest",
+        "IvyPublishS3IntegrationTest",
+        "IvyS3UploadArchivesIntegrationTest",
+        "MavenPublishS3IntegrationTest",
+
+        // Test detection fails as ASM does not understand Java 9 bytecode
+        "JUnitComponentUnderTestIntegrationTest",
+        "JUnitIncrementalTestExecutionTest",
+        "JUnitStandaloneTestExecutionIntegrationTest",
+
+        // Test assumes there is a tools.jar
+        "IvyPublishHttpIntegTest",
+        "IvyHttpPublishIntegrationTest",
+
+        // Codenarc does not work on Java 9
+        "IsolatedAntBuilderMemoryLeakIntegrationTest",
+
+        // Attempts to run Gradle 2.8 on Java 9
+        "HeterogeneousCompositeBuildCrossVersionSpec",
+
+        // Affected by hack in JavaPluginConvention to force source and target compatibility to Java 8
+        "ToolingApiEclipseModelCrossVersionSpec",
+        "CommandLineJavaCompilerIntegrationTest",
+        "InProcessGroovyCompilerIntegrationTest",
+        "InvokeDynamicGroovyCompilerSpec",
+        "DaemonGroovyCompilerIntegrationTest",
+        "InProcessJavaCompilerIntegrationTest",
+        "DaemonJavaCompilerIntegrationTest",
+        "EclipseClasspathIntegrationTest",
+        "EclipseIntegrationTest",
+        "IdeaJavaLanguageSettingsIntegrationTest",
+
+        // Various problems, eg scala compile
+        "UserGuideSamplesIntegrationTest",
+
+        // ??
+        "ApplicationPluginIntegrationTest",
+        "SamplesJavaMultiProjectIntegrationTest",
+        "JavaCompileIntegrationTest",
+        "BuildDashboardPluginIntegrationTest",
+        "JavaLanguageExternalDependencyResolutionIntegrationTest",
+        "JavadocIntegrationTest",
+        "JUnitConsoleLoggingIntegrationTest",
+        "JUnitIntegrationTest",
+        "TestNGConsoleLoggingIntegrationTest",
+        "JacocoPluginIntegrationTest",
+        "EnvJsPluginIntegrationTest",
+        "GradleRunnerSamplesEndUserIntegrationTest",
+        "MultiRequestWorkerProcessIntegrationTest",
+        "SingleRequestWorkerProcessIntegrationTest",
+        "WorkerProcessIntegrationTest",
+        "PathLimitationIntegrationTest",
+        "DirectoryScanningIntegTest",
+        "DeprecationHandlingIntegrationTest",
+        "BuildSourceBuilderIntegrationTest",
+        "ClientShutdownCrossVersionSpec",
+        "CompositeBuildDependencyArtifactsCrossVersionSpec",
+        "CompositeBuildDependencyGraphCrossVersionSpec",
     ].collect { "**/*${it}*" }
 }
 
 task java9Test(type: Test) {
     excludes = [
-        "JdkToolsTest",
-        "JvmTest",
-        "DefaultIsolatedAntBuilderTest",
-        "DefaultModelSchemaStoreTest",
-        "DefaultJavaToolChainTest",
-        "ModelRuleExtractorTest",
-        "FunctionalReleaseNotesTest",
-        "StaticReleaseNotesTest",
-        "AssemblerPluginTest",
-        "CPluginTest",
-        "CppPluginTest",
-        "ObjectiveCPluginTest",
-        "ObjectiveCppPluginTest",
+        // ASM doesn't work with Java 9 bytecode
+        "MixInLegacyTypesClassLoaderTest",
+
+        // Affected by hack in JavaPluginConvention to force source and target compatibility to Java 8
+        "JavaPluginConventionTest",
+        "EclipseModelBuilderTest",
+        "IdeaModelBuilderTest",
+
+        // Classes used by junit execution tests
         "ABrokenJunit3TestClass",
         "ABrokenTestClass",
         "ATestClassWhichCannotBeLoaded",
@@ -76,11 +165,25 @@ task java9Test(type: Test) {
         "ATestClassWithBrokenBeforeClassMethod",
         "ATestClassWithBrokenBeforeMethod",
         "ATestClassWithBrokenConstructor",
-        "ATestClassWithBrokenRunner",
         "ATestClassWithRunner",
+        "ATestClassWithBrokenRunner",
         "ATestClassWithRunnerThatBreaksAfterRunningSomeTests",
         "ATestClassWithSeveralMethods",
-        "ATestClassWithUnconstructibleRunner"
+        "ATestClassWithUnconstructibleRunner",
+
+        // Needs to be reworked to test pre java 9 and java 9 layouts
+        "JvmTest",
+
+        // ??
+        "FilteringClassLoaderTest",
+        "DefaultJavaToolChainTest",
+        "JdkToolsTest",
+        "JdkToolsTest",
+        "PayloadSerializerTest",
+        "GeneratedArchiveBuildOutcomeComparatorTest",
+        "ArchiveEntryTest",
+        "GroovyStackTraceSpecTest",
+        "DefaultFileOperationsTest"
     ].collect { "**/*${it}*" }
 }
 

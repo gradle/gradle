@@ -20,7 +20,7 @@ import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache
 import org.gradle.api.internal.initialization.loadercache.FileClassPathSnapshotter
 import org.gradle.internal.classloader.CachingClassLoader
-import org.gradle.internal.classloader.HashingClassLoaderFactory
+import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.test.fixtures.file.TestFile
@@ -36,7 +36,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     ClassLoaderScope scope
 
     def snapshotter = new FileClassPathSnapshotter()
-    ClassLoaderCache classLoaderCache = new DefaultClassLoaderCache(new HashingClassLoaderFactory(snapshotter), snapshotter)
+    ClassLoaderCache classLoaderCache = new DefaultClassLoaderCache(new DefaultHashingClassLoaderFactory(snapshotter), snapshotter)
 
     @Rule
     TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()

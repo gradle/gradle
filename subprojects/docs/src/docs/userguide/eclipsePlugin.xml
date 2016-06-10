@@ -16,15 +16,12 @@
 
 <chapter id="eclipse_plugin">
     <title>The Eclipse Plugins</title>
-    
-    <para>The Eclipse plugins generate files that are used by the <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus
-        making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>).
-        Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.</para>
 
-    <para>Since version 1.0-milestone-4 of Gradle, the WTP-generating code was refactored into a separate plugin called <literal>eclipse-wtp</literal>.
-        So if you are interested in WTP integration then only apply the <literal>eclipse-wtp</literal> plugin. Otherwise applying the <literal>eclipse</literal> plugin is enough.
-        This change was requested by Eclipse users who take advantage of the <literal>war</literal> or <literal>ear</literal> plugins,
-        but who don't use Eclipse WTP. Internally, the <literal>eclipse-wtp</literal> plugin also applies the <literal>eclipse</literal> plugin so you don't need to apply both of those plugins.
+    <para>The Eclipse plugins generate files that are used by the <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus
+        making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>).</para>
+
+    <para>The <literal>eclipse-wtp</literal> is automatically applied whenever the <literal>eclipse</literal> plugin is applied to a <link linkend="war_plugin">War</link> or <link linkend="ear_plugin">Ear</link> project.
+        For utility projects (i.e. <link linkend="java_plugin">Java</link> projects used by other web projects), you need to apply the <literal>eclipse-wtp</literal> plugin explicitly.
     </para>
 
     <para>What exactly the <literal>eclipse</literal> plugin generates depends on which other plugins are used:</para>
@@ -54,7 +51,7 @@
         </tr>
     </table>
 
-    <para>However, the <literal>eclipse-wtp</literal> plugin <emphasis>always</emphasis> generates all WTP settings files and enhances the
+    <para>The <literal>eclipse-wtp</literal> plugin generates all WTP settings files and enhances the
         <filename>.project</filename> file. If a <link linkend="java_plugin">Java</link> or <link linkend="war_plugin">War</link> is applied,
         <filename>.classpath</filename> will be extended to get a proper packaging structure for this utility library or web
         application project.
@@ -292,8 +289,8 @@
         <para>
             The Eclipse plugins allow you to customize the generated metadata files. The plugins provide a DSL for configuring model objects
             that model the Eclipse view of the project. These model objects are then merged with the existing Eclipse XML metadata to ultimately
-            generate new metadata. The model objects provide lower level hooks for working with domain objects representing the file content 
-            before and after merging with the model configuration. They also provide a very low level hook for working directly with the raw 
+            generate new metadata. The model objects provide lower level hooks for working with domain objects representing the file content
+            before and after merging with the model configuration. They also provide a very low level hook for working directly with the raw
             XML for adjustment before it is persisted, for fine tuning and configuration that the Eclipse and Eclipse WTP plugins do not model.
         </para>
         <section>

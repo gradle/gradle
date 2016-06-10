@@ -15,14 +15,13 @@
  */
 
 package org.gradle.api.internal.changedetection.rules
+
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
-import org.gradle.util.ChangeListener
 import spock.lang.Specification
 
 public class FileSnapshotTaskStateChangesTest extends Specification {
     def previousInputSnapshot = Mock(FileCollectionSnapshot)
     def inputSnapshot = Mock(FileCollectionSnapshot)
-    FileCollectionSnapshot.ChangeIterator<String> changeIterator = Mock()
 
     TaskStateChanges createStateChanges() {
         return new TestFileSnapshotTaskStateChanges()
@@ -42,17 +41,11 @@ public class FileSnapshotTaskStateChangesTest extends Specification {
         def messages = createStateChanges().iterator().collect {it.message}
 
         then:
-        1 * inputSnapshot.iterateContentChangesSince(previousInputSnapshot, _) >> changeIterator
-        4 * changeIterator.next(_ as ChangeListener) >> { ChangeListener listener ->
-            listener.added("one")
-            true
-        } >> { ChangeListener listener ->
-            listener.removed("two")
-            true
-        } >> { ChangeListener listener ->
-            listener.changed("three")
-            true
-        } >> false
+        1 * inputSnapshot.iterateContentChangesSince(previousInputSnapshot, _, _) >> [
+            new FileChange("one", ChangeType.ADDED, "TYPE"),
+            new FileChange("two", ChangeType.REMOVED, "TYPE"),
+            new FileChange("three", ChangeType.MODIFIED, "TYPE")
+        ].iterator()
 
         and:
         messages == ["TYPE file one has been added.", "TYPE file two has been removed.", "TYPE file three has changed."]

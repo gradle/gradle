@@ -24,33 +24,66 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.Queue;
+import java.util.concurrent.Callable;
 
-public class DefaultTaskOutputs implements TaskOutputsInternal {
-    private final DefaultConfigurableFileCollection outputFiles;
-    private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
+public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs.PropertySpec> implements TaskOutputsInternal {
+    private static final AndSpec<TaskInternal> EMPTY_AND_SPEC = new AndSpec<TaskInternal>();
+
+    private final FileCollection allOutputFiles;
+    private AndSpec<TaskInternal> upToDateSpec = EMPTY_AND_SPEC;
     private TaskExecutionHistory history;
+    private final FileResolver resolver;
+    private final String taskName;
     private final TaskMutator taskMutator;
     private Queue<Action<? super TaskOutputs>> configureActions;
 
-    public DefaultTaskOutputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
+    public DefaultTaskOutputs(FileResolver resolver, final TaskInternal task, TaskMutator taskMutator) {
+        super("output");
+        this.resolver = resolver;
+        this.taskName = task.getName();
         this.taskMutator = taskMutator;
-        outputFiles = new DefaultConfigurableFileCollection(task + " output files", resolver, null);
-        outputFiles.builtBy(task);
+
+        final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
+        buildDependencies.add(task);
+        this.allOutputFiles = new CompositeFileCollection() {
+
+            @Override
+            public String getDisplayName() {
+                return task + " output files";
+            }
+
+            @Override
+            public void visitContents(FileCollectionResolveContext context) {
+                for (TaskFilePropertySpec fileProperty : fileProperties) {
+                    context.add(fileProperty.getPropertyFiles());
+                }
+            }
+
+            @Override
+            public void visitDependencies(TaskDependencyResolveContext context) {
+                context.add(buildDependencies);
+                super.visitDependencies(context);
+            }
+        };
     }
 
+    @Override
     public Spec<? super TaskInternal> getUpToDateSpec() {
         return upToDateSpec;
     }
 
+    @Override
     public void upToDateWhen(final Closure upToDateClosure) {
         taskMutator.mutate("TaskOutputs.upToDateWhen(Closure)", new Runnable() {
             public void run() {
@@ -59,6 +92,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         });
     }
 
+    @Override
     public void upToDateWhen(final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.upToDateWhen(Spec)", new Runnable() {
             public void run() {
@@ -67,42 +101,54 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         });
     }
 
+    @Override
     public boolean getHasOutput() {
-        return !outputFiles.getFrom().isEmpty() || !upToDateSpec.getSpecs().isEmpty();
+        return !fileProperties.isEmpty() || !upToDateSpec.isEmpty();
     }
 
+    @Override
     public FileCollection getFiles() {
-        return outputFiles;
+        return allOutputFiles;
     }
 
-    public TaskOutputs files(final Object... paths) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskOutputs.files()", "Please use the TaskOutputs.file() or the TaskOutputs.dir() method instead.");
-        taskMutator.mutate("TaskOutputs.files(Object...)", new Runnable() {
-            public void run() {
-                outputFiles.from(paths);
+    @Override
+    public TaskOutputFilePropertyBuilder file(final Object path) {
+        return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
+            @Override
+            public TaskOutputFilePropertyBuilder call() throws Exception {
+                return addSpec(path);
             }
         });
-        return this;
     }
 
-    public TaskOutputs file(final Object path) {
-        taskMutator.mutate("TaskOutputs.file(Object)", new Runnable() {
-            public void run() {
-                outputFiles.from(path);
+    @Override
+    public TaskOutputFilePropertyBuilder dir(final Object path) {
+        return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
+            @Override
+            public TaskOutputFilePropertyBuilder call() throws Exception {
+                return addSpec(path);
             }
         });
-        return this;
     }
 
-    public TaskOutputs dir(final Object path) {
-        taskMutator.mutate("TaskOutputs.dir(Object)", new Runnable() {
-            public void run() {
-                outputFiles.from(path);
+    @Override
+    public TaskOutputFilePropertyBuilder files(final Object... paths) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskOutputs.files(Object...)", "Please use the TaskOutputs.file(Object) or the TaskOutputs.dir(Object) method instead.");
+        return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
+            @Override
+            public TaskOutputFilePropertyBuilder call() throws Exception {
+                return addSpec(paths);
             }
         });
-        return this;
     }
 
+    private TaskOutputFilePropertyBuilder addSpec(Object paths) {
+        PropertySpec spec = new PropertySpec(taskName, resolver, paths);
+        fileProperties.add(spec);
+        return spec;
+    }
+
+    @Override
     public FileCollection getPreviousFiles() {
         if (history == null) {
             throw new IllegalStateException("Task history is currently not available for this task.");
@@ -110,6 +156,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return history.getOutputFiles();
     }
 
+    @Override
     public void setHistory(TaskExecutionHistory history) {
         this.history = history;
     }
@@ -139,6 +186,88 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
                 configureActions.remove().execute(this);
             }
             configureActions = null;
+        }
+    }
+
+    class PropertySpec extends BaseTaskFilePropertySpec implements TaskOutputFilePropertyBuilder {
+        private boolean optional;
+
+        public PropertySpec(String taskName, FileResolver resolver, Object paths) {
+            super(taskName, "output", resolver, paths);
+        }
+
+        @Override
+        public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
+            setPropertyName(propertyName);
+            return this;
+        }
+
+        public boolean isOptional() {
+            return optional;
+        }
+
+        @Override
+        public TaskOutputFilePropertyBuilder optional() {
+            return optional(true);
+        }
+
+        @Override
+        public TaskOutputFilePropertyBuilder optional(boolean optional) {
+            this.optional = optional;
+            return this;
+        }
+
+        // --- Deprecated delegate methods
+
+        private TaskOutputs getTaskOutputs(String method) {
+            DeprecationLogger.nagUserOfDiscontinuedMethod("chaining of the " + method, String.format("Use '%s' on TaskOutputs directly instead.", method));
+            return DefaultTaskOutputs.this;
+        }
+
+        @Override
+        public void upToDateWhen(Closure upToDateClosure) {
+            getTaskOutputs("upToDateWhen(Closure)").upToDateWhen(upToDateClosure);
+        }
+
+        @Override
+        public void upToDateWhen(Spec<? super Task> upToDateSpec) {
+            getTaskOutputs("upToDateWhen(Spec)").upToDateWhen(upToDateSpec);
+        }
+
+        @Override
+        public boolean getHasOutput() {
+            return getTaskOutputs("getHasOutput()").getHasOutput();
+        }
+
+        @Override
+        public FileCollection getFiles() {
+            return getTaskOutputs("getFiles()").getFiles();
+        }
+
+        @Override
+        @Deprecated
+        public TaskOutputs files(Object... paths) {
+            return getTaskOutputs("files(Object...)").files(paths);
+        }
+
+        @Override
+        public TaskOutputFilePropertyBuilder file(Object path) {
+            return getTaskOutputs("file(Object)").file(path);
+        }
+
+        @Override
+        public TaskOutputFilePropertyBuilder dir(Object path) {
+            return getTaskOutputs("dir(Object)").dir(path);
+        }
+
+        @Override
+        public TaskOutputs configure(Action<? super TaskOutputs> action) {
+            return getTaskOutputs("configure(Action)").configure(action);
+        }
+
+        @Override
+        public TaskOutputs configure(Closure action) {
+            return getTaskOutputs("configure(Closure)").configure(action);
         }
     }
 }

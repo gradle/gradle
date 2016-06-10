@@ -17,26 +17,37 @@
 package org.gradle.process.internal.worker.child;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.process.ArgWriter;
-import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
-import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
+import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.internal.worker.GradleWorkerMain;
 import org.gradle.process.internal.streams.EncodedStream;
+import org.gradle.process.internal.worker.CachedJavaExecutableVersionProber;
+import org.gradle.process.internal.worker.DefaultJavaExecutableVersionProber;
+import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
+import org.gradle.process.internal.worker.GradleWorkerMain;
+import org.gradle.process.internal.worker.JavaExecutableVersionProber;
 import org.gradle.util.GUtil;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.net.URL;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 /**
  * A factory for a worker process which loads the application classes using the JVM's system ClassLoader.
@@ -62,6 +73,7 @@ import java.util.*;
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
     private final ClassPathRegistry classPathRegistry;
     private final TemporaryFileProvider temporaryFileProvider;
+    private final JavaExecutableVersionProber versionProber = new CachedJavaExecutableVersionProber(new DefaultJavaExecutableVersionProber());
 
     public ApplicationClassesInSystemClassLoaderWorkerFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider) {
         this.classPathRegistry = classPathRegistry;
@@ -78,9 +90,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
 
         execSpec.setMain("worker." + GradleWorkerMain.class.getName());
 
-        // This check is not quite right. Should instead probe the version of the requested executable and use options file if it is Java 9 or later, regardless of
-        // the version of this JVM
-        boolean useOptionsFile = Jvm.current().getJavaVersion().isJava9Compatible() && execSpec.getExecutable().equals(Jvm.current().getJavaExecutable().getPath());
+        boolean useOptionsFile = shouldUseOptionsFile(execSpec);
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
             File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
@@ -137,10 +147,16 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
         execSpec.setStandardInput(new ByteArrayInputStream(encodedConfig));
     }
 
+    private boolean shouldUseOptionsFile(JavaExecHandleBuilder execSpec) {
+        JavaVersion executableVersion = versionProber.probeVersion(execSpec);
+        return executableVersion != null && executableVersion.isJava9Compatible();
+    }
+
     private List<String> writeOptionsFile(Collection<File> workerMainClassPath, Collection<File> applicationClasspath, File optionsFile) {
         List<File> classpath = new ArrayList<File>(workerMainClassPath.size() + applicationClasspath.size());
         classpath.addAll(workerMainClassPath);
         classpath.addAll(applicationClasspath);
-        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.unixStyleFactory()).transform(Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath)));
+        List<String> argumentList = Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath));
+        return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.unixStyleFactory()).transform(argumentList);
     }
 }

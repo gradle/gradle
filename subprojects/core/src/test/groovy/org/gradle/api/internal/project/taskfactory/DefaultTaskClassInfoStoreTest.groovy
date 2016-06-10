@@ -54,13 +54,14 @@ class DefaultTaskClassInfoStoreTest extends Specification {
 
         expect:
         !info.incremental
-        info.validator.validatedProperties*.name as Set == ["inputString", "inputFile", "inputDirectory", "inputFiles", "outputFile", "outputFiles", "outputDirectory", "outputDirectories"] as Set
+        info.validator.validatedProperties*.name.sort() == ["inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
         info.nonAnnotatedPropertyNames.empty
     }
 
     private static class BaseTask extends DefaultTask {
         @Input String baseValue
         @Input String superclassValue
+        @Input String superclassValueWithDuplicateAnnotation
         String nonAnnotatedBaseValue
     }
 
@@ -68,6 +69,11 @@ class DefaultTaskClassInfoStoreTest extends Specification {
         @Override
         String getSuperclassValue() {
             return super.getSuperclassValue()
+        }
+
+        @Input @Override
+        String getSuperclassValueWithDuplicateAnnotation() {
+            return super.getSuperclassValueWithDuplicateAnnotation()
         }
 
         @Input @Override
@@ -81,7 +87,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
 
         expect:
         !info.incremental
-        info.validator.validatedProperties*.name as Set == ["baseValue", "superclassValue", "nonAnnotatedBaseValue"] as Set
+        info.validator.validatedProperties*.name.sort() == ["baseValue", "nonAnnotatedBaseValue", "superclassValue", "superclassValueWithDuplicateAnnotation"]
         info.nonAnnotatedPropertyNames.empty
     }
 
@@ -102,8 +108,8 @@ class DefaultTaskClassInfoStoreTest extends Specification {
 
         expect:
         !info.incremental
-        info.validator.validatedProperties*.name as Set == ["interfaceValue"] as Set
-        info.nonAnnotatedPropertyNames == [] as Set
+        info.validator.validatedProperties*.name.sort() == ["interfaceValue"]
+        info.nonAnnotatedPropertyNames.empty
     }
 
     private static class NonAnnotatedTask extends DefaultTask {
@@ -120,8 +126,8 @@ class DefaultTaskClassInfoStoreTest extends Specification {
 
         expect:
         !info.incremental
-        info.validator.validatedProperties*.name as Set == [] as Set
-        info.validator.nonAnnotatedPropertyNames == ["inputFile", "value"] as Set
+        info.validator.validatedProperties*.name.empty
+        info.validator.nonAnnotatedPropertyNames.sort() == ["inputFile", "value"]
     }
 
     def "class infos are cached"() {

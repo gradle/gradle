@@ -211,16 +211,25 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBui
         }
     }
 
-    def "substitutes external dependency with subproject dependency that has transitive project dependency"() {
+    def "substitutes external dependency with subproject dependency that has transitive project dependencies"() {
         given:
         buildA.buildFile << """
             dependencies {
                 compile "org.test:buildB:1.0"
             }
 """
+        buildB.settingsFile << """
+include ':b1:b11'
+"""
         buildB.buildFile << """
             dependencies {
                 compile project(':b1')
+            }
+
+            project(":b1") {
+                dependencies {
+                    compile project("b11") // Relative project path
+                }
             }
 """
 
@@ -231,7 +240,9 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBui
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                project("buildB::b1", "org.test:b1:2.0") {}
+                project("buildB::b1", "org.test:b1:2.0") {
+                    project("buildB::b1:b11", "org.test:b11:2.0") {}
+                }
             }
         }
     }

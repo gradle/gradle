@@ -73,6 +73,13 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
             return foundUnknown;
         }
 
+        /**
+         * Feeds the hash of the given classloader into the hasher. If the given classloader doesn't have
+         * a hash, a dummy value is used, and {@link #hasUnknown()} will return {@code true}.
+         *
+         * @return {@code true} if the parent of the classloader should also be visited, {@code false} if
+         * the traversal should stop.
+         */
         private boolean addToHash(ClassLoader cl) {
             byte[] knownId = knownClassLoaders.get(cl);
             if (knownId != null) {

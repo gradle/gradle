@@ -29,8 +29,8 @@ public abstract class TaskExecution {
     private HashCode taskActionsClassLoaderHash;
     private Map<String, Object> inputProperties;
     private Set<String> outputFiles;
-    private Integer outputFilesHash;
-    private Integer inputFilesHash;
+    private HashCode outputFilesHash;
+    private HashCode inputFilesHash;
 
     public Set<String> getOutputFiles() {
         return outputFiles;
@@ -75,34 +75,31 @@ public abstract class TaskExecution {
     /**
      * @return May return null.
      */
-    public abstract FileCollectionSnapshot getOutputFilesSnapshot();
+    public abstract Map<String, FileCollectionSnapshot> getOutputFilesSnapshot();
 
-    public abstract void setOutputFilesSnapshot(FileCollectionSnapshot outputFilesSnapshot);
+    public abstract void setOutputFilesSnapshot(Map<String, FileCollectionSnapshot> outputFilesSnapshot);
 
-    /**
-     * @return May return null.
-     */
-    public abstract FileCollectionSnapshot getInputFilesSnapshot();
+    public abstract Map<String, FileCollectionSnapshot> getInputFilesSnapshot();
 
-    public abstract void setInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
+    public abstract void setInputFilesSnapshot(Map<String, FileCollectionSnapshot> inputFilesSnapshot);
 
     public abstract FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
 
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
 
-    public Integer getOutputFilesHash() {
+    public HashCode getOutputFilesHash() {
         return outputFilesHash;
     }
 
-    public void setOutputFilesHash(Integer outputFilesHash) {
+    public void setOutputFilesHash(HashCode outputFilesHash) {
         this.outputFilesHash = outputFilesHash;
     }
 
-    public Integer getInputFilesHash() {
+    public HashCode getInputFilesHash() {
         return inputFilesHash;
     }
 
-    public void setInputFilesHash(Integer inputFilesHash) {
+    public void setInputFilesHash(HashCode inputFilesHash) {
         this.inputFilesHash = inputFilesHash;
     }
 }

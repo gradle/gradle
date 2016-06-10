@@ -22,14 +22,27 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
 import org.gradle.jvm.JvmBinarySpec;
 import org.gradle.jvm.JvmLibrarySpec;
-import org.gradle.jvm.internal.*;
+import org.gradle.jvm.internal.DefaultJarBinarySpec;
+import org.gradle.jvm.internal.DefaultJvmBinarySpec;
+import org.gradle.jvm.internal.DefaultJvmLibrarySpec;
+import org.gradle.jvm.internal.JarBinarySpecInternal;
+import org.gradle.jvm.internal.JarFile;
+import org.gradle.jvm.internal.JavaPlatformResolver;
+import org.gradle.jvm.internal.JvmAssembly;
+import org.gradle.jvm.internal.JvmBinarySpecInternal;
+import org.gradle.jvm.internal.JvmLibrarySpecInternal;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -37,12 +50,32 @@ import org.gradle.jvm.tasks.Jar;
 import org.gradle.jvm.tasks.api.ApiJar;
 import org.gradle.jvm.toolchain.JavaToolChainRegistry;
 import org.gradle.jvm.toolchain.LocalJava;
-import org.gradle.jvm.toolchain.internal.*;
+import org.gradle.jvm.toolchain.internal.DefaultJavaToolChainRegistry;
+import org.gradle.jvm.toolchain.internal.InstalledJdk;
+import org.gradle.jvm.toolchain.internal.InstalledJdkInternal;
+import org.gradle.jvm.toolchain.internal.InstalledJre;
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
+import org.gradle.jvm.toolchain.internal.LocalJavaInstallation;
 import org.gradle.language.base.internal.ProjectLayout;
-import org.gradle.model.*;
+import org.gradle.model.Defaults;
+import org.gradle.model.Each;
+import org.gradle.model.Model;
+import org.gradle.model.ModelMap;
+import org.gradle.model.Mutate;
+import org.gradle.model.Path;
+import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.Hidden;
-import org.gradle.platform.base.*;
-import org.gradle.platform.base.internal.*;
+import org.gradle.platform.base.BinaryTasks;
+import org.gradle.platform.base.ComponentBinaries;
+import org.gradle.platform.base.ComponentType;
+import org.gradle.platform.base.DependencySpec;
+import org.gradle.platform.base.InvalidModelException;
+import org.gradle.platform.base.TypeBuilder;
+import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.DefaultBinaryNamingScheme;
+import org.gradle.platform.base.internal.DefaultPlatformRequirement;
+import org.gradle.platform.base.internal.PlatformRequirement;
+import org.gradle.platform.base.internal.PlatformResolvers;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
@@ -272,8 +305,9 @@ public class JvmComponentPlugin implements Plugin<Project> {
         }
 
         private void configureApiJarInputs(ApiJar apiJarTask, JvmAssembly assembly) {
+            int counter = 0;
             for (File classDir : assembly.getClassDirectories()) {
-                apiJarTask.getInputs().sourceDir(classDir);
+                apiJarTask.getInputs().dir(classDir).withPropertyName("classes$" + (++counter)).skipWhenEmpty();
             }
         }
 

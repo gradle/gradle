@@ -15,9 +15,8 @@
  */
 
 package org.gradle.launcher.daemon
-import org.gradle.api.JavaVersion
+
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 @Issue("GRADLE-2460")
@@ -75,8 +74,6 @@ task verify << {
         daemons.daemons.size() == 2
     }
 
-    // Java 6 does not allow spaces in tmpdir folders
-    @IgnoreIf({ !JavaVersion.current().java7Compatible })
     def "forks new daemon when tmpdir is set to different value via commandline"() {
         setup:
         buildScript """
@@ -136,7 +133,6 @@ task verify << {
         daemons(gradleVersion).daemons.size() == 2
     }
 
-    @IgnoreIf({ !JavaVersion.current().java7Compatible })
     def "forks new daemon when tmpdir is set to different value via GRADLE_OPTS"() {
         setup:
         executer.requireGradleDistribution()

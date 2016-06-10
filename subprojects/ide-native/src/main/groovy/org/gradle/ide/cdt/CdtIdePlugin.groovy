@@ -16,16 +16,14 @@
 package org.gradle.ide.cdt
 
 import org.gradle.api.Incubating
-import org.gradle.api.Project
-import org.gradle.api.Plugin
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Plugin
+import org.gradle.api.Project
 import org.gradle.api.tasks.Delete
-
-import org.gradle.ide.cdt.model.ProjectSettings
-import org.gradle.ide.cdt.model.ProjectDescriptor
-import org.gradle.ide.cdt.model.CprojectSettings
 import org.gradle.ide.cdt.model.CprojectDescriptor
-
+import org.gradle.ide.cdt.model.CprojectSettings
+import org.gradle.ide.cdt.model.ProjectDescriptor
+import org.gradle.ide.cdt.model.ProjectSettings
 import org.gradle.ide.cdt.tasks.GenerateMetadataFileTask
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin
 
@@ -54,20 +52,20 @@ class CdtIdePlugin implements Plugin<Project> {
 
     private addCreateCprojectDescriptor(Project project) {
         project.task("cdtCproject", type: GenerateMetadataFileTask) { task ->
-            
+
             [project.componentSpecs]*.all { binary ->
                 if (binary.name == "main") {
                     task.settings = new CprojectSettings(binary, project)
                 }
             }
-            
+
             doFirst {
                 if (task.settings == null) {
                     throw new InvalidUserDataException("There is neither a main binary or library")
                 }
             }
-            
-            inputs.files { task.settings.includeRoots }
+
+            inputs.files({ task.settings.includeRoots }).withPropertyName("settings.includeRoots")
             inputFile = project.file(".cproject")
             outputFile = project.file(".cproject")
             factory { new CprojectDescriptor() }
@@ -76,5 +74,4 @@ class CdtIdePlugin implements Plugin<Project> {
             }
         }
     }
-
 }

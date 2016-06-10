@@ -34,9 +34,9 @@ class PluginRequestsSerializerTest extends SerializerSpec {
     def "non empty"() {
         when:
         def serialized = serialize(new DefaultPluginRequests([
-                new DefaultPluginRequest("java", null, 1, "buildscript"),
-                new DefaultPluginRequest("groovy", null, 2, "buildscript"),
-                new DefaultPluginRequest("custom", "1.0", 3, "initscript")
+            new DefaultPluginRequest("java", null, true, 1, "buildscript"),
+            new DefaultPluginRequest("groovy", null, false, 2, "buildscript"),
+            new DefaultPluginRequest("custom", "1.0", false, 3, "initscript")
         ]), serializer)
 
         then:
@@ -44,5 +44,6 @@ class PluginRequestsSerializerTest extends SerializerSpec {
         serialized*.version == [null, null, "1.0"]
         serialized*.lineNumber == [1, 2, 3]
         serialized*.scriptDisplayName == ["buildscript", "buildscript", "initscript"]
+        serialized*.apply == [true, false, false]
     }
 }

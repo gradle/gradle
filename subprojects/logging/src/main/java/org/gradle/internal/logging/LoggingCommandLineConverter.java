@@ -69,7 +69,7 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
 
         if (commandLine.hasOption(CONSOLE)) {
             String value = commandLine.option(CONSOLE).getValue();
-            String consoleValue = StringUtils.capitalize(value.toLowerCase());
+            String consoleValue = StringUtils.capitalize(value.toLowerCase(Locale.ENGLISH));
             try {
                 ConsoleOutput consoleOutput = ConsoleOutput.valueOf(consoleValue);
                 loggingConfiguration.setConsoleOutput(consoleOutput);

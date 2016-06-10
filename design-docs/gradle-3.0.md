@@ -25,18 +25,13 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 - Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
 - Merge `Module` and `ModuleInternal`, now that `Module` is internal (Done)
 - Internal `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter` (Done)
-- Constructor on `DefaultSourceDirectorySet` (Done)
+- Constructor on `DefaultSourceDirectorySet` - not for 3.0, deprecation only happened in 2.14 and it is widely used
 
-## Simplify definition of public API
-
-- Ensure all internal packages have `internal` in their name
-- Remove `org.gradle.util` from default imports.
-
-## Change minimum version for running Gradle to Java 7
+## Change minimum version for running Gradle to Java 7 (DONE)
 
 No longer support running Gradle, the wrapper or the Tooling api client on Java 6. Instead, we'd support Java source compilation and test execution on Java 6 and later, as we do for Java 1.5 now.
 
-- Allow Java 6 to be used for findbugs execution?
+- Allow Java 6 to be used for findbugs execution? - No
 - Update project target versions 
 - Remove customisations for IDEA project generation.
 - Remove Java 7 checks, eg from continuous build.
@@ -65,18 +60,17 @@ No longer support running Gradle, the wrapper or the Tooling api client on Java 
     - `GradleRunner`
     - old `gradlew`
     - old `GradleConnector`
-    - old `GradleRunner`
 
-## Change minimum version for building and testing Java source to Java 6
+## Change minimum version for building and testing Java source to Java 6 (DONE)
 
 Change cross-compilation and test execution to require Java 6 or later.
-Building against Java 5 requires that the compiler daemon and test execution infrastructure still support Java 5.
+Building against Java 6 requires that the compiler daemon and test execution infrastructure still support Java 6.
 
 - Document minimum version in user guide
 - Add samples and documentation to show how to compile, test and run using a different Java version.
-- Clean up `DefaultClassLoaderFactory`.
+- Clean up `DefaultClassLoaderFactory`. - Not possible, the workaround is still necessary for Java 6
 - Change `InetAddressFactory` so that it no longer uses reflection to inspect `NetworkInterface`.
-- Replace usages of `guava-jdk5`.
+- Replace usages of `guava-jdk5`. - Not for Gradle 3.0
 
 ### Test coverage
 
@@ -138,16 +132,38 @@ The current defaults for the outputs of tasks of type `Test` conflict with each 
 
 The following stories are candidates to be included in a major release of Gradle. Currently, they are *not* scheduled to be included in Gradle 3.0.
 
+## Remove duplicate types
+
+- `Jar` and `Jar`
+- `CreateStartScripts` and `CreateStartScripts`
+
+## Simplify definition of public API
+
+- Ensure all internal packages have `internal` in their name
+- Remove `org.gradle.util` from default imports.
+
+Do this by deprecate-replace for those types that are reachable from the public API, for example via `DefaultTask`.  Also for types in `org.gradle.util`
+
 ## Remove support for using the project build script classloader before it has been configured
 
 Would have to tackle implicit usage, eg `evaluationDependsOn(child-of-some-project)`, which implicitly queries the classloader of `some-project`. Similar problems when using configure on demand.
 
-## Address issues in ordering of dynamic method lookup
+## Address issues in dynamic method invocation
 
 Currently, we look first for a method and if not found, look for a property with the given name and if the value is a closure, treat it as a method.
 
 - Methods inherited from an ancestor project can silently shadow these properties.
 - Method matching is inconsistent with how methods are matched on POJO/POGO objects, where a method is selected only when the args can be coerced to those accepted by the method, and if not, searching continues with the next object. Should do something similar for property-as-a-method matching.
+- Type conversion is not applied to the parameters to a closure, or to static methods
+
+## Isolate dependencies to Java 5 and Java 6
+
+Currently, many projects are limited to Java 5 and Java 6 because of the project structure. Only then entry points
+need to run on Java 5 to be able to give a meaningful error message. For Java 6 it is enough that we can run tests
+there. If we isolate the necessary classes to dedicated subprojects we can use Java 7 in more places in our code base.
+The same is true for the next Java version upgrade.
+
+This also makes it possible to upgrade Guava from `guava-jdk5` to a current version.
 
 ## Remove Gradle GUI
 

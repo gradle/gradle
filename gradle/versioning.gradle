@@ -2,6 +2,7 @@ if (buildTypes.promotionBuild.active) {
     logger.lifecycle "Invocation tasks: $gradle.startParameter.taskNames\nInvocation properties: $gradle.startParameter.projectProperties"
 }
 
+ext.milestoneNumber = project.hasProperty("milestoneNumber") ? project.milestoneNumber.toInteger() : null
 ext.rcNumber = project.hasProperty("rcNumber") ? project.rcNumber.toInteger() : null
 ext.finalRelease = project.hasProperty("finalRelease")
 boolean timestampedVersion
@@ -11,8 +12,10 @@ if (project.hasProperty("timestampedVersion")) {
 } else {
     timestampedVersion = gradle.startParameter.taskNames.contains("install") || gradle.startParameter.taskNames.contains("installAll")
 }
-if (rcNumber != null && finalRelease) {
-    throw new InvalidUserDataException("Cannot set rcNumber and finalRelease at the same time")
+if ((milestoneNumber != null && rcNumber != null) ||
+        (rcNumber != null && finalRelease) ||
+        (milestoneNumber != null && finalRelease)) {
+    throw new InvalidUserDataException("Cannot set any combination of milestoneNumber, rcNumber and finalRelease at the same time")
 }
 
 
@@ -21,7 +24,7 @@ if (incomingDistributionsBuildReceipt) {
     ext.buildTimestamp = incomingDistributionsBuildReceipt.buildTimestamp
     ext.devBuild = false
 } else {
-    ext.devBuild = rcNumber == null && !finalRelease && !timestampedVersion;
+    ext.devBuild = milestoneNumber == null && rcNumber == null && !finalRelease && !timestampedVersion;
     ext.versionBase = rootProject.file("version.txt").text.trim()
 
     if (devBuild) {
@@ -64,6 +67,8 @@ if (finalRelease) {
     // use version base
 } else if (rcNumber != null) {
     version += "-rc-$rcNumber"
+} else if (milestoneNumber != null) {
+    version += "-milestone-$milestoneNumber"
 } else if (timestampedVersion) {
     isSnapshot = true
     version += "-$buildTimestamp"

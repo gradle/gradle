@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.util.VersionNumber
 import spock.lang.Specification
 
-import static org.gradle.api.plugins.quality.internal.findbugs.FindBugsClasspathValidator.FindBugsVersionTooHighException
 import static org.gradle.api.plugins.quality.internal.findbugs.FindBugsClasspathValidator.FindBugsVersionTooLowException
 
 class FindBugsClasspathValidatorTest extends Specification {
@@ -36,14 +35,6 @@ class FindBugsClasspathValidatorTest extends Specification {
         new FindBugsClasspathValidator(JavaVersion.VERSION_1_7).validateClasspath(newVer)
         new FindBugsClasspathValidator(JavaVersion.VERSION_1_8).validateClasspath(newVer)
         new FindBugsClasspathValidator(JavaVersion.VERSION_1_9).validateClasspath(newVer)
-    }
-
-    def "reports older version of findbugs required"() {
-        when: new FindBugsClasspathValidator(JavaVersion.VERSION_1_5).validateClasspath(newVer)
-        then: thrown(FindBugsVersionTooHighException)
-
-        when: new FindBugsClasspathValidator(JavaVersion.VERSION_1_6).validateClasspath(newVer)
-        then: thrown(FindBugsVersionTooHighException)
     }
 
     def "reports newer version of findbugs required"() {

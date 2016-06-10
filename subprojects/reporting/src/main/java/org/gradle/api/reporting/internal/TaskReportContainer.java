@@ -62,10 +62,10 @@ public abstract class TaskReportContainer<T extends Report> extends DefaultRepor
                     };
                     switch (report.getOutputType()) {
                         case FILE:
-                            taskOutputs.file(futureFile);
+                            taskOutputs.file(futureFile).withPropertyName("reports." + report.getName());
                             break;
                         case DIRECTORY:
-                            taskOutputs.dir(futureFile);
+                            taskOutputs.dir(futureFile).withPropertyName("reports." + report.getName());
                             break;
                         default:
                             throw new AssertionError();

@@ -15,9 +15,12 @@
  */
 package org.gradle.api.internal.changedetection.state
 
+import com.google.common.collect.Iterators
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.rules.ChangeType
+import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.internal.hash.HashUtil
@@ -92,7 +95,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(snapshotter.preCheck(files(file1, file2), true))
         file2.createFile()
         def target = snapshotter.snapshot(snapshotter.preCheck(files(file1, file2, file3, file4), true))
-        changes(target.iterateContentChangesSince(snapshot, EnumSet.of(FileCollectionSnapshot.ChangeFilter.IgnoreAddedFiles)), listener)
+        Iterators.size(target.iterateContentChangesSince(snapshot, "TYPE", EnumSet.of(FileCollectionSnapshot.ChangeFilter.IgnoreAddedFiles))) == 0
 
         then:
         0 * _
@@ -254,12 +257,19 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         0 * listener._
     }
 
-    private void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
-        changes(newSnapshot.iterateContentChangesSince(oldSnapshot, [] as Set), listener)
-    }
-
-    private void changes(FileCollectionSnapshot.ChangeIterator<String> changes, ChangeListener<String> listener) {
-        while (changes.next(listener)) {
+    private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
+        newSnapshot.iterateContentChangesSince(oldSnapshot, "TYPE", [] as Set).each { FileChange change ->
+            switch (change.type) {
+                case ChangeType.ADDED:
+                    listener.added(change.path)
+                    break;
+                case ChangeType.MODIFIED:
+                    listener.changed(change.path)
+                    break;
+                case ChangeType.REMOVED:
+                    listener.removed(change.path)
+                    break;
+            }
         }
     }
 
