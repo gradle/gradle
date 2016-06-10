@@ -215,31 +215,33 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
     @NotYetImplemented
     def "circular dependencies are handled gracefully"() {
         buildFile << """
-apply plugin: 'cpp'
-model {
-    components {
-        util(NativeLibrarySpec) {
-            sources {
-                cpp.lib library: 'lib'
-            }
-        }
+            apply plugin: 'cpp'
+            model {
+                components {
+                    util(NativeLibrarySpec) {
+                        sources {
+                            cpp.lib library: 'lib'
+                        }
+                    }
 
-        lib(NativeLibrarySpec) {
-            sources {
-                cpp.lib library: 'util'
-            }
-        }
+                    lib(NativeLibrarySpec) {
+                        sources {
+                            cpp.lib library: 'util'
+                        }
+                    }
 
-        main(NativeExecutableSpec) {
-            sources {
-                cpp.lib library: 'lib'
+                    main(NativeExecutableSpec) {
+                        sources {
+                            cpp.lib library: 'lib'
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-"""
+        """.stripIndent()
+
         when:
         succeeds("dependentComponents")
+
         then:
         false // TODO: once this works, assert the correct output.
         // result.output.contains("Foo")
@@ -247,49 +249,51 @@ model {
 
     def "report renders variant binaries"() {
         buildFile << """
-apply plugin: 'cpp'
-model {
-    flavors {
-        freeware
-        shareware
-        shrinkware
-    }
+            apply plugin: 'cpp'
+            model {
+                flavors {
+                    freeware
+                    shareware
+                    shrinkware
+                }
 
-    components {
-        lib(NativeLibrarySpec)
+                components {
+                    lib(NativeLibrarySpec)
 
-        main(NativeExecutableSpec) {
-            sources {
-                cpp.lib library: 'lib'
+                    main(NativeExecutableSpec) {
+                        sources {
+                            cpp.lib library: 'lib'
+                        }
+                    }
+                }
             }
-        }
-    }
-}
-"""
+        """.stripIndent()
+
         when:
         succeeds("dependentComponents")
+
         then:
-        result.output.contains("""
-------------------------------------------------------------
-Root project
-------------------------------------------------------------
+        result.output.contains """
+            ------------------------------------------------------------
+            Root project
+            ------------------------------------------------------------
 
-lib - Components that depend on native library 'lib'
-+--- lib:freewareSharedLibrary
-|    \\--- main:freewareExecutable
-+--- lib:freewareStaticLibrary
-+--- lib:sharewareSharedLibrary
-|    \\--- main:sharewareExecutable
-+--- lib:sharewareStaticLibrary
-+--- lib:shrinkwareSharedLibrary
-|    \\--- main:shrinkwareExecutable
-\\--- lib:shrinkwareStaticLibrary
+            lib - Components that depend on native library 'lib'
+            +--- lib:freewareSharedLibrary
+            |    \\--- main:freewareExecutable
+            +--- lib:freewareStaticLibrary
+            +--- lib:sharewareSharedLibrary
+            |    \\--- main:sharewareExecutable
+            +--- lib:sharewareStaticLibrary
+            +--- lib:shrinkwareSharedLibrary
+            |    \\--- main:shrinkwareExecutable
+            \\--- lib:shrinkwareStaticLibrary
 
-main - Components that depend on native executable 'main'
-+--- main:freewareExecutable
-+--- main:sharewareExecutable
-\\--- main:shrinkwareExecutable
-""")
+            main - Components that depend on native executable 'main'
+            +--- main:freewareExecutable
+            +--- main:sharewareExecutable
+            \\--- main:shrinkwareExecutable
+        """.stripIndent()
     }
 
     private static String simpleCppBuild() {

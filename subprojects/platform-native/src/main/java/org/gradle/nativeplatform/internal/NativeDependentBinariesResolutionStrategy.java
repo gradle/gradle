@@ -68,7 +68,9 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         if (!(target instanceof NativeBinarySpecInternal)) {
             return null;
         }
-        return buildResolvedResult((NativeBinarySpecInternal) target, buildState());
+        NativeBinarySpecInternal targetBinary = (NativeBinarySpecInternal) target;
+        State state = buildState();
+        return buildResolvedResult(targetBinary, state);
     }
 
 
@@ -96,9 +98,9 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
                 state.dependencies.put(key, Lists.<NativeBinarySpecInternal>newArrayList());
             }
             for (NativeLibraryBinary libraryBinary : nativeBinary.getDependentBinaries()) {
-                // TODO:PM DEBT Skip prebuilt libraries
+                // Skip prebuilt libraries
                 if (libraryBinary instanceof NativeBinarySpecInternal) {
-                    // TODO:PM DEBT Unfortunate cast! see LibraryBinaryLocator
+                    // Unfortunate cast! see LibraryBinaryLocator
                     state.dependencies.get(key).add((NativeBinarySpecInternal) libraryBinary);
                 }
             }

@@ -44,7 +44,6 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
             name += id.getProjectPath() + Project.PATH_SEPARATOR;
         }
         name += id.getProjectScopedName();
-        // TODO:PM DEBT This should be handled by strategies
         boolean buildable = true;
         boolean testSuite = false;
         return new DependentComponentsRenderableDependency(
