@@ -28,11 +28,8 @@ dependencies {
     compile("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
     compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
 
-    testRuntime("org.slf4j:slf4j-simple:1.7.10")
-    testCompile(gradle("core"))
-    testCompile(gradle("process-services"))
+    testCompile(gradleTestKit())
     testCompile("junit:junit:4.12")
-    testCompile("com.nhaarman:mockito-kotlin:0.4.1")
 }
 
 tasks.withType<Jar> {
