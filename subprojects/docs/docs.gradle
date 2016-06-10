@@ -271,6 +271,8 @@ task checkSectionIds(type: UserGuideSectionVerifier) {
     docbookFiles = fileTree(userguideSrcDir) { include "**/*.xml" }
 }
 
+[configureCss, samples, samplesDocbook, defaultImports]*.mustRunAfter(checkSectionIds)
+
 // This is used in the distribution and for the online version
 task userguideDocbook(type: UserGuideTransformTask, dependsOn: [checkSectionIds, samples, samplesDocbook, defaultImports]) {
     destFile = new File(docbookSrc, 'userguide.xml')
