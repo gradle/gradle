@@ -59,6 +59,7 @@ class ImplementationDependencyRelocator extends Remapper {
                 || resource.startsWith("org/slf4j")
                 || resource.startsWith("org/apache/log4j")
                 || resource.startsWith("org/apache/xerces")
+                || resource.startsWith("org/cyberneko/html")
                 || resource.startsWith("org/w3c/dom")
                 || resource.startsWith("org/xml/sax")
             ) {

@@ -95,7 +95,6 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
         succeeds 'test'
     }
 
-    @NotYetImplemented // The fix for this was reverted for 2.14 final
     def "can initialize Xerces bridge"() {
         when:
         buildFile << testableGroovyProject()
@@ -107,7 +106,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
             class MyPlugin implements Plugin<Project> {
 
                 void apply(Project project) {
-                    Class xercesBridge = Class.forName('org.gradle.internal.impldep.org.cyberneko.html.xercesbridge.XercesBridge')
+                    Class xercesBridge = Class.forName('org.cyberneko.html.xercesbridge.XercesBridge')
                     assert xercesBridge.instance
                 }
             }
