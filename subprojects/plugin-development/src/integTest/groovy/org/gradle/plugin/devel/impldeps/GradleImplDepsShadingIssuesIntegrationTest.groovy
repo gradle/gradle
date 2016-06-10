@@ -15,7 +15,7 @@
  */
 
 package org.gradle.plugin.devel.impldeps
-
+import groovy.transform.NotYetImplemented
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Issue
 
@@ -95,6 +95,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
         succeeds 'test'
     }
 
+    @NotYetImplemented // The fix for this was reverted for 2.14 final
     def "can initialize Xerces bridge"() {
         when:
         buildFile << testableGroovyProject()
