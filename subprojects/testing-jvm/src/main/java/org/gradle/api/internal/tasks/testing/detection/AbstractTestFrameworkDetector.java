@@ -137,9 +137,13 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
     private static byte[] getClassBytes(InputStream classStream) throws IOException {
         byte[] classData = IOUtils.toByteArray(classStream);
-        if (JavaVersion.forClass(classData) == JavaVersion.VERSION_1_9) {
-            // TODO: CC, until ASM6 is out, let's pretend we're parsing a Java 8 class format
-            classData[7] = 52;
+        try {
+            if (JavaVersion.forClass(classData) == JavaVersion.VERSION_1_9) {
+                // TODO: CC, until ASM6 is out, let's pretend we're parsing a Java 8 class format
+                classData[7] = 52;
+            }
+        } catch (IllegalArgumentException e) {
+            // can't determine java version, let it go.
         }
         return classData;
     }
