@@ -19,13 +19,13 @@ apply from: 'build.gradle.kts'
 //
 // 2. Benchmarks latest installation against configured wrapper
 //
-def customInstallation = file("$buildDir/custom/gradle-${gradle.gradleVersion}")
+def customInstallationDir = file("$buildDir/custom/gradle-${gradle.gradleVersion}")
 
 task copyCurrentDistro(type: Copy) {
-    description "Copies the current Gradle distro into '${customInstallation}'."
+    description "Copies the current Gradle distro into '${customInstallationDir}'."
 
     from gradle.gradleHomeDir
-    into customInstallation
+    into customInstallationDir
 
     // preserve last modified date on each file to make it easier
     // to check which files were patched by next step
@@ -33,31 +33,32 @@ task copyCurrentDistro(type: Copy) {
     eachFile { copyDetails << it }
     doLast {
         copyDetails.each { FileCopyDetails details ->
-            def target = new File(customInstallation, details.path)
+            def target = new File(customInstallationDir, details.path)
             target.setLastModified(details.lastModified)
         }
     }
 
     // don't bother recreating it
-    onlyIf { !customInstallation.exists() }
+    onlyIf { !customInstallationDir.exists() }
 }
 
-task patchCustomInstallation(type: Copy, dependsOn: copyCurrentDistro) {
+task customInstallation(type: Copy, dependsOn: copyCurrentDistro) {
     description "Copies latest gradle-script-kotlin snapshot over the custom installation."
 
     from configurations.compile
     from tasks.jar
-    into "$customInstallation/lib"
+    into "$customInstallationDir/lib"
 }
 
-task benchmark(type: integration.Benchmark, dependsOn: patchCustomInstallation) {
-    latestInstallation = customInstallation
+
+task benchmark(type: integration.Benchmark, dependsOn: customInstallation) {
+    latestInstallation = customInstallationDir
 }
 
 
 // -- Integration testing ---------------------------------------------
-task checkSamples(type: integration.CheckSamples, dependsOn: patchCustomInstallation) {
-    installation = customInstallation
+task checkSamples(type: integration.CheckSamples, dependsOn: customInstallation) {
+    installation = customInstallationDir
 }
 check.dependsOn checkSamples
 
