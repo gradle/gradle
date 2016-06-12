@@ -50,6 +50,7 @@ task customInstallation(type: Copy, dependsOn: copyCurrentDistro) {
     into "$customInstallationDir/lib"
 }
 
+test.dependsOn customInstallation
 
 task benchmark(type: integration.Benchmark, dependsOn: customInstallation) {
     latestInstallation = customInstallationDir
