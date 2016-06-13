@@ -19,17 +19,16 @@ package org.gradle.api.internal.tasks.testing.detection;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -123,8 +122,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         InputStream classStream = null;
         try {
             classStream = new BufferedInputStream(new FileInputStream(testClassFile));
-            byte[] classData = getClassBytes(classStream);
-            final ClassReader classReader = new ClassReader(classData);
+            final ClassReader classReader = new Java9ClassReader(IOUtils.toByteArray(classStream));
             classReader.accept(classVisitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
         } catch (Throwable e) {
             throw new GradleException("failed to read class file " + testClassFile.getAbsolutePath(), e);
@@ -133,15 +131,6 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         }
 
         return classVisitor;
-    }
-
-    private static byte[] getClassBytes(InputStream classStream) throws IOException {
-        byte[] classData = IOUtils.toByteArray(classStream);
-        if (JavaVersion.forClass(classData) == JavaVersion.VERSION_1_9) {
-            // TODO: CC, until ASM6 is out, let's pretend we're parsing a Java 8 class format
-            classData[7] = 52;
-        }
-        return classData;
     }
 
     @Override

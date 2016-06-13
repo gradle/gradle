@@ -149,8 +149,6 @@ task java9IntegTest(type: Test) {
 
 task java9Test(type: Test) {
     excludes = [
-        // ASM doesn't work with Java 9 bytecode
-        "MixInLegacyTypesClassLoaderTest",
 
         // Classes used by junit execution tests
         "ABrokenJunit3TestClass",
