@@ -16,17 +16,14 @@
 
 package org.gradle.smoketests
 
-import spock.lang.Ignore
-
 class JavascriptPluginsSmokeSpec extends AbstractSmokeSpec {
 
-    @Ignore("Currently broken because of removed methods from ConfigureUtil")
     def 'js and css plugin'() {
         given:
         buildFile << """
             plugins {
-              id "com.eriwen.gradle.js" version "2.12.0"
-              id "com.eriwen.gradle.css" version "2.12.0"
+                id "com.eriwen.gradle.js" version "2.14.1"
+                id "com.eriwen.gradle.css" version "2.14.0"
             }
 
             javascript.source {
