@@ -45,20 +45,25 @@ class GradleExecuterBackedSession implements GradleSession {
 
     @Override
     void cleanup() {
-        createExecuter(null, false).withTasks().withArgument("--stop").run()
+        def executer = createExecuter(null, false).withTasks().withArgument("--stop")
+        if (invocation.expectFailure) {
+            executer.runWithFailure()
+        } else {
+            executer.run()
+        }
     }
 
     private GradleExecuter createExecuter(GradleInvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
 
         def executer = invocation.gradleDistribution.executer(testDirectoryProvider).
-                requireGradleDistribution().
-                requireIsolatedDaemons().
-                expectDeprecationWarning().
-                withStackTraceChecksDisabled().
-                withArgument('-u').
-                inDirectory(invocation.workingDirectory).
-                withTasks(invocation.tasksToRun)
+            requireGradleDistribution().
+            requireIsolatedDaemons().
+            expectDeprecationWarning().
+            withStackTraceChecksDisabled().
+            withArgument('-u').
+            inDirectory(invocation.workingDirectory).
+            withTasks(invocation.tasksToRun)
 
         if (withGradleOpts) {
             executer.withBuildJvmOpts(invocation.jvmOpts)

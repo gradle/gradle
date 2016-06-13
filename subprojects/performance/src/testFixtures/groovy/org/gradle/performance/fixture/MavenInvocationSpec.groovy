@@ -46,6 +46,11 @@ class MavenInvocationSpec implements InvocationSpec {
         this.args = args
     }
 
+    @Override
+    boolean isExpectFailure() {
+        throw new UnsupportedOperationException()
+    }
+
     static InvocationBuilder builder() {
         return new InvocationBuilder()
     }
@@ -124,6 +129,11 @@ class MavenInvocationSpec implements InvocationSpec {
         InvocationBuilder args(Iterable<String> args) {
             this.args.addAll(args)
             this
+        }
+
+        @Override
+        InvocationSpec.Builder expectFailure() {
+            throw new UnsupportedOperationException()
         }
 
         MavenInvocationSpec build() {
