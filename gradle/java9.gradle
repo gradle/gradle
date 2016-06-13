@@ -207,7 +207,9 @@ tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
     doFirst {
         jvmArgs = []
     }
-    executable = "${System.getenv('JAVA_9')}/bin/java"
+    def java9Home = System.getenv('JAVA_9')
+    executable = "${java9Home}/bin/java"
+    environment['JAVA_HOME'] = java9Home
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
     reports.html.destination = file("${project.reporting.baseDir}/$name")
 }
