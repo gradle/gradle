@@ -16,48 +16,114 @@
 
 package org.gradle.script.lang.kotlin.provider
 
+import org.gradle.script.lang.kotlin.KotlinBuildScript
+import org.gradle.script.lang.kotlin.loggerFor
+import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
+import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.BUILDSCRIPT_PROTOTYPE
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.scriptDefinitionFor
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.selectGradleApiJars
 
-import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
-
 import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
-
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.script.lang.kotlin.KotlinBuildScript
-import org.gradle.script.lang.kotlin.loggerFor
+import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.internal.classpath.DefaultClassPath
 
 import java.io.File
+import java.lang.reflect.InvocationTargetException
 
 class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : ScriptPluginFactory {
 
     val logger = loggerFor<KotlinScriptPluginFactory>()
 
-    override fun create(scriptSource: ScriptSource, scriptHandler: ScriptHandler, targetScope: ClassLoaderScope,
-                        baseScope: ClassLoaderScope, topLevelScript: Boolean): ScriptPlugin =
-        KotlinScriptPlugin(scriptSource, compile(scriptSource, scriptHandler as ScriptHandlerInternal, targetScope))
+    override fun create(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
+                        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
+                        topLevelScript: Boolean): ScriptPlugin =
+        KotlinScriptPlugin(
+            scriptSource,
+            compile(scriptSource, scriptHandler as ScriptHandlerInternal, targetScope))
 
-    private fun compile(scriptSource: ScriptSource, scriptHandler: ScriptHandlerInternal,
-                        targetScope: ClassLoaderScope): Class<*> {
-        val scriptFile = scriptSource.resource.file
-        val classPath = selectGradleApiJars(classPathRegistry)
+    private fun compile(scriptSource: ScriptSource,
+                        scriptHandler: ScriptHandlerInternal,
+                        targetScope: ClassLoaderScope): (Project) -> Unit {
+        val resource = scriptSource.resource
+        val script = resource.text
+        val scriptFile = resource.file
+        val buildscriptRange = extractBuildScriptFrom(script)
+        return when {
+            buildscriptRange != null ->
+                dualPhaseScript(scriptFile, script, buildscriptRange, scriptHandler, targetScope)
+            else ->
+                singlePhaseScript(scriptFile, targetScope)
+        }
+    }
+
+    private fun singlePhaseScript(scriptFile: File, targetScope: ClassLoaderScope): (Project) -> Unit {
+        val scriptClass = compileScriptFile(scriptFile, defaultClassPath(), targetScope)
+        return { target -> executeScriptOf(scriptClass, target) }
+    }
+
+    private fun dualPhaseScript(scriptFile: File, script: String, buildscriptRange: IntRange,
+                                scriptHandler: ScriptHandlerInternal,
+                                targetScope: ClassLoaderScope): (Project) -> Unit {
+        val defaultClassPath = defaultClassPath()
+        val buildscriptClass = compileBuildscript(buildscriptRange, script, defaultClassPath, targetScope)
+        return { target ->
+            executeScriptOf(buildscriptClass, target)
+            val effectiveClassPath = defaultClassPath + scriptHandler.scriptClassPath.asFiles
+            val scriptClass = compileScriptFile(scriptFile, effectiveClassPath, targetScope)
+            executeScriptOf(scriptClass, target)
+        }
+    }
+
+    private fun compileBuildscript(buildscriptRange: IntRange, script: String, classPath: List<File>,
+                                   targetScope: ClassLoaderScope): Class<*> {
+        val buildscriptDef = scriptDefinitionFor(classPath, prototype = BUILDSCRIPT_PROTOTYPE)
+        val buildscriptScope = classLoaderScopeForBuildscript(classPath, targetScope)
+        return compileKotlinScript(
+            tempBuildscriptFileFor(buildscriptRange, script),
+            buildscriptDef,
+            buildscriptScope.localClassLoader,
+            logger)
+    }
+
+    private fun tempBuildscriptFileFor(buildscriptRange: IntRange, script: String) =
+        createTempFile("buildscript", ".gradle.kts").apply {
+            writeText(script.substring(buildscriptRange))
+        }
+
+    private fun defaultClassPath() =
+        selectGradleApiJars(classPathRegistry)
+
+    private fun compileScriptFile(scriptFile: File, classPath: List<File>, targetScope: ClassLoaderScope): Class<*> {
         val scriptDef = scriptDefinitionFor(classPath)
-        val classLoader = classLoaderFor(classPath, scriptHandler, targetScope)
+        val classLoader = classLoaderFor(targetScope)
         return compileKotlinScript(scriptFile, scriptDef, classLoader, logger)
     }
 
-    private fun classLoaderFor(classPath: List<File>,
-                               scriptHandler: ScriptHandlerInternal,
-                               targetScope: ClassLoaderScope): ClassLoader {
-        scriptHandler.addScriptClassPathDependency(SimpleFileCollection(classPath))
-        targetScope.export(scriptHandler.scriptClassPath)
-        targetScope.export(KotlinBuildScript::class.java.classLoader)
-        targetScope.lock()
-        return targetScope.localClassLoader
+    private fun classLoaderScopeForBuildscript(classPath: List<File>, targetScope: ClassLoaderScope): ClassLoaderScope =
+        targetScope.createChild("buildscript").apply {
+            export(DefaultClassPath.of(classPath))
+            export(KotlinBuildScriptSection::class.java.classLoader)
+            lock()
+        }
+
+    private fun classLoaderFor(targetScope: ClassLoaderScope): ClassLoader =
+        targetScope.run {
+            export(KotlinBuildScript::class.java.classLoader)
+            lock()
+            localClassLoader
+        }
+
+    private fun executeScriptOf(scriptClass: Class<*>, target: Any) {
+        try {
+            scriptClass.getConstructor(Project::class.java).newInstance(target)
+        } catch(e: InvocationTargetException) {
+            throw e.targetException
+        }
     }
 }

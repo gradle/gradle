@@ -26,7 +26,7 @@ import org.gradle.script.lang.kotlin.apply
 
 import java.lang.reflect.InvocationTargetException
 
-class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<*>) : ScriptPlugin {
+class KotlinScriptPlugin(val scriptSource: ScriptSource, val script: (Project) -> Unit) : ScriptPlugin {
 
     private val logger = loggerFor<KotlinScriptPlugin>()
 
@@ -38,18 +38,10 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val scriptClass: Class<
             throw IllegalArgumentException("target $target was not a Project as expected")
         }
         registerBuiltinTasks(target)
-        instantiateScriptClass(target)
+        script(target)
     }
 
     private fun registerBuiltinTasks(target: Project) {
         target.apply<BuiltinTasksPlugin>()
-    }
-
-    fun instantiateScriptClass(target: Any) {
-        try {
-            scriptClass.getConstructor(Project::class.java).newInstance(target)
-        } catch(e: InvocationTargetException) {
-            throw e.targetException
-        }
     }
 }

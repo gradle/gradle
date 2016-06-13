@@ -1,7 +1,11 @@
 package org.gradle.script.lang.kotlin.integration
 
+import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
+import org.gradle.script.lang.kotlin.support.zipTo
+import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -30,26 +34,70 @@ class GradleScriptKotlinIntegrationTest {
                     val files = configurations.getByName("compile").files
                     zipTree(files.single { it.name.startsWith(baseName) })
                 })
-            }""")
+            }
+        """)
         assert(
-            gradleRunner()
-                .withArguments("tasks")
-                .build().output.contains("repackage"))
+            build("tasks").output.contains("repackage"))
     }
 
-    fun withBuildScript(script: String) {
-        writeFile("settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
-        writeFile("build.gradle.kts", script)
+    @Test
+    @Ignore("wip")
+    fun `given a buildscript block, it will be used to compute the runtime classpath`() {
+        withClassJar("fixture.jar", DeepThought::class.java)
+
+        withBuildScript("""
+            import org.gradle.script.lang.kotlin.*
+
+            buildscript {
+                dependencies {
+                    classpath(files("fixture.jar"))
+                }
+            }
+
+            task("answer") {
+                doLast {
+                    // resources.jar should be in the classpath
+                    val computer = ${DeepThought::class.qualifiedName}()
+                    val answer = computer.compute()
+                    println("*" + answer + "*")
+                }
+            }
+        """)
+
+        assert(
+            build("answer").output.contains("*42*"))
     }
 
-    private fun writeFile(fileName: String, text: String) {
-        projectDir.newFile(fileName).writeText(text)
+    private fun withBuildScript(script: String) {
+        withFile("settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
+        withFile("build.gradle.kts", script)
     }
 
-    private fun gradleRunner(debug: Boolean = false) =
+    private fun withFile(fileName: String, text: String) {
+        file(fileName).writeText(text)
+    }
+
+    private fun withClassJar(jarFileName: String, vararg classes: Class<*>) {
+        zipTo(
+            file(jarFileName),
+            classes.asSequence().map {
+                val classFilePath = it.name.replace('.', '/') + ".class"
+                classFilePath to it.getResource("/$classFilePath").readBytes()
+            })
+    }
+
+    private fun file(fileName: String) =
+        projectDir.newFile(fileName)
+
+    private fun build(vararg arguments: String): BuildResult =
+        gradleRunner()
+            .withArguments(*arguments, "--stacktrace")
+            .build()
+
+    private fun gradleRunner() =
         GradleRunner
             .create()
-            .withDebug(debug)
+            .withDebug(false)
             .withGradleInstallation(customInstallation())
             .withProjectDir(projectDir.root)
 

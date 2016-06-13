@@ -16,19 +16,24 @@
 
 package org.gradle.script.lang.kotlin
 
-import org.gradle.api.Project
+import org.gradle.api.artifacts.dsl.DependencyHandler
 
 /**
- * Base class for Kotlin build scripts.
+ * @see DependencyHandler
  */
-abstract class KotlinBuildScript(project: Project) : Project by project {
+class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyHandler by dependencies {
 
     /**
-     * Configures the build script classpath for this project.
+     * Adds a dependency to the given configuration.
      *
-     * @see [Project.buildscript]
+     * @param dependencyNotation notation for the dependency to be added.
+     * @return The dependency.
+     *
+     * @see DependencyHandler.add
      */
-    @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") configuration: KotlinScriptHandler.() -> Unit) = Unit
-}
+    operator fun String.invoke(dependencyNotation: Any) =
+        dependencies.add(this, dependencyNotation)
 
+    inline operator fun invoke(configuration: KotlinDependencyHandler.() -> Unit) =
+        configuration()
+}

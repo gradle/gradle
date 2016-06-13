@@ -16,19 +16,19 @@
 
 package org.gradle.script.lang.kotlin
 
-import org.gradle.api.Project
+import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 
-/**
- * Base class for Kotlin build scripts.
- */
-abstract class KotlinBuildScript(project: Project) : Project by project {
+class KotlinScriptHandler(scriptHandler: ScriptHandler) {
 
     /**
-     * Configures the build script classpath for this project.
-     *
-     * @see [Project.buildscript]
+     * The dependencies of the script.
      */
-    @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") configuration: KotlinScriptHandler.() -> Unit) = Unit
-}
+    val dependencies = KotlinDependencyHandler(scriptHandler.dependencies)
 
+    /**
+     * Adds a dependency to the script classpath.
+     */
+    fun KotlinDependencyHandler.classpath(dependencyNotation: Any) =
+        add(CLASSPATH_CONFIGURATION, dependencyNotation)
+}

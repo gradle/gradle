@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginManager
@@ -115,21 +114,5 @@ inline fun Project.repositories(configuration: RepositoryHandler.() -> Unit) = c
  * @param configuration the configuration block.
  */
 inline fun Project.dependencies(configuration: KotlinDependencyHandler.() -> Unit) =
-    configuration(KotlinDependencyHandler(dependencies))
+    KotlinDependencyHandler(dependencies).configuration()
 
-/**
- * @see DependencyHandler
- */
-class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyHandler by dependencies {
-
-    /**
-     * Adds a dependency to the given configuration.
-     *
-     * @param dependencyNotation notation for the dependency to be added.
-     * @return The dependency.
-     *
-     * @see DependencyHandler.add
-     */
-    operator fun String.invoke(dependencyNotation: Any) =
-        dependencies.add(this, dependencyNotation)
-}
