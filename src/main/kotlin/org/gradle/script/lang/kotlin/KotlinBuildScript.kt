@@ -24,13 +24,9 @@ import org.jetbrains.kotlin.script.ScriptFilePattern
 /**
  * Base class for Kotlin build scripts.
  */
-@ScriptFilePattern("*\\.kts")
+@ScriptFilePattern(".*\\.kts")
 @ScriptDependencyResolver(GetGradleKotlinScriptDependencies::class)
 abstract class KotlinBuildScript(project: Project) : Project by project {
-
-    init {
-        println("running kotlin script!!")
-    }
 
     /**
      * Configures the build script classpath for this project.
