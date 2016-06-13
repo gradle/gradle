@@ -27,21 +27,23 @@ import java.util.List;
 public class DefaultIvyModuleArtifactPublishMetadata implements IvyModuleArtifactPublishMetadata {
     private final DefaultModuleComponentArtifactIdentifier id;
     private final List<String> configurations = Lists.newArrayList();
-    private final File file;
+    private File file;
 
     public DefaultIvyModuleArtifactPublishMetadata(ModuleComponentIdentifier componentId, IvyArtifactName artifact, Collection<String> configurations) {
         this.id = new DefaultModuleComponentArtifactIdentifier(componentId, artifact);
-        this.file = null;
         this.configurations.addAll(configurations);
     }
 
-    public DefaultIvyModuleArtifactPublishMetadata(ModuleComponentIdentifier moduleComponentIdentifier, IvyArtifactName artifact, File file) {
+    public DefaultIvyModuleArtifactPublishMetadata(ModuleComponentIdentifier moduleComponentIdentifier, IvyArtifactName artifact) {
         this.id = new DefaultModuleComponentArtifactIdentifier(moduleComponentIdentifier, artifact);
-        this.file = file;
     }
 
     public void addConfiguration(String configuration) {
         configurations.add(configuration);
+    }
+
+    public void setFile(File file) {
+        this.file = file;
     }
 
     public IvyArtifactName getArtifactName() {

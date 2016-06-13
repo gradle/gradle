@@ -162,6 +162,48 @@ uploadArchives {
         module.assertArtifactsPublished('root-1.0.pom', 'root-1.0-source.jar')
     }
 
+    def "can replace artifacts with same coordinates"() {
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'group'
+version = 1.0
+
+task replacementJar(type: Jar) {
+    baseName = 'root'
+    destinationDir = file("\${buildDir}/replacements")
+    manifest.attributes foo: "bar"
+}
+artifacts {
+    archives replacementJar // Has same coordinates as main jar
+}
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${mavenRepo.uri}")
+        }
+    }
+}
+"""
+        when:
+        succeeds 'uploadArchives'
+
+        then:
+        def libs = file("build/libs")
+        libs.assertHasDescendants('root-1.0.jar')
+        def replacements = file("build/replacements")
+        replacements.assertHasDescendants('root-1.0.jar')
+
+        def module = mavenRepo.module('group', 'root', 1.0)
+        module.assertPublished()
+        module.assertArtifactsPublished('root-1.0.pom', 'root-1.0.jar')
+
+        module.getArtifactFile().assertIsCopyOf(replacements.file('root-1.0.jar'))
+    }
+
     def "can publish a project with metadata artifacts"() {
         given:
         settingsFile << "rootProject.name = 'root'"
