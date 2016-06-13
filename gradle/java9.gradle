@@ -19,6 +19,29 @@ task java9IntegTest(type: Test) {
         "MixedNativeAndJvmProjectIntegrationTest",
         "JavaCompilationAgainstDependenciesIntegrationTest",
 
+        // Cannot obtain Jvm arguments via java.lang.management.ManagementFactory.runtimeMXBean.inputArguments module java.management does not export sun.management to unnamed module @6427ecb
+        "BuildEnvironmentModelCrossVersionSpec",  // "informs about java args as in the build script"
+        "JavaConfigurabilityCrossVersionSpec", // "customized java args are reflected in the inputArguments and the build model", "tooling api provided jvm args take precedence over gradle.properties"
+        "GradlePropertiesToolingApiCrossVersionSpec", // "tooling api honours jvm args specified in gradle.properties"
+
+        // Old Gradle cannot run against Java 9
+        "org/gradle/integtests/tooling/r22/BuildActionCrossVersionSpec", // current -> 2.13
+        "org/gradle/integtests/tooling/r25/BuildProgressCrossVersionSpec",
+        "org/gradle/integtests/tooling/r25/ContinuousBuildCancellationCrossVersionSpec", // current -> 2.13
+        "org/gradle/integtests/tooling/r25/ContinuousBuildCrossVersionSpec", // current -> 2.13
+        "org/gradle/integtests/tooling/r25/ContinuousBuildProgressEventsCrossVersionSpec", // current -> 2.13
+        "org/gradle/integtests/tooling/r25/DeploymentHandleContinuousBuildCrossVersionSpec", // current -> 2.13
+        "org/gradle/integtests/tooling/r25/ProgressCrossVersionSpec", // current -> 2.13
+        "org/gradle/integtests/tooling/r25/TaskProgressCrossVersionSpec", // current -> 2.13
+        "org/gradle/integtests/tooling/r25/TestProgressCrossVersionSpec", // current -> 2.13
+        "org/gradle/integtests/tooling/r25/TestProgressDaemonErrorsCrossVersionSpec", // current -> 2.13
+        "org/gradle/integtests/tooling/r26/TestLauncherCrossVersionSpec", // current -> 2.13
+        "org/gradle/integtests/tooling/r27/TestLauncherCrossVersionSpec", // current -> 2.13
+
+        // Compile against Java 9 in older Gradle version
+        // class org.gradle.internal.reflect.DirectInstantiator cannot access class com.sun.tools.javac.api.JavacTool (in module jdk.compiler) because module jdk.compiler does not export com.sun.tools.javac.api to unnamed module @4030a92
+        "TestFilteringCrossVersionSpec", // current -> 2.13
+
         // Broken scala and twirl compilation, broken api jar construction
         "MixedPlayAndJvmLibraryProjectIntegrationTest",
         "PlayAppWithFailingTestsIntegrationTest",
