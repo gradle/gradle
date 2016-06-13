@@ -25,6 +25,7 @@ and it is used in a lot of different places in Gradle. The ASM 5 library cannot 
 (version 53). We have worked around this in several places of Gradle:
 
 - remove usages of `org.gradle.util.internal.Java9ClassReader` and replace them with a standard `org.objectweb.asm.ClassReader`
+- remove hack in `org.gradle.test.fixtures.file.ClassFile`
 
 # Feature: Java library author specifies library API
 
