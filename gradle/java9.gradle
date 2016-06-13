@@ -24,6 +24,12 @@ task java9IntegTest(type: Test) {
         "JavaConfigurabilityCrossVersionSpec", // "customized java args are reflected in the inputArguments and the build model", "tooling api provided jvm args take precedence over gradle.properties"
         "GradlePropertiesToolingApiCrossVersionSpec", // "tooling api honours jvm args specified in gradle.properties"
 
+        // Add a dedicated Findbugs test for Java 9
+        "FindbugsIntegrationTest",
+
+        // Osgi is broken with a NPE in Processor - need to investigate
+        "OsgiPluginIntegrationSpec",
+
         // Old Gradle cannot run against Java 9
         "org/gradle/integtests/tooling/r22/BuildActionCrossVersionSpec", // current -> 2.13
         "org/gradle/integtests/tooling/r25/BuildProgressCrossVersionSpec",
