@@ -31,12 +31,9 @@ tasks.create('smokeTest', Test) { Test task ->
     }
 
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
-
-    "configure${task.name.capitalize()}" {
-        reports.html.destination = file("${project.reporting.baseDir}/$name")
-        systemProperties['smokeTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
-        systemProperties['smokeTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
-    }
+    reports.html.destination = file("${project.reporting.baseDir}/$name")
+    systemProperties['smokeTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
+    systemProperties['smokeTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
 }
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) { // lazy as plugin not applied yet

@@ -16,14 +16,15 @@
 
 package org.gradle.smoketests
 
+import org.gradle.testkit.runner.TaskOutcome
+
 class JavascriptPluginsSmokeSpec extends AbstractSmokeSpec {
 
-    def 'js and css plugin'() {
+    def 'js plugin'() {
         given:
         buildFile << """
             plugins {
                 id "com.eriwen.gradle.js" version "2.14.1"
-                id "com.eriwen.gradle.css" version "2.14.0"
             }
 
             javascript.source {
@@ -40,6 +41,41 @@ class JavascriptPluginsSmokeSpec extends AbstractSmokeSpec {
                         include "*.min.js"
                     }
                 }
+            }
+
+            combineJs {
+                encoding = "UTF-8"
+                source = javascript.source.dev.js.files
+                dest = file("\${buildDir}/all.js")
+            }
+
+            minifyJs {
+                source = combineJs
+                dest = file("\${buildDir}/all-min.js")
+                sourceMap = file("\${buildDir}/all.sourcemap.json")
+                closure {
+                    warningLevel = 'QUIET'
+                }
+            }
+            """.stripIndent()
+
+        file("jsSrcDir/app.js") << """
+            console.log("Hello from Javascript");
+        """
+
+        when:
+        def result = runner('tasks', 'minifyJs').build()
+
+        then:
+        result.task(':minifyJs').outcome == TaskOutcome.SUCCESS
+        file("build/all-min.js").exists()
+    }
+
+    def 'css plugin'() {
+        given:
+        buildFile << """
+            plugins {
+                id "com.eriwen.gradle.css" version "2.14.0"
             }
 
             // Declare your sources
@@ -73,7 +109,17 @@ class JavascriptPluginsSmokeSpec extends AbstractSmokeSpec {
             }
             """.stripIndent()
 
-        expect:
-        runner('tasks').build()
+        file("app/styles/app.css") << """
+            h2 {
+                bg-color: red;
+            }
+        """
+
+        when:
+        def result = runner('tasks', 'minifyCss').build()
+
+        then:
+        result.task(':minifyCss').outcome == TaskOutcome.SUCCESS
+        file("build/all-min.css").exists()
     }
 }

@@ -200,17 +200,9 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         def httpsPort = portAllocator.assignPort()
         def stopPort = portAllocator.assignPort()
         buildFile << """
-            buildscript {
-                repositories {
-                    jcenter()
-                }
-
-                dependencies {
-                    classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.5'
-                }
+            plugins {
+                id "com.bmuschko.tomcat" version "2.2.5"
             }
-
-            apply plugin: 'com.bmuschko.tomcat'
 
             repositories {
                 mavenCentral()
