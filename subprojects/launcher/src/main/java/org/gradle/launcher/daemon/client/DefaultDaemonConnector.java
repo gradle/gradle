@@ -100,7 +100,18 @@ public class DefaultDaemonConnector implements DaemonConnector {
         final List<DaemonStopEvent> stopEvents = daemonRegistry.getStopEvents();
         daemonRegistry.removeStopEvents(stopEvents);
 
-        LOGGER.lifecycle(DaemonStartingMessage.generate(busyDaemons.size(), idleDaemons.size(), stopEvents));
+        // User likely doesn't care about daemons that stopped a long time ago
+        List<DaemonStopEvent> recentStopEvents = CollectionUtils.filter(stopEvents, new Spec<DaemonStopEvent>() {
+            public boolean isSatisfiedBy(DaemonStopEvent event) {
+                return event.occurredInLastDays(1);
+            }
+        });
+
+        for (DaemonStopEvent stopEvent : recentStopEvents) {
+            LOGGER.info("Previous Daemon stopped at " + stopEvent.getTimestamp() + " " + stopEvent.getReason());
+        }
+
+        LOGGER.lifecycle(DaemonStartingMessage.generate(busyDaemons.size(), idleDaemons.size(), recentStopEvents.size()));
 
         return startDaemon(constraint);
     }

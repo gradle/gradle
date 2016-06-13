@@ -22,9 +22,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
-import org.gradle.launcher.daemon.client.DaemonStartingMessage
 import org.gradle.launcher.daemon.registry.DaemonDir
-import org.gradle.launcher.daemon.server.DaemonRegistryUnavailableExpirationStrategy
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import spock.lang.IgnoreIf
 
@@ -260,7 +258,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         busy 2
-        waitForStartupMessageToContain(1, DaemonStartingMessage.ONE_BUSY_DAEMON_MESSAGE)
     }
 
     def "sending stop to idle daemons causes them to terminate immediately"() {
@@ -281,33 +278,6 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         then:
         stopped()
-    }
-
-    def "daemon start message contains stop reasons"() {
-        when:
-        startBuild()
-        waitForBuildToWait()
-
-        then:
-        busy()
-        daemonContext {
-            new DaemonDir(executer.daemonBaseDir).registry.delete()
-        }
-
-        then:
-        waitForDaemonExpiration()
-
-        then:
-        completeBuild()
-
-        then:
-        stopped()
-
-        when:
-        startBuild()
-
-        then:
-        waitForStartupMessageToContain(1, DaemonStartingMessage.ONE_DAEMON_STOPPED_PREFIX + DaemonRegistryUnavailableExpirationStrategy.REGISTRY_BECAME_UNREADABLE)
     }
 
     def "daemon stops after current build if registry is deleted"() {
@@ -453,7 +423,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         startBuild(null, "UTF-8")
-        waitForStartupMessageToContain(1, DaemonStartingMessage.ONE_INCOMPATIBLE_DAEMON_MESSAGE)
+        waitForStartupMessageToContain(1, "1 incompatible")
         waitForBuildToWait()
 
         then:
