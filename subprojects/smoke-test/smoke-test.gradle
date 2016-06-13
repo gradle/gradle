@@ -32,7 +32,7 @@ tasks.create('smokeTest', Test) { Test task ->
 
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
 
-    project.getTasksByName("configure${task.name.capitalize()}", false).first().configure {
+    "configure${task.name.capitalize()}" {
         reports.html.destination = file("${project.reporting.baseDir}/$name")
         systemProperties['smokeTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
         systemProperties['smokeTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
