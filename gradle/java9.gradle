@@ -37,6 +37,9 @@ task java9IntegTest(type: Test) {
         "org/gradle/integtests/tooling/r25/TestProgressDaemonErrorsCrossVersionSpec", // current -> 2.13
         "org/gradle/integtests/tooling/r26/TestLauncherCrossVersionSpec", // current -> 2.13
         "org/gradle/integtests/tooling/r27/TestLauncherCrossVersionSpec", // current -> 2.13
+        "JavaProjectCrossVersionIntegrationTest", // previous = 2.13 or older
+        "TaskSubclassingBinaryCompatibilityCrossVersionSpec", // previous = 2.13 or older
+        "TaskUpToDateCrossVersionIntegrationTest", // previous = 2.13 or older
 
         // Compile against Java 9 in older Gradle version
         // class org.gradle.internal.reflect.DirectInstantiator cannot access class com.sun.tools.javac.api.JavacTool (in module jdk.compiler) because module jdk.compiler does not export com.sun.tools.javac.api to unnamed module @4030a92
