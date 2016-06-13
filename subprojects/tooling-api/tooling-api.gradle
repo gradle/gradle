@@ -72,11 +72,6 @@ artifacts {
     publishRuntime file: shadedJar.jarFile, name: archivesBaseName, type: 'jar', builtBy: shadedJar
 }
 
-// Remove the default 'jar' publication
-configurations.publishRuntime.artifacts.removeAll {
-    it.file == jar.archivePath
-}
-
 eclipse {
     classpath {
         file.whenMerged { classpath ->
