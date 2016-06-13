@@ -139,6 +139,10 @@ The `EclipseProject` model was supplemented with a set of new features:
 
 With these features Tooling API clients can provide a more complete IDE integration. Buildship will make use of them very soon.
 
+### Upgrade of BND library used by OSGi plugin
+
+The OSGi plugin now uses the version 3.2.0 of the BND library.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
