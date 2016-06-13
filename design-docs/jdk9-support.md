@@ -568,7 +568,7 @@ distributions of Jdk 9 available for 64-bit OS X (this is down from two in the p
 
 In the following scenarios, we describe how Gradle version 2.12 behaves running with this jdk.
 
-## Scenario 1: Simple Gralde Build
+## Scenario 1: Simple Gradle Build
 
 In this scenario, we have the following `build.gradle` file:
 
@@ -678,7 +678,7 @@ Total time: 1.527 secs
 According to this [slide
 deck](http://openjdk.java.net/projects/jigsaw/talks/prepare-for-jdk9-j1-2015.pdf),
 it looks like we should just be able to work around this by passing
-"-XaddExports" as JVM optinos when invoking the build, but that has not worked for
+"-XaddExports" as JVM options when invoking the build, but that has not worked for
 me yet.
 
 Also, the problem seems to come from our use of a private
