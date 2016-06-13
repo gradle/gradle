@@ -72,6 +72,11 @@ artifacts {
     publishRuntime file: shadedJar.jarFile, name: archivesBaseName, type: 'jar', builtBy: shadedJar
 }
 
+// TODO:DAZ Remove this workaround once the Gradle used to build includes 2e92fc78116a7b80984f915f7a159edae0daba4c
+configurations.publishRuntime.artifacts.removeAll {
+    it.file == jar.archivePath
+}
+
 eclipse {
     classpath {
         file.whenMerged { classpath ->
