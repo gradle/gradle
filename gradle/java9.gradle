@@ -25,7 +25,13 @@ task java9IntegTest(type: Test) {
         "GradlePropertiesToolingApiCrossVersionSpec", // "tooling api honours jvm args specified in gradle.properties"
 
         // Add a dedicated Findbugs test for Java 9
-        "FindbugsIntegrationTest",
+        "FindBugsIntegrationTest",
+
+        // Looks like Pmd is broken with Java 9
+        "PmdPluginAuxclasspathIntegrationTest",
+        "PmdPluginDependenciesIntegrationTest",
+        "PmdPluginVersionIntegrationTest",
+
 
         // Osgi is broken with a NPE in Processor - need to investigate
         "OsgiPluginIntegrationSpec",
