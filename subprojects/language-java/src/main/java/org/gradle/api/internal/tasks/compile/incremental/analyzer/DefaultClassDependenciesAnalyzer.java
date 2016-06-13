@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
+import com.google.common.io.ByteStreams;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 
@@ -31,7 +33,7 @@ public class DefaultClassDependenciesAnalyzer implements ClassDependenciesAnalyz
 
     public ClassAnalysis getClassAnalysis(String className, InputStream input) throws IOException {
         ClassRelevancyFilter filter = new ClassRelevancyFilter(className);
-        ClassReader reader = new ClassReader(input);
+        ClassReader reader = new Java9ClassReader(ByteStreams.toByteArray(input));
         ClassDependenciesVisitor visitor = new ClassDependenciesVisitor();
         reader.accept(visitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
 
