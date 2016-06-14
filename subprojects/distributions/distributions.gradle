@@ -181,9 +181,9 @@ class ClasspathManifestPatcher {
     def writePatchedFilesTo(File outputDir) {
         resolveModules().each { module ->
             def sourceFile = mainArtifactFileOf(module)
+            def outputFile = new File(outputDir, sourceFile.name)
             def unpackDir = unpack(sourceFile)
             patchManifestOf(module, unpackDir)
-            def outputFile = new File(outputDir, sourceFile.name)
             pack(unpackDir, outputFile)
         }
     }
@@ -201,7 +201,7 @@ class ClasspathManifestPatcher {
 
     private static void patchManifestOf(ResolvedDependency module, File unpackDir) {
         def classpathManifestFile = new File(unpackDir, "${module.moduleName}-classpath.properties")
-        def classpathManifest = loadProperties(classpathManifestFile)
+        def classpathManifest = GUtil.loadProperties(classpathManifestFile)
         classpathManifest.runtime = runtimeManifestOf(module)
         classpathManifestFile.text = classpathManifest.collect { "${it.key}=${it.value}" }.join('\n')
     }
@@ -222,12 +222,6 @@ class ClasspathManifestPatcher {
 
     private void pack(File baseDir, File destFile) {
         project.ant.zip(basedir: baseDir, destfile: destFile)
-    }
-
-    private static Properties loadProperties(File file) {
-        def classpathManifest = new Properties()
-        file.withInputStream { classpathManifest.load(it) }
-        classpathManifest
     }
 
     private static File mainArtifactFileOf(ResolvedDependency module) {
