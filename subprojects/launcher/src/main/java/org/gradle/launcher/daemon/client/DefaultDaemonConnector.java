@@ -207,7 +207,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
     private DaemonClientConnection connectToDaemon(DaemonConnectDetails daemon, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
         ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultDaemonConnector.class)
-            .start("Connecting to a Gradle Daemon", "Connecting to Daemon");
+            .start("Connecting to Gradle Daemon", "Connecting to Daemon");
         RemoteConnection<Message> connection;
         try {
             connection = connector.connect(daemon.getAddress()).create(Serializers.stateful(DaemonMessageSerializer.create()));
