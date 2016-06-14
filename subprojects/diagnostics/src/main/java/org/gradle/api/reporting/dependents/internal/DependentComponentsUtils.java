@@ -17,17 +17,36 @@
 package org.gradle.api.reporting.dependents.internal;
 
 import com.google.common.collect.Sets;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
+import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
 import java.util.Set;
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap;
 
 public class DependentComponentsUtils {
+
+    public static String getBuildScopedTerseName(ComponentSpecIdentifier id) {
+        return getProjectPrefix(id.getProjectPath()) + id.getProjectScopedName();
+    }
+
+    public static String getBuildScopedTerseName(LibraryBinaryIdentifier id) {
+        return getProjectPrefix(id.getProjectPath()) + id.getLibraryName() + Project.PATH_SEPARATOR + id.getVariant();
+    }
+
+    private static String getProjectPrefix(String projectPath) {
+        if (Project.PATH_SEPARATOR.equals(projectPath)) {
+            return "";
+        }
+        return projectPath + Project.PATH_SEPARATOR;
+    }
+
 
     public static Set<ComponentSpec> getAllComponents(ModelRegistry registry) {
         Set<ComponentSpec> components = Sets.newLinkedHashSet();

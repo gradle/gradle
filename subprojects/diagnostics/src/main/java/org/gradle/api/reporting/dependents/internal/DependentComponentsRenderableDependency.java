@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.dependents.internal;
 
 import com.google.common.collect.Sets;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
 import org.gradle.platform.base.ComponentSpec;
@@ -39,34 +38,20 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
 
     public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol, LinkedHashSet<DependentComponentsRenderableDependency> children) {
         ComponentSpecIdentifier id = internalProtocol.getIdentifier();
-        String name = "";
-        if (!Project.PATH_SEPARATOR.equals(id.getProjectPath())) {
-            name += id.getProjectPath() + Project.PATH_SEPARATOR;
-        }
-        name += id.getProjectScopedName();
-        boolean buildable = true;
-        boolean testSuite = false;
-        return new DependentComponentsRenderableDependency(
-            id,
-            name,
-            componentSpec.getDisplayName(),
-            buildable, testSuite,
-            children
-        );
+        String name = DependentComponentsUtils.getBuildScopedTerseName(id);
+        String description = componentSpec.getDisplayName();
+        boolean buildable = true, testSuite = false;
+        return new DependentComponentsRenderableDependency(id, name, description, buildable, testSuite, children);
     }
 
-    public static DependentComponentsRenderableDependency of(DependentBinariesResolvedResult binariesResolutionResult) {
-        LibraryBinaryIdentifier id = binariesResolutionResult.getId();
-        String name = "";
-        if (!Project.PATH_SEPARATOR.equals(id.getProjectPath())) {
-            name += id.getProjectPath() + Project.PATH_SEPARATOR;
-        }
-        name += id.getLibraryName() + Project.PATH_SEPARATOR + id.getVariant();
+    public static DependentComponentsRenderableDependency of(DependentBinariesResolvedResult resolvedResult) {
+        LibraryBinaryIdentifier id = resolvedResult.getId();
+        String name = DependentComponentsUtils.getBuildScopedTerseName(id);
         String description = id.getDisplayName();
-        boolean buildable = binariesResolutionResult.isBuildable();
-        boolean testSuite = binariesResolutionResult.isTestSuite();
+        boolean buildable = resolvedResult.isBuildable();
+        boolean testSuite = resolvedResult.isTestSuite();
         LinkedHashSet<DependentComponentsRenderableDependency> children = Sets.newLinkedHashSet();
-        for (DependentBinariesResolvedResult childResolutionResult : binariesResolutionResult.getChildren()) {
+        for (DependentBinariesResolvedResult childResolutionResult : resolvedResult.getChildren()) {
             children.add(of(childResolutionResult));
         }
         return new DependentComponentsRenderableDependency(id, name, description, buildable, testSuite, children);
