@@ -56,7 +56,7 @@ task java9IntegTest(type: Test) {
         // Attempts to run Gradle 2.8 on Java 9
         "HeterogeneousCompositeBuildCrossVersionSpec",
 
-        // Broken scala and twirl compilation, broken api jar construction
+        // Broken scala and twirl compilation
         "MixedPlayAndJvmLibraryProjectIntegrationTest",
         "PlayAppWithFailingTestsIntegrationTest",
         "PlayMultiProjectApplicationIntegrationTest",
@@ -114,7 +114,8 @@ task java9IntegTest(type: Test) {
         // Test compiles for Java 5
         "ToolingApiUnsupportedClientJvmCrossVersionSpec",
         "MavenConversionIntegrationTest",
-        "IncrementalJavaCompileIntegrationTest",
+
+
         "SampleTestNGIntegrationTest",
         "TestNGIntegrationTest",
 
