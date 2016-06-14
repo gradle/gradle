@@ -17,7 +17,6 @@ package org.gradle.testing.testng
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.TestNGExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Before
@@ -26,7 +25,8 @@ import org.junit.Test
 import spock.lang.Issue
 
 import static org.gradle.util.Matchers.containsLine
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.not
 
 class TestNGIntegrationTest extends AbstractIntegrationTest {
 
@@ -64,47 +64,6 @@ class TestNGIntegrationTest extends AbstractIntegrationTest {
         assert containsLine(result.getOutput(), "FINISH [Test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]");
         assert containsLine(result.getOutput(), "START [Test method unknownError(SomeTest)] [unknownError]");
         assert containsLine(result.getOutput(), "FINISH [Test method unknownError(SomeTest)] [unknownError] [AppException]");
-    }
-
-    @Test
-    void groovyJdk15Failing() {
-        executer.withTasks("test").runWithFailure().assertTestsFailed()
-
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.BadTest')
-        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
-    }
-
-    @Test
-    void groovyJdk15Passing() {
-        executer.withTasks("test").run()
-
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.OkTest')
-        result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
-    }
-
-    @Issue("GRADLE-1822")
-    @Test
-    void javaJdk15Failing() {
-        doJavaJdk15Failing("5.14.10")
-        doJavaJdk15Failing("6.3.1")
-    }
-
-    private void doJavaJdk15Failing(String testNGVersion) {
-        executer.withTasks("test").withArguments("-PtestNGVersion=$testNGVersion").runWithFailure().assertTestsFailed()
-
-        def result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite', 'org.gradle.TestWithBrokenMethodDependency')
-        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('java.lang.IllegalArgumentException: broken'))
-        result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('java.lang.RuntimeException: broken'))
-        result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestsSkipped('okTest')
-
-        def ngResult = new TestNGExecutionResult(testDirectory)
-        ngResult.testClass('org.gradle.TestWithBrokenSetup').assertConfigMethodFailed('setup')
-        ngResult.testClass('org.gradle.BrokenAfterSuite').assertConfigMethodFailed('cleanup')
-        ngResult.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('broken'))
-        ngResult.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestSkipped('okTest')
     }
 
     @Issue("GRADLE-1532")

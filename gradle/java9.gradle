@@ -116,9 +116,6 @@ task java9IntegTest(type: Test) {
         "MavenConversionIntegrationTest",
 
 
-        "SampleTestNGIntegrationTest",
-        "TestNGIntegrationTest",
-
         // Jetty version does not work on Java 9
         "JettyIntegrationSpec",
         "SamplesWebQuickstartIntegrationTest",
@@ -181,8 +178,22 @@ task java9IntegTest(type: Test) {
          */
         "BuildDashboardPluginIntegrationTest",
 
+        /*
+         Jacoco 0.7.7.201606060606 seems to work for Java 9. The test needs to
+         be fixed since the HTML report is a little bit different
+         */
         "JacocoPluginIntegrationTest",
+
+        /*
+         Caused by: java.lang.IllegalAccessException: class org.mozilla.javascript.MemberBox cannot access class sun.net.www.protocol.http.HttpURLConnection (in module java.base) because module java.base does not export sun.net.www.protocol.http to unnamed module @2afcc5b3
+            at jdk.internal.reflect.Reflection.throwIllegalAccessException(java.base@9-ea/Reflection.java:405)
+            at jdk.internal.reflect.Reflection.throwIllegalAccessException(java.base@9-ea/Reflection.java:396)
+            at jdk.internal.reflect.Reflection.ensureMemberAccess(java.base@9-ea/Reflection.java:98)
+            at org.mozilla.javascript.MemberBox.invoke(MemberBox.java:161)
+            for "can evaluate content"
+         */
         "EnvJsPluginIntegrationTest",
+
         "GradleRunnerSamplesEndUserIntegrationTest",
         "MultiRequestWorkerProcessIntegrationTest",
         "SingleRequestWorkerProcessIntegrationTest",
