@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.registry.DaemonDir
+import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import spock.lang.IgnoreIf
 
@@ -124,7 +125,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
-    void waitForStartupMessageToContain(buildNum = 0, String expected) {
+    void waitForLifecycleLogToContain(buildNum = 0, String expected) {
         run {
             poll(20) { assert builds[buildNum].standardOutput.contains(expected) }
         }
@@ -280,6 +281,20 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         stopped()
     }
 
+    def "stopping daemon that is building shows message"() {
+        when:
+        startBuild()
+
+        then:
+        waitForBuildToWait()
+
+        when:
+        stopDaemons()
+
+        then:
+        waitForLifecycleLogToContain(HandleStop.EXPIRATION_REASON)
+    }
+
     def "daemon stops after current build if registry is deleted"() {
         when:
         startBuild()
@@ -423,7 +438,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         startBuild(null, "UTF-8")
-        waitForStartupMessageToContain(1, "1 incompatible")
+        waitForLifecycleLogToContain(1, "1 incompatible")
         waitForBuildToWait()
 
         then:
