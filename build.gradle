@@ -222,12 +222,22 @@ subprojects {
 }
 
 configurations {
+    coreRuntime {
+        visible = false
+    }
     gradleKotlin {
         visible = false
     }
+    // Configuration used to resolve external modules before patching them with versions from core runtime
+    gradleKotlinRuntime {
+        visible = false
+        extendsFrom coreRuntime
+        extendsFrom gradleKotlin
+    }
+    // Combines the 'coreRuntime' with the patched external module jars
     runtime {
         visible = false
-        extendsFrom gradleKotlin
+        extendsFrom coreRuntime
     }
     gradlePlugins {
         visible = false
@@ -238,14 +248,30 @@ configurations {
     }
 }
 
+def patchedGradleKotlinDir = "$rootProject.buildDir/external/files"
+def patchedGradleKotlin = fileTree(patchedGradleKotlinDir) {
+    builtBy 'patchGradleKotlin'
+}
+
 dependencies {
-    runtime project(':launcher')
+    gradleKotlin 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
+    coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
-    gradleKotlin 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
+    runtime patchedGradleKotlin
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
+}
+
+task patchGradleKotlin(type: Copy) {
+    description 'Patches the classpath manifests of external modules such as gradle-script-kotlin to match the Gradle runtime configuration.'
+    from configurations.gradleKotlin
+    into patchedGradleKotlinDir
+    doLast {
+        new ClasspathManifestPatcher(rootProject, configurations.gradleKotlinRuntime, configurations.gradleKotlin)
+            .writePatchedFilesTo(destinationDir)
+    }
 }
 
 task verifyIsProductionBuildEnvironment << {
