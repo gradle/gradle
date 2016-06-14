@@ -133,12 +133,17 @@ task java9IntegTest(type: Test) {
         "IvyPublishHttpIntegTest",
         "IvyHttpPublishIntegrationTest",
 
-
         /* java.lang.RuntimeException: Annotation Processor Classpath is contaminated by Gradle ClassLoader
            at com.test.SimpleAnnotationProcessor.process(SimpleAnnotationProcessor.java:22)
-           for tests involving Annotatinon Processor
+           for tests involving Annotation Processor
         */
         "InProcessGroovyCompilerIntegrationTest",
+        "InProcessJavaCompilerIntegrationTest",
+        /*
+          "executesTestsInCorrectEnvironment"
+          gradle-worker.jar is part of the Classpath for the test.
+         */
+        "JUnitIntegrationTest",
 
         /*
         java.lang.reflect.InaccessibleObjectException: Cannot make a non-public member of class java.lang.reflect.AccessibleObject accessible
@@ -151,25 +156,31 @@ task java9IntegTest(type: Test) {
          */
         "InvokeDynamicGroovyCompilerSpec",
 
-        "InProcessJavaCompilerIntegrationTest",
-        "DaemonJavaCompilerIntegrationTest",
-        "EclipseClasspathIntegrationTest",
-        "EclipseIntegrationTest",
-        "IdeaJavaLanguageSettingsIntegrationTest",
-
         // Various problems, eg scala compile
         "UserGuideSamplesIntegrationTest",
 
-        // ??
+        /*
+         "compile only dependencies are not included in distribution":
+         error: error reading ...1.0/compile-1.0.jar; zip END header not found
+         */
         "ApplicationPluginIntegrationTest",
-        "SamplesJavaMultiProjectIntegrationTest",
-        "JavaCompileIntegrationTest",
-        "BuildDashboardPluginIntegrationTest",
+        /*
+        "resolved classpath does not include transitive compile-scoped maven dependencies of local components"
+        "resolved classpath includes transitive api-scoped dependencies of maven library dependency"
+        error: zip END header not found
+         */
         "JavaLanguageExternalDependencyResolutionIntegrationTest",
-        "JavadocIntegrationTest",
-        "JUnitConsoleLoggingIntegrationTest",
-        "JUnitIntegrationTest",
-        "TestNGConsoleLoggingIntegrationTest",
+
+        /*
+         Changes in Javadoc generation
+         */
+        "SamplesJavaMultiProjectIntegrationTest",
+
+        /*
+         * "dashboard includes JaCoCo reports" fails since Jacoco fails
+         */
+        "BuildDashboardPluginIntegrationTest",
+
         "JacocoPluginIntegrationTest",
         "EnvJsPluginIntegrationTest",
         "GradleRunnerSamplesEndUserIntegrationTest",

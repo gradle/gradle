@@ -51,10 +51,10 @@ org.gradle.JUnit4Test > badTest FAILED
         then:
         outputContains("""
 badTest FAILED
-    java.lang.RuntimeException: bad
-        at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:44)
-        at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)
-        """)
+    java.lang.RuntimeException: bad""")
+        outputContains("""
+at org.gradle.JUnit4Test.beBad(JUnit4Test.groovy:44)
+        at org.gradle.JUnit4Test.badTest(JUnit4Test.groovy:28)""")
 
         outputContains("ignoredTest SKIPPED")
 
