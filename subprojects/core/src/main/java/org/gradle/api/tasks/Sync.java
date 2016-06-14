@@ -16,17 +16,32 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.copy.*;
-import org.gradle.internal.reflect.Instantiator;
-
 import java.io.File;
+
+import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.copy.CopyAction;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.file.copy.DefaultCopySpec;
+import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
+import org.gradle.api.internal.file.copy.FileCopyAction;
+import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
+import org.gradle.internal.reflect.Instantiator;
 
 /**
  * Synchronises the contents of a destination directory with some source directories and files.
  */
 public class Sync extends AbstractCopyTask {
+
+    private final CopySpecInternal preserveInDestination;
+
+    public Sync() {
+        Instantiator instantiator = getInstantiator();
+        FileResolver fileResolver = getFileResolver();
+        preserveInDestination = instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
+    }
 
     @Override
     protected CopyAction createCopyAction() {
@@ -34,7 +49,7 @@ public class Sync extends AbstractCopyTask {
         if (destinationDir == null) {
             throw new InvalidUserDataException("No copy destination directory has been specified, use 'into' to specify a target directory.");
         }
-        return new SyncCopyActionDecorator(destinationDir, new FileCopyAction(getFileLookup().getFileResolver(destinationDir)));
+        return new SyncCopyActionDecorator(destinationDir, new FileCopyAction(getFileLookup().getFileResolver(destinationDir)), preserveInDestination);
     }
 
     @Override
@@ -67,6 +82,29 @@ public class Sync extends AbstractCopyTask {
      */
     public void setDestinationDir(File destinationDir) {
         into(destinationDir);
+    }
+
+    /**
+    * Returns the CopySpec that defines what files to preserve in {@link #getDestinationDir()}
+    *
+    * @return    the CopySpec for files to preserve
+    *
+    * @see #getDestinationDir()
+    */
+    @Internal
+    public CopySpec getPreserve() {
+        return preserveInDestination;
+    }
+
+    /**
+    * Configures the patterns to preserve in the destination directory.
+    *
+    * @param action
+    *
+    * @see #getDestinationDir()
+    */
+    public void preserve(Action<? super CopySpec> action) {
+        action.execute(preserveInDestination);
     }
 
 }

@@ -19,6 +19,7 @@ import org.junit.Test
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 
 class SyncTaskIntegrationTest extends AbstractIntegrationTest {
+
     @Test
     public void copiesFilesAndRemovesExtraFilesFromDestDir() {
         testFile('source').create {
@@ -50,6 +51,47 @@ class SyncTaskIntegrationTest extends AbstractIntegrationTest {
                 'dir1/file1.txt',
                 'dir2/subdir/file2.txt',
                 'dir2/file3.txt'
+        )
+    }
+
+    @Test
+    public void preserveInDestinationKeepsSpecifiedFilesInDestDir() {
+        testFile('source').create {
+            dir1 { file 'file1.txt' }
+            dir2 {
+                subdir { file 'file2.txt' }
+                file 'file3.txt'
+            }
+        }
+        testFile('dest').create {
+            file 'extra.txt'
+            extraDir { file 'extra.txt' }
+            dir1 {
+                file 'extra.txt'
+                extraDir { file 'extra.txt' }
+            }
+        }
+
+        testFile('build.gradle') << '''
+            task sync(type: Sync) {
+                into 'dest'
+                from 'source'
+                preserve {
+                  include 'extraDir/**'
+                  include 'dir1/**'
+                  exclude 'dir1/extra.txt'
+                }
+            }
+'''
+
+        inTestDirectory().withTasks('sync').withArgument("-i").run()
+
+        testFile('dest').assertHasDescendants(
+            'dir1/file1.txt',
+            'dir2/subdir/file2.txt',
+            'dir2/file3.txt',
+            'extraDir/extra.txt',
+            'dir1/extraDir/extra.txt',
         )
     }
 }
