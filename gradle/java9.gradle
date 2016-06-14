@@ -5,19 +5,29 @@ String jdkVarName = 'JAVA_9'
 
 task java9IntegTest(type: Test) {
     excludes = [
-        // Broken api jar construction due to ASM not working with Java 9 bytecode
-        "MixedLegacyAndComponentJvmPluginIntegrationTest",
+        /*
+         "changing method body of API class should not trigger recompilation of the consuming library when API is not declared" and
+         "changing method body of API class should not trigger recompilation of the consuming library when API is declared" are failing -
+          need to investigate
+          */
         "JavaCompilationAgainstApiJarIntegrationTest",
+
+        /*
+        "can build binary with sources in conventional location"
+        "can configure output directories for classes and resources"
+        "generated binary includes compiled classes from all language source sets"
+        "multiple targets should produce in the correct bytecode"
+        are failing - need to investigate
+         */
         "JavaLanguageIntegrationTest",
+
+        // "targetplatforms sample creates a binary specific source set" tries to compile for Java 5 - need to update test, samples and userguide
         "SampleJavaLanguageIntegrationTest",
-        "CustomComponentJarBinariesIntegrationTest",
-        "JarBinaryTypeVariantsTest",
-        "JavaJvmAssemblyIntegrationTest",
-        "JavaLanguageCustomLibraryDependencyResolutionIntegrationTest",
-        "JavaLanguageDependencyResolutionIntegrationTest",
-        "JavaLanguageIncrementalBuildIntegrationTest",
-        "MixedNativeAndJvmProjectIntegrationTest",
-        "JavaCompilationAgainstDependenciesIntegrationTest",
+
+        // Test detection fails as ASM does not understand Java 9 bytecode
+        "JUnitComponentUnderTestIntegrationTest",
+        "JUnitIncrementalTestExecutionTest",
+        "JUnitStandaloneTestExecutionIntegrationTest",
 
         // Cannot obtain Jvm arguments via java.lang.management.ManagementFactory.runtimeMXBean.inputArguments module java.management does not export sun.management to unnamed module @6427ecb
         "BuildEnvironmentModelCrossVersionSpec",  // "informs about java args as in the build script"
@@ -32,11 +42,14 @@ task java9IntegTest(type: Test) {
         "PmdPluginDependenciesIntegrationTest",
         "PmdPluginVersionIntegrationTest",
 
+        // Codenarc does not work on Java 9
+        "IsolatedAntBuilderMemoryLeakIntegrationTest",
 
         // Osgi is broken with a NPE in Processor - need to investigate
         "OsgiPluginIntegrationSpec",
 
         // Old Gradle cannot run against Java 9
+        // class org.gradle.internal.reflect.DirectInstantiator cannot access class com.sun.tools.javac.api.JavacTool (in module jdk.compiler) because module jdk.compiler does not export com.sun.tools.javac.api to unnamed module @4030a92
         "org/gradle/integtests/tooling/r22/BuildActionCrossVersionSpec", // current -> 2.13
         "org/gradle/integtests/tooling/r25/BuildProgressCrossVersionSpec",
         "org/gradle/integtests/tooling/r25/ContinuousBuildCancellationCrossVersionSpec", // current -> 2.13
@@ -52,10 +65,10 @@ task java9IntegTest(type: Test) {
         "JavaProjectCrossVersionIntegrationTest", // previous = 2.13 or older
         "TaskSubclassingBinaryCompatibilityCrossVersionSpec", // previous = 2.13 or older
         "TaskUpToDateCrossVersionIntegrationTest", // previous = 2.13 or older
-
-        // Compile against Java 9 in older Gradle version
-        // class org.gradle.internal.reflect.DirectInstantiator cannot access class com.sun.tools.javac.api.JavacTool (in module jdk.compiler) because module jdk.compiler does not export com.sun.tools.javac.api to unnamed module @4030a92
         "TestFilteringCrossVersionSpec", // current -> 2.13
+        "DependencySubstitutionGradleConnectionCrossVersionSpec", // current -> 2.14
+        // Attempts to run Gradle 2.8 on Java 9
+        "HeterogeneousCompositeBuildCrossVersionSpec",
 
         // Broken scala and twirl compilation, broken api jar construction
         "MixedPlayAndJvmLibraryProjectIntegrationTest",
@@ -129,20 +142,10 @@ task java9IntegTest(type: Test) {
         "IvyS3UploadArchivesIntegrationTest",
         "MavenPublishS3IntegrationTest",
 
-        // Test detection fails as ASM does not understand Java 9 bytecode
-        "JUnitComponentUnderTestIntegrationTest",
-        "JUnitIncrementalTestExecutionTest",
-        "JUnitStandaloneTestExecutionIntegrationTest",
-
         // Test assumes there is a tools.jar
         "IvyPublishHttpIntegTest",
         "IvyHttpPublishIntegrationTest",
 
-        // Codenarc does not work on Java 9
-        "IsolatedAntBuilderMemoryLeakIntegrationTest",
-
-        // Attempts to run Gradle 2.8 on Java 9
-        "HeterogeneousCompositeBuildCrossVersionSpec",
 
         // Affected by hack in JavaPluginConvention to force source and target compatibility to Java 8
         "ToolingApiEclipseModelCrossVersionSpec",
