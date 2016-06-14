@@ -49,6 +49,7 @@ public class DaemonParameters {
     private boolean hasJvmArgs;
     private boolean foreground;
     private boolean stop;
+    private boolean status;
     private boolean interactive = System.console() != null || Boolean.getBoolean(INTERACTIVE_TOGGLE);
     private JavaInfo jvm = Jvm.current();
 
@@ -173,5 +174,13 @@ public class DaemonParameters {
 
     public void setStop(boolean stop) {
         this.stop = stop;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

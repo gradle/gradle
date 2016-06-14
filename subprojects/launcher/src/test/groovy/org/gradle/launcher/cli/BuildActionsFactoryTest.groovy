@@ -106,6 +106,14 @@ class BuildActionsFactoryTest extends Specification {
         isInProcess action
     }
 
+    def "shows status of daemons"() {
+        when:
+        def action = convert('--status')
+
+        then:
+        action instanceof ReportDaemonStatusAction
+    }
+
     def "stops daemon"() {
         when:
         def action = convert('--stop')
