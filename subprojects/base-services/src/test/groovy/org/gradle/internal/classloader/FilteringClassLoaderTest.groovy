@@ -15,6 +15,8 @@
  */
 package org.gradle.internal.classloader
 
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Test
 import org.junit.runners.BlockJUnit4ClassRunner
@@ -39,6 +41,7 @@ class FilteringClassLoaderTest extends Specification {
         canSeePackage('java.lang')
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     void passesThroughSystemResources() {
         expect:
         canSeeResource('com/sun/jndi/ldap/jndiprovider.properties')
