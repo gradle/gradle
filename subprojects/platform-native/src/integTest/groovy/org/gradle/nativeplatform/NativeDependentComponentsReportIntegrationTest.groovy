@@ -243,9 +243,9 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         failure.assertHasDescription "Execution failed for task ':dependentComponents'."
         failure.error.contains '''
             Circular dependency between the following binaries:
-            shared library 'lib:sharedLibrary'
-            \\--- shared library 'util:sharedLibrary'
-                 \\--- shared library 'lib:sharedLibrary' (*)
+            lib:sharedLibrary
+            \\--- util:sharedLibrary
+                 \\--- lib:sharedLibrary (*)
 
             (*) - details omitted (listed previously)
         '''.stripIndent().trim()

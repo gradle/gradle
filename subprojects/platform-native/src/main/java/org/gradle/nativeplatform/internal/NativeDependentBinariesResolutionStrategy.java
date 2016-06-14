@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.api.reporting.dependents.internal.DependentComponentsUtils;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
@@ -191,7 +192,8 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         GraphNodeRenderer<NativeBinarySpecInternal> nodeRenderer = new GraphNodeRenderer<NativeBinarySpecInternal>() {
             @Override
             public void renderTo(NativeBinarySpecInternal node, StyledTextOutput output) {
-                output.withStyle(StyledTextOutput.Style.Identifier).text(node);
+                String name = DependentComponentsUtils.getBuildScopedTerseName(node.getId());
+                output.withStyle(StyledTextOutput.Style.Identifier).text(name);
             }
         };
         DirectedGraph<NativeBinarySpecInternal, Object> directedGraph = new DirectedGraph<NativeBinarySpecInternal, Object>() {
