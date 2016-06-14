@@ -15,11 +15,6 @@ task java9IntegTest(type: Test) {
         // "targetplatforms sample creates a binary specific source set" tries to compile for Java 5 - need to update test, samples and userguide
         "SampleJavaLanguageIntegrationTest",
 
-        // Test detection fails as ASM does not understand Java 9 bytecode
-        "JUnitComponentUnderTestIntegrationTest",
-        "JUnitIncrementalTestExecutionTest",
-        "JUnitStandaloneTestExecutionIntegrationTest",
-
         // Cannot obtain Jvm arguments via java.lang.management.ManagementFactory.runtimeMXBean.inputArguments module java.management does not export sun.management to unnamed module @6427ecb
         "BuildEnvironmentModelCrossVersionSpec",  // "informs about java args as in the build script"
         "JavaConfigurabilityCrossVersionSpec", // "customized java args are reflected in the inputArguments and the build model", "tooling api provided jvm args take precedence over gradle.properties"
@@ -33,7 +28,7 @@ task java9IntegTest(type: Test) {
         "PmdPluginDependenciesIntegrationTest",
         "PmdPluginVersionIntegrationTest",
 
-        // Codenarc does not work on Java 9
+        // Codenarc does not work on Java 9 - therefore it will not fail with PermGenSpaceError
         "IsolatedAntBuilderMemoryLeakIntegrationTest",
 
         // Osgi is broken with a NPE in Processor - need to investigate

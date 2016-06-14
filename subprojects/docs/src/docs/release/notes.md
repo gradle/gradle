@@ -139,6 +139,13 @@ The `EclipseProject` model was supplemented with a set of new features:
 
 With these features Tooling API clients can provide a more complete IDE integration. Buildship will make use of them very soon.
 
+### Initial Java 9 support
+
+Gradle 3.0 contains initial support for Java 9. This means that running Gradle on Java 9 and compiling,
+testing and running Java 9 applications is supported out of the box.
+
+CAVEAT: Your mileage my vary. If you run into any problems please report those on the forums.
+
 ### Upgrade of BND library used by OSGi plugin
 
 The OSGi plugin now uses the version 3.2.0 of the BND library.
