@@ -180,11 +180,11 @@ class ClasspathManifestPatcher {
 
     def writePatchedFilesTo(File outputDir) {
         resolveModules().each { module ->
-            def sourceFile = mainArtifactFileOf(module)
-            def outputFile = new File(outputDir, sourceFile.name)
-            def unpackDir = unpack(sourceFile)
+            def originalFile = mainArtifactFileOf(module)
+            def patchedFile = new File(outputDir, originalFile.name)
+            def unpackDir = unpack(originalFile)
             patchManifestOf(module, unpackDir)
-            pack(unpackDir, outputFile)
+            pack(unpackDir, patchedFile)
         }
     }
 
