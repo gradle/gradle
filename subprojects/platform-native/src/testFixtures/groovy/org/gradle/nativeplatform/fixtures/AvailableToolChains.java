@@ -47,7 +47,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.*;
+import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2012;
+import static org.gradle.nativeplatform.fixtures.VisualStudioVersion.VISUALSTUDIO_2013;
 
 public class AvailableToolChains {
     private static List<ToolChainCandidate> toolChains;
@@ -129,9 +130,11 @@ public class AvailableToolChains {
         List<ToolChainCandidate> toolChains = Lists.newArrayList();
 
         for (VisualStudioLocator.SearchResult searchResult : searchResults) {
-            VisualStudioInstall install = searchResult.getVisualStudio();
-            if (isTestableVisualStudioVersion(install.getVersion()) && searchResult.isAvailable()) {
-                toolChains.add(new InstalledVisualCpp(getVisualStudioVersion(install.getVersion())).withInstall(install));
+            if (searchResult.isAvailable()) {
+                VisualStudioInstall install = searchResult.getVisualStudio();
+                if (isTestableVisualStudioVersion(install.getVersion())) {
+                    toolChains.add(new InstalledVisualCpp(getVisualStudioVersion(install.getVersion())).withInstall(install));
+                }
             }
         }
 
