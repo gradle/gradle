@@ -176,9 +176,6 @@ task java9IntegTest(type: Test) {
 
 task java9Test(type: Test) {
     excludes = [
-        // Needs to be reworked to test pre java 9 and java 9 layouts
-        "JvmTest",
-
         // ??
         "FilteringClassLoaderTest",
         "DefaultJavaToolChainTest",

@@ -93,7 +93,11 @@ class JvmTest extends Specification {
         jvm.javaExecutable == software.file('jdk/bin/java.exe')
         jvm.javacExecutable == software.file('jdk/bin/javac.exe')
         jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
-        jvm.jre.homeDir == software.file('jdk/jre')
+        if (jvm.javaVersion.isJava9Compatible()) {
+            jvm.jre == null
+        } else {
+            jvm.jre.homeDir == software.file('jdk/jre')
+        }
         jvm.standaloneJre == null
     }
 
@@ -124,7 +128,11 @@ class JvmTest extends Specification {
         jvm.javaExecutable == software.file('jdk/bin/java.exe')
         jvm.javacExecutable == software.file('jdk/bin/javac.exe')
         jvm.javadocExecutable == software.file('jdk/bin/javadoc.exe')
-        jvm.jre.homeDir == software.file('jdk/jre')
+        if (jvm.javaVersion.isJava9Compatible()) {
+            jvm.jre == null
+        } else {
+            jvm.jre.homeDir == software.file('jdk/jre')
+        }
         jvm.standaloneJre == null
     }
 
@@ -180,8 +188,13 @@ class JvmTest extends Specification {
         jvm.javaExecutable == software.file('jre/bin/java.exe')
         jvm.javacExecutable == new File('javac.exe')
         jvm.javadocExecutable == new File('javadoc.exe')
-        jvm.jre.homeDir == software.file('jre')
-        jvm.standaloneJre.homeDir == software.file('jre')
+        if (jvm.javaVersion.isJava9Compatible()) {
+            jvm.jre == null
+            jvm.standaloneJre == null
+        } else {
+            jvm.jre.homeDir == software.file('jre')
+            jvm.standaloneJre.homeDir == software.file('jre')
+        }
     }
 
     def "locates JDK and JRE installs when java.home points to a typical standalone JRE installation on Windows"() {
