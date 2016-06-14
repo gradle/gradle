@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -211,8 +210,6 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         """.stripIndent()
     }
 
-    // TODO: This may or may not make sense (we shouldn't fail any worse than building would)
-    @NotYetImplemented
     def "circular dependencies are handled gracefully"() {
         buildFile << """
             apply plugin: 'cpp'
@@ -240,11 +237,18 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         """.stripIndent()
 
         when:
-        succeeds("dependentComponents")
+        fails 'dependentComponents'
 
         then:
-        false // TODO: once this works, assert the correct output.
-        // result.output.contains("Foo")
+        failure.assertHasDescription "Execution failed for task ':dependentComponents'."
+        failure.error.contains '''
+            Circular dependency between the following binaries:
+            shared library 'lib:sharedLibrary'
+            \\--- shared library 'util:sharedLibrary'
+                 \\--- shared library 'lib:sharedLibrary' (*)
+
+            (*) - details omitted (listed previously)
+        '''.stripIndent().trim()
     }
 
     def "report renders variant binaries"() {

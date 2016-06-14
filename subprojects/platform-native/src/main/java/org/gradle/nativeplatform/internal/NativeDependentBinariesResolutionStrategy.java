@@ -19,12 +19,17 @@ package org.gradle.nativeplatform.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.internal.graph.DirectedGraph;
+import org.gradle.internal.graph.DirectedGraphRenderer;
+import org.gradle.internal.graph.GraphNodeRenderer;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
 import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -37,9 +42,12 @@ import org.gradle.platform.base.internal.dependents.AbstractDependentBinariesRes
 import org.gradle.platform.base.internal.dependents.DefaultDependentBinariesResolvedResult;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
 
+import java.io.StringWriter;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.emptyToNull;
@@ -49,6 +57,39 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     private static class State {
         private final Map<String, NativeBinarySpecInternal> binaries = Maps.newLinkedHashMap();
         private final Map<String, List<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
+
+        private final Map<String, List<NativeBinarySpecInternal>> dependents = Maps.newHashMap();
+
+        List<NativeBinarySpecInternal> getDependents(NativeBinarySpecInternal target) {
+            String key = keyOf(target);
+            List<NativeBinarySpecInternal> result = dependents.get(key);
+            if (result == null) {
+                result = Lists.newArrayList();
+                for (Map.Entry<String, List<NativeBinarySpecInternal>> entry : dependencies.entrySet()) {
+                    if (entry.getValue().contains(target)) {
+                        result.add(binaries.get(entry.getKey()));
+                    }
+                }
+                dependents.put(key, result);
+            }
+            return result;
+        }
+
+        private String keyOf(BinarySpecInternal binary) {
+            LibraryBinaryIdentifier id = binary.getId();
+            return keyOf(id.getProjectPath(), id.getLibraryName(), id.getVariant());
+        }
+
+        private String keyOf(String project, String component, String binary) {
+            String key = "";
+            if (emptyToNull(project) == null) {
+                key += Project.PATH_SEPARATOR;
+            } else {
+                key += project;
+            }
+            key += Project.PATH_SEPARATOR + component + Project.PATH_SEPARATOR + binary;
+            return key;
+        }
     }
 
     private final ProjectRegistry<ProjectInternal> projectRegistry;
@@ -68,11 +109,14 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         if (!(target instanceof NativeBinarySpecInternal)) {
             return null;
         }
-        NativeBinarySpecInternal targetBinary = (NativeBinarySpecInternal) target;
-        State state = buildState();
-        return buildResolvedResult(targetBinary, state);
+        return resolveDependentBinaries((NativeBinarySpecInternal) target);
     }
 
+    private List<DependentBinariesResolvedResult> resolveDependentBinaries(NativeBinarySpecInternal target) {
+        State state = buildState();
+        Stack<NativeBinarySpecInternal> stack = new Stack<NativeBinarySpecInternal>();
+        return buildResolvedResult(target, state, stack);
+    }
 
     private State buildState() {
         State state = new State();
@@ -83,11 +127,11 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
                 ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(project.getPath());
                 ModelMap<NativeComponentSpec> components = modelRegistry.realize("components", ModelTypes.modelMap(NativeComponentSpec.class));
                 for (NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
-                    state.binaries.put(stateKeyOf(binary), binary);
+                    state.binaries.put(state.keyOf(binary), binary);
                 }
             }
             for (NativeBinarySpecInternal extraBinary : getExtraBinaries(project, projectModelResolver)) {
-                state.binaries.put(stateKeyOf(extraBinary), extraBinary);
+                state.binaries.put(state.keyOf(extraBinary), extraBinary);
             }
         }
 
@@ -128,39 +172,41 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         return binaries;
     }
 
-    private String stateKeyOf(BinarySpecInternal binary) {
-        LibraryBinaryIdentifier id = binary.getId();
-        return stateKeyOf(id.getProjectPath(), id.getLibraryName(), id.getVariant());
-    }
-
-    private String stateKeyOf(String project, String component, String binary) {
-        String key = "";
-        if (emptyToNull(project) == null) {
-            key += Project.PATH_SEPARATOR;
-        } else {
-            key += project;
+    private List<DependentBinariesResolvedResult> buildResolvedResult(NativeBinarySpecInternal target, State state, Stack<NativeBinarySpecInternal> stack) {
+        if (stack.contains(target)) {
+            onCircularDependencies(state, stack, target);
         }
-        key += Project.PATH_SEPARATOR + component + Project.PATH_SEPARATOR + binary;
-        return key;
-    }
-
-    private List<DependentBinariesResolvedResult> buildResolvedResult(NativeBinarySpecInternal target, State state) {
+        stack.push(target);
         List<DependentBinariesResolvedResult> result = Lists.newArrayList();
-        List<NativeBinarySpecInternal> dependents = getDependents(target, state);
+        List<NativeBinarySpecInternal> dependents = state.getDependents(target);
         for (NativeBinarySpecInternal dependent : dependents) {
-            List<DependentBinariesResolvedResult> children = buildResolvedResult(dependent, state);
+            List<DependentBinariesResolvedResult> children = buildResolvedResult(dependent, state, stack);
             result.add(new DefaultDependentBinariesResolvedResult(dependent.getId(), dependent.isBuildable(), isTestSuite(dependent), children));
         }
+        stack.pop();
         return result;
     }
 
-    private List<NativeBinarySpecInternal> getDependents(NativeBinarySpecInternal target, State state) {
-        List<NativeBinarySpecInternal> dependents = Lists.newArrayList();
-        for (Map.Entry<String, List<NativeBinarySpecInternal>> entry : state.dependencies.entrySet()) {
-            if (entry.getValue().contains(target)) {
-                dependents.add(state.binaries.get(entry.getKey()));
+    private void onCircularDependencies(final State state, final Stack<NativeBinarySpecInternal> stack, NativeBinarySpecInternal target) {
+        GraphNodeRenderer<NativeBinarySpecInternal> nodeRenderer = new GraphNodeRenderer<NativeBinarySpecInternal>() {
+            @Override
+            public void renderTo(NativeBinarySpecInternal node, StyledTextOutput output) {
+                output.withStyle(StyledTextOutput.Style.Identifier).text(node);
             }
-        }
-        return dependents;
+        };
+        DirectedGraph<NativeBinarySpecInternal, Object> directedGraph = new DirectedGraph<NativeBinarySpecInternal, Object>() {
+            @Override
+            public void getNodeValues(NativeBinarySpecInternal node, Collection<? super Object> values, Collection<? super NativeBinarySpecInternal> connectedNodes) {
+                for (NativeBinarySpecInternal binary : stack) {
+                    if (state.getDependents(node).contains(binary)) {
+                        connectedNodes.add(binary);
+                    }
+                }
+            }
+        };
+        DirectedGraphRenderer<NativeBinarySpecInternal> graphRenderer = new DirectedGraphRenderer<NativeBinarySpecInternal>(nodeRenderer, directedGraph);
+        StringWriter writer = new StringWriter();
+        graphRenderer.renderTo(target, writer);
+        throw new CircularReferenceException(String.format("Circular dependency between the following binaries:%n%s", writer.toString()));
     }
 }
