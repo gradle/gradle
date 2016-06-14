@@ -6,10 +6,29 @@ import org.jetbrains.kotlin.script.GetScriptDependencies
 import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
 import org.jetbrains.kotlin.script.SimpleUntypedAst
 import org.jetbrains.kotlin.script.parseAnnotation
+import java.io.File
 
 class GetGradleKotlinScriptDependencies : GetScriptDependencies {
 
     override operator fun invoke(annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? {
+        return when (context) {
+            is ClassPathRegistry -> makeDependencies(annotations, KotlinScriptDefinitionProvider.selectGradleApiJars(context).map { it.absolutePath })
+            is File -> {
+                val libDir = File(context, "lib").let { if (it.exists() && it.isDirectory) it else null }
+                val classpath = libDir?.listFiles { file -> Companion.defaultDependenciesJarsPrefixes.any { file.name.startsWith(it) } }
+                if (classpath == null || classpath.size < defaultDependenciesJarsPrefixes.size) {
+                    // log
+                    null
+                }
+                else {
+                    makeDependencies(annotations, classpath.map { it.absolutePath })
+                }
+            }
+            else -> null
+        }
+    }
+
+    private fun makeDependencies(annotations: Iterable<KtAnnotationEntry>, defaultClasspath: Iterable<String>): KotlinScriptExternalDependencies {
         val anns = annotations.map { parseAnnotation(it) }.filter { it.name == dependsOn::class.simpleName }
         val cp = anns.flatMap {
             it.value.mapNotNull {
@@ -19,13 +38,9 @@ class GetGradleKotlinScriptDependencies : GetScriptDependencies {
                 }
             }
         }
-        return when (context) {
-            is ClassPathRegistry ->
-                object : KotlinScriptExternalDependencies {
-                    override val classpath = KotlinScriptDefinitionProvider.selectGradleApiJars(context).map { it.absolutePath } + cp
-                    override val imports = implicitImports
-                }
-            else -> null
+        return object : KotlinScriptExternalDependencies {
+            override val classpath = defaultClasspath + cp
+            override val imports = implicitImports
         }
     }
 
@@ -34,6 +49,13 @@ class GetGradleKotlinScriptDependencies : GetScriptDependencies {
             "org.gradle.script.lang.kotlin.support.depends",
             "org.gradle.api.plugins.*",
             "org.gradle.script.lang.kotlin.*")
+
+        val defaultDependenciesJarsPrefixes = listOf(
+                "kotlin-stdlib-",
+                "kotlin-reflect-",
+                "kotlin-runtime-",
+                "ant-",
+                "gradle-")
     }
 }
 
