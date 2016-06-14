@@ -134,12 +134,23 @@ task java9IntegTest(type: Test) {
         "IvyHttpPublishIntegrationTest",
 
 
-        // Affected by hack in JavaPluginConvention to force source and target compatibility to Java 8
-        "ToolingApiEclipseModelCrossVersionSpec",
-        "CommandLineJavaCompilerIntegrationTest",
+        /* java.lang.RuntimeException: Annotation Processor Classpath is contaminated by Gradle ClassLoader
+           at com.test.SimpleAnnotationProcessor.process(SimpleAnnotationProcessor.java:22)
+           for tests involving Annotatinon Processor
+        */
         "InProcessGroovyCompilerIntegrationTest",
+
+        /*
+        java.lang.reflect.InaccessibleObjectException: Cannot make a non-public member of class java.lang.reflect.AccessibleObject accessible
+        at jdk.internal.reflect.Reflection.throwInaccessibleObjectException(java.base@9-ea/Reflection.java:414)
+        for AST tests
+         and
+        java.lang.RuntimeException: Annotation Processor Classpath is contaminated by Gradle ClassLoader
+	        at com.test.SimpleAnnotationProcessor.process(SimpleAnnotationProcessor.java:22)
+	     for AnnotationProcessorTest
+         */
         "InvokeDynamicGroovyCompilerSpec",
-        "DaemonGroovyCompilerIntegrationTest",
+
         "InProcessJavaCompilerIntegrationTest",
         "DaemonJavaCompilerIntegrationTest",
         "EclipseClasspathIntegrationTest",
