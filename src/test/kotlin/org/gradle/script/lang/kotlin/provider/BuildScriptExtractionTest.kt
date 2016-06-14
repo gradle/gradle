@@ -34,22 +34,19 @@ class BuildScriptExtractionTest {
     fun `given non top-level buildscript it returns null`() {
         // as we can't currently know if it's a legit call to another similarly named
         // function in a different context
-        assertNull(
-            extractBuildScriptFrom("foo { buildscript {} }"))
+        assertNoBuildScript("foo { buildscript {} }")
     }
 
     @Test
     fun `given top-level buildscript with typo it returns null`() {
-        assertNull(
-            extractBuildScriptFrom("buildscripto {}"))
+        assertNoBuildScript("buildscripto {}")
     }
 
     @Test
     fun `given top-level buildscript reference it returns null`() {
-        assertNull(
-            extractBuildScriptFrom("""
-                val a = buildscript
-                a.dependencies {}"""))
+        assertNoBuildScript("""
+            val a = buildscript
+            a.dependencies {}""")
     }
 
     @Test
@@ -61,26 +58,26 @@ class BuildScriptExtractionTest {
 
     @Test
     fun `given no buildscript it returns null`() {
-        assertNull(
-            extractBuildScriptFrom("dependencies {}"))
+        assertNoBuildScript("dependencies {}")
     }
 
     @Test
     fun `given an empty script it returns null`() {
-        assertNull(
-            extractBuildScriptFrom(""))
+        assertNoBuildScript("")
     }
 
     @Test
     fun `given line commented buildscript it returns null`() {
-        assertNull(
-            extractBuildScriptFrom("// no buildscript {} here"))
+        assertNoBuildScript("// no buildscript {} here")
     }
 
     @Test
     fun `given block commented buildscript it returns null`() {
-        assertNull(
-            extractBuildScriptFrom("/* /* no */ buildscript {} here either */"))
+        assertNoBuildScript("/* /* no */ buildscript {} here either */")
+    }
+
+    private fun assertNoBuildScript(script: String) {
+        assertNull(extractBuildScriptFrom(script))
     }
 }
 
