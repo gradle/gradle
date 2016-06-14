@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Issue
@@ -118,5 +119,54 @@ test {
         result.testClass('org.gradle.factory.FactoryTest').assertStdout(containsString('TestingFirst'))
         result.testClass('org.gradle.factory.FactoryTest').assertStdout(containsString('TestingSecond'))
         result.testClass('org.gradle.factory.FactoryTest').assertStdout(not(containsString('Default test name')))
+    }
+
+    @Test
+    @Issue("GRADLE-3315")
+    @Ignore // Not fixed yet.
+    void picksUpChanges() {
+        testDirectory.file('src/test/java/SomeTest.java') << """
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+public class SomeTest {
+	@Test(invocationCount = 2, threadPoolSize = 2)
+	public void someTest() {
+		Assert.assertTrue(true);
+	}
+}
+"""
+
+        testDirectory.file("build.gradle") << """
+apply plugin: "java"
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+	testCompile 'org.testng:testng:6.3.1'
+}
+
+test {
+ 	useTestNG()
+}
+
+"""
+        executer.withTasks("test").run()
+
+        testDirectory.file('src/test/java/SomeTest.java') << """
+import org.testng.Assert;
+import org.testng.annotations.Test;
+
+public class SomeTest {
+	@Test(invocationCount = 2, threadPoolSize = 2)
+	public void someTest() {
+		Assert.assertTrue(false);
+	}
+}
+"""
+        executer.withTasks("test").runWithFailure().assertTestsFailed()
     }
 }
