@@ -18,7 +18,6 @@ package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.loggerFor
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.BUILDSCRIPT_PROTOTYPE
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.scriptDefinitionFor
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.selectGradleApiJars
@@ -34,6 +33,7 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.DefaultClassPath
 
 import java.io.File
+
 import java.lang.reflect.InvocationTargetException
 
 class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : ScriptPluginFactory {
@@ -43,9 +43,7 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
     override fun create(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
                         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
                         topLevelScript: Boolean): ScriptPlugin =
-        KotlinScriptPlugin(
-            scriptSource,
-            compile(scriptSource, scriptHandler as ScriptHandlerInternal, targetScope))
+        KotlinScriptPlugin(scriptSource, compile(scriptSource, scriptHandler as ScriptHandlerInternal, targetScope))
 
     private fun compile(scriptSource: ScriptSource,
                         scriptHandler: ScriptHandlerInternal,
@@ -63,7 +61,8 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
     }
 
     private fun singlePhaseScript(scriptFile: File, targetScope: ClassLoaderScope): (Project) -> Unit {
-        val scriptClass = compileScriptFile(scriptFile, defaultClassPath(), targetScope)
+        val classPath = defaultClassPath()
+        val scriptClass = compileScriptFile(scriptFile, classPath, classLoaderFor(classPath, targetScope))
         return { target -> executeScriptOf(scriptClass, target) }
     }
 
@@ -71,53 +70,41 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
                                 scriptHandler: ScriptHandlerInternal,
                                 targetScope: ClassLoaderScope): (Project) -> Unit {
         val defaultClassPath = defaultClassPath()
-        val buildscriptClass = compileBuildscript(buildscriptRange, script, defaultClassPath, targetScope)
+        val buildscriptClass = compileBuildscriptSection(buildscriptRange, script, defaultClassPath, targetScope)
         return { target ->
             executeScriptOf(buildscriptClass, target)
+            val scriptClassLoader = scriptBodyClassLoaderFor(scriptHandler, targetScope)
             val effectiveClassPath = defaultClassPath + scriptHandler.scriptClassPath.asFiles
-            val scriptClass = compileScriptFile(scriptFile, effectiveClassPath, targetScope)
+            val scriptClass = compileScriptFile(scriptFile, effectiveClassPath, scriptClassLoader)
             executeScriptOf(scriptClass, target)
         }
     }
 
-    private fun compileBuildscript(buildscriptRange: IntRange, script: String, classPath: List<File>,
-                                   targetScope: ClassLoaderScope): Class<*> {
-        val buildscriptDef = scriptDefinitionFor(classPath, prototype = BUILDSCRIPT_PROTOTYPE)
-        val buildscriptScope = classLoaderScopeForBuildscript(classPath, targetScope)
-        return compileKotlinScript(
-            tempBuildscriptFileFor(buildscriptRange, script),
-            buildscriptDef,
-            buildscriptScope.localClassLoader,
-            logger)
-    }
-
-    private fun tempBuildscriptFileFor(buildscriptRange: IntRange, script: String) =
-        createTempFile("buildscript", ".gradle.kts").apply {
-            writeText(script.substring(buildscriptRange))
-        }
-
-    private fun defaultClassPath() =
-        selectGradleApiJars(classPathRegistry)
-
-    private fun compileScriptFile(scriptFile: File, classPath: List<File>, targetScope: ClassLoaderScope): Class<*> {
-        val scriptDef = scriptDefinitionFor(classPath)
-        val classLoader = classLoaderFor(targetScope)
-        return compileKotlinScript(scriptFile, scriptDef, classLoader, logger)
-    }
-
-    private fun classLoaderScopeForBuildscript(classPath: List<File>, targetScope: ClassLoaderScope): ClassLoaderScope =
-        targetScope.createChild("buildscript").apply {
-            export(DefaultClassPath.of(classPath))
-            export(KotlinBuildScriptSection::class.java.classLoader)
-            lock()
-        }
-
-    private fun classLoaderFor(targetScope: ClassLoaderScope): ClassLoader =
+    private fun classLoaderFor(classPath: List<File>, targetScope: ClassLoaderScope) =
         targetScope.run {
+            export(DefaultClassPath.of(classPath))
             export(KotlinBuildScript::class.java.classLoader)
             lock()
             localClassLoader
         }
+
+    private fun scriptBodyClassLoaderFor(scriptHandler: ScriptHandlerInternal, parentScope: ClassLoaderScope) =
+        parentScope.createChild("${scriptHandler.sourceFile.name} body").run {
+            export(scriptHandler.scriptClassPath)
+            lock()
+            localClassLoader
+        }
+
+    private fun compileBuildscriptSection(buildscriptRange: IntRange, script: String,
+                                          classPath: List<File>, targetScope: ClassLoaderScope) =
+        compileKotlinScript(
+            tempBuildscriptFileFor(script.substring(buildscriptRange)),
+            scriptDefinitionFor(classPath, prototype = BUILDSCRIPT_PROTOTYPE),
+            classLoaderFor(classPath, targetScope),
+            logger)
+
+    private fun compileScriptFile(scriptFile: File, classPath: List<File>, classLoader: ClassLoader) =
+        compileKotlinScript(scriptFile, scriptDefinitionFor(classPath), classLoader, logger)
 
     private fun executeScriptOf(scriptClass: Class<*>, target: Any) {
         try {
@@ -126,4 +113,12 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
             throw e.targetException
         }
     }
+
+    private fun tempBuildscriptFileFor(buildscript: String) =
+        createTempFile("buildscript", ".gradle.kts").apply {
+            writeText(buildscript)
+        }
+
+    private fun defaultClassPath() =
+        selectGradleApiJars(classPathRegistry)
 }
