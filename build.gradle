@@ -225,14 +225,14 @@ configurations {
     coreRuntime {
         visible = false
     }
-    gradleKotlin {
+    externalModules {
         visible = false
     }
     // Configuration used to resolve external modules before patching them with versions from core runtime
-    gradleKotlinRuntime {
+    externalModulesRuntime {
         visible = false
         extendsFrom coreRuntime
-        extendsFrom gradleKotlin
+        extendsFrom externalModules
     }
     // Combines the 'coreRuntime' with the patched external module jars
     runtime {
@@ -248,28 +248,29 @@ configurations {
     }
 }
 
-def patchedGradleKotlinDir = "$rootProject.buildDir/external/files"
-def patchedGradleKotlin = fileTree(patchedGradleKotlinDir) {
-    builtBy 'patchGradleKotlin'
+def patchedExternalModulesDir = "$rootProject.buildDir/external/files"
+def patchedExternalModules = fileTree(patchedExternalModulesDir) {
+    builtBy 'patchExternalModules'
 }
 
 dependencies {
-    gradleKotlin 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
+    externalModules 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
     coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
-    runtime patchedGradleKotlin
+    runtime patchedExternalModules
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
 }
 
-task patchGradleKotlin(type: Copy) {
+task patchExternalModules(type: Copy) {
     description 'Patches the classpath manifests of external modules such as gradle-script-kotlin to match the Gradle runtime configuration.'
-    from configurations.gradleKotlin
-    into patchedGradleKotlinDir
+    // Include any dependency jars that are not available in the core runtime
+    from configurations.externalModulesRuntime.minus(configurations.coreRuntime)
+    into patchedExternalModulesDir
     doLast {
-        new ClasspathManifestPatcher(rootProject, configurations.gradleKotlinRuntime, configurations.gradleKotlin)
+        new ClasspathManifestPatcher(rootProject, configurations.externalModulesRuntime, ['gradle-script-kotlin'])
             .writePatchedFilesTo(destinationDir)
     }
 }

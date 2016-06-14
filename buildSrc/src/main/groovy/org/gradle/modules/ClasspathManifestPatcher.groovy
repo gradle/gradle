@@ -40,12 +40,12 @@ class ClasspathManifestPatcher {
     /**
      * The configuration containing the external modules whose classpath manifests must be patched.
      */
-    Configuration external
+    Collection<String> moduleNames
 
-    ClasspathManifestPatcher(Project project, Configuration runtime, Configuration external) {
+    ClasspathManifestPatcher(Project project, Configuration runtime, Collection<String> moduleNames) {
         this.project = project
         this.runtime = runtime
-        this.external = external
+        this.moduleNames = moduleNames
     }
 
     def writePatchedFilesTo(File outputDir) {
@@ -62,11 +62,10 @@ class ClasspathManifestPatcher {
      * Resolves each external module against the runtime configuration.
      */
     private Collection<ResolvedDependency> resolveExternalModuleJars() {
-        def externalModules = external.dependencies.collect { it.name }.toSet()
         runtime
             .resolvedConfiguration
             .firstLevelModuleDependencies
-            .findAll { it.moduleName in externalModules }
+            .findAll { it.moduleName in moduleNames }
     }
 
     private static void patchManifestOf(ResolvedDependency module, File unpackDir) {
