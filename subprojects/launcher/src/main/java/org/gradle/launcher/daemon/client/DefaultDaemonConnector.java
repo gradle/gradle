@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -57,6 +58,12 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
     public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter, DaemonStartListener startListener, ProgressLoggerFactory progressLoggerFactory) {
+        Preconditions.checkNotNull(daemonRegistry);
+        Preconditions.checkNotNull(connector);
+        Preconditions.checkNotNull(daemonStarter);
+        Preconditions.checkNotNull(startListener);
+        Preconditions.checkNotNull(progressLoggerFactory);
+
         this.daemonRegistry = daemonRegistry;
         this.connector = connector;
         this.daemonStarter = daemonStarter;
@@ -199,7 +206,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     private DaemonClientConnection connectToDaemon(DaemonConnectDetails daemon, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
-        ProgressLogger progressLogger = progressLoggerFactory.newOperation("Connecting to Daemon");
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultDaemonConnector.class)
+            .start("Connecting to a Gradle Daemon", "Connecting to Daemon");
         RemoteConnection<Message> connection;
         try {
             connection = connector.connect(daemon.getAddress()).create(Serializers.stateful(DaemonMessageSerializer.create()));
