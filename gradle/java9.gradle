@@ -12,15 +12,6 @@ task java9IntegTest(type: Test) {
           */
         "JavaCompilationAgainstApiJarIntegrationTest",
 
-        /*
-        "can build binary with sources in conventional location"
-        "can configure output directories for classes and resources"
-        "generated binary includes compiled classes from all language source sets"
-        "multiple targets should produce in the correct bytecode"
-        are failing - need to investigate
-         */
-        "JavaLanguageIntegrationTest",
-
         // "targetplatforms sample creates a binary specific source set" tries to compile for Java 5 - need to update test, samples and userguide
         "SampleJavaLanguageIntegrationTest",
 
