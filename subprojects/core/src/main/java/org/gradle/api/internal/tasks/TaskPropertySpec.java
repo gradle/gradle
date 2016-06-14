@@ -14,25 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture
+package org.gradle.api.internal.tasks;
 
-interface InvocationSpec {
-
-    List<String> getTasksToRun()
-
-    List<String> getJvmOpts()
-
-    List<String> getArgs()
-
-    File getWorkingDirectory()
-
-    boolean isExpectFailure()
-
-    interface Builder {
-        File getWorkingDirectory()
-
-        void setWorkingDirectory(File workingDirectory)
-
-        Builder expectFailure()
-    }
+public interface TaskPropertySpec {
+    String getPropertyName();
 }

@@ -17,7 +17,11 @@
 package org.gradle.test.fixtures.file
 
 import org.gradle.api.JavaVersion
-import org.objectweb.asm.*
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.Label
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 class ClassFile {
     boolean hasSourceFile
@@ -30,37 +34,42 @@ class ClassFile {
     }
 
     ClassFile(InputStream inputStream) {
-        try {
-            def methodVisitor = new MethodVisitor(Opcodes.ASM5) {
-                @Override
-                void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
-                    hasLocalVars = true
-                }
-
-                @Override
-                void visitLineNumber(int line, Label start) {
-                    hasLineNumbers = true
-                }
+        def methodVisitor = new MethodVisitor(Opcodes.ASM5) {
+            @Override
+            void visitLocalVariable(String name, String desc, String signature, Label start, Label end, int index) {
+                hasLocalVars = true
             }
-            def visitor = new ClassVisitor(Opcodes.ASM5) {
-                @Override
-                void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-                    classFileVersion = version
-                }
 
-                @Override
-                MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-                    return methodVisitor
-                }
-
-                @Override
-                void visitSource(String source, String debug) {
-                    hasSourceFile = true
-                }
+            @Override
+            void visitLineNumber(int line, Label start) {
+                hasLineNumbers = true
             }
-            new ClassReader(inputStream).accept(visitor, 0)
-        } finally {
-            inputStream.close()
+        }
+        def visitor = new ClassVisitor(Opcodes.ASM5) {
+            @Override
+            void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+                classFileVersion = version
+            }
+
+            @Override
+            MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+                return methodVisitor
+            }
+
+            @Override
+            void visitSource(String source, String debug) {
+                hasSourceFile = true
+            }
+        }
+        byte[] classData = inputStream.bytes
+        boolean isJava9 = JavaVersion.forClass(classData) == JavaVersion.VERSION_1_9
+        if (isJava9) {
+            // TODO:CC remove this fix once ASM 6 is out
+            classData[7] = 52
+        }
+        new ClassReader(classData).accept(visitor, 0)
+        if (isJava9) {
+            classFileVersion = 53
         }
     }
 

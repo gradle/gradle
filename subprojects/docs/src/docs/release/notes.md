@@ -80,10 +80,6 @@ We have been working hard to make the Gradle Daemon aware of its health and impa
 
 We encourage you to give the improved Daemon a try. If for some reason you encounter problems, you can [disable the Daemon](userguide/gradle_daemon.html#daemon_faq). Please [submit feedback to us](https://discuss.gradle.org/c/3-0-m1/) if you encounter instability so that we can make further improvements.
 
-### Delayed configuration of task inputs and outputs
-
-A `configure()` method with an `Action` or `Closure` parameter was added to both `TaskInputs` and `TaskOutputs` to allow configuring the task's inputs and outputs directly before the task is to be executed.
-
 ### Up-to-date checks more robust against task implementation changes
 
 Previously if a task's implementation class name changed, the class was deemed out-of-date even if its inputs and outputs matched the previous execution. However, if only the code of the task, or a dependent library changed, the task was still considered up-to-date. Since this version Gradle notices if the code of a task or its dependencies change between executions, and marks tasks as out-of-date when needed.
@@ -143,6 +139,10 @@ The `EclipseProject` model was supplemented with a set of new features:
 
 With these features Tooling API clients can provide a more complete IDE integration. Buildship will make use of them very soon.
 
+### Upgrade of BND library used by OSGi plugin
+
+The OSGi plugin now uses the version 3.2.0 of the BND library.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -169,11 +169,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Plural task output registration APIs
 
+The `@OutputFiles` and `@OutputDirectories` annotations support only properties with a `Map` type, where the values in the map can be resolved to individual files, while the keys represent unique identifiers for each file. Using either of the annotations with an `Iterable<File>` or `FileCollection` property is deprecated.
+
 The following APIs have been deprecated:
 
-* `@OutputFiles` annotation – use multiple `@OutputFile` properties instead
-* `@OutputDirectories` annotation – use multiple `@OutputDirectory` properties instead
-* `TaskOutputs.files()` method – call `TaskOutputs.file()` with each file separately instead
+`TaskOutputs.files()` method is now deprecated. Use either of the new `TaskOutputs.namedFiles()` methods instead.
 
 ## Potential breaking changes
 

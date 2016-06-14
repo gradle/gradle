@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.Callables;
 import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
@@ -27,26 +29,34 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskOutputs;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
-import java.util.Queue;
+import java.io.File;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
 import java.util.concurrent.Callable;
 
-public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs.PropertySpec> implements TaskOutputsInternal {
+import static org.gradle.util.GUtil.uncheckedCall;
+
+public class DefaultTaskOutputs extends FilePropertyContainer implements TaskOutputsInternal {
     private static final AndSpec<TaskInternal> EMPTY_AND_SPEC = new AndSpec<TaskInternal>();
 
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = EMPTY_AND_SPEC;
     private TaskExecutionHistory history;
+    private final List<BasePropertySpec> fileProperties = Lists.newArrayList();
     private final FileResolver resolver;
     private final String taskName;
     private final TaskMutator taskMutator;
-    private Queue<Action<? super TaskOutputs>> configureActions;
+    private SortedMap<String, FileCollection> filePropertiesMap;
 
     public DefaultTaskOutputs(FileResolver resolver, final TaskInternal task, TaskMutator taskMutator) {
         super("output");
@@ -57,7 +67,6 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
         final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
         buildDependencies.add(task);
         this.allOutputFiles = new CompositeFileCollection() {
-
             @Override
             public String getDisplayName() {
                 return task + " output files";
@@ -65,8 +74,8 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
 
             @Override
             public void visitContents(FileCollectionResolveContext context) {
-                for (TaskFilePropertySpec fileProperty : fileProperties) {
-                    context.add(fileProperty.getPropertyFiles());
+                for (FileCollection files : getFileProperties().values()) {
+                    context.add(files);
                 }
             }
 
@@ -112,11 +121,44 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
     }
 
     @Override
+    public SortedMap<String, FileCollection> getFileProperties() {
+        if (filePropertiesMap == null) {
+            ensurePropertiesHaveNames(fileProperties);
+            final Iterator<BasePropertySpec> rootIterator = fileProperties.iterator();
+            filePropertiesMap = collectFileProperties(new AbstractIterator<TaskFilePropertySpec>() {
+                private Iterator<TaskFilePropertySpec> childIterator;
+
+                @Override
+                protected TaskFilePropertySpec computeNext() {
+                    while (true) {
+                        if (childIterator != null) {
+                            if (childIterator.hasNext()) {
+                                return childIterator.next();
+                            }
+                            childIterator = null;
+                        }
+                        if (!rootIterator.hasNext()) {
+                            return endOfData();
+                        }
+                        BasePropertySpec propertySpec = rootIterator.next();
+                        if (propertySpec instanceof CompositePropertySpec) {
+                            childIterator = ((CompositePropertySpec) propertySpec).iterator();
+                        } else {
+                            return (TaskFilePropertySpec) propertySpec;
+                        }
+                    }
+                }
+            });
+        }
+        return filePropertiesMap;
+    }
+
+    @Override
     public TaskOutputFilePropertyBuilder file(final Object path) {
         return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(path);
+                return addSimpleSpec(path);
             }
         });
     }
@@ -126,7 +168,28 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
         return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(path);
+                return addSimpleSpec(path);
+            }
+        });
+    }
+
+    @Override
+    public TaskOutputFilePropertyBuilder namedFiles(final Callable<Map<?, ?>> paths) {
+        return taskMutator.mutate("TaskOutputs.namedFiles(Callable)", new Callable<TaskOutputFilePropertyBuilder>() {
+            @Override
+            public TaskOutputFilePropertyBuilder call() throws Exception {
+                return addSpec(new NamedCompositePropertySpec(resolver, paths));
+            }
+        });
+    }
+
+    @Override
+    public TaskOutputFilePropertyBuilder namedFiles(final Map<?, ?> paths) {
+        return taskMutator.mutate("TaskOutputs.namedFiles(Map)", new Callable<TaskOutputFilePropertyBuilder>() {
+            @Override
+            public TaskOutputFilePropertyBuilder call() throws Exception {
+                Callable<Map<?, ?>> callable = Callables.<Map<?, ?>>returning(ImmutableMap.copyOf(paths));
+                return addSpec(new NamedCompositePropertySpec(resolver, callable));
             }
         });
     }
@@ -137,13 +200,16 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(paths);
+                return addSpec(new UnnamedCompositePropertySpec(taskName, resolver, paths));
             }
         });
     }
 
-    private TaskOutputFilePropertyBuilder addSpec(Object paths) {
-        PropertySpec spec = new PropertySpec(taskName, resolver, paths);
+    private TaskOutputFilePropertyBuilder addSimpleSpec(Object paths) {
+        return addSpec(new DefaultPropertySpec(taskName, resolver, paths));
+    }
+
+    private TaskOutputFilePropertyBuilder addSpec(BasePropertySpec spec) {
         fileProperties.add(spec);
         return spec;
     }
@@ -161,40 +227,11 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
         this.history = history;
     }
 
-    @Override
-    public TaskOutputs configure(final Action<? super TaskOutputs> action) {
-        taskMutator.mutate("TaskOutputs.configure(Action)", new Runnable() {
-            public void run() {
-                if (configureActions == null) {
-                    configureActions = Lists.newLinkedList();
-                }
-                configureActions.add(action);
-            }
-        });
-        return this;
+    private interface CompositePropertySpec extends TaskPropertySpec, Iterable<TaskFilePropertySpec> {
     }
 
-    @Override
-    public TaskOutputs configure(Closure action) {
-        return configure(ConfigureUtil.configureUsing(action));
-    }
-
-    @Override
-    public void ensureConfigured() {
-        if (configureActions != null) {
-            while (!configureActions.isEmpty()) {
-                configureActions.remove().execute(this);
-            }
-            configureActions = null;
-        }
-    }
-
-    class PropertySpec extends BaseTaskFilePropertySpec implements TaskOutputFilePropertyBuilder {
+    abstract private class BasePropertySpec extends AbstractTaskPropertyBuilder implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
         private boolean optional;
-
-        public PropertySpec(String taskName, FileResolver resolver, Object paths) {
-            super(taskName, "output", resolver, paths);
-        }
 
         @Override
         public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
@@ -251,6 +288,18 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
         }
 
         @Override
+        @Deprecated
+        public TaskOutputFilePropertyBuilder namedFiles(Callable<Map<?, ?>> paths) {
+            return getTaskOutputs("namedFiles(Callable)").namedFiles(paths);
+        }
+
+        @Override
+        @Deprecated
+        public TaskOutputFilePropertyBuilder namedFiles(Map<?, ?> paths) {
+            return getTaskOutputs("namedFiles(Map)").namedFiles(paths);
+        }
+
+        @Override
         public TaskOutputFilePropertyBuilder file(Object path) {
             return getTaskOutputs("file(Object)").file(path);
         }
@@ -259,15 +308,91 @@ public class DefaultTaskOutputs extends FilePropertyContainer<DefaultTaskOutputs
         public TaskOutputFilePropertyBuilder dir(Object path) {
             return getTaskOutputs("dir(Object)").dir(path);
         }
+    }
 
-        @Override
-        public TaskOutputs configure(Action<? super TaskOutputs> action) {
-            return getTaskOutputs("configure(Action)").configure(action);
+    private class DefaultPropertySpec extends BasePropertySpec implements TaskFilePropertySpec {
+        private final TaskPropertyFileCollection files;
+
+        public DefaultPropertySpec(String taskName, FileResolver resolver, Object path) {
+            this.files = new TaskPropertyFileCollection(taskName, "output", this, resolver, path);
         }
 
         @Override
-        public TaskOutputs configure(Closure action) {
-            return getTaskOutputs("configure(Closure)").configure(action);
+        public FileCollection getPropertyFiles() {
+            return files;
+        }
+    }
+
+    private class UnnamedCompositePropertySpec extends DefaultPropertySpec implements CompositePropertySpec {
+
+        public UnnamedCompositePropertySpec(String taskName, FileResolver resolver, Object paths) {
+            super(taskName, resolver, paths);
+        }
+
+        @Override
+        public Iterator<TaskFilePropertySpec> iterator() {
+            final Iterator<File> fileIterator = getPropertyFiles().iterator();
+            return new AbstractIterator<TaskFilePropertySpec>() {
+                int counter;
+
+                @Override
+                protected TaskFilePropertySpec computeNext() {
+                    if (fileIterator.hasNext()) {
+                        return new ElementPropertySpec(UnnamedCompositePropertySpec.this, "$" + (++counter), fileIterator.next());
+                    }
+                    return endOfData();
+                }
+            };
+        }
+    }
+
+    private class NamedCompositePropertySpec extends BasePropertySpec implements CompositePropertySpec {
+
+        private final Callable<Map<?, ?>> paths;
+        private final FileResolver resolver;
+
+        public NamedCompositePropertySpec(FileResolver resolver, Callable<Map<?, ?>> paths) {
+            this.resolver = resolver;
+            this.paths = paths;
+        }
+
+        @Override
+        public Iterator<TaskFilePropertySpec> iterator() {
+            final Iterator<? extends Map.Entry<?, ?>> iterator = uncheckedCall(paths).entrySet().iterator();
+            return new AbstractIterator<TaskFilePropertySpec>() {
+                @Override
+                protected TaskFilePropertySpec computeNext() {
+                    if (iterator.hasNext()) {
+                        Map.Entry<?, ?> entry = iterator.next();
+                        String id = entry.getKey().toString();
+                        File file = resolver.resolve(entry.getValue());
+                        return new ElementPropertySpec(NamedCompositePropertySpec.this, "." + id, file);
+                    }
+                    return endOfData();
+                }
+            };
+        }
+    }
+
+    private class ElementPropertySpec implements TaskFilePropertySpec {
+        private final CompositePropertySpec parentProperty;
+        private final String propertySuffix;
+        private final FileCollection files;
+
+        public ElementPropertySpec(CompositePropertySpec parentProperty, String propertySuffix, File file) {
+            this.parentProperty = parentProperty;
+            this.propertySuffix = propertySuffix;
+            this.files = new SimpleFileCollection(Collections.singleton(file));
+        }
+
+        @Override
+        public String getPropertyName() {
+            return parentProperty.getPropertyName() + propertySuffix;
+        }
+
+        @Override
+        public FileCollection getPropertyFiles() {
+            return files;
         }
     }
 }

@@ -16,7 +16,9 @@
 
 package org.gradle.api.plugins.quality
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
+@LeaksFileHandles
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {

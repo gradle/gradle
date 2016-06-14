@@ -18,57 +18,37 @@ package org.gradle.launcher.daemon.client;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.SystemProperties;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
-import org.gradle.util.CollectionUtils;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class DaemonStartingMessage {
-    public static final String STARTING_DAEMON_MESSAGE = "Starting a new Gradle Daemon for this build: subsequent builds will be faster";
-    public static final String ONE_BUSY_DAEMON_MESSAGE = "a busy daemon can't run this build";
-    public static final String MULTIPLE_BUSY_DAEMONS_MESSAGE = " busy daemons can't run this build";
-    public static final String ONE_INCOMPATIBLE_DAEMON_MESSAGE = "an idle daemon with different JVM constraints can't run this build";
-    public static final String MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE = " idle daemons with different JVM constraints can't run this build";
-    public static final String ONE_DAEMON_STOPPED_PREFIX = "a previous daemon was stopped ";
-    public static final String MULTIPLE_DAEMONS_STOPPED_PREFIX = " previous daemons were stopped ";
-    public static final String NO_COMPATIBLE_DAEMONS_MESSAGE = "No compatible daemons found:";
-    private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
+    public static final String STARTING_DAEMON_MESSAGE = "Starting a Gradle Daemon";
+    public static final String SUBSEQUENT_BUILDS_WILL_BE_FASTER = "(subsequent builds will be faster)";
+    public static final String NOT_REUSED_MESSAGE = " could not be reused";
 
-    public static String generate(final int numBusy, final int numIncompatible, final List<DaemonStopEvent> stopEvents) {
-        String message = "";
-
-        // User likely doesn't care about daemons that stopped a long time ago
-        List<DaemonStopEvent> recentStopEvents = CollectionUtils.filter(stopEvents, new Spec<DaemonStopEvent>() {
-            public boolean isSatisfiedBy(DaemonStopEvent event) {
-                return event.occurredInLastDays(1);
-            }
-        });
-
-        if (numBusy + numIncompatible + recentStopEvents.size() > 0) {
-            final List<String> reasons = Lists.newArrayList(NO_COMPATIBLE_DAEMONS_MESSAGE);
+    public static String generate(final int numBusy, final int numIncompatible, final int numStopped) {
+        final int totalUnavailableDaemons = numBusy + numIncompatible + numStopped;
+        if (totalUnavailableDaemons > 0) {
+            final List<String> reasons = Lists.newArrayList();
             if (numBusy > 0) {
-                reasons.add(numBusy > 1 ? numBusy + MULTIPLE_BUSY_DAEMONS_MESSAGE : ONE_BUSY_DAEMON_MESSAGE);
+                reasons.add(numBusy + " busy");
             }
             if (numIncompatible > 0) {
-                reasons.add(numIncompatible > 1 ? numIncompatible + MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE : ONE_INCOMPATIBLE_DAEMON_MESSAGE);
+                reasons.add(numIncompatible + " incompatible");
+            }
+            if (numStopped > 0) {
+                reasons.add(numStopped + " stopped");
             }
 
-            if (recentStopEvents.size() > 0) {
-                for (Map.Entry<String, Integer> entry : countByReason(recentStopEvents).entrySet()) {
-                    final Integer numStopped = entry.getValue();
-                    final String prefix = numStopped > 1 ? numStopped + MULTIPLE_DAEMONS_STOPPED_PREFIX : ONE_DAEMON_STOPPED_PREFIX;
-                    reasons.add(prefix + entry.getKey());
-                }
-            }
-
-            message += Joiner.on(LINE_SEPARATOR + "  - ").skipNulls().join(reasons) + LINE_SEPARATOR;
+            return STARTING_DAEMON_MESSAGE + ", "
+                + Joiner.on(" and ").join(reasons) + " Daemon" + (totalUnavailableDaemons > 1 ? "s" : "")
+                + NOT_REUSED_MESSAGE;
+        } else {
+            return STARTING_DAEMON_MESSAGE + " " + SUBSEQUENT_BUILDS_WILL_BE_FASTER;
         }
-
-        return message + STARTING_DAEMON_MESSAGE;
     }
 
     private static Map<String, Integer> countByReason(List<DaemonStopEvent> stopEvents) {

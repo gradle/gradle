@@ -11,6 +11,7 @@
             <sourcefile file="build.gradle" snippet="use-findbugs-plugin"/>
         </sample>
         <para>The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running <userinput>gradle check</userinput>.</para>
+        <para>Note that Findbugs will run with the same Java version used to run Gradle.</para>
     </section>
 
     <section>

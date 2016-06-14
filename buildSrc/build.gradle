@@ -15,8 +15,6 @@
  */
 
 apply plugin: 'groovy'
-apply plugin: 'checkstyle'
-apply plugin: 'codenarc'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
 

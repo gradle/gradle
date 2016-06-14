@@ -81,9 +81,6 @@ class TaskReportContainerTest extends Specification {
         container.a.enabled = aEnabled
         container.b.enabled = bEnabled
 
-        task.inputs.ensureConfigured()
-        task.outputs.ensureConfigured()
-
         then:
         outputFiles*.name == fileNames
         inputPropertyValue == names

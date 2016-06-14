@@ -17,12 +17,13 @@
 package org.gradle.smoketests
 
 import org.gradle.util.ports.ReleasingPortAllocator
+import org.junit.Assume
 import org.junit.Rule
-import spock.lang.Ignore
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
+
     @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
     def 'shadow plugin'() {
@@ -31,25 +32,24 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             import com.github.jengelman.gradle.plugins.shadow.transformers.ServiceFileTransformer
 
             plugins {
-              id 'java' // or 'groovy' Must be explicitly applied
-              id 'com.github.johnrengelman.shadow' version '1.2.3'
+                id 'java' // or 'groovy' Must be explicitly applied
+                id 'com.github.johnrengelman.shadow' version '1.2.3'
             }
 
             repositories {
-               jcenter()
+                jcenter()
             }
 
             dependencies {
-              compile 'commons-collections:commons-collections:3.2.2'
+                compile 'commons-collections:commons-collections:3.2.2'
             }
 
             shadowJar {
+                transform(ServiceFileTransformer)
 
-              transform(ServiceFileTransformer)
-
-              manifest {
-                attributes 'Test-Entry': 'PASSED'
-              }
+                manifest {
+                    attributes 'Test-Entry': 'PASSED'
+                }
             }
             """.stripIndent()
 
@@ -65,25 +65,25 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         def kotlinVersion = '1.0.2'
         buildFile << """
             buildscript {
-               ext.kotlin_version = '$kotlinVersion'
+                ext.kotlin_version = '$kotlinVersion'
 
-               repositories {
-                 mavenCentral()
-               }
+                repositories {
+                    mavenCentral()
+                }
 
-               dependencies {
-                 classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-               }
+                dependencies {
+                    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+                }
             }
 
             apply plugin: 'kotlin'
 
             repositories {
-               mavenCentral()
+                mavenCentral()
             }
 
             dependencies {
-              compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
+                compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
             }
         """.stripIndent()
 
@@ -113,17 +113,9 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
     def 'asciidoctor plugin'() {
         given:
         buildFile << """
-            buildscript {
-                repositories {
-                    jcenter()
-                }
-
-                dependencies {
-                    classpath 'org.asciidoctor:asciidoctor-gradle-plugin:1.5.3'
-                }
+            plugins {
+                id "org.asciidoctor.gradle.asciidoctor" version "1.5.1"
             }
-
-            apply plugin: 'org.asciidoctor.convert'
             """.stripIndent()
 
         file('src/docs/asciidoc/test.adoc') << """
@@ -144,19 +136,11 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
     def 'docker plugin'() {
         given:
         buildFile << """
-            buildscript {
-                repositories {
-                    jcenter()
-                }
-
-                dependencies {
-                    classpath 'com.bmuschko:gradle-docker-plugin:3.0.0'
-                }
+            plugins {
+                id 'java'
+                id 'application'
+                id "com.bmuschko.docker-java-application" version "3.0.0"
             }
-
-            apply plugin: 'java'
-            apply plugin: 'application'
-            apply plugin: 'com.bmuschko.docker-java-application'
 
             mainClassName = 'org.gradle.JettyMain'
 
@@ -176,16 +160,13 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         result.task(':dockerCopyDistResources').outcome == SUCCESS
     }
 
-    @Ignore("No service of type StyledTextOutputFactory available in ProjectScopeServices")
     def 'spring dependency management plugin'() {
         given:
         buildFile << """
             plugins {
-                id "io.spring.dependency-management" version "0.5.6.RELEASE"
+                id 'java'
+                id 'io.spring.dependency-management' version '0.5.7.RELEASE'
             }
-
-            apply plugin: 'java'
-            apply plugin: "io.spring.dependency-management"
 
             repositories {
                 mavenCentral()
@@ -199,12 +180,18 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             }
 
             dependencies {
-                 compile 'org.springframework:spring-core'
+                compile 'org.springframework:spring-core'
             }
             """.stripIndent()
 
         expect:
-        runner("dependencies", "--configuration", "compile").build()
+        def result = runner("dependencies", "--configuration", "compile").buildAndFail()
+
+        result.output.contains('''Caused by: org.gradle.internal.service.UnknownServiceException: No service of type StyledTextOutputFactory available in ProjectScopeServices.
+\tat org.gradle.internal.service.DefaultServiceRegistry.getServiceProvider(DefaultServiceRegistry.java:436)''')
+
+        Assume.assumeTrue("The Spring dependency management plugin is broken, it depends on internal StyledTextOutputFactory", false)
+
     }
 
     def 'tomcat plugin'() {
@@ -213,17 +200,9 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         def httpsPort = portAllocator.assignPort()
         def stopPort = portAllocator.assignPort()
         buildFile << """
-            buildscript {
-                repositories {
-                    jcenter()
-                }
-
-                dependencies {
-                    classpath 'com.bmuschko:gradle-tomcat-plugin:2.2.5'
-                }
+            plugins {
+                id "com.bmuschko.tomcat" version "2.2.5"
             }
-
-            apply plugin: 'com.bmuschko.tomcat'
 
             repositories {
                 mavenCentral()
@@ -298,7 +277,6 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
               function doSomething(arg : String) : String {
                 return "Hello, got the argument '\${arg}'"
               }
-
             }
             """.stripIndent()
 
@@ -314,21 +292,21 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         given:
         buildFile << """
             plugins {
-              id "org.xtext.xtend" version "1.0.5"
+                id "org.xtext.xtend" version "1.0.5"
             }
 
             repositories.jcenter()
 
             dependencies {
-              compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
+                compile 'org.eclipse.xtend:org.eclipse.xtend.lib:2.9.0'
             }
             """.stripIndent()
 
         file('src/main/java/HelloWorld.xtend') << """
             class HelloWorld {
-              def static void main(String[] args) {
-                println("Hello World")
-              }
+                def static void main(String[] args) {
+                    println("Hello World")
+                }
             }
             """
 

@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.testing.DefaultTestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Type;
 
@@ -29,7 +30,11 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
@@ -117,7 +122,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         InputStream classStream = null;
         try {
             classStream = new BufferedInputStream(new FileInputStream(testClassFile));
-            final ClassReader classReader = new ClassReader(classStream);
+            final ClassReader classReader = new Java9ClassReader(IOUtils.toByteArray(classStream));
             classReader.accept(classVisitor, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
         } catch (Throwable e) {
             throw new GradleException("failed to read class file " + testClassFile.getAbsolutePath(), e);

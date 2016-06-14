@@ -49,6 +49,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
+import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
@@ -139,7 +140,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
                 }
                 ClassReader reader;
                 try {
-                    reader = new ClassReader(Files.asByteSource(fileDetails.getFile()).read());
+                    reader = new Java9ClassReader(Files.asByteSource(fileDetails.getFile()).read());
                 } catch (IOException e) {
                     throw Throwables.propagate(e);
                 }

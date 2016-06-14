@@ -16,29 +16,29 @@
 
 package org.gradle.smoketests
 
-import spock.lang.Ignore
+import org.junit.Assume
 
 class NebulaPluginsSmokeSpec extends AbstractSmokeSpec {
+
     def 'nebula recommender plugin'() {
         when:
         buildFile << """
             plugins {
-              id "nebula.dependency-recommender" version "3.3.0"
+                id "java"
+                id "nebula.dependency-recommender" version "3.3.0"
             }
 
-            apply plugin: 'java'
-
             repositories {
-               jcenter()
+                jcenter()
             }
 
             dependencyRecommendations {
-               mavenBom module: 'netflix:platform:latest.release'
+                mavenBom module: 'netflix:platform:latest.release'
             }
 
             dependencies {
-               compile 'com.google.guava:guava' // no version, version is recommended
-               compile 'commons-lang:commons-lang:2.6' // I know what I want, don't recommend
+                compile 'com.google.guava:guava' // no version, version is recommended
+                compile 'commons-lang:commons-lang:2.6' // I know what I want, don't recommend
             }
             """
 
@@ -46,13 +46,11 @@ class NebulaPluginsSmokeSpec extends AbstractSmokeSpec {
         runner('build').build()
     }
 
-    @Ignore("""org.codehaus.groovy.runtime.typehandling.GroovyCastException: Cannot cast object 'root project 'junit870421439514898935'' with class 'org.gradle.api.internal.project.DefaultProject_Decorated' to class 'org.gradle.api.internal.project.AbstractProject'
-               at nebula.plugin.responsible.NebulaFacetPlugin.container(NebulaFacetPlugin.groovy:119)""")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
             plugins {
-               id 'nebula.plugin-plugin' version '4.15.0'
+                id 'nebula.plugin-plugin' version '4.15.0'
             }
         """
 
@@ -63,7 +61,7 @@ class NebulaPluginsSmokeSpec extends AbstractSmokeSpec {
             import java.util.List;
 
             public class Thing {
-                   private List<String> firstOrderDepsWithoutVersions = new ArrayList<>();
+                private List<String> firstOrderDepsWithoutVersions = new ArrayList<>();
             }
         """
 
@@ -71,41 +69,29 @@ class NebulaPluginsSmokeSpec extends AbstractSmokeSpec {
         runner('groovydoc').build()
     }
 
-    @Ignore("No service of type StyledTextOutputFactory available in ProjectScopeServices")
-    def 'nebula lint plugin jcenter'() {
+    def 'nebula lint plugin'() {
         when:
         buildFile << """
-            buildscript {
-              repositories {
-                jcenter()
-              }
-              dependencies {
-                classpath "com.netflix.nebula:gradle-lint-plugin:0.30.4"
-              }
+            plugins {
+                id "nebula.lint" version "0.30.9"
             }
-
-            apply plugin: "nebula.lint"
         """.stripIndent()
 
         then:
-        runner('buildEnvironment', 'lintGradle').build()
+        def result = runner('buildEnvironment', 'lintGradle').buildAndFail()
+
+        result.output.contains('''Caused by: java.lang.NoClassDefFoundError: org/gradle/logging/StyledTextOutput
+\tat com.netflix.nebula.lint.plugin.FixGradleLintTask$1.$getStaticMetaClass(FixGradleLintTask.groovy)''')
+
+        Assume.assumeTrue("The nebula lint plugin is broken, it depends on internal StyledTextOutput", false)
     }
 
-    def 'nebula dependency lock plugin jcenter'() {
+    def 'nebula dependency lock plugin'() {
         when:
         buildFile << """
-            buildscript {
-              repositories {
-                maven {
-                  url "https://plugins.gradle.org/m2/"
-                }
-              }
-              dependencies {
-                classpath "com.netflix.nebula:gradle-dependency-lock-plugin:4.3.0"
-              }
+            plugins {
+                id "nebula.dependency-lock" version "4.3.0"
             }
-
-            apply plugin: "nebula.dependency-lock"
         """.stripIndent()
 
         then:

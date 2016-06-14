@@ -17,7 +17,9 @@
 package org.gradle.testing;
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Issue;
+import org.gradle.util.TestPrecondition
+import spock.lang.Issue
+import org.gradle.util.Requires;
 
 public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
@@ -49,5 +51,84 @@ public class TestTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTaskSkipped(":test")
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compiles and executes a Java 9 test suite"() {
+        given:
+        buildFile << java9Build()
+
+        file('src/test/java/MyTest.java') << standaloneTestClass()
+
+        when:
+        succeeds 'test'
+
+        then:
+        noExceptionThrown()
+
+        and:
+        classFormat('build/classes/test/MyTest.class') == 53
+
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compiles and executes a Java 9 test suite even if a module descriptor is on classpath"() {
+        given:
+        buildFile << java9Build()
+
+        file('src/test/java/MyTest.java') << standaloneTestClass()
+        file('src/main/java/com/acme/Foo.java') << '''package com.acme;
+            public class Foo {}
+        '''
+        file('src/main/java/com/acme/module-info.java') << '''module com.acme {
+            exports com.acme;
+        }'''
+
+        when:
+        succeeds 'test'
+
+        then:
+        noExceptionThrown()
+
+        and:
+        classFormat('build/classes/main/module-info.class') == 53
+        classFormat('build/classes/test/MyTest.class') == 53
+
+    }
+
+    private static String standaloneTestClass() {
+        '''
+            import org.junit.*;
+
+            public class MyTest {
+               @Test
+               public void test() {
+                  System.out.println(System.getProperty("java.version"));
+                  Assert.assertEquals(1,1);
+               }
+            }
+
+        '''
+    }
+
+    private static String java9Build() {
+        '''
+            apply plugin: 'java'
+
+            repositories {
+                jcenter()
+            }
+
+            dependencies {
+                testCompile 'junit:junit:4.12'
+            }
+
+            sourceCompatibility = 1.9
+            targetCompatibility = 1.9
+        '''
+    }
+
+    private int classFormat(String path) {
+        file(path).bytes[7] & 0xFF
     }
 }

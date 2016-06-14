@@ -22,7 +22,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
     - `--parallel-threads` command-line option (Done)
     - old wrapper properties from `WrapperExecutor`, remove generation of these properties from `Wrapper` task (Done)
 - Move `Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER` from public API. (Done)
-- Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package.
+- Move internal types `org.gradle.logging.StandardOutputCapture` and `org.gradle.logging.LoggingManagerInternal` into an internal package (deprecation was deferred to 4.0 as per [issue #83](https://github.com/gradle/core-issues/issues/83)).
 - Merge `Module` and `ModuleInternal`, now that `Module` is internal (Done)
 - Internal `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter` (Done)
 - Constructor on `DefaultSourceDirectorySet` - not for 3.0, deprecation only happened in 2.14 and it is widely used

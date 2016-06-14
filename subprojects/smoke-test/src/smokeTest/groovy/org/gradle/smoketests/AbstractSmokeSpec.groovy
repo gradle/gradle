@@ -22,6 +22,7 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
 abstract class AbstractSmokeSpec extends Specification {
+
     @Rule final TemporaryFolder testProjectDir = new TemporaryFolder()
     File buildFile
 
@@ -31,7 +32,8 @@ abstract class AbstractSmokeSpec extends Specification {
 
     File file(String filename) {
         def file = new File(testProjectDir.root, filename)
-        file.getParentFile().mkdirs()
+        def parentDir = file.getParentFile()
+        assert parentDir.isDirectory() || parentDir.mkdirs()
 
         file
     }
@@ -45,9 +47,9 @@ abstract class AbstractSmokeSpec extends Specification {
     }
 
     private File fileFromSystemProperty(String propertyName) {
-        String path = System.getProperty(propertyName);
+        String path = System.getProperty(propertyName)
         if (path == null) {
-            throw new RuntimeException(String.format("You must set the '%s' property to run the smoke tests.", propertyName));
+            throw new RuntimeException(String.format("You must set the '%s' property to run the smoke tests.", propertyName))
         }
         new File(path)
     }

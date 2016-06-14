@@ -205,8 +205,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     def validationActionSucceedsWhenSpecifiedOutputFilesDoesNotExist() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt"), new File(testDir, "subdir2/output.txt")] as List)
-        task.getInputs().ensureConfigured()
-        task.getOutputs().ensureConfigured()
 
         when:
         task.execute()
@@ -511,7 +509,6 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         given:
         def values = value.collect({ this[it] })
         def task = expectTaskCreated(type, values as List)
-        task.outputs.ensureConfigured()
 
         expect:
         task.outputs.files.files == values as Set
