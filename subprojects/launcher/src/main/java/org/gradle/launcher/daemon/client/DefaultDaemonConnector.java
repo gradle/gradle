@@ -21,6 +21,8 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.Pair;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.logging.progress.ProgressLogger;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.remote.internal.ConnectException;
 import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.RemoteConnection;
@@ -51,13 +53,15 @@ public class DefaultDaemonConnector implements DaemonConnector {
     protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;
     private final DaemonStartListener startListener;
+    private final ProgressLoggerFactory progressLoggerFactory;
     private long connectTimeout = DefaultDaemonConnector.DEFAULT_CONNECT_TIMEOUT;
 
-    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter, DaemonStartListener startListener) {
+    public DefaultDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector connector, DaemonStarter daemonStarter, DaemonStartListener startListener, ProgressLoggerFactory progressLoggerFactory) {
         this.daemonRegistry = daemonRegistry;
         this.connector = connector;
         this.daemonStarter = daemonStarter;
         this.startListener = startListener;
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     public void setConnectTimeout(long connectTimeout) {
@@ -150,21 +154,27 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     public DaemonClientConnection startDaemon(ExplainingSpec<DaemonContext> constraint) {
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultDaemonConnector.class)
+            .start("Starting Gradle Daemon", "Starting Daemon");
         final DaemonStartupInfo startupInfo = daemonStarter.startDaemon();
         LOGGER.debug("Started Gradle daemon {}", startupInfo);
         long expiry = System.currentTimeMillis() + connectTimeout;
-        do {
-            DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
-            if (daemonConnection != null) {
-                startListener.daemonStarted(daemonConnection.getDaemon());
-                return daemonConnection;
-            }
-            try {
-                Thread.sleep(200L);
-            } catch (InterruptedException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        } while (System.currentTimeMillis() < expiry);
+        try {
+            do {
+                DaemonClientConnection daemonConnection = connectToDaemonWithId(startupInfo, constraint);
+                if (daemonConnection != null) {
+                    startListener.daemonStarted(daemonConnection.getDaemon());
+                    return daemonConnection;
+                }
+                try {
+                    Thread.sleep(200L);
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            } while (System.currentTimeMillis() < expiry);
+        } finally {
+            progressLogger.completed();
+        }
 
         throw new DaemonConnectionException("Timeout waiting to connect to the Gradle daemon.\n" + startupInfo.describe());
     }
@@ -189,12 +199,15 @@ public class DefaultDaemonConnector implements DaemonConnector {
     }
 
     private DaemonClientConnection connectToDaemon(DaemonConnectDetails daemon, DaemonClientConnection.StaleAddressDetector staleAddressDetector) throws ConnectException {
+        ProgressLogger progressLogger = progressLoggerFactory.newOperation("Connecting to Daemon");
         RemoteConnection<Message> connection;
         try {
             connection = connector.connect(daemon.getAddress()).create(Serializers.stateful(DaemonMessageSerializer.create()));
         } catch (ConnectException e) {
             staleAddressDetector.maybeStaleAddress(e);
             throw e;
+        } finally {
+            progressLogger.completed();
         }
         return new DaemonClientConnection(connection, daemon, staleAddressDetector);
     }

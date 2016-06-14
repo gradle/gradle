@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.client
 
 import org.gradle.api.internal.specs.ExplainingSpec
 import org.gradle.api.internal.specs.ExplainingSpecs
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.remote.Address
 import org.gradle.internal.remote.internal.ConnectCompletion
 import org.gradle.internal.remote.internal.ConnectException
@@ -57,7 +58,8 @@ class DefaultDaemonConnectorTest extends Specification {
                 new EmbeddedDaemonRegistry(),
                 Spy(OutgoingConnectorStub),
                 { startBusyDaemon() } as DaemonStarter,
-                Stub(DaemonStartListener)]
+                Stub(DaemonStartListener),
+                Stub(ProgressLoggerFactory)]
         )
         connector.connectTimeout = connectTimeoutSecs * 1000
         connector
