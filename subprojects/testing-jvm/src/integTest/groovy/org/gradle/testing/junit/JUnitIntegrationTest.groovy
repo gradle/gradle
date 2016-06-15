@@ -15,6 +15,7 @@
  */
 package org.gradle.testing.junit
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
@@ -22,8 +23,6 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -40,9 +39,14 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         executer.noExtraLogging()
     }
 
-    @Issue("gradle/core-issues#122")
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
     def executesTestsInCorrectEnvironment() {
+        given:
+        buildFile << """
+        test {
+            systemProperties.isJava9 = ${JavaVersion.current().isJava9Compatible()}
+        }
+        """.stripIndent()
+
         when:
         executer.withTasks('build').run()
 
