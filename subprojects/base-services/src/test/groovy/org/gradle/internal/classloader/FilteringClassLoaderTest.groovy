@@ -16,12 +16,13 @@
 package org.gradle.internal.classloader
 
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Test
 import org.junit.runners.BlockJUnit4ClassRunner
+import spock.lang.Issue
 import spock.lang.Specification
 
+import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 import static org.junit.Assert.fail
 
 class FilteringClassLoaderTest extends Specification {
@@ -41,7 +42,8 @@ class FilteringClassLoaderTest extends Specification {
         canSeePackage('java.lang')
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
+    @Issue("gradle/core-issues#115")
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     void passesThroughSystemResources() {
         expect:
         canSeeResource('com/sun/jndi/ldap/jndiprovider.properties')
