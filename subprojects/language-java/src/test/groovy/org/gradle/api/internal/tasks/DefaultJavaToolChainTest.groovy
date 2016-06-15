@@ -24,6 +24,8 @@ import org.gradle.jvm.platform.JavaPlatform
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.process.internal.ExecActionFactory
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.gradle.util.TreeVisitor
 import spock.lang.Specification
 
@@ -73,6 +75,7 @@ class DefaultJavaToolChainTest extends Specification {
         0 * _
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "creates unavailable tool provider for incompatible platform"() {
         def futurePlatform = platform(JavaVersion.VERSION_1_9)
         TreeVisitor<String> visitor = Mock()

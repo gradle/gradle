@@ -211,9 +211,6 @@ task java9IntegTest(type: Test) {
 task java9Test(type: Test) {
     excludes = [
         // ??
-        "DefaultJavaToolChainTest",
-        "JdkToolsTest",
-        "JdkToolsTest",
         "PayloadSerializerTest",
         "GeneratedArchiveBuildOutcomeComparatorTest",
         "ArchiveEntryTest",

@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.IgnoreIf
 import spock.lang.Specification
 
@@ -34,6 +36,7 @@ class JdkToolsTest extends Specification {
         compiler.class == JdkTools.current().systemJavaCompiler.class
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "throws when no tools"() {
         when:
         new JdkTools(Mock(JavaInfo) {
@@ -45,6 +48,7 @@ class JdkToolsTest extends Specification {
         thrown IllegalStateException
     }
 
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "throws when tools doesn't contain compiler"() {
         when:
         new JdkTools(Mock(JavaInfo) {
