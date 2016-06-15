@@ -1,10 +1,6 @@
 buildscript {
-//    ext.kotlinVersion = '1.1.0-dev-998'
-    ext.kotlinVersion = '1.1-SNAPSHOT'
+    ext.kotlinVersion = '1.1.0-dev-1115'
     repositories {
-        maven {
-            url 'file://Users/lige/Work/kotlin/kotlin/libraries/tools/kotlin-gradle-plugin/local-repo'
-        }
         maven { url 'https://repo.gradle.org/gradle/repo' }
     }
     dependencies {
@@ -13,14 +9,6 @@ buildscript {
     }
 }
 
-repositories {
-    maven {
-        url 'file://Users/lige/Work/kotlin/kotlin/libraries/tools/kotlin-gradle-plugin/local-repo'
-    }
-    maven {
-        url 'https://repo.gradle.org/gradle/repo'
-    }
-}
 
 apply from: 'build.gradle.kts'
 
