@@ -17,6 +17,8 @@
 package org.gradle.tooling.internal.provider
 
 import org.gradle.internal.classloader.FilteringClassLoader
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Assert
 import spock.lang.Ignore
 
@@ -119,6 +121,8 @@ class PayloadSerializerTest extends AbstractClassGraphSpec {
         reply.payload.class == payloadClass
     }
 
+    // There are a lot of classes which aren't in the System ClassLoader for Java9.
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "can send a dynamic proxy"() {
         def cl = isolated(PayloadInterface)
         def payloadClass = cl.loadClass(PayloadInterface.name)
