@@ -42,7 +42,10 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
+
+import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 @UsesNativeServices
 public class DefaultFileOperationsTest extends Specification {
@@ -224,6 +227,10 @@ public class DefaultFileOperationsTest extends Specification {
         return file
     }
 
+    // ClassLoaderVisitor doesn't know what to do with a non-URLClassLoader,
+    // which is what the Java9 system ClassLoader is.
+    @Issue("gradle/core-issues#115")
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     def javaexec() {
         File testFile = tmpDir.file("someFile")
         fileOperations = instance(resolver())

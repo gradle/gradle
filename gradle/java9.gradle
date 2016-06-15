@@ -223,8 +223,7 @@ task java9IntegTest(type: Test) {
 task java9Test(type: Test) {
     excludes = [
         // ??
-        "GroovyStackTraceSpecTest",
-        "DefaultFileOperationsTest"
+        "GroovyStackTraceSpecTest"
     ].collect { "**/*${it}*" }
 }
 
