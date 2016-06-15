@@ -107,9 +107,6 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
         app.sources*.writeToDir(file("src/myLib/java"))
 
         then:
-
-        def allClasses = app.sources*.classFile.fullPath
-        println allClasses
         succeeds "assemble"
     }
 

@@ -18,6 +18,8 @@ package org.gradle.jvm.tasks.api.internal;
 
 import com.google.common.collect.ComparisonChain;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Models a single element of a codebase that may be inspected and acted upon with
  * bytecode manipulation libraries tools like ASM.
@@ -36,7 +38,7 @@ public abstract class Member {
     private final String name;
 
     public Member(String name) {
-        this.name = name;
+        this.name = checkNotNull(name);
     }
 
     public String getName() {
