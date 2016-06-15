@@ -226,7 +226,7 @@ public class HelpTasksPlugin implements Plugin<ProjectInternal> {
 
         @Override
         public void execute(DependentComponentsReport task) {
-            task.setDescription("Displays the dependent components of " + projectName + ". [incubating]");
+            task.setDescription("Displays the dependent components of components in " + projectName + ". [incubating]");
             task.setGroup(HELP_GROUP);
             task.setImpliesSubProjects(true);
         }

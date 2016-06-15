@@ -32,12 +32,12 @@ public class DependentComponentsGraphRenderer {
 
     private final GraphRenderer renderer;
     private final DependentBinaryNodeRenderer nodeRenderer;
-    private final DetailPredicate detailPredicate;
+    private final ShowNonBuildablePredicate showNonBuildablePredicate;
 
-    public DependentComponentsGraphRenderer(GraphRenderer renderer, boolean detail) {
+    public DependentComponentsGraphRenderer(GraphRenderer renderer, boolean showNonBuildable) {
         this.renderer = renderer;
         this.nodeRenderer = new DependentBinaryNodeRenderer();
-        this.detailPredicate = new DetailPredicate(detail);
+        this.showNonBuildablePredicate = new ShowNonBuildablePredicate(showNonBuildable);
     }
 
     public void render(DependentComponentsRenderableDependency root) {
@@ -68,11 +68,11 @@ public class DependentComponentsGraphRenderer {
     }
 
     public boolean hasHiddenNonBuildable() {
-        return detailPredicate.hiddenNonBuildable;
+        return showNonBuildablePredicate.hiddenNonBuildable;
     }
 
     private Set<? extends RenderableDependency> getChildren(RenderableDependency node) {
-        return Sets.filter(node.getChildren(), detailPredicate);
+        return Sets.filter(node.getChildren(), showNonBuildablePredicate);
     }
 
     private static class DependentBinaryNodeRenderer implements NodeRenderer {
@@ -95,20 +95,20 @@ public class DependentComponentsGraphRenderer {
         }
     }
 
-    private static class DetailPredicate implements Predicate<RenderableDependency> {
-        private final boolean detail;
+    private static class ShowNonBuildablePredicate implements Predicate<RenderableDependency> {
+        private final boolean showNonBuildable;
 
         private boolean hiddenNonBuildable;
 
-        private DetailPredicate(boolean detail) {
-            this.detail = detail;
+        private ShowNonBuildablePredicate(boolean showNonBuildable) {
+            this.showNonBuildable = showNonBuildable;
         }
 
         @Override
         public boolean apply(RenderableDependency node) {
             if (node instanceof DependentComponentsRenderableDependency) {
                 DependentComponentsRenderableDependency dep = (DependentComponentsRenderableDependency) node;
-                boolean allow = dep.isBuildable() || detail;
+                boolean allow = dep.isBuildable() || showNonBuildable;
                 if (!allow) {
                     hiddenNonBuildable = true;
                 }

@@ -98,7 +98,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    \\--- main:executable
             \\--- util:staticLibrary
 
-            Some non-buildable binaries were hidden, use --all to show them.
+            Some non-buildable binaries were not shown, use --all to show them.
         '''.stripIndent()
     }
 

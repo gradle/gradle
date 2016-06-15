@@ -43,17 +43,17 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
 @Incubating
 public class DependentComponentsReport extends DefaultTask {
 
-    private boolean detail;
+    private boolean showNonBuildable;
     private List<String> components;
 
     @Console
-    public boolean isDetail() {
-        return detail;
+    public boolean isShowNonBuildable() {
+        return showNonBuildable;
     }
 
-    @Option(option = "all", description = "Show non-buildables dependents and detail.")
-    public void setDetail(boolean detail) {
-        this.detail = detail;
+    @Option(option = "all", description = "Show all dependents, including non-buildable ones.")
+    public void setShowNonBuildable(boolean showNonBuildable) {
+        this.showNonBuildable = showNonBuildable;
     }
 
     /**
@@ -72,7 +72,7 @@ public class DependentComponentsReport extends DefaultTask {
      *
      * @param components the components.
      */
-    @Option(option = "component", description = "Component to generate the report for, repeatable.")
+    @Option(option = "component", description = "Component to generate the report for (can be specified more than once).")
     public void setComponents(List<String> components) {
         this.components = components;
     }
@@ -94,7 +94,7 @@ public class DependentComponentsReport extends DefaultTask {
         DependentBinariesResolver dependentBinariesResolver = modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);
 
         StyledTextOutput textOutput = getTextOutputFactory().create(DependentComponentsReport.class);
-        TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(dependentBinariesResolver, detail);
+        TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(dependentBinariesResolver, showNonBuildable);
 
         reportRenderer.setOutput(textOutput);
         reportRenderer.startProject(project);

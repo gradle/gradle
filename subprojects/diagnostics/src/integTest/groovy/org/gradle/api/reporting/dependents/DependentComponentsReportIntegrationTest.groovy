@@ -29,9 +29,9 @@ class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
         run "help", "--task", "dependentComponents"
 
         then:
-        output.contains("Displays the dependent components of root project 'test'. [incubating]")
-        output.contains("--all     Show non-buildables dependents and detail.")
-        output.contains("--component     Component to generate the report for, repeatable.")
+        output.contains("Displays the dependent components of components in root project 'test'. [incubating]")
+        output.contains("--all     Show all dependents, including non-buildable ones.")
+        output.contains("--component     Component to generate the report for (can be specified more than once).")
     }
 
     def "displays empty dependents report for an empty project"() {

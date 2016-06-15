@@ -40,7 +40,8 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
         ComponentSpecIdentifier id = internalProtocol.getIdentifier();
         String name = DependentComponentsUtils.getBuildScopedTerseName(id);
         String description = componentSpec.getDisplayName();
-        boolean buildable = true, testSuite = false;
+        boolean buildable = true;
+        boolean testSuite = false;
         return new DependentComponentsRenderableDependency(id, name, description, buildable, testSuite, children);
     }
 

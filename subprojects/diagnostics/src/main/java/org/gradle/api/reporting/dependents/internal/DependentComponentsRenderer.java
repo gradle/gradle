@@ -39,14 +39,14 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, TextReportBuilder> {
 
     private final DependentBinariesResolver resolver;
-    private final boolean detail;
+    private final boolean showNonBuildable;
 
     private boolean seenTestSuite;
     private boolean hiddenNonBuildable;
 
-    public DependentComponentsRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver, boolean detail) {
+    public DependentComponentsRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver, boolean showNonBuildable) {
         this.resolver = dependentBinariesResolver;
-        this.detail = detail;
+        this.showNonBuildable = showNonBuildable;
     }
 
     @Override
@@ -61,7 +61,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
                 output.withStyle(Description).text(" - Components that depend on " + component.getDisplayName());
             }
         }, true);
-        DependentComponentsGraphRenderer dependentsGraphRenderer = new DependentComponentsGraphRenderer(renderer, detail);
+        DependentComponentsGraphRenderer dependentsGraphRenderer = new DependentComponentsGraphRenderer(renderer, showNonBuildable);
         DependentComponentsRenderableDependency root = getRenderableDependencyOf(component, internalProtocol);
         if (root.getChildren().isEmpty()) {
             output.withStyle(Info).text("No dependents");
@@ -100,7 +100,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
             }
             if (hiddenNonBuildable) {
                 output.println();
-                output.withStyle(Info).println("Some non-buildable binaries were hidden, use --all to show them.");
+                output.withStyle(Info).println("Some non-buildable binaries were not shown, use --all to show them.");
             }
         }
     }
