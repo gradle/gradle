@@ -36,11 +36,18 @@ import java.util.Set;
 public interface ModelSet<T> extends Set<T>, ModelElement {
 
     /**
-     * Declares a new set element, configured by the given action.
+     * Declares a new set element configured by the given action.
      *
      * @param action the object configuration
      */
     void create(Action<? super T> action);
+
+    /**
+     * Declares a new set element of the given type configured by the given action
+     * @param type the type of the new element
+     * @param action the object configuration
+     */
+    <S extends T> void create(Class<S> type, Action<? super T> action);
 
     /**
      * Apply the given action to each set element just after it is created.
