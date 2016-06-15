@@ -128,7 +128,7 @@ public class TaskExecutionServices {
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter, FileSnapshotter fileSnapshotter,
                                                                   StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem, FileCollectionFactory fileCollectionFactory,
-                                                                  CachingTreeVisitor treeVisitor, TreeSnapshotRepository treeSnapshotRepository, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+                                                                  CachingTreeVisitor treeVisitor, TreeSnapshotRepository treeSnapshotRepository, CachingTreeVisitorCleaner treeVisitorCleaner, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, treeVisitor, treeSnapshotRepository);
         FileCollectionSnapshotter discoveredFileCollectionSnapshotter = new MinimalFileSetSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, fileSystem);
 
