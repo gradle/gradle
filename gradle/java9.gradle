@@ -135,11 +135,6 @@ task java9IntegTest(type: Test) {
         */
         "InProcessGroovyCompilerIntegrationTest",
         "InProcessJavaCompilerIntegrationTest",
-        /*
-          "executesTestsInCorrectEnvironment"
-          gradle-worker.jar is part of the Classpath for the test.
-         */
-        "JUnitIntegrationTest",
 
         /*
         java.lang.reflect.InaccessibleObjectException: Cannot make a non-public member of class java.lang.reflect.AccessibleObject accessible
