@@ -223,7 +223,6 @@ task java9IntegTest(type: Test) {
 task java9Test(type: Test) {
     excludes = [
         // ??
-        "GeneratedArchiveBuildOutcomeComparatorTest",
         "ArchiveEntryTest",
         "GroovyStackTraceSpecTest",
         "DefaultFileOperationsTest"
