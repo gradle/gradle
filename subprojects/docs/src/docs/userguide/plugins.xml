@@ -101,7 +101,7 @@
             Core Gradle plugins are special in that they provide short names, such as <literal>'java'</literal> for the core
             <apilink class="org.gradle.api.plugins.JavaPlugin" />. All other binary plugins must use the fully qualified form of
             the plugin id (e.g. <literal>com.github.foo.bar</literal>), although some legacy plugins may still utilize a short, unqualified
-            form. Where you put the plugin id depends on whether you are using the <link linkend="sec:plugins_block">plugins DSL<link/> or
+            form. Where you put the plugin id depends on whether you are using the <link linkend="sec:plugins_block">plugins DSL</link> or
             the <link linkend="sec:old_plugin_application">buildscript block.</link>
         </para>
         <section>
