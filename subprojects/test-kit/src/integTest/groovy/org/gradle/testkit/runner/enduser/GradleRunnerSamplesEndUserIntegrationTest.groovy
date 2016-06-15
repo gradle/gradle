@@ -47,6 +47,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     }
 
     @UsesSample("testKit/gradleRunner/manualClasspathInjection")
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // Uses Gradle 2.8 which does not support Java 9
     def manualClasspathInjection() {
         expect:
         executer.inDirectory(sample.dir)

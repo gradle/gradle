@@ -115,7 +115,6 @@ task java9IntegTest(type: Test) {
         "ToolingApiUnsupportedClientJvmCrossVersionSpec",
         "MavenConversionIntegrationTest",
 
-
         // Jetty version does not work on Java 9
         "JettyIntegrationSpec",
         "SamplesWebQuickstartIntegrationTest",
@@ -194,15 +193,33 @@ task java9IntegTest(type: Test) {
          */
         "EnvJsPluginIntegrationTest",
 
-        "GradleRunnerSamplesEndUserIntegrationTest",
+        /*
+          "java.lang.ClassNotFoundException: org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker"
+         */
         "MultiRequestWorkerProcessIntegrationTest",
         "SingleRequestWorkerProcessIntegrationTest",
         "WorkerProcessIntegrationTest",
         "PathLimitationIntegrationTest",
+
+        /*
+         Uses bytebuddy in a test which uses asm which cannot read Java 9 classfiles
+         */
         "DirectoryScanningIntegTest",
-        "DeprecationHandlingIntegrationTest",
-        "BuildSourceBuilderIntegrationTest",
+
+        /*
+         No reference to Build Script in log output
+         */
+//        "DeprecationHandlingIntegrationTest",
+
+        /*
+          MaxPermSize as GRADLE_OPTS
+         */
         "ClientShutdownCrossVersionSpec",
+
+        /*
+         Runs against older Gradle versions
+         Compilation fails for Java 9 on current Gradle version
+         */
         "CompositeBuildDependencyArtifactsCrossVersionSpec",
         "CompositeBuildDependencyGraphCrossVersionSpec",
     ].collect { "**/*${it}*" }
@@ -227,6 +244,9 @@ tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
     environment['JAVA_HOME'] = java9Home
     reports.junitXml.destination = file("${project.testResultsDir}/$name")
     reports.html.destination = file("${project.reporting.baseDir}/$name")
+    if (name.contains('IntegTest')) {
+        systemProperties['org.gradle.integtest.executer'] = 'forking'
+    }
 }
 
 if (!gradle.hasProperty("haveInstalledJava9Guard")) {
