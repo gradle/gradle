@@ -270,7 +270,7 @@ task patchExternalModules(type: Copy) {
     from configurations.externalModulesRuntime.minus(configurations.coreRuntime)
     into patchedExternalModulesDir
     doLast {
-        new ClasspathManifestPatcher(rootProject, configurations.externalModulesRuntime, ['gradle-script-kotlin'])
+        new ClasspathManifestPatcher(rootProject, configurations.externalModulesRuntime, configurations.externalModules)
             .writePatchedFilesTo(destinationDir)
     }
 }
