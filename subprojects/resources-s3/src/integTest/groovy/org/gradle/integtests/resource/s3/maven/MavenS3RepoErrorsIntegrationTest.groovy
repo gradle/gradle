@@ -82,24 +82,6 @@ repositories {
                 .assertHasCause("Credentials must be an instance of '${AwsCredentials.class.getName()}'.")
     }
 
-    def "fails when no credentials provided"() {
-        setup:
-        buildFile << """
-repositories {
-    maven {
-        url "${mavenS3Repo.uri}"
-    }
-}
-"""
-
-        when:
-        fails 'retrieve'
-        then:
-        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
-                .assertHasCause("AwsCredentials must be set for S3 backed repository.")
-
-    }
-
     def "should include resource uri when file not found"() {
         setup:
         buildFile << mavenAwsRepoDsl()
