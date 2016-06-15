@@ -12,7 +12,7 @@ class GetGradleKotlinScriptDependencies : GetScriptDependencies {
 
     override operator fun invoke(annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? {
         return when (context) {
-            is ClassPathRegistry -> makeDependencies(annotations, KotlinScriptDefinitionProvider.selectGradleApiJars(context).map { it.absolutePath })
+            is ClassPathRegistry -> makeDependencies(annotations, KotlinScriptDefinitionProvider.selectGradleApiJars(context))
             is File -> {
                 val libDir = File(context, "lib").let { if (it.exists() && it.isDirectory) it else null }
                 val classpath = libDir?.listFiles { file -> Companion.defaultDependenciesJarsPrefixes.any { file.name.startsWith(it) } }
@@ -21,19 +21,19 @@ class GetGradleKotlinScriptDependencies : GetScriptDependencies {
                     null
                 }
                 else {
-                    makeDependencies(annotations, classpath.map { it.absolutePath })
+                    makeDependencies(annotations, classpath.asIterable())
                 }
             }
             else -> null
         }
     }
 
-    private fun makeDependencies(annotations: Iterable<KtAnnotationEntry>, defaultClasspath: Iterable<String>): KotlinScriptExternalDependencies {
+    private fun makeDependencies(annotations: Iterable<KtAnnotationEntry>, defaultClasspath: Iterable<File>): KotlinScriptExternalDependencies {
         val anns = annotations.map { parseAnnotation(it) }.filter { it.name == dependsOn::class.simpleName }
         val cp = anns.flatMap {
             it.value.mapNotNull {
                 when (it) {
-                    is SimpleUntypedAst.Node.str -> it.value
+                    is SimpleUntypedAst.Node.str -> File(it.value)
                     else -> null
                 }
             }
