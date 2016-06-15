@@ -59,6 +59,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
         InputStream inputStream = null;
         try {
             URLConnection connection = resource.openConnection();
+            connection.setUseCaches(false);
             inputStream = connection.getInputStream();
             Properties properties = new Properties();
             properties.load(inputStream);
