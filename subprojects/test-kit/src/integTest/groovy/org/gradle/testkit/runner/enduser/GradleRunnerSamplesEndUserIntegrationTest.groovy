@@ -68,7 +68,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
         succeeds "check"
     }
 
-    @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER])
+    @Requires([TestPrecondition.ONLINE, TestPrecondition.JDK8_OR_EARLIER]) // Uses Gradle 2.6 which does not support Java 9
     @UsesSample("testKit/gradleRunner/gradleVersion")
     def gradleVersion() {
         expect:

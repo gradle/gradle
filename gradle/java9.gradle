@@ -209,7 +209,7 @@ task java9IntegTest(type: Test) {
         /*
          No reference to Build Script in log output
          */
-//        "DeprecationHandlingIntegrationTest",
+        "DeprecationHandlingIntegrationTest",
 
         /*
           MaxPermSize as GRADLE_OPTS
