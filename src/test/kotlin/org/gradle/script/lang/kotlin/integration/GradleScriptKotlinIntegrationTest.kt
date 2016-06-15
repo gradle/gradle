@@ -100,6 +100,10 @@ class GradleScriptKotlinIntegrationTest {
             .withProjectDir(projectDir.root)
 
     private fun customInstallation() =
-        File("build/custom").listFiles()?.single()
-            ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
+        File("build/custom").listFiles()?.let {
+            it.singleOrNull() ?:
+                throw IllegalStateException(
+                    "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`.")
+        } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
+
 }
