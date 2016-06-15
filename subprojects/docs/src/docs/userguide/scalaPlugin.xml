@@ -23,7 +23,7 @@
         This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
     </para>
 
-    <section>
+    <section id="sec:scala_usage">
         <title>Usage</title>
         <para>To use the Scala plugin, include the following in your build script:</para>
         <sample id="useScalaPlugin" dir="scala/quickstart" title="Using the Scala plugin">
@@ -31,7 +31,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:scala_tasks">
         <title>Tasks</title>
         <para>The Scala plugin adds the following tasks to the project.</para>
         <table>
@@ -109,7 +109,7 @@
         </figure>
     </section>
 
-    <section>
+    <section id="sec:scala_project_layout">
         <title>Project layout</title>
         <para>The Scala plugin assumes the project layout shown below.  All the Scala source directories can contain
             Scala <emphasis>and</emphasis> Java code. The Java source directories may only contain Java source code.
@@ -151,7 +151,7 @@
             </tr>
         </table>
 
-        <section>
+        <section id="sec:changing_scala_project_layout">
             <title>Changing the project layout</title>
             <para>Just like the Java plugin, the Scala plugin allows you to configure custom locations for Scala production and test sources.</para>
             <sample id="customScalaSourceLayout" dir="scala/customizedLayout" title="Custom Scala source layout">
@@ -161,7 +161,7 @@
 
     </section>
 
-    <section>
+    <section id="sec:scala_dependency_management">
         <title>Dependency management</title>
         <para>
             Scala projects need to declare a <literal>scala-library</literal> dependency. This dependency will then be used on compile and
@@ -209,12 +209,12 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:scala_convention_properties">
         <title>Convention properties</title>
         <para>The Scala plugin does not add any convention properties to the project.</para>
     </section>
 
-    <section>
+    <section id="sec:scala_source_set_properties">
         <title>Source set properties</title>
         <para>The Scala plugin adds the following convention properties to each source set in the project. You can
             use these properties in your build script as though they were properties of the source set object.</para>
@@ -301,7 +301,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:scala_compiling_in_external_process">
         <title>Compiling in external process</title>
         <para>
             Scala compilation takes place in an external process.
@@ -314,7 +314,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:scala_incremental_compilation">
         <title>Incremental compilation</title>
         <para>
             By compiling only classes whose source code has changed since the previous compilation, and classes affected by these changes,
@@ -376,7 +376,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:eclipse_integration">
         <title>Eclipse Integration</title>
         <para>
             When the Eclipse plugin encounters a Scala project, it adds additional configuration to make the project work with Scala IDE out of the box.

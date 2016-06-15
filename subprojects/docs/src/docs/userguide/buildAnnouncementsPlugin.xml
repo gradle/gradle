@@ -6,7 +6,7 @@
         </para>
     </note>
     <para>The build announcements plugin uses the <link linkend="announce_plugin">announce</link> plugin to send local announcements on important events in the build.</para>
-    <section>
+    <section id="sec:build_announcements_usage">
         <title>Usage</title>
         <para>To use the build announcements plugin, include the following in your build script:</para>
         <sample id="useBuildAnnouncementsPlugin" dir="announce" title="Using the build announcements plugin">

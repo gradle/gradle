@@ -22,7 +22,7 @@
         which we have already seen in <xref linkend="tutorial_java_projects"/>.
     </para>
 
-    <section>
+    <section id="sec:a_basic_groovy_project">
         <title>A basic Groovy project</title>
 
         <para>Let's look at an example. To use the Groovy plugin, add the following to your build file:</para>
@@ -50,7 +50,7 @@
         <para>Running <userinput>gradle build</userinput> will compile, test and JAR your project.</para>
     </section>
 
-    <section>
+    <section id="sec:groovy_tutorial_summary">
         <title>Summary</title>
         <para>This chapter describes a very simple Groovy project. Usually, a real project will require more than this.
             Because a Groovy project <emphasis>is</emphasis> a Java project, whatever you can do with a Java project,

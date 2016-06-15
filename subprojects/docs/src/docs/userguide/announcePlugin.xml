@@ -9,7 +9,7 @@
  	</itemizedlist>
 	</para>
 
-    <section>
+    <section id="sec:announce_usage">
         <title>Usage</title>
         <para>To use the announce plugin, apply it to your build script:</para>
         <sample id="useAnnouncePlugin" dir="announce" title="Using the announce plugin">
@@ -74,7 +74,7 @@
        </tr>
    </table>
 
-    <section>
+    <section id="sec:announce_configuration">
         <title>Configuration</title>
         <para>See the <apilink class="org.gradle.api.plugins.announce.AnnouncePluginExtension"/> class in the API documentation.</para>
     </section>

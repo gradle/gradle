@@ -26,7 +26,7 @@
     <para>Your build scripts configure this dependency graph. Therefore they are strictly speaking <emphasis>build
         configuration scripts</emphasis>.
     </para>
-    <section id='sec:build_phases'>
+    <section id="sec:build_phases">
         <title>Build phases</title>
         <para>A Gradle build has three distinct phases.
         </para>
@@ -62,7 +62,7 @@
             </varlistentry>
         </variablelist>
     </section>
-    <section id='sec:settings_file'>
+    <section id="sec:settings_file">
         <title>Settings file</title>
         <para>Beside the build script files, Gradle defines a settings file. The settings file is determined by Gradle
             via a naming convention. The default name for this file is <filename>settings.gradle</filename>. Later in
@@ -87,14 +87,14 @@
             the <apilink class='org.gradle.api.initialization.Settings'/> class in the API documentation for more information.
         </para>
     </section>
-    <section id='sec:multi_project_builds'>
+    <section id="sec:multi_project_builds">
         <title>Multi-project builds</title>
         <para>A multi-project build is a build where you build more than one project during a single execution of
             Gradle. You have to declare the projects taking part in the multiproject build in the settings file. There
             is much more to say about multi-project builds in the chapter dedicated to this topic (see <xref
                     linkend='multi_project_builds'/>).
         </para>
-        <section id='sub:project_locations'>
+        <section id="sub:project_locations">
             <title>Project locations</title>
             <para>Multi-project builds are always represented by a tree with a single root. Each element in the tree
                 represents a project. A project has a path which denotes the position
@@ -106,12 +106,12 @@
                 in the settings file.
             </para>
         </section>
-        <section id='sub:building_the_tree'>
+        <section id="sub:building_the_tree">
             <title>Building the tree</title>
             <para>In the settings file you can use a set of methods to build the project tree. Hierarchical and flat
                 physical layouts get special support.
             </para>
-            <section>
+            <section id="sec:hierarchical_layouts">
                 <title>Hierarchical layouts</title>
                 <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts" title="Hierarchical layout">
                     <sourcefile file="settings.gradle" snippet="hierarchical-layout"/>
@@ -124,7 +124,7 @@
                     'services', 'services:hotels' and 'services:hotels:api'.
                 </para>
             </section>
-            <section>
+            <section id="sec:flat_layouts">
                 <title>Flat layouts</title>
                 <sample id="standardLayouts" dir="userguide/multiproject/standardLayouts" title="Flat layout">
                     <sourcefile file="settings.gradle" snippet="flat-layout"/>
@@ -135,7 +135,7 @@
                 </para>
             </section>
         </section>
-        <section id='sub:modifying_element_of_the_project_tree'>
+        <section id="sub:modifying_element_of_the_project_tree">
             <title>Modifying elements of the project tree</title>
             <para>The multi-project tree created in the settings file is made up of so called <firstterm>project descriptors</firstterm>.
                 You can modify these descriptors in the settings file at any time. To access a descriptor you can do:
@@ -151,7 +151,7 @@
             <para>Look at the <apilink class="org.gradle.api.initialization.ProjectDescriptor"/> class in the API documentation for more information.</para>
         </section>
     </section>
-    <section id='sec:initialization'>
+    <section id="sec:initialization">
         <title>Initialization</title>
         <para>How does Gradle know whether to do a single or multiproject build? If you trigger a multiproject build
             from a directory with a settings file, things are easy. But Gradle also allows you to execute the
@@ -216,7 +216,7 @@
         and every project except the root project has a parent project. Any project may have child projects.
         </para>
     </section>
-    <section id='sec:configuration_and_execution_of_a_single_project_build'>
+    <section id="sec:configuration_and_execution_of_a_single_project_build">
         <title>Configuration and execution of a single project build</title>
         <para>For a single project build, the workflow of the <emphasis>after initialization</emphasis>
             phases are pretty simple. The build script is executed against the project object that was created during
@@ -234,7 +234,7 @@
             how to use the listener interfaces, refer to the API documentation.
         </para>
 
-        <section>
+        <section id="sec:project_evaluation">
             <title>Project evaluation</title>
             <para>You can receive a notification immediately before and after a project is evaluated. This can be used
                 to do things like performing additional configuration once all the definitions in a build script have
@@ -263,7 +263,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:task_creation">
             <title>Task creation</title>
             <para>You can receive a notification immediately after a task is added to a project. This can be used
                 to set some default values or add behaviour before the task is made available in the build file.</para>
@@ -276,7 +276,7 @@
                 <apilink class="org.gradle.api.tasks.TaskContainer"/> to receive these events.</para>
         </section>
 
-        <section>
+        <section id="sec:task_execution_graph_ready">
             <title>Task execution graph ready</title>
             <para>You can receive a notification immediately after the task execution graph has been populated. We
                 have seen this already in <xref linkend="configure-by-dag"/>.
@@ -286,7 +286,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:task_execution">
             <title>Task execution</title>
             <para>You can receive a notification immediately before and after any task is executed.</para>
             <para>The following example logs the start and end of each task execution. Notice that the

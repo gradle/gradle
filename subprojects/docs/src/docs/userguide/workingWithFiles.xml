@@ -240,7 +240,7 @@
             implementation. That is, the copy method is intended to be used by custom tasks (see <xref linkend="custom_tasks" />) that need to copy files
             as part of their function. In such a scenario, the custom task should sufficiently declare the inputs/outputs relevant to the copy action.
         </para>
-        <section>
+        <section id="sec:renaming_files">
             <title>Renaming files</title>
             <sample id="renameOnCopy" dir="userguide/files/copy" title="Renaming files as they are copied">
                 <sourcefile file="build.gradle" snippet="rename-files"/>
@@ -261,7 +261,7 @@
                 to filter, and might be different from one machine to another.
             </para>
         </section>
-        <section>
+        <section id="sec:using_the_copyspec_class">
             <title>Using the <classname>CopySpec</classname> class</title>
             <para>Copy specs form a hierarchy. A copy spec inherits its destination path, include patterns, exclude patterns, copy actions,
                 name mappings and filters.</para>
@@ -317,7 +317,7 @@
             all the other things you can do with a copy spec.
         </para>
 
-        <section>
+        <section id="sec:archive_naming">
             <title>Archive naming</title>
 
             <para>The format of <filename><replaceable>projectName</replaceable>-<replaceable>version</replaceable>.<replaceable>type</replaceable></filename>
@@ -415,7 +415,7 @@
             </table>
         </section>
 
-        <section>
+        <section id="sec:sharing_content_between_multiple_archives">
             <title>Sharing content between multiple archives</title>
             <para>You can use the <apilink class="org.gradle.api.Project" method="copySpec(org.gradle.api.Action)"/> method to share content between archives.</para>
         </section>

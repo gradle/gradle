@@ -44,13 +44,13 @@
     <para>
         The rest of this chapter is dedicated to explaining what is going on behind this build script.
     </para>
-    <section>
+    <section id="sec:concepts">
         <title>Concepts</title>
         <para>
             A custom software model type has a public type, a base interface and internal views.
             Multiple such types then collaborate to define a custom software model.
         </para>
-        <section>
+        <section id="sec:public_type_and_base_interfaces">
             <title>Public type and base interfaces</title>
             <para>
                 Extended types declare a <emphasis>public type</emphasis> that extends a
@@ -71,22 +71,22 @@
                 The <emphasis>public type</emphasis> is exposed to build logic.
             </para>
         </section>
-        <section>
+        <section id="sec:internal_views">
             <title>Internal views</title>
             <para>
                 Adding internal views to your model type, you can make some data visible to build logic via a public
                 type, while hiding the rest of the data behind the internal view types.
-                This is covered in a <link linkend='software-model-extend-internal-views'>dedicated section</link> below.
+                This is covered in a <link linkend="software-model-extend-internal-views">dedicated section</link> below.
             </para>
         </section>
-        <section>
+        <section id="sec:components_all_the_way_down">
             <title>Components all the way down</title>
             <para>
                 Components are composed of other components. A source set is just a special kind of component representing sources. It might be that the sources are provided, or generated. Similarily, some components are composed of different binaries, which are built by tasks. All buildable components are built by tasks. In the software model, you will write rules to generate both binaries from components and tasks from binaries.
             </para>
         </section>
     </section>
-    <section>
+    <section id="sec:components">
         <title>Components</title>
         <para>
             To declare a custom component type one must extend
@@ -118,7 +118,7 @@
             <sourcefile file="DocumentationPlugin.groovy" snippet="component-registration"/>
         </sample>
     </section>
-    <section>
+    <section id="sec:binaries">
         <title>Binaries</title>
         <para>
             To declare a custom binary type one must extend
@@ -137,7 +137,7 @@
             <sourcefile file="DocumentationPlugin.groovy" snippet="binary-registration"/>
         </sample>
     </section>
-    <section>
+    <section id="sec:source_sets">
         <title>Source sets</title>
         <para>
             To declare a custom source set type one must extend
@@ -159,9 +159,9 @@
             Setting the <emphasis>language name</emphasis> is mandatory.
         </para>
     </section>
-    <section>
+    <section id="sec:putting_it_all_together">
         <title>Putting it all together</title>
-        <section>
+        <section id="sec:generating_binaries_from_components">
             <title>Generating binaries from components</title>
             <para>
                 Binaries generation from components is done via rules annotated with
@@ -174,7 +174,7 @@
                 <sourcefile file="DocumentationPlugin.groovy" snippet="binaries-generation"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:generating_tasks_from_binaries">
             <title>Generating tasks from binaries</title>
             <para>
                 Tasks generation from binaries is done via rules annotated with
@@ -200,7 +200,7 @@
                 See the sample source for more on the <literal>MarkdownCompileTask</literal> task.
             </para>
         </section>
-        <section>
+        <section id="sec:using_your_custom_model">
             <title>Using your custom model</title>
             <para>
                 This build script demonstrate usage of the custom model defined in the sections above:
@@ -217,7 +217,7 @@
             </sample>
         </section>
     </section>
-    <section id='software-model-extend-internal-views'>
+    <section id="software-model-extend-internal-views">
         <title>About internal views</title>
         <para>
             Internal views can be added to an already registered type or to a new custom type.

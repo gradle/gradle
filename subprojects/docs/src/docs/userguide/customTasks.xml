@@ -40,7 +40,7 @@
         or Scala. In general, using Groovy is the easiest option, because the Gradle API is designed to work well with Groovy.
     </para>
 
-    <section>
+    <section id="sec:packaging_a_task_class">
         <title>Packaging a task class</title>
         <para>There are several places where you can put the source for the task class.
         </para>
@@ -88,7 +88,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:writing_a_simple_task_class">
         <title>Writing a simple task class</title>
         <para>To implement a custom task class, you extend <apilink class="org.gradle.api.DefaultTask"/>.
         </para>
@@ -117,7 +117,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:custom_tasks_standalone_project">
         <title>A standalone project</title>
         <para>Now we will move our task to a standalone project, so we can publish it and share it with others.
             This project is simply a Groovy project that produces a JAR containing the task class.
@@ -135,7 +135,7 @@
             <sourcefile file="src/main/groovy/org/gradle/GreetingTask.groovy"/>
         </sample>
 
-        <section>
+        <section id="sec:using_your_task_class_in_another_project">
             <title>Using your task class in another project</title>
             <para>To use a task class in a build script, you need to add the class to the build script's classpath. To
                 do this, you use a <literal>buildscript { }</literal> block, as described in <xref linkend="sec:external_dependencies"/>.
@@ -148,7 +148,7 @@
                 <sourcefile file="build.gradle" snippet="use-task"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:writing_tests_for_your_task_class">
             <title>Writing tests for your task class</title>
             <para>You can use the <apilink class="org.gradle.testfixtures.ProjectBuilder"/> class to create
                 <apilink class="org.gradle.api.Project"/> instances to use when you test your task class.
@@ -158,7 +158,7 @@
             </sample>
         </section>
     </section>
-    <section id='incremental_tasks'>
+    <section id="incremental_tasks">
         <title>Incremental tasks</title>
         <note>
             <para>
@@ -182,7 +182,7 @@
         <para>
             If you'd like to optimise your build so that only out-of-date inputs are processed, you can do so with an <firstterm>incremental task</firstterm>.
         </para>
-        <section>
+        <section id="sec:implementing_an_incremental_task">
             <title>Implementing an incremental task</title>
             <para>
                 For a task to process inputs incrementally, that task must contain an <firstterm>incremental task action</firstterm>. This is a task action method that contains a
@@ -208,7 +208,7 @@
                 A task may only contain a single incremental task action.
             </para>
         </section>
-        <section>
+        <section id="sec:which_inputs_are_considered_out_of_date">
             <title>Which inputs are considered out of date?</title>
             <para>
                 When Gradle has history of a previous task execution, and the only changes to the task execution context since that execution are to input files,
@@ -235,7 +235,7 @@
                 You can check if Gradle was able to determine the incremental changes to input files with <apilink class="org.gradle.api.tasks.incremental.IncrementalTaskInputs" method="isIncremental"/>.
             </para>
         </section>
-        <section>
+        <section id="sec:an_incremental_task_in_action">
             <title>An incremental task in action</title>
             <para>
                 Given the incremental task implementation <link linkend="taskDefinition">above</link>, we can explore the various change scenarios by example.

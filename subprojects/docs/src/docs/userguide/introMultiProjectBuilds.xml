@@ -23,7 +23,7 @@
 
     <para>Gradle supports this scenario through <firstterm>multi-project</firstterm> builds.</para>
 
-    <section>
+    <section id="sec:structure_of_a_multiproject_build">
         <title>Structure of a multi-project build</title>
         <para>Such builds come in all shapes and sizes, but they do have some common characteristics:
         <itemizedlist>
@@ -86,7 +86,7 @@
             tasks within the project.</para>
     </section>
 
-    <section>
+    <section id="sec:executing_a_multiproject_build">
         <title>Executing a multi-project build</title>
         <para>From a user's perspective, multi-project builds are still collections of tasks you can run. The
             difference is that you may want to control <emphasis>which</emphasis> project's tasks get executed.

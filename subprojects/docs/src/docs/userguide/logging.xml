@@ -54,7 +54,7 @@
             <td>Debug messages</td>
         </tr>
     </table>
-    <section id='sec:choosing_a_log_level'>
+    <section id="sec:choosing_a_log_level">
         <title>Choosing a log level</title>
         <para>You can use the command line switches shown in <xref linkend='logLevelCommandLineOptions'/> to choose
             different log levels. In <xref linkend='stacktraces'/> you find the command line switches which affect
@@ -124,7 +124,7 @@
 
         </table>
     </section>
-    <section id='sec:sending_your_own_log_messages'>
+    <section id="sec:sending_your_own_log_messages">
         <title>Writing your own log messages</title>
         <para>A simple option for logging in your build file is to write messages to standard output. Gradle redirects
             anything written to standard output to it's logging system at the <literal>QUIET</literal> log level.</para>
@@ -148,7 +148,7 @@
         </sample>
     </section>
 
-    <section id='sec:external_tools'>
+    <section id="sec:external_tools">
         <title>Logging from external tools and libraries</title>
         <para>Internally, Gradle uses Ant and Ivy. Both have their own logging system. Gradle redirects their logging
             output into the Gradle logging system. There is a 1:1 mapping from the Ant/Ivy log levels to the Gradle log

@@ -21,7 +21,7 @@
     <para>Note that this is completely different from the “<literal>init</literal>” task
     provided by the “<literal>build-init</literal>” incubating plugin (see <xref linkend='build_init_plugin'/>).
     </para>
-    <section id='sec:basic_usage'>
+    <section id="sec:basic_usage">
         <title>Basic usage</title>
         <para>Initialization scripts (a.k.a. <firstterm>init scripts</firstterm>) are similar to other scripts in Gradle.
             These scripts, however, are run before the build starts.  Here are several possible uses:
@@ -57,7 +57,7 @@
             <xref linkend='sec:build_sources'/> for details of this feature).
         </para>
     </section>
-    <section>
+    <section id="sec:using_an_init_script">
         <title>Using an init script</title>
         <para>There are several ways to use an init script:
         </para>
@@ -87,14 +87,14 @@
             the environment and both scripts will run when Gradle is executed.
         </para>
     </section>
-    <section>
+    <section id="sec:writing_an_init_script">
         <title>Writing an init script</title>
         <para>Similar to a Gradle build script, an init script is a Groovy script. Each init script has a
             <apilink class="org.gradle.api.invocation.Gradle"/> instance associated with it. Any property reference
             and method call in the init script will delegate to this <classname>Gradle</classname> instance.
         </para>
         <para>Each init script also implements the <apilink class="org.gradle.api.Script"/> interface.</para>
-        <section>
+        <section id="sec:configuring_projects_from_an_init_script">
             <title>Configuring projects from an init script</title>
             <para>You can use an init script to configure the projects in the build. This works in a similar way to configuring projects in a
                 multi-project build.
@@ -108,7 +108,7 @@
             </sample>
         </section>
     </section>
-    <section id='sec:custom_classpath'>
+    <section id="sec:custom_classpath">
         <title>External dependencies for the init script</title>
         <para>In <xref linkend='sec:external_dependencies'/> it was explained how to add external dependencies to a
             build script. Init scripts can also declare dependencies.  You do this with the
@@ -130,7 +130,7 @@
             <output args="--init-script init.gradle -q doNothing"/>
         </sample>
     </section>
-    <section>
+    <section id="sec:init_script_plugins">
             <title>Init script plugins</title>
             <para>Similar to a Gradle build script or a Gradle settings file, plugins can be applied on init scripts.
             </para>

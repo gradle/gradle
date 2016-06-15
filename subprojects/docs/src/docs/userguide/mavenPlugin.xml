@@ -20,7 +20,7 @@
     </note>
     <para>The Maven plugin adds support for deploying artifacts to Maven repositories.</para>
 
-    <section>
+    <section id="sec:maven_usage">
         <title>Usage</title>
         <para>To use the Maven plugin, include the following in your build script:</para>
         <sample id="useMavenPlugin" dir="maven/quickstart" title="Using the Maven plugin">
@@ -28,7 +28,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:maven_tasks">
         <title>Tasks</title>
         <para>The Maven plugin defines the following tasks:</para>
         <table>
@@ -57,12 +57,12 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:maven_dependency_management">
         <title>Dependency management</title>
         <para>The Maven plugin does not define any dependency configurations.</para>
     </section>
 
-    <section>
+    <section id="sec:maven_convention_properties">
         <title>Convention properties</title>
         <para>The Maven plugin defines the following convention properties:</para>
         <table>
@@ -108,7 +108,7 @@
             convention object.</para>
     </section>
 
-    <section>
+    <section id="sec:maven_convention_methods">
         <title>Convention methods</title>
         <para>The maven plugin provides a factory method for creating a POM. This is useful if you need a POM
         without the context of uploading to a Maven repo.</para>
@@ -120,9 +120,9 @@
         </para>
     </section>
 
-    <section id='uploading_to_maven_repositories'>
+    <section id="uploading_to_maven_repositories">
         <title>Interacting with Maven repositories</title>
-        <section id='sec:introduction'>
+        <section id="sec:maven_upload_intro">
             <title>Introduction</title>
             <para>With Gradle you can deploy to remote Maven repositories or install to your local Maven repository. This
                 includes all Maven metadata manipulation and works also for Maven snapshots. In fact, Gradle's deployment is
@@ -132,7 +132,7 @@
                 generate this POM for you using the dependency information it has.
             </para>
         </section>
-        <section id='sec:deploying_to_a_maven_repository'>
+        <section id="sec:deploying_to_a_maven_repository">
             <title>Deploying to a Maven repository</title>
             <para>Let's assume your project produces just the default jar file. Now you want to deploy this jar file to
                 a remote Maven repository.
@@ -270,7 +270,7 @@
 
             </table>
         </section>
-        <section id='sub:installing_to_the_local_repository'>
+        <section id="sub:installing_to_the_local_repository">
             <title>Installing to the local repository</title>
             <para>The Maven plugin adds an <literal>install</literal> task to your project. This task depends on all the archives
                 task of the <literal>archives</literal> configuration. It installs those archives to your local Maven repository.
@@ -278,7 +278,7 @@
                 considered by this task.
             </para>
         </section>
-        <section id='sec:maven_pom_generation'>
+        <section id="sec:maven_pom_generation">
             <title>Maven POM generation</title>
             <para>When deploying an artifact to a Maven repository, Gradle automatically generates a POM for it. The
                 <literal>groupId</literal>, <literal>artifactId</literal>, <literal>version</literal> and <literal>packaging</literal>
@@ -351,7 +351,7 @@
             <sample id="customizeInstaller" dir="userguide/artifacts/maven" title="Customization of Maven installer">
                 <sourcefile file="build.gradle" snippet="customize-installer"/>
             </sample>
-            <section id='sub:multiple_artifacts_per_project'>
+            <section id="sub:multiple_artifacts_per_project">
                 <title>Multiple artifacts per project</title>
                 <para>Maven can only deal with one artifact per project. This is reflected in the structure of the
                     Maven POM. We think there are many situations where it makes sense to have more than one artifact per
@@ -368,7 +368,7 @@
                     and its associated classes.
                 </para>
             </section>
-            <section id='sub:dependency_mapping'>
+            <section id="sub:dependency_mapping">
                 <title>Dependency mapping</title>
                 <para>The Maven plugin configures the default mapping between the Gradle configurations added by the
                     Java and War plugin and the Maven scopes. Most

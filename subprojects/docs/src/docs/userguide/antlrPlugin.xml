@@ -25,7 +25,7 @@
         </para>
     </note>
 
-    <section>
+    <section id="sec:antlr_usage">
         <title>Usage</title>
         <para>To use the ANTLR plugin, include the following in your build script:</para>
         <sample id="useAntlrPlugin" dir="antlr" title="Using the ANTLR plugin">
@@ -33,7 +33,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:antlr_tasks">
         <title>Tasks</title>
         <para>The ANTLR plugin adds a number of tasks to your project, as shown below.</para>
 
@@ -94,7 +94,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:antlr_project_layout">
         <title>Project layout</title>
         <table>
             <title>ANTLR plugin - project layout</title>
@@ -126,7 +126,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:antlr_dependency_management">
         <title>Dependency management</title>
         <para>
             The ANTLR plugin adds an <literal>antlr</literal> dependency configuration which provides the ANTLR implementation to use.
@@ -141,12 +141,12 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:antlr_convention_properties">
         <title>Convention properties</title>
         <para>The ANTLR plugin does not add any convention properties.</para>
     </section>
 
-    <section>
+    <section id="sec:antlr_source_set_properties">
         <title>Source set properties</title>
         <para>The ANTLR plugin adds the following properties to each source set in the project.</para>
         <table>
@@ -190,7 +190,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:controlling_the_antlr_generator_process">
         <title>Controlling the ANTLR generator process</title>
         <para>
             The ANTLR tool is executed in a forked process.

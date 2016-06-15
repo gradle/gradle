@@ -15,7 +15,7 @@
   -->
 <chapter id="tutorials">
     <title>Tutorials</title>
-    <section>
+    <section id="sec:tutorials_getting_started">
         <title>Getting Started</title>
         <para>The following tutorials introduce some of the basics of Gradle, to help you get started.</para>
         <variablelist>
@@ -73,7 +73,7 @@
             </varlistentry>
         </variablelist>
     </section>
-    <section condition="website">
+    <section condition="website" id="sec:tutorials_where_to_next">
         <title>Where to next?</title>
         <para>There are more tutorials and plenty of reference material in the <ulink url="website:documentation">user guide</ulink>.</para>
     </section>

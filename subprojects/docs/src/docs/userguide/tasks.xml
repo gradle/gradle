@@ -22,7 +22,7 @@
         properties and methods. This is really different from what you are used to with Ant targets. Such enhanced tasks are
         either provided by you or built into Gradle.
     </para>
-    <section>
+    <section id="sec:defining_tasks">
         <title>Defining tasks</title>
         <para>We have already seen how to define tasks using a keyword style in <xref linkend="tutorial_using_tasks"/>.
             There are a few variations on this style, which you may need to use in certain situations. For example,
@@ -43,7 +43,7 @@
             <apilink class="org.gradle.api.tasks.TaskContainer"/> for more variations of the <literal>create()</literal>
             method.</para>
     </section>
-    <section>
+    <section id="sec:locating_tasks">
         <title>Locating tasks</title>
         <para>You often need to locate the tasks that you have defined in the build file, for example, to configure them
             or use them for dependencies. There are a number of ways of doing this. Firstly, each task is available as
@@ -65,7 +65,7 @@
         </sample>
         <para>Have a look at <apilink class="org.gradle.api.tasks.TaskContainer"/> for more options for locating tasks.</para>
     </section>
-    <section id='sec:configuring_tasks'>
+    <section id="sec:configuring_tasks">
         <title>Configuring tasks</title>
         <para>As an example, let's look at the <classname>Copy</classname> task provided by Gradle. To create a
             <classname>Copy</classname> task for your build, you can declare in your build script:
@@ -113,7 +113,7 @@
             </para>
         </tip>
     </section>
-    <section id='sec:adding_dependencies_to_tasks'>
+    <section id="sec:adding_dependencies_to_tasks">
         <title>Adding dependencies to a task</title>
         <para>There are several ways you can define the dependencies of a task. In
             <xref linkend='sec:task_dependencies'/>
@@ -212,7 +212,7 @@
             <output args="-q taskX"/>
         </sample>
     </section>
-    <section>
+    <section id="sec:adding_a_description_to_a_task">
         <title>Adding a description to a task</title>
         <para>You can add a description to your task. This description is displayed when executing
             <userinput>gradle tasks</userinput>.
@@ -221,7 +221,7 @@
             <sourcefile file="build.gradle"/>
         </sample>
     </section>
-    <section>
+    <section id="sec:replacing_tasks">
         <title>Replacing tasks</title>
         <para>Sometimes you want to replace a task. For example, if you want to exchange a task added by the Java plugin
             with a custom task of a different type. You can achieve this with:
@@ -235,11 +235,11 @@
         to true. Otherwise Gradle throws an exception, saying that a task with that name already exists.
         </para>
     </section>
-    <section>
+    <section id="sec:skipping_tasks">
         <title>Skipping tasks</title>
         <para>Gradle offers multiple ways to skip the execution of a task.</para>
 
-        <section>
+        <section id="sec:using_a_predicate">
             <title>Using a predicate</title>
             <para>You can use the <literal>onlyIf()</literal> method to attach a predicate to a task. The task's
                 actions are only executed if the predicate evaluates to true. You implement the predicate as a closure.
@@ -253,7 +253,7 @@
             </sample>
         </section>
 
-        <section>
+        <section id="sec:using_stopexecutionexception">
         <title>Using StopExecutionException</title>
         <para>If the logic for skipping a task can't be expressed with a predicate, you can use the
             <apilink class="org.gradle.api.tasks.StopExecutionException"/>. If this exception is thrown by an action,
@@ -276,7 +276,7 @@
         </para>
         </section>
 
-        <section>
+        <section id="sec:enabling_and_disabling_tasks">
         <title>Enabling and disabling tasks</title>
         <para>Every task has an <literal>enabled</literal>
             flag which defaults to <literal>true</literal>. Setting it to <literal>false</literal> prevents the
@@ -337,7 +337,7 @@
             </para>
 
         </section>
-        <section>
+        <section id="sec:how_does_it_work">
             <title>How does it work?</title>
             <para>
                 Before a task is executed for the first time, Gradle takes a snapshot of the inputs. This snapshot contains
@@ -360,7 +360,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:task_rules">
         <title>Task rules</title>
         <para>Sometimes you want to have a task whose behavior depends on a large or infinite number value range
             of parameters. A very nice and expressive way to provide such tasks are task rules:
@@ -383,7 +383,7 @@
         based on the request to run those tasks.</para>
     </section>
 
-    <section>
+    <section id="sec:finalizer_tasks">
         <title>Finalizer tasks</title>
         <note>
             <para>
@@ -410,7 +410,7 @@
         </para>
     </section>
 
-    <section id='sec:the_idea_behind_gradle_tasks'>
+    <section id="sec:the_idea_behind_gradle_tasks">
         <title>Summary</title>
         <para>If you are coming from Ant, an enhanced Gradle task like <emphasis>Copy</emphasis> seems like a cross
             between an Ant target and an Ant task. Although Ant's tasks and targets are really different entities,

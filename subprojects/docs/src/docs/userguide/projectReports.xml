@@ -26,7 +26,7 @@
         We plan to add much more to the existing reports and create additional ones in future releases of Gradle.
     </para>
 
-    <section>
+    <section id="sec:project_reports_usage">
         <title>Usage</title>
         <para>To use the Project report plugin, include the following in your build script:</para>
 <programlisting language="java">
@@ -34,7 +34,7 @@ apply plugin: 'project-report'
 </programlisting>
     </section>
 
-    <section>
+    <section id="sec:project_reports_tasks">
         <title>Tasks</title>
         <para>The project report plugin defines the following tasks:</para>
         <table>
@@ -92,17 +92,17 @@ apply plugin: 'project-report'
         </table>
     </section>
 
-    <section>
+    <section id="sec:project_reports_project_layout">
         <title>Project layout</title>
         <para>The project report plugin does not require any particular project layout.</para>
     </section>
 
-    <section>
+    <section id="sec:project_reports_dependency_management">
         <title>Dependency management</title>
         <para>The project report plugin does not define any dependency configurations.</para>
     </section>
 
-    <section>
+    <section id="sec:project_reports_convention_properties">
         <title>Convention properties</title>
         <para>The project report defines the following convention properties:</para>
         <table>

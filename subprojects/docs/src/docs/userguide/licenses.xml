@@ -17,7 +17,7 @@
 <appendix id="licenses">
     <title>Documentation licenses</title>
 
-    <section>
+    <section id="sec:gradle_documentation">
         <title>Gradle Documentation</title>
         <para><emphasis>Copyright © 2007-2016 Gradle, Inc.</emphasis></para>
 
@@ -27,7 +27,7 @@
             whether distributed in print or electronically.
         </para>
     </section>
-    <section>
+    <section id="sec:_header_link_icon_">
         <title>
             Header link icon
         </title>

@@ -35,7 +35,7 @@
         an API or DSL method or property in this context, but it is not restricted to this definition.
         Command line arguments and modes of execution (e.g. the Build Daemon) are two examples of other kinds of features.
     </para>
-    <section>
+    <section id="sec:states">
         <title>States</title>
         <para>
             Features can be in one of 4 states:
@@ -54,7 +54,7 @@
                 <para>Deprecated</para>
             </listitem>
         </itemizedlist>
-        <section>
+        <section id="sec:internal">
             <title>Internal</title>
             <para>
                 Internal features are not designed for public use and are only intended to be used by Gradle itself. They can change in any way at any
@@ -84,7 +84,7 @@
                 feature is discussed in this User Guide, it will be explicitly said to be in the incubating state.
             </para>
         </section>
-        <section>
+        <section id="sec:public">
             <title>Public</title>
             <para>
                 The default state for a non-internal feature is <firstterm>public</firstterm>.
@@ -97,7 +97,7 @@
                 All public features are subject to the backwards compatibility policy.
             </para>
         </section>
-        <section>
+        <section id="sec:deprecated">
             <title>Deprecated</title>
             <para>
                 Some features will become superseded or irrelevant due to the natural evolution of Gradle. Such features will eventually be removed
