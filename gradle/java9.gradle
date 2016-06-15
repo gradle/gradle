@@ -221,10 +221,6 @@ task java9IntegTest(type: Test) {
 }
 
 task java9Test(type: Test) {
-    excludes = [
-        // ??
-        "GroovyStackTraceSpecTest"
-    ].collect { "**/*${it}*" }
 }
 
 tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
