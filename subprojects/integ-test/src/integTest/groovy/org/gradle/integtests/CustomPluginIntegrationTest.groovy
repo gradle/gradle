@@ -47,7 +47,7 @@ task test
         succeeds('test')
     }
 
-    @LeaksFileHandles("keep file handle on plugin.jar")
+    @LeaksFileHandles("keeps file handle on external.jar")
     public void "can reference plugin in external jar by id"() {
         given:
         ArtifactBuilder builder = artifactBuilder()
@@ -82,6 +82,7 @@ task test
         succeeds('test')
     }
 
+    @LeaksFileHandles("keeps file handle on external.jar")
     public void "loads plugin in correct environment"() {
         given:
         def implClassName = 'com.google.common.collect.Multimap'
