@@ -792,5 +792,3 @@ java9IntegTest {
     }
 }
 
-verifyTestFilesCleanup.errorWhenNotEmpty = false
-
