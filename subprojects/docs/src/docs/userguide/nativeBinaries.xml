@@ -291,7 +291,7 @@
             <listitem><para>Windows resources</para></listitem>
         </itemizedlist>
 
-        <section id="sec:c_sources">
+        <section id="sec:cpp_sources">
             <title>C++ sources</title>
             <para>
                 C++ language support is provided by means of the <literal>'cpp'</literal> plugin.
@@ -381,7 +381,7 @@
             </para>
         </section>
 
-        <section id="sec:objectivec_sources">
+        <section id="sec:objectivecpp_sources">
             <title>Objective-C++ sources</title>
             <para>
                 Objective-C++ language support is provided by means of the <literal>'objective-cpp'</literal> plugin.

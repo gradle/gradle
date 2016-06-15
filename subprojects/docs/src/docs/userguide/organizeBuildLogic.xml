@@ -167,7 +167,7 @@
         </sample>
     </section>
 
-    <section id="sec:external_dependencies">
+    <section id="sec:build_script_external_dependencies">
         <title>External dependencies for the build script</title>
         <para>If your build script needs to use external libraries, you can add them to the script's classpath in the
             build script itself. You do this using the <literal>buildscript()</literal> method, passing in a closure which

@@ -80,7 +80,7 @@ class UserGuideSectionVerifier extends DefaultTask {
     private StringBuilder appendMissingIdsMessagePart(StringBuilder msg, Map<String, ValidationResult> allResults) {
         if (allResults.any { filename, result -> result.missingSectionIdCount }) {
             msg << "The following files have sections without IDs"
-            msg << " - all sections across the user guide should have IDs:\n\n"
+            msg << " - all level 1 and level 2 sections across the user guide should have IDs:\n\n"
             allResults.findAll { filename, r -> r.missingSectionIdCount }.
                        sort { Map.Entry entry -> entry.key }.
                        each { filename, r ->

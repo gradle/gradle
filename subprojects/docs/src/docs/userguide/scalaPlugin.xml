@@ -151,7 +151,7 @@
             </tr>
         </table>
 
-        <section id="sec:changing_the_project_layout">
+        <section id="sec:changing_scala_project_layout">
             <title>Changing the project layout</title>
             <para>Just like the Java plugin, the Scala plugin allows you to configure custom locations for Scala production and test sources.</para>
             <sample id="customScalaSourceLayout" dir="scala/customizedLayout" title="Custom Scala source layout">

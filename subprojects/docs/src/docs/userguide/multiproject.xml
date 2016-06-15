@@ -152,7 +152,7 @@
         <title>Subproject configuration</title>
         <para>The Project API also provides a property for accessing the subprojects only.
         </para>
-        <section id="sec:defining_common_behavior">
+        <section id="sec:defining_common_behavior_subprojects">
             <title>Defining common behavior</title>
             <sample id="multiprojectUseSubprojects" dir="userguide/multiproject/useSubprojects/water" title="Defining common behavior of all projects and subprojects">
                 <sourcefile file="build.gradle"/>

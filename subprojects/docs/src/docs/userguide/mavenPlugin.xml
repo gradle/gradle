@@ -122,7 +122,7 @@
 
     <section id="uploading_to_maven_repositories">
         <title>Interacting with Maven repositories</title>
-        <section id="sec:introduction">
+        <section id="sec:maven_upload_intro">
             <title>Introduction</title>
             <para>With Gradle you can deploy to remote Maven repositories or install to your local Maven repository. This
                 includes all Maven metadata manipulation and works also for Maven snapshots. In fact, Gradle's deployment is

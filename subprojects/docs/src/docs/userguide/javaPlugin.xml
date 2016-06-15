@@ -347,7 +347,7 @@
             <xi:include href="javaProjectGenericLayout.xml"/>
         </table>
 
-        <section id="sec:changing_the_project_layout">
+        <section id="sec:changing_java_project_layout">
             <title>Changing the project layout</title>
             <para>You configure the project layout by configuring the appropriate source set. This is discussed in
                 more detail in the following sections. Here is a brief example which changes the main Java and resource

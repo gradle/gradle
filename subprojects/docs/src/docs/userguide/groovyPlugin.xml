@@ -145,7 +145,7 @@
             </tr>
         </table>
 
-        <section id="sec:changing_the_project_layout">
+        <section id="sec:changing_groovy_project_layout">
             <title>Changing the project layout</title>
             <para>Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test sources.</para>
             <sample id="customGroovySourceLayout" dir="groovy/customizedLayout" title="Custom Groovy source layout">

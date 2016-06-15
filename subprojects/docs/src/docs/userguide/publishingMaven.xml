@@ -83,7 +83,7 @@
             This publication determines which artifacts are actually published as well as the details included in the associated POM file.
             A publication can be configured by adding components, customizing artifacts, and by modifying the generated POM file directly.
         </para>
-        <section id="sec:publishing_a_software_component">
+        <section id="sec:publishing_component_to_maven">
             <title>Publishing a Software Component</title>
             <para>
                 The simplest way to publish a Gradle project to a Maven repository is to specify a <apilink class="org.gradle.api.component.SoftwareComponent"/> to publish.
@@ -119,7 +119,7 @@
                 <sourcefile file="build.gradle" snippet="publish-component" />
             </sample>
         </section>
-        <section id="sec:publishing_custom_artifacts">
+        <section id="sec:publishing_custom_artifacts_to_maven">
             <title>Publishing custom artifacts</title>
             <para>
                 It is also possible to explicitly configure artifacts to be included in the publication. Artifacts are commonly supplied as raw files, or as instances of
@@ -196,7 +196,7 @@
                 The identifier (groupId, artifactId, version) of the published module is an exception; these values cannot be modified in the POM using the `withXML` hook.
             </para>
         </section>
-        <section id="sec:publishing_multiple_modules">
+        <section id="sec:publishing_multiple_modules_to_maven">
              <title>Publishing multiple modules</title>
              <para>
                  Sometimes it's useful to publish multiple modules from your Gradle build, without creating a separate Gradle subproject.

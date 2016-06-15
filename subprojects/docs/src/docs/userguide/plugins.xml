@@ -104,7 +104,7 @@
             form. Where you put the plugin id depends on whether you are using the <link linkend="sec:plugins_block">plugins DSL</link> or
             the <link linkend="sec:old_plugin_application">buildscript block.</link>
         </para>
-        <section>
+        <section id="sec:binary_plugin_locations">
             <title>Locations of binary plugins</title>
             <para>
                 A plugin is simply any class that implements the <apilink class="org.gradle.api.Plugin" /> interface. Gradle provides

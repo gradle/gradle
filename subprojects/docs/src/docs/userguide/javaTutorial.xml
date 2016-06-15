@@ -109,7 +109,7 @@
             </variablelist>
         </section>
 
-        <section id="sec:external_dependencies">
+        <section id="sec:java_external_dependencies">
             <title>External dependencies</title>
             <para>Usually, a Java project will have some dependencies on external JAR files. To reference these JAR
                 files in the project, you need to tell Gradle where to find them. In Gradle, artifacts such as JAR
