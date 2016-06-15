@@ -60,8 +60,8 @@ class UserGuideSectionVerifier extends DefaultTask {
         final doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
         final xpath = XPathFactory.newInstance().newXPath()
 
-        final sectionsWithoutIds = xpath.compile("/*/section[not(@id)]").evaluate(doc, XPathConstants.NODESET) as NodeList
-        final sectionIds = xpath.compile("/*/section/@id").evaluate(doc, XPathConstants.NODESET) as NodeList
+        final sectionsWithoutIds = xpath.compile("//section[count(ancestor::section) < 2 and (not(@id) or string-length(@id)=0)]").evaluate(doc, XPathConstants.NODESET) as NodeList
+        final sectionIds = xpath.compile("//section/@id").evaluate(doc, XPathConstants.NODESET) as NodeList
 
         final idList = new ArrayList(sectionIds.length)
         for (int i in 0..<sectionIds.length) {
@@ -81,9 +81,11 @@ class UserGuideSectionVerifier extends DefaultTask {
         if (allResults.any { filename, result -> result.missingSectionIdCount }) {
             msg << "The following files have sections without IDs"
             msg << " - all sections across the user guide should have IDs:\n\n"
-            allResults.findAll { fn, r -> r.missingSectionIdCount }.sort { Map.Entry entry -> entry.key }.each { fn, r ->
+            allResults.findAll { filename, r -> r.missingSectionIdCount }.
+                       sort { Map.Entry entry -> entry.key }.
+                       each { filename, r ->
                 msg << " " * 4
-                msg << "- ${fn} (${r.missingSectionIdCount})\n"
+                msg << "- ${filename} (${r.missingSectionIdCount})\n"
             }
             msg << "\n"
         }
@@ -98,7 +100,7 @@ class UserGuideSectionVerifier extends DefaultTask {
         msg << " - all IDs should be unique across the whole user guide:\n\n"
         duplicateSectionIds.each { id ->
             msg << " " * 4
-            msg << "- ${id} (" + allResults.findAll { fn, r -> id in r.sectionIds }.keySet().join(", ") + ")\n"
+            msg << "- ${id} (" + allResults.findAll { fn, r -> id in r.sectionIds }.keySet().sort().join(", ") + ")\n"
         }
         msg << "\n"
         return msg
