@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.nativeplatform.*;
+import org.gradle.nativeplatform.internal.resolve.NativeBinaryRequirementResolveResult;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
@@ -61,6 +62,8 @@ public interface NativeBinarySpecInternal extends NativeBinarySpec, BinarySpecIn
      * Adds some files to include as input to the link/assemble step of this binary.
      */
     void binaryInputs(FileCollection files);
+
+    Collection<NativeBinaryRequirementResolveResult> getAllResolutions();
 
     Map<File, PreCompiledHeader> getPrefixFileToPCH();
 
