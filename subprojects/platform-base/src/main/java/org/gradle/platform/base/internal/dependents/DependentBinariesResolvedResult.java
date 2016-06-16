@@ -27,6 +27,8 @@ public interface DependentBinariesResolvedResult {
 
     LibraryBinaryIdentifier getId();
 
+    String getProjectScopedName();
+
     boolean isBuildable();
 
     boolean isTestSuite();

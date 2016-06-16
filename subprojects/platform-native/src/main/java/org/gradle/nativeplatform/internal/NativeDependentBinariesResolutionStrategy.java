@@ -182,7 +182,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         List<NativeBinarySpecInternal> dependents = state.getDependents(target);
         for (NativeBinarySpecInternal dependent : dependents) {
             List<DependentBinariesResolvedResult> children = buildResolvedResult(dependent, state, stack);
-            result.add(new DefaultDependentBinariesResolvedResult(dependent.getId(), dependent.isBuildable(), isTestSuite(dependent), children));
+            result.add(new DefaultDependentBinariesResolvedResult(dependent.getId(), dependent.getProjectScopedName()   , dependent.isBuildable(), isTestSuite(dependent), children));
         }
         stack.pop();
         return result;

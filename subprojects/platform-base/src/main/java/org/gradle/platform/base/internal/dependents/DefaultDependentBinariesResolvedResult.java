@@ -22,21 +22,25 @@ import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Strings.emptyToNull;
 
 public class DefaultDependentBinariesResolvedResult implements DependentBinariesResolvedResult {
 
     private final LibraryBinaryIdentifier identifier;
+    private final String projectScopeName;
     private final boolean buildable;
     private final boolean testSuite;
     private final List<DependentBinariesResolvedResult> children = Lists.newArrayList();
 
-    public DefaultDependentBinariesResolvedResult(LibraryBinaryIdentifier identifier, boolean buildable, boolean testSuite) {
-        this(identifier, buildable, testSuite, null);
+    public DefaultDependentBinariesResolvedResult(LibraryBinaryIdentifier identifier, String projectScopeName, boolean buildable, boolean testSuite) {
+        this(identifier, projectScopeName, buildable, testSuite, null);
     }
 
-    public DefaultDependentBinariesResolvedResult(LibraryBinaryIdentifier identifier, boolean buildable, boolean testSuite, List<DependentBinariesResolvedResult> children) {
+    public DefaultDependentBinariesResolvedResult(LibraryBinaryIdentifier identifier, String projectScopeName, boolean buildable, boolean testSuite, List<DependentBinariesResolvedResult> children) {
         checkNotNull(identifier, "Binary identifier must be non null");
+        checkNotNull(emptyToNull(projectScopeName), "Name must be non empty");
         this.identifier = identifier;
+        this.projectScopeName = projectScopeName;
         this.buildable = buildable;
         this.testSuite = testSuite;
         if (children != null) {
@@ -47,6 +51,11 @@ public class DefaultDependentBinariesResolvedResult implements DependentBinaries
     @Override
     public LibraryBinaryIdentifier getId() {
         return identifier;
+    }
+
+    @Override
+    public String getProjectScopedName() {
+        return projectScopeName;
     }
 
     @Override

@@ -52,7 +52,7 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
     }
 
     private DependentBinariesResolvedResult mergeResults(Iterable<DependentBinariesResolvedResult> results) {
-        LibraryBinaryIdentifier id = results.iterator().next().getId();
+        DependentBinariesResolvedResult first = results.iterator().next();
         boolean hasNotBuildables = false;
         boolean hasTestSuites = false;
         LinkedListMultimap<LibraryBinaryIdentifier, DependentBinariesResolvedResult> index = LinkedListMultimap.create();
@@ -73,6 +73,6 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
         for (Collection<DependentBinariesResolvedResult> childResults : index.asMap().values()) {
             children.add(mergeResults(childResults));
         }
-        return new DefaultDependentBinariesResolvedResult(id, !hasNotBuildables, hasTestSuites, children);
+        return new DefaultDependentBinariesResolvedResult(first.getId(), first.getProjectScopedName(), !hasNotBuildables, hasTestSuites, children);
     }
 }
