@@ -1,9 +1,16 @@
 package org.gradle.script.lang.kotlin.integration
 
 import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
+import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
 import org.gradle.script.lang.kotlin.support.zipTo
+
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
+
+import org.gradle.tooling.GradleConnector
+
+import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Rule
 import org.junit.Test
@@ -40,6 +47,7 @@ class GradleScriptKotlinIntegrationTest {
 
     @Test
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
+
         withClassJar("fixture.jar", DeepThought::class.java)
 
         withBuildScript("""
@@ -61,6 +69,10 @@ class GradleScriptKotlinIntegrationTest {
 
         assert(
             build("answer").output.contains("*42*"))
+
+        assertThat(
+            kotlinBuildScriptModel().classPath.map { it.name },
+            hasItem("fixture.jar"))
     }
 
     private fun withBuildScript(script: String) {
@@ -72,14 +84,13 @@ class GradleScriptKotlinIntegrationTest {
         file(fileName).writeText(text)
     }
 
-    private fun withClassJar(jarFileName: String, vararg classes: Class<*>) {
+    private fun withClassJar(fileName: String, vararg classes: Class<*>) =
         zipTo(
-            file(jarFileName),
+            file(fileName),
             classes.asSequence().map {
                 val classFilePath = it.name.replace('.', '/') + ".class"
                 classFilePath to it.getResource("/$classFilePath").readBytes()
             })
-    }
 
     private fun file(fileName: String) =
         projectDir.newFile(fileName)
@@ -95,6 +106,14 @@ class GradleScriptKotlinIntegrationTest {
             .withDebug(false)
             .withGradleInstallation(customInstallation())
             .withProjectDir(projectDir.root)
+
+    private fun kotlinBuildScriptModel(): KotlinBuildScriptModel =
+        GradleConnector
+            .newConnector()
+            .useInstallation(customInstallation())
+            .forProjectDirectory(projectDir.root)
+            .connect()
+            .getModel(KotlinBuildScriptModel::class.java)
 
     private fun customInstallation() =
         File("build/custom").listFiles()?.let {

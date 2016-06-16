@@ -2,6 +2,10 @@ package org.gradle.script.lang.kotlin.support
 
 import org.gradle.internal.classpath.ClassPath
 
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.GradleConnector.newConnector
+import org.gradle.tooling.ProjectConnection
+
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
 import org.jetbrains.kotlin.script.ScriptDependenciesResolver
@@ -10,32 +14,27 @@ import java.io.File
 
 class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
 
-    override fun resolve(projectFile: File?, scriptFile: File?, annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? {
-        fun File.existingOrNull() = let { if (it.exists() && it.isDirectory) it else null }
-        fun File.listPrefixedJars(prefixes: Iterable<String>): Iterable<File> = listFiles { file -> prefixes.any { file.name.startsWith(it) } }.asIterable()
+    override fun resolve(projectRoot: File?, scriptFile: File?, annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? {
         return when (context) {
             is ClassPath -> makeDependencies(context.asFiles)
-            is File -> {
-                val libDir = File(context, "lib").existingOrNull()
-                val pluginsDir = libDir?.let { File(libDir, "plugins") }?.existingOrNull()
-                val classpath = (libDir?.listPrefixedJars(defaultDependenciesJarsPrefixes) ?: emptyList()) +
-                                (pluginsDir?.listPrefixedJars(defaultDependenciesJarsPrefixes) ?: emptyList())
-                if (classpath.size < defaultDependenciesJarsPrefixes.size) {
-                    // log
-                    null
-                } else {
-                    makeDependencies(classpath)
+            is File ->
+                withConnectionFrom(connectorFor(context, projectRoot!!)) {
+                    getModel(KotlinBuildScriptModel::class.java)
+                        .classPath
+                        .let { makeDependencies(it) }
                 }
-            }
             else -> null
         }
     }
 
-    private fun makeDependencies(defaultClasspath: Iterable<File>): KotlinScriptExternalDependencies {
+    private fun connectorFor(installation: File, projectDirectory: File) =
+        newConnector().useInstallation(installation).forProjectDirectory(projectDirectory)
+
+    private fun makeDependencies(classPath: Iterable<File>): KotlinScriptExternalDependencies {
         return object : KotlinScriptExternalDependencies {
-            override val classpath = defaultClasspath
+            override val classpath = classPath
             override val imports = implicitImports
-            override val sources = defaultClasspath
+            override val sources = classPath
         }
     }
 
@@ -43,14 +42,17 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
         val implicitImports = listOf(
             "org.gradle.api.plugins.*",
             "org.gradle.script.lang.kotlin.*")
+    }
+}
 
-        val defaultDependenciesJarsPrefixes = listOf(
-                "kotlin-stdlib-",
-                "kotlin-reflect-",
-                "kotlin-runtime-",
-                "ant-",
-                "gradle-",
-                "groovy-all-")
+inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =
+    connector.connect().use(block)
+
+inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
+    try {
+        return block(this)
+    } finally {
+        close()
     }
 }
 
