@@ -19,7 +19,6 @@ class GradleScriptKotlinIntegrationTest {
     @Test
     fun `given a script with SAM conversions, it can run it`() {
         withBuildScript("""
-            import org.gradle.script.lang.kotlin.*
             import org.gradle.api.tasks.bundling.Zip
             import java.util.concurrent.Callable
 
@@ -44,8 +43,6 @@ class GradleScriptKotlinIntegrationTest {
         withClassJar("fixture.jar", DeepThought::class.java)
 
         withBuildScript("""
-            import org.gradle.script.lang.kotlin.*
-
             buildscript {
                 dependencies {
                     classpath(files("fixture.jar"))
