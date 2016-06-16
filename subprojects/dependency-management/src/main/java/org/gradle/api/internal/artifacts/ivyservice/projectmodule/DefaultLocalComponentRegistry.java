@@ -25,22 +25,22 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-public class DefaultProjectComponentRegistry implements ProjectComponentRegistry {
-    private final List<ProjectComponentProvider> providers;
+public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
+    private final List<LocalComponentProvider> providers;
     private final ConcurrentMap<ProjectComponentIdentifier, LocalComponentMetadata> projects = new ConcurrentHashMap<ProjectComponentIdentifier, LocalComponentMetadata>();
 
-    public DefaultProjectComponentRegistry(List<ProjectComponentProvider> providers) {
+    public DefaultLocalComponentRegistry(List<LocalComponentProvider> providers) {
         this.providers = providers;
     }
 
     @Override
-    public LocalComponentMetadata getProject(ProjectComponentIdentifier projectIdentifier) {
+    public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
         LocalComponentMetadata metaData = projects.get(projectIdentifier);
         if (metaData !=null) {
             return metaData;
         }
-        for (ProjectComponentProvider provider : providers) {
-            LocalComponentMetadata componentMetaData = provider.getProject(projectIdentifier);
+        for (LocalComponentProvider provider : providers) {
+            LocalComponentMetadata componentMetaData = provider.getComponent(projectIdentifier);
             if (componentMetaData != null) {
                 projects.putIfAbsent(projectIdentifier, componentMetaData);
                 return componentMetaData;
@@ -51,7 +51,7 @@ public class DefaultProjectComponentRegistry implements ProjectComponentRegistry
 
     @Override
     public Iterable<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
-        for (ProjectComponentProvider provider : providers) {
+        for (LocalComponentProvider provider : providers) {
             Iterable<ComponentArtifactMetadata> artifacts = provider.getAdditionalArtifacts(project);
             if (artifacts != null) {
                 return artifacts;

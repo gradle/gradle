@@ -30,17 +30,17 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifi
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
-public class LocalProjectComponentProvider implements ProjectComponentProvider {
+public class DefaultProjectLocalComponentProvider implements ProjectLocalComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ConfigurationComponentMetaDataBuilder metaDataBuilder;
     private final ListMultimap<ProjectComponentIdentifier, ComponentArtifactMetadata> registeredArtifacts = ArrayListMultimap.create();
 
-    public LocalProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
+    public DefaultProjectLocalComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
         this.projectRegistry = projectRegistry;
         this.metaDataBuilder = metaDataBuilder;
     }
 
-    public LocalComponentMetadata getProject(ProjectComponentIdentifier projectIdentifier) {
+    public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
         ProjectInternal project = projectRegistry.getProject(projectIdentifier.getProjectPath());
         if (project == null) {
             return null;

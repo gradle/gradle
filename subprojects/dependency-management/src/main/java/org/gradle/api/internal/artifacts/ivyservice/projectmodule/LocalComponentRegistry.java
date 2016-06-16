@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,19 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
-public interface ProjectComponentProvider {
-    LocalComponentMetadata getProject(ProjectComponentIdentifier projectIdentifier);
-    void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetadata artifact);
+/**
+ * A registry of all dependency resolution metadata for locally produced components.
+ * These components may be produced within the same project, another project in the same multi-project build,
+ * or in another build within a composite.
+ */
+public interface LocalComponentRegistry {
+    /**
+     * @return The component metadata for the supplied identifier.
+     */
+    LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier);
 
     /**
-     * @return The additional artifacts registered for this project, or null if none registered for this project
+     * @return The additional artifacts registered for this project, if any. Never null.
      */
     Iterable<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project);
 }

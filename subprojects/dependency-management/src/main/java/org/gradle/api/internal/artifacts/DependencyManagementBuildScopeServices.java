@@ -42,13 +42,14 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsC
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalProjectComponentProvider;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentProvider;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDependencyResolver;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.DefaultArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
@@ -255,17 +256,17 @@ class DependencyManagementBuildScopeServices {
         return new DefaultProjectPublicationRegistry();
     }
 
-    ProjectComponentProvider createProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
-        return new LocalProjectComponentProvider(projectRegistry, metaDataBuilder);
+    ProjectLocalComponentProvider createProjectComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
+        return new DefaultProjectLocalComponentProvider(projectRegistry, metaDataBuilder);
     }
 
-    ProjectComponentRegistry createProjectComponentRegistry(ServiceRegistry serviceRegistry) {
-        List<ProjectComponentProvider> providers = serviceRegistry.getAll(ProjectComponentProvider.class);
-        return new DefaultProjectComponentRegistry(providers);
+    LocalComponentRegistry createLocalComponentRegistry(ServiceRegistry serviceRegistry) {
+        List<LocalComponentProvider> providers = serviceRegistry.getAll(LocalComponentProvider.class);
+        return new DefaultLocalComponentRegistry(providers);
     }
 
-    ProjectDependencyResolver createProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, ServiceRegistry serviceRegistry) {
-        return new ProjectDependencyResolver(projectComponentRegistry, serviceRegistry.getAll(ProjectArtifactBuilder.class));
+    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ServiceRegistry serviceRegistry) {
+        return new ProjectDependencyResolver(localComponentRegistry, serviceRegistry.getAll(ProjectArtifactBuilder.class));
     }
 
     ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {

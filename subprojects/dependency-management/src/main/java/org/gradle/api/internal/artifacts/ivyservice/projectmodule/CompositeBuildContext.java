@@ -22,7 +22,8 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import java.io.File;
 import java.util.Set;
 
-public interface CompositeBuildContext extends ProjectComponentProvider {
+public interface CompositeBuildContext extends LocalComponentProvider {
+    // TODO:DAZ Pull this out of the context: the mapping needs to be determined in the composer
     ProjectComponentIdentifier getReplacementProject(ModuleComponentSelector selector);
     File getProjectDirectory(ProjectComponentIdentifier project);
     Set<ProjectComponentIdentifier> getAllProjects();
