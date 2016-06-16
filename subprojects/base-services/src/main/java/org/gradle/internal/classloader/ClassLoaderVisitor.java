@@ -21,6 +21,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
+import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
+
 public class ClassLoaderVisitor {
     private static final String JAVA_CLASS_PATH = "java.class.path";
     private final ClassLoader stopAt = ClassLoader.getSystemClassLoader() == null ? null : ClassLoader.getSystemClassLoader().getParent();
@@ -34,10 +36,10 @@ public class ClassLoaderVisitor {
         if (classLoader instanceof ClassLoaderHierarchy) {
             ((ClassLoaderHierarchy) classLoader).visit(this);
         } else {
-            if (classLoader instanceof URLClassLoader) {
-                visitClassPath(((URLClassLoader) classLoader).getURLs());
+            if (isPreJava9LauncherAppClassloader(classLoader)) {
+                visitClassPath(extractPreJava9Classpath(classLoader));
             } else {
-                visitClassPath(getClasspathURLs());
+                visitClassPath(extractJava9Classpath());
             }
             if (classLoader.getParent() != null) {
                 visitParent(classLoader.getParent());
@@ -45,7 +47,15 @@ public class ClassLoaderVisitor {
         }
     }
 
-    private URL[] getClasspathURLs() {
+    private boolean isPreJava9LauncherAppClassloader(ClassLoader classLoader) {
+        return classLoader instanceof URLClassLoader;
+    }
+
+    private URL[] extractPreJava9Classpath(ClassLoader classLoader) {
+        return ((URLClassLoader) classLoader).getURLs();
+    }
+
+    private URL[] extractJava9Classpath() {
         String cp = System.getProperty(JAVA_CLASS_PATH);
         String[] elements = cp.split(File.pathSeparator);
 
@@ -54,8 +64,8 @@ public class ClassLoaderVisitor {
             try {
                 URL url = new File(elements[i]).toURI().toURL();
                 urls[i] = url;
-            } catch (MalformedURLException ignore) {
-                //ignore
+            } catch (MalformedURLException mue) {
+                throw throwAsUncheckedException(mue);
             }
         }
         return urls;
