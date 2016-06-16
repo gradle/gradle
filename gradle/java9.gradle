@@ -33,7 +33,6 @@ task java9IntegTest(type: Test) {
 
         // Osgi is broken with a NPE in Processor - need to investigate
         "OsgiPluginIntegrationSpec",
-        "BndBundleIntegrationTest",
 
         // Old Gradle cannot run against Java 9
         // class org.gradle.internal.reflect.DirectInstantiator cannot access class com.sun.tools.javac.api.JavacTool (in module jdk.compiler) because module jdk.compiler does not export com.sun.tools.javac.api to unnamed module @4030a92
