@@ -16,10 +16,13 @@
 
 package org.gradle.internal.classloader;
 
+import java.io.File;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
 public class ClassLoaderVisitor {
+    private static final String JAVA_CLASS_PATH = "java.class.path";
     private final ClassLoader stopAt = ClassLoader.getSystemClassLoader() == null ? null : ClassLoader.getSystemClassLoader().getParent();
 
     public void visit(ClassLoader classLoader) {
@@ -33,11 +36,29 @@ public class ClassLoaderVisitor {
         } else {
             if (classLoader instanceof URLClassLoader) {
                 visitClassPath(((URLClassLoader) classLoader).getURLs());
+            } else {
+                visitClassPath(getClasspathURLs());
             }
             if (classLoader.getParent() != null) {
                 visitParent(classLoader.getParent());
             }
         }
+    }
+
+    private URL[] getClasspathURLs() {
+        String cp = System.getProperty(JAVA_CLASS_PATH);
+        String[] elements = cp.split(File.pathSeparator);
+
+        URL[] urls = new URL[elements.length];
+        for (int i = 0; i < elements.length; i++) {
+            try {
+                URL url = new File(elements[i]).toURI().toURL();
+                urls[i] = url;
+            } catch (MalformedURLException ignore) {
+                //ignore
+            }
+        }
+        return urls;
     }
 
     public void visitSpec(ClassLoaderSpec spec) {
