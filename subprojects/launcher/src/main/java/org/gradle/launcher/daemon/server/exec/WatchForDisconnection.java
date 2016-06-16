@@ -30,7 +30,7 @@ public class WatchForDisconnection implements DaemonCommandAction {
 
     private final ListenerBroadcast<DaemonExpirationListener> listenerBroadcast;
 
-    public static final String EXPIRATION_REASON = "process killed unexpectedly";
+    public static final String EXPIRATION_REASON = "client disconnected";
 
     public WatchForDisconnection(ListenerManager listenerManager) {
         this.listenerBroadcast = listenerManager.createAnonymousBroadcaster(DaemonExpirationListener.class);
