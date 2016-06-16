@@ -55,13 +55,12 @@ object KotlinScriptDefinitionProvider {
     fun scriptDefinitionFromTemplate(classPath: ClassPath): KotlinScriptDefinition =
         KotlinScriptDefinitionFromTemplate(KotlinBuildScript::class, classPath)
 
-    private fun includeInClassPath(name: String): Boolean {
-        return name.startsWith("kotlin-stdlib-")
+    private fun includeInClassPath(name: String) =
+        name.startsWith("kotlin-stdlib-")
             || name.startsWith("kotlin-reflect-")
             || name.startsWith("kotlin-runtime-")
             || name.startsWith("ant-")
             || name.startsWith("gradle-")
-    }
 }
 
 
