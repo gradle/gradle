@@ -3,14 +3,14 @@ package org.gradle.script.lang.kotlin.support
 import org.gradle.internal.classpath.ClassPath
 
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
-import org.jetbrains.kotlin.script.GetScriptDependencies
 import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
+import org.jetbrains.kotlin.script.ScriptDependenciesResolver
 
 import java.io.File
 
-class GetGradleKotlinScriptDependencies : GetScriptDependencies {
+class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
 
-    override operator fun invoke(annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? {
+    override fun resolve(projectFile: File?, scriptFile: File?, annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? {
         fun File.existingOrNull() = let { if (it.exists() && it.isDirectory) it else null }
         fun File.listPrefixedJars(prefixes: Iterable<String>): Iterable<File> = listFiles { file -> prefixes.any { file.name.startsWith(it) } }.asIterable()
         return when (context) {

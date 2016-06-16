@@ -1,5 +1,5 @@
 buildscript {
-    ext.kotlinVersion = '1.1.0-dev-1115'
+    ext.kotlinVersion = '1.1.0-dev-1159'
     repositories {
         maven { url 'https://repo.gradle.org/gradle/repo' }
     }
