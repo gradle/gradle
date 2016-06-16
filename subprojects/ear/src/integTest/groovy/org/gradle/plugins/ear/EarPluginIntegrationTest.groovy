@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ear
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -297,5 +298,28 @@ ear {
         def module = appXml.module[0].web
         module."web-uri" == "root.war"
         module."context-root" == "anywhere"
+    }
+
+    @Issue("GRADLE-3486")
+    @NotYetImplemented
+    def "does not fail when provided with an existing descriptor without a version attribute"() {
+        given:
+        buildScript '''
+            apply plugin: 'ear'
+        '''.stripIndent()
+        createDir('src/main/application/META-INF') {
+            file('application.xml').text = '''
+                <?xml version="1.0"?>
+                <application xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                </application>
+            '''.stripIndent().trim()
+        }
+
+        when:
+        run 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("META-INF/application.xml")
     }
 }
