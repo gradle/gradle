@@ -1,11 +1,11 @@
 package org.gradle.script.lang.kotlin.support
 
-import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.internal.classpath.ClassPath
+
 import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.script.GetScriptDependencies
 import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
-import org.jetbrains.kotlin.script.SimpleUntypedAst
-import org.jetbrains.kotlin.script.parseAnnotation
+
 import java.io.File
 
 class GetGradleKotlinScriptDependencies : GetScriptDependencies {
@@ -14,7 +14,7 @@ class GetGradleKotlinScriptDependencies : GetScriptDependencies {
         fun File.existingOrNull() = let { if (it.exists() && it.isDirectory) it else null }
         fun File.listPrefixedJars(prefixes: Iterable<String>): Iterable<File> = listFiles { file -> prefixes.any { file.name.startsWith(it) } }.asIterable()
         return when (context) {
-            is ClassPathRegistry -> makeDependencies(annotations, KotlinScriptDefinitionProvider.selectGradleApiJars(context))
+            is ClassPath -> makeDependencies(context.asFiles)
             is File -> {
                 val libDir = File(context, "lib").existingOrNull()
                 val pluginsDir = libDir?.let { File(libDir, "plugins") }?.existingOrNull()
@@ -23,29 +23,19 @@ class GetGradleKotlinScriptDependencies : GetScriptDependencies {
                 if (classpath.size < defaultDependenciesJarsPrefixes.size) {
                     // log
                     null
-                }
-                else {
-                    makeDependencies(annotations, classpath.asIterable())
+                } else {
+                    makeDependencies(classpath)
                 }
             }
             else -> null
         }
     }
 
-    private fun makeDependencies(annotations: Iterable<KtAnnotationEntry>, defaultClasspath: Iterable<File>): KotlinScriptExternalDependencies {
-        val anns = annotations.map { parseAnnotation(it) }.filter { it.name == dependsOn::class.simpleName }
-        val cp = anns.flatMap {
-            it.value.mapNotNull {
-                when (it) {
-                    is SimpleUntypedAst.Node.str -> File(it.value)
-                    else -> null
-                }
-            }
-        }
+    private fun makeDependencies(defaultClasspath: Iterable<File>): KotlinScriptExternalDependencies {
         return object : KotlinScriptExternalDependencies {
-            override val classpath = defaultClasspath + cp
+            override val classpath = defaultClasspath
             override val imports = implicitImports
-            override val sources = defaultClasspath + cp
+            override val sources = defaultClasspath
         }
     }
 
