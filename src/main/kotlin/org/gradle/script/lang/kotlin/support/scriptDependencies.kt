@@ -41,7 +41,6 @@ class GetGradleKotlinScriptDependencies : GetScriptDependencies {
 
     companion object {
         val implicitImports = listOf(
-            "org.gradle.script.lang.kotlin.support.depends",
             "org.gradle.api.plugins.*",
             "org.gradle.script.lang.kotlin.*")
 
@@ -54,8 +53,4 @@ class GetGradleKotlinScriptDependencies : GetScriptDependencies {
                 "groovy-all-")
     }
 }
-
-@Target(AnnotationTarget.FILE)
-@Retention(AnnotationRetention.RUNTIME)
-annotation class dependsOn(val path: String)
 
