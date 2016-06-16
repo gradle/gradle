@@ -189,14 +189,6 @@ task java9IntegTest(type: Test) {
         "EnvJsPluginIntegrationTest",
 
         /*
-          "java.lang.ClassNotFoundException: org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker"
-         */
-        "MultiRequestWorkerProcessIntegrationTest",
-        "SingleRequestWorkerProcessIntegrationTest",
-        "WorkerProcessIntegrationTest",
-        "PathLimitationIntegrationTest",
-
-        /*
          Uses bytebuddy in a test which uses asm which cannot read Java 9 classfiles
          */
         "DirectoryScanningIntegTest",
