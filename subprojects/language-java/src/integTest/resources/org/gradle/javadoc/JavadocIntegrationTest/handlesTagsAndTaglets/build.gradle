@@ -7,7 +7,9 @@ sourceSets {
 }
 
 dependencies {
-    tagletCompile files(Jvm.current().toolsJar)
+    if (Jvm.current().toolsJar) {
+        tagletCompile files(Jvm.current().toolsJar)
+    }
 }
 
 javadoc {

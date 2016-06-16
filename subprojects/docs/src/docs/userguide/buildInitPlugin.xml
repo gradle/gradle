@@ -42,7 +42,7 @@
         task from the Wrapper plugin (see <xref linkend='wrapper_plugin'/>),
         which means that the Gradle Wrapper will also be installed into the project.
     </para>
-    <section>
+    <section id="sec:build_init_tasks">
         <title>Tasks</title>
         <para>The plugin adds the following tasks to the project:</para>
         <table>
@@ -80,7 +80,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:what_to_set_up">
         <title>What to set up</title>
         <para>The
             <literal>init</literal>
@@ -102,13 +102,13 @@
         </para>
         <para>All build setup types include the setup of the Gradle Wrapper.</para>
     </section>
-    <section>
+    <section id="sec:build_init_types">
         <title>Build init types</title>
         <note>
             As this plugin is currently <link linkend="feature_lifecycle">incubating</link>, only a few build init types are currently supported.
             More types will be added in future Gradle releases.
         </note>
-        <section>
+        <section id="sec:pom_maven_conversion_">
             <title>“<literal>pom</literal>” (Maven conversion)
             </title>
             <para>
@@ -142,7 +142,7 @@
                 <listitem>Generates global exclusions from Maven enforcer plugin settings</listitem>
             </itemizedlist>
         </section>
-        <section>
+        <section id="sec:javalibrary_">
             <title>“<literal>java-library</literal>”
             </title>
             <para>
@@ -170,7 +170,7 @@
                 <listitem><literal>gradle init --type java-library --test-framework testng</literal>: Uses <ulink url="http://testng.org/doc/index.html">TestNG</ulink> for testing instead of JUnit</listitem>
             </itemizedlist>
         </section>
-        <section>
+        <section id="sec:scalalibrary_">
             <title>“<literal>scala-library</literal>”
             </title>
             <para>
@@ -191,7 +191,7 @@
                 <listitem>Uses the Zinc Scala compiler by default</listitem>
             </itemizedlist>
         </section>
-        <section>
+        <section id="sec:groovylibrary_">
             <title>“<literal>groovy-library</literal>”
             </title>
             <para>
@@ -211,7 +211,7 @@
                 <listitem>Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files</listitem>
             </itemizedlist>
         </section>
-        <section>
+        <section id="sec:basic">
             <title>“basic”</title>
             <para>
                 The “<literal>basic</literal>” build init type is useful for creating a fresh new Gradle project.

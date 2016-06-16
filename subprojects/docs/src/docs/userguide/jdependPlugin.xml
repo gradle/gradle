@@ -4,16 +4,17 @@
         and generates reports from these checks.
     </para>
 
-    <section>
+    <section id="sec:jdepend_usage">
         <title>Usage</title>
         <para>To use the JDepend plugin, include the following in your build script:</para>
         <sample id="useJDependPlugin" dir="codeQuality" title="Using the JDepend plugin">
             <sourcefile file="build.gradle" snippet="use-jdepend-plugin"/>
         </sample>
         <para>The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running <userinput>gradle check</userinput>.</para>
+        <para>Note that JDepend will run with the same Java version used to run Gradle.</para>
     </section>
 
-    <section>
+    <section id="sec:jdepend_tasks">
         <title>Tasks</title>
         <para>The JDepend plugin adds the following tasks to the project:</para>
         <table>
@@ -68,7 +69,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:jdepend_dependency_management">
         <title>Dependency management</title>
         <para>The JDepend plugin adds the following dependency configurations:</para>
         <table>
@@ -88,7 +89,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:jdepend_configuration">
         <title>Configuration</title>
         <para>See the <apilink class="org.gradle.api.plugins.quality.JDependExtension"/> class in the API documentation.</para>
     </section>

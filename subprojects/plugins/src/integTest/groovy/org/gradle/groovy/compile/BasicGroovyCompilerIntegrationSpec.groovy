@@ -29,7 +29,7 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.6'])
+@TargetVersions(['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.7'])
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
@@ -539,8 +539,8 @@ ${compilerConfiguration()}
                         public class SimpleAnnotationProcessor extends AbstractProcessor {
                             @Override
                             public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
-                                if (isClasspathContaminated()) {
-                                    throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
+                                if (${gradleLeaksIntoAnnotationProcessor() ? '!' : ''}isClasspathContaminated()) {
+                                    throw new RuntimeException("Annotation Processor Classpath is ${gradleLeaksIntoAnnotationProcessor() ? 'not ' : ''}}contaminated by Gradle ClassLoader");
                                 }
 
                                 for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
@@ -587,6 +587,10 @@ ${compilerConfiguration()}
                 }
             }
         }
+    }
+
+    protected boolean gradleLeaksIntoAnnotationProcessor() {
+        return false;
     }
 
     def writeAnnotationProcessingBuild(String java, String groovy) {

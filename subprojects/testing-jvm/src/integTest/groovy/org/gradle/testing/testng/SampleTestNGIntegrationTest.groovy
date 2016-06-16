@@ -37,8 +37,8 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.testng.UserImplTest').assertTestPassed('testOkFirstName')
     }
 
-    @Test @UsesSample('testing/testng/java-jdk15-passing')
-    public void javaJdk15Passing() {
+    @Test @UsesSample('testing/testng/java-passing')
+    public void javaPassing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
         def result = new TestNGExecutionResult(sample.dir)

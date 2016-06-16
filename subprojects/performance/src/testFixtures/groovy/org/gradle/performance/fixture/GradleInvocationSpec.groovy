@@ -15,6 +15,7 @@
  */
 
 package org.gradle.performance.fixture
+
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.integtests.fixtures.executer.GradleDistribution
@@ -31,8 +32,9 @@ class GradleInvocationSpec implements InvocationSpec {
     final List<String> jvmOpts
     final boolean useDaemon
     final boolean useToolingApi
+    final boolean expectFailure
 
-    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> jvmOpts, boolean useDaemon, boolean useToolingApi) {
+    GradleInvocationSpec(GradleDistribution gradleDistribution, File workingDirectory, List<String> tasksToRun, List<String> args, List<String> jvmOpts, boolean useDaemon, boolean useToolingApi, boolean expectFailure) {
         this.gradleDistribution = gradleDistribution
         this.workingDirectory = workingDirectory
         this.tasksToRun = tasksToRun
@@ -40,6 +42,7 @@ class GradleInvocationSpec implements InvocationSpec {
         this.jvmOpts = jvmOpts
         this.useDaemon = useDaemon
         this.useToolingApi = useToolingApi
+        this.expectFailure = expectFailure
     }
 
     boolean getBuildWillRunInDaemon() {
@@ -59,6 +62,7 @@ class GradleInvocationSpec implements InvocationSpec {
         builder.gradleOptions.addAll(jvmOpts)
         builder.useDaemon = useDaemon
         builder.useToolingApi = useToolingApi
+        builder.expectFailure = expectFailure
         builder
     }
 
@@ -85,6 +89,8 @@ class GradleInvocationSpec implements InvocationSpec {
         boolean useDaemon
         boolean useToolingApi
         boolean useProfiler
+        boolean expectFailure
+
 
         InvocationBuilder distribution(GradleDistribution gradleDistribution) {
             this.gradleDistribution = gradleDistribution
@@ -164,6 +170,12 @@ class GradleInvocationSpec implements InvocationSpec {
             this
         }
 
+        @Override
+        InvocationSpec.Builder expectFailure() {
+            expectFailure = true
+            this
+        }
+
         GradleInvocationSpec build() {
             assert gradleDistribution != null
             assert workingDirectory != null
@@ -175,7 +187,8 @@ class GradleInvocationSpec implements InvocationSpec {
                 jvmOptsSet.addAll(profiler.profilerArguments(profilerOpts))
             }
 
-            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), new ArrayList<String>(jvmOptsSet).asImmutable(), useDaemon, useToolingApi)
+            return new GradleInvocationSpec(gradleDistribution, workingDirectory, tasksToRun.asImmutable(), args.asImmutable(), new ArrayList<String>(jvmOptsSet).asImmutable(), useDaemon, useToolingApi, expectFailure)
         }
+
     }
 }

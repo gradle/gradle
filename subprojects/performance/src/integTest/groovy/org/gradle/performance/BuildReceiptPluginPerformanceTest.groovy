@@ -72,7 +72,10 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         runner.baseline {
             projectName(sourceProject).displayName(WITHOUT_PLUGIN_LABEL).invocation {
                 tasksToRun(*tasks)
-                invocation { gradleOptions = gradleOpts }
+                invocation {
+                    gradleOptions = gradleOpts
+                    expectFailure()
+                }
             }
         }
 
@@ -80,7 +83,10 @@ class BuildReceiptPluginPerformanceTest extends Specification {
             projectName(sourceProject).displayName(WITH_PLUGIN_LABEL).invocation {
                 args("-Dreceipt", "-Dreceipt.dump")
                 tasksToRun(*tasks)
-                invocation { gradleOptions = gradleOpts }
+                invocation {
+                    gradleOptions = gradleOpts
+                    expectFailure()
+                }
             }
         }
 
@@ -88,8 +94,6 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         def results = runner.run()
 
         then:
-        results.assertEveryBuildSucceeds()
-
         def (with, without) = [results.buildResult(WITH_PLUGIN_LABEL), results.buildResult(WITHOUT_PLUGIN_LABEL)]
 
         // cannot be more than one second slower

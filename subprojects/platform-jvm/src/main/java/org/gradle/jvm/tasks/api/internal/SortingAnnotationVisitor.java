@@ -43,13 +43,13 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
         SortingAnnotationVisitor visitor =
             new SortingAnnotationVisitor(annotation, super.visitAnnotation(name, desc));
         visitor.parentVisitor = this;
-        visitor.annotationValueName = (name == null) ? "value" : name;
+        visitor.annotationValueName = nameOrValue(name);
         return visitor;
     }
 
     @Override
     public void visit(String name, Object value) {
-        annotationValues.add(new SimpleAnnotationValue(name == null ? "value" : name, value));
+        annotationValues.add(new SimpleAnnotationValue(nameOrValue(name), value));
         super.visit(name, value);
     }
 
@@ -62,7 +62,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
 
     @Override
     public void visitEnum(String name, String desc, String value) {
-        annotationValues.add(new EnumAnnotationValue(name == null ? "value" : name, value, desc));
+        annotationValues.add(new EnumAnnotationValue(nameOrValue(name), value, desc));
         super.visitEnum(name, desc, value);
     }
 
@@ -81,5 +81,9 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
         annotation.addValues(annotationValues);
         annotationValues.clear();
         super.visitEnd();
+    }
+
+    private String nameOrValue(String name) {
+        return name == null ? "value" : name;
     }
 }

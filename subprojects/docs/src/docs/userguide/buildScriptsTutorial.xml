@@ -15,7 +15,8 @@
   -->
 <chapter id='tutorial_using_tasks'>
     <title>Build Script Basics</title>
-    <section><title>Projects and tasks</title>
+    <section id="sec:projects_and_tasks">
+        <title>Projects and tasks</title>
     <para>Everything in Gradle sits on top of two basic concepts: <firstterm>projects</firstterm> and <firstterm>tasks</firstterm>.</para>
     <para>
         Every Gradle build is made up of one or more <firstterm>projects</firstterm>.
@@ -32,7 +33,7 @@
     <para>For now, we will look at defining some simple tasks in a build with one project. Later chapters will look at
         working with multiple projects and more about working with projects and tasks.</para>
     </section>
-    <section>
+    <section id="sec:hello_world">
         <title>Hello world</title>
         <para>You run a Gradle build using the <command>gradle</command> command. The <command>gradle</command> command
             looks for a file called <filename>build.gradle</filename> in the current directory.
@@ -73,7 +74,7 @@
             about Ant tasks (Ant commands), we explicitly say <emphasis>Ant task</emphasis>.
         </para>
     </section>
-    <section>
+    <section id="sec:a_shortcut_task_definition">
         <title>A shortcut task definition</title>
         <para>There is a shorthand way to define a task like our <literal>hello</literal> task above, which is more
             concise.</para>
@@ -83,7 +84,7 @@
         <para>Again, this defines a task called <literal>hello</literal> with a single closure to execute.
             We will use this task definition style throughout the user guide.</para>
     </section>
-    <section>
+    <section id="sec:build_scripts_are_code">
         <title>Build scripts are code</title>
         <para>Gradle's build scripts give you the full power of Groovy. As an appetizer, have a look at this:
         </para>
@@ -97,7 +98,7 @@
             <output args="-q count"/>
         </sample>
     </section>
-    <section id='sec:task_dependencies'>
+    <section id="sec:task_dependencies">
         <title>Task dependencies</title>
         <para>As you probably have guessed, you can declare tasks that depend on other tasks.
         </para>
@@ -117,7 +118,7 @@
         <para>Please notice that you can't use shortcut notation (see <xref linkend='sec:shortcut_notations' />)
         when referring to a task that is not yet defined.</para>
     </section>
-    <section>
+    <section id="sec:dynamic_tasks">
         <title>Dynamic tasks</title>
         <para>The power of Groovy can be used for more than defining what a task does. For example, you can also use it
             to dynamically create tasks.
@@ -127,7 +128,7 @@
             <output args="-q task1"/>
         </sample>
     </section>
-    <section>
+    <section id="sec:manipulating_existing_tasks">
         <title>Manipulating existing tasks</title>
         <para>Once tasks are created they can be accessed via an <emphasis>API</emphasis>. For instance, you could use this to
         dynamically add dependencies to a task, at runtime.  Ant doesn't allow anything like this.
@@ -147,7 +148,7 @@
             alias for <literal>doLast</literal>.
         </para>
     </section>
-    <section id='sec:shortcut_notations'>
+    <section id="sec:shortcut_notations">
         <title>Shortcut notations</title>
         <para>As you might have noticed in the previous examples, there is a convenient notation for accessing an
             <emphasis>existing</emphasis> task. Each task is available as a property of the build script:
@@ -160,7 +161,7 @@
               like the <literal>compile</literal> task.
         </para>
     </section>
-    <section id='sec:extra_task_properties'>
+    <section id="sec:extra_task_properties">
         <title>Extra task properties</title>
         <para>You can add your own properties to a task. To add a property named <literal>myProperty</literal>,
             set <literal>ext.myProperty</literal> to an initial value. From that point on, the property can be read
@@ -172,7 +173,7 @@
         </sample>
         Extra properties aren't limited to tasks. You can read more about them in <xref linkend='sec:extra_properties'/>.
     </section>
-    <section>
+    <section id="sec:using_ant_tasks_tutorial">
         <title>Using Ant Tasks</title>
         <para>Ant tasks are first-class citizens in Gradle. Gradle provides excellent integration for Ant tasks by simply
             relying on Groovy. Groovy is shipped with the fantastic <literal>AntBuilder</literal>. Using Ant tasks
@@ -186,7 +187,7 @@
 
         <para>There is lots more you can do with Ant in your build scripts. You can find out more in <xref linkend="ant"/>.</para>
     </section>
-    <section>
+    <section id="sec:using_methods">
         <title>Using methods</title>
         <para>Gradle scales in how you can organize your build logic. The first level of organizing your build logic for
             the example above, is extracting a method.
@@ -200,7 +201,7 @@
             devoted a whole chapter to this. See <xref linkend='organizing_build_logic'/>.
         </para>
     </section>
-    <section id='sec:default_tasks'>
+    <section id="sec:default_tasks">
         <title>Default tasks</title>
         <para>Gradle allows you to define one or more default tasks that are executed if no other tasks are specified.
         </para>
@@ -231,7 +232,7 @@
         This works even when the release task is not the <emphasis>primary</emphasis> task (i.e., the task passed to the <command>gradle</command> command).
         </para>
     </section>
-    <section>
+    <section id="sec:tasks_tutorial_where_to_next">
         <title>Where to next?</title>
         <para>
             In this chapter, we have had a first look at tasks. But this is not the end of the story for tasks. If you want to jump into more of the details,

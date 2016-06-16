@@ -23,6 +23,7 @@ import groovy.lang.MetaClassRegistry;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -115,7 +116,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
     @Override
     protected byte[] transform(String className, byte[] bytes) {
-        ClassReader classReader = new ClassReader(bytes);
+        ClassReader classReader = new Java9ClassReader(bytes);
         ClassWriter classWriter = new ClassWriter(0);
         classReader.accept(new TransformingAdapter(classWriter), 0);
         bytes = classWriter.toByteArray();

@@ -222,12 +222,22 @@ subprojects {
 }
 
 configurations {
-    gradleKotlin {
+    coreRuntime {
         visible = false
     }
+    externalModules {
+        visible = false
+    }
+    // Configuration used to resolve external modules before patching them with versions from core runtime
+    externalModulesRuntime {
+        visible = false
+        extendsFrom coreRuntime
+        extendsFrom externalModules
+    }
+    // Combines the 'coreRuntime' with the patched external module jars
     runtime {
         visible = false
-        extendsFrom gradleKotlin
+        extendsFrom coreRuntime
     }
     gradlePlugins {
         visible = false
@@ -238,14 +248,31 @@ configurations {
     }
 }
 
+def patchedExternalModulesDir = "$rootProject.buildDir/external/files"
+def patchedExternalModules = fileTree(patchedExternalModulesDir) {
+    builtBy 'patchExternalModules'
+}
+
 dependencies {
-    runtime project(':launcher')
+    externalModules 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
+    coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
-    gradleKotlin 'org.gradle:gradle-script-kotlin:1.0.0-M1a'
+    runtime patchedExternalModules
     gradlePlugins pluginProjects
     gradlePlugins project(':dependencyManagement')
     gradlePlugins project(':testKit')
+}
+
+task patchExternalModules(type: Copy) {
+    description 'Patches the classpath manifests of external modules such as gradle-script-kotlin to match the Gradle runtime configuration.'
+    // Include any dependency jars that are not available in the core runtime
+    from configurations.externalModulesRuntime.minus(configurations.coreRuntime)
+    into patchedExternalModulesDir
+    doLast {
+        new ClasspathManifestPatcher(rootProject, configurations.externalModulesRuntime, configurations.externalModules)
+            .writePatchedFilesTo(destinationDir)
+    }
 }
 
 task verifyIsProductionBuildEnvironment << {
@@ -300,38 +327,6 @@ clean {
 
 apply from: "gradle/intTestImage.gradle"
 apply from: 'gradle/pullRequestBuild.gradle'
-
-def reportsFolder = new File(buildDir, "reports")
-ext.preferencesTraceFile = new File(reportsFolder, "preferences.trace.log")
-def userPrefsDirectory = new File("${System.getProperty("user.home")}/.java/.userPrefs")
-
-gradle.addListener(new TaskExecutionListener() {
-    void beforeExecute(Task task) {
-        if (task.name != "clean") {
-            doLog("before executing ", task)
-            if (userPrefsDirectory.exists()) {
-                GFileUtils.forceDelete(userPrefsDirectory)
-            }
-        }
-    }
-
-    void afterExecute(Task task, TaskState state) {
-        if (task.name != "clean") {
-            doLog("after executing", task)
-            if (userPrefsDirectory.exists()) {
-                GFileUtils.forceDelete(userPrefsDirectory)
-            }
-        }
-    }
-
-    void doLog(String descr, Task task) {
-        if (!reportsFolder.exists()) {
-            reportsFolder.mkdirs()
-        }
-        preferencesTraceFile.createNewFile()
-        preferencesTraceFile << "$descr , '${task.path}', ${userPrefsDirectory.absolutePath}, ${userPrefsDirectory.exists()}\n"
-    }
-})
 
 // Generate a report showing which tests in a subproject are leaving
 // files around.

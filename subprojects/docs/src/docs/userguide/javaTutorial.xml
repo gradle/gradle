@@ -16,7 +16,7 @@
 <chapter id='tutorial_java_projects'>
     <title>Java Quickstart</title>
 
-    <section>
+    <section id="sec:the_java_plugin">
         <title>The Java plugin</title>
 
         <para>As we have seen, Gradle is a general-purpose build tool. It can build pretty much anything you care to
@@ -47,7 +47,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:a_basic_java_project">
         <title>A basic Java project</title>
         <para>Let's look at a simple example. To use the Java plugin, add the following to your build file:</para>
         <sample id="javaQuickstart" dir="java/quickstart" includeLocation="true" title="Using the Java plugin">
@@ -69,7 +69,7 @@
             <filename>build/libs</filename> directory.
         </para>
 
-        <section>
+        <section id="sec:building_the_project">
             <title>Building the project</title>
             <para>The Java plugin adds quite a few tasks to your project. However, there are only a handful of tasks
                 that you will need to use to build the project. The most commonly used task is the <literal>build</literal> task,
@@ -109,7 +109,7 @@
             </variablelist>
         </section>
 
-        <section>
+        <section id="sec:java_external_dependencies">
             <title>External dependencies</title>
             <para>Usually, a Java project will have some dependencies on external JAR files. To reference these JAR
                 files in the project, you need to tell Gradle where to find them. In Gradle, artifacts such as JAR
@@ -128,7 +128,7 @@
             <para>You can find out more in <xref linkend="artifact_dependencies_tutorial"/>.</para>
         </section>
 
-        <section>
+        <section id="sec:customizing_the_project">
             <title>Customizing the project</title>
             <para>The Java plugin adds a number of properties to your project. These properties have default values
                 which are usually sufficient to get started. It's easy to change these values if they don't suit. Let's
@@ -153,7 +153,7 @@
             </sample>
         </section>
 
-        <section>
+        <section id="sec:publishing_the_jar_file">
             <title>Publishing the JAR file</title>
             <para>Usually the JAR file needs to be published somewhere. To do this, you need to tell Gradle where to
                 publish the JAR file. In Gradle, artifacts such as JAR files are published to repositories. In our
@@ -166,7 +166,7 @@
             <para>To publish the JAR file, run <userinput>gradle uploadArchives</userinput>.</para>
         </section>
         
-        <section>
+        <section id="sec:creating_an_eclipse_project">
             <title>Creating an Eclipse project</title>
             <para>To create the Eclipse-specific descriptor files, like <literal>.project</literal>, you need to add
             another plugin to your build file:</para>
@@ -178,7 +178,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:summary">
             <title>Summary</title>
             <para>Here's the complete build file for our sample:</para>
             <sample id="javaQuickstart" dir="java/quickstart" title="Java example - complete build file">
@@ -187,7 +187,7 @@
         </section>
     </section>
 
-    <section id='sec:examples'>
+    <section id="sec:examples">
         <title>Multi-project Java build</title>
         <para>Now let's look at a typical multi-project build. Below is the layout for the project:
         </para>
@@ -208,7 +208,7 @@
             <literal>shared</literal> project.
         </para>
 
-        <section>
+        <section id="sec:defining_a_multiproject_build">
             <title>Defining a multi-project build</title>
             <para>To define a multi-project build, you need to create a <firstterm>settings file</firstterm>. The settings
                 file lives in the root directory of the source tree, and specifies which projects to include in the
@@ -221,7 +221,7 @@
             <para>You can find out more about the settings file in <xref linkend="multi_project_builds"/>.</para>
         </section>
 
-        <section>
+        <section id="sec:common_configuration">
             <title>Common configuration</title>
             <para>For most multi-project builds, there is some configuration which is common to all projects.
                 In our sample, we will define this common configuration in the root project, using a technique called
@@ -243,7 +243,7 @@
             only in the subprojects.</para>
         </section>
 
-        <section>
+        <section id="sec:dependencies_between_projects">
             <title>Dependencies between projects</title>
             <para>You can add dependencies between projects in the same build, so that, for example, the JAR file of one
                 project is used to compile another project. In the <literal>api</literal> build file we will add a dependency
@@ -256,7 +256,7 @@
             See <xref linkend="disable_dependency_projects"/> for how to disable this functionality.
         </section>
 
-        <section>
+        <section id="sec:creating_a_distribution">
             <title>Creating a distribution</title>
             <para>
                 We also add a distribution, that gets shipped to the client:
@@ -267,7 +267,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:java_tutorial_where_to_next">
         <title>Where to next?</title>
         <para>
             In this chapter, you have seen how to do some of the things you commonly need to build a Java based

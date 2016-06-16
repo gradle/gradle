@@ -154,7 +154,7 @@ repositories {
 }
 
 dependencies {
-    compile "org.codehaus.groovy:groovy:2.4.6"
+    compile "org.codehaus.groovy:groovy:2.4.7"
 }
 '''
     }
@@ -291,8 +291,8 @@ class Main {
                         public class SimpleAnnotationProcessor extends AbstractProcessor {
                             @Override
                             public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
-                                if (isClasspathContaminated()) {
-                                    throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
+                                if (${gradleLeaksIntoAnnotationProcessor() ? '!' : ''}isClasspathContaminated()) {
+                                    throw new RuntimeException("Annotation Processor Classpath is ${gradleLeaksIntoAnnotationProcessor() ? 'not ' : ''}}contaminated by Gradle ClassLoader");
                                 }
 
                                 for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
@@ -353,6 +353,10 @@ class Main {
         then:
         fails("compileJava")
         compilerErrorOutput.contains("package ${gradleBaseServicesClass.package.name} does not exist")
+    }
+
+    protected boolean gradleLeaksIntoAnnotationProcessor() {
+        return false;
     }
 
 }

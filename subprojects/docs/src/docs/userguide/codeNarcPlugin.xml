@@ -4,7 +4,7 @@
         and generates reports from these checks.
     </para>
 
-    <section>
+    <section id="sec:codenarc_usage">
         <title>Usage</title>
         <para>To use the CodeNarc plugin, include the following in your build script:</para>
         <sample id="useCodeNarcPlugin" dir="codeQuality" title="Using the CodeNarc plugin">
@@ -13,7 +13,7 @@
         <para>The plugin adds a number of tasks to the project that perform the quality checks. You can execute the checks by running <userinput>gradle check</userinput>.</para>
     </section>
 
-    <section>
+    <section id="sec:codenarc_tasks">
         <title>Tasks</title>
         <para>The CodeNarc plugin adds the following tasks to the project:</para>
         <table>
@@ -66,7 +66,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:codenarc_project_layout">
         <title>Project layout</title>
         <para>The CodeNarc plugin expects the following project layout:</para>
         <table>
@@ -86,7 +86,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:codenarc_dependency_management">
         <title>Dependency management</title>
         <para>The CodeNarc plugin adds the following dependency configurations:</para>
         <table>
@@ -106,7 +106,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:codenarc_configuration">
         <title>Configuration</title>
         <para>See the <apilink class="org.gradle.api.plugins.quality.CodeNarcExtension"/> class in the API documentation.</para>
     </section>

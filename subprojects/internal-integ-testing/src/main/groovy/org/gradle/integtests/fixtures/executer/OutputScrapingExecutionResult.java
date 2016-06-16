@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.gradle.launcher.daemon.client.DaemonStartingMessage.NO_COMPATIBLE_DAEMONS_MESSAGE;
 import static org.gradle.launcher.daemon.client.DaemonStartingMessage.STARTING_DAEMON_MESSAGE;
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
 import static org.hamcrest.Matchers.equalTo;
@@ -45,11 +44,13 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private final String output;
     private final String error;
 
+    private static final String TASK_LOGGER_DEBUG_PATTERN = "(?:.*\\s+\\[LIFECYCLE\\]\\s+\\[class org\\.gradle\\.TaskExecutionLogger\\]\\s+)?";
+
     //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
-    private final Pattern skippedTaskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE))");
+    private final Pattern skippedTaskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE))");
 
     //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
-    private final Pattern taskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FAILED)|(\\s*))");
+    private final Pattern taskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FAILED)|(\\s*))");
 
     public OutputScrapingExecutionResult(String output, String error) {
         this.output = TextUtil.normaliseLineSeparators(output);
@@ -78,14 +79,6 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
             String line = lines.get(i);
             if (line.contains(STARTING_DAEMON_MESSAGE)) {
                 // Remove the "daemon starting" message
-                i++;
-            } else if (line.contains(NO_COMPATIBLE_DAEMONS_MESSAGE)) {
-                // Remove daemon reporting lines
-                while (i < lines.size() && !lines.get(i).contains(STARTING_DAEMON_MESSAGE)) {
-                    i++;
-                }
-
-                // Remove the "subsequent builds faster" message
                 i++;
             } else if (i == lines.size() - 1 && line.matches("Total time: [\\d\\.]+ secs")) {
                 result.append("Total time: 1 secs");

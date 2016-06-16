@@ -22,7 +22,7 @@
         This makes it possible to use the best language for the job, and to rewrite any class in the other language if needed.
     </para>
 
-    <section>
+    <section id="sec:groovy_usage">
         <title>Usage</title>
         <para>To use the Groovy plugin, include the following in your build script:</para>
         <sample id="useGroovyPlugin" dir="groovy/quickstart" title="Using the Groovy plugin">
@@ -30,7 +30,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:groovy_tasks">
         <title>Tasks</title>
         <para>The Groovy plugin adds the following tasks to the project.</para>
         <table>
@@ -96,7 +96,7 @@
         </figure>
     </section>
 
-    <section>
+    <section id="sec:groovy_project_layout">
         <title>Project layout</title>
         <para>The Groovy plugin assumes the project layout shown in <xref linkend='groovylayout'/>. All the Groovy
             source directories can contain Groovy <emphasis>and</emphasis> Java code. The Java source directories may
@@ -145,7 +145,7 @@
             </tr>
         </table>
 
-        <section>
+        <section id="sec:changing_groovy_project_layout">
             <title>Changing the project layout</title>
             <para>Just like the Java plugin, the Groovy plugin allows you to configure custom locations for Groovy production and test sources.</para>
             <sample id="customGroovySourceLayout" dir="groovy/customizedLayout" title="Custom Groovy source layout">
@@ -155,10 +155,10 @@
 
     </section>
 
-    <section>
+    <section id="sec:groovy_dependency_management">
         <title>Dependency management</title>
         <para>Because Gradle's build language is based on Groovy, and parts of Gradle are implemented in Groovy, Gradle already ships
-            with a Groovy library (2.4.6 as of Gradle 3.0). Nevertheless, Groovy projects need to explicitly declare a Groovy dependency.
+            with a Groovy library (2.4.7 as of Gradle 3.0). Nevertheless, Groovy projects need to explicitly declare a Groovy dependency.
             This dependency will then be used on compile and runtime class paths. It will also be used to get hold of the Groovy compiler
             and Groovydoc tool, respectively.
         </para>
@@ -193,7 +193,7 @@
         information about dependency management.</para>
     </section>
 
-    <section>
+    <section id="sec:automatic_configuration_of_groovyclasspath">
         <title>Automatic configuration of groovyClasspath</title>
         <para>
             The <literal>GroovyCompile</literal> and <literal>Groovydoc</literal> tasks consume Groovy code in two ways: on their <literal>classpath</literal>,
@@ -221,12 +221,12 @@
         <para>Note that the “<literal>-indy</literal>” variation of each jar refers to the version with <literal>invokedynamic</literal> support.</para>
     </section>
 
-    <section>
+    <section id="sec:groovy_convention_properties">
         <title>Convention properties</title>
         <para>The Groovy plugin does not add any convention properties to the project.</para>
     </section>
 
-    <section>
+    <section id="sec:groovy_source_set_properties">
         <title>Source set properties</title>
         <para>The Groovy plugin adds the following convention properties to each source set in the project. You can
             use these properties in your build script as though they were properties of the source set object.</para>
@@ -313,7 +313,7 @@
 
     </section>
 
-    <section id='sec:groovyCompile'>
+    <section id="sec:groovyCompile">
         <title>GroovyCompile</title>
         <para>The Groovy plugin adds a <apilink class="org.gradle.api.tasks.compile.GroovyCompile"/> task for
             each source set in the project. The task type extends the <literal>JavaCompile</literal>
@@ -363,15 +363,9 @@
     <section id='sec:groovy_cross_compilation'>
         <title>Compiling and testing for Java 6</title>
         <para>
-            Everything which is necessary for running a Java build on Java 6 is also necessary for Groovy. Please have a look at
-            <xref linkend="sec:java_cross_compilation"/>.
-        </para>
-        <para>
-            Currently the Groovy compiler will always be executed with the same Java version which was used to start Gradle. This means
-            it cannot be executed for Java 6. This means the only thing possible now is to set the
-            <literal>sourceCompatibility</literal> and <literal>targetCompatibility</literal> to <literal>1.6</literal>.
-            For joint compilation the Java Compiler used by the Groovy compiler
-            used for compiling the Java source files in the Grooyv source directory (e.g. <literal>src/main/groovy</literal>) can be set.
+            Since the Groovy compiler will always be executed with the same Java version which was used to start Gradle
+            all that can be done is setting <literal>sourceCompatibility</literal> and <literal>targetCompatibility</literal>.
+            If you also have Java sources follow the same steps as for the <link linkend="sec:java_cross_compilation">Java plugin</link>.
             <sample id="groovyCrossCompilation" dir="groovy/crossCompilation" title="Configure Java 6 build for Groovy">
                 <sourcefile file="gradle.properties" />
                 <sourcefile file="build.gradle" snippet="groovy-cross-compilation" />

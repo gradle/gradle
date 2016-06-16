@@ -30,6 +30,4 @@ public interface TaskOutputsInternal extends TaskOutputs {
     FileCollection getPreviousFiles();
 
     void setHistory(TaskExecutionHistory history);
-
-    void ensureConfigured();
 }

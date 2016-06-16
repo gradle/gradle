@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.Action
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInternal
@@ -96,6 +95,54 @@ class DefaultTaskOutputsTest extends Specification {
         ex.message == "Multiple output file properties with name 'alma'"
     }
 
+    def "can register unnamed output files"() {
+        when: outputs.files("a", "b")
+        then:
+        outputs.files.files.toList() == [new File('a'), new File("b")]
+        outputs.fileProperties.keySet().toList() == ['$1$1', '$1$2']
+        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+    }
+
+    def "can register unnamed output files with property name"() {
+        when: outputs.files("a", "b").withPropertyName("prop")
+        then:
+        outputs.files.files.toList() == [new File('a'), new File("b")]
+        outputs.fileProperties.keySet().toList() == ['prop$1', 'prop$2']
+        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+    }
+
+    def "can register named output files"() {
+        when: outputs.namedFiles("fileA": "a", "fileB": "b")
+        then:
+        outputs.files.files.toList() == [new File('a'), new File("b")]
+        outputs.fileProperties.keySet().toList() == ['$1.fileA', '$1.fileB']
+        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+    }
+
+    def "can register named output files with property name"() {
+        when: outputs.namedFiles("fileA": "a", "fileB": "b").withPropertyName("prop")
+        then:
+        outputs.files.files.toList() == [new File('a'), new File("b")]
+        outputs.fileProperties.keySet().toList() == ['prop.fileA', 'prop.fileB']
+        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+    }
+
+    def "can register future named output files"() {
+        when: outputs.namedFiles({ ["fileA": "a", "fileB": "b"] })
+        then:
+        outputs.files.files.toList() == [new File('a'), new File("b")]
+        outputs.fileProperties.keySet().toList() == ['$1.fileA', '$1.fileB']
+        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+    }
+
+    def "can register future named output files with property name"() {
+        when: outputs.namedFiles({ ["fileA": "a", "fileB": "b"] }).withPropertyName("prop")
+        then:
+        outputs.files.files.toList() == [new File('a'), new File("b")]
+        outputs.fileProperties.keySet().toList() == ['prop.fileA', 'prop.fileB']
+        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+    }
+
     public void canRegisterOutputFiles() {
         when:
         outputs.file('a')
@@ -166,35 +213,5 @@ class DefaultTaskOutputsTest extends Specification {
         then:
         def e = thrown(IllegalStateException)
         e.message == 'Task history is currently not available for this task.'
-    }
-
-    def "configuration actions are delayed"() {
-        def action = Mock(Action)
-        when:
-        outputs.configure(action)
-
-        then:
-        0 * action.execute(_)
-
-        when:
-        outputs.ensureConfigured()
-        then:
-        1 * action.execute(outputs)
-    }
-
-    def "configuration actions can call configure"() {
-        def action = Mock(Action)
-        when:
-        outputs.configure {
-            it.configure(action)
-        }
-
-        then:
-        0 * action.execute(_)
-
-        when:
-        outputs.ensureConfigured()
-        then:
-        1 * action.execute(outputs)
     }
 }

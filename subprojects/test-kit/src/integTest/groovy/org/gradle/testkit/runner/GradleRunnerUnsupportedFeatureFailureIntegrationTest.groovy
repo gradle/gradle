@@ -27,7 +27,7 @@ import org.gradle.util.TestPrecondition
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 @NonCrossVersion
-@Requires(TestPrecondition.JDK8_OR_EARLIER)
+@Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
 class GradleRunnerUnsupportedFeatureFailureIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     private static final ReleasedVersionDistributions RELEASED_VERSION_DISTRIBUTIONS = new ReleasedVersionDistributions()

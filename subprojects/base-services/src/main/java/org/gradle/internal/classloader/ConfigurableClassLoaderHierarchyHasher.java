@@ -17,13 +17,13 @@
 package org.gradle.internal.classloader;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hasher;
 import com.google.common.hash.Hashing;
 import org.gradle.api.Nullable;
 
 import java.util.Map;
+import java.util.WeakHashMap;
 
 public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierarchyHasher {
     private static final byte[] UNKNOWN = "unknown".getBytes(Charsets.UTF_8);
@@ -32,11 +32,11 @@ public class ConfigurableClassLoaderHierarchyHasher implements ClassLoaderHierar
 
     public ConfigurableClassLoaderHierarchyHasher(Map<ClassLoader, String> knownClassLoaders, ClassLoaderHasher classLoaderHasher) {
         this.classLoaderHasher = classLoaderHasher;
-        ImmutableMap.Builder<ClassLoader, byte[]> hashesBuilder = ImmutableMap.builder();
+        Map<ClassLoader, byte[]> hashes = new WeakHashMap<ClassLoader, byte[]>();
         for (Map.Entry<ClassLoader, String> entry : knownClassLoaders.entrySet()) {
-            hashesBuilder.put(entry.getKey(), entry.getValue().getBytes(Charsets.UTF_8));
+            hashes.put(entry.getKey(), entry.getValue().getBytes(Charsets.UTF_8));
         }
-        this.knownClassLoaders = hashesBuilder.build();
+        this.knownClassLoaders = hashes;
     }
 
     @Override

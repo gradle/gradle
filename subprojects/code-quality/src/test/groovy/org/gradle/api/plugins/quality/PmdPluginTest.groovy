@@ -220,7 +220,9 @@ class PmdPluginTest extends Specification {
         project.sourceSets {
             main
         }
+        def mainSourceSet = project.sourceSets.main
+        def pmdTask = project.tasks.getByName("pmdMain")
         expect:
-        project.tasks.getByName("pmdMain").classpath == project.sourceSets.main.compileClasspath
+        pmdTask.classpath.files == (mainSourceSet.output + mainSourceSet.compileClasspath).files
     }
 }

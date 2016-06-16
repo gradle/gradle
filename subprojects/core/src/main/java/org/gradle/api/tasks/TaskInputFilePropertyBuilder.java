@@ -16,8 +16,6 @@
 
 package org.gradle.api.tasks;
 
-import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.internal.HasInternalProtocol;
@@ -29,7 +27,7 @@ import java.util.Map;
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, TaskInputs {
+public interface TaskInputFilePropertyBuilder extends TaskPropertyBuilder, TaskInputs {
     /**
      * {@inheritDoc}
      */
@@ -176,22 +174,4 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, T
     @Deprecated
     @Override
     TaskInputs sourceDir(Object path);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskInputs#configure(Action)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputs configure(Action<? super TaskInputs> action);
-
-    /**
-     * {@inheritDoc}
-     *
-     * @deprecated Use {@link TaskInputs#configure(Closure)} directly instead.
-     */
-    @Deprecated
-    @Override
-    TaskInputs configure(Closure action);
 }

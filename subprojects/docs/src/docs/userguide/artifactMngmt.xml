@@ -24,14 +24,14 @@
             You can read about the new publishing plugins in <xref linkend="publishing_ivy"/> and <xref linkend="publishing_maven"/>. Please try them out and give us feedback.
         </para>
     </note>
-    <section>
+    <section id="sec:introduction">
         <title>Introduction</title>
         <para>This chapter is about how you declare the outgoing artifacts of your project, and how to work with
             them (e.g. upload them). We define the artifacts of the projects as the files the project provides to the
             outside world. This might be a library or a ZIP distribution or any other file. A project can publish as many artifacts as it wants.
         </para>
     </section>
-    <section id="artifacts_and_configurations">
+    <section id="sec:artifacts_and_configurations">
         <title>Artifacts and configurations</title>
         <para>Like dependencies, artifacts are grouped by configurations. In fact, a configuration can contain
             both artifacts and dependencies at the same time.
@@ -50,9 +50,9 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:declaring_artifacts">
         <title>Declaring artifacts</title>
-        <section>
+        <section id="sec:archive_task_artifacts">
             <title>Archive task artifacts</title>
             <para>You can use an archive task to define an artifact:</para>
             <sample id="archiveTaskArtifact" dir="userguide/artifacts/uploading" title="Defining an artifact using an archive task">
@@ -61,7 +61,7 @@
             <para>It is important to note that the custom archives you are creating as part of your build are not
             automatically assigned to any configuration. You have to explicitly do this assignment.</para>
         </section>
-        <section>
+        <section id="sec:file_artifacts">
             <title>File artifacts</title>
             <para>You can also use a file to define an artifact:</para>
             <sample id="fileArtifact" dir="userguide/artifacts/uploading" title="Defining an artifact using a file">
@@ -80,7 +80,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:publishing_artifacts">
         <title>Publishing artifacts</title>
         <para>We have said that there is a specific upload task for each configuration. Before you can do an upload,
             you have to configure the upload task and define where to publish the artifacts to. The repositories you have defined (as described

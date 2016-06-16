@@ -16,39 +16,43 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.tasks.TaskPropertyBuilder;
 
-import java.util.List;
+import java.util.Iterator;
 import java.util.SortedMap;
 
-public class FilePropertyContainer<T extends TaskFilePropertySpec> {
-    protected final List<T> fileProperties = Lists.newArrayList();
+public class FilePropertyContainer {
     private final String displayName;
-    private SortedMap<String, FileCollection> filePropertiesMap;
 
     public FilePropertyContainer(String displayName) {
         this.displayName = displayName;
     }
 
     // Note: sorted map used to keep order of properties consistent
-    public SortedMap<String, FileCollection> getFileProperties() {
-        if (filePropertiesMap == null) {
-            int unnamedPropertyCounter = 0;
-            SortedMap<String, FileCollection> filePropertiesMap = Maps.newTreeMap();
-            for (T propertySpec : fileProperties) {
-                String propertyName = propertySpec.getPropertyName();
-                if (propertyName == null) {
-                    propertyName = "$" + (++unnamedPropertyCounter);
-                }
-                if (filePropertiesMap.containsKey(propertyName)) {
-                    throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", displayName, propertyName));
-                }
-                filePropertiesMap.put(propertyName, propertySpec.getPropertyFiles());
+    protected SortedMap<String, FileCollection> collectFileProperties(Iterator<? extends TaskFilePropertySpec> fileProperties) {
+        SortedMap<String, FileCollection> filePropertiesMap = Maps.newTreeMap();
+        while (fileProperties.hasNext()) {
+            TaskFilePropertySpec propertySpec = fileProperties.next();
+            String propertyName = propertySpec.getPropertyName();
+            if (filePropertiesMap.containsKey(propertyName)) {
+                throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", displayName, propertyName));
             }
-            this.filePropertiesMap = filePropertiesMap;
+            filePropertiesMap.put(propertyName, propertySpec.getPropertyFiles());
         }
-        return filePropertiesMap;
+        return ImmutableSortedMap.copyOf(filePropertiesMap);
+    }
+
+    protected static <T extends TaskPropertySpec & TaskPropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {
+        int unnamedPropertyCounter = 0;
+        for (T propertySpec : properties) {
+            String propertyName = propertySpec.getPropertyName();
+            if (propertyName == null) {
+                propertyName = "$" + (++unnamedPropertyCounter);
+                propertySpec.withPropertyName(propertyName);
+            }
+        }
     }
 }

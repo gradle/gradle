@@ -19,12 +19,20 @@ package org.gradle.performance.fixture
 interface InvocationSpec {
 
     List<String> getTasksToRun()
+
     List<String> getJvmOpts()
+
     List<String> getArgs()
+
     File getWorkingDirectory()
+
+    boolean isExpectFailure()
 
     interface Builder {
         File getWorkingDirectory()
+
         void setWorkingDirectory(File workingDirectory)
+
+        Builder expectFailure()
     }
 }

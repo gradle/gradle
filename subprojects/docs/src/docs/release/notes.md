@@ -80,10 +80,6 @@ We have been working hard to make the Gradle Daemon aware of its health and impa
 
 We encourage you to give the improved Daemon a try. If for some reason you encounter problems, you can [disable the Daemon](userguide/gradle_daemon.html#daemon_faq). Please [submit feedback to us](https://discuss.gradle.org/c/3-0-m1/) if you encounter instability so that we can make further improvements.
 
-### Delayed configuration of task inputs and outputs
-
-A `configure()` method with an `Action` or `Closure` parameter was added to both `TaskInputs` and `TaskOutputs` to allow configuring the task's inputs and outputs directly before the task is to be executed.
-
 ### Up-to-date checks more robust against task implementation changes
 
 Previously if a task's implementation class name changed, the class was deemed out-of-date even if its inputs and outputs matched the previous execution. However, if only the code of the task, or a dependent library changed, the task was still considered up-to-date. Since this version Gradle notices if the code of a task or its dependencies change between executions, and marks tasks as out-of-date when needed.
@@ -143,6 +139,17 @@ The `EclipseProject` model was supplemented with a set of new features:
 
 With these features Tooling API clients can provide a more complete IDE integration. Buildship will make use of them very soon.
 
+### Initial Java 9 support
+
+Gradle 3.0 contains initial support for Java 9. This means that running Gradle on Java 9 and compiling,
+testing and running Java 9 applications is supported out of the box.
+
+CAVEAT: Your mileage my vary. If you run into any problems please report those on the forums.
+
+### Upgrade of BND library used by OSGi plugin
+
+The OSGi plugin now uses the version 3.2.0 of the BND library.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
@@ -169,11 +176,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Plural task output registration APIs
 
+The `@OutputFiles` and `@OutputDirectories` annotations support only properties with a `Map` type, where the values in the map can be resolved to individual files, while the keys represent unique identifiers for each file. Using either of the annotations with an `Iterable<File>` or `FileCollection` property is deprecated.
+
 The following APIs have been deprecated:
 
-* `@OutputFiles` annotation – use multiple `@OutputFile` properties instead
-* `@OutputDirectories` annotation – use multiple `@OutputDirectory` properties instead
-* `TaskOutputs.files()` method – call `TaskOutputs.file()` with each file separately instead
+`TaskOutputs.files()` method is now deprecated. Use either of the new `TaskOutputs.namedFiles()` methods instead.
 
 ## Potential breaking changes
 
@@ -294,12 +301,13 @@ We would like to thank the following community members for making contributions 
  - [Michael Ottati](https://github.com/mottati) - Allow Jetty daemon instances to be shut down. (GRADLE-2263)
  - [Gregorios Leach](https://github.com/simtel12) - Include directories when using a S3Client to list objects in a prefix. (GRADLE-3453)
  - [Mahmoud  Khater](https://github.com/mahmoud-k) - Fix a problem with determining the version of Findbugs on the classpath (GRADLE-3457)
- - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.6
+ - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.7
  - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
  - [Ramon Wirsch](https://github.com/ramonwirsch) - Fix NullPointerException when processing annotations in the new Java software model
  - [Vladislav Bauer](https://github.com/vbauer) - ShadeJar: Use ClassRemapper instead of deprecated RemappingClassAdapter
  - [Matias Hernandez](https://github.com/matiash) - Removed 4NT-specific code in bat files (GRADLE-3476)
-  
+ - [Andreas Dangel](https://github.com/adangel) - Add sourceSet.output to PMD classpath (GRADLE-3488)
+
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->

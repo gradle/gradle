@@ -20,7 +20,7 @@
         JAR archive generation.
     </para>
 
-    <section>
+    <section id="sec:ear_usage">
         <title>Usage</title>
         <para>To use the Ear plugin, include the following in your build script:</para>
         <sample id="earWithWar" dir="ear/earWithWar" title="Using the Ear plugin">
@@ -29,7 +29,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:ear_tasks">
         <title>Tasks</title>
         <para>The Ear plugin adds the following tasks to the project.</para>
         <table>
@@ -67,7 +67,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:ear_project_layout">
         <title>Project layout</title>
         <table>
             <title>Ear plugin - project layout</title>
@@ -86,7 +86,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:ear_dependency_management">
         <title>Dependency management</title>
         <para>The Ear plugin adds two dependency configurations: <literal>deploy</literal> and
             <literal>earlib</literal>. All dependencies in the <literal>deploy</literal> configuration are
@@ -96,7 +96,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:ear_convention_properties">
         <title>Convention properties</title>
         <table>
             <title>Ear plugin - directory properties</title>
@@ -159,7 +159,7 @@
         </para>
     </section>
 
-    <section id='sec:default_settings'>
+    <section id="sec:ear_default_settings">
         <title>Ear</title>
 
         <para>The default behavior of the Ear task is to copy the content of <literal>src/main/application</literal>
@@ -168,7 +168,7 @@
         </para>
         <para>The <apilink class="org.gradle.plugins.ear.Ear"/> class in the API documentation has additional useful information.</para>
     </section>
-    <section id='sec:customizing'>
+    <section id="sec:ear_customizing">
         <title>Customizing</title>
         <para>Here is an example with the most important customization options:
         </para>
@@ -180,7 +180,7 @@
             task provides, such as <literal>from</literal> and <literal>metaInf</literal>.
         </para>
     </section>
-    <section id='sec:using_custom_app_xml'>
+    <section id="sec:using_custom_app_xml">
         <title>Using custom descriptor file</title>
         <para>
             You may already have appropriate settings in a <literal>application.xml</literal> file and want

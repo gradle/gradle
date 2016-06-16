@@ -40,7 +40,13 @@ class GradleExecuterBackedSession implements GradleSession {
 
     Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
         def runner = createExecuter(invocationCustomizer, true)
-        return { runner.run() }
+        return {
+            if (invocation.expectFailure) {
+                runner.runWithFailure()
+            } else {
+                runner.run()
+            }
+        }
     }
 
     @Override
@@ -52,13 +58,13 @@ class GradleExecuterBackedSession implements GradleSession {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
 
         def executer = invocation.gradleDistribution.executer(testDirectoryProvider).
-                requireGradleDistribution().
-                requireIsolatedDaemons().
-                expectDeprecationWarning().
-                withStackTraceChecksDisabled().
-                withArgument('-u').
-                inDirectory(invocation.workingDirectory).
-                withTasks(invocation.tasksToRun)
+            requireGradleDistribution().
+            requireIsolatedDaemons().
+            expectDeprecationWarning().
+            withStackTraceChecksDisabled().
+            withArgument('-u').
+            inDirectory(invocation.workingDirectory).
+            withTasks(invocation.tasksToRun)
 
         if (withGradleOpts) {
             executer.withBuildJvmOpts(invocation.jvmOpts)

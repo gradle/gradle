@@ -27,7 +27,7 @@
         Distribution archives typically contain the executable application and other supporting files, such as documentation.
 	</para>
 
-    <section>
+    <section id="sec:distribution_usage">
         <title>Usage</title>
         <para>To use the distribution plugin, include the following in your build script:</para>
         <sample id="useDistributionPlugin" dir="userguide/distribution" title="Using the distribution plugin">
@@ -48,7 +48,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:distribution_tasks">
         <title>Tasks</title>
         <para>The Distribution plugin adds the following tasks to the project:</para>
         <table>
@@ -206,7 +206,7 @@
             Running “<userinput>gradle installCustomDist</userinput>” will install the distribution contents into “<literal><replaceable>$buildDir</replaceable>/install/custom</literal>”.
         </para>
     </section>
-    <section>
+    <section id="sec:distribution_contents">
       <title>Distribution contents</title>
         <para>
             All of the files in the “<literal>src/<replaceable>$distribution.name</replaceable>/dist</literal>” directory will automatically be included in the distribution.
@@ -223,7 +223,7 @@
             The “<literal>baseName</literal>” property has also been changed. This will cause the distribution archives to be created with a different name.
         </para>
     </section>
-    <section>
+    <section id="sec:publishing_distributions">
         <title>Publishing distributions</title>
         <para>
             The distribution plugin adds the distribution archives as candidate for default publishing artifacts.

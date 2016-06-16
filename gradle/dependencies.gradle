@@ -21,7 +21,7 @@ ext {
 
 versions.commons_io = 'commons-io:commons-io:2.2'
 
-versions.groovy = "2.4.6"
+versions.groovy = "2.4.7"
 
 versions.bouncycastle = "1.51"
 
@@ -30,7 +30,7 @@ libraries.ant = dependencies.module('org.apache.ant:ant:1.9.6') {
 }
 
 libraries.asm =  'org.ow2.asm:asm-all:5.1'
-libraries.bndlib = dependencies.module('biz.aQute.bnd:bndlib:2.4.0')
+libraries.bndlib = dependencies.module('biz.aQute.bnd:biz.aQute.bndlib:3.2.0')
 libraries.commons_cli = 'commons-cli:commons-cli:1.2@jar'
 libraries.commons_io = dependencies.module(versions.commons_io)
 libraries.commons_lang = 'commons-lang:commons-lang:2.6@jar'

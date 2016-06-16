@@ -34,7 +34,7 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
             group = "foo"
             apply plugin: "java"
             apply plugin: "osgi"
-                            
+
             jar {
                 manifest {
                     version = "3.0"
@@ -45,10 +45,10 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
 
             assert jar.manifest.symbolicName.startsWith("bar") // GRADLE-2446
         """
-        
+
         and:
         file("src/main/java/Thing.java") << "public class Thing {}"
-        
+
         when:
         run "jar"
 
@@ -86,10 +86,10 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
 
         when:
         run "jar"
-        
+
         then:
         ":jar" in nonSkippedTasks
-        
+
         when:
         sleep sleepTime
         run "jar"
@@ -148,6 +148,54 @@ class OsgiPluginIntegrationSpec extends AbstractIntegrationSpec {
             assert manifest.mainAttributes.getValue("Bnd-$attributeNameWritten") == attributeValue
             assert manifest.mainAttributes.getValue(attributeNameWritten) == attributeValue
             assert manifest.mainAttributes.getValue(attributeNameMerged) == attributeValue
+        } finally {
+            jar.close();
+        }
+    }
+
+    @Issue("GRADLE-3487")
+    def "generates import package attributes when the package is available in multiple bundles"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'osgi'
+
+            repositories {
+                mavenCentral()
+            }
+
+            dependencies {
+                compile 'org.eclipse:osgi:3.10.0-v20140606-1445'
+                compile 'org.eclipse.equinox:common:3.6.200-v20130402-1505'
+            }
+        """
+
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+
+        file('src/main/java/org/gradle/Bar.java') << """
+            package org.gradle;
+
+            import org.eclipse.core.runtime.URIUtil;
+            import java.net.*;
+
+            public class Bar {
+                public Bar() throws URISyntaxException {
+                    URI uri = URIUtil.fromString("file:/test");
+                }
+            }
+        """
+
+        when:
+        succeeds 'jar'
+
+        then:
+        def jar = new JarFile(file('build/libs/test.jar'))
+
+        try {
+            def manifest = jar.manifest
+            assert manifest.mainAttributes.getValue('Import-Package') == 'org.eclipse.core.runtime;version="[3.4,4)";common=split'
         } finally {
             jar.close();
         }

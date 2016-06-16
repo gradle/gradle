@@ -34,6 +34,11 @@ test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
 }
 
+java9Test {
+    exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
+    exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
+}
+
 useTestFixtures()
 useTestFixtures(project: ':testingBase', sourceSet: 'testFixtures')
 useTestFixtures(project: ':diagnostics')

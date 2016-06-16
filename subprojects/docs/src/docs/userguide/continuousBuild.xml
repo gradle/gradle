@@ -117,7 +117,7 @@
             There are several issues to be aware with the current implementation of continuous build.
             These are likely to be addressed in future Gradle releases.
         </para>
-        <section>
+        <section id="sec:build_cycles">
             <title>Build cycles</title>
             <para>
                 Gradle starts watching for changes just before a task executes.
@@ -133,7 +133,7 @@
                 In other cases, you can use <literal>--info</literal> logging to find the task that is out-of-date due to the identified files.
             </para>
         </section>
-        <section>
+        <section id="sec:performance_and_stability">
             <title>Performance and stability</title>
             <para>
                 The JDK file watching facility relies on inefficient file system polling on Mac OS X (see: <ulink url="https://bugs.openjdk.java.net/browse/JDK-7133447">JDK-7133447</ulink>).
@@ -148,7 +148,7 @@
                 On Linux, OpenJDK's implementation of the file watch service can sometimes miss file system events (see: <ulink url="https://bugs.openjdk.java.net/browse/JDK-8145981">JDK-8145981</ulink>).
             </para>
         </section>
-        <section>
+        <section id="sec:changes_to_symbolic_links">
             <title>Changes to symbolic links</title>
             <para>
                 <itemizedlist>
@@ -160,7 +160,7 @@
                 </itemizedlist>
             </para>
         </section>
-        <section>
+        <section id="sec:changes_to_build_logic_are_not_considered">
             <title>Changes to build logic are not considered</title>
             <para>
                 The current implementation does not recalculate the build model on subsequent builds.

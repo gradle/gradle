@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.DependentsSet;
 import org.gradle.api.internal.tasks.compile.incremental.jar.PreviousCompilation;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.RecompilationSpec;
 import org.gradle.api.tasks.incremental.InputFileDetails;
+import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
@@ -35,7 +36,7 @@ public class ClassChangeProcessor {
     public void processChange(final InputFileDetails input, final RecompilationSpec spec) {
         final ClassReader classReader;
         try {
-            classReader = new ClassReader(Files.toByteArray(input.getFile()));
+            classReader = new Java9ClassReader(Files.toByteArray(input.getFile()));
         } catch (IOException e) {
             throw new IllegalArgumentException(String.format("Unable to read class file: '%s'", input.getFile()));
         }

@@ -118,7 +118,7 @@
         </sample>
     </section>
 
-    <section id='sec:build_sources'>
+    <section id="sec:build_sources">
         <title>Build sources in the <filename>buildSrc</filename> project</title>
         <para>When you run Gradle, it checks for the existence of a directory called <filename>buildSrc</filename>.
             Gradle then automatically compiles and tests this code and puts it in the classpath of your build script.
@@ -167,7 +167,7 @@
         </sample>
     </section>
 
-    <section id='sec:external_dependencies'>
+    <section id="sec:build_script_external_dependencies">
         <title>External dependencies for the build script</title>
         <para>If your build script needs to use external libraries, you can add them to the script's classpath in the
             build script itself. You do this using the <literal>buildscript()</literal> method, passing in a closure which
@@ -202,7 +202,7 @@
         </para>
     </section>
 
-    <section id='sec:ant_optional_dependencies'>
+    <section id="sec:ant_optional_dependencies">
         <title>Ant optional dependencies</title>
         <para>For reasons we don't fully understand yet, external dependencies are not picked up by Ant's optional
             tasks. But you can easily do it in another way.
@@ -220,7 +220,7 @@
         <para>This is also a good example for the usage of client modules. The POM file in Maven Central for the
         ant-commons-net task does not provide the right information for this use case.</para>
     </section>
-    <section id='sec:philosophy'>
+    <section id="sec:philosophy">
         <title>Summary</title>
         <para>Gradle offers you a variety of ways of organizing your build logic. You can choose what is right for your
             domain and find the right balance between unnecessary indirections, and avoiding redundancy and a hard to

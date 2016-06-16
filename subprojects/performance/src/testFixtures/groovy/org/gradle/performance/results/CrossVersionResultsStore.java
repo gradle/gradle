@@ -68,8 +68,11 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             db.withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws Exception {
                     long testId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = null;
+                    ResultSet keys = null;
+
                     try {
+                        statement = connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getTestTime()));
                         statement.setString(3, results.getVersionUnderTest());
@@ -84,20 +87,21 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         String vcs = results.getVcsCommits() == null ? null :  Joiner.on(",").join(results.getVcsCommits());
                         statement.setString(12, vcs);
                         statement.execute();
-                        ResultSet keys = statement.getGeneratedKeys();
+                        keys = statement.getGeneratedKeys();
                         keys.next();
                         testId = keys.getLong(1);
                     } finally {
-                        statement.close();
+                        closeStatement(statement);
+                        closeResultSet(keys);
                     }
-                    statement = connection.prepareStatement("insert into testOperation(testExecution, version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
+                        statement = connection.prepareStatement("insert into testOperation(testExecution, version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         addOperations(statement, testId, null, results.getCurrent());
                         for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
                             addOperations(statement, testId, baselineVersion.getVersion(), baselineVersion.getResults());
                         }
                     } finally {
-                        statement.close();
+                        closeStatement(statement);
                     }
                     for (String previousId : results.getPreviousTestIds()) {
                         statement = connection.prepareStatement("update testExecution set testId = ? where testId = ?");
@@ -106,7 +110,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             statement.setString(2, previousId);
                             statement.execute();
                         } finally {
-                            statement.close();
+                            closeStatement(statement);
                         }
                     }
                     return null;
@@ -139,10 +143,20 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             return db.withConnection(new ConnectionAction<List<String>>() {
                 public List<String> execute(Connection connection) throws Exception {
                     List<String> testNames = new ArrayList<String>();
-                    ResultSet testExecutions = connection.createStatement().executeQuery("select distinct testId from testExecution order by testId");
-                    while (testExecutions.next()) {
-                        testNames.add(testExecutions.getString(1));
+                    Statement statement = null;
+                    ResultSet testExecutions = null;
+
+                    try {
+                        statement = connection.createStatement();
+                        testExecutions = statement.executeQuery("select distinct testId from testExecution order by testId");
+                        while (testExecutions.next()) {
+                            testNames.add(testExecutions.getString(1));
+                        }
+                    } finally {
+                        closeStatement(statement);
+                        closeResultSet(testExecutions);
                     }
+
                     return testNames;
                 }
             });
@@ -168,60 +182,67 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         }
                     });
                     Set<String> allBranches = new TreeSet<String>();
-                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
-                    PreparedStatement operationsForExecution = connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
-                    executionsForName.setInt(1, mostRecentN);
-                    executionsForName.setString(2, testName);
-                    ResultSet testExecutions = executionsForName.executeQuery();
-                    while (testExecutions.next()) {
-                        long id = testExecutions.getLong(1);
-                        CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
-                        performanceResults.setTestId(testName);
-                        performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
-                        performanceResults.setVersionUnderTest(testExecutions.getString(3));
-                        performanceResults.setTestProject(testExecutions.getString(4));
-                        performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
-                        performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
-                        performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
-                        performanceResults.setDaemon((Boolean)testExecutions.getObject(8));
-                        performanceResults.setOperatingSystem(testExecutions.getString(9));
-                        performanceResults.setJvm(testExecutions.getString(10));
-                        performanceResults.setVcsBranch(testExecutions.getString(11).trim());
-                        performanceResults.setVcsCommits(ResultsStoreHelper.splitVcsCommits(testExecutions.getString(12)));
+                    PreparedStatement executionsForName = null;
+                    PreparedStatement operationsForExecution = null;
+                    ResultSet testExecutions = null;
 
-                        results.add(performanceResults);
-                        allBranches.add(performanceResults.getVcsBranch());
+                    try {
+                        executionsForName = connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
+                        operationsForExecution = connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+                        executionsForName.setInt(1, mostRecentN);
+                        executionsForName.setString(2, testName);
+                        testExecutions = executionsForName.executeQuery();
+                        while (testExecutions.next()) {
+                            long id = testExecutions.getLong(1);
+                            CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
+                            performanceResults.setTestId(testName);
+                            performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
+                            performanceResults.setVersionUnderTest(testExecutions.getString(3));
+                            performanceResults.setTestProject(testExecutions.getString(4));
+                            performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
+                            performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
+                            performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
+                            performanceResults.setDaemon((Boolean) testExecutions.getObject(8));
+                            performanceResults.setOperatingSystem(testExecutions.getString(9));
+                            performanceResults.setJvm(testExecutions.getString(10));
+                            performanceResults.setVcsBranch(testExecutions.getString(11).trim());
+                            performanceResults.setVcsCommits(ResultsStoreHelper.splitVcsCommits(testExecutions.getString(12)));
 
-                        operationsForExecution.setLong(1, id);
-                        ResultSet builds = operationsForExecution.executeQuery();
-                        while (builds.next()) {
-                            String version = builds.getString(1);
-                            if ("1.7".equals(version) && performanceResults.getTestTime() <= ignoreV17Before) {
-                                // Ignore some broken samples
-                                continue;
-                            }
-                            MeasuredOperation operation = new MeasuredOperation();
-                            operation.setTotalTime(Duration.millis(builds.getBigDecimal(2)));
-                            operation.setConfigurationTime(Duration.millis(builds.getBigDecimal(3)));
-                            operation.setExecutionTime(Duration.millis(builds.getBigDecimal(4)));
-                            operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(5)));
-                            operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(6)));
-                            operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
-                            operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(8)));
-                            operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
+                            results.add(performanceResults);
+                            allBranches.add(performanceResults.getVcsBranch());
 
-                            if (version == null) {
-                                performanceResults.getCurrent().add(operation);
-                            } else {
-                                BaselineVersion baselineVersion = performanceResults.baseline(version);
-                                baselineVersion.getResults().add(operation);
-                                allVersions.add(version);
+                            operationsForExecution.setLong(1, id);
+                            ResultSet builds = operationsForExecution.executeQuery();
+                            while (builds.next()) {
+                                String version = builds.getString(1);
+                                if ("1.7".equals(version) && performanceResults.getTestTime() <= ignoreV17Before) {
+                                    // Ignore some broken samples
+                                    continue;
+                                }
+                                MeasuredOperation operation = new MeasuredOperation();
+                                operation.setTotalTime(Duration.millis(builds.getBigDecimal(2)));
+                                operation.setConfigurationTime(Duration.millis(builds.getBigDecimal(3)));
+                                operation.setExecutionTime(Duration.millis(builds.getBigDecimal(4)));
+                                operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(5)));
+                                operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(6)));
+                                operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
+                                operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(8)));
+                                operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
+
+                                if (version == null) {
+                                    performanceResults.getCurrent().add(operation);
+                                } else {
+                                    BaselineVersion baselineVersion = performanceResults.baseline(version);
+                                    baselineVersion.getResults().add(operation);
+                                    allVersions.add(version);
+                                }
                             }
                         }
+                    } finally {
+                        closeStatement(operationsForExecution);
+                        closeStatement(executionsForName);
+                        closeResultSet(testExecutions);
                     }
-                    testExecutions.close();
-                    operationsForExecution.close();
-                    executionsForName.close();
 
                     return new CrossVersionPerformanceTestHistory(testName, new ArrayList<String>(allVersions), new ArrayList<String>(allBranches), results);
                 }
@@ -238,36 +259,61 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     private class CrossVersionResultsSchemaInitializer implements ConnectionAction<Void> {
         @Override
         public Void execute(Connection connection) throws Exception {
-            Statement statement = connection.createStatement();
-            statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
-            statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
-            statement.execute("alter table testExecution add column if not exists vcsBranch varchar not null default 'master'");
-            statement.execute("alter table testExecution add column if not exists vcsCommit varchar");
-            statement.execute("alter table testExecution add column if not exists gradleOpts array");
-            statement.execute("alter table testExecution add column if not exists daemon boolean");
-            statement.execute("alter table testOperation add column if not exists totalHeapUsageBytes decimal");
-            statement.execute("alter table testOperation add column if not exists maxHeapUsageBytes decimal");
-            statement.execute("alter table testOperation add column if not exists maxUncollectedHeapBytes decimal");
-            statement.execute("alter table testOperation add column if not exists maxCommittedHeapBytes decimal");
-            if (columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
-                statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
-                statement.execute("alter table testOperation add column executionTime decimal");
-                statement.execute("update testOperation set executionTime = 0");
-                statement.execute("alter table testOperation alter column executionTime set not null");
-                statement.execute("alter table testOperation add column configurationTime decimal");
-                statement.execute("update testOperation set configurationTime = 0");
-                statement.execute("alter table testOperation alter column configurationTime set not null");
+            Statement statement = null;
+
+            try {
+                statement = connection.createStatement();
+                statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, targetVersion varchar not null, testProject varchar not null, tasks array not null, args array not null, operatingSystem varchar not null, jvm varchar not null)");
+                statement.execute("create table if not exists testOperation (testExecution bigint not null, version varchar, executionTimeMs decimal not null, heapUsageBytes decimal not null, foreign key(testExecution) references testExecution(id))");
+                statement.execute("alter table testExecution add column if not exists vcsBranch varchar not null default 'master'");
+                statement.execute("alter table testExecution add column if not exists vcsCommit varchar");
+                statement.execute("alter table testExecution add column if not exists gradleOpts array");
+                statement.execute("alter table testExecution add column if not exists daemon boolean");
+                statement.execute("alter table testOperation add column if not exists totalHeapUsageBytes decimal");
+                statement.execute("alter table testOperation add column if not exists maxHeapUsageBytes decimal");
+                statement.execute("alter table testOperation add column if not exists maxUncollectedHeapBytes decimal");
+                statement.execute("alter table testOperation add column if not exists maxCommittedHeapBytes decimal");
+                if (columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
+                    statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
+                    statement.execute("alter table testOperation add column executionTime decimal");
+                    statement.execute("update testOperation set executionTime = 0");
+                    statement.execute("alter table testOperation alter column executionTime set not null");
+                    statement.execute("alter table testOperation add column configurationTime decimal");
+                    statement.execute("update testOperation set configurationTime = 0");
+                    statement.execute("alter table testOperation alter column configurationTime set not null");
+                }
+                statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
+            } finally {
+                closeStatement(statement);
             }
-            statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
-            statement.close();
+
             return null;
         }
 
         private boolean columnExists(Connection connection, String table, String column) throws SQLException {
-            ResultSet columns = connection.getMetaData().getColumns(null, null, table, column);
-            boolean exists = columns.next();
-            columns.close();
+            ResultSet columns = null;
+            boolean exists;
+
+            try {
+                columns = connection.getMetaData().getColumns(null, null, table, column);
+                exists = columns.next();
+            } finally {
+                closeResultSet(columns);
+            }
+
             return exists;
+        }
+    }
+
+    private void closeStatement(Statement statement) throws SQLException {
+        if (statement != null) {
+            statement.close();
+        }
+    }
+
+    private void closeResultSet(ResultSet resultSet) throws SQLException {
+        if (resultSet != null) {
+            resultSet.close();
         }
     }
 }

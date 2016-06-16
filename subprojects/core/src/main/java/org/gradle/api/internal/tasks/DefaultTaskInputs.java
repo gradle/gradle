@@ -16,9 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.Lists;
-import groovy.lang.Closure;
 import groovy.lang.GString;
-import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.file.CompositeFileCollection;
@@ -26,24 +24,25 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Queue;
+import java.util.SortedMap;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
 
-public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.PropertySpec> implements TaskInputsInternal {
+public class DefaultTaskInputs extends FilePropertyContainer implements TaskInputsInternal {
     private final FileCollection allInputFiles;
     private final FileCollection allSourceFiles;
     private final FileResolver resolver;
     private final String taskName;
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
-    private Queue<Action<? super TaskInputs>> configureActions;
+    private final List<PropertySpec> fileProperties = Lists.newArrayList();
+    private SortedMap<String, FileCollection> filePropertiesMap;
 
     public DefaultTaskInputs(FileResolver resolver, String taskName, TaskMutator taskMutator) {
         super("input");
@@ -62,6 +61,15 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
     @Override
     public FileCollection getFiles() {
         return allInputFiles;
+    }
+
+    @Override
+    public SortedMap<String, FileCollection> getFileProperties() {
+        if (filePropertiesMap == null) {
+            ensurePropertiesHaveNames(fileProperties);
+            filePropertiesMap = collectFileProperties(fileProperties.iterator());
+        }
+        return filePropertiesMap;
     }
 
     @Override
@@ -200,42 +208,20 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
         return this;
     }
 
-    @Override
-    public TaskInputs configure(final Action<? super TaskInputs> action) {
-        taskMutator.mutate("TaskInputs.configure(Action)", new Runnable() {
-            public void run() {
-                if (configureActions == null) {
-                    configureActions = Lists.newLinkedList();
-                }
-                configureActions.add(action);
-            }
-        });
-        return this;
-    }
+    private class PropertySpec extends AbstractTaskPropertyBuilder implements TaskFilePropertySpec, TaskInputFilePropertyBuilder {
 
-    @Override
-    public TaskInputs configure(Closure action) {
-        return configure(ConfigureUtil.configureUsing(action));
-    }
-
-    @Override
-    public void ensureConfigured() {
-        if (configureActions != null) {
-            while (!configureActions.isEmpty()) {
-                configureActions.remove().execute(this);
-            }
-            configureActions = null;
-        }
-    }
-
-    class PropertySpec extends BaseTaskFilePropertySpec implements TaskInputFilePropertyBuilder {
-
+        private final TaskPropertyFileCollection files;
         private boolean skipWhenEmpty;
         private boolean optional;
 
         public PropertySpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
-            super(taskName, "input", resolver, paths);
+            this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
             this.skipWhenEmpty = skipWhenEmpty;
+        }
+
+        @Override
+        public FileCollection getPropertyFiles() {
+            return files;
         }
 
         @Override
@@ -347,16 +333,6 @@ public class DefaultTaskInputs extends FilePropertyContainer<DefaultTaskInputs.P
         @Deprecated
         public TaskInputs sourceDir(Object path) {
             return getTaskInputs("sourceDir(Object)").sourceDir(path);
-        }
-
-        @Override
-        public TaskInputs configure(Action<? super TaskInputs> action) {
-            return getTaskInputs("configure(Action)").configure(action);
-        }
-
-        @Override
-        public TaskInputs configure(Closure action) {
-            return getTaskInputs("configure(Closure)").configure(action);
         }
     }
 

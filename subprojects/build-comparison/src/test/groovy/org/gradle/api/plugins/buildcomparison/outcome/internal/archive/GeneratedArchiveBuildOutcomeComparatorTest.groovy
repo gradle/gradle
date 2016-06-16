@@ -24,10 +24,13 @@ import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.Arc
 import org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry.ArchiveEntryComparison
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.api.plugins.buildcomparison.compare.internal.ComparisonResultType.*
+import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
 
@@ -61,6 +64,9 @@ class GeneratedArchiveBuildOutcomeComparatorTest extends Specification {
         }
     }
 
+    // Something about BeanDynamicObject not being able to construct an ImmutableSet?
+    @Issue("gradle/core-issues#115")
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     def "compare entries"() {
         when:
         mockEntries(existingFrom.archiveFile,

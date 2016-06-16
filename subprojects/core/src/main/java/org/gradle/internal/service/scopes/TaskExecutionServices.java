@@ -45,7 +45,6 @@ import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
-import org.gradle.api.internal.tasks.execution.InputOutputEnsuringTaskExecuter;
 import org.gradle.api.internal.tasks.execution.PostExecutionAnalysisTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
@@ -83,16 +82,14 @@ public class TaskExecutionServices {
         return new ExecuteAtMostOnceTaskExecuter(
             new SkipOnlyIfTaskExecuter(
                 new SkipTaskWithNoActionsExecuter(
-                    new InputOutputEnsuringTaskExecuter(
-                        new SkipEmptySourceFilesTaskExecuter(
-                            taskInputsListener,
-                            new ValidatingTaskExecuter(
-                                new SkipUpToDateTaskExecuter(
-                                    repository,
-                                    new PostExecutionAnalysisTaskExecuter(
-                                        new ExecuteActionsTaskExecuter(
-                                            listenerManager.getBroadcaster(TaskActionListener.class)
-                                        )
+                    new SkipEmptySourceFilesTaskExecuter(
+                        taskInputsListener,
+                        new ValidatingTaskExecuter(
+                            new SkipUpToDateTaskExecuter(
+                                repository,
+                                new PostExecutionAnalysisTaskExecuter(
+                                    new ExecuteActionsTaskExecuter(
+                                        listenerManager.getBroadcaster(TaskActionListener.class)
                                     )
                                 )
                             )
@@ -131,7 +128,7 @@ public class TaskExecutionServices {
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter, FileSnapshotter fileSnapshotter,
                                                                   StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem, FileCollectionFactory fileCollectionFactory,
-                                                                  CachingTreeVisitor treeVisitor, TreeSnapshotRepository treeSnapshotRepository, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+                                                                  CachingTreeVisitor treeVisitor, TreeSnapshotRepository treeSnapshotRepository, CachingTreeVisitorCleaner treeVisitorCleaner, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, treeVisitor, treeSnapshotRepository);
         FileCollectionSnapshotter discoveredFileCollectionSnapshotter = new MinimalFileSetSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, fileSystem);
 

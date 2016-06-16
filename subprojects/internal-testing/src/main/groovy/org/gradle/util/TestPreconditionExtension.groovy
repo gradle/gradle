@@ -31,6 +31,6 @@ class TestPreconditionExtension extends AbstractAnnotationDrivenExtension<Requir
     }
 
     private boolean unsatisfied(Requires annotation) {
-        annotation.value().any() { !it.fulfilled } || !annotation.adhoc().newInstance(null, null).call()
+        annotation.value().any { !it.fulfilled } || !annotation.adhoc().newInstance(null, null).call()
     }
 }

@@ -17,7 +17,7 @@
     <title>Writing Build Scripts</title>
     <para>This chapter looks at some of the details of writing a build script.</para>
 
-    <section>
+    <section id="sec:the_gradle_build_language">
         <title>The Gradle build language</title>
         <para>Gradle provides a <firstterm>domain specific language</firstterm>, or DSL, for describing builds.
             This build language is based on Groovy, with some additions to make it easier to describe a build.
@@ -28,7 +28,7 @@
             Gradle assumes that each build script is encoded using UTF-8.
         </para>
     </section>
-    <section id='sec:project_api'>
+    <section id="sec:project_api">
         <title>The Project API</title>
         <para>In the tutorial in <xref linkend='tutorial_java_projects'/> we used, for example, the
             <literal>apply()</literal> method. Where does this method come from? We said earlier that the build script
@@ -70,7 +70,7 @@
             same name as a member of the <classname>Project</classname> object, would you need to use the <literal>project</literal>
             property.
         </para>
-        <section>
+        <section id="sec:standard_project_properties">
             <title>Standard project properties</title>
             <para>The <classname>Project</classname> object provides some standard properties, which are available in
                 your build script. The following table lists a few of the commonly used ones.
@@ -132,18 +132,18 @@
             </table>
         </section>
     </section>
-    <section>
+    <section id="sec:the_script_api">
         <title>The Script API</title>
         <para>When Gradle executes a script, it compiles the script into a class which implements <apilink class="org.gradle.api.Script"/>.
             This means that all of the properties and methods declared by the <classname>Script</classname> interface
             are available in your script.
         </para>
     </section>
-    <section>
+    <section id="sec:declaring_variables">
         <title>Declaring variables</title>
         <para>There are two kinds of variables that can be declared in a build script: local variables and extra properties.
         </para>
-        <section>
+        <section id="sec:local_variables">
             <title>Local variables</title>
             <para>Local variables are declared with the <literal>def</literal> keyword. They are only visible in the scope where they have been declared.
                 Local variables are a feature of the underlying Groovy language.
@@ -152,7 +152,7 @@
                 <sourcefile file="build.gradle"/>
             </sample>
         </section>
-        <section id='sec:extra_properties'>
+        <section id="sec:extra_properties">
             <title>Extra properties</title>
             <para>All enhanced objects in Gradle's domain model can hold extra user-defined properties. This includes, but is not limited to, projects, tasks,
                 and source sets. Extra properties can be added, read and set via the owning object's <literal>ext</literal> property. Alternatively, an
@@ -175,7 +175,7 @@
             <para>For further details on extra properties and their API, see the <apilink class="org.gradle.api.plugins.ExtraPropertiesExtension"/> class in the API documentation.</para>
         </section>
     </section>
-    <section id='sec:configuring_arbitrary_objects'>
+    <section id="sec:configuring_arbitrary_objects">
         <title>Configuring arbitrary objects</title>
         <para>You can configure arbitrary objects in the following very readable way.
         </para>
@@ -184,7 +184,7 @@
             <output args="-q configure"/>
         </sample>
     </section>
-    <section>
+    <section id="sec:configuring_arbitrary_objects_using_an_external_script">
         <title>Configuring arbitrary objects using an external script</title>
         <para>You can also configure arbitrary objects using an external script.
         </para>
@@ -200,7 +200,7 @@
             Understanding how the build language works will help you when you write your build script, and in particular,
             when you start to write custom plugins and tasks.
         </para>
-        <section>
+        <section id="sec:groovy_jdk">
             <title>Groovy JDK</title>
             <para>
                 Groovy adds lots of useful methods to the standard Java classes. For example, <classname>Iterable</classname> gets
@@ -211,7 +211,7 @@
             </sample>
             <para>Have a look at <ulink url="http://groovy-lang.org/gdk.html"/> for more details.</para>
         </section>
-        <section>
+        <section id="sec:property_accessors">
             <title>Property accessors</title>
             <para>
                Groovy automatically converts a property reference into a call to the appropriate getter or setter method.
@@ -220,7 +220,7 @@
                 <sourcefile file="build.gradle" snippet="propertyAccessors"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:optional_parentheses_on_method_calls">
             <title>Optional parentheses on method calls</title>
             <para>
                 Parentheses are optional for method calls.
@@ -229,7 +229,7 @@
                 <sourcefile file="build.gradle" snippet="methodCallWithoutParentheses"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:list_and_map_literals">
             <title>List and map literals</title>
             <para>
                 Groovy provides some shortcuts for defining <classname>List</classname> and <classname>Map</classname>
@@ -244,7 +244,7 @@
                 <sourcefile file="build.gradle" snippet="listAndMapLiterals"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:closures_as_the_last_parameter_in_a_method">
             <title>Closures as the last parameter in a method</title>
             <para>The Gradle DSL uses closures in many places. You can find out more about closures <ulink url="http://docs.groovy-lang.org/latest/html/documentation/index.html#_closures">here</ulink>.
                 When the last parameter of a method is a closure, you can place the closure after the method call:
@@ -253,7 +253,7 @@
                 <sourcefile file="build.gradle" snippet="closureAsLastParam"/>
             </sample>
         </section>
-        <section>
+        <section id="sec:closure_delegate">
             <title>Closure delegate</title>
             <para>
                 Each closure has a <literal>delegate</literal> object, which Groovy uses to look up variable and method

@@ -18,6 +18,15 @@ Useful links:
 The stories found here use the terminology defined in the `buildingJavaLibraries.xml` chapter. Please make sure you have those terms in mind before going further.
 
 
+# ASM 6
+
+This section lists the mandatory items to be fixes as soon as ASM 6 is available. ASM is the library we use to parse classes,
+and it is used in a lot of different places in Gradle. The ASM 5 library cannot read the Java 9 class format
+(version 53). We have worked around this in several places of Gradle:
+
+- remove usages of `org.gradle.util.internal.Java9ClassReader` and replace them with a standard `org.objectweb.asm.ClassReader`
+- remove hack in `org.gradle.test.fixtures.file.ClassFile`
+
 # Feature: Java library author specifies library API
 
 Given a description of the API of a library, Gradle will prevent at compile time the consumers of a library from using classes that are not part of the API of the library. This is intended to help teams materialize and describe the APIs of and dependencies between the various components of their software stack, and enforce the boundaries between them, helping prepare them for transition to the Java module system.
@@ -559,7 +568,7 @@ distributions of Jdk 9 available for 64-bit OS X (this is down from two in the p
 
 In the following scenarios, we describe how Gradle version 2.12 behaves running with this jdk.
 
-## Scenario 1: Simple Gralde Build
+## Scenario 1: Simple Gradle Build
 
 In this scenario, we have the following `build.gradle` file:
 
@@ -669,7 +678,7 @@ Total time: 1.527 secs
 According to this [slide
 deck](http://openjdk.java.net/projects/jigsaw/talks/prepare-for-jdk9-j1-2015.pdf),
 it looks like we should just be able to work around this by passing
-"-XaddExports" as JVM optinos when invoking the build, but that has not worked for
+"-XaddExports" as JVM options when invoking the build, but that has not worked for
 me yet.
 
 Also, the problem seems to come from our use of a private

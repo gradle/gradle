@@ -29,7 +29,7 @@
         This chapter gives some advice for troubleshooting problems and explains how to get help with your problems.
     </para>
     
-    <section>
+    <section id="sec:working_through_problems">
         <title>Working through problems</title>
         <para>
             If you are encountering problems, one of the first things to try is using the very latest release of Gradle. New versions of Gradle are
@@ -40,7 +40,7 @@
             More information about troubleshooting the daemon process is located in <xref linkend="gradle_daemon"/>.
         </para>
     </section>
-    <section>
+    <section id="sec:troubleshooting_getting_help">
         <title>Getting help</title>
         <para>
             The place to go for help with Gradle is <ulink url="http://forums.gradle.org">http://forums.gradle.org</ulink>.

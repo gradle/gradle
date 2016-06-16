@@ -16,18 +16,31 @@
 
 package org.gradle.launcher.daemon.server.api;
 
+import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.launcher.daemon.protocol.Stop;
 import org.gradle.launcher.daemon.protocol.StopWhenIdle;
 import org.gradle.launcher.daemon.protocol.Success;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 
 public class HandleStop implements DaemonCommandAction {
+    private final ListenerBroadcast<DaemonExpirationListener> listenerBroadcast;
+
+    public static final String EXPIRATION_REASON = "stop command received";
+
+    public HandleStop(ListenerManager listenerManager) {
+        this.listenerBroadcast = listenerManager.createAnonymousBroadcaster(DaemonExpirationListener.class);
+    }
+
     @Override
     public void execute(DaemonCommandExecution execution) {
         if (execution.getCommand() instanceof Stop) {
-            execution.getDaemonStateControl().requestForcefulStop("stop command received");
+            listenerBroadcast.getSource().onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.IMMEDIATE_EXPIRE, EXPIRATION_REASON));
             execution.getConnection().completed(new Success(null));
         } else if (execution.getCommand() instanceof StopWhenIdle) {
-            execution.getDaemonStateControl().requestStop();
+            listenerBroadcast.getSource().onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, EXPIRATION_REASON));
             execution.getConnection().completed(new Success(null));
         } else {
             execution.proceed();

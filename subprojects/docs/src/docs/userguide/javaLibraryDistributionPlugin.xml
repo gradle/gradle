@@ -10,7 +10,7 @@
         JAR file for the library and its dependencies.
     </para>
 
-    <section>
+    <section id="sec:java_library_distribution_usage">
         <title>Usage</title>
         <para>To use the Java library distribution plugin, include the following in your build script:</para>
         <sample id="usejavaLibraryPlugin" dir="userguide/javaLibraryDistribution" title="Using the Java library distribution plugin">
@@ -28,7 +28,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:java_library_distribution_tasks">
         <title>Tasks</title>
         <para>The Java library distribution plugin adds the following tasks to the project.</para>
         <table>

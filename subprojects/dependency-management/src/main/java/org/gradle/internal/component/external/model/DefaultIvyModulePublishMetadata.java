@@ -88,17 +88,20 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
         return dependency;
     }
 
+    // TODO:DAZ Should deprecate the ability to overwrite the file for a previously configured artifact
     @Override
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {
             DefaultIvyArtifactName ivyName = DefaultIvyArtifactName.forPublishArtifact(artifact);
-            IvyModuleArtifactPublishMetadata ivyArtifact = getOrCreate(ivyName, artifact.getFile());
-            ((DefaultIvyModuleArtifactPublishMetadata) ivyArtifact).addConfiguration(configuration);
+            DefaultIvyModuleArtifactPublishMetadata ivyArtifact = getOrCreate(ivyName);
+            ivyArtifact.setFile(artifact.getFile());
+            ivyArtifact.addConfiguration(configuration);
         }
     }
 
     public void addArtifact(IvyArtifactName artifact, File file) {
-        DefaultIvyModuleArtifactPublishMetadata publishMetadata = new DefaultIvyModuleArtifactPublishMetadata(id, artifact, file);
+        DefaultIvyModuleArtifactPublishMetadata publishMetadata = new DefaultIvyModuleArtifactPublishMetadata(id, artifact);
+        publishMetadata.setFile(file);
         artifactsById.put(publishMetadata.getId(), publishMetadata);
     }
 
@@ -106,13 +109,13 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
         artifactsById.put(artifact.getId(), artifact);
     }
 
-    private IvyModuleArtifactPublishMetadata getOrCreate(IvyArtifactName ivyName, File artifactFile) {
+    private DefaultIvyModuleArtifactPublishMetadata getOrCreate(IvyArtifactName ivyName) {
         for (IvyModuleArtifactPublishMetadata artifactPublishMetadata : artifactsById.values()) {
             if (artifactPublishMetadata.getArtifactName().equals(ivyName)) {
-                return artifactPublishMetadata;
+                return (DefaultIvyModuleArtifactPublishMetadata) artifactPublishMetadata;
             }
         }
-        DefaultIvyModuleArtifactPublishMetadata artifact = new DefaultIvyModuleArtifactPublishMetadata(id, ivyName, artifactFile);
+        DefaultIvyModuleArtifactPublishMetadata artifact = new DefaultIvyModuleArtifactPublishMetadata(id, ivyName);
         artifactsById.put(artifact.getId(), artifact);
         return artifact;
     }

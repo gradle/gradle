@@ -50,7 +50,7 @@ class TaskTypeTaskStateChanges extends SimpleTaskStateChanges {
         this.previousExecution = previousExecution;
     }
 
-    private HashCode calculateActionClassLoaderHash(Collection<ClassLoader> taskActionClassLoaders, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+    private static HashCode calculateActionClassLoaderHash(Collection<ClassLoader> taskActionClassLoaders, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         if (taskActionClassLoaders.isEmpty()) {
             return NO_ACTION_LOADERS;
         }

@@ -18,7 +18,7 @@
         The native software plugins make use of the Gradle <link linkend="software_model">software model</link>.
     </para>
 
-    <section>
+    <section id="sec:native_features">
         <title>Features</title>
         <para>The native software plugins provide:</para>
         <itemizedlist>
@@ -33,7 +33,7 @@
         </itemizedlist>
     </section>
 
-    <section>
+    <section id="sec:supported_languages">
         <title>Supported languages</title>
         <para>
             The following source languages are currently supported:
@@ -105,7 +105,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:tool_chain_installation">
         <title>Tool chain installation</title>
         <note>
             <para>
@@ -114,7 +114,7 @@
         </note>
         <para>To build native software, you will need to have a compatible tool chain installed:
         </para>
-        <section>
+        <section id="sec:windows">
             <title>Windows</title>
             <para>To build on Windows, install a compatible version of Visual Studio. The native plugins will discover the Visual Studio installations
                 and select the latest version. There is no need to mess around with environment variables or batch scripts. This works fine from a Cygwin shell
@@ -122,7 +122,7 @@
             </para>
             <para>Alternatively, you can install Cygwin with GCC or MinGW. Clang is currently not supported.</para>
         </section>
-        <section>
+        <section id="sec:os_x">
             <title>OS X</title>
             <para>To build on OS X, you should install XCode. The native plugins will discover the XCode installation using the system PATH.
             </para>
@@ -131,14 +131,14 @@
                 you will need to make the tool chain the default using the <userinput>port select</userinput> command and add Macports to the system PATH.
             </para>
         </section>
-        <section>
+        <section id="sec:linux">
             <title>Linux</title>
             <para>To build on Linux, install a compatible version of GCC or Clang. The native plugins will discover GCC or Clang using the system PATH.
             </para>
         </section>
     </section>
 
-    <section>
+    <section id="sec:native_software_model">
         <title>Native software model</title>
         <para>The native software model builds on the base Gradle <link linkend="software_model_concepts">software model</link>.</para>
         <para>
@@ -167,7 +167,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:parallel_compilation">
         <title>Parallel Compilation</title>
         <para>
             Gradle uses the single build worker pool to concurrently compile and link native components, by default.
@@ -184,7 +184,7 @@
             For example, if the build machine has 4 processing cores and 10 projects are compiling in parallel, Gradle will only use 4 total workers, not 40.
         </para>
     </section>
-    <section>
+    <section id="sec:building_a_library">
         <title>Building a library</title>
         <para>
             To build either a static or shared native library, you define a library component in the <literal>components</literal> container. The following sample
@@ -199,7 +199,7 @@
             and at least one static library binary (<apilink class="org.gradle.nativeplatform.StaticLibraryBinarySpec"/>).
         </para>
     </section>
-    <section>
+    <section id="sec:building_an_executable">
         <title>Building an executable</title>
         <para>
             To build a native executable, you define an executable component in the <literal>components</literal> container. The following sample defines
@@ -218,7 +218,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:native_tasks">
         <title>Tasks</title>
         <para>
             For each <apilink class="org.gradle.nativeplatform.NativeBinarySpec"/> that can be produced by a build,
@@ -254,7 +254,7 @@
             </tr>
         </table>
 
-        <section>
+        <section id="sec:working_with_shared_libraries">
             <title>Working with shared libraries</title>
             <para>
                 For each executable binary produced, the <literal>cpp</literal> plugin provides an <literal>install${binary.name}</literal> task,
@@ -264,7 +264,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:finding_out_more_about_your_project">
         <title>Finding out more about your project</title>
         <para>Gradle provides a report that you can run from the command-line that shows some details about the components and binaries that your
             project produces. To use this report, just run <userinput>gradle components</userinput>. Below is an example of running this report for
@@ -291,7 +291,7 @@
             <listitem><para>Windows resources</para></listitem>
         </itemizedlist>
 
-        <section>
+        <section id="sec:cpp_sources">
             <title>C++ sources</title>
             <para>
                 C++ language support is provided by means of the <literal>'cpp'</literal> plugin.
@@ -320,7 +320,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:c_sources">
             <title>C sources</title>
             <para>
                 C language support is provided by means of the <literal>'c'</literal> plugin.
@@ -349,7 +349,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:assembler_sources">
             <title>Assembler sources</title>
             <para>
                 Assembly language support is provided by means of the <literal>'assembler'</literal> plugin.
@@ -365,7 +365,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:objectivec_sources">
             <title>Objective-C sources</title>
             <para>
                 Objective-C language support is provided by means of the <literal>'objective-c'</literal> plugin.
@@ -381,7 +381,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:objectivecpp_sources">
             <title>Objective-C++ sources</title>
             <para>
                 Objective-C++ language support is provided by means of the <literal>'objective-cpp'</literal> plugin.
@@ -398,7 +398,7 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:configuring_the_compiler_assembler_and_linker">
         <title>Configuring the compiler, assembler and linker</title>
         <para>
             Each binary to be produced is associated with a set of compiler and linker settings, which include command-line arguments as well as macro definitions.
@@ -470,7 +470,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:library_dependencies">
         <title>Library Dependencies</title>
         <para>
             Dependencies for native components are binary libraries that export header files. The header files are used during compilation, with the compiled
@@ -478,7 +478,7 @@
             For instance, if your <literal>mylib</literal> project has a <filename>logging.h</filename> header, it will make it less likely the wrong header is used if you include it as
             <literal>"mylib/logging.h"</literal> instead of <literal>"logging.h"</literal>.
         </para>
-        <section>
+        <section id="sec:dependencies_within_the_same_project">
            <title>Dependencies within the same project</title>
            <para>
                A set of sources may depend on header files provided by another binary component within the same project.
@@ -497,7 +497,7 @@
                <sourcefile file="build.gradle" snippet="binary-library"/>
            </sample>
         </section>
-        <section>
+        <section id="sec:project_dependencies">
             <title>Project Dependencies</title>
             <para>
                 For a component produced in a different Gradle project, the notation is similar.
@@ -633,7 +633,7 @@
                 If no flavor is defined for a component, then a single default flavor named 'default' is used.
             </para>
         </section>
-        <section>
+        <section id="sec:selecting_the_build_types_platforms_and_flavors_for_a_component">
             <title>Selecting the build types, platforms and flavors for a component</title>
             <para>
                 For a default component, Gradle will attempt to create a native binary variant for each and every combination of <literal>buildType</literal>,
@@ -652,7 +652,7 @@
                 and <apilink class="org.gradle.nativeplatform.TargetedNativeComponent" method="targetFlavors"/>.
             </para>
         </section>
-        <section>
+        <section id="sec:building_all_possible_variants">
             <title>Building all possible variants</title>
             <para>
                 When a set of build types, target platforms, and flavors is defined for a component,
@@ -679,7 +679,7 @@
             of tool chains for a project may also be explicitly defined, allowing additional cross-compilers to be configured
             as well as allowing the install directories to be specified.
         </para>
-        <section>
+        <section id="sec:defining_tool_chains">
             <title>Defining tool chains</title>
             <para>
                 The supported tool chain types are:
@@ -704,7 +704,7 @@
 
         </section>
 
-        <section>
+        <section id="sec:using_tool_chains">
             <title>Using tool chains</title>
             <para>
                 It is not necessary or possible to specify the tool chain that should be used to build.
@@ -754,7 +754,7 @@
             </sample>
         </section>
 
-        <section>
+        <section id="sec:crosscompiling_with_gcc">
             <title>Cross-compiling with GCC</title>
             <para>
                 Cross-compiling is possible with the <apilink class="org.gradle.nativeplatform.toolchain.Gcc"/> and <apilink class="org.gradle.nativeplatform.toolchain.Clang"/> tool chains,
@@ -792,7 +792,7 @@
             defined in your project, Gradle will create a matching <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec"/> component,
             named <literal>${component.name}Test</literal>.
         </para>
-        <section>
+        <section id="sec:cunit_sources">
             <title>CUnit sources</title>
             <para>
                 Gradle will create a <apilink class="org.gradle.language.c.CSourceSet"/> named 'cunit' for each <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec"/> component
@@ -812,7 +812,7 @@
             </note>
         </section>
 
-        <section>
+        <section id="sec:building_cunit_executables">
             <title>Building CUnit executables</title>
             <para>
                 A <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteSpec"/> component has an associated
@@ -830,7 +830,7 @@
             </note>
         </section>
 
-        <section>
+        <section id="sec:running_cunit_tests">
             <title>Running CUnit tests</title>
             <para>
                 For each <apilink class="org.gradle.nativeplatform.test.cunit.CUnitTestSuiteBinarySpec"/>, Gradle will create a task to execute this binary,
@@ -871,7 +871,7 @@
             defined in your project, Gradle will create a matching <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec"/> component,
             named <literal>${component.name}Test</literal>.
         </para>
-        <section>
+        <section id="sec:googletest_sources">
             <title>GoogleTest sources</title>
             <para>
                 Gradle will create a <apilink class="org.gradle.language.cpp.CppSourceSet"/> named 'cpp' for each <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec"/> component
@@ -880,7 +880,7 @@
             </para>
         </section>
 
-        <section>
+        <section id="sec:building_googletest_executables">
             <title>Building GoogleTest executables</title>
             <para>
                 A <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteSpec"/> component has an associated
@@ -898,7 +898,7 @@
             </note>
         </section>
 
-        <section>
+        <section id="sec:running_googletest_tests">
             <title>Running GoogleTest tests</title>
             <para>
                 For each <apilink class="org.gradle.nativeplatform.test.googletest.GoogleTestTestSuiteBinarySpec"/>, Gradle will create a task to execute this binary,

@@ -30,6 +30,7 @@ public class GroovyStackTraceSpec implements Spec<StackTraceElement> {
                     + "|groovy.lang.MetaMethod"
                     + "|java.lang.reflect\\..*"
                     + "|sun.reflect\\..*"
+                    + "|jdk.internal.reflect\\..*"
     );
 
     @Override

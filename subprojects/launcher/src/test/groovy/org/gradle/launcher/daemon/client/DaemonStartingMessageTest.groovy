@@ -16,40 +16,35 @@
 
 package org.gradle.launcher.daemon.client
 
-import com.google.common.collect.Lists
-import org.gradle.launcher.daemon.registry.DaemonStopEvent
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class DaemonStartingMessageTest extends Specification {
     @Unroll
-    def "starting message contains number of busy and incompatible daemons (#numBusy busy, #numIncompatible incompatible)"() {
+    def "starting message contains number of busy and incompatible daemons (#numBusy busy, #numIncompatible incompatible, #numStopped stopped)"() {
         given:
-        def message = DaemonStartingMessage.generate(numBusy, numIncompatible, Lists.newArrayList())
+        def message = DaemonStartingMessage.generate(numBusy, numIncompatible, numStopped)
 
         expect:
         message.contains(DaemonStartingMessage.STARTING_DAEMON_MESSAGE)
+        message.contains(DaemonStartingMessage.NOT_REUSED_MESSAGE)
+        !message.contains(DaemonStartingMessage.SUBSEQUENT_BUILDS_WILL_BE_FASTER)
         messages.each { assert message.contains(it) }
 
         where:
-        numBusy | numIncompatible | messages
-        0       | 1               | [DaemonStartingMessage.ONE_INCOMPATIBLE_DAEMON_MESSAGE]
-        1       | 0               | [DaemonStartingMessage.ONE_BUSY_DAEMON_MESSAGE]
-        1       | 1               | [DaemonStartingMessage.ONE_BUSY_DAEMON_MESSAGE, DaemonStartingMessage.ONE_INCOMPATIBLE_DAEMON_MESSAGE]
-        1       | 2               | [DaemonStartingMessage.ONE_BUSY_DAEMON_MESSAGE, DaemonStartingMessage.MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE]
-        2       | 1               | [DaemonStartingMessage.MULTIPLE_BUSY_DAEMONS_MESSAGE, DaemonStartingMessage.ONE_INCOMPATIBLE_DAEMON_MESSAGE]
-        2       | 2               | [DaemonStartingMessage.MULTIPLE_BUSY_DAEMONS_MESSAGE, DaemonStartingMessage.MULTIPLE_INCOMPATIBLE_DAEMONS_MESSAGE]
+        numBusy | numIncompatible | numStopped | messages
+        0       | 1               | 0          | ["1 incompatible"]
+        1       | 0               | 0          | ["1 busy"]
+        0       | 0               | 1          | ["1 stopped"]
+        1       | 2               | 4          | ["1 busy", "2 incompatible", "4 stopped"]
     }
 
-    def "starting message contains stoppage reasons"() {
+    def "starting message contains subsequent builds message given no unavailable daemons"() {
         given:
-        def stopEvent = new DaemonStopEvent(new Date(System.currentTimeMillis()), "REASON")
-        def stopEvent2 = new DaemonStopEvent(new Date(System.currentTimeMillis()), "OTHER_REASON")
-        def message = DaemonStartingMessage.generate(0, 0, Lists.newArrayList(stopEvent, stopEvent2))
+        def message = DaemonStartingMessage.generate(0, 0, 0)
 
         expect:
         message.contains(DaemonStartingMessage.STARTING_DAEMON_MESSAGE)
-        message.contains(DaemonStartingMessage.ONE_DAEMON_STOPPED_PREFIX + "REASON")
-        message.contains(DaemonStartingMessage.ONE_DAEMON_STOPPED_PREFIX + "OTHER_REASON")
+        message.contains(DaemonStartingMessage.SUBSEQUENT_BUILDS_WILL_BE_FASTER)
     }
 }

@@ -141,7 +141,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         File daemonLog = getDaemonLogFile();
         DaemonDiagnostics daemonDiagnostics = new DaemonDiagnostics(daemonLog, daemonContext.getPid());
         return ImmutableList.of(
-            new HandleStop(),
+            new HandleStop(get(ListenerManager.class)),
             new HandleCancel(),
             new ReturnResult(),
             new StartBuildOrRespondWithBusy(daemonDiagnostics), // from this point down, the daemon is 'busy'
@@ -152,7 +152,7 @@ public class DaemonServices extends DefaultServiceRegistry {
             new ForwardClientInput(),
             new RequestStopIfSingleUsedDaemon(),
             new ResetDeprecationLogger(),
-            new WatchForDisconnection(),
+            new WatchForDisconnection(get(ListenerManager.class)),
             new ExecuteBuild(buildActionExecuter, runningStats, this)
         );
 

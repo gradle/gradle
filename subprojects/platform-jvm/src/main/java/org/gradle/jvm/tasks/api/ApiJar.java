@@ -23,6 +23,7 @@ import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.ErroringAction;
 import org.gradle.jvm.tasks.api.internal.ApiClassExtractor;
+import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 
 import java.io.BufferedOutputStream;
@@ -116,7 +117,7 @@ public class ApiJar extends DefaultTask {
                         if (!isClassFile(sourceFile)) {
                             continue;
                         }
-                        ClassReader classReader = new ClassReader(readFileToByteArray(sourceFile));
+                        ClassReader classReader = new Java9ClassReader(readFileToByteArray(sourceFile));
                         if (!apiClassExtractor.shouldExtractApiClassFrom(classReader)) {
                             continue;
                         }

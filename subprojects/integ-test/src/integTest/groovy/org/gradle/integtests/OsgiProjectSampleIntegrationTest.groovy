@@ -44,8 +44,8 @@ class OsgiProjectSampleIntegrationTest extends AbstractIntegrationSpec {
         manifest != null
         manifest.mainAttributes.getValue('Bundle-Name') == 'Example Gradle Activator'
         manifest.mainAttributes.getValue('Bundle-ManifestVersion') == '2'
-        manifest.mainAttributes.getValue('Tool') == 'Bnd-2.4.0.201411031534'
-        Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')) >= start
+        manifest.mainAttributes.getValue('Tool') == 'Bnd-3.2.0.201605172007'
+        Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')) / 1000L >= start / 1000L  // Bnd-LastModified resolution is 1000ms
         manifest.mainAttributes.getValue('Bundle-Version') == '1.0.0'
         manifest.mainAttributes.getValue('Bundle-SymbolicName') == 'gradle_tooling.osgi'
         manifest.mainAttributes.getValue('Built-By') ==  GradleVersion.current().version

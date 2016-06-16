@@ -84,7 +84,7 @@
             This publication determines which artifacts are actually published as well as the details included in the associated Ivy module descriptor file.
             A publication can be configured by adding components, customizing artifacts, and by modifying the generated module descriptor file directly.
         </para>
-        <section>
+        <section id="sec:publishing_component_to_ivy">
             <title>Publishing a Software Component</title>
             <para>
                 The simplest way to publish a Gradle project to an Ivy repository is to specify a <apilink class="org.gradle.api.component.SoftwareComponent"/> to publish.
@@ -120,7 +120,7 @@
                 <sourcefile file="build.gradle" snippet="publish-component" />
             </sample>
         </section>
-        <section>
+        <section id="sec:publishing_custom_artifacts_to_ivy">
             <title>Publishing custom artifacts</title>
             <para>
                 It is also possible to explicitly configure artifacts to be included in the publication. Artifacts are commonly supplied as raw files, or as instances of
@@ -140,7 +140,7 @@
                 See the <apilink class="org.gradle.api.publish.ivy.IvyPublication" /> class in the API documentation for more detailed information on how artifacts can be customized.
             </para>
         </section>
-        <section>
+        <section id="sec:identity_values_for_the_published_project">
             <title>Identity values for the published project</title>
             <para>
                 The generated Ivy module descriptor file contains an <literal>&lt;info&gt;</literal> element that identifies the module.
@@ -174,7 +174,7 @@
                 The supplied values are validated early during publication.
             </para>
         </section>
-        <section>
+        <section id="sec:modifying_the_generated_module_descriptor">
             <title>Modifying the generated module descriptor</title>
             <para>
                 At times, the module descriptor file generated from the project information will need to be tweaked before publishing. The “<literal>ivy-publish</literal>”
@@ -199,7 +199,7 @@
                 The identifier (organisation, module, revision) of the published module is an exception; these values cannot be modified in the descriptor using the `withXML` hook.
             </para>
         </section>
-        <section>
+        <section id="sec:publishing_multiple_modules_to_ivy">
             <title>Publishing multiple modules</title>
             <para>
                 Sometimes it's useful to publish multiple modules from your Gradle build, without creating a separate Gradle subproject.
@@ -245,7 +245,7 @@
             <sourcefile file="build.gradle"/>
             <output args='publishIvyJavaPublicationToIvyRepository'/>
         </sample>
-        <section>
+        <section id="sec:the_publish_lifecycle_task">
             <title>The “<literal>publish</literal>” lifecycle task</title>
             <para>
                 The “<literal>publish</literal>” plugin (that the “<literal>ivy-publish</literal>” plugin implicitly applies) adds a lifecycle task
