@@ -11,12 +11,16 @@ import java.io.File
 class GetGradleKotlinScriptDependencies : GetScriptDependencies {
 
     override operator fun invoke(annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? {
+        fun File.existingOrNull() = let { if (it.exists() && it.isDirectory) it else null }
+        fun File.listPrefixedJars(prefixes: Iterable<String>): Iterable<File> = listFiles { file -> prefixes.any { file.name.startsWith(it) } }.asIterable()
         return when (context) {
             is ClassPathRegistry -> makeDependencies(annotations, KotlinScriptDefinitionProvider.selectGradleApiJars(context))
             is File -> {
-                val libDir = File(context, "lib").let { if (it.exists() && it.isDirectory) it else null }
-                val classpath = libDir?.listFiles { file -> Companion.defaultDependenciesJarsPrefixes.any { file.name.startsWith(it) } }
-                if (classpath == null || classpath.size < defaultDependenciesJarsPrefixes.size) {
+                val libDir = File(context, "lib").existingOrNull()
+                val pluginsDir = libDir?.let { File(libDir, "plugins") }?.existingOrNull()
+                val classpath = (libDir?.listPrefixedJars(defaultDependenciesJarsPrefixes) ?: emptyList()) +
+                                (pluginsDir?.listPrefixedJars(defaultDependenciesJarsPrefixes) ?: emptyList())
+                if (classpath.size < defaultDependenciesJarsPrefixes.size) {
                     // log
                     null
                 }
@@ -41,6 +45,7 @@ class GetGradleKotlinScriptDependencies : GetScriptDependencies {
         return object : KotlinScriptExternalDependencies {
             override val classpath = defaultClasspath + cp
             override val imports = implicitImports
+            override val sources = defaultClasspath + cp
         }
     }
 
@@ -55,7 +60,8 @@ class GetGradleKotlinScriptDependencies : GetScriptDependencies {
                 "kotlin-reflect-",
                 "kotlin-runtime-",
                 "ant-",
-                "gradle-")
+                "gradle-",
+                "groovy-all-")
     }
 }
 
