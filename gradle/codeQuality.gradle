@@ -1,6 +1,5 @@
 apply plugin: 'checkstyle'
 apply plugin: 'codenarc'
-apply from: new File(buildscript.sourceFile.parentFile, 'dependencies.gradle')
 
 plugins.withType(JavaBasePlugin) {
     // Apply to all projects depending on :core
