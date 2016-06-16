@@ -5,7 +5,6 @@ import org.gradle.script.lang.kotlin.support.zipTo
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -41,7 +40,6 @@ class GradleScriptKotlinIntegrationTest {
     }
 
     @Test
-    @Ignore("wip")
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
         withClassJar("fixture.jar", DeepThought::class.java)
 
@@ -102,6 +100,10 @@ class GradleScriptKotlinIntegrationTest {
             .withProjectDir(projectDir.root)
 
     private fun customInstallation() =
-        File("build/custom").listFiles()?.single()
-            ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
+        File("build/custom").listFiles()?.let {
+            it.singleOrNull() ?:
+                throw IllegalStateException(
+                    "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`.")
+        } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
+
 }

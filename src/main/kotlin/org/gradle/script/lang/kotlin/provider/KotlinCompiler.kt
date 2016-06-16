@@ -39,6 +39,7 @@ import org.jetbrains.kotlin.script.KotlinScriptDefinition
 import org.jetbrains.kotlin.utils.PathUtil
 
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
+import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
 
 import org.slf4j.Logger
@@ -61,7 +62,7 @@ fun compileKotlinScript(scriptFile: File, scriptDef: KotlinScriptDefinition, cla
 
         throw IllegalStateException("Internal error: ${OutputMessageUtil.renderException(ex)}")
     } finally {
-        rootDisposable.dispose()
+        dispose(rootDisposable)
     }
 }
 
