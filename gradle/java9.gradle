@@ -129,13 +129,6 @@ task java9IntegTest(type: Test) {
         "IvyPublishHttpIntegTest",
         "IvyHttpPublishIntegrationTest",
 
-        /* java.lang.RuntimeException: Annotation Processor Classpath is contaminated by Gradle ClassLoader
-           at com.test.SimpleAnnotationProcessor.process(SimpleAnnotationProcessor.java:22)
-           for tests involving Annotation Processor
-        */
-        "InProcessGroovyCompilerIntegrationTest",
-        "InProcessJavaCompilerIntegrationTest",
-
         /*
         java.lang.reflect.InaccessibleObjectException: Cannot make a non-public member of class java.lang.reflect.AccessibleObject accessible
         at jdk.internal.reflect.Reflection.throwInaccessibleObjectException(java.base@9-ea/Reflection.java:414)

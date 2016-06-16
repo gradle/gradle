@@ -539,8 +539,8 @@ ${compilerConfiguration()}
                         public class SimpleAnnotationProcessor extends AbstractProcessor {
                             @Override
                             public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment roundEnv) {
-                                if (isClasspathContaminated()) {
-                                    throw new RuntimeException("Annotation Processor Classpath is contaminated by Gradle ClassLoader");
+                                if (${gradleLeaksIntoAnnotationProcessor() ? '!' : ''}isClasspathContaminated()) {
+                                    throw new RuntimeException("Annotation Processor Classpath is ${gradleLeaksIntoAnnotationProcessor() ? 'not ' : ''}}contaminated by Gradle ClassLoader");
                                 }
 
                                 for (final Element classElement : roundEnv.getElementsAnnotatedWith(SimpleAnnotation.class)) {
@@ -587,6 +587,10 @@ ${compilerConfiguration()}
                 }
             }
         }
+    }
+
+    protected boolean gradleLeaksIntoAnnotationProcessor() {
+        return false;
     }
 
     def writeAnnotationProcessingBuild(String java, String groovy) {
