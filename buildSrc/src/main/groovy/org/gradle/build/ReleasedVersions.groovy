@@ -93,7 +93,7 @@ $standardErr""")
     }
 
     String getMostRecentFinalRelease() {
-        return versions.findAll { it.current == true }.first().version.version
+        return versions.findAll { it.rcFor == "" }.first().version.version
     }
 
     String getMostRecentSnapshot() {
