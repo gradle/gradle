@@ -32,7 +32,7 @@ abstract class KotlinBuildScript(project: Project) : Project by project {
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") configuration: KotlinScriptHandler.() -> Unit) = Unit
 
-    fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
+    inline fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
         project.apply({ it.configuration() })
 }
 
