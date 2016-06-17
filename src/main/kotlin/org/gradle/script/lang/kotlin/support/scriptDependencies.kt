@@ -19,7 +19,9 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
             is ClassPath -> makeDependencies(context.asFiles)
             is File ->
                 withConnectionFrom(connectorFor(context, projectRoot!!)) {
-                    getModel(KotlinBuildScriptModel::class.java)
+                    model(KotlinBuildScriptModel::class.java)
+//                        .setJavaHome(File("/Library/Java/JavaVirtualMachines/jdk1.8.0_77.jdk/Contents/Home"))
+                        .get()
                         .classPath
                         .let { makeDependencies(it) }
                 }
