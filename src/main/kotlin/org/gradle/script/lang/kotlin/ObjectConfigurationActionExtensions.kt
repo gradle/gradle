@@ -16,23 +16,15 @@
 
 package org.gradle.script.lang.kotlin
 
-import org.gradle.api.Project
+import org.gradle.api.Plugin
 import org.gradle.api.plugins.ObjectConfigurationAction
 
 /**
- * Base class for Kotlin build scripts.
+ * Adds a Plugin to use to configure the target objects.
+ * You can call this method multiple times, to use multiple plugins.
+ * Scripts and plugins are applied in the order that they are added.
+ *
+ * @param T the plugin to apply.
  */
-abstract class KotlinBuildScript(project: Project) : Project by project {
-
-    /**
-     * Configures the build script classpath for this project.
-     *
-     * @see [Project.buildscript]
-     */
-    @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") configuration: KotlinScriptHandler.() -> Unit) = Unit
-
-    fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
-        project.apply({ it.configuration() })
-}
-
+inline fun <reified T : Plugin<*>> ObjectConfigurationAction.plugin() =
+    this.plugin(T::class.java)

@@ -16,23 +16,20 @@
 
 package org.gradle.script.lang.kotlin
 
-import org.gradle.api.Project
-import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
 /**
- * Base class for Kotlin build scripts.
+ * @see RepositoryHandler
  */
-abstract class KotlinBuildScript(project: Project) : Project by project {
+class KotlinRepositoryHandler(val repositoryHandler: RepositoryHandler) : RepositoryHandler by repositoryHandler {
 
     /**
-     * Configures the build script classpath for this project.
-     *
-     * @see [Project.buildscript]
+     * Adds and configures a Maven repository.
      */
-    @Suppress("unused")
-    open fun buildscript(@Suppress("unused_parameter") configuration: KotlinScriptHandler.() -> Unit) = Unit
+    fun maven(configuration: MavenArtifactRepository.() -> Unit) =
+        repositoryHandler.maven({ it.configuration() })
 
-    fun apply(configuration: ObjectConfigurationAction.() -> Unit) =
-        project.apply({ it.configuration() })
+    inline operator fun invoke(configuration: KotlinRepositoryHandler.() -> Unit) =
+        configuration()
 }
-
