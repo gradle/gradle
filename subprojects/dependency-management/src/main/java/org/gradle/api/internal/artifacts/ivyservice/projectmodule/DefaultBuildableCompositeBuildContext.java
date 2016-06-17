@@ -16,22 +16,13 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,37 +30,9 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 
 public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildableCompositeBuildContext.class);
-
-    // TODO:DAZ This doesn't need to be a multimap how it's currently used
-    private final Multimap<ModuleIdentifier, ProjectComponentIdentifier> replacementProjects = ArrayListMultimap.create();
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
-
-    @Override
-    public ProjectComponentIdentifier getReplacementProject(ModuleComponentSelector selector) {
-        ModuleIdentifier candidateId = DefaultModuleIdentifier.newId(selector.getGroup(), selector.getModule());
-        Collection<ProjectComponentIdentifier> providingProjects = replacementProjects.get(candidateId);
-        if (providingProjects.isEmpty()) {
-            LOGGER.info("Found no composite build substitute for module '" + candidateId + "'.");
-            return null;
-        }
-        if (providingProjects.size() == 1) {
-            ProjectComponentIdentifier match = providingProjects.iterator().next();
-            LOGGER.info("Found project '" + match + "' as substitute for module '" + candidateId + "'.");
-            return match;
-        }
-        SortedSet<String> sortedProjects = Sets.newTreeSet(CollectionUtils.collect(providingProjects, new Transformer<String, ProjectComponentIdentifier>() {
-            @Override
-            public String transform(ProjectComponentIdentifier projectComponentIdentifier) {
-                return projectComponentIdentifier.getProjectPath();
-            }
-        }));
-        String failureMessage = String.format("Module version '%s' is not unique in composite: can be provided by projects %s.", selector.getDisplayName(), sortedProjects);
-        throw new ModuleVersionResolveException(selector, failureMessage);
-    }
 
     @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier project) {
@@ -93,9 +56,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         return registeredProject == null ? null : registeredProject.artifacts;
      }
 
-    public void register(ModuleIdentifier moduleId, ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory) {
-        LOGGER.info("Registering project '" + project + "' in composite build. Will substitute for module '" + moduleId + "'.");
-        replacementProjects.put(moduleId, project);
+    public void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory) {
         if (projectMetadata.containsKey(project)) {
             String failureMessage = String.format("Project path '%s' is not unique in composite.", project.getProjectPath());
             throw new ReportedException(new GradleException(failureMessage));

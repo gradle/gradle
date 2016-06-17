@@ -77,7 +77,7 @@ public class CompositeContextBuilder implements BuildActionRunner {
         ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(createExternalProjectPath(buildName, project.getPath()));
         LocalComponentMetadata compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent);
 
-        context.register(compositeComponent.getId().getModule(), componentIdentifier, compositeComponent, project.getProjectDir());
+        context.register(componentIdentifier, compositeComponent, project.getProjectDir());
         for (ComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
             context.registerAdditionalArtifact(componentIdentifier, createCompositeCopy(componentIdentifier, artifactMetaData));
         }
