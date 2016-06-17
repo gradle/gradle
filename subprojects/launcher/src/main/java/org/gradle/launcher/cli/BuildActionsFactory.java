@@ -33,6 +33,7 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
+import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
@@ -67,6 +68,9 @@ class BuildActionsFactory implements CommandLineAction {
         if (parameters.getDaemonParameters().isStop()) {
             return stopAllDaemons(parameters.getDaemonParameters(), loggingServices);
         }
+        if (parameters.getDaemonParameters().isStatus()) {
+            return showDaemonStatus(parameters.getDaemonParameters(), loggingServices);
+        }
         if (parameters.getDaemonParameters().isForeground()) {
             DaemonParameters daemonParameters = parameters.getDaemonParameters();
             ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
@@ -88,6 +92,13 @@ class BuildActionsFactory implements CommandLineAction {
         ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createStopDaemonServices(loggingServices.get(OutputEventListener.class), daemonParameters);
         DaemonStopClient stopClient = clientServices.get(DaemonStopClient.class);
         return new StopDaemonAction(stopClient);
+    }
+
+    private Runnable showDaemonStatus(DaemonParameters daemonParameters, ServiceRegistry loggingServices) {
+        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class).createStopDaemonServices(loggingServices.get(OutputEventListener.class), daemonParameters);
+        ReportDaemonStatusClient statusClient = clientServices.get(ReportDaemonStatusClient.class);
+        return new ReportDaemonStatusAction(statusClient);
     }
 
     private Runnable runBuildWithDaemon(StartParameter startParameter, DaemonParameters daemonParameters, ServiceRegistry loggingServices) {

@@ -22,7 +22,7 @@ import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 
 /**
  * Superclass template for actions that only work for Build.
- * 
+ *
  * If an action of this type receives a command that is not Build it will throw an exception.
  */
 public abstract class BuildCommandOnly implements DaemonCommandAction {
@@ -30,7 +30,7 @@ public abstract class BuildCommandOnly implements DaemonCommandAction {
     public void execute(DaemonCommandExecution execution) {
         Command command = execution.getCommand();
         if (!(command instanceof Build)) {
-            throw new IllegalStateException(String.format("{} command action received a command that isn't Build (command is {}), this shouldn't happen", this.getClass(), command.getClass()));
+            throw new IllegalStateException(String.format("%1$s command action received a command that isn't Build (command is %2$s), this shouldn't happen", this.getClass(), command.getClass()));
         }
 
         doBuild(execution, (Build)command);

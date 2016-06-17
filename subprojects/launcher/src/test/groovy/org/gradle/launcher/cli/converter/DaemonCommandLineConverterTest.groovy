@@ -73,6 +73,20 @@ class DaemonCommandLineConverterTest extends Specification {
         ['--stop']  | true
     }
 
+    @Unroll
+    def "can convert status option - #options"() {
+        when:
+        def converted = convert(options)
+
+        then:
+        converted.status == status
+
+        where:
+        options       | status
+        []            | false
+        ['--status']  | true
+    }
+
     private DaemonParameters convert(Iterable args) {
         CommandLineParser parser = new CommandLineParser()
         def converter = new DaemonCommandLineConverter()

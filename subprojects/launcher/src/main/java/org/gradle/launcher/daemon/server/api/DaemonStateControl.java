@@ -36,6 +36,16 @@ public interface DaemonStateControl {
     void requestForcefulStop(String reason);
 
     /**
+     * @return true if daemon is running and is executing a command-.
+     */
+    boolean isBusy();
+
+    /**
+     * @return true if daemon is running and idle.
+     */
+    boolean isIdle();
+
+    /**
      * @return true if daemon is stopping or stopped.
      */
     boolean isStopping();

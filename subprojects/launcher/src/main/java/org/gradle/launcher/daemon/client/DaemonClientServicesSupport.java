@@ -59,6 +59,10 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new DaemonStopClient(connector, idGenerator);
     }
 
+    ReportDaemonStatusClient createReportDaemonStatusClient(DaemonRegistry registry, DaemonConnector connector, IdGenerator idGenerator) {
+        return new ReportDaemonStatusClient(registry, connector, idGenerator);
+    }
+
     protected DaemonClient createDaemonClient() {
         DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(get(DaemonContext.class));
         return new DaemonClient(
