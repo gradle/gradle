@@ -23,8 +23,6 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
