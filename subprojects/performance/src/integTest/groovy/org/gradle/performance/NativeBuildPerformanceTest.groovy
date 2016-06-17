@@ -15,14 +15,14 @@
  */
 
 package org.gradle.performance
-import org.gradle.performance.categories.Experiment
+
 import org.gradle.performance.categories.NativePerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([Experiment, NativePerformanceTest])
+@Category([NativePerformanceTest])
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll('Project #type native build')
     def "build" () {

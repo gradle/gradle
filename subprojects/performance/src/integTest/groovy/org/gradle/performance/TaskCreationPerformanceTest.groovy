@@ -16,7 +16,6 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -24,7 +23,7 @@ import spock.lang.Unroll
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([GradleCorePerformanceTest, Experiment])
+@Category([GradleCorePerformanceTest])
 class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("performance of #testProject tasks without configuring them")
     def "measures performance of task creation"() {
