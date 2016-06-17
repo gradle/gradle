@@ -182,6 +182,28 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         file("build/reports/checkstyle/main.html").assertContents(containsString("A custom Checkstyle stylesheet"))
     }
 
+    @Issue("GRADLE-3490")
+    @NotYetImplemented
+    def "do not output XML report when only HTML report is enabled"() {
+        given:
+        goodCode()
+        buildFile << '''
+            tasks.withType(Checkstyle) {
+                reports {
+                    xml.enabled false
+                    html.enabled true
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        succeeds 'checkstyleMain'
+
+        then:
+        file("build/reports/checkstyle/main.html").exists()
+        !file("build/reports/checkstyle/main.xml").exists()
+    }
+
     private goodCode() {
         file('src/main/java/org/gradle/Class1.java') << 'package org.gradle; class Class1 { }'
         file('src/test/java/org/gradle/TestClass1.java') << 'package org.gradle; class TestClass1 { }'
