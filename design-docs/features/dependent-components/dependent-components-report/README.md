@@ -93,8 +93,8 @@ When invoked on a build with circular dependencies, the `dependentComponents` ta
 #### Test coverage
 
 - [x] Meaningful error message on circular components dependencies
-- [ ] Handle direct and indirect circular dependencies
-- [ ] Handle circular dependencies across projects
+- [x] Handle direct and indirect circular dependencies
+- [x] Handle circular dependencies across projects
 
 #### Implementation notes
 

@@ -214,31 +214,19 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         """.stripIndent()
     }
 
-    def "circular dependencies are handled gracefully"() {
-        buildFile << """
-            apply plugin: 'cpp'
+    def "direct circular dependencies are handled gracefully"() {
+        buildScript simpleCppBuild()
+        buildFile << '''
             model {
                 components {
-                    util(NativeLibrarySpec) {
-                        sources {
-                            cpp.lib library: 'lib'
-                        }
-                    }
-
-                    lib(NativeLibrarySpec) {
-                        sources {
-                            cpp.lib library: 'util'
-                        }
-                    }
-
-                    main(NativeExecutableSpec) {
+                    util {
                         sources {
                             cpp.lib library: 'lib'
                         }
                     }
                 }
             }
-        """.stripIndent()
+        '''.stripIndent()
 
         when:
         fails 'dependentComponents'
@@ -253,6 +241,75 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
             (*) - details omitted (listed previously)
         '''.stripIndent().trim()
+    }
+
+    def "indirect circular dependencies are handled gracefully"() {
+        buildScript simpleCppBuild()
+        buildFile << '''
+            model {
+                components {
+                    util {
+                        sources {
+                            cpp.lib library: 'another'
+                        }
+                    }
+                    another(NativeLibrarySpec) {
+                        sources {
+                            cpp.lib library: 'lib'
+                        }
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        fails 'dependentComponents'
+
+        then:
+        failure.assertHasDescription "Execution failed for task ':dependentComponents'."
+        failure.error.contains '''
+            Circular dependency between the following binaries:
+            another:sharedLibrary
+            \\--- util:sharedLibrary
+                 \\--- lib:sharedLibrary
+                      \\--- another:sharedLibrary (*)
+
+            (*) - details omitted (listed previously)
+        '''.stripIndent().trim()
+    }
+
+    def "circular dependencies across projects are handled gracefully"() {
+        given:
+        settingsFile.text = multiProjectSettings()
+        buildScript multiProjectBuild()
+        buildFile << '''
+            project(':api') {
+                model {
+                    components {
+                        api {
+                            sources {
+                                cpp.lib project: ':bootstrap', library: 'bootstrap'
+                            }
+                        }
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        fails 'api:dependentComponents'
+
+        then:
+        failure.assertHasDescription "Execution failed for task ':api:dependentComponents'."
+        failure.error.contains '''
+            Circular dependency between the following binaries:
+            :api:api:sharedLibrary
+            \\--- :bootstrap:bootstrap:sharedLibrary
+                 \\--- :api:api:sharedLibrary (*)
+
+            (*) - details omitted (listed previously)
+        '''.stripIndent().trim()
+
     }
 
     def "report renders variant binaries"() {
