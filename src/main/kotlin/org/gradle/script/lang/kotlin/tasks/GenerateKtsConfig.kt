@@ -21,11 +21,11 @@ import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.sele
 
 import org.gradle.api.DefaultTask
 
+import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-
-import org.gradle.api.internal.ClassPathRegistry
 
 import org.jetbrains.kotlin.org.jdom.Document
 import org.jetbrains.kotlin.org.jdom.Element
@@ -71,12 +71,18 @@ open class GenerateKtsConfig : DefaultTask() {
         project.file("gradle.ktscfg.xml")
 
     private fun computeClassPath() =
+        (defaultClassPath() + scriptClassPath())
+            .sortedBy { it.name }
+
+    private fun defaultClassPath() =
         selectGradleApiJars(classPathRegistry)
             // speed up IDE completion by removing jars
             // already included in the gradle-ide-support library by
             // PatchIdeaConfig
             .filter { !it.name.startsWith("gradle-") }
-            .sortedBy { it.name }
+
+    private fun scriptClassPath() =
+        (project.buildscript as ScriptHandlerInternal).scriptClassPath.asFiles
 }
 
 private
