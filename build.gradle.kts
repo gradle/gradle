@@ -6,9 +6,9 @@ import org.gradle.jvm.tasks.Jar
 import org.gradle.script.lang.kotlin.*
 
 apply {
-    it.plugin("kotlin")
-    it.plugin("maven-publish")
-    it.plugin("com.jfrog.artifactory")
+    plugin("kotlin")
+    plugin("maven-publish")
+    plugin("com.jfrog.artifactory")
 }
 
 group = "org.gradle"
