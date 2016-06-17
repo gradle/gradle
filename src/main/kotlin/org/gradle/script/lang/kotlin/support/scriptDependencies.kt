@@ -14,8 +14,8 @@ import java.io.File
 
 class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
 
-    override fun resolve(projectRoot: File?, scriptFile: File?, annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? {
-        return when (context) {
+    override fun resolve(projectRoot: File?, scriptFile: File?, annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? =
+        when (context) {
             is ClassPath -> makeDependencies(context.asFiles)
             is File ->
                 withConnectionFrom(connectorFor(context, projectRoot!!)) {
@@ -25,18 +25,16 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
                 }
             else -> null
         }
-    }
 
     private fun connectorFor(installation: File, projectDirectory: File) =
         newConnector().useInstallation(installation).forProjectDirectory(projectDirectory)
 
-    private fun makeDependencies(classPath: Iterable<File>): KotlinScriptExternalDependencies {
-        return object : KotlinScriptExternalDependencies {
+    private fun makeDependencies(classPath: Iterable<File>): KotlinScriptExternalDependencies =
+        object : KotlinScriptExternalDependencies {
             override val classpath = classPath
             override val imports = implicitImports
             override val sources = classPath
         }
-    }
 
     companion object {
         val implicitImports = listOf(
@@ -55,4 +53,3 @@ inline fun <T> ProjectConnection.use(block: (ProjectConnection) -> T): T {
         close()
     }
 }
-
