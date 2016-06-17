@@ -69,37 +69,41 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         !output.contains(simpleCppUtilDependents())
     }
 
-    def "hide non-buildable dependents by default"() {
+    @Unroll
+    def "hide non-buidable dependents by default #nonBuildables"() {
         given:
-        buildScript simpleCppBuild() + '''
-            model {
-                components {
-                    lib {
-                        binaries.all {
-                            buildable = false
+        buildScript simpleCppBuild()
+        nonBuildables.each { nonBuildable ->
+            buildFile << """
+                model {
+                    components {
+                        $nonBuildable {
+                            binaries.all {
+                                buildable = false
+                            }
                         }
                     }
                 }
-            }
-        '''.stripIndent()
+            """.stripIndent()
+        }
 
         when:
         run 'dependentComponents'
 
         then:
-        output.contains '''
-            lib - Components that depend on native library 'lib'
+        nonBuildables.each {
+            assert !output.contains("$it:")
+        }
 
-            main - Components that depend on native executable 'main'
-            \\--- main:executable
-
-            util - Components that depend on native library 'util'
-            +--- util:sharedLibrary
-            |    \\--- main:executable
-            \\--- util:staticLibrary
-
-            Some non-buildable binaries were not shown, use --all to show them.
-        '''.stripIndent()
+        where:
+        nonBuildables           | _
+        ['util']                | _
+        ['lib']                 | _
+        ['main']                | _
+        ['util', 'lib']         | _
+        ['util', 'main']        | _
+        ['lib', 'main']         | _
+        ['util', 'lib', 'main'] | _
     }
 
     def "displays non-buildable dependents when using --all"() {

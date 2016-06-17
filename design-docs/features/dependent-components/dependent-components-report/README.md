@@ -49,7 +49,7 @@ A `--all` option on `dependentComponents` task allows to show them all, annotate
 - [x] Non-buildable components are hidden from the report by default
 - [x] When `--all` task option is provided, non-buildable components are shown in the report
 - [x] Reported non-buildable components are annotated to distinguish them from buildable components 
-- [ ] Make sure we handle `util (non-buildable) <- lib <- exe`, `util <- lib (non-buildable) <- exe` and `util <- lib <- exe (non-buildable)`
+- [x] Make sure we handle `util (non-buildable) <- lib <- exe`, `util <- lib (non-buildable) <- exe` and `util <- lib <- exe (non-buildable)`
 - [x] `gradle help --task dependentComponents` describes the `--all` task option 
 
 #### Implementation notes
