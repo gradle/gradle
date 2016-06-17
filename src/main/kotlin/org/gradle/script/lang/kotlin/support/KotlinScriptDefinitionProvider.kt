@@ -61,6 +61,7 @@ object KotlinScriptDefinitionProvider {
             || name.startsWith("kotlin-runtime-")
             || name.startsWith("ant-")
             || name.startsWith("gradle-")
+            || name.startsWith("groovy-all-")
 }
 
 
