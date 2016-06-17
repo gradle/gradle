@@ -16,16 +16,20 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
 
     override fun resolve(projectRoot: File?, scriptFile: File?, annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? =
         when (context) {
-            is ClassPath -> makeDependencies(context.asFiles)
-            is File ->
-                withConnectionFrom(connectorFor(context, projectRoot!!)) {
-                    model(KotlinBuildScriptModel::class.java)
-//                        .setJavaHome(File("/Library/Java/JavaVirtualMachines/jdk1.8.0_77.jdk/Contents/Home"))
-                        .get()
-                        .classPath
-                        .let { makeDependencies(it) }
-                }
+            is ClassPath -> makeDependencies(context.asFiles) // Gradle compilation path
+            is File -> retrieveDependenciesFromModelOf(context, projectRoot!!) // IDEA content assist path
             else -> null
+        }
+
+    private fun retrieveDependenciesFromModelOf(gradleInstallation: File, projectRoot: File): KotlinScriptExternalDependencies =
+        withConnectionFrom(connectorFor(gradleInstallation, projectRoot)) {
+            model(KotlinBuildScriptModel::class.java)
+//                .setJavaHome(File("/Library/Java/JavaVirtualMachines/jdk1.8.0_77.jdk/Contents/Home"))
+                .get()
+                .classPath
+                .let {
+                    makeDependencies(it)
+                }
         }
 
     private fun connectorFor(installation: File, projectDirectory: File) =
