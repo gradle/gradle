@@ -56,6 +56,28 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         'main'    | simpleCppMainDependents()
     }
 
+    def "fails when targeted component is not found"() {
+        given:
+        buildScript simpleCppBuild()
+
+        when:
+        fails 'dependentComponents', '--component', 'unknown'
+
+        then:
+        failure.assertHasCause "Component 'unknown' not found."
+    }
+
+    def "fails when some of the targeted components are not found"() {
+        given:
+        buildScript simpleCppBuild()
+
+        when:
+        fails 'dependentComponents', '--component', 'unknown', '--component', 'anonymous', '--component', 'whatever', '--component', 'lib', '--component', 'main'
+
+        then:
+        failure.assertHasCause "Components 'unknown', 'anonymous' and 'whatever' not found."
+    }
+
     def "displays dependent of multiple targeted components"() {
         given:
         buildScript simpleCppBuild()

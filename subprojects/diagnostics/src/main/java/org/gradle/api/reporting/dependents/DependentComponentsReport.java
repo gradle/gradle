@@ -16,10 +16,12 @@
 
 package org.gradle.api.reporting.dependents;
 
-import com.google.common.base.Predicate;
+import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.reporting.dependents.internal.TextDependentComponentsReportRenderer;
@@ -110,20 +112,30 @@ public class DependentComponentsReport extends DefaultTask {
         if (components == null || components.isEmpty()) {
             return allComponents;
         }
-        return Sets.filter(allComponents, new ReportedComponentPredicate(components));
+        Set<ComponentSpec> reportedComponents = Sets.newLinkedHashSet();
+        List<String> notFound = Lists.newArrayList(components);
+        for (ComponentSpec candidate : allComponents) {
+            String candidateName = candidate.getName();
+            if (components.contains(candidateName)) {
+                reportedComponents.add(candidate);
+                notFound.remove(candidateName);
+            }
+        }
+        if (!notFound.isEmpty()) {
+            onComponentsNotFound(notFound);
+        }
+        return reportedComponents;
     }
 
-    private static class ReportedComponentPredicate implements Predicate<ComponentSpec> {
-        private final List<String> reported;
-
-        private ReportedComponentPredicate(List<String> reported) {
-            this.reported = reported;
+    private void onComponentsNotFound(List<String> notFound) {
+        StringBuilder error = new StringBuilder("Component");
+        if (notFound.size() == 1) {
+            error.append(" '").append(notFound.get(0));
+        } else {
+            String last = notFound.remove(notFound.size() - 1);
+            error.append("s '").append(Joiner.on("', '").join(notFound)).append("' and '").append(last);
         }
-
-        @Override
-        public boolean apply(ComponentSpec component) {
-            return reported.contains(component.getName());
-        }
+        error.append("' not found.");
+        throw new InvalidUserDataException(error.toString());
     }
-
 }

@@ -35,7 +35,7 @@ The option can be repeated to get a report for several components.
 
 - [x] Can use `--component` to get a report for a single component
 - [x] Can repeat `--component` to get a report for a list of components
-- [ ] Fails when component given to `--component` is not found
+- [x] Fails when component given to `--component` is not found
 - [x] `gradle help --task dependentComponents` describes the `--component` task option
 
 
