@@ -1,4 +1,6 @@
 import org.gradle.script.lang.kotlin.*
 
-applyFrom("foo.gradle.kts")
-applyFrom("bar.gradle.kts")
+apply {
+    from("foo.gradle.kts")
+    from("bar.gradle.kts")
+}
