@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class CachingTreeVisitorCleanerTest extends AbstractIntegrationSpec {
+class CachingTreeVisitorCleanerIntegrationTest extends AbstractIntegrationSpec {
 
     def "cache should get flushed by CachingTreeVisitorCleaner before other build listeners get called"() {
         when:
