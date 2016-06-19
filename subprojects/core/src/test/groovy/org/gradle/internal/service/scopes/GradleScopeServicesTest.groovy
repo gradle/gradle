@@ -161,4 +161,29 @@ public class GradleScopeServicesTest extends Specification {
         1 * plugin1.registerGradleServices(_)
         1 * plugin2.registerGradleServices(_)
     }
+
+    def "TreeVisitorCacheExpirationStrategy gets registered as TaskExecutionGraphListener, TaskExecutionListener and BuildListener when BuildExecuter is requested"() {
+        given:
+        gradle = Mock()
+        registry = new GradleScopeServices(parent, gradle)
+        def taskGraphExecuter = Mock(TaskGraphExecuter)
+
+        when:
+        registry.get(BuildExecuter)
+
+        then:
+        gradle.getTaskGraph() >> taskGraphExecuter
+        1 * taskGraphExecuter.addTaskExecutionGraphListener({ isTreeVisitorCacheExpirationStrategy(it) })
+        1 * taskGraphExecuter.addTaskExecutionListener({ isTreeVisitorCacheExpirationStrategy(it) })
+        1 * gradle.addBuildListener({ isTreeVisitorCacheExpirationStrategy(it) })
+        _ * parent.get({ it instanceof Class }) >> { Class type ->
+            Stub(type)
+        }
+        0 * _._
+    }
+
+    private boolean isTreeVisitorCacheExpirationStrategy(instance) {
+        instance.getClass().simpleName == 'TreeVisitorCacheExpirationStrategy'
+    }
+
 }
