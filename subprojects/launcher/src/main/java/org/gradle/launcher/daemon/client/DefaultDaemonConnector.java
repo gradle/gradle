@@ -122,7 +122,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             LOGGER.info("Previous Daemon stopped at " + stopEvent.getTimestamp() + " " + stopEvent.getReason());
         }
 
-        LOGGER.lifecycle(DaemonStartingMessage.generate(busyDaemons.size(), idleDaemons.size(), recentStopEvents.size()));
+        LOGGER.lifecycle(DaemonStartupMessage.generate(busyDaemons.size(), idleDaemons.size(), recentStopEvents.size()));
 
         return startDaemon(constraint);
     }

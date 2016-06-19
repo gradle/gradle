@@ -33,7 +33,7 @@ class DaemonReportStatusIntegrationSpec extends DaemonIntegrationSpec {
 """.toString()
     }
 
-    def "reports idle/busy status of running daemons"() {
+    def "reports idle and busy status of running daemons"() {
         given:
         buildFile << """
 task block << {
@@ -43,19 +43,20 @@ task block << {
         def build = executer.withTasks("block").start()
         server.waitFor()
         daemons.daemon.assertBusy()
+        executer.withBuildJvmOpts('-Xmx128m')
+        executer.run()
 
         when:
         def out = executer.withArguments("--status").run().output
 
         then:
-        out =~ /^   PID VERSION STATUS\n\s*\d+ ([\w\.]+)\s+BUSY$/
+        daemons.daemons.size() == 2
+        out =~ /^   PID VERSION STATUS/
+        out =~ /\n\s*\d+ ([\w\.]+)\s+IDLE/
+        out =~ /\n\s*\d+ ([\w\.]+)\s+BUSY/
 
-        when:
+        cleanup:
         server.release()
         build.waitForFinish()
-        out = executer.withArguments("--status").run().output
-
-        then:
-        out =~ /^   PID VERSION STATUS\n\s*\d+ ([\w\.]+)\s+IDLE$/
     }
 }

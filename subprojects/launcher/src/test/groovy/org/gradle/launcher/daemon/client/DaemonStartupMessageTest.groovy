@@ -19,16 +19,16 @@ package org.gradle.launcher.daemon.client
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class DaemonStartingMessageTest extends Specification {
+class DaemonStartupMessageTest extends Specification {
     @Unroll
     def "starting message contains number of busy and incompatible daemons (#numBusy busy, #numIncompatible incompatible, #numStopped stopped)"() {
         given:
-        def message = DaemonStartingMessage.generate(numBusy, numIncompatible, numStopped)
+        def message = DaemonStartupMessage.generate(numBusy, numIncompatible, numStopped)
 
         expect:
-        message.contains(DaemonStartingMessage.STARTING_DAEMON_MESSAGE)
-        message.contains(DaemonStartingMessage.NOT_REUSED_MESSAGE)
-        !message.contains(DaemonStartingMessage.SUBSEQUENT_BUILDS_WILL_BE_FASTER)
+        message.contains(DaemonStartupMessage.STARTING_DAEMON_MESSAGE)
+        message.contains(DaemonStartupMessage.NOT_REUSED_MESSAGE)
+        !message.contains(DaemonStartupMessage.SUBSEQUENT_BUILDS_WILL_BE_FASTER)
         messages.each { assert message.contains(it) }
 
         where:
@@ -41,10 +41,10 @@ class DaemonStartingMessageTest extends Specification {
 
     def "starting message contains subsequent builds message given no unavailable daemons"() {
         given:
-        def message = DaemonStartingMessage.generate(0, 0, 0)
+        def message = DaemonStartupMessage.generate(0, 0, 0)
 
         expect:
-        message.contains(DaemonStartingMessage.STARTING_DAEMON_MESSAGE)
-        message.contains(DaemonStartingMessage.SUBSEQUENT_BUILDS_WILL_BE_FASTER)
+        message.contains(DaemonStartupMessage.STARTING_DAEMON_MESSAGE)
+        message.contains(DaemonStartupMessage.SUBSEQUENT_BUILDS_WILL_BE_FASTER)
     }
 }

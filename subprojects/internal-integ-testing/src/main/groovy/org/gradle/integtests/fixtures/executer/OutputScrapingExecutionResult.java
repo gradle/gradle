@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.gradle.launcher.daemon.client.DaemonStartingMessage.STARTING_DAEMON_MESSAGE;
+import static org.gradle.launcher.daemon.client.DaemonStartupMessage.STARTING_DAEMON_MESSAGE;
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;

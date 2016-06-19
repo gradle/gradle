@@ -19,6 +19,7 @@ package org.gradle.launcher.daemon.client
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.protocol.Finished
 import org.gradle.launcher.daemon.protocol.ReportStatus
+import org.gradle.launcher.daemon.protocol.Status
 import org.gradle.launcher.daemon.protocol.Success
 import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
@@ -53,7 +54,7 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * connector.maybeConnect(daemon1) >>> connection
         _ * connection.daemon >> daemon1
         1 * connection.dispatch({it instanceof ReportStatus})
-        1 * connection.receive() >> new Success("STATUS_MESSAGE")
+        1 * connection.receive() >> new Success(new Status(12345, "3.0", "BOGUS"))
         1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
 
@@ -61,7 +62,7 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * connector.maybeConnect(daemon2) >>> connection
         _ * connection.daemon >> daemon2
         1 * connection.dispatch({it instanceof ReportStatus})
-        1 * connection.receive() >> new Success("STATUS_MESSAGE")
+        1 * connection.receive() >> new Success(new Status(12346, "3.0", "BOGUS"))
         1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
         0 * _

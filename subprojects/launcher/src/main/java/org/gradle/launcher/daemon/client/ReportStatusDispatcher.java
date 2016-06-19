@@ -24,13 +24,14 @@ import org.gradle.launcher.daemon.protocol.Failure;
 import org.gradle.launcher.daemon.protocol.Finished;
 import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.protocol.Result;
+import org.gradle.launcher.daemon.protocol.Status;
 import org.gradle.launcher.daemon.protocol.Success;
 
 public class ReportStatusDispatcher {
     private static final Logger LOGGER = Logging.getLogger(ReportStatusDispatcher.class);
 
-    public String dispatch(Connection<Message> connection, Command statusCommand) {
-        String returnedStatus = null;
+    public Status dispatch(Connection<Message> connection, Command statusCommand) {
+        Status returnedStatus = null;
         Throwable failure = null;
         try {
             connection.dispatch(statusCommand);
@@ -38,7 +39,7 @@ public class ReportStatusDispatcher {
             if (result instanceof Failure) {
                 failure = ((Failure) result).getValue();
             } else if (result instanceof Success) {
-                returnedStatus = result.getValue().toString();
+                returnedStatus = (Status) result.getValue();
             }
             connection.dispatch(new Finished());
         } catch (Throwable e) {

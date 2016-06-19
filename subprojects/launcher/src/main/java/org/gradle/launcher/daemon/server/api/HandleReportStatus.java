@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.server.api;
 
 import org.gradle.launcher.daemon.protocol.ReportStatus;
+import org.gradle.launcher.daemon.protocol.Status;
 import org.gradle.launcher.daemon.protocol.Success;
 import org.gradle.util.GradleVersion;
 
@@ -24,11 +25,9 @@ public class HandleReportStatus implements DaemonCommandAction {
     @Override
     public void execute(DaemonCommandExecution execution) {
         if (execution.getCommand() instanceof ReportStatus) {
-            String pid = execution.getDaemonContext().getPid().toString();
-            String version = GradleVersion.current().getBaseVersion().getVersion();
+            String version = GradleVersion.current().getVersion();
             String status = execution.getDaemonStateControl().isIdle() ? "IDLE" : "BUSY";
-            // TODO(ew): consider returning a POJO instead of a string to keep formatting in 1 place
-            String message = String.format("%1$6s %2$-7s %3$s", pid, version, status);
+            Status message = new Status(execution.getDaemonContext().getPid(), version, status);
             execution.getConnection().completed(new Success(message));
         } else {
             execution.proceed();

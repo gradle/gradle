@@ -24,10 +24,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DaemonStartingMessage {
+public class DaemonStartupMessage {
     public static final String STARTING_DAEMON_MESSAGE = "Starting a Gradle Daemon";
     public static final String SUBSEQUENT_BUILDS_WILL_BE_FASTER = "(subsequent builds will be faster)";
-    public static final String NOT_REUSED_MESSAGE = " could not be reused";
+    public static final String NOT_REUSED_MESSAGE = " could not be reused, use --status for more details";
 
     public static String generate(final int numBusy, final int numIncompatible, final int numStopped) {
         final int totalUnavailableDaemons = numBusy + numIncompatible + numStopped;
