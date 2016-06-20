@@ -102,12 +102,21 @@ open class Benchmark : DefaultTask() {
     }
 
     private val commitHash by lazy {
-        val stdout = ByteArrayOutputStream()
-        project.exec {
-            it.commandLine("git", "rev-parse", "HEAD")
-            it.standardOutput = stdout
+        System.out.println("Attempting to determine current commit hash via environment variable")
+        System.getenv("env.BUILD_VCS_NUMBER").let { hash ->
+            if (hash != null) {
+                hash
+            }
+            else {
+                System.out.println("Environment variable not present. Falling back to `git rev-parse`")
+                val stdout = ByteArrayOutputStream()
+                project.exec {
+                    it.commandLine("git", "rev-parse", "HEAD")
+                    it.standardOutput = stdout
+                }
+                String(stdout.toByteArray()).trim()
+            }
         }
-        String(stdout.toByteArray()).trim()
     }
 }
 
