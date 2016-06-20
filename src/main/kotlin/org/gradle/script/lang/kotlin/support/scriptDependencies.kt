@@ -28,19 +28,30 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
                 .get()
                 .classPath
                 .let {
-                    makeDependencies(it)
+                    val gradleScriptKotlinJar = it.filter { it.name.startsWith("gradle-script-kotlin-") }
+                    makeDependencies(
+                        classPath = it,
+                        sources = gradleScriptKotlinJar + sourceRootsOf(gradleInstallation))
                 }
         }
     }
 
+    private fun sourceRootsOf(gradleInstallation: File): Collection<File> =
+        File(gradleInstallation, "src").let { srcDir ->
+            if (srcDir.exists())
+                srcDir.listFiles().filter { it.isDirectory }
+            else
+                emptyList()
+        }
+
     private fun gradleHomeOf(context: Map<*, *>) =
         context["gradleHome"] as File
 
-    private fun makeDependencies(classPath: Iterable<File>): KotlinScriptExternalDependencies =
+    private fun makeDependencies(classPath: Iterable<File>, sources: Iterable<File> = emptyList()): KotlinScriptExternalDependencies =
         object : KotlinScriptExternalDependencies {
             override val classpath = classPath
             override val imports = implicitImports
-            override val sources = classPath
+            override val sources = sources
         }
 
     companion object {
