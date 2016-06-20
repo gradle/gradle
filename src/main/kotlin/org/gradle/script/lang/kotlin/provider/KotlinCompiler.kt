@@ -30,12 +30,11 @@ import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 import org.jetbrains.kotlin.codegen.CompilationException
 
 import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.addKotlinSourceRoots
 
 import org.jetbrains.kotlin.script.KotlinScriptDefinition
-import org.jetbrains.kotlin.script.KotlinScriptExtraImport
 
 import org.jetbrains.kotlin.utils.PathUtil
 
@@ -51,7 +50,7 @@ fun compileKotlinScript(scriptFile: File, scriptDef: KotlinScriptDefinition, cla
     val messageCollector = messageCollectorFor(log)
     val rootDisposable = newDisposable()
     try {
-        val configuration = compilerConfigFor(scriptFile, scriptDef, null, messageCollector)
+        val configuration = compilerConfigFor(scriptFile, scriptDef, messageCollector)
         val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable)
         return compileScript(environment, classLoader)
             ?: throw IllegalStateException("Internal error: unable to compile script, see log for details")
@@ -68,13 +67,10 @@ fun compileKotlinScript(scriptFile: File, scriptDef: KotlinScriptDefinition, cla
 }
 
 private fun compilerConfigFor(sourceFile: File, scriptDef: KotlinScriptDefinition,
-                              extraImport: KotlinScriptExtraImport?, messageCollector: MessageCollector) =
+                              messageCollector: MessageCollector) =
     CompilerConfiguration().apply {
         addKotlinSourceRoots(listOf(sourceFile.canonicalPath))
         addJvmClasspathRoots(PathUtil.getJdkClassesRoots())
-        extraImport?.let {
-            put(JVMConfigurationKeys.SCRIPTS_EXTRA_IMPORTS, sourceFile.absolutePath, extraImport)
-        }
         add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, scriptDef)
         put(CommonConfigurationKeys.MODULE_NAME, "buildscript")
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)

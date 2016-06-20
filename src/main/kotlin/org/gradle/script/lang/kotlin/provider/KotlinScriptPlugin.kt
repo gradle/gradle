@@ -23,6 +23,7 @@ import org.gradle.configuration.ScriptPlugin
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.script.lang.kotlin.loggerFor
 import org.gradle.script.lang.kotlin.apply
+import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModelPlugin
 
 import java.lang.reflect.InvocationTargetException
 
@@ -42,6 +43,7 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val script: (Project) -
     }
 
     private fun registerBuiltinTasks(target: Project) {
+        target.apply<KotlinBuildScriptModelPlugin>()
         target.apply<BuiltinTasksPlugin>()
     }
 }
