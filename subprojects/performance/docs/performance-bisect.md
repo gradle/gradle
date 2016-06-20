@@ -1,3 +1,15 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Tracking down performance regressions with `git bisect`](#tracking-down-performance-regressions-with-git-bisect)
+  - [Identify the test which caused the regression](#identify-the-test-which-caused-the-regression)
+  - [Modify test for regression search](#modify-test-for-regression-search)
+  - [Perform the search](#perform-the-search)
+  - [Verify the results](#verify-the-results)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Tracking down performance regressions with `git bisect`
 
 When you see a performance regression, either by looking at the performance graph
