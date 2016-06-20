@@ -25,8 +25,6 @@ import org.gradle.script.lang.kotlin.loggerFor
 import org.gradle.script.lang.kotlin.apply
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModelPlugin
 
-import java.lang.reflect.InvocationTargetException
-
 class KotlinScriptPlugin(val scriptSource: ScriptSource, val script: (Project) -> Unit) : ScriptPlugin {
 
     private val logger = loggerFor<KotlinScriptPlugin>()
