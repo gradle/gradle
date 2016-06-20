@@ -46,3 +46,7 @@ There is a `performance:report` task that generates a static HTML report from th
 time to be visualized.
 
 The report for the most recent test suite run against master is [here](https://builds.gradle.org/repository/download/Gradle_Master_Performance_Linux/.lastFinished/results/report/index.html)
+
+### Tracking down performance regressions
+
+For tracking down performance regressions see [Tracking down performance regressions with `git bisect`](docs/performance-bisect.md).
