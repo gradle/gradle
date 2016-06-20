@@ -199,7 +199,6 @@ public class PersonInternal extends Person {
     }
 
     @Unroll
-    @Requires(FIX_TO_WORK_ON_JAVA9)
     @Issue('Need to investigate the reason for the Java 9 failure')
     def "changing comment in API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
@@ -249,6 +248,7 @@ public class Person {
     }
 
     @Unroll
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     def "changing method body of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
