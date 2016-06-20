@@ -150,7 +150,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         void convertInto(Object element, Collection<? super T> result, PathToFileResolver resolver);
     }
 
-    private static class FileCollectionConverter implements Converter<FileCollectionInternal> {
+    public static class FileCollectionConverter implements Converter<FileCollectionInternal> {
         public void convertInto(Object element, Collection<? super FileCollectionInternal> result, PathToFileResolver fileResolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
@@ -175,7 +175,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         }
     }
 
-    private static class FileTreeConverter implements Converter<FileTreeInternal> {
+    public static class FileTreeConverter implements Converter<FileTreeInternal> {
         private final Factory<PatternSet> patternSetFactory;
 
         public FileTreeConverter(Factory<PatternSet> patternSetFactory) {
@@ -221,7 +221,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         }
     }
 
-    private static class MinimalFileCollectionConverter implements Converter<MinimalFileCollection> {
+    public static class MinimalFileCollectionConverter implements Converter<MinimalFileCollection> {
         public void convertInto(Object element, Collection<? super MinimalFileCollection> result, PathToFileResolver resolver) {
             if (element instanceof DefaultFileCollectionResolveContext) {
                 DefaultFileCollectionResolveContext nestedContext = (DefaultFileCollectionResolveContext) element;
