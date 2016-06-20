@@ -48,7 +48,7 @@ public class CachingTreeVisitor {
     public static final int VISITED_TREES_CACHE_MAX_SIZE = 500;
     private final Cache<String, VisitedTreeCacheEntry> cachedTrees;
     private final AtomicLong nextId = new AtomicLong(System.currentTimeMillis());
-    private HashSet<String> cacheableFilePaths;
+    private volatile HashSet<String> cacheableFilePaths;
 
     public CachingTreeVisitor() {
         HeapProportionalCacheSizer cacheSizer = new HeapProportionalCacheSizer();

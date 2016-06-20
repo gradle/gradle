@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /*
  This class determines what task input file paths are cacheable by the CachingTreeVisitor ("tree snapshot cache")
@@ -64,6 +65,7 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
     private Map<String, Collection<String>> lastTaskToHandleInputFile;
     private Set<String> tasksWithUnknownInputs;
     private Set<String> tasksWithUnknownOutputs;
+    private AtomicBoolean graphPopulated = new AtomicBoolean(false);
 
     public TreeVisitorCacheExpirationStrategy(CachingTreeVisitor cachingTreeVisitor, Factory<OverlappingDirectoriesDetector> overlappingDirectoriesDetectorFactory) {
         this.cachingTreeVisitor = cachingTreeVisitor;
@@ -72,14 +74,16 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
 
     @Override
     public void graphPopulated(TaskExecutionGraph graph) {
-        try {
-            resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
-        } catch (Exception e) {
-            LOG.info("Exception '{}' while resolving task inputs and outputs. Disabling tree visitor caching for this build.", e.getMessage());
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Exception details", e);
+        if (graphPopulated.compareAndSet(false, true)) {
+            try {
+                resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
+            } catch (Exception e) {
+                LOG.info("Exception '{}' while resolving task inputs and outputs. Disabling tree visitor caching for this build.", e.getMessage());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Exception details", e);
+                }
+                clearCache();
             }
-            clearCache();
         }
     }
 
@@ -212,5 +216,6 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
     @Override
     public void buildFinished(BuildResult result) {
         clearCache();
+        graphPopulated.set(false);
     }
 }
