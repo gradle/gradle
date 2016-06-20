@@ -1,4 +1,5 @@
-
+import org.gradle.api.plugins.*
+import org.gradle.script.lang.kotlin.*
 
 apply<ApplicationPlugin>()
 
