@@ -106,8 +106,7 @@ open class Benchmark : DefaultTask() {
         System.getenv("BUILD_VCS_NUMBER").let { hash ->
             if (hash != null) {
                 hash
-            }
-            else {
+            } else {
                 println("Environment variable not present. Falling back to `git rev-parse`")
                 val stdout = ByteArrayOutputStream()
                 project.exec {
