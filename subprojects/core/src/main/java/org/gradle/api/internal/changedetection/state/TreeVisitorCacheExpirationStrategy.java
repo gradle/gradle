@@ -72,7 +72,22 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
 
     @Override
     public void graphPopulated(TaskExecutionGraph graph) {
-        resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
+        try {
+            resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
+        } catch (Exception e) {
+            LOG.info("Exception '{}' while resolving task inputs and outputs. Disabling tree visitor caching for this build.", e.getMessage());
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Exception details", e);
+            }
+            clearCache();
+        }
+    }
+
+    private void clearCache() {
+        cachingTreeVisitor.clearCache();
+        lastTaskToHandleInputFile = null;
+        tasksWithUnknownOutputs = null;
+        tasksWithUnknownInputs = null;
     }
 
     private void resolveCacheableFilesAndLastTasksToHandleEachFile(TaskExecutionGraph graph) {
@@ -195,6 +210,6 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
 
     @Override
     public void buildFinished(BuildResult result) {
-        cachingTreeVisitor.clearCache();
+        clearCache();
     }
 }
