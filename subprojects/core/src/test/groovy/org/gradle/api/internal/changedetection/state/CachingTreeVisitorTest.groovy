@@ -34,6 +34,10 @@ class CachingTreeVisitorTest extends Specification {
     @Subject
     CachingTreeVisitor treeVisitor = new CachingTreeVisitor()
 
+    def setup() {
+        treeVisitor.updateCacheableFilePaths([testDir.getTestDirectory().absolutePath])
+    }
+
     def "should return list of file details and cache it once"() {
         given:
         createSampleFiles()

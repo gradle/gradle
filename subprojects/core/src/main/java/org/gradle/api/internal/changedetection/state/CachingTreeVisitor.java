@@ -141,7 +141,7 @@ public class CachingTreeVisitor {
     }
 
     private boolean isCacheablePath(String absolutePath) {
-        return cacheableFilePaths == null || cacheableFilePaths.contains(absolutePath);
+        return cacheableFilePaths != null && cacheableFilePaths.contains(absolutePath);
     }
 
     private boolean isDirectoryFileTree(FileTreeInternal fileTree) {
