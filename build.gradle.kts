@@ -13,7 +13,7 @@ apply {
 
 group = "org.gradle"
 
-version = "1.0.0-SNAPSHOT"
+version = "0.2.0-SNAPSHOT"
 
 val kotlinVersion = extra["kotlinVersion"] as String
 
