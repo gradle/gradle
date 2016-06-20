@@ -303,17 +303,6 @@ task install(type: Install) {
     installDirPropertyName = 'gradle_installPath'
 }
 
-subprojects {
-    afterEvaluate {
-        def jar = tasks.findByName('jar')
-        if (jar) {
-            jar.from(sourceSets.main.allSource) {
-                exclude '**/internal/**/*.java'
-            }
-        }
-    }
-}
-
 task installAll(type: Install) {
     description = 'Installs the full distribution into directory $gradle_installPath'
     group = 'build'
