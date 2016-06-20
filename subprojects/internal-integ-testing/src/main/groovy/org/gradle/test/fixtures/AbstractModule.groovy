@@ -16,10 +16,18 @@
 
 package org.gradle.test.fixtures
 
-import org.gradle.test.fixtures.file.TestFile
+import org.apache.commons.io.FilenameUtils
+import org.apache.tools.zip.ZipEntry
+import org.apache.tools.zip.ZipOutputStream
 import org.gradle.internal.hash.HashUtil
+import org.gradle.test.fixtures.file.TestFile
 
 abstract class AbstractModule {
+    /**
+     Last modified date for writeZipped to be able to create zipFiles with identical hashes
+     */
+    private static Date lmd = new Date();
+
     /**
      * @param cl A closure that is passed a writer to use to generate the content.
      */
@@ -28,8 +36,10 @@ abstract class AbstractModule {
         def hashBefore = file.exists() ? getHash(file, "sha1") : null
         def tmpFile = file.parentFile.file("${file.name}.tmp")
 
-        tmpFile.withWriter("utf-8") {
-            cl.call(it)
+        if(isJarFile(file)) {
+            writeZipped(tmpFile, cl)
+        } else {
+            writeContents(tmpFile, cl)
         }
 
         def hashAfter = getHash(tmpFile, "sha1")
@@ -41,6 +51,29 @@ abstract class AbstractModule {
         assert !file.exists() || file.delete()
         assert tmpFile.renameTo(file)
         onPublish(file)
+    }
+
+    private void writeContents(output, Closure cl) {
+        output.withWriter("utf-8", cl)
+    }
+
+    private void writeZipped(TestFile testFile, Closure cl) {
+        def bos = new ByteArrayOutputStream()
+        writeContents(bos, cl)
+
+        ZipOutputStream zipStream = new ZipOutputStream(testFile)
+
+        def entry = new ZipEntry(testFile.name)
+        entry.setTime(lmd.getTime())
+        zipStream.putNextEntry(entry)
+        zipStream << bos.toByteArray()
+        zipStream.closeEntry()
+        zipStream.finish()
+        zipStream.close()
+    }
+
+    private boolean isJarFile(TestFile testFile) {
+        return FilenameUtils.getExtension(testFile.getName()) == 'jar'
     }
 
     protected abstract onPublish(TestFile file)

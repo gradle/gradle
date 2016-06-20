@@ -5,13 +5,6 @@ String jdkVarName = 'JAVA_9'
 
 task java9IntegTest(type: Test) {
     excludes = [
-        /*
-         "changing method body of API class should not trigger recompilation of the consuming library when API is not declared" and
-         "changing method body of API class should not trigger recompilation of the consuming library when API is declared" are failing -
-          need to investigate
-          */
-        "JavaCompilationAgainstApiJarIntegrationTest",
-
         // "targetplatforms sample creates a binary specific source set" tries to compile for Java 5 - need to update test, samples and userguide
         "SampleJavaLanguageIntegrationTest",
 
@@ -144,18 +137,6 @@ task java9IntegTest(type: Test) {
         "UserGuideSamplesIntegrationTest",
 
         /*
-         "compile only dependencies are not included in distribution":
-         error: error reading ...1.0/compile-1.0.jar; zip END header not found
-         */
-        "ApplicationPluginIntegrationTest",
-        /*
-        "resolved classpath does not include transitive compile-scoped maven dependencies of local components"
-        "resolved classpath includes transitive api-scoped dependencies of maven library dependency"
-        error: zip END header not found
-         */
-        "JavaLanguageExternalDependencyResolutionIntegrationTest",
-
-        /*
          Changes in Javadoc generation
          */
         "SamplesJavaMultiProjectIntegrationTest",
@@ -195,13 +176,6 @@ task java9IntegTest(type: Test) {
           MaxPermSize as GRADLE_OPTS
          */
         "ClientShutdownCrossVersionSpec",
-
-        /*
-         Runs against older Gradle versions
-         Compilation fails for Java 9 on current Gradle version
-         */
-        "CompositeBuildDependencyArtifactsCrossVersionSpec",
-        "CompositeBuildDependencyGraphCrossVersionSpec",
     ].collect { "**/*${it}*" }
 }
 
