@@ -1,6 +1,3 @@
-import org.gradle.api.plugins.*
-import org.gradle.script.lang.kotlin.*
-
 buildscript {
 
     // need to redeclare `extra` because buildscript is compiled without the imports

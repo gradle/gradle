@@ -1,5 +1,3 @@
-import org.gradle.script.lang.kotlin.*
-
 val myTask = task("myTask") {
 
     extra["foo"] = 42
