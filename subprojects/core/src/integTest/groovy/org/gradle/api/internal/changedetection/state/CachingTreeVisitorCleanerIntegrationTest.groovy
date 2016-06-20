@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class CachingTreeVisitorCleanerIntegrationTest extends AbstractIntegrationSpec {
 
@@ -48,4 +49,57 @@ class CachingTreeVisitorCleanerIntegrationTest extends AbstractIntegrationSpec {
         succeeds("build")
     }
 
+    @Issue("GRADLE-3491")
+    def "overlapping outputs shouldn't be cached"() {
+        given:
+        ['a', 'b', 'c'].each { file(it).createDir() }
+        file("build/intermediate").createDir()
+        file("c/hello.txt").text = "hello1"
+
+        when:
+        buildFile << """
+            task a {
+              inputs.dir "a"
+              outputs.dir new File(buildDir, "intermediate")
+              doLast {}
+            }
+            task b {
+              dependsOn "a"
+              inputs.dir "b"
+              outputs.dir new File(buildDir, "intermediate/b")
+              doLast {}
+            }
+            task c {
+              dependsOn "b"
+              inputs.dir "c"
+              outputs.file new File(buildDir, "intermediate/hello.txt")
+              doLast {
+                 new File(buildDir, "intermediate/hello.txt").text = file("c/hello.txt").text
+              }
+            }
+            task d {
+              dependsOn "c"
+              inputs.dir new File(buildDir, "intermediate")
+              outputs.dir new File(buildDir, "processed")
+              doLast {
+                  copy {
+                     from new File(buildDir, "intermediate")
+                     into new File(buildDir, "processed")
+                  }
+              }
+            }
+        """
+        succeeds("d")
+
+        then:
+        file("build/processed/hello.txt").text == 'hello1'
+
+        when:
+        succeeds("d")
+        file("c/hello.txt").text = "hello22"
+        succeeds("d")
+
+        then:
+        file("build/processed/hello.txt").text == 'hello22'
+    }
 }
