@@ -44,7 +44,7 @@ _Note: The remainder of these instructions focus on the `hello-world` sample pro
 
 In IDEA, go to `File->Open...` and navigate to `$REPO_ROOT/samples/hello-world`.
 
-When prompted, choose to "Use local Gradle wrapper".
+When prompted, choose "Use default Gradle wrapper".
 
 The project should import without errors.
 
