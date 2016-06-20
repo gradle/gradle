@@ -34,14 +34,11 @@ public class CachingTreeVisitorCleaner implements Closeable {
                 return new OverlappingDirectoriesDetector();
             }
         });
-        gradle.addBuildListener(cacheExpirationStrategy);
+        cacheExpirationStrategy.registerListeners(gradle);
     }
 
     @Override
     public void close() throws IOException {
-        gradle.removeListener(cacheExpirationStrategy);
-        gradle.getTaskGraph().removeTaskExecutionGraphListener(cacheExpirationStrategy);
-        gradle.getTaskGraph().removeTaskExecutionListener(cacheExpirationStrategy);
+        cacheExpirationStrategy.removeListeners(gradle);
     }
-
 }

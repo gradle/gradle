@@ -162,28 +162,41 @@ public class GradleScopeServicesTest extends Specification {
         1 * plugin2.registerGradleServices(_)
     }
 
-    def "TreeVisitorCacheExpirationStrategy gets registered as TaskExecutionGraphListener, TaskExecutionListener and BuildListener when BuildExecuter is requested"() {
+    def "TreeVisitorCacheExpirationStrategy register BuildListener when BuildExecuter is requested and TaskExecutionGraphListener & TaskExecutionListener on projectsEvaluated "() {
         given:
         gradle = Mock()
         registry = new GradleScopeServices(parent, gradle)
         def taskGraphExecuter = Mock(TaskGraphExecuter)
+        def buildListener
 
         when:
         registry.get(BuildExecuter)
 
         then:
-        gradle.getTaskGraph() >> taskGraphExecuter
-        1 * taskGraphExecuter.addTaskExecutionGraphListener({ isTreeVisitorCacheExpirationStrategy(it) })
-        1 * taskGraphExecuter.addTaskExecutionListener({ isTreeVisitorCacheExpirationStrategy(it) })
-        1 * gradle.addBuildListener({ isTreeVisitorCacheExpirationStrategy(it) })
+        1 * gradle.addBuildListener({
+            if(isTreeVisitorCacheExpirationStrategy(it)) {
+                buildListener = it
+                true
+            } else {
+                false
+            }
+        })
         _ * parent.get({ it instanceof Class }) >> { Class type ->
             Stub(type)
         }
         0 * _._
+
+        when:
+        buildListener.projectsEvaluated(gradle)
+
+        then:
+        gradle.getTaskGraph() >> taskGraphExecuter
+        1 * taskGraphExecuter.addTaskExecutionGraphListener({ isTreeVisitorCacheExpirationStrategy(it) })
+        1 * taskGraphExecuter.addTaskExecutionListener({ isTreeVisitorCacheExpirationStrategy(it) })
     }
 
     private boolean isTreeVisitorCacheExpirationStrategy(instance) {
-        instance.getClass().simpleName == 'TreeVisitorCacheExpirationStrategy'
+        instance.getClass().name.startsWith('org.gradle.api.internal.changedetection.state.TreeVisitorCacheExpirationStrategy$')
     }
 
 }
