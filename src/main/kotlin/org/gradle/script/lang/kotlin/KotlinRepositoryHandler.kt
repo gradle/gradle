@@ -14,20 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.support
+package org.gradle.script.lang.kotlin
 
-import org.gradle.api.Project
-import org.gradle.script.lang.kotlin.KotlinBuildScript
-import org.gradle.script.lang.kotlin.KotlinScriptHandler
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
-abstract class KotlinBuildScriptSection(project: Project) : KotlinBuildScript(project) {
+/**
+ * @see RepositoryHandler
+ */
+class KotlinRepositoryHandler(val repositoryHandler: RepositoryHandler) : RepositoryHandler by repositoryHandler {
 
     /**
-     * Configures the build script classpath for this project.
-     *
-     * @see [Project.buildscript]
+     * Adds and configures a Maven repository.
      */
-    override fun buildscript(configuration: KotlinScriptHandler.() -> Unit) {
-        KotlinScriptHandler(project.buildscript).configuration()
-    }
+    fun maven(configuration: MavenArtifactRepository.() -> Unit) =
+        repositoryHandler.maven({ it.configuration() })
+
+    inline operator fun invoke(configuration: KotlinRepositoryHandler.() -> Unit) =
+        configuration()
 }

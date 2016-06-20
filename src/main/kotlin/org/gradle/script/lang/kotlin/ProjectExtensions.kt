@@ -103,7 +103,8 @@ fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: 
  *
  * @param configuration the configuration block.
  */
-inline fun Project.repositories(configuration: RepositoryHandler.() -> Unit) = configuration(repositories)
+inline fun Project.repositories(configuration: KotlinRepositoryHandler.() -> Unit) =
+    KotlinRepositoryHandler(repositories).configuration()
 
 /**
  * Configures the dependencies for this project.

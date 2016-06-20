@@ -28,8 +28,10 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
+
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
+
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -45,18 +47,19 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
     override fun create(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
                         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
                         topLevelScript: Boolean): ScriptPlugin =
-        KotlinScriptPlugin(scriptSource, compile(scriptSource, scriptHandler as ScriptHandlerInternal, targetScope))
+        KotlinScriptPlugin(
+            scriptSource,
+            compile(scriptSource, scriptHandler as ScriptHandlerInternal, targetScope, baseScope))
 
-    private fun compile(scriptSource: ScriptSource,
-                        scriptHandler: ScriptHandlerInternal,
-                        targetScope: ClassLoaderScope): (Project) -> Unit {
+    private fun compile(scriptSource: ScriptSource, scriptHandler: ScriptHandlerInternal,
+                        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope): (Project) -> Unit {
         val resource = scriptSource.resource
         val script = resource.text
         val scriptFile = resource.file
         val buildscriptRange = extractBuildScriptFrom(script)
         return when {
             buildscriptRange != null ->
-                dualPhaseScript(scriptFile, script, buildscriptRange, scriptHandler, targetScope)
+                dualPhaseScript(scriptFile, script, buildscriptRange, scriptHandler, targetScope, baseScope)
             else ->
                 singlePhaseScript(scriptFile, targetScope)
         }
@@ -64,49 +67,55 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
 
     private fun singlePhaseScript(scriptFile: File, targetScope: ClassLoaderScope): (Project) -> Unit {
         val classPath = defaultClassPath()
-        val scriptClass = compileScriptFile(scriptFile, classPath, classLoaderFor(classPath, targetScope))
-        return { target -> executeScriptOf(scriptClass, target) }
+        val scriptClassLoader = classLoaderFor(targetScope)
+        val scriptClass = compileScriptFile(scriptFile, classPath, scriptClassLoader)
+        return { target -> executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target) }
     }
 
     private fun dualPhaseScript(scriptFile: File, script: String, buildscriptRange: IntRange,
                                 scriptHandler: ScriptHandlerInternal,
-                                targetScope: ClassLoaderScope): (Project) -> Unit {
+                                targetScope: ClassLoaderScope, baseScope: ClassLoaderScope): (Project) -> Unit {
         val defaultClassPath = defaultClassPath()
-        val buildscriptClass = compileBuildscriptSection(buildscriptRange, script, defaultClassPath, targetScope)
+        val buildscriptClassLoader = buildscriptClassLoaderFrom(baseScope)
+        val buildscriptClass = compileBuildscriptSection(buildscriptRange, script, defaultClassPath, buildscriptClassLoader)
         return { target ->
-            executeScriptOf(buildscriptClass, target)
-            val scriptClassLoader = scriptBodyClassLoaderFor(scriptHandler, targetScope)
+            executeScriptWithContextClassLoader(buildscriptClassLoader, buildscriptClass, target)
             val effectiveClassPath = defaultClassPath + scriptHandler.scriptClassPath.asFiles
+            val scriptClassLoader = scriptBodyClassLoaderFor(scriptHandler, targetScope)
             val scriptClass = compileScriptFile(scriptFile, effectiveClassPath, scriptClassLoader)
-            executeScriptOf(scriptClass, target)
+            executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
         }
     }
 
-    private fun classLoaderFor(classPath: ClassPath, targetScope: ClassLoaderScope) =
-        targetScope.run {
-            export(classPath)
+    private fun buildscriptClassLoaderFrom(baseScope: ClassLoaderScope) =
+        classLoaderFor(baseScope.createChild("buildscript"))
+
+    private fun scriptBodyClassLoaderFor(scriptHandler: ScriptHandlerInternal, targetScope: ClassLoaderScope) =
+        classLoaderFor(targetScope.apply { export(scriptHandler.scriptClassPath) })
+
+    private fun classLoaderFor(scope: ClassLoaderScope) =
+        scope.run {
             export(KotlinBuildScript::class.java.classLoader)
             lock()
             localClassLoader
         }
 
-    private fun scriptBodyClassLoaderFor(scriptHandler: ScriptHandlerInternal, parentScope: ClassLoaderScope) =
-        parentScope.createChild("${scriptHandler.sourceFile.name} body").run {
-            export(scriptHandler.scriptClassPath)
-            lock()
-            localClassLoader
-        }
-
     private fun compileBuildscriptSection(buildscriptRange: IntRange, script: String,
-                                          classPath: ClassPath, targetScope: ClassLoaderScope) =
+                                          classPath: ClassPath, classLoader: ClassLoader) =
         compileKotlinScript(
             tempBuildscriptFileFor(script.substring(buildscriptRange)),
             scriptDefinitionFor(classPath.asFiles, prototype = BUILDSCRIPT_PROTOTYPE),
-            classLoaderFor(classPath, targetScope),
+            classLoader,
             logger)
 
     private fun compileScriptFile(scriptFile: File, classPath: ClassPath, classLoader: ClassLoader) =
         compileKotlinScript(scriptFile, scriptDefinitionFromTemplate(classPath), classLoader, logger)
+
+    private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Any) {
+        withContextClassLoader(classLoader) {
+            executeScriptOf(scriptClass, target)
+        }
+    }
 
     private fun executeScriptOf(scriptClass: Class<*>, target: Any) {
         try {
@@ -124,4 +133,15 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
     private fun defaultClassPath(): ClassPath =
         DefaultClassPath.of(
             selectGradleApiJars(classPathRegistry))
+}
+
+inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
+    val currentThread = Thread.currentThread()
+    val previous = currentThread.contextClassLoader
+    try {
+        currentThread.contextClassLoader = classLoader
+        block()
+    } finally {
+        currentThread.contextClassLoader = previous
+    }
 }

@@ -17,6 +17,8 @@
 package org.gradle.script.lang.kotlin
 
 import org.gradle.api.Project
+import org.gradle.api.plugins.ObjectConfigurationAction
+
 import org.gradle.script.lang.kotlin.support.GradleKotlinScriptDependenciesResolver
 import org.jetbrains.kotlin.script.ScriptDependencyResolver
 import org.jetbrains.kotlin.script.ScriptFilePattern
@@ -35,5 +37,8 @@ abstract class KotlinBuildScript(project: Project) : Project by project {
      */
     @Suppress("unused")
     open fun buildscript(@Suppress("unused_parameter") configuration: KotlinScriptHandler.() -> Unit) = Unit
+
+    inline fun apply(crossinline configuration: ObjectConfigurationAction.() -> Unit) =
+        project.apply({ it.configuration() })
 }
 

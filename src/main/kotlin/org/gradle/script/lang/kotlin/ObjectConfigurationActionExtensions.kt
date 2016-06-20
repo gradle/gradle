@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.support
+package org.gradle.script.lang.kotlin
 
-import org.gradle.api.Project
-import org.gradle.script.lang.kotlin.KotlinBuildScript
-import org.gradle.script.lang.kotlin.KotlinScriptHandler
+import org.gradle.api.Plugin
+import org.gradle.api.plugins.ObjectConfigurationAction
 
-abstract class KotlinBuildScriptSection(project: Project) : KotlinBuildScript(project) {
-
-    /**
-     * Configures the build script classpath for this project.
-     *
-     * @see [Project.buildscript]
-     */
-    override fun buildscript(configuration: KotlinScriptHandler.() -> Unit) {
-        KotlinScriptHandler(project.buildscript).configuration()
-    }
-}
+/**
+ * Adds a Plugin to use to configure the target objects.
+ * You can call this method multiple times, to use multiple plugins.
+ * Scripts and plugins are applied in the order that they are added.
+ *
+ * @param T the plugin to apply.
+ */
+inline fun <reified T : Plugin<*>> ObjectConfigurationAction.plugin() =
+    this.plugin(T::class.java)
