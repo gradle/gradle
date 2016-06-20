@@ -41,6 +41,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/*
+ This class determines what task input file paths are cacheable by the CachingTreeVisitor ("tree snapshot cache")
+ used in up-to-date checking to reduce unnecessary directory scanning.
+
+ - extract inputs/outputs and determine what are cacheable when the TaskExecutionGraph gets populated
+   - only cache those that are used multiple times
+      - same directory input for multiple tasks
+      - another downstream task uses the output of some task
+   - overlapping output directories aren't cacheable at all
+
+ This class also handles cache invalidation:
+ - if a task has unknown inputs, flush cache before the task is executed
+ - if a task has unknown outputs, flush cache after the task is executed
+ - invalidate entry from cache after the last task using the file path as input has been executed
+ - invalidate all entries in the cache when the build finishes
+*/
 class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, TaskExecutionListener, BuildListener {
     private final static Logger LOG = Logging.getLogger(TreeVisitorCacheExpirationStrategy.class);
     private final CachingTreeVisitor cachingTreeVisitor;
@@ -61,8 +77,6 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
     }
 
     private void resolveCacheableFilesAndLastTasksToHandleEachFile(TaskExecutionGraph graph) {
-        // any output used by an downstream task is cacheable
-        // any input used by 2 tasks is cacheable
         List<String> cacheableFilePaths = new ArrayList<String>();
 
         tasksWithUnknownInputs = new HashSet<String>();
