@@ -31,7 +31,7 @@ class GradleScriptKotlinIntegrationTest {
 
             configurations.create("compile")
 
-            dependencies { "compile"(gradleApi()) }
+            dependencies { compile(gradleApi()) }
 
             task<Zip>("repackage") {
                 baseName = "gradle-api"
