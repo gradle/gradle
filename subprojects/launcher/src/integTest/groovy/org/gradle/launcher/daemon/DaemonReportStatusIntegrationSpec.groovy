@@ -52,8 +52,8 @@ task block << {
         then:
         daemons.daemons.size() == 2
         out =~ /^   PID VERSION STATUS/
-        out =~ /\n\s*\d+ ([\w\.]+)\s+IDLE/
-        out =~ /\n\s*\d+ ([\w\.]+)\s+BUSY/
+        out =~ /\n\s*\d+ ([\w\.\+\-]+)\s+IDLE/
+        out =~ /\n\s*\d+ ([\w\.\+\-]+)\s+BUSY/
 
         cleanup:
         server.release()
