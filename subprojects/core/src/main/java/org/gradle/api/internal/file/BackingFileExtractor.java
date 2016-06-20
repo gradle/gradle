@@ -16,12 +16,21 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.FileCollectionContainer;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
+import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
+import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,10 +42,10 @@ import java.util.List;
  * It's not possible to know whether a file is a single file or directory for task inputs or outputs. For this reason any logic shouldn't rely on a exact answer.
  */
 public class BackingFileExtractor {
+    private final static Logger LOG = Logging.getLogger(BackingFileExtractor.class);
 
     public List<FileEntry> extractFilesOrDirectories(FileCollection fileCollection) {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(
-            new IdentityFileResolver());
+        DefaultFileCollectionResolveContext context = new CustomFileCollectionResolveContext();
         context.add(fileCollection);
         List<FileCollectionInternal> fileCollections = context.resolveAsFileCollections();
         List<FileEntry> results = new ArrayList<FileEntry>();
@@ -47,20 +56,45 @@ public class BackingFileExtractor {
     }
 
     private void collectDirectories(FileCollectionInternal fileCollection,
-                                    List<FileEntry> results) {
+                                    final List<FileEntry> results) {
         if (fileCollection instanceof FileTreeAdapter) {
             collectTree(((FileTreeAdapter) fileCollection).getTree(), results);
+        } else if (fileCollection instanceof LazilyInitializedFileCollection) {
+            // skip inspecting LazilyInitializedFileCollections since it results in eager
+            // dependency resolution
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Skipped inspecting LazilyInitializedFileCollection {}", ((LazilyInitializedFileCollection) fileCollection).getDisplayName());
+            }
+        } else if (fileCollection instanceof Configuration) {
+            // skip inspecting configurations since it results in eager dependency resolution
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Skipped inspecting configuration {}", ((Configuration) fileCollection).getName());
+            }
         } else {
-            for (File file : fileCollection.getFiles()) {
-                results.add(new FileEntry(file));
+            FileSystemSubset.Builder watchPointsBuilder = FileSystemSubset.builder();
+            fileCollection.registerWatchPoints(watchPointsBuilder);
+            for (File root : watchPointsBuilder.build().getRoots()) {
+                results.add(new FileEntry(root));
             }
         }
     }
 
-    private void collectTree(MinimalFileTree fileTree, List<FileEntry> results) {
+    private void collectTree(MinimalFileTree fileTree, final List<FileEntry> results) {
         if (fileTree instanceof DirectoryTree) {
             DirectoryTree directoryTree = (DirectoryTree) fileTree;
             results.add(new FileEntry(directoryTree.getDir(), directoryTree.getPatterns()));
+        } else {
+            fileTree.visitTreeOrBackingFile(new FileVisitor() {
+                @Override
+                public void visitDir(FileVisitDetails dirDetails) {
+                    results.add(new FileEntry(dirDetails.getFile()));
+                }
+
+                @Override
+                public void visitFile(FileVisitDetails fileDetails) {
+                    results.add(new FileEntry(fileDetails.getFile()));
+                }
+            });
         }
     }
 
@@ -84,6 +118,32 @@ public class BackingFileExtractor {
 
         public PatternSet getPatterns() {
             return patterns;
+        }
+    }
+
+    // ResolvableFileCollectionResolveContext implementation that doesn't initialize LazilyInitializedFileCollection instances
+    private static class CustomFileCollectionResolveContext extends DefaultFileCollectionResolveContext {
+        public CustomFileCollectionResolveContext() {
+            super(new IdentityFileResolver());
+        }
+
+        public CustomFileCollectionResolveContext(PathToFileResolver fileResolver, Converter<? extends FileCollectionInternal> fileCollectionConverter, Converter<? extends FileTreeInternal> fileTreeConverter) {
+            super(fileResolver, fileCollectionConverter, fileTreeConverter);
+        }
+
+        @Override
+        protected <T> void resolveNested(FileCollectionContainer fileCollection, List<T> result, Converter<? extends T> converter) {
+            if (fileCollection instanceof LazilyInitializedFileCollection) {
+                // don't initialize LazilyInitializedFileCollection
+                converter.convertInto(fileCollection, result, fileResolver);
+            } else {
+                super.resolveNested(fileCollection, result, converter);
+            }
+        }
+
+        @Override
+        protected ResolvableFileCollectionResolveContext newContext(PathToFileResolver fileResolver) {
+            return new CustomFileCollectionResolveContext(fileResolver, fileCollectionConverter, fileTreeConverter);
         }
     }
 }
