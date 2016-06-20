@@ -19,6 +19,7 @@ package org.gradle.test.fixtures
 import org.apache.commons.io.FilenameUtils
 import org.apache.tools.zip.ZipEntry
 import org.apache.tools.zip.ZipOutputStream
+import org.gradle.internal.IoActions
 import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 
@@ -62,14 +63,16 @@ abstract class AbstractModule {
         writeContents(bos, cl)
 
         ZipOutputStream zipStream = new ZipOutputStream(testFile)
-
-        def entry = new ZipEntry(testFile.name)
-        entry.setTime(lmd.getTime())
-        zipStream.putNextEntry(entry)
-        zipStream << bos.toByteArray()
-        zipStream.closeEntry()
-        zipStream.finish()
-        zipStream.close()
+        try {
+            def entry = new ZipEntry(testFile.name)
+            entry.setTime(lmd.getTime())
+            zipStream.putNextEntry(entry)
+            zipStream << bos.toByteArray()
+            zipStream.closeEntry()
+            zipStream.finish()
+        } finally {
+            IoActions.closeQuietly(zipStream)
+        }
     }
 
     private boolean isJarFile(TestFile testFile) {
