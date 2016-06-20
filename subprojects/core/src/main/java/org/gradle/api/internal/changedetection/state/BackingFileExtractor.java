@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.IdentityFileResolver;
@@ -34,10 +35,12 @@ import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveC
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -128,10 +131,14 @@ class BackingFileExtractor {
     // ResolvableFileCollectionResolveContext implementation that doesn't initialize LazilyInitializedFileCollection instances
     private static class CustomFileCollectionResolveContext extends DefaultFileCollectionResolveContext {
         public CustomFileCollectionResolveContext() {
-            super(new IdentityFileResolver());
+            this(new IdentityFileResolver());
         }
 
-        public CustomFileCollectionResolveContext(PathToFileResolver fileResolver, Converter<? extends FileCollectionInternal> fileCollectionConverter, Converter<? extends FileTreeInternal> fileTreeConverter) {
+        CustomFileCollectionResolveContext(FileResolver fileResolver) {
+            this(fileResolver, new CustomFileCollectionConverter(), new CustomFileTreeConverter(fileResolver.getPatternSetFactory()));
+        }
+
+        CustomFileCollectionResolveContext(PathToFileResolver fileResolver, Converter<? extends FileCollectionInternal> fileCollectionConverter, Converter<? extends FileTreeInternal> fileTreeConverter) {
             super(fileResolver, fileCollectionConverter, fileTreeConverter);
         }
 
@@ -149,5 +156,41 @@ class BackingFileExtractor {
         protected ResolvableFileCollectionResolveContext newContext(PathToFileResolver fileResolver) {
             return new CustomFileCollectionResolveContext(fileResolver, fileCollectionConverter, fileTreeConverter);
         }
+    }
+
+    private static class CustomFileCollectionConverter extends DefaultFileCollectionResolveContext.FileCollectionConverter {
+        @Override
+        public void convertInto(Object element, Collection<? super FileCollectionInternal> result, PathToFileResolver fileResolver) {
+            if (shouldIgnore(element)) {
+                return;
+            }
+            super.convertInto(element, result, fileResolver);
+        }
+    }
+
+    private static class CustomFileTreeConverter extends DefaultFileCollectionResolveContext.FileTreeConverter {
+        public CustomFileTreeConverter(Factory<PatternSet> patternSetFactory) {
+            super(patternSetFactory);
+        }
+
+        @Override
+        public void convertInto(Object element, Collection<? super FileTreeInternal> result, PathToFileResolver fileResolver) {
+            if (shouldIgnore(element)) {
+                return;
+            }
+            super.convertInto(element, result, fileResolver);
+        }
+    }
+
+    private static boolean shouldIgnore(Object element) {
+        if (element instanceof Configuration) {
+            // ignore configurations
+            return true;
+        }
+        if (element instanceof LazilyInitializedFileCollection) {
+            // ignore LazilyInitializedFileCollection instances
+            return true;
+        }
+        return false;
     }
 }
