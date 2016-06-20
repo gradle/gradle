@@ -34,8 +34,6 @@ public class CachingTreeVisitorCleaner implements Closeable {
                 return new OverlappingDirectoriesDetector();
             }
         });
-        gradle.getTaskGraph().addTaskExecutionGraphListener(cacheExpirationStrategy);
-        gradle.getTaskGraph().addTaskExecutionListener(cacheExpirationStrategy);
         gradle.addBuildListener(cacheExpirationStrategy);
     }
 

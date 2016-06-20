@@ -210,7 +210,9 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
 
     @Override
     public void projectsEvaluated(Gradle gradle) {
-
+        final TaskExecutionGraph taskGraph = gradle.getTaskGraph();
+        taskGraph.addTaskExecutionGraphListener(this);
+        taskGraph.addTaskExecutionListener(this);
     }
 
     @Override
