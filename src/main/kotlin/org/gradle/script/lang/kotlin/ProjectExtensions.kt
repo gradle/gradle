@@ -25,6 +25,7 @@ import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginManager
 
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty
 
 /**
  * Applies the given plugin. Does nothing if the plugin has already been applied.
@@ -117,3 +118,8 @@ inline fun Project.repositories(configuration: KotlinRepositoryHandler.() -> Uni
 inline fun Project.dependencies(configuration: KotlinDependencyHandler.() -> Unit) =
     KotlinDependencyHandler(dependencies).configuration()
 
+/**
+ * Locates a [Project] property using [Project.findProperty].
+ */
+operator fun Project.getValue(any: Any, property: KProperty<*>): Any? =
+    findProperty(property.name)
