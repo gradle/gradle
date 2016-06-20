@@ -103,7 +103,7 @@ open class Benchmark : DefaultTask() {
 
     private val commitHash by lazy {
         System.out.println("Attempting to determine current commit hash via environment variable")
-        System.getenv("env.BUILD_VCS_NUMBER").let { hash ->
+        System.getenv("BUILD_VCS_NUMBER").let { hash ->
             if (hash != null) {
                 hash
             }
