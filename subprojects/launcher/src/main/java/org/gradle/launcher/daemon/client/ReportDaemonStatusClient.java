@@ -18,8 +18,11 @@ package org.gradle.launcher.daemon.client;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.ReportStatus;
@@ -31,48 +34,61 @@ import java.util.List;
 
 public class ReportDaemonStatusClient {
     private static final Logger LOGGER = Logging.getLogger(DaemonClient.class);
+    private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
     private final DaemonRegistry daemonRegistry;
     private final DaemonConnector connector;
     private final IdGenerator<?> idGenerator;
     private final ReportStatusDispatcher reportStatusDispatcher;
-    private static final String STATUS_FORMAT = "%1$6s %2$-7s %3$s";
+    private final DocumentationRegistry documentationRegistry;
+    public static final String STATUS_FOOTER = "Only Daemons for the current Gradle version are displayed.";
 
-    public ReportDaemonStatusClient(DaemonRegistry daemonRegistry, DaemonConnector connector, IdGenerator<?> idGenerator) {
+    public ReportDaemonStatusClient(DaemonRegistry daemonRegistry, DaemonConnector connector, IdGenerator<?> idGenerator, DocumentationRegistry documentationRegistry) {
         Preconditions.checkNotNull(daemonRegistry, "DaemonRegistry must not be null");
         Preconditions.checkNotNull(connector, "DaemonConnector must not be null");
         Preconditions.checkNotNull(idGenerator, "IdGenerator must not be null");
+        Preconditions.checkNotNull(documentationRegistry, "DocumentationRegistry must not be null");
 
         this.daemonRegistry = daemonRegistry;
         this.connector = connector;
         this.idGenerator = idGenerator;
         this.reportStatusDispatcher = new ReportStatusDispatcher();
+        this.documentationRegistry = documentationRegistry;
     }
 
     public void listAll() {
-        listRunningDaemons(daemonRegistry.getAll());
+        final List<DaemonInfo> daemons = daemonRegistry.getAll();
+        final List<Status> statuses = Lists.newArrayList();
+        for (DaemonInfo daemon : daemons) {
+            DaemonClientConnection connection = connector.maybeConnect(daemon);
+            if (connection != null) {
+                try {
+                    final ReportStatus statusCommand = new ReportStatus(idGenerator.generateId(), daemon.getToken());
+                    final Status status = reportStatusDispatcher.dispatch(connection, statusCommand);
+                    if (status != null) {
+                        statuses.add(status);
+                    } else { // Handle failure
+                        statuses.add(new Status(connection.getDaemon().getPid(), "UNKNOWN", "UNKNOWN"));
+                    }
+                } finally {
+                    connection.stop();
+                }
+            }
+        }
+
+        printRunningDaemons(statuses);
     }
 
     @VisibleForTesting
-    void listRunningDaemons(final List<DaemonInfo> daemons) {
-        if (daemons.isEmpty()) {
+    void printRunningDaemons(final List<Status> statuses) {
+        if (statuses.isEmpty()) {
             LOGGER.quiet(DaemonMessages.NO_DAEMONS_RUNNING);
         } else {
-            LOGGER.quiet(String.format(STATUS_FORMAT, "PID", "VERSION", "STATUS"));
-            for (DaemonInfo info : daemons) {
-                DaemonClientConnection connection = connector.maybeConnect(info);
-                if (connection != null) {
-                    try {
-                        Status status = reportStatusDispatcher.dispatch(connection, new ReportStatus(idGenerator.generateId(), info.getToken()));
-                        if (status != null) {
-                            LOGGER.quiet(String.format(STATUS_FORMAT, status.getPid(), status.getVersion(), status.getStatus()));
-                        } else { // Handle failure
-                            LOGGER.quiet(String.format(STATUS_FORMAT, info.getPid(), "UNKNOWN", "BROKEN"));
-                        }
-                    } finally {
-                        connection.stop();
-                    }
-                }
+            final String statusFormat = "%1$6s %2$-23s %3$s";
+            LOGGER.quiet(String.format(statusFormat, "PID", "VERSION", "STATUS"));
+            for(Status status : statuses) {
+                LOGGER.quiet(String.format(statusFormat, status.getPid(), status.getVersion(), status.getStatus()));
             }
+            LOGGER.quiet(LINE_SEPARATOR + STATUS_FOOTER + " See " + documentationRegistry.getDocumentationFor("gradle_daemon", "status"));
         }
     }
 }

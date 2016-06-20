@@ -51,7 +51,7 @@ task block << {
 
         then:
         daemons.daemons.size() == 2
-        out =~ /^   PID VERSION STATUS/
+        out =~ /^   PID VERSION\s+STATUS/
         out =~ /\n\s*\d+ ([\w\.\+\-]+)\s+IDLE/
         out =~ /\n\s*\d+ ([\w\.\+\-]+)\s+BUSY/
 
@@ -60,3 +60,4 @@ task block << {
         build.waitForFinish()
     }
 }
+

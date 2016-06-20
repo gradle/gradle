@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
@@ -59,8 +60,8 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new DaemonStopClient(connector, idGenerator);
     }
 
-    ReportDaemonStatusClient createReportDaemonStatusClient(DaemonRegistry registry, DaemonConnector connector, IdGenerator idGenerator) {
-        return new ReportDaemonStatusClient(registry, connector, idGenerator);
+    ReportDaemonStatusClient createReportDaemonStatusClient(DaemonRegistry registry, DaemonConnector connector, IdGenerator idGenerator, DocumentationRegistry documentationRegistry) {
+        return new ReportDaemonStatusClient(registry, connector, idGenerator, documentationRegistry);
     }
 
     protected DaemonClient createDaemonClient() {
