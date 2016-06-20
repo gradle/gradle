@@ -25,6 +25,9 @@ class KotlinBuildScriptModelPlugin @Inject constructor(
     val classPathRegistry: ClassPathRegistry) : Plugin<Project>, ToolingModelBuilder {
 
     override fun apply(project: Project) {
+        if (isIdeaActive()) {
+            saveIdeaDaemonPropertiesOf(project)
+        }
         modelBuilderRegistry.register(this)
     }
 
@@ -40,6 +43,17 @@ class KotlinBuildScriptModelPlugin @Inject constructor(
 
     private fun scriptClassPathOf(project: Project) =
         (project.buildscript as ScriptHandlerInternal).scriptClassPath.asFiles
+
+    private fun isIdeaActive() =
+        System.getProperty("idea.active", "false") == "true"
+
+    private fun saveIdeaDaemonPropertiesOf(project: Project) {
+        daemonPropertiesFileOf(project.projectDir).apply { parentFile.mkdirs() }.bufferedWriter().use {
+            System.getProperties().store(it, null)
+        }
+    }
 }
 
 class StandardKotlinBuildScriptModel(override val classPath: List<File>) : KotlinBuildScriptModel, Serializable
+
+fun daemonPropertiesFileOf(projectDir: File) = File(projectDir, ".gradle/gradle-script-kotlin-idea.properties")
