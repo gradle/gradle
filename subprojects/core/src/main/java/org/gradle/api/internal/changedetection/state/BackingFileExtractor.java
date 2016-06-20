@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.file;
+package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.FileSystemSubset;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileCollectionContainer;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
@@ -41,7 +45,7 @@ import java.util.List;
  *
  * It's not possible to know whether a file is a single file or directory for task inputs or outputs. For this reason any logic shouldn't rely on a exact answer.
  */
-public class BackingFileExtractor {
+class BackingFileExtractor {
     private final static Logger LOG = Logging.getLogger(BackingFileExtractor.class);
 
     public List<FileEntry> extractFilesOrDirectories(FileCollection fileCollection) {
