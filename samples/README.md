@@ -3,9 +3,11 @@ Sample Kotlin-based Gradle build scripts
 
 The Gradle projects in this directory demonstrate typical use cases with and features available in Gradle Script Kotlin. They include:
 
- - [`hello-world`](hello-world): plugin application and configuration, dependency management, JUnit testing
- - [`copy`](copy): typed task declarations, configuration of a Gradle `CopySpec`
- - [`extra-properties`](extra-properties): use of `extra` properties (equivalent of the `ext` properties found in Gradle Script Groovy)
+ - [`hello-world`](hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
+ - [`copy`](copy): demonstrates typed task declarations, and configuration of a Gradle `CopySpec`
+ - [`extra-properties`](extra-properties): demonstrates the use of `extra` properties (equivalent of the `ext` properties found in Gradle Script Groovy)
+ - [`modularity`](modularity): demonstrates the use of `applyFrom` to modularize build scripts
+ - [`hello-kotlin`](hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
 
 
 Set up dev environment
@@ -40,7 +42,9 @@ _Note: The remainder of these instructions focus on the `hello-world` sample pro
 
 ### Import the sample project into IDEA
 
-In IDEA, go to `File->Open...` and navigate to `$REPO_ROOT/samples/hello-world`
+In IDEA, go to `File->Open...` and navigate to `$REPO_ROOT/samples/hello-world`.
+
+When prompted, choose to "Use local Gradle wrapper".
 
 The project should import without errors.
 
