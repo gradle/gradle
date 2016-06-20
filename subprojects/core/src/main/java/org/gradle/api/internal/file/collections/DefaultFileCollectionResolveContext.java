@@ -40,7 +40,7 @@ import java.util.concurrent.Callable;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultFileCollectionResolveContext implements ResolvableFileCollectionResolveContext {
-    private final PathToFileResolver fileResolver;
+    protected final PathToFileResolver fileResolver;
     private final List<Object> queue = new LinkedList<Object>();
     private List<Object> addTo = queue;
     protected final Converter<? extends FileCollectionInternal> fileCollectionConverter;
@@ -109,7 +109,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
                 converter.convertInto(nestedContext, result, fileResolver);
             } else if (element instanceof FileCollectionContainer) {
                 FileCollectionContainer fileCollection = (FileCollectionContainer) element;
-                resolveNested(fileCollection);
+                resolveNested(fileCollection, result, converter);
             } else if (element instanceof FileCollection || element instanceof MinimalFileCollection) {
                 converter.convertInto(element, result, fileResolver);
             } else if (element instanceof Task) {
@@ -137,7 +137,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         return result;
     }
 
-    private void resolveNested(FileCollectionContainer fileCollection) {
+    protected <T> void resolveNested(FileCollectionContainer fileCollection, List<T> result, Converter<? extends T> converter) {
         addTo = queue.subList(0, 0);
         try {
             fileCollection.visitContents(this);
