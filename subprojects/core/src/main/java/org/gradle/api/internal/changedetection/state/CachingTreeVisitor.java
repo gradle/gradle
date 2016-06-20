@@ -166,11 +166,10 @@ public class CachingTreeVisitor {
 
     public void clearCache() {
         cachedTrees.invalidateAll();
-        cacheableFilePaths = null;
     }
 
     public void updateCacheableFilePaths(Collection<String> cacheableFilePaths) {
-        this.cacheableFilePaths = new HashSet<String>(cacheableFilePaths);
+        this.cacheableFilePaths = cacheableFilePaths != null ? new HashSet<String>(cacheableFilePaths) : null;
     }
 
     public void invalidateFilePaths(Iterable<String> filePaths) {

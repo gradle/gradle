@@ -85,6 +85,7 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
 
     private void clearCache() {
         cachingTreeVisitor.clearCache();
+        cachingTreeVisitor.updateCacheableFilePaths(null);
         lastTaskToHandleInputFile = null;
         tasksWithUnknownOutputs = null;
         tasksWithUnknownInputs = null;
