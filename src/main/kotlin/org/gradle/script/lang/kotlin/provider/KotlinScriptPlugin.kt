@@ -44,6 +44,5 @@ class KotlinScriptPlugin(val scriptSource: ScriptSource, val script: (Project) -
 
     private fun registerBuiltinTasks(target: Project) {
         target.apply<KotlinBuildScriptModelPlugin>()
-        target.apply<BuiltinTasksPlugin>()
     }
 }
