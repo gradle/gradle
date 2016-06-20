@@ -23,6 +23,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.ReportStatus;
+import org.gradle.launcher.daemon.protocol.Status;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
@@ -34,6 +35,7 @@ public class ReportDaemonStatusClient {
     private final DaemonConnector connector;
     private final IdGenerator<?> idGenerator;
     private final ReportStatusDispatcher reportStatusDispatcher;
+    private static final String STATUS_FORMAT = "%1$6s %2$-7s %3$s";
 
     public ReportDaemonStatusClient(DaemonRegistry daemonRegistry, DaemonConnector connector, IdGenerator<?> idGenerator) {
         Preconditions.checkNotNull(daemonRegistry, "DaemonRegistry must not be null");
@@ -55,15 +57,16 @@ public class ReportDaemonStatusClient {
         if (daemons.isEmpty()) {
             LOGGER.quiet(DaemonMessages.NO_DAEMONS_RUNNING);
         } else {
-            LOGGER.quiet("   PID VERSION STATUS");
-            // TODO(ew): probably a more elegant way to do this
+            LOGGER.quiet(String.format(STATUS_FORMAT, "PID", "VERSION", "STATUS"));
             for (DaemonInfo info : daemons) {
                 DaemonClientConnection connection = connector.maybeConnect(info);
                 if (connection != null) {
                     try {
-                        String status = reportStatusDispatcher.dispatch(connection, new ReportStatus(idGenerator.generateId(), info.getToken()));
+                        Status status = reportStatusDispatcher.dispatch(connection, new ReportStatus(idGenerator.generateId(), info.getToken()));
                         if (status != null) {
-                            LOGGER.quiet(status);
+                            LOGGER.quiet(String.format(STATUS_FORMAT, status.getPid(), status.getVersion(), status.getStatus()));
+                        } else { // Handle failure
+                            LOGGER.quiet(String.format(STATUS_FORMAT, info.getPid(), "UNKNOWN", "BROKEN"));
                         }
                     } finally {
                         connection.stop();
