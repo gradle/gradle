@@ -30,7 +30,11 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
@@ -39,8 +43,8 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     private final PathToFileResolver fileResolver;
     private final List<Object> queue = new LinkedList<Object>();
     private List<Object> addTo = queue;
-    private final Converter<? extends FileCollectionInternal> fileCollectionConverter;
-    private final Converter<? extends FileTreeInternal> fileTreeConverter;
+    protected final Converter<? extends FileCollectionInternal> fileCollectionConverter;
+    protected final Converter<? extends FileTreeInternal> fileTreeConverter;
 
     public DefaultFileCollectionResolveContext(FileResolver fileResolver) {
         this(fileResolver, new FileCollectionConverter(), new FileTreeConverter(fileResolver.getPatternSetFactory()));
@@ -52,19 +56,26 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         this.fileTreeConverter = fileTreeConverter;
     }
 
-    public DefaultFileCollectionResolveContext add(Object element) {
+    @Override
+    public FileCollectionResolveContext add(Object element) {
         addTo.add(element);
         return this;
     }
 
-    public DefaultFileCollectionResolveContext push(PathToFileResolver fileResolver) {
-        DefaultFileCollectionResolveContext nestedContext = new DefaultFileCollectionResolveContext(fileResolver, fileCollectionConverter, fileTreeConverter);
+    @Override
+    public FileCollectionResolveContext push(PathToFileResolver fileResolver) {
+        ResolvableFileCollectionResolveContext nestedContext = newContext(fileResolver);
         add(nestedContext);
         return nestedContext;
     }
 
-    public ResolvableFileCollectionResolveContext newContext() {
+    protected ResolvableFileCollectionResolveContext newContext(PathToFileResolver fileResolver) {
         return new DefaultFileCollectionResolveContext(fileResolver, fileCollectionConverter, fileTreeConverter);
+    }
+
+    @Override
+    public final ResolvableFileCollectionResolveContext newContext() {
+        return newContext(fileResolver);
     }
 
     /**
