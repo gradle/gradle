@@ -79,7 +79,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
                 }
             };
 
-            acceptor = incomingConnector.accept(connectEvent, false);
+            acceptor = incomingConnector.accept(connectEvent, true);
             started = true;
             return acceptor.getAddress();
         } finally {
