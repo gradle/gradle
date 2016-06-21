@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ear
 
-import groovy.transform.NotYetImplemented
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
@@ -301,7 +300,6 @@ ear {
     }
 
     @Issue("GRADLE-3486")
-    @NotYetImplemented
     def "does not fail when provided with an existing descriptor without a version attribute"() {
         given:
         buildScript '''
