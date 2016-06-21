@@ -119,7 +119,7 @@ public class TreeVisitorCacheExpirationStrategy implements Stoppable {
                     }
                 }
                 cumulatedInputsAndOutputs.addAll(inputPaths);
-            } else if (!task.getInputs().getHasInputs()) {
+            } else if (!task.getInputs().getHasInputs() && !task.getActions().isEmpty()) {
                 tasksWithUnknownInputs.add(taskPath);
             }
 
@@ -127,7 +127,7 @@ public class TreeVisitorCacheExpirationStrategy implements Stoppable {
             if (outputPaths.size() > 0) {
                 cumulatedInputsAndOutputs.addAll(outputPaths);
                 detector.addPaths(outputPaths);
-            } else if (!task.getOutputs().getHasOutput()) {
+            } else if (!task.getOutputs().getHasOutput() && !task.getActions().isEmpty()) {
                 tasksWithUnknownOutputs.add(taskPath);
             }
         }
