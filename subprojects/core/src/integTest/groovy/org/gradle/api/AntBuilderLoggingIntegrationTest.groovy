@@ -17,8 +17,9 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
-
+@Ignore // Severe flakiness
 class AntBuilderLoggingIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
