@@ -318,4 +318,23 @@ ear {
         def ear = new JarTestFixture(file('build/libs/root.ear'))
         ear.assertContainsFile("META-INF/application.xml")
     }
+
+    def "does not fail when initializeInOrder is null"() {
+        given:
+        buildScript '''
+            apply plugin: 'ear'
+            ear {
+                deploymentDescriptor {
+                    initializeInOrder = null
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("META-INF/application.xml")
+    }
 }
