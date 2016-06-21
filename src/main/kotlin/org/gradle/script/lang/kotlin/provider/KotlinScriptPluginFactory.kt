@@ -33,6 +33,7 @@ import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 
 import org.gradle.groovy.scripts.ScriptSource
+
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -77,7 +78,8 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
                                 targetScope: ClassLoaderScope, baseScope: ClassLoaderScope): (Project) -> Unit {
         val defaultClassPath = defaultClassPath()
         val buildscriptClassLoader = buildscriptClassLoaderFrom(baseScope)
-        val buildscriptClass = compileBuildscriptSection(buildscriptRange, script, defaultClassPath, buildscriptClassLoader)
+        val buildscriptClass =
+            compileBuildscriptSection(buildscriptRange, script, defaultClassPath, buildscriptClassLoader)
         return { target ->
             executeScriptWithContextClassLoader(buildscriptClassLoader, buildscriptClass, target)
             val effectiveClassPath = defaultClassPath + scriptHandler.scriptClassPath.asFiles

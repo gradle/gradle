@@ -46,7 +46,8 @@ import org.slf4j.Logger
 
 import java.io.File
 
-fun compileKotlinScript(scriptFile: File, scriptDef: KotlinScriptDefinition, classLoader: ClassLoader, log: Logger): Class<*> {
+fun compileKotlinScript(scriptFile: File,
+                        scriptDef: KotlinScriptDefinition, classLoader: ClassLoader, log: Logger): Class<*> {
     val messageCollector = messageCollectorFor(log)
     val rootDisposable = newDisposable()
     try {

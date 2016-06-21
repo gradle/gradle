@@ -28,7 +28,6 @@ class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyH
      *
      * @param dependencyNotation notation for the dependency to be added.
      * @return The dependency.
-     *
      * @see DependencyHandler.add
      */
     operator fun String.invoke(dependencyNotation: Any) =

@@ -20,9 +20,9 @@ import org.gradle.api.Plugin
 import org.gradle.api.plugins.ObjectConfigurationAction
 
 /**
- * Adds a Plugin to use to configure the target objects.
- * You can call this method multiple times, to use multiple plugins.
- * Scripts and plugins are applied in the order that they are added.
+ * Adds a Plugin to use to configure the target objects. This method may be called
+ * multiple times, to use multiple plugins. Scripts and plugins are applied in the order
+ * that they are added.
  *
  * @param T the plugin to apply.
  */

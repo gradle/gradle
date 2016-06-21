@@ -34,7 +34,6 @@ import kotlin.reflect.KProperty
  * compatible type of `this`.
  *
  * @param T the plugin type.
- *
  * @see PluginManager.apply
  */
 inline fun <reified T : Plugin<Project>> Project.apply() =
@@ -55,7 +54,6 @@ fun Project.applyFrom(script: Any) =
  *
  * @param T the plugin convention type.
  * @param configuration the configuration block.
- *
  * @see Convention.getPlugin
  */
 inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) =

@@ -20,19 +20,16 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PolymorphicDomainObjectContainer
 
 /**
- * Creates a domain object with the specified name and type, adds it to the container, and configures
- * it with the specified action.
+ * Creates a domain object with the specified name and type, adds it to the container,
+ * and configures it with the specified action.
  *
  * @param name the name of the domain object to be created
- *
  * @param configuration an action for configuring the domain object
- *
  * @param <U> the type of the domain object to be created
- *
  * @return the created domain object
- *
- * @throws InvalidUserDataException if a domain object with the specified name already exists
- * or the container does not support creating a domain object with the specified type
+ * @throws InvalidUserDataException if a domain object with the specified name already
+ * exists or the container does not support creating a domain object with the specified
+ * type
  */
 inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(name: String,
                                                                            crossinline configuration: U.() -> Unit) =
@@ -42,14 +39,11 @@ inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(name:
  * Creates a domain object with the specified name and type, and adds it to the container.
  *
  * @param name the name of the domain object to be created
- *
  * @param <U> the type of the domain object to be created
- *
  * @return the created domain object
- *
- * @throws InvalidUserDataException if a domain object with the specified name already exists
- * or the container does not support creating a domain object with the specified type
+ * @throws InvalidUserDataException if a domain object with the specified name already
+ * exists or the container does not support creating a domain object with the specified
+ * type
  */
-
 inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(name: String) =
     create(name, U::class.java)

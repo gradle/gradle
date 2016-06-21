@@ -16,9 +16,10 @@
 
 package org.gradle.script.lang.kotlin.support
 
-import org.gradle.api.Project
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.KotlinScriptHandler
+
+import org.gradle.api.Project
 
 abstract class KotlinBuildScriptSection(project: Project) : KotlinBuildScript(project) {
 

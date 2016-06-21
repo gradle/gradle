@@ -16,13 +16,20 @@
 
 package org.gradle.script.lang.kotlin.support
 
+import org.gradle.script.lang.kotlin.KotlinBuildScript
+import org.gradle.script.lang.kotlin.loggerFor
+
 import org.gradle.api.Project
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
+
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.script.lang.kotlin.KotlinBuildScript
-import org.gradle.script.lang.kotlin.loggerFor
-import org.jetbrains.kotlin.script.*
+
+import org.jetbrains.kotlin.script.KotlinConfigurableScriptDefinition
+import org.jetbrains.kotlin.script.KotlinScriptConfig
+import org.jetbrains.kotlin.script.KotlinScriptDefinition
+import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromTemplate
+import org.jetbrains.kotlin.script.KotlinScriptParameterConfig
 
 import java.io.File
 

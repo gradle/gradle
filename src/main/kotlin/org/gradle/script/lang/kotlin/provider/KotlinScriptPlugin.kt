@@ -16,14 +16,15 @@
 
 package org.gradle.script.lang.kotlin.provider
 
+import org.gradle.script.lang.kotlin.loggerFor
+import org.gradle.script.lang.kotlin.apply
+import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModelPlugin
+
 import org.gradle.api.Project
 
 import org.gradle.configuration.ScriptPlugin
 
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.script.lang.kotlin.loggerFor
-import org.gradle.script.lang.kotlin.apply
-import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModelPlugin
 
 class KotlinScriptPlugin(val scriptSource: ScriptSource, val script: (Project) -> Unit) : ScriptPlugin {
 
