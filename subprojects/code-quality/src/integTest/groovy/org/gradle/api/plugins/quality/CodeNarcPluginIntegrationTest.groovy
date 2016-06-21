@@ -15,9 +15,11 @@
  */
 package org.gradle.api.plugins.quality
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.hamcrest.Matchers.startsWith
 
@@ -289,6 +291,25 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds("check")
         !output.contains("CodeNarc rule violations were found. See the report at:")
         file("build/reports/codenarc/test.html").text.contains("testclass2")
+    }
+
+    @Issue("GRADLE-3492")
+    @NotYetImplemented
+    def "can exclude code"() {
+        badCode()
+        buildFile << """
+            codenarcMain {
+                exclude '**/class1*'
+                exclude '**/Class2*'
+            }
+            codenarcTest {
+                exclude '**/TestClass1*'
+                exclude '**/testclass2*'
+            }
+        """.stripIndent()
+
+        expect:
+        succeeds("check")
     }
 
     private goodCode() {
