@@ -80,6 +80,19 @@ We have been working hard to make the Gradle Daemon aware of its health and impa
 
 We encourage you to give the improved Daemon a try. If for some reason you encounter problems, you can [disable the Daemon](userguide/gradle_daemon.html#daemon_faq). Please [submit feedback to us](https://discuss.gradle.org/c/3-0-m1/) if you encounter instability so that we can make further improvements.
 
+### List Running Gradle Daemons with `gradle --status`
+
+You can now check the status of running Daemons. A sample:
+
+```
+$> gradle --status
+   PID VERSION                 STATUS
+ 28411 3.0                     IDLE
+ 34247 3.0                     BUSY
+```
+
+Note that currently this does not list Gradle Daemons with version < 3.0. More details available in the [User Guide](userguide/gradle_daemon.html#status). 
+
 ### Up-to-date checks more robust against task implementation changes
 
 Previously if a task's implementation class name changed, the class was deemed out-of-date even if its inputs and outputs matched the previous execution. However, if only the code of the task, or a dependent library changed, the task was still considered up-to-date. Since this version Gradle notices if the code of a task or its dependencies change between executions, and marks tasks as out-of-date when needed.
