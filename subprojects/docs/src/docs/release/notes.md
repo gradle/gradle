@@ -307,6 +307,7 @@ We would like to thank the following community members for making contributions 
  - [Vladislav Bauer](https://github.com/vbauer) - ShadeJar: Use ClassRemapper instead of deprecated RemappingClassAdapter
  - [Matias Hernandez](https://github.com/matiash) - Removed 4NT-specific code in bat files (GRADLE-3476)
  - [Andreas Dangel](https://github.com/adangel) - Add sourceSet.output to PMD classpath (GRADLE-3488)
+ - [Alexander Shorin](https://github.com/kxepal) - Allow local connections for daemon and messaging services from all network devices (GRADLE-3121)
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
