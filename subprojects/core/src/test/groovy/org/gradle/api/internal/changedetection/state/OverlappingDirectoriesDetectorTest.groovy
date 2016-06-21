@@ -39,6 +39,15 @@ class OverlappingDirectoriesDetectorTest extends Specification {
         detector.resolveOverlappingPaths() == ['C:\\a\\b\\c', 'C:\\a\\b\\c\\d'] as Set
     }
 
+    def "should detect overlapping file paths in Windows UNC path names"() {
+        given:
+        OverlappingDirectoriesDetector detector = new OverlappingDirectoriesDetector('\\' as char)
+        when:
+        detector.addPaths(['\\\\somehost\\a\\b\\c', 'C:\\a\\b\\c2', 'C:\\a\\b\\c3', '\\\\somehost\\a\\b\\c\\d'])
+        then:
+        detector.resolveOverlappingPaths() == ['\\\\somehost\\a\\b\\c', '\\\\somehost\\a\\b\\c\\d'] as Set
+    }
+
     def "should detect when same path is used twice"() {
         given:
         OverlappingDirectoriesDetector detector = new OverlappingDirectoriesDetector('/' as char)
