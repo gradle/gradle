@@ -19,14 +19,10 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.BufferedStreamingHasher;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheAccess;
-import org.gradle.internal.UncheckedException;
-import org.gradle.internal.serialize.Encoder;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,6 +32,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
     protected final FileSnapshotter snapshotter;
     protected final StringInterner stringInterner;
     protected final FileResolver fileResolver;
+    private final VisitedTreesPreCheckHasher visitedTreesPreCheckHasher = new VisitedTreesPreCheckHasher();
     protected CacheAccess cacheAccess;
 
     public AbstractFileCollectionSnapshotter(FileSnapshotter snapshotter, CacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver) {
@@ -51,28 +48,6 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
 
     public FileCollectionSnapshot.PreCheck preCheck(final FileCollection files, final boolean allowReuse) {
         return new DefaultFileCollectionSnapshotPreCheck(files, allowReuse);
-    }
-
-    private Integer calculatePreCheckHash(Collection<VisitedTree> visitedTrees) {
-        BufferedStreamingHasher hasher = new BufferedStreamingHasher();
-        Encoder encoder = hasher.getEncoder();
-        try {
-            List<VisitedTree> sortedTrees = new ArrayList<VisitedTree>();
-            Collections.sort(sortedTrees, DefaultVisitedTree.VisitedTreeComparator.INSTANCE);
-            for (VisitedTree tree : visitedTrees) {
-                if (tree.getAbsolutePath() != null) {
-                    encoder.writeString(tree.getAbsolutePath());
-                }
-                if (tree.getPatternSet() != null) {
-                    encoder.writeInt(tree.getPatternSet().hashCode());
-                }
-                encoder.writeInt(tree.getEntries().size());
-                encoder.writeInt(tree.calculatePreCheckHash());
-            }
-            return hasher.checksum();
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 
     public FileCollectionSnapshot snapshot(final FileCollectionSnapshot.PreCheck preCheck) {
@@ -132,7 +107,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         @Override
         public Integer getHash() {
             if (hash == null) {
-                hash = calculatePreCheckHash(visitedTrees);
+                hash = visitedTreesPreCheckHasher.calculatePreCheckHash(visitedTrees);
             }
             return hash;
         }
