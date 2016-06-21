@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
@@ -294,7 +293,6 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Issue("GRADLE-3492")
-    @NotYetImplemented
     def "can exclude code"() {
         badCode()
         buildFile << """
