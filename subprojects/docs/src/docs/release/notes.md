@@ -1,3 +1,13 @@
+The Gradle team is pleased to announce Gradle 3.0 M2.
+
+This second release leading up to Gradle 3.0 builds on [3.0 M1](https://github.com/gradle/gradle/releases/tag/v3.0.0-M1) with several key improvements listed below. For more information, see the [announcement blog post](http://gradle.org/blog/gradle-3-0-m2-java-9-support/).
+
+Check out some of [the improvements we've made](#all-improvements) since Gradle 2.0. Lots of reasons to upgrade!
+
+## Compatibility and Support
+
+This release is intended as a _preview_ for new features we'll be releasing soon in Gradle 3.0. As such, it is not intended to be used in a production environment and features may change significantly before they are released in Gradle 3.0.
+
 ## New and noteworthy
 
 Here are the new features introduced in this Gradle release.
@@ -10,7 +20,11 @@ Add-->
 ### Example new and noteworthy
 -->
 
-Check out some of [the improvements we've made](#all-improvements) since Gradle 2.0. Lots of reasons to upgrade!
+### New Features and Improvements since 3.0 M1
+
+ * **Initial Java 9 Support.** Gradle now runs properly when run on the latest JDK 9 EAP builds, and users can build and run tests for their own projects against JDK 9 as well. Note, however, that Gradle does not yet support Jigsaw modules or JDK 9-specific compile options such as `-release` and `-modulepath`. 
+ * **Performance Improvements and new Performance Guide.** A number of performance improvements have acculmulated over the last several Gradle releases, and it's a good time to try them out for yourself in 3.0 M2. For details on many of these improvements, see [Cédric's blog post](http://gradle.org/blog/gradle-3-0-m2-java-9-support/). We're also pleased to make available a draft of our [new Performance Guide](https://gradle.github.io/performance-guide). This is intended to be a short (13-page) guide that allows you to dramatically improve your build performance over the course of an afternoon. Check it out and please provide any feedback via the guide's [GitHub Issues](https://github.com/gradle/performance-guide/issues).
+ * **Improved Kotlin build scripting.** Gradle 3.0 M2 includes the newly-released Gradle Script Kotlin 0.2.0. Users can now modify the build script classpath and apply plugins in Kotlin-based build scripts, and project import into IDEA is now seamless. See the Gradle Script Kotlin [0.2.0 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/0.2.0) for details, samples and getting started instructions.
     
 ### Improved Gradle Daemon, now enabled by default
 
@@ -328,3 +342,5 @@ We love getting contributions from the Gradle community. For information on cont
 ## Known issues
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
+
+[GRADLE-3491](https://issues.gradle.org/browse/GRADLE-3491) - Android Library projects do not pick up changes
