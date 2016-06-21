@@ -53,7 +53,13 @@ The project should import without errors.
 
 You're now ready to explore what's possible with Gradle Script Kotlin in IDEA. Generally speaking, things should "just work", as they would in the context of any other Java or Kotlin code you would write in IDEA.
 
-Start by opening `build.gradle.kts`, and continue with any or all of the following:
+Start by opening `build.gradle.kts`.
+
+_Note: The very first time you do, IDEA might fail to recognise the
+classpath of the script, if that happens, simply restart IDEA. This is
+a known issue that will be fixed soon._
+
+Continue with any or all of the following:
 
 #### Syntax highlighting
 
