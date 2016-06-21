@@ -28,5 +28,5 @@ repositories {
 }
 
 dependencies {
-    "compile"("org.jetbrains.kotlin:kotlin-stdlib:${extra["kotlinVersion"]}")
+    compile("org.jetbrains.kotlin:kotlin-stdlib:${extra["kotlinVersion"]}")
 }
