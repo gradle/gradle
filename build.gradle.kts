@@ -1,9 +1,7 @@
-import org.gradle.api.artifacts.dsl.*
 import org.gradle.api.plugins.*
 import org.gradle.api.publish.*
 import org.gradle.api.publish.maven.*
 import org.gradle.jvm.tasks.Jar
-import org.gradle.script.lang.kotlin.*
 
 apply {
     plugin("kotlin")
@@ -48,13 +46,5 @@ configure<PublishingExtension> {
         }
     }
 }
-
-fun DependencyHandler.compileOnly(descriptor: Any) = add("compileOnly", descriptor)
-
-fun DependencyHandler.compile(descriptor: Any) = add("compile", descriptor)
-
-fun DependencyHandler.testCompile(descriptor: Any) = add("testCompile", descriptor)
-
-fun DependencyHandler.testRuntime(descriptor: Any) = add("testRuntime", descriptor)
 
 fun gradle(module: String) = "org.gradle:gradle-$module:3.+"
