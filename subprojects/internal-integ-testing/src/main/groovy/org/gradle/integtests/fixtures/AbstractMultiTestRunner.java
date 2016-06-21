@@ -73,7 +73,6 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
 
     private void initExecutions() {
         if (!executionsInitialized) {
-            executionsInitialized = true;
             try {
                 Runner descriptionProvider = createRunnerFor(Arrays.asList(target), Collections.<Filter>emptyList());
                 templateDescription = descriptionProvider.getDescription();
@@ -84,6 +83,7 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
             for (Execution execution : executions) {
                 execution.init(target, templateDescription);
             }
+            executionsInitialized = true;
         }
     }
 
