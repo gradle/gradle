@@ -43,8 +43,9 @@ ${configurationExtensions()}""")
     private fun configurationExtensions(): String =
         project
             .configurations
-            .map { extensionsFor(it.name) }
-            .joinToString(separator = "\n\n")
+            .joinToString(separator = "\n\n") {
+                extensionsFor(it.name)
+            }
 
     private fun  extensionsFor(name: String): String =
     """
