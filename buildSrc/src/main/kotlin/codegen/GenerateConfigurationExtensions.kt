@@ -35,6 +35,8 @@ open class GenerateConfigurationExtensions : DefaultTask() {
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 
+import org.gradle.api.artifacts.dsl.DependencyHandler
+
 ${configurationExtensions()}""")
     }
 
@@ -59,7 +61,7 @@ val ConfigurationContainer.$name: Configuration
 * @return The dependency.
 * @see DependencyHandler.add
 */
-fun KotlinDependencyHandler.$name(dependencyNotation: Any) =
+fun DependencyHandler.$name(dependencyNotation: Any) =
     add("$name", dependencyNotation)
     """
 }
