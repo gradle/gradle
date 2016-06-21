@@ -39,9 +39,8 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
             else -> null
         }
 
-    private fun retrieveDependenciesFromProject(projectRoot: File,
-                                                gradleInstallation: File): KotlinScriptExternalDependencies {
-        return withConnectionFrom(connectorFor(gradleInstallation, projectRoot)) {
+    private fun retrieveDependenciesFromProject(projectRoot: File, gradleInstallation: File) =
+        withConnectionFrom(connectorFor(projectRoot, gradleInstallation)) {
             model(KotlinBuildScriptModel::class.java)
                 .setJavaHome(javaHomeForDaemonOf(projectRoot))
                 .get()
@@ -53,7 +52,6 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
                         sources = gradleScriptKotlinJar + sourceRootsOf(gradleInstallation))
                 }
         }
-    }
 
     private fun sourceRootsOf(gradleInstallation: File): Collection<File> =
         File(gradleInstallation, "src").let { srcDir ->
@@ -90,7 +88,7 @@ private fun daemonPropertiesOf(projectRoot: File): Properties =
         }
     }
 
-private fun connectorFor(gradleInstallation: File, projectRoot: File) =
+private fun connectorFor(projectRoot: File, gradleInstallation: File) =
     GradleConnector.newConnector().forProjectDirectory(projectRoot).useInstallation(gradleInstallation)
 
 inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =
