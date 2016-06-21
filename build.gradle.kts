@@ -47,4 +47,4 @@ configure<PublishingExtension> {
     }
 }
 
-fun gradle(module: String) = "org.gradle:gradle-$module:3.+"
+fun gradle(module: String) = "org.gradle:gradle-$module:3.0-milestone-1"
