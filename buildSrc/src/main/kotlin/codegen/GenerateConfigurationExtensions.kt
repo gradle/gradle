@@ -47,8 +47,8 @@ ${configurationExtensions()}""")
                 extensionsFor(it.name)
             }
 
-    private fun  extensionsFor(name: String): String =
-    """
+    private fun extensionsFor(name: String): String =
+        """
 /**
  * The '$name' configuration.
  */
