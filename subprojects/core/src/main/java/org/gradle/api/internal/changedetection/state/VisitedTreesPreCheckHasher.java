@@ -34,9 +34,9 @@ public class VisitedTreesPreCheckHasher {
         BufferedStreamingHasher hasher = new BufferedStreamingHasher();
         Encoder encoder = hasher.getEncoder();
         try {
-            List<VisitedTree> sortedTrees = new ArrayList<VisitedTree>();
+            List<VisitedTree> sortedTrees = new ArrayList<VisitedTree>(visitedTrees);
             Collections.sort(sortedTrees, DefaultVisitedTree.VisitedTreeComparator.INSTANCE);
-            for (VisitedTree tree : visitedTrees) {
+            for (VisitedTree tree : sortedTrees) {
                 if (tree.getAbsolutePath() != null) {
                     encoder.writeString(tree.getAbsolutePath());
                 }
