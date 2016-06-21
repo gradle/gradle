@@ -19,9 +19,9 @@ package org.gradle.api.internal.changedetection.state
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-class CachingTreeVisitorCleanerIntegrationTest extends AbstractIntegrationSpec {
+class TreeVisitorCacheExpirationStrategyIntegrationTest extends AbstractIntegrationSpec {
 
-    def "cache should get flushed by CachingTreeVisitorCleaner before other build listeners get called"() {
+    def "cache should get flushed by TreeVisitorCacheExpirationStrategy before other build listeners get called"() {
         when:
         buildFile << '''
             import org.gradle.api.internal.changedetection.state.CachingTreeVisitor
@@ -39,7 +39,7 @@ class CachingTreeVisitorCleanerIntegrationTest extends AbstractIntegrationSpec {
             gradle.buildFinished {
                 def cachingTreeVisitor = gradle.getServices().get(CachingTreeVisitor)
                 // inspect internal/private state of CachingTreeVisitor
-                assert cachingTreeVisitor.cachedTrees.size() == 0 : "Cache wasn't flushed by CachingTreeVisitorCleaner"
+                assert cachingTreeVisitor.cachedTrees.size() == 0 : "Cache wasn't flushed by TreeVisitorCacheExpirationStrategy"
             }
         '''
         file('src/main/java/Hello.java') << 'public class Hello {}'

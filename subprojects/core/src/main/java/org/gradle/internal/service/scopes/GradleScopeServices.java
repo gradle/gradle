@@ -20,13 +20,29 @@ import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.changedetection.state.CachingTreeVisitor;
-import org.gradle.api.internal.changedetection.state.CachingTreeVisitorCleaner;
-import org.gradle.api.internal.plugins.*;
+import org.gradle.api.internal.changedetection.state.TreeVisitorCacheExpirationStrategy;
+import org.gradle.api.internal.plugins.DefaultPluginManager;
+import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
+import org.gradle.api.internal.plugins.PluginApplicator;
+import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.execution.*;
+import org.gradle.execution.BuildConfigurationAction;
+import org.gradle.execution.BuildConfigurationActionExecuter;
+import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.DefaultBuildConfigurationActionExecuter;
+import org.gradle.execution.DefaultBuildExecuter;
+import org.gradle.execution.DefaultTasksBuildExecutionAction;
+import org.gradle.execution.DryRunBuildExecutionAction;
+import org.gradle.execution.ExcludedTaskFilteringBuildConfigurationAction;
+import org.gradle.execution.ProjectConfigurer;
+import org.gradle.execution.SelectedTaskExecutionAction;
+import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.execution.TaskNameResolvingBuildConfigurationAction;
+import org.gradle.execution.TaskSelector;
 import org.gradle.execution.commandline.CommandLineTaskConfigurer;
 import org.gradle.execution.commandline.CommandLineTaskParser;
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter;
@@ -85,13 +101,13 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CachingTreeVisitor();
     }
 
-    CachingTreeVisitorCleaner createTreeVisitorCleaner(CachingTreeVisitor cachingTreeVisitor, Gradle gradle) {
-        return new CachingTreeVisitorCleaner(cachingTreeVisitor, gradle);
+    TreeVisitorCacheExpirationStrategy createTreeVisitorCacheExpirationStrategy(CachingTreeVisitor cachingTreeVisitor, ListenerManager listenerManager) {
+        return new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager);
     }
 
     BuildExecuter createBuildExecuter() {
-        // initialize CachingTreeVisitorCleaner so that listeners get registered
-        get(CachingTreeVisitorCleaner.class);
+        // initialize TreeVisitorCacheExpirationStrategy so that listeners get registered
+        get(TreeVisitorCacheExpirationStrategy.class);
         return new DefaultBuildExecuter(
                 asList(new DryRunBuildExecutionAction(),
                         new SelectedTaskExecutionAction()));

@@ -162,41 +162,28 @@ public class GradleScopeServicesTest extends Specification {
         1 * plugin2.registerGradleServices(_)
     }
 
-    def "TreeVisitorCacheExpirationStrategy register BuildListener when BuildExecuter is requested and TaskExecutionGraphListener & TaskExecutionListener on projectsEvaluated "() {
+    def "TreeVisitorCacheExpirationStrategy registers BuildListener, TaskExecutionGraphListener & TaskExecutionListener when BuildExecuter is requested"() {
         given:
         gradle = Mock()
         registry = new GradleScopeServices(parent, gradle)
-        def taskGraphExecuter = Mock(TaskGraphExecuter)
-        def buildListener
+        def listenerManager = Mock(ListenerManager)
 
         when:
         registry.get(BuildExecuter)
 
         then:
-        1 * gradle.addBuildListener({
-            if(isTreeVisitorCacheExpirationStrategy(it)) {
-                buildListener = it
-                true
-            } else {
-                false
-            }
-        })
+        1 * listenerManager.addListener({ isTreeVisitorCacheExpirationStrategy('BuildAdapter', it) })
+        1 * listenerManager.addListener({ isTreeVisitorCacheExpirationStrategy('TaskExecutionListener', it) })
+        1 * listenerManager.addListener({ isTreeVisitorCacheExpirationStrategy('TaskExecutionGraphListener', it) })
+        _ * parent.get(ListenerManager) >> listenerManager
         _ * parent.get({ it instanceof Class }) >> { Class type ->
             Stub(type)
         }
         0 * _._
-
-        when:
-        buildListener.projectsEvaluated(gradle)
-
-        then:
-        gradle.getTaskGraph() >> taskGraphExecuter
-        1 * taskGraphExecuter.addTaskExecutionGraphListener({ isTreeVisitorCacheExpirationStrategy(it) })
-        1 * taskGraphExecuter.addTaskExecutionListener({ isTreeVisitorCacheExpirationStrategy(it) })
     }
 
-    private boolean isTreeVisitorCacheExpirationStrategy(instance) {
-        instance.getClass().name.startsWith('org.gradle.api.internal.changedetection.state.TreeVisitorCacheExpirationStrategy$')
+    private boolean isTreeVisitorCacheExpirationStrategy(subclassName, instance) {
+        instance.getClass().name.startsWith("org.gradle.api.internal.changedetection.state.TreeVisitorCacheExpirationStrategy\$TreeVisitorCache$subclassName")
     }
 
 }

@@ -24,11 +24,11 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -38,7 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /*
  This class determines what task input file paths are cacheable by the CachingTreeVisitor ("tree snapshot cache")
@@ -56,24 +55,38 @@ import java.util.concurrent.atomic.AtomicBoolean;
  - invalidate entry from cache after the last task using the file path as input has been executed
  - invalidate all entries in the cache when the build finishes
 */
-class TreeVisitorCacheExpirationStrategy {
+public class TreeVisitorCacheExpirationStrategy implements Stoppable {
     private final static Logger LOG = Logging.getLogger(TreeVisitorCacheExpirationStrategy.class);
     private final CachingTreeVisitor cachingTreeVisitor;
-    private final Factory<OverlappingDirectoriesDetector> overlappingDirectoriesDetectorFactory;
+    private final ListenerManager listenerManager;
     // used to flush cache for a file path after the last task
     private Map<String, Collection<String>> lastTaskToHandleInputFile;
     private Set<String> tasksWithUnknownInputs;
     private Set<String> tasksWithUnknownOutputs;
-    private final AtomicBoolean graphPopulated = new AtomicBoolean(false);
-    private final AtomicBoolean taskGraphListenersRegistered = new AtomicBoolean(false);
-    private final AtomicBoolean buildListenerRegistered = new AtomicBoolean(false);
     private final TreeVisitorCacheTaskExecutionListener taskExecutionListener = new TreeVisitorCacheTaskExecutionListener();
     private final TreeVisitorCacheBuildAdapter buildListener = new TreeVisitorCacheBuildAdapter();
     private final TreeVisitorCacheTaskExecutionGraphListener taskExecutionGraphListener = new TreeVisitorCacheTaskExecutionGraphListener();
 
-    public TreeVisitorCacheExpirationStrategy(CachingTreeVisitor cachingTreeVisitor, Factory<OverlappingDirectoriesDetector> overlappingDirectoriesDetectorFactory) {
+    public TreeVisitorCacheExpirationStrategy(CachingTreeVisitor cachingTreeVisitor, ListenerManager listenerManager) {
         this.cachingTreeVisitor = cachingTreeVisitor;
-        this.overlappingDirectoriesDetectorFactory = overlappingDirectoriesDetectorFactory;
+        this.listenerManager = listenerManager;
+        registerListeners();
+    }
+
+    private void registerListeners() {
+        listenerManager.addListener(buildListener);
+        listenerManager.addListener(taskExecutionGraphListener);
+        listenerManager.addListener(taskExecutionListener);
+    }
+
+    private void removeListeners() {
+        listenerManager.removeListener(taskExecutionListener);
+        listenerManager.removeListener(taskExecutionGraphListener);
+        listenerManager.removeListener(buildListener);
+    }
+
+    public void stop() {
+        removeListeners();
     }
 
     private void clearCache() {
@@ -94,7 +107,7 @@ class TreeVisitorCacheExpirationStrategy {
 
         Set<String> cumulatedInputsAndOutputs = new HashSet<String>();
 
-        OverlappingDirectoriesDetector detector = overlappingDirectoriesDetectorFactory.create();
+        OverlappingDirectoriesDetector detector = new OverlappingDirectoriesDetector();
         for (Task task : graph.getAllTasks()) {
             final String taskPath = task.getPath();
             List<String> inputPaths = extractFilePaths(task.getInputs().getFiles());
@@ -159,36 +172,17 @@ class TreeVisitorCacheExpirationStrategy {
         });
     }
 
-    public void registerListeners(Gradle gradle) {
-        if (buildListenerRegistered.compareAndSet(false, true)) {
-            gradle.addBuildListener(buildListener);
-        }
-    }
-
-    public void removeListeners(Gradle gradle) {
-        if (buildListenerRegistered.compareAndSet(true, false)) {
-            gradle.removeListener(buildListener);
-        }
-        if (taskGraphListenersRegistered.compareAndSet(true, false)) {
-            TaskExecutionGraph taskGraph = gradle.getTaskGraph();
-            taskGraph.removeTaskExecutionGraphListener(taskExecutionGraphListener);
-            taskGraph.removeTaskExecutionListener(taskExecutionListener);
-        }
-    }
-
     private class TreeVisitorCacheTaskExecutionGraphListener implements TaskExecutionGraphListener {
         @Override
         public void graphPopulated(TaskExecutionGraph graph) {
-            if (graphPopulated.compareAndSet(false, true)) {
-                try {
-                    resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
-                } catch (Exception e) {
-                    LOG.info("Exception '{}' while resolving task inputs and outputs. Disabling tree visitor caching for this build.", e.getMessage());
-                    if (LOG.isDebugEnabled()) {
-                        LOG.debug("Exception details", e);
-                    }
-                    clearCache();
+            try {
+                resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
+            } catch (Exception e) {
+                LOG.info("Exception '{}' while resolving task inputs and outputs. Disabling tree visitor caching for this build.", e.getMessage());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Exception details", e);
                 }
+                clearCache();
             }
         }
     }
@@ -219,15 +213,6 @@ class TreeVisitorCacheExpirationStrategy {
     }
 
     private class TreeVisitorCacheBuildAdapter extends BuildAdapter {
-        @Override
-        public void projectsEvaluated(Gradle gradle) {
-            if (taskGraphListenersRegistered.compareAndSet(false, true)) {
-                TaskExecutionGraph taskGraph = gradle.getTaskGraph();
-                taskGraph.addTaskExecutionGraphListener(taskExecutionGraphListener);
-                taskGraph.addTaskExecutionListener(taskExecutionListener);
-            }
-        }
-
         @Override
         public void buildFinished(BuildResult result) {
             clearCache();
