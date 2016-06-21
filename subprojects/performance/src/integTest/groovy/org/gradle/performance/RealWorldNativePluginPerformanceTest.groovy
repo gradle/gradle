@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 import org.apache.commons.io.FileUtils
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.NativePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
@@ -29,7 +30,7 @@ import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(NativePerformanceTest)
+@Category([Experiment, NativePerformanceTest])
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Project '#testProject' measuring incremental build speed")
     def "build real world native project"() {
