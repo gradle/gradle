@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.gradle.api.internal.changedetection.state.CachingTreeVisitor.CACHING_TREE_VISITOR_FEATURE_ENABLED;
+
 /*
  This class determines what task input file paths are cacheable by the CachingTreeVisitor ("tree snapshot cache")
  used in up-to-date checking to reduce unnecessary directory scanning.
@@ -80,15 +82,19 @@ public class TreeVisitorCacheExpirationStrategy implements Stoppable {
     }
 
     private void registerListeners() {
-        listenerManager.addListener(buildListener);
-        listenerManager.addListener(taskExecutionGraphListener);
-        listenerManager.addListener(taskExecutionListener);
+        if (CACHING_TREE_VISITOR_FEATURE_ENABLED) {
+            listenerManager.addListener(buildListener);
+            listenerManager.addListener(taskExecutionGraphListener);
+            listenerManager.addListener(taskExecutionListener);
+        }
     }
 
     private void removeListeners() {
-        listenerManager.removeListener(taskExecutionListener);
-        listenerManager.removeListener(taskExecutionGraphListener);
-        listenerManager.removeListener(buildListener);
+        if (CACHING_TREE_VISITOR_FEATURE_ENABLED) {
+            listenerManager.removeListener(taskExecutionListener);
+            listenerManager.removeListener(taskExecutionGraphListener);
+            listenerManager.removeListener(buildListener);
+        }
     }
 
     public void stop() {
