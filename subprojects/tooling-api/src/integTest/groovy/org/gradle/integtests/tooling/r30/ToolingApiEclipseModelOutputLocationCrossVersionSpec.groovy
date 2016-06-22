@@ -31,7 +31,7 @@ class ToolingApiEclipseModelOutputLocationCrossVersionSpec extends ToolingApiSpe
         settingsFile << 'rootProject.name = "root"'
     }
 
-    @TargetGradleVersion(">=1.2 <2.99")
+    @TargetGradleVersion(">=1.2 <3.0")
     def "Old versions throw runtime exception when querying output location"() {
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
