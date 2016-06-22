@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.BuildListener
+import org.gradle.BuildResult
 import org.gradle.api.Task
 import org.gradle.api.UncheckedIOException
 import org.gradle.api.execution.TaskExecutionGraph
@@ -222,6 +223,21 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
         0 * _._
     }
 
+    def "cache get cleared when build finishes"() {
+        given:
+        CachingTreeVisitor cachingTreeVisitor = Mock()
+        DefaultListenerManager listenerManager = new DefaultListenerManager()
+        def treeVisitorCacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager, false)
+        BuildListener buildListener = listenerManager.getBroadcaster(BuildListener)
+
+        when:
+        buildListener.buildFinished(Stub(BuildResult))
+
+        then:
+        1 * cachingTreeVisitor.updateCacheableFilePaths(null)
+        1 * cachingTreeVisitor.clearCache()
+        0 * _._
+    }
 
     Task createTaskStub(String path, List<File> inputs, List<File> outputs, boolean throwsException = false) {
         Task task = Stub(Task)
