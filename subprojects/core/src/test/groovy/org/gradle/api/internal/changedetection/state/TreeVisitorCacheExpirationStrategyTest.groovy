@@ -239,6 +239,53 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
         0 * _._
     }
 
+    def "cache entry gets removed after last task using the entry has executed"() {
+        given:
+        CachingTreeVisitor cachingTreeVisitor = Mock()
+        DefaultListenerManager listenerManager = new DefaultListenerManager()
+        def treeVisitorCacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager, false)
+        TaskExecutionGraphListener taskExecutionGraphListener = listenerManager.getBroadcaster(TaskExecutionGraphListener)
+        def taskExecutionGraph = Stub(TaskExecutionGraph)
+        def allTasks = [createTaskStub(":a", [file("shared/input")], [file("a/output")]), createTaskStub(":b", [file("b/input")], [file("b/output")]), createTaskStub(":c", [file("shared/input")], [file("c/output")]), createTaskStub(":d", [file("d/input")], [file("d/output")])]
+        taskExecutionGraph.getAllTasks() >> allTasks
+        def lastTaskToUseSharedInput = allTasks[2]
+        TaskExecutionListener taskExecutionListener = listenerManager.getBroadcaster(TaskExecutionListener)
+
+        when:
+        taskExecutionGraphListener.graphPopulated(taskExecutionGraph)
+        then:
+        1 * cachingTreeVisitor.updateCacheableFilePaths(_)
+
+        when:
+        for(Task task : allTasks[0..1]) {
+            taskExecutionListener.beforeExecute(task)
+            taskExecutionListener.afterExecute(task, Stub(TaskState))
+        }
+
+        then:
+        0 * _._
+
+        when:
+        taskExecutionListener.afterExecute(lastTaskToUseSharedInput, Stub(TaskState))
+
+        then:
+        1 * cachingTreeVisitor.invalidateFilePaths({ Iterable<String> filePaths ->
+            List<String> filePathsList = filePaths as List
+            assert filePathsList.size() == 1
+            assert filePathsList[0] == file("shared/input").absolutePath
+            true
+        })
+        0 * _._
+
+        when:
+        taskExecutionListener.beforeExecute(allTasks[-1])
+        taskExecutionListener.afterExecute(allTasks[-1], Stub(TaskState))
+
+        then:
+        0 * _._
+
+    }
+
     Task createTaskStub(String path, List<File> inputs, List<File> outputs, boolean throwsException = false) {
         Task task = Stub(Task)
         task.getPath() >> path

@@ -144,22 +144,26 @@ public class TreeVisitorCacheExpirationStrategy implements Stoppable {
             }
         }
 
-        resolveLastTasksToHandleEachFile(inputFileToTaskPaths);
-
         cacheableFilePaths.removeAll(detector.resolveOverlappingPaths());
+
+        resolveLastTasksToHandleEachFile(inputFileToTaskPaths, new HashSet<String>(cacheableFilePaths));
+
         cachingTreeVisitor.updateCacheableFilePaths(cacheableFilePaths);
     }
 
-    private void resolveLastTasksToHandleEachFile(Map<String, List<String>> inputFileToTaskPaths) {
+    private void resolveLastTasksToHandleEachFile(Map<String, List<String>> inputFileToTaskPaths, Collection<String> cacheableFilePaths) {
         lastTaskToHandleInputFile = new HashMap<String, Collection<String>>();
         for (Map.Entry<String, List<String>> entry : inputFileToTaskPaths.entrySet()) {
-            String lastTaskPath = entry.getValue().get(entry.getValue().size() - 1);
-            Collection<String> filePaths = lastTaskToHandleInputFile.get(lastTaskPath);
-            if (filePaths == null) {
-                filePaths = new ArrayList<String>();
-                lastTaskToHandleInputFile.put(lastTaskPath, filePaths);
+            String filePath = entry.getKey();
+            if (cacheableFilePaths.contains(filePath)) {
+                String lastTaskPath = entry.getValue().get(entry.getValue().size() - 1);
+                Collection<String> filePaths = lastTaskToHandleInputFile.get(lastTaskPath);
+                if (filePaths == null) {
+                    filePaths = new ArrayList<String>();
+                    lastTaskToHandleInputFile.put(lastTaskPath, filePaths);
+                }
+                filePaths.add(filePath);
             }
-            filePaths.add(entry.getKey());
         }
     }
 
