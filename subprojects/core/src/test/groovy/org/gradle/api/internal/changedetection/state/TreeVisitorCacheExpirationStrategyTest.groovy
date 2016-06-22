@@ -32,6 +32,7 @@ import org.gradle.util.Requires
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Unroll
 
 @Requires(adhoc = { CachingTreeVisitor.CACHING_TREE_VISITOR_FEATURE_ENABLED })
 @UsesNativeServices
@@ -84,7 +85,8 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
         0 * _._
     }
 
-    def "cacheable tasks get resolved"() {
+    @Unroll
+    def "cacheable tasks get resolved - scenario: #scenario"() {
         given:
         CachingTreeVisitor cachingTreeVisitor = Mock()
         DefaultListenerManager listenerManager = new DefaultListenerManager()
