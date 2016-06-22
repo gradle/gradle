@@ -103,7 +103,7 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
         0 * _._
 
         where:
-        scenario << ['none_cacheable', 'b_uses_a']
+        scenario << ['none_cacheable', 'b_uses_a', 'a_and_b_use_same_input']
     }
 
     List<Task> createTasksForScenario(String scenario) {
@@ -112,6 +112,8 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
                 return [createTaskStub(":a", [file("a/input")], [file("a/output")]), createTaskStub(":b", [file("b/input")], [file("b/output")]), createTaskStub(":c", [file("c/input")], [file("c/output")])]
             case 'b_uses_a':
                 return [createTaskStub(":a", [file("a/input")], [file("a/output")]), createTaskStub(":b", [file("a/output")], [file("b/output")])]
+            case 'a_and_b_use_same_input':
+                return [createTaskStub(":a", [file("shared/input")], [file("a/output")]), createTaskStub(":b", [file("shared/input")], [file("b/output")])]
         }
         throw new IllegalArgumentException("Unknown scenario")
     }
@@ -122,6 +124,8 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
                 return []
             case 'b_uses_a':
                 return [file("a/output").absolutePath]
+            case 'a_and_b_use_same_input':
+                return [file("shared/input").absolutePath]
         }
         throw new IllegalArgumentException("Unknown scenario")
     }
