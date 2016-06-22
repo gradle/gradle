@@ -27,7 +27,7 @@ import java.util.Map;
 public class DaemonStartupMessage {
     public static final String STARTING_DAEMON_MESSAGE = "Starting a Gradle Daemon";
     public static final String SUBSEQUENT_BUILDS_WILL_BE_FASTER = "(subsequent builds will be faster)";
-    public static final String NOT_REUSED_MESSAGE = " could not be reused, use --status for more details";
+    public static final String NOT_REUSED_MESSAGE = " could not be reused, use --status for details";
 
     public static String generate(final int numBusy, final int numIncompatible, final int numStopped) {
         final int totalUnavailableDaemons = numBusy + numIncompatible + numStopped;

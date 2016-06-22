@@ -53,21 +53,13 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
         previous = new ArrayList<GradleDistribution>();
         final ReleasedVersionDistributions releasedVersions = new ReleasedVersionDistributions();
         if (versionStr.equals("latest")) {
-            previous.add(releasedVersions.getMostRecentFinalRelease());
             implicitVersion = true;
+            addVersionIfCompatibleWithJvmAndOs(releasedVersions.getMostRecentFinalRelease());
         } else if (versionStr.equals("all")) {
             implicitVersion = true;
             List<GradleDistribution> previousVersionsToTest = choosePreviousVersionsToTest(releasedVersions);
             for (GradleDistribution previousVersion : previousVersionsToTest) {
-                if (!previousVersion.worksWith(Jvm.current())) {
-                    add(new IgnoredVersion(previousVersion, "does not work with current JVM"));
-                    continue;
-                }
-                if (!previousVersion.worksWith(OperatingSystem.current())) {
-                    add(new IgnoredVersion(previousVersion, "does not work with current OS"));
-                    continue;
-                }
-                this.previous.add(previousVersion);
+                addVersionIfCompatibleWithJvmAndOs(previousVersion);
             }
         } else if (versionStr.matches("^\\d.*$")) {
             implicitVersion = false;
@@ -89,6 +81,16 @@ public abstract class AbstractCompatibilityTestRunner extends AbstractMultiTestR
             });
         } else {
             throw new RuntimeException("Invalid value for " + VERSIONS_SYSPROP_NAME + " system property: " + versionStr + "(valid values: 'all', 'latest' or comma separated list of versions)");
+        }
+    }
+
+    private void addVersionIfCompatibleWithJvmAndOs(GradleDistribution previousVersion) {
+        if (!previousVersion.worksWith(Jvm.current())) {
+            add(new IgnoredVersion(previousVersion, "does not work with current JVM"));
+        } else if (!previousVersion.worksWith(OperatingSystem.current())) {
+            add(new IgnoredVersion(previousVersion, "does not work with current OS"));
+        } else {
+            this.previous.add(previousVersion);
         }
     }
 

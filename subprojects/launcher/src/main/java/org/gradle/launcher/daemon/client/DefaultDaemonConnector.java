@@ -114,7 +114,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
         // User likely doesn't care about daemons that stopped a long time ago
         List<DaemonStopEvent> recentStopEvents = CollectionUtils.filter(stopEvents, new Spec<DaemonStopEvent>() {
             public boolean isSatisfiedBy(DaemonStopEvent event) {
-                return event.occurredInLastDays(1);
+                return event.occurredInLastHours(1);
             }
         });
 

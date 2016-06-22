@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.client
 
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.internal.id.IdGenerator
 import org.gradle.launcher.daemon.protocol.Finished
 import org.gradle.launcher.daemon.protocol.ReportStatus
@@ -29,8 +30,9 @@ class ReportDaemonStatusClientTest extends Specification {
     DaemonRegistry registry = Mock(DaemonRegistry)
     DaemonConnector connector = Mock(DaemonConnector)
     DaemonClientConnection connection = Mock(DaemonClientConnection)
+    DocumentationRegistry documentationRegistry = Mock(DocumentationRegistry)
     IdGenerator<?> idGenerator = {12} as IdGenerator
-    def client = new ReportDaemonStatusClient(registry, connector, idGenerator)
+    def client = new ReportDaemonStatusClient(registry, connector, idGenerator, documentationRegistry)
 
     def "does nothing given no daemons in registry"() {
         when:
@@ -65,6 +67,9 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * connection.receive() >> new Success(new Status(12346, "3.0", "BOGUS"))
         1 * connection.dispatch({it instanceof Finished})
         1 * connection.stop()
+
+        and:
+        1 * documentationRegistry.getDocumentationFor('gradle_daemon', 'status') >> { "DOCUMENTATION_URL" }
         0 * _
     }
 
