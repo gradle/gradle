@@ -24,6 +24,7 @@ import org.gradle.api.execution.TaskExecutionListener
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.TaskInputs
 import org.gradle.api.tasks.TaskOutputs
+import org.gradle.api.tasks.TaskState
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.test.fixtures.file.TestFile
@@ -147,6 +148,28 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
         when:
         taskExecutionGraphListener.graphPopulated(taskExecutionGraph)
         taskExecutionListener.beforeExecute(taskWithUnknownInputs)
+
+        then:
+        1 * cachingTreeVisitor.updateCacheableFilePaths(_)
+        1 * cachingTreeVisitor.clearCache()
+        0 * _._
+    }
+
+    def "cache gets flushed after executing task with unknown outputs"() {
+        given:
+        CachingTreeVisitor cachingTreeVisitor = Mock()
+        DefaultListenerManager listenerManager = new DefaultListenerManager()
+        def treeVisitorCacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager, false)
+        TaskExecutionGraphListener taskExecutionGraphListener = listenerManager.getBroadcaster(TaskExecutionGraphListener)
+        def taskExecutionGraph = Stub(TaskExecutionGraph)
+        def allTasks = [createTaskStub(":a", [file("shared/input")], [file("a/output")]), createTaskStub(":b", [file("b/input")], []), createTaskStub(":c", [file("shared/input")], [file("c/output")])]
+        taskExecutionGraph.getAllTasks() >> allTasks
+        def taskWithUnknownOutputs = allTasks[1]
+        TaskExecutionListener taskExecutionListener = listenerManager.getBroadcaster(TaskExecutionListener)
+
+        when:
+        taskExecutionGraphListener.graphPopulated(taskExecutionGraph)
+        taskExecutionListener.afterExecute(taskWithUnknownOutputs, Stub(TaskState))
 
         then:
         1 * cachingTreeVisitor.updateCacheableFilePaths(_)
