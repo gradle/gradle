@@ -22,7 +22,7 @@ package org.gradle.internal.operations;
  * Used where the operation cannot be packaged as a unit of work, for example when the operation is started and completed in response to separate
  * events.
  *
- * Where possible, use {@link BuildOperationQueueFactory} instead of this type.
+ * Where possible, use {@link BuildOperationProcessor} instead of this type.
  */
 public interface BuildOperationWorkerRegistry {
     /**

@@ -30,6 +30,9 @@ import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 
+/**
+ * Note that this class does not currently consider the build operations being run by {@link DefaultBuildOperationWorkerRegistry}.
+ */
 public class DefaultBuildOperationProcessor implements BuildOperationProcessor, Stoppable {
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
 
