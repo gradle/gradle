@@ -68,10 +68,16 @@ public class TreeVisitorCacheExpirationStrategy implements Stoppable {
     private final TreeVisitorCacheTaskExecutionListener taskExecutionListener = new TreeVisitorCacheTaskExecutionListener();
     private final TreeVisitorCacheBuildAdapter buildListener = new TreeVisitorCacheBuildAdapter();
     private final TreeVisitorCacheTaskExecutionGraphListener taskExecutionGraphListener = new TreeVisitorCacheTaskExecutionGraphListener();
+    private final boolean swallowExceptions;
 
     public TreeVisitorCacheExpirationStrategy(CachingTreeVisitor cachingTreeVisitor, ListenerManager listenerManager) {
+        this(cachingTreeVisitor, listenerManager, true);
+    }
+
+    public TreeVisitorCacheExpirationStrategy(CachingTreeVisitor cachingTreeVisitor, ListenerManager listenerManager, boolean swallowExceptions) {
         this.cachingTreeVisitor = cachingTreeVisitor;
         this.listenerManager = listenerManager;
+        this.swallowExceptions = swallowExceptions;
         registerListeners();
     }
 
@@ -183,12 +189,15 @@ public class TreeVisitorCacheExpirationStrategy implements Stoppable {
         public void graphPopulated(TaskExecutionGraph graph) {
             try {
                 resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 LOG.info("Exception '{}' while resolving task inputs and outputs. Disabling tree visitor caching for this build.", e.getMessage());
                 if (LOG.isDebugEnabled()) {
                     LOG.debug("Exception details", e);
                 }
                 clearCache();
+                if (!swallowExceptions) {
+                    throw e;
+                }
             }
         }
     }

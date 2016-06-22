@@ -49,7 +49,7 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
         def taskExecutionGraphListener
 
         when:
-        def treeVisitorCacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager)
+        def treeVisitorCacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager, false)
 
         then:
         1 * listenerManager.addListener({
@@ -90,7 +90,7 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
         given:
         CachingTreeVisitor cachingTreeVisitor = Mock()
         DefaultListenerManager listenerManager = new DefaultListenerManager()
-        def treeVisitorCacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager)
+        def treeVisitorCacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager, false)
         TaskExecutionGraphListener taskExecutionGraphListener = listenerManager.getBroadcaster(TaskExecutionGraphListener)
         def taskExecutionGraph = Mock(TaskExecutionGraph)
         def allTasks = createTasksForScenario(scenario)
