@@ -24,10 +24,9 @@ Version 2016.1.2 or better is required, and can be downloaded from https://www.j
 
 _Note: the specific version of the Kotlin plugin matters. Follow the instructions below regardless the version you already have installed._
 
- 1. Go to https://teamcity.jetbrains.com/repository/download/bt345/801596:id/kotlin-plugin-1.1.0-dev-1222.zip
- 2. You will be prompted to log in. Click the **Log in as guest** link. The plugin will download.
- 3. In IDEA, Go to `Preferences->Plugins->Install from disk`
- 4. Install the plugin and restart IDEA
+ 1. Download the plugin from https://teamcity.jetbrains.com/guestAuth/repository/download/bt345/801596:id/kotlin-plugin-1.1.0-dev-1222.zip
+ 2. In IDEA, Go to `Preferences->Plugins->Install from disk`
+ 3. Install the plugin and restart IDEA
 
 
 Set up a sample project
