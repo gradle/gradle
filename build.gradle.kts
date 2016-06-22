@@ -1,4 +1,3 @@
-import org.gradle.api.plugins.*
 import org.gradle.api.publish.*
 import org.gradle.api.publish.maven.*
 import org.gradle.jvm.tasks.Jar
