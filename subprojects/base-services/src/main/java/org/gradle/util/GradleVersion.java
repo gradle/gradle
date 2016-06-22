@@ -185,9 +185,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
         if (stage == null && snapshot == null) {
             return this;
         }
-        if (stage != null && stage.stage == STAGE_MILESTONE) {
-            return version(versionPart + "-milestone-" + stage.number);
-        }
         return version(versionPart);
     }
 

@@ -219,17 +219,8 @@ class GradleVersionTest extends Specification {
         '20.17-20101220100000+1000'           | "20.17"
         '0.9-SNAPSHOT'                        | "0.9"
         '3.0-snapshot-1'                      | "3.0"
-    }
-
-    def "milestones are treated as base versions"() {
-        expect:
-        GradleVersion.version(v).baseVersion == GradleVersion.version(base)
-
-        where:
-        v                                     | base
-        '1.0-milestone-3'                     | "1.0-milestone-3"
-        '1.0-milestone-3-20121012100000+1000' | "1.0-milestone-3"
-        '2.0-milestone-3'                     | "2.0-milestone-3"
+        '3.0-milestone-3'                     | "3.0"
+        '3.0-milestone-3-20121012100000+1000' | "3.0"
     }
 
     def "can get next major version"() {
