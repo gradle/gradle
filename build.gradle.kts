@@ -12,7 +12,7 @@ group = "org.gradle"
 
 version = "0.3.0-SNAPSHOT"
 
-val kotlinVersion = extra["kotlinVersion"] as String
+val kotlinVersion by extra.properties
 
 dependencies {
     compileOnly(gradle("core"))
