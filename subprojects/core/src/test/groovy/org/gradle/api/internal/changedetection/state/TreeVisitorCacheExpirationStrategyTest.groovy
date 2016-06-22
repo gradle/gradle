@@ -132,15 +132,49 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
         throw new IllegalArgumentException("Unknown scenario")
     }
 
+    def "cache gets flushed before executing task with unknown inputs"() {
+        given:
+        CachingTreeVisitor cachingTreeVisitor = Mock()
+        DefaultListenerManager listenerManager = new DefaultListenerManager()
+        def treeVisitorCacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager, false)
+        TaskExecutionGraphListener taskExecutionGraphListener = listenerManager.getBroadcaster(TaskExecutionGraphListener)
+        def taskExecutionGraph = Stub(TaskExecutionGraph)
+        def allTasks = [createTaskStub(":a", [file("shared/input")], [file("a/output")]), createTaskStub(":b", [], [file("b/output")]), createTaskStub(":c", [file("shared/input")], [file("c/output")])]
+        taskExecutionGraph.getAllTasks() >> allTasks
+        def taskWithUnknownInputs = allTasks[1]
+        TaskExecutionListener taskExecutionListener = listenerManager.getBroadcaster(TaskExecutionListener)
+
+        when:
+        taskExecutionGraphListener.graphPopulated(taskExecutionGraph)
+        taskExecutionListener.beforeExecute(taskWithUnknownInputs)
+
+        then:
+        1 * cachingTreeVisitor.updateCacheableFilePaths(_)
+        1 * cachingTreeVisitor.clearCache()
+        0 * _._
+    }
+
     Task createTaskStub(String path, List<File> inputs, List<File> outputs) {
         Task task = Stub(Task)
         task.getPath() >> path
+        task.getActions() >> Stub(List) {
+            isEmpty() >> false
+        }
+
         TaskInputs taskInputs = Stub(TaskInputs)
         task.getInputs() >> taskInputs
         taskInputs.getFiles() >> new SimpleFileCollection(inputs)
+        if (inputs.isEmpty()) {
+            taskInputs.getHasInputs() >> false
+        }
+
         TaskOutputs taskOutputs = Stub(TaskOutputs)
         task.getOutputs() >> taskOutputs
         taskOutputs.getFiles() >> new SimpleFileCollection(outputs)
+        if (outputs.isEmpty()) {
+            taskOutputs.getHasOutput() >> false
+        }
+
         task
     }
 
