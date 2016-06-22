@@ -18,6 +18,7 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.BuildListener
 import org.gradle.api.Task
+import org.gradle.api.UncheckedIOException
 import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.execution.TaskExecutionGraphListener
 import org.gradle.api.execution.TaskExecutionListener
@@ -177,7 +178,52 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
         0 * _._
     }
 
-    Task createTaskStub(String path, List<File> inputs, List<File> outputs) {
+    def "test that exception get swallowed and disables caching"() {
+        given:
+        CachingTreeVisitor cachingTreeVisitor = Mock()
+        DefaultListenerManager listenerManager = new DefaultListenerManager()
+        def treeVisitorCacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager)
+        TaskExecutionGraphListener taskExecutionGraphListener = listenerManager.getBroadcaster(TaskExecutionGraphListener)
+        def taskExecutionGraph = Stub(TaskExecutionGraph)
+        def allTasks = createTasksWithIOExceptionThrown()
+        taskExecutionGraph.getAllTasks() >> allTasks
+
+        when:
+        taskExecutionGraphListener.graphPopulated(taskExecutionGraph)
+
+        then:
+        noExceptionThrown()
+        1 * cachingTreeVisitor.updateCacheableFilePaths(null)
+        1 * cachingTreeVisitor.clearCache()
+        0 * _._
+    }
+
+    private List<Task> createTasksWithIOExceptionThrown() {
+        [createTaskStub(":a", [file("shared/input")], [file("a/output")]), createTaskStub(":b", [file("shared/input")], [file("b/output")], true)]
+    }
+
+    def "exception doesn't get swallowed when swallowing is disabled"() {
+        given:
+        CachingTreeVisitor cachingTreeVisitor = Mock()
+        DefaultListenerManager listenerManager = new DefaultListenerManager()
+        def treeVisitorCacheExpirationStrategy = new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager, false)
+        TaskExecutionGraphListener taskExecutionGraphListener = listenerManager.getBroadcaster(TaskExecutionGraphListener)
+        def taskExecutionGraph = Stub(TaskExecutionGraph)
+        def allTasks = createTasksWithIOExceptionThrown()
+        taskExecutionGraph.getAllTasks() >> allTasks
+
+        when:
+        taskExecutionGraphListener.graphPopulated(taskExecutionGraph)
+
+        then:
+        thrown(UncheckedIOException)
+        1 * cachingTreeVisitor.updateCacheableFilePaths(null)
+        1 * cachingTreeVisitor.clearCache()
+        0 * _._
+    }
+
+
+    Task createTaskStub(String path, List<File> inputs, List<File> outputs, boolean throwsException = false) {
         Task task = Stub(Task)
         task.getPath() >> path
         task.getActions() >> Stub(List) {
@@ -186,7 +232,11 @@ class TreeVisitorCacheExpirationStrategyTest extends Specification {
 
         TaskInputs taskInputs = Stub(TaskInputs)
         task.getInputs() >> taskInputs
-        taskInputs.getFiles() >> new SimpleFileCollection(inputs)
+        if (throwsException) {
+            taskInputs.getFiles() >> { throw new UncheckedIOException(new IOException("Problem resolving input files")) }
+        } else {
+            taskInputs.getFiles() >> new SimpleFileCollection(inputs)
+        }
         if (inputs.isEmpty()) {
             taskInputs.getHasInputs() >> false
         }
