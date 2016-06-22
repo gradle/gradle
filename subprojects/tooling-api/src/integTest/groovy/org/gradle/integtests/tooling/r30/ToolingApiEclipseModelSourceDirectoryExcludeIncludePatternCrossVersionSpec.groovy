@@ -27,7 +27,7 @@ import org.gradle.tooling.model.eclipse.EclipseSourceDirectory
 @TargetGradleVersion(">=3.0")
 class ToolingApiEclipseModelSourceDirectoryExcludeIncludePatternCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=1.2 <3.0")
+    @TargetGradleVersion(">=1.2 <2.99")
     def "Old versions throw runtime exception when querying exclude and include patterns"() {
         setup:
         settingsFile << 'rootProject.name = "root"'

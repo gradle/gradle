@@ -30,7 +30,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
         settingsFile << 'rootProject.name = "root"'
     }
 
-    @TargetGradleVersion(">=1.2 <3.0")
+    @TargetGradleVersion(">=1.2 <2.99")
     def "Old versions throw runtime exception when querying classpath containers"() {
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
