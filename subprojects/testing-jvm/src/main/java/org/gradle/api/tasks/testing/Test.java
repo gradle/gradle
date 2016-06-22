@@ -86,6 +86,7 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.process.JavaForkOptions;
@@ -599,7 +600,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(testListenerInternalBroadcaster.getSource());
 
         if (testExecuter == null) {
-            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry());
+            testExecuter = new DefaultTestExecuter(getProcessBuilderFactory(), getActorFactory(), getModuleRegistry(), getServices().get(BuildOperationWorkerRegistry.class));
         }
 
         JavaVersion javaVersion = getServices().get(JvmVersionDetector.class).getJavaVersion(getExecutable());

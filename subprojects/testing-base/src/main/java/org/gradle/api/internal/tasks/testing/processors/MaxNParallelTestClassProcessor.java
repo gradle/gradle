@@ -51,6 +51,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
 
     @Override
     public void startProcessing(TestResultProcessor resultProcessor) {
+        // Create a processor that processes events in its own thread
         resultProcessorActor = actorFactory.createActor(resultProcessor);
         this.resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
     }
