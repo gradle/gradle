@@ -115,9 +115,26 @@ $standardErr""")
         return snapshots*.version*.version
     }
 
+    private static boolean isActiveVersion(def version) {
+        // Ignore broken or snapshot versions
+        if (version.broken == true || version.snapshot == true) {
+            return false
+        }
+        // Include only active RCs
+        if (version.rcFor != "") {
+            return version.activeRc
+        }
+        // Include only active milestones
+        if (version.milestoneFor != "") {
+            return version.version != "3.0-milestone-1" // TODO: should be publishing an 'activeMilestone' property
+        }
+        // Include all other versions
+        return true
+    }
+
     List<Map<String, ?>> calculateVersions(def startingAt = lowestInterestingVersion) {
         def versions = new groovy.json.JsonSlurper().parseText(destFile.text).findAll {
-            (it.activeRc == true || it.rcFor == "") && it.broken == false && it.snapshot == false
+            isActiveVersion(it)
         }.collect {
             it.version = GradleVersion.version(it.version)
             it
