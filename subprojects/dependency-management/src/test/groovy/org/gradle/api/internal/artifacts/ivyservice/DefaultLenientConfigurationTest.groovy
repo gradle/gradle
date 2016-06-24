@@ -17,7 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice
 
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Factory
@@ -65,17 +67,64 @@ class DefaultLenientConfigurationTest extends Specification {
         given:
         TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, { transientConfigurationResults } as Factory)
-        ResolvedDependency root = Mock(ResolvedDependency)
 
-        and:
-        def expected = [] as Set
+        def treeStructure = [0: [1, 2, 3, 4, 5], 5: [6, 7, 8]]
+        def (expected, root) = generateDependenciesWithChildren(treeStructure)
 
         when:
         def result = lenientConfiguration.allDependencies()
 
         then:
         1 * transientConfigurationResults.getRoot() >> root
-        1 * root.getChildren() >> expected
+        result.size() == expected.size()
         result == expected
+    }
+
+    def generateDependenciesWithChildren(Map treeStructure) {
+        Map<Integer, TestResolvedDependency> dependenciesById = [:]
+        for (Map.Entry entry : treeStructure.entrySet()) {
+            Integer id = entry.getKey() as Integer
+            dependenciesById.put(id, new TestResolvedDependency())
+        }
+        for (Map.Entry entry : treeStructure.entrySet()) {
+            Integer id = entry.getKey() as Integer
+            dependenciesById.get(id).children = entry.getValue().collect {
+                def child = dependenciesById.get(it)
+                if(child == null) {
+                    child = new TestResolvedDependency()
+                    dependenciesById.put(it, child)
+                }
+                child
+            } as Set
+        }
+        def root = dependenciesById.remove(0)
+        [new LinkedHashSet(dependenciesById.values()), root]
+    }
+
+    private static class TestResolvedDependency implements ResolvedDependency {
+        String name
+        String moduleGroup
+        String moduleName
+        String moduleVersion
+        String configuration
+        ResolvedModuleVersion module
+        Set<ResolvedDependency> children
+        Set<ResolvedDependency> parents
+        Set<ResolvedArtifact> moduleArtifacts
+        Set<ResolvedArtifact> allModuleArtifacts
+
+        Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
+            return null
+        }
+
+        @Override
+        Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
+            return null
+        }
+
+        @Override
+        Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
+            return null
+        }
     }
 }
