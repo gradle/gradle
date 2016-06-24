@@ -335,6 +335,7 @@ We would like to thank the following community members for making contributions 
  - [Andreas Dangel](https://github.com/adangel) - Add sourceSet.output to PMD classpath (GRADLE-3488)
  - [Alexander Shorin](https://github.com/kxepal) - Allow local connections for daemon and messaging services from all network devices (GRADLE-3121)
  - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Correct some typos in depMngmt.xml and README.md
+ - [Ethan Hall](https://github.com/ethankhall) - Fixing documentation from candidate.name to candidate.module
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
