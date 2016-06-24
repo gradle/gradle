@@ -22,13 +22,11 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.Requires
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
-@Requires(adhoc = { CachingTreeVisitor.CACHING_TREE_VISITOR_FEATURE_ENABLED })
 @UsesNativeServices
 class CachingTreeVisitorTest extends Specification {
     @Rule

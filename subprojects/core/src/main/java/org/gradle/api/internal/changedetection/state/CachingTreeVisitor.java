@@ -44,7 +44,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 // Visits a FileTreeInternal for snapshotting, caches some directory scans
 public class CachingTreeVisitor {
-    public static final boolean CACHING_TREE_VISITOR_FEATURE_ENABLED = Boolean.valueOf(System.getProperty("org.gradle.tree_visitor_cache.enabled", "false"));
     private final static Logger LOG = Logging.getLogger(CachingTreeVisitor.class);
     public static final int VISITED_TREES_CACHE_MAX_SIZE = 500;
     private final Cache<String, VisitedTreeCacheEntry> cachedTrees;
@@ -59,7 +58,7 @@ public class CachingTreeVisitor {
     public VisitedTree visitTreeForSnapshotting(FileTreeInternal fileTree, boolean allowReuse) {
         String treePath = null;
         PatternSet treePattern = null;
-        if (CACHING_TREE_VISITOR_FEATURE_ENABLED && isDirectoryFileTree(fileTree)) {
+        if (isDirectoryFileTree(fileTree)) {
             DirectoryFileTree directoryFileTree = DirectoryFileTree.class.cast(((FileTreeAdapter) fileTree).getTree());
             treePath = directoryFileTree.getDir().getAbsolutePath();
             treePattern = directoryFileTree.getPatternSet();
