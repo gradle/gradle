@@ -68,7 +68,6 @@ class DefaultLenientConfigurationTest extends Specification {
         TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, { transientConfigurationResults } as Factory)
 
-        def treeStructure = [0: [1, 2, 3, 4, 5], 5: [6, 7, 8]]
         def (expected, root) = generateDependenciesWithChildren(treeStructure)
 
         when:
@@ -76,8 +75,14 @@ class DefaultLenientConfigurationTest extends Specification {
 
         then:
         1 * transientConfigurationResults.getRoot() >> root
+        result.size() == size
         result.size() == expected.size()
         result == expected
+
+        where:
+        treeStructure                                               | size
+        [0: [1, 2, 3, 4, 5], 5: [6, 7, 8]]                          | 8
+        [0: [1, 2, 3, 4, 5], 5: [6, 7, 8], 7: [9, 10], 9: [11, 12]] | 12
     }
 
     def generateDependenciesWithChildren(Map treeStructure) {
