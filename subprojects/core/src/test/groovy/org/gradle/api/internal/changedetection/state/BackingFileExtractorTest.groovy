@@ -16,6 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.internal.file.FileResource
+import org.gradle.api.internal.file.MaybeCompressedFileResource
+import org.gradle.api.internal.file.archive.TarFileTree
+import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -24,6 +28,8 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static org.gradle.api.internal.file.TestFiles.directoryFileTreeFactory
+import static org.gradle.api.internal.file.TestFiles.fileSystem
 
 @UsesNativeServices
 class BackingFileExtractorTest extends Specification {
@@ -45,6 +51,27 @@ class BackingFileExtractorTest extends Specification {
         extracted.size() == files.size()
         extracted*.file as Set == files as Set
 
+    }
+
+    def "tar filetree doesn't get extracted"() {
+        given:
+        def tarFile = testDir.file("test.tar")
+        testDir.createDir("tarRoot").with {
+            file("a/file1.txt") << "content"
+            file("b/file2.txt") << "some content"
+            tarTo(tarFile)
+        }
+        def expandDir = testDir.createDir("tarExpand");
+        def tarFileTree = new TarFileTree(tarFile, new MaybeCompressedFileResource(new FileResource(tarFile)), expandDir, fileSystem(), fileSystem(), directoryFileTreeFactory());
+        def fileCollection = new FileTreeAdapter(tarFileTree)
+
+        when:
+        List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(fileCollection)
+
+        then:
+        extracted.size() == 1
+        extracted[0].file.absolutePath == tarFile.absolutePath
+        !expandDir.listFiles()
     }
 
     TestFile file(Object... path) {
