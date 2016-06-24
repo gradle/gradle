@@ -17,14 +17,13 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.FileResource
-import org.gradle.api.internal.file.MaybeCompressedFileResource
-import org.gradle.api.internal.file.UnionFileCollection
+import org.gradle.api.file.FileTree
+import org.gradle.api.internal.file.*
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.internal.file.collections.SimpleFileCollection
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -135,6 +134,40 @@ class BackingFileExtractorTest extends Specification {
         def compositeFileCollection = new UnionFileCollection([new SimpleFileCollection([files[0]]), new UnionFileCollection([new SimpleFileCollection([files[1]]), new UnionFileCollection([configurationFileCollection, new SimpleFileCollection([files[2]])])])])
         when:
         List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(compositeFileCollection)
+
+        then:
+        extracted.size() == files.size()
+        extracted*.file as Set == files as Set
+    }
+
+    def "should extract directory and patternset"() {
+        given:
+        def root = testDir.createDir("root")
+        def patternSet = new PatternSet()
+        def fileCollection = new FileTreeAdapter(directoryFileTreeFactory().create(root, patternSet))
+
+        when:
+        List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(fileCollection)
+
+        then:
+        extracted.size() == 1
+        extracted[0].file.absolutePath == root.absolutePath
+        extracted[0].patterns == patternSet
+
+    }
+
+    def "should support composite file tree"() {
+        given:
+        def files = (1..2).collect { file(it as String).absoluteFile }
+        def patternSet = new PatternSet()
+        def fileTrees = files.collect { new FileTreeAdapter(directoryFileTreeFactory().create(it, patternSet)) } as FileTreeInternal[]
+        def fileTree = new UnionFileTree(fileTrees)
+        def filter = new PatternSet()
+        filter.include("**/*.java")
+        def fileCollection = fileTree.matching(filter)
+
+        when:
+        List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(fileCollection)
 
         then:
         extracted.size() == files.size()
