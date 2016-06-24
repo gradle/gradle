@@ -35,7 +35,6 @@ import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveC
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
@@ -57,26 +56,15 @@ class BackingFileExtractor {
         List<FileCollectionInternal> fileCollections = context.resolveAsFileCollections();
         List<FileEntry> results = new ArrayList<FileEntry>();
         for (FileCollectionInternal files : fileCollections) {
-            collectDirectories(files, results);
+            collectBackingFiles(files, results);
         }
         return results;
     }
 
-    private void collectDirectories(FileCollectionInternal fileCollection,
-                                    final List<FileEntry> results) {
+    private void collectBackingFiles(FileCollectionInternal fileCollection,
+                                     final List<FileEntry> results) {
         if (fileCollection instanceof FileTreeAdapter) {
-            collectTree(((FileTreeAdapter) fileCollection).getTree(), results);
-        } else if (fileCollection instanceof LazilyInitializedFileCollection) {
-            // skip inspecting LazilyInitializedFileCollections since it results in eager
-            // dependency resolution
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Skipped inspecting LazilyInitializedFileCollection {}", ((LazilyInitializedFileCollection) fileCollection).getDisplayName());
-            }
-        } else if (fileCollection instanceof Configuration) {
-            // skip inspecting configurations since it results in eager dependency resolution
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("Skipped inspecting configuration {}", ((Configuration) fileCollection).getName());
-            }
+            collectBackingFilesInMinimalFileTree(((FileTreeAdapter) fileCollection).getTree(), results);
         } else {
             FileSystemSubset.Builder watchPointsBuilder = FileSystemSubset.builder();
             fileCollection.registerWatchPoints(watchPointsBuilder);
@@ -86,7 +74,7 @@ class BackingFileExtractor {
         }
     }
 
-    private void collectTree(MinimalFileTree fileTree, final List<FileEntry> results) {
+    private void collectBackingFilesInMinimalFileTree(MinimalFileTree fileTree, final List<FileEntry> results) {
         if (fileTree instanceof DirectoryTree) {
             DirectoryTree directoryTree = (DirectoryTree) fileTree;
             results.add(new FileEntry(directoryTree.getDir(), directoryTree.getPatterns()));
@@ -135,7 +123,7 @@ class BackingFileExtractor {
         }
 
         CustomFileCollectionResolveContext(FileResolver fileResolver) {
-            this(fileResolver, new CustomFileCollectionConverter(), new CustomFileTreeConverter(fileResolver.getPatternSetFactory()));
+            this(fileResolver, new CustomFileCollectionConverter(), new FileTreeConverter(fileResolver.getPatternSetFactory()));
         }
 
         CustomFileCollectionResolveContext(PathToFileResolver fileResolver, Converter<? extends FileCollectionInternal> fileCollectionConverter, Converter<? extends FileTreeInternal> fileTreeConverter) {
@@ -161,28 +149,14 @@ class BackingFileExtractor {
     private static class CustomFileCollectionConverter extends DefaultFileCollectionResolveContext.FileCollectionConverter {
         @Override
         public void convertInto(Object element, Collection<? super FileCollectionInternal> result, PathToFileResolver fileResolver) {
-            if (shouldIgnore(element)) {
+            if (shouldIgnoreWhenExtractingBackingFiles(element)) {
                 return;
             }
             super.convertInto(element, result, fileResolver);
         }
     }
 
-    private static class CustomFileTreeConverter extends DefaultFileCollectionResolveContext.FileTreeConverter {
-        public CustomFileTreeConverter(Factory<PatternSet> patternSetFactory) {
-            super(patternSetFactory);
-        }
-
-        @Override
-        public void convertInto(Object element, Collection<? super FileTreeInternal> result, PathToFileResolver fileResolver) {
-            if (shouldIgnore(element)) {
-                return;
-            }
-            super.convertInto(element, result, fileResolver);
-        }
-    }
-
-    private static boolean shouldIgnore(Object element) {
+    private static boolean shouldIgnoreWhenExtractingBackingFiles(Object element) {
         if (element instanceof Configuration) {
             // ignore configurations
             return true;
