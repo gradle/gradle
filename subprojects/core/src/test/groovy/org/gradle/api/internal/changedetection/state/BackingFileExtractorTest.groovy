@@ -17,11 +17,13 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.file.FileTree
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.*
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
+import org.gradle.api.internal.file.collections.MinimalFileTree
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.test.fixtures.file.TestFile
@@ -165,6 +167,69 @@ class BackingFileExtractorTest extends Specification {
         def filter = new PatternSet()
         filter.include("**/*.java")
         def fileCollection = fileTree.matching(filter)
+
+        when:
+        List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(fileCollection)
+
+        then:
+        extracted.size() == files.size()
+        extracted*.file as Set == files as Set
+    }
+
+    def "should support generic file trees"() {
+        def files = (1..10).collect {
+            file(it as String).createDir {
+                createFile("subdir1/a.txt")
+                createFile("subdir2/b.txt")
+            }.absoluteFile
+        }
+        def fileCollection = new SimpleFileCollection(files).getAsFileTree()
+
+        when:
+        List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(fileCollection)
+
+        then:
+        extracted.size() == files.size()
+        extracted*.file as Set == files as Set
+    }
+
+    def "should support custom file trees"() {
+        def root = file("root").createDir()
+        (1..10).collect {
+            root.file(it as String).create {
+                subdir1 {
+                    file "a.txt"
+                }
+                subdir2 {
+                    file "b.txt"
+                }
+            }
+        }
+        def files = []
+        new FileTreeAdapter(directoryFileTreeFactory().create(root)).visit(new FileVisitor() {
+            @Override
+            void visitDir(FileVisitDetails dirDetails) {
+                files << dirDetails.file
+            }
+
+            @Override
+            void visitFile(FileVisitDetails fileDetails) {
+                files << fileDetails.file
+            }
+        })
+        assert files.size() == 50
+        def minimalFileTree = Stub(MinimalFileTree)
+        minimalFileTree.visitTreeOrBackingFile(_) >> { FileVisitor visitor ->
+            for (File file : files) {
+                def fileVisitDetails = new DefaultFileVisitDetails(file, fileSystem(), fileSystem())
+                if (file.isDirectory()) {
+                    visitor.visitDir(fileVisitDetails)
+                } else {
+                    visitor.visitFile(fileVisitDetails)
+                }
+            }
+        }
+        def fileCollection = new FileTreeAdapter(minimalFileTree)
 
         when:
         List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(fileCollection)
