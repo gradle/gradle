@@ -45,7 +45,6 @@ class DefaultLenientConfigurationTest extends Specification {
         given:
         TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
         DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, { transientConfigurationResults } as Factory)
-        ResolvedDependency root = Mock(ResolvedDependency)
         Spec spec = Mock(Spec)
         def firstLevelDependencies = [(Mock(ModuleDependency)): Mock(ResolvedDependency), (Mock(ModuleDependency)): Mock(ResolvedDependency), (Mock(ModuleDependency)): Mock(ResolvedDependency)]
         def firstLevelDependenciesEntries = firstLevelDependencies.entrySet() as List
@@ -60,5 +59,23 @@ class DefaultLenientConfigurationTest extends Specification {
         1 * spec.isSatisfiedBy(firstLevelDependenciesEntries[2].key) >> true
         result == [firstLevelDependenciesEntries[0].value, firstLevelDependenciesEntries[2].value] as Set
         0 * _._
+    }
+
+    def "should flatten all resolved dependencies in dependency tree"() {
+        given:
+        TransientConfigurationResults transientConfigurationResults = Mock(TransientConfigurationResults)
+        DefaultLenientConfiguration lenientConfiguration = new DefaultLenientConfiguration(null, null, null, null, { transientConfigurationResults } as Factory)
+        ResolvedDependency root = Mock(ResolvedDependency)
+
+        and:
+        def expected = [] as Set
+
+        when:
+        def result = lenientConfiguration.allDependencies()
+
+        then:
+        1 * transientConfigurationResults.getRoot() >> root
+        1 * root.getChildren() >> expected
+        result == expected
     }
 }

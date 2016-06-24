@@ -81,6 +81,10 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
         return matches;
     }
 
+    public Set<ResolvedDependency> allDependencies() {
+        return loadTransientGraphResults().getRoot().getChildren();
+    }
+
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {
         Set<ResolvedArtifact> artifacts = getArtifacts(dependencySpec);
         return getFiles(artifacts);
