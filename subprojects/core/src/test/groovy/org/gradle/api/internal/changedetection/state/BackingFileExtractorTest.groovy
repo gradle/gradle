@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResource
 import org.gradle.api.internal.file.MaybeCompressedFileResource
+import org.gradle.api.internal.file.UnionFileCollection
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -72,6 +76,69 @@ class BackingFileExtractorTest extends Specification {
         extracted.size() == 1
         extracted[0].file.absolutePath == tarFile.absolutePath
         !expandDir.listFiles()
+    }
+
+    def "Configuration doesn't get extracted"() {
+        given:
+        def configurationFileCollection = Mock(ConfigurationFileCollection)
+        when:
+        List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(configurationFileCollection)
+
+        then:
+        extracted.isEmpty()
+        0 * _._
+    }
+
+    private interface ConfigurationFileCollection extends FileCollectionInternal, Configuration {
+
+    }
+
+    def "LazilyInitializedFileCollection doesn't get extracted"() {
+        given:
+        def lazyFileCollection = Mock(LazilyInitializedFileCollection)
+        when:
+        List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(lazyFileCollection)
+
+        then:
+        extracted.isEmpty()
+        0 * _._
+    }
+
+    def "Configuration in a nested CompositeFileCollection doesn't get extracted"() {
+        given:
+        def configurationFileCollection = Mock(ConfigurationFileCollection)
+        def compositeFileCollection = new UnionFileCollection([configurationFileCollection])
+        when:
+        List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(compositeFileCollection)
+
+        then:
+        extracted.isEmpty()
+        0 * _._
+    }
+
+    def "Configuration in a deeply nested CompositeFileCollection doesn't get extracted"() {
+        given:
+        def configurationFileCollection = Mock(ConfigurationFileCollection)
+        def compositeFileCollection = new UnionFileCollection([new UnionFileCollection([new UnionFileCollection([configurationFileCollection])])])
+        when:
+        List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(compositeFileCollection)
+
+        then:
+        extracted.isEmpty()
+        0 * _._
+    }
+
+    def "Configuration in a deeply nested CompositeFileCollection doesn't get extracted while simple file collections do"() {
+        given:
+        def configurationFileCollection = Mock(ConfigurationFileCollection)
+        def files = (1..3).collect { file(it as String).absoluteFile }
+        def compositeFileCollection = new UnionFileCollection([new SimpleFileCollection([files[0]]), new UnionFileCollection([new SimpleFileCollection([files[1]]), new UnionFileCollection([configurationFileCollection, new SimpleFileCollection([files[2]])])])])
+        when:
+        List<BackingFileExtractor.FileEntry> extracted = backingFileExtractor.extractFilesOrDirectories(compositeFileCollection)
+
+        then:
+        extracted.size() == files.size()
+        extracted*.file as Set == files as Set
     }
 
     TestFile file(Object... path) {
