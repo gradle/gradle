@@ -944,7 +944,7 @@
                     <listitem><literal>https.proxyPort</literal></listitem>
                     <listitem><literal>https.proxyUser</literal></listitem>
                     <listitem><literal>https.proxyPassword</literal></listitem>
-                    <listitem><literal>https.nonProxyHosts</literal></listitem>
+                    <listitem><literal>http.nonProxyHosts</literal></listitem>
                 </itemizedlist>
 
 
