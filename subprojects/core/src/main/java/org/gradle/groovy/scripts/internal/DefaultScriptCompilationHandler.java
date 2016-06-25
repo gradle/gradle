@@ -36,6 +36,7 @@ import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderUtil;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -119,18 +120,22 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         String scriptName = source.getClassName();
         GroovyCodeSource codeSource = new GroovyCodeSource(scriptText == null ? "" : scriptText, scriptName, "/groovy/script");
         try {
-            groovyClassLoader.parseClass(codeSource, false);
-        } catch (MultipleCompilationErrorsException e) {
-            wrapCompilationFailure(source, e);
-        } catch (CompilationFailedException e) {
-            throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
-        }
+            try {
+                groovyClassLoader.parseClass(codeSource, false);
+            } catch (MultipleCompilationErrorsException e) {
+                wrapCompilationFailure(source, e);
+            } catch (CompilationFailedException e) {
+                throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
+            }
 
-        if (packageDetector.hasPackageStatement) {
-            throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
-                StringUtils.capitalize(source.getDisplayName())));
+            if (packageDetector.hasPackageStatement) {
+                throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
+                    StringUtils.capitalize(source.getDisplayName())));
+            }
+            serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
+        } finally {
+            ClassLoaderUtil.closeClassLoader(groovyClassLoader);
         }
-        serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
     }
 
     private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir, boolean emptyScript, boolean hasMethods) {
