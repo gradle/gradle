@@ -171,8 +171,8 @@
 
     <section id="sec:accessing_the_web_via_a_proxy">
         <title>Accessing the web via a proxy</title>
-        <para>Configuring an HTTP proxy (for downloading dependencies, for example) is done via standard JVM system
-        properties. These properties can be set directly in the build script; for example, setting the proxy host
+        <para>Configuring an HTTP or HTTPS proxy (for downloading dependencies, for example) is done via standard JVM system
+        properties. These properties can be set directly in the build script; for example, setting the HTTP proxy host
         would be done with <literal>System.setProperty('http.proxyHost', 'www.somehost.org')</literal>.
         Alternatively, the properties can be specified in a gradle.properties file, either in the build's root
         directory or in the Gradle home directory.
@@ -197,7 +197,7 @@ systemProp.https.proxyHost=www.somehost.org
 systemProp.https.proxyPort=8080
 systemProp.https.proxyUser=userid
 systemProp.https.proxyPassword=password
-systemProp.https.nonProxyHosts=*.nonproxyrepos.com|localhost
+systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
 ]]></programlisting>
         </example>
         <para>We could not find a good overview for all possible proxy settings. One place to look are the constants
