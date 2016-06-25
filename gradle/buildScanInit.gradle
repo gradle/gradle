@@ -3,14 +3,14 @@ initscript {
         maven { url "https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local" }
     }
     dependencies {
-        classpath "com.gradle:build-receipt-plugin:latest.integration"
+        classpath "com.gradle:build-scan-plugin:latest.integration"
     }
     configurations.classpath.resolutionStrategy.cacheDynamicVersionsFor 0, 'SECONDS'
 }
 rootProject {
-    apply plugin: com.gradle.receipts.plugin.BuildReceiptPlugin
-    buildReceiptLicense {
-        agreementUrl = "https://gradle.com/terms-of-service"
-        agree = "yes"
+    apply plugin: com.gradle.scan.plugin.BuildScanPlugin
+    buildScan {
+        licenseAgreementUrl = "https://gradle.com/terms-of-service"
+        licenseAgree = "yes"
     }
 }
