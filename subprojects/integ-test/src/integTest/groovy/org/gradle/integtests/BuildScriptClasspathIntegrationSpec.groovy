@@ -22,6 +22,15 @@ import spock.lang.Unroll
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
+    def setup() {
+        executer.requireDaemon()
+        executer.requireIsolatedDaemons()
+    }
+
+    def cleanup() {
+        executer.withArguments("--stop").run()
+    }
+
     @Unroll("jars on buildscript classpath can change (deleteIfExists: #deleteIfExists, loopNumber: #loopNumber)")
     def "jars on buildscript classpath can change"() {
         given:
