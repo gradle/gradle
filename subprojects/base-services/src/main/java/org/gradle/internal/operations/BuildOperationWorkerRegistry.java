@@ -17,7 +17,7 @@
 package org.gradle.internal.operations;
 
 /**
- * Used to obtain and release leases to act as a build operation worker. There are a limited number of worker leases available and this service is used to allocate these to worker threads.
+ * Used to obtain and release leases to run a build operation. There are a limited number of leases available and this service is used to allocate these to worker threads.
  *
  * Used where the operation cannot be packaged as a unit of work, for example when the operation is started and completed in response to separate
  * events.
@@ -26,14 +26,31 @@ package org.gradle.internal.operations;
  */
 public interface BuildOperationWorkerRegistry {
     /**
-     * Marks the start of a build operation, reserving a worker lease. Blocks until a lease is available. The caller must call {@link Completion#workerCompleted()} to release the lease for other threads.
+     * Marks the start of a build operation, reserving a lease. Blocks until a lease is available.
+     *
+     * <p>Note that the caller must call {@link Completion#operationFinish()} to mark the completion of the operation and to release the lease for other threads to use.
      */
-    Completion workerStart();
+    Completion operationStart();
+
+    /**
+     * Returns the build operation associated with the current thread. Allows child operations to be created for this operation. Fails when there is no operation associated with this thread.
+     */
+    Operation getCurrent();
+
+    interface Operation {
+        /**
+         * Starts a child operation of the current worker. Marks the start of the build operation, reserving a lease. Blocks until a lease is available.
+         * Allows one child operation to proceed without a lease, so that the child effectively borrows the parent's lease, on the assumption that the parent is not doing any real work while children are running.
+         *
+         * <p>Note that the caller must call {@link Completion#operationFinish()} to mark the completion of the operation and to release the lease for other threads to use.
+         */
+        Completion operationStart();
+    }
 
     interface Completion {
         /**
-         * Marks the completion of a build operation, releasing the worker lease.
+         * Marks the completion of a build operation, releasing the lease.
          */
-        void workerCompleted();
+        void operationFinish();
     }
 }

@@ -25,16 +25,16 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
         expect:
         async {
             start {
-                def cl = registry.workerStart()
+                def cl = registry.operationStart()
                 instant.worker1
                 thread.blockUntil.worker2
-                cl.workerCompleted()
+                cl.operationFinish()
             }
             start {
-                def cl = registry.workerStart()
+                def cl = registry.operationStart()
                 instant.worker2
                 thread.blockUntil.worker1
-                cl.workerCompleted()
+                cl.operationFinish()
             }
         }
 
@@ -48,22 +48,173 @@ class DefaultBuildOperationWorkerRegistryTest extends ConcurrentSpec {
         when:
         async {
             start {
-                def cl = registry.workerStart()
+                def cl = registry.operationStart()
                 instant.worker1
                 thread.block()
                 instant.worker1Finished
-                cl.workerCompleted()
+                cl.operationFinish()
             }
             start {
                 thread.blockUntil.worker1
-                def cl = registry.workerStart()
+                def cl = registry.operationStart()
                 instant.worker2
-                cl.workerCompleted()
+                cl.operationFinish()
             }
         }
 
         then:
         instant.worker2 > instant.worker1Finished
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "child operation starts immediately when there are sufficient leases available"() {
+        def registry = new DefaultBuildOperationWorkerRegistry(2)
+
+        expect:
+        async {
+            start {
+                def cl = registry.operationStart()
+                def op = registry.current
+                start {
+                    def child = op.operationStart()
+                    child.operationFinish()
+                    instant.childFinished
+                }
+                thread.blockUntil.childFinished
+                cl.operationFinish()
+            }
+        }
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "child operation borrows parent lease"() {
+        def registry = new DefaultBuildOperationWorkerRegistry(1)
+
+        expect:
+        async {
+            start {
+                def cl = registry.operationStart()
+                def op = registry.current
+                start {
+                    def child = op.operationStart()
+                    child.operationFinish()
+                    instant.child1Finished
+                }
+                thread.blockUntil.child1Finished
+                start {
+                    def child = op.operationStart()
+                    child.operationFinish()
+                    instant.child2Finished
+                }
+                thread.blockUntil.child2Finished
+                cl.operationFinish()
+            }
+        }
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "child operations block until lease available when there is more than one child"() {
+        def registry = new DefaultBuildOperationWorkerRegistry(1)
+
+        when:
+        async {
+            start {
+                def cl = registry.operationStart()
+                def op = registry.current
+                start {
+                    def child = op.operationStart()
+                    instant.child1Started
+                    thread.block()
+                    instant.child1Finished
+                    child.operationFinish()
+                }
+                start {
+                    thread.blockUntil.child1Started
+                    def child = op.operationStart()
+                    instant.child2Started
+                    child.operationFinish()
+                    instant.child2Finished
+                }
+                thread.blockUntil.child2Finished
+                cl.operationFinish()
+            }
+        }
+
+        then:
+        instant.child2Started > instant.child1Finished
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "fails when child operation completes after parent"() {
+        def registry = new DefaultBuildOperationWorkerRegistry(2)
+
+        when:
+        async {
+            start {
+                def cl = registry.operationStart()
+                def op = registry.current
+                start {
+                    def child = op.operationStart()
+                    instant.childStarted
+                    thread.blockUntil.parentFinished
+                    child.operationFinish()
+                }
+                thread.blockUntil.childStarted
+                try {
+                    cl.operationFinish()
+                } finally {
+                    instant.parentFinished
+                }
+            }
+        }
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'Some child operations have not yet completed.'
+
+        cleanup:
+        registry?.stop()
+    }
+
+    def "can get operation for current thread"() {
+        def registry = new DefaultBuildOperationWorkerRegistry(1)
+
+        given:
+        def op = registry.operationStart()
+
+        expect:
+        registry.current == op
+
+        cleanup:
+        op?.operationFinish()
+        registry?.stop()
+    }
+
+    def "cannot get current operation when when current thread has no operation"() {
+        def registry = new DefaultBuildOperationWorkerRegistry(1)
+
+        when:
+        registry.current
+
+        then:
+        IllegalStateException e = thrown()
+        e.message == 'No build operation associated with the current thread'
+
+        when:
+        registry.operationStart().operationFinish()
+        registry.current
+
+        then:
+        e = thrown()
+        e.message == 'No build operation associated with the current thread'
 
         cleanup:
         registry?.stop()

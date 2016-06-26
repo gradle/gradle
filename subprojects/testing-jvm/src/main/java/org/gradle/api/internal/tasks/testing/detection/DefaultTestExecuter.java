@@ -54,10 +54,11 @@ public class DefaultTestExecuter implements TestExecuter {
     public void execute(final Test testTask, TestResultProcessor testResultProcessor) {
         final TestFramework testFramework = testTask.getTestFramework();
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
+        final BuildOperationWorkerRegistry.Operation currentOperation = buildOperationWorkerRegistry.getCurrent();
         final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, testTask,
-                    testTask.getClasspath(), testFramework.getWorkerConfigurationAction(), moduleRegistry, buildOperationWorkerRegistry);
+                    testTask.getClasspath(), testFramework.getWorkerConfigurationAction(), moduleRegistry, currentOperation);
             }
         };
         Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {

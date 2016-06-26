@@ -41,20 +41,20 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Iterable<File> classPath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
-    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
+    private final BuildOperationWorkerRegistry.Operation owner;
     private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
     private BuildOperationWorkerRegistry.Completion workerCompletion;
 
-    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, BuildOperationWorkerRegistry.Operation owner) {
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
         this.classPath = classPath;
         this.buildConfigAction = buildConfigAction;
         this.moduleRegistry = moduleRegistry;
-        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+        this.owner = owner;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
         if (remoteProcessor == null) {
-            workerCompletion = buildOperationWorkerRegistry.workerStart();
+            workerCompletion = owner.operationStart();
             remoteProcessor = forkProcess();
         }
 
@@ -119,7 +119,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
                 remoteProcessor.stop();
                 workerProcess.waitForStop();
             } finally {
-                workerCompletion.workerCompleted();
+                workerCompletion.operationFinish();
             }
         }
     }

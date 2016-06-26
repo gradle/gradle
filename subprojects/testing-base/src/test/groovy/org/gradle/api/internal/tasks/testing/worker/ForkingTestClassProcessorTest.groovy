@@ -36,9 +36,9 @@ class ForkingTestClassProcessorTest extends Specification {
     WorkerProcessBuilder workerProcessBuilder = Mock(WorkerProcessBuilder)
     WorkerProcess workerProcess = Mock(WorkerProcess)
     ModuleRegistry moduleRegistry = Mock(ModuleRegistry)
-    BuildOperationWorkerRegistry buildOperationWorkerRegistry = Mock(BuildOperationWorkerRegistry)
+    BuildOperationWorkerRegistry.Operation owner = Mock(BuildOperationWorkerRegistry.Operation)
     @Subject
-        processor = Spy(ForkingTestClassProcessor, constructorArgs: [workerProcessFactory, Mock(WorkerTestClassProcessorFactory), Mock(JavaForkOptions), [new File("classpath.jar")], Mock(Action), moduleRegistry, buildOperationWorkerRegistry])
+        processor = Spy(ForkingTestClassProcessor, constructorArgs: [workerProcessFactory, Mock(WorkerTestClassProcessorFactory), Mock(JavaForkOptions), [new File("classpath.jar")], Mock(Action), moduleRegistry, owner])
 
     def "acquires worker lease and starts worker process on first test"() {
         def test1 = Mock(TestClassRunInfo)
@@ -51,7 +51,7 @@ class ForkingTestClassProcessorTest extends Specification {
         processor.processTestClass(test2)
 
         then:
-        1 * buildOperationWorkerRegistry.workerStart() >> workerCompletion
+        1 * owner.operationStart() >> workerCompletion
 
         then:
         1 * processor.forkProcess() >> remoteProcessor
