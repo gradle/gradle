@@ -117,6 +117,10 @@ CAVEAT: Your mileage my vary. If you run into any problems please report those o
 
 The OSGi plugin now uses the version 3.2.0 of the BND library.
 
+### Parallel task execution improvements
+
+The `Test` task type now honors the `max-workers` setting for the test processes that are started. This means that Gradle will now run at most `max-workers` tasks and test processes at the same time.
+
 ### Improvements since Gradle 2.0
 <a id="all-improvements" name="all-improvements"/>
 
