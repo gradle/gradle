@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.BuildListener;
+import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
@@ -24,13 +24,11 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.file.BackingFileExtractor;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.Stoppable;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
@@ -41,28 +39,77 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, TaskExecutionListener, BuildListener {
+import static org.gradle.api.internal.changedetection.state.CachingTreeVisitor.CACHING_TREE_VISITOR_FEATURE_ENABLED;
+
+/*
+ This class determines what task input file paths are cacheable by the CachingTreeVisitor ("tree snapshot cache")
+ used in up-to-date checking to reduce unnecessary directory scanning.
+
+ - extract inputs/outputs and determine what are cacheable when the TaskExecutionGraph gets populated
+   - only cache those that are used multiple times
+      - same directory input for multiple tasks
+      - another downstream task uses the output of some task
+   - overlapping output directories aren't cacheable at all
+
+ This class also handles cache invalidation:
+ - if a task has unknown inputs, flush cache before the task is executed
+ - if a task has unknown outputs, flush cache after the task is executed
+ - invalidate entry from cache after the last task using the file path as input has been executed
+ - invalidate all entries in the cache when the build finishes
+*/
+public class TreeVisitorCacheExpirationStrategy implements Stoppable {
     private final static Logger LOG = Logging.getLogger(TreeVisitorCacheExpirationStrategy.class);
     private final CachingTreeVisitor cachingTreeVisitor;
-    private final Factory<OverlappingDirectoriesDetector> overlappingDirectoriesDetectorFactory;
+    private final ListenerManager listenerManager;
     // used to flush cache for a file path after the last task
     private Map<String, Collection<String>> lastTaskToHandleInputFile;
     private Set<String> tasksWithUnknownInputs;
     private Set<String> tasksWithUnknownOutputs;
+    private final TreeVisitorCacheTaskExecutionListener taskExecutionListener = new TreeVisitorCacheTaskExecutionListener();
+    private final TreeVisitorCacheBuildAdapter buildListener = new TreeVisitorCacheBuildAdapter();
+    private final TreeVisitorCacheTaskExecutionGraphListener taskExecutionGraphListener = new TreeVisitorCacheTaskExecutionGraphListener();
+    private final boolean swallowExceptions;
 
-    public TreeVisitorCacheExpirationStrategy(CachingTreeVisitor cachingTreeVisitor, Factory<OverlappingDirectoriesDetector> overlappingDirectoriesDetectorFactory) {
-        this.cachingTreeVisitor = cachingTreeVisitor;
-        this.overlappingDirectoriesDetectorFactory = overlappingDirectoriesDetectorFactory;
+    public TreeVisitorCacheExpirationStrategy(CachingTreeVisitor cachingTreeVisitor, ListenerManager listenerManager) {
+        this(cachingTreeVisitor, listenerManager, true);
     }
 
-    @Override
-    public void graphPopulated(TaskExecutionGraph graph) {
-        resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
+    public TreeVisitorCacheExpirationStrategy(CachingTreeVisitor cachingTreeVisitor, ListenerManager listenerManager, boolean swallowExceptions) {
+        this.cachingTreeVisitor = cachingTreeVisitor;
+        this.listenerManager = listenerManager;
+        this.swallowExceptions = swallowExceptions;
+        registerListeners();
+    }
+
+    private void registerListeners() {
+        if (CACHING_TREE_VISITOR_FEATURE_ENABLED) {
+            listenerManager.addListener(buildListener);
+            listenerManager.addListener(taskExecutionGraphListener);
+            listenerManager.addListener(taskExecutionListener);
+        }
+    }
+
+    private void removeListeners() {
+        if (CACHING_TREE_VISITOR_FEATURE_ENABLED) {
+            listenerManager.removeListener(taskExecutionListener);
+            listenerManager.removeListener(taskExecutionGraphListener);
+            listenerManager.removeListener(buildListener);
+        }
+    }
+
+    public void stop() {
+        removeListeners();
+    }
+
+    private void clearCache() {
+        cachingTreeVisitor.clearCache();
+        cachingTreeVisitor.updateCacheableFilePaths(null);
+        lastTaskToHandleInputFile = null;
+        tasksWithUnknownOutputs = null;
+        tasksWithUnknownInputs = null;
     }
 
     private void resolveCacheableFilesAndLastTasksToHandleEachFile(TaskExecutionGraph graph) {
-        // any output used by an downstream task is cacheable
-        // any input used by 2 tasks is cacheable
         List<String> cacheableFilePaths = new ArrayList<String>();
 
         tasksWithUnknownInputs = new HashSet<String>();
@@ -72,7 +119,7 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
 
         Set<String> cumulatedInputsAndOutputs = new HashSet<String>();
 
-        OverlappingDirectoriesDetector detector = overlappingDirectoriesDetectorFactory.create();
+        OverlappingDirectoriesDetector detector = new OverlappingDirectoriesDetector();
         for (Task task : graph.getAllTasks()) {
             final String taskPath = task.getPath();
             List<String> inputPaths = extractFilePaths(task.getInputs().getFiles());
@@ -84,7 +131,7 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
                     }
                 }
                 cumulatedInputsAndOutputs.addAll(inputPaths);
-            } else if (!task.getInputs().getHasInputs()) {
+            } else if (!task.getInputs().getHasInputs() && !task.getActions().isEmpty()) {
                 tasksWithUnknownInputs.add(taskPath);
             }
 
@@ -92,27 +139,31 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
             if (outputPaths.size() > 0) {
                 cumulatedInputsAndOutputs.addAll(outputPaths);
                 detector.addPaths(outputPaths);
-            } else if (!task.getOutputs().getHasOutput()) {
+            } else if (!task.getOutputs().getHasOutput() && !task.getActions().isEmpty()) {
                 tasksWithUnknownOutputs.add(taskPath);
             }
         }
 
-        resolveLastTasksToHandleEachFile(inputFileToTaskPaths);
-
         cacheableFilePaths.removeAll(detector.resolveOverlappingPaths());
+
+        resolveLastTasksToHandleEachFile(inputFileToTaskPaths, new HashSet<String>(cacheableFilePaths));
+
         cachingTreeVisitor.updateCacheableFilePaths(cacheableFilePaths);
     }
 
-    private void resolveLastTasksToHandleEachFile(Map<String, List<String>> inputFileToTaskPaths) {
+    private void resolveLastTasksToHandleEachFile(Map<String, List<String>> inputFileToTaskPaths, Collection<String> cacheableFilePaths) {
         lastTaskToHandleInputFile = new HashMap<String, Collection<String>>();
         for (Map.Entry<String, List<String>> entry : inputFileToTaskPaths.entrySet()) {
-            String lastTaskPath = entry.getValue().get(entry.getValue().size() - 1);
-            Collection<String> filePaths = lastTaskToHandleInputFile.get(lastTaskPath);
-            if (filePaths == null) {
-                filePaths = new ArrayList<String>();
-                lastTaskToHandleInputFile.put(lastTaskPath, filePaths);
+            String filePath = entry.getKey();
+            if (cacheableFilePaths.contains(filePath)) {
+                String lastTaskPath = entry.getValue().get(entry.getValue().size() - 1);
+                Collection<String> filePaths = lastTaskToHandleInputFile.get(lastTaskPath);
+                if (filePaths == null) {
+                    filePaths = new ArrayList<String>();
+                    lastTaskToHandleInputFile.put(lastTaskPath, filePaths);
+                }
+                filePaths.add(filePath);
             }
-            filePaths.add(entry.getKey());
         }
     }
 
@@ -137,51 +188,53 @@ class TreeVisitorCacheExpirationStrategy implements TaskExecutionGraphListener, 
         });
     }
 
-    @Override
-    public void beforeExecute(Task task) {
-        final String taskPath = task.getPath();
-        if (tasksWithUnknownInputs != null && tasksWithUnknownInputs.contains(taskPath)) {
-            LOG.info("Flushing directory cache because task {} has unknown inputs at configuration time.", taskPath);
-            cachingTreeVisitor.clearCache();
-        }
-    }
-
-    @Override
-    public void afterExecute(Task task, TaskState state) {
-        final String taskPath = task.getPath();
-        if (tasksWithUnknownOutputs != null && tasksWithUnknownOutputs.contains(taskPath)) {
-            LOG.info("Flushing directory cache because task {} has unknown outputs at configuration time.", taskPath);
-            cachingTreeVisitor.clearCache();
-        } else if (lastTaskToHandleInputFile != null) {
-            Collection<String> filePaths = lastTaskToHandleInputFile.get(taskPath);
-            if (filePaths != null) {
-                cachingTreeVisitor.invalidateFilePaths(filePaths);
+    private class TreeVisitorCacheTaskExecutionGraphListener implements TaskExecutionGraphListener {
+        @Override
+        public void graphPopulated(TaskExecutionGraph graph) {
+            try {
+                resolveCacheableFilesAndLastTasksToHandleEachFile(graph);
+            } catch (RuntimeException e) {
+                LOG.info("Exception '{}' while resolving task inputs and outputs. Disabling tree visitor caching for this build.", e.getMessage());
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Exception details", e);
+                }
+                clearCache();
+                if (!swallowExceptions) {
+                    throw e;
+                }
             }
         }
     }
 
-    @Override
-    public void buildStarted(Gradle gradle) {
+    private class TreeVisitorCacheTaskExecutionListener implements TaskExecutionListener {
+        @Override
+        public void beforeExecute(Task task) {
+            final String taskPath = task.getPath();
+            if (tasksWithUnknownInputs != null && tasksWithUnknownInputs.contains(taskPath)) {
+                LOG.info("Flushing directory cache because task {} has unknown inputs at configuration time.", taskPath);
+                cachingTreeVisitor.clearCache();
+            }
+        }
 
+        @Override
+        public void afterExecute(Task task, TaskState state) {
+            final String taskPath = task.getPath();
+            if (tasksWithUnknownOutputs != null && tasksWithUnknownOutputs.contains(taskPath)) {
+                LOG.info("Flushing directory cache because task {} has unknown outputs at configuration time.", taskPath);
+                cachingTreeVisitor.clearCache();
+            } else if (lastTaskToHandleInputFile != null) {
+                Collection<String> filePaths = lastTaskToHandleInputFile.get(taskPath);
+                if (filePaths != null) {
+                    cachingTreeVisitor.invalidateFilePaths(filePaths);
+                }
+            }
+        }
     }
 
-    @Override
-    public void settingsEvaluated(Settings settings) {
-
-    }
-
-    @Override
-    public void projectsLoaded(Gradle gradle) {
-
-    }
-
-    @Override
-    public void projectsEvaluated(Gradle gradle) {
-
-    }
-
-    @Override
-    public void buildFinished(BuildResult result) {
-        cachingTreeVisitor.clearCache();
+    private class TreeVisitorCacheBuildAdapter extends BuildAdapter {
+        @Override
+        public void buildFinished(BuildResult result) {
+            clearCache();
+        }
     }
 }

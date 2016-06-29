@@ -17,7 +17,7 @@ package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
+import org.gradle.api.internal.changedetection.state.CachingTreeVisitor
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
@@ -63,6 +63,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(FileCollectionFactory) >> Mock(FileCollectionFactory)
         _ * parent.get(StringInterner) >> new StringInterner()
         _ * parent.get(ClassLoaderHierarchyHasher) >> Mock(ClassLoaderHierarchyHasher)
+        _ * parent.get(CachingTreeVisitor) >> Mock(CachingTreeVisitor)
         _ * cacheRepository.cache(gradle, 'taskArtifacts') >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder
         _ * cacheBuilder.withLockOptions(!null) >> cacheBuilder
@@ -81,28 +82,5 @@ class TaskExecutionServicesTest extends Specification {
         expect:
         services.get(BuildOperationProcessor) instanceof DefaultBuildOperationProcessor
         services.get(BuildOperationProcessor).is(services.get(BuildOperationProcessor))
-    }
-
-    def "TreeVisitorCacheExpirationStrategy gets registered as TaskExecutionGraphListener, TaskExecutionListener and BuildListener when TaskArtifactStateRepository is requested"() {
-        given:
-        def taskGraphExecuter = Mock(TaskGraphExecuter)
-
-        when:
-        services.get(TaskArtifactStateRepository)
-
-        then:
-        _ * parent.get(Gradle) >> gradle
-        gradle.getTaskGraph() >> taskGraphExecuter
-        1 * taskGraphExecuter.addTaskExecutionGraphListener({ isTreeVisitorCacheExpirationStrategy(it) })
-        1 * taskGraphExecuter.addTaskExecutionListener({ isTreeVisitorCacheExpirationStrategy(it) })
-        1 * gradle.addBuildListener({ isTreeVisitorCacheExpirationStrategy(it) })
-        _ * parent.get({ it instanceof Class }) >> { Class type ->
-            Stub(type)
-        }
-        0 * _._
-    }
-
-    private boolean isTreeVisitorCacheExpirationStrategy(instance) {
-        instance.getClass().simpleName == 'TreeVisitorCacheExpirationStrategy'
     }
 }

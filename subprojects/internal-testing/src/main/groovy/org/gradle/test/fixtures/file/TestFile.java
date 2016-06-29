@@ -141,6 +141,9 @@ public class TestFile extends File {
 
     public TestFile[] listFiles() {
         File[] children = super.listFiles();
+        if (children == null) {
+            return null;
+        }
         TestFile[] files = new TestFile[children.length];
         for (int i = 0; i < children.length; i++) {
             File child = children[i];

@@ -20,16 +20,14 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.TextResource;
-import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.internal.metaobject.DynamicObject;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -146,16 +144,7 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     @Override
     protected void configureForSourceSet(final SourceSet sourceSet, CodeNarc task) {
         task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
-        task.getConventionMapping().map("source", new Callable<SourceDirectorySet>() {
-            @Override
-            public SourceDirectorySet call() throws Exception {
-                Convention sourceSetConvention = new DslObject(sourceSet).getConvention();
-                GroovySourceSet groovySourceSet = sourceSetConvention.findPlugin(GroovySourceSet.class);
-                if (groovySourceSet == null) {
-                    return null;
-                }
-                return groovySourceSet.getAllGroovy();
-            }
-        });
+        DynamicObject dynamicObject = new DslObject(sourceSet).getAsDynamicObject();
+        task.setSource(dynamicObject.getProperty("allGroovy"));
     }
 }
