@@ -48,6 +48,10 @@
                 <td>gradleVersion</td>
                 <td><literal>gradle.gradleVersion</literal></td>
             </tr>
+            <tr>
+                <td>distributionType</td>
+                <td><literal>DistributionType.BIN</literal></td>
+            </tr>
         </table>
     </section>
     <section>
