@@ -241,7 +241,7 @@ public class Wrapper extends DefaultTask {
      * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
      * don't need to provide a download server then.
      */
-    @Option(option = "gradle-distribution-url", description = "The URL to download the gradle distribution from.")
+    @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
     public void setDistributionUrl(String url) {
         this.distributionUrl = url;
     }
