@@ -5,6 +5,12 @@ String jdkVarName = 'JAVA_9'
 
 task java9IntegTest(type: Test) {
     excludes = [
+        // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
+        // Fail since build 125
+        "AllDaemonExpirationStrategyTest",
+        "AnyDaemonExpirationStrategyTest",
+        "InterfaceBackedManagedTypeIntegrationTest",
+
         // "targetplatforms sample creates a binary specific source set" tries to compile for Java 5 - need to update test, samples and userguide
         "SampleJavaLanguageIntegrationTest",
 
@@ -16,7 +22,7 @@ task java9IntegTest(type: Test) {
         // Add a dedicated Findbugs test for Java 9
         "FindBugsIntegrationTest",
 
-        // Looks like Pmd is broken with Java 9
+        // Looks like Pmd is broken with Java 9 - should work with PMD 5.5.0
         "PmdPluginAuxclasspathIntegrationTest",
         "PmdPluginDependenciesIntegrationTest",
         "PmdPluginVersionIntegrationTest",
