@@ -122,6 +122,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             if (LOGGER.isDebugEnabled()) {
                 Setup.debug(setup, logger);
             }
+            // getOrCreate method is thread-safe
             com.typesafe.zinc.Compiler compiler = com.typesafe.zinc.Compiler.getOrCreate(setup, logger);
             return compiler;
         }
@@ -131,7 +132,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             CacheRepository cacheRepository = ZincCompilerServices.getInstance(zincCacheHomeDir).get(CacheRepository.class);
             final PersistentCache zincCache = cacheRepository.cache("zinc")
                                                             .withDisplayName("Zinc compiler cache")
-                                                            .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
+                                                            .withLockOptions(mode(FileLockManager.LockMode.None))
                                                             .open();
             final File cacheDir = zincCache.getBaseDir();
 
@@ -143,12 +144,7 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec>, S
             com.typesafe.zinc.Compiler compiler = SystemProperties.getInstance().withSystemProperty(ZINC_DIR_SYSTEM_PROPERTY, cacheDir.getAbsolutePath(), new Factory<com.typesafe.zinc.Compiler>() {
                 @Override
                 public com.typesafe.zinc.Compiler create() {
-                    return zincCache.useCache("initialize", new Factory<com.typesafe.zinc.Compiler>() {
-                        @Override
-                        public com.typesafe.zinc.Compiler create() {
-                            return createCompiler(scalaClasspath, zincClasspath, logger);
-                        }
-                    });
+                    return createCompiler(scalaClasspath, zincClasspath, logger);
                 }
             });
             zincCache.close();
