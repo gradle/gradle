@@ -94,25 +94,16 @@ task java9IntegTest(type: Test) {
         "SamplesWebQuickstartIntegrationTest",
 
         // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
+        // These tests need jvmArgs '-addmods', 'java.xml.bind'
+        // These jvmArgs should probably be added when running Gradle automatically
         "S3ClientIntegrationTest",
         "IvyPublishS3IntegrationTest",
         "IvyS3UploadArchivesIntegrationTest",
         "MavenPublishS3IntegrationTest",
 
-        // Test assumes there is a tools.jar
+        // Test assumes there is a tools.jar - provide a different large jar
         "IvyPublishHttpIntegTest",
         "IvyHttpPublishIntegrationTest",
-
-        /*
-        java.lang.reflect.InaccessibleObjectException: Cannot make a non-public member of class java.lang.reflect.AccessibleObject accessible
-        at jdk.internal.reflect.Reflection.throwInaccessibleObjectException(java.base@9-ea/Reflection.java:414)
-        for AST tests
-         and
-        java.lang.RuntimeException: Annotation Processor Classpath is contaminated by Gradle ClassLoader
-	        at com.test.SimpleAnnotationProcessor.process(SimpleAnnotationProcessor.java:22)
-	     for AnnotationProcessorTest
-         */
-        "InvokeDynamicGroovyCompilerSpec",
 
         // Various problems, eg scala compile
         "UserGuideSamplesIntegrationTest",
@@ -164,9 +155,6 @@ task java9Test(type: Test) {
 }
 
 tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
-    doFirst {
-        jvmArgs = []
-    }
     def java9Home = System.getenv('JAVA_9')
     executable = "${java9Home}/bin/java"
     environment['JAVA_HOME'] = java9Home
