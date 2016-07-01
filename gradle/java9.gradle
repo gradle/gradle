@@ -140,11 +140,6 @@ task java9IntegTest(type: Test) {
         "DirectoryScanningIntegTest",
 
         /*
-         No reference to Build Script in log output
-         */
-        "DeprecationHandlingIntegrationTest",
-
-        /*
           MaxPermSize as GRADLE_OPTS
          */
         "ClientShutdownCrossVersionSpec",
