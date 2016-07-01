@@ -27,25 +27,6 @@ task java9IntegTest(type: Test) {
         // Osgi is broken with a NPE in Processor - need to investigate
         "OsgiPluginIntegrationSpec",
 
-        // Old Gradle cannot run against Java 9
-        // class org.gradle.internal.reflect.DirectInstantiator cannot access class com.sun.tools.javac.api.JavacTool (in module jdk.compiler) because module jdk.compiler does not export com.sun.tools.javac.api to unnamed module @4030a92
-        "org/gradle/integtests/tooling/r22/BuildActionCrossVersionSpec", // current -> 2.13
-        "org/gradle/integtests/tooling/r25/BuildProgressCrossVersionSpec",
-        "org/gradle/integtests/tooling/r25/ContinuousBuildCancellationCrossVersionSpec", // current -> 2.13
-        "org/gradle/integtests/tooling/r25/ContinuousBuildCrossVersionSpec", // current -> 2.13
-        "org/gradle/integtests/tooling/r25/ContinuousBuildProgressEventsCrossVersionSpec", // current -> 2.13
-        "org/gradle/integtests/tooling/r25/DeploymentHandleContinuousBuildCrossVersionSpec", // current -> 2.13
-        "org/gradle/integtests/tooling/r25/ProgressCrossVersionSpec", // current -> 2.13
-        "org/gradle/integtests/tooling/r25/TaskProgressCrossVersionSpec", // current -> 2.13
-        "org/gradle/integtests/tooling/r25/TestProgressCrossVersionSpec", // current -> 2.13
-        "org/gradle/integtests/tooling/r25/TestProgressDaemonErrorsCrossVersionSpec", // current -> 2.13
-        "org/gradle/integtests/tooling/r26/TestLauncherCrossVersionSpec", // current -> 2.13
-        "org/gradle/integtests/tooling/r27/TestLauncherCrossVersionSpec", // current -> 2.13
-        "JavaProjectCrossVersionIntegrationTest", // previous = 2.13 or older
-        "TaskSubclassingBinaryCompatibilityCrossVersionSpec", // previous = 2.13 or older
-        "TaskUpToDateCrossVersionIntegrationTest", // previous = 2.13 or older
-        "TestFilteringCrossVersionSpec", // current -> 2.13
-        "DependencySubstitutionGradleConnectionCrossVersionSpec", // current -> 2.14
         // Attempts to run Gradle 2.8 on Java 9
         "HeterogeneousCompositeBuildCrossVersionSpec",
 
