@@ -111,11 +111,19 @@ With these features Tooling API clients can provide a more complete IDE integrat
 Gradle 3.0 contains initial support for Java 9. This means that running Gradle on Java 9 and compiling,
 testing and running Java 9 applications is supported out of the box.
 
+The following plugins should work out of the box:
+
+- [Jacoco](userguide/jacoco_plugin.html)
+
 CAVEAT: Your mileage my vary. If you run into any problems please report those on the forums.
 
 ### Upgrade of BND library used by OSGi plugin
 
 The OSGi plugin now uses the version 3.2.0 of the BND library.
+
+### Upgrade of the default Jacoco version
+
+The Jacoco plugin now uses Jacoco version 0.7.7.201606060606. This is required for Java 9 support.
 
 ### Parallel task execution improvements
 
