@@ -115,6 +115,11 @@ The following plugins should work out of the box:
 
 - [Jacoco](userguide/jacoco_plugin.html)
 
+The following plugins still have some issues:
+
+- [PMD](userguide/pmd_plugin.html): Runs on Java 9 but cannot analyze Java 9 Bytecode as this is not yet supported by
+  the latest version of PMD (5.5.0)
+
 CAVEAT: Your mileage my vary. If you run into any problems please report those on the forums.
 
 ### Upgrade of BND library used by OSGi plugin
@@ -123,7 +128,11 @@ The OSGi plugin now uses the version 3.2.0 of the BND library.
 
 ### Upgrade of the default Jacoco version
 
-The Jacoco plugin now uses Jacoco version 0.7.7.201606060606. This is required for Java 9 support.
+The Jacoco plugin has been updated to use Jacoco version 0.7.7.201606060606 by default. This is required for Java 9 support.
+
+### Upgrade of the default PMD version
+
+The PMD plugin has been updated to use PMD version 5.5.0 by default.
 
 ### Parallel task execution improvements
 

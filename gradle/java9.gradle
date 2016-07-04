@@ -20,11 +20,6 @@ task java9IntegTest(type: Test) {
         // Add a dedicated Findbugs test for Java 9
         "FindBugsIntegrationTest",
 
-        // Looks like Pmd is broken with Java 9 - should work with PMD 5.5.0
-        "PmdPluginAuxclasspathIntegrationTest",
-        "PmdPluginDependenciesIntegrationTest",
-        "PmdPluginVersionIntegrationTest",
-
         // Codenarc does not work on Java 9 - therefore it will not fail with PermGenSpaceError
         "IsolatedAntBuilderMemoryLeakIntegrationTest",
 
