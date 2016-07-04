@@ -22,9 +22,10 @@ dependencies {
     compile("org.codehaus.groovy:groovy-all:2.4.7")
     compile("org.slf4j:slf4j-api:1.7.10")
     compile("javax.inject:javax.inject:1")
-    compile("org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion")
-    compile("org.jetbrains.kotlin:kotlin-reflect:$kotlinVersion")
-    compile("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinVersion")
+
+    compile(kotlin("stdlib"))
+    compile(kotlin("reflect"))
+    compile(kotlin("compiler-embeddable"))
 
     testCompile(gradleTestKit())
     testCompile("junit:junit:4.12")
@@ -47,3 +48,5 @@ configure<PublishingExtension> {
 }
 
 fun gradle(module: String) = "org.gradle:gradle-$module:3.0-milestone-1"
+
+fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
