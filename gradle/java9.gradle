@@ -127,12 +127,6 @@ task java9IntegTest(type: Test) {
 }
 
 task java9Test(type: Test) {
-    excludes = [
-        // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
-        // Fail since build 125
-        "AllDaemonExpirationStrategyTest",
-        "AnyDaemonExpirationStrategyTest",
-    ].collect { "**/*${it}*" }
 }
 
 tasks.withType(Test).matching { it.name.startsWith("java9") }.all {
