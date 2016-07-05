@@ -30,12 +30,13 @@ class SamplesJavaProjectWithIntTestsIntegrationTest extends AbstractIntegrationT
     @Test
     public void canRunIntegrationTests() {
         TestFile javaprojectDir = sample.dir
-        
+
         // Run int tests
         executer.inDirectory(javaprojectDir).withTasks('clean', 'integrationTest').run()
 
         // Check tests have run
-        def result = new DefaultTestExecutionResult(javaprojectDir)
+
+        def result = new DefaultTestExecutionResult(javaprojectDir, 'build', '', '', 'integrationTest')
         result.assertTestClassesExecuted('org.gradle.PersonIntegrationTest')
     }
 }

@@ -22,10 +22,10 @@ Add-->
 
 ### New Features and Improvements since 3.0 M1
 
- * **Initial Java 9 Support.** Gradle now runs properly when run on the latest JDK 9 EAP builds, and users can build and run tests for their own projects against JDK 9 as well. Note, however, that Gradle does not yet support Jigsaw modules or JDK 9-specific compile options such as `-release` and `-modulepath`. 
+ * **Initial Java 9 Support.** Gradle now runs properly when run on the latest JDK 9 EAP builds, and users can build and run tests for their own projects against JDK 9 as well. Note, however, that Gradle does not yet support Jigsaw modules or JDK 9-specific compile options such as `-release` and `-modulepath`.
  * **Performance Improvements and new Performance Guide.** A number of performance improvements have acculmulated over the last several Gradle releases, and it's a good time to try them out for yourself in 3.0 M2. For details on many of these improvements, see [Cédric's blog post](http://gradle.org/blog/gradle-3-0-m2-java-9-support/). We're also pleased to make available a draft of our [new Performance Guide](https://gradle.github.io/performance-guide). This is intended to be a short (13-page) guide that allows you to dramatically improve your build performance over the course of an afternoon. Check it out and please provide any feedback via the guide's [GitHub Issues](https://github.com/gradle/performance-guide/issues).
  * **Improved Kotlin build scripting.** Gradle 3.0 M2 includes the newly-released Gradle Script Kotlin 0.2.0. Users can now modify the build script classpath and apply plugins in Kotlin-based build scripts, and project import into IDEA is now seamless. See the Gradle Script Kotlin [0.2.0 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/0.2.0) for details, samples and getting started instructions.
-    
+
 ### Improved Gradle Daemon, now enabled by default
 
 The performance improvement gained by using the Daemon is staggering: our performance tests [show that builds could be up to 75% faster](http://gradle.org/blog/gradle-3-0-m1-unleash-the-daemon/), just by enabling the Gradle Daemon.
@@ -45,7 +45,7 @@ $> gradle --status
  34247 3.0                     BUSY
 ```
 
-Note that currently this does not list Gradle Daemons with version < 3.0. More details available in the [User Guide](userguide/gradle_daemon.html#status). 
+Note that currently this does not list Gradle Daemons with version < 3.0. More details available in the [User Guide](userguide/gradle_daemon.html#status).
 
 ### Up-to-date checks more robust against task implementation changes
 
@@ -81,7 +81,7 @@ Before Gradle 3.0, the `eclipse-wtp` plugin always defined external dependencies
             <attribute name="org.eclipse.jst.component.dependency" value="WEB-INF/lib"/>
         </attributes>
     </classpath>
-    
+
 If the project is not a Java project (and thus has no classpath), the dependencies are added to the component descriptor as before.
 
 ### Improved dependency resolution for `eclipse-wtp` plugin
@@ -193,7 +193,7 @@ The `Test` task type now honors the `max-workers` setting for the test processes
 - Text resources
 - Software model    
     - Dependency management for JVM libraries, target platform aware
-        - inter-project, intra-project and external libraries 
+        - inter-project, intra-project and external libraries
     - JVM library API definition, compile avoidance
     - JUnit support
     - Components report, model report
@@ -241,13 +241,24 @@ The following APIs have been deprecated:
 Gradle itself now requires Java 7 or better to run, but compiling project sources and running tests with Java 6 remains supported.
 See [Compiling and testing for Java 6](userguide/java_plugin.html#sec:java_cross_compilation) in the Userguide. There are also
 instructions on how to compile and test [Groovy](userguide/groovy_plugin.html#sec:groovy_cross_compilation) and
-[Scala](userguide/scala_plugin.html#sec:scala_cross_compilation) for Java 6. 
+[Scala](userguide/scala_plugin.html#sec:scala_cross_compilation) for Java 6.
 
 Support for compiling and testing on Java 5 has been dropped.
 
 ### Sonar plugin has been removed
 
 The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
+
+### Test result and report directory take task name into account
+
+The defaults for the outputs of tasks of type Test have changed to take the task name into account when used with the `Java Plugin`.
+This allows having multiple tasks of type Test with non conflicting default report and result folders.
+When the Java Plugin is applied, the report directory for a task of type `Test` with name `test` is now `$buildDir/reports/tests/test`. The `test-result` folder for task `test` is now `$buildDir/test-results/tests`.
+
+To keep the previous behaviour, the reports output directory of Test tasks can be configured explicitly:
+
+    test.reports.html.destination = testReportDir // build/reports/tests
+    test.reports.xml.destination = testResultDir // build/test-results
 
 ### Ant-Based Scala Compiler has been removed
 
@@ -337,8 +348,8 @@ eclipse.project {
 #### Eclipse model contains classpath attributes for project and external dependencies
 
 The `EclipseProjectDependency` and `EclipseExternalDependency` models now contain `ClasspathAttribute`s. By default the JavaDoc location attribute and WTP deployment attributes are populated.
- 
-Any customizations done via `eclipse.classpath.file.beforeMerged` and `eclipse.classpath.file.whenMerged` are also reflected in these tooling models. 
+
+Any customizations done via `eclipse.classpath.file.beforeMerged` and `eclipse.classpath.file.whenMerged` are also reflected in these tooling models.
 
 ## External contributions
 

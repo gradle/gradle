@@ -23,11 +23,16 @@ class DefaultTestExecutionResult implements TestExecutionResult {
 
     def results = []
 
-    public DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary='', String testedBinary = '') {
+    public DefaultTestExecutionResult(TestFile projectDir, String buildDirName = 'build', String binary='', String testedBinary = '', String testTaskName = 'test') {
         String binaryPath = binary?"/$binary":''
-        binaryPath = testedBinary?"$binaryPath/$testedBinary":binaryPath;
-        results << new HtmlTestExecutionResult(projectDir, "$buildDirName/reports${binaryPath}/tests")
-        results << new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results${binaryPath}")
+        binaryPath = testedBinary?"$binaryPath/$testedBinary":"$binaryPath";
+        if(binary){
+            results << new HtmlTestExecutionResult(projectDir, "$buildDirName/reports${binaryPath}/tests/")
+            results << new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results${binaryPath}")
+        }else{
+            results << new HtmlTestExecutionResult(projectDir, "$buildDirName/reports/tests/${testTaskName}")
+            results << new JUnitXmlTestExecutionResult(projectDir, "$buildDirName/test-results/${testTaskName}")
+        }
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {

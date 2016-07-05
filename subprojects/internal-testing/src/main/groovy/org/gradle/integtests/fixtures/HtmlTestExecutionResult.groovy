@@ -25,7 +25,7 @@ class HtmlTestExecutionResult implements TestExecutionResult {
 
     private File htmlReportDirectory
 
-    public HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests") {
+    public HtmlTestExecutionResult(File projectDirectory, String testReportDirectory = "build/reports/tests/test") {
         this.htmlReportDirectory = new File(projectDirectory, testReportDirectory);
     }
 

@@ -361,8 +361,8 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task.classpath == project.sourceSets.test.runtimeClasspath
         task.testClassesDir == project.sourceSets.test.output.classesDir
         task.workingDir == project.projectDir
-        task.reports.junitXml.destination == project.testResultsDir
-        task.reports.html.destination == project.testReportDir
+        task.reports.junitXml.destination == new File(project.testResultsDir, 'customTest')
+        task.reports.html.destination == new File(project.testReportDir, 'customTest')
     }
 
     def buildOtherProjects() {

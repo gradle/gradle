@@ -379,17 +379,17 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         xmlReport.getConventionMapping().map("destination", new Callable<Object>() {
             public Object call() throws Exception {
-                return convention.getTestResultsDir();
+                return new File(convention.getTestResultsDir(), test.getName());
             }
         });
         htmlReport.getConventionMapping().map("destination", new Callable<Object>() {
             public Object call() throws Exception {
-                return convention.getTestReportDir();
+                return new File(convention.getTestReportDir(), test.getName());
             }
         });
         test.getConventionMapping().map("binResultsDir", new Callable<Object>() {
             public Object call() throws Exception {
-                return new File(convention.getTestResultsDir(), "binary/" + test.getName());
+                return new File(convention.getTestResultsDir(), test.getName() + "/binary");
             }
         });
         test.workingDir(project.getProjectDir());

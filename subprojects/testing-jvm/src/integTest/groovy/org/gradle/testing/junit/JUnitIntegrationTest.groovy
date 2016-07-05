@@ -280,8 +280,8 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         executer.withTasks('test').run()
 
         then:
-        TestFile results1 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest.xml')
-        TestFile results2 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest2.xml')
+        TestFile results1 = testDirectory.file('build/test-results/test/TEST-org.gradle.SomeTest.xml')
+        TestFile results2 = testDirectory.file('build/test-results/test/TEST-org.gradle.SomeTest2.xml')
         results1.assertIsFile()
         results2.assertIsFile()
         assertThat(results1.linesThat(containsString('VM START TIME =')).get(0), equalTo(results2.linesThat(containsString('VM START TIME =')).get(0)))
@@ -316,8 +316,8 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         executer.withTasks('test').run()
 
         then:
-        TestFile results1 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest.xml')
-        TestFile results2 = testDirectory.file('build/test-results/TEST-org.gradle.SomeTest2.xml')
+        TestFile results1 = testDirectory.file('build/test-results/test/TEST-org.gradle.SomeTest.xml')
+        TestFile results2 = testDirectory.file('build/test-results/test/TEST-org.gradle.SomeTest2.xml')
         results1.assertIsFile()
         results2.assertIsFile()
         assertThat(results1.linesThat(containsString('VM START TIME =')).get(0), not(equalTo(results2.linesThat(
@@ -428,10 +428,13 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
         executer.withTasks('check').run()
 
         then:
-        def result = new JUnitXmlTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.Test1', 'org.gradle.Test2')
-        result.testClass('org.gradle.Test1').assertTestPassed('ok')
-        result.testClass('org.gradle.Test2').assertTestPassed('ok')
+        def testResult = new JUnitXmlTestExecutionResult(testDirectory)
+        testResult.assertTestClassesExecuted('org.gradle.Test1')
+        testResult.testClass('org.gradle.Test1').assertTestPassed('ok')
+
+        def test2Result = new JUnitXmlTestExecutionResult(testDirectory, 'build/test-results/test2')
+        test2Result.assertTestClassesExecuted('org.gradle.Test2')
+        test2Result.testClass('org.gradle.Test2').assertTestPassed('ok')
     }
 
     def supportsJunit3Suites() {
