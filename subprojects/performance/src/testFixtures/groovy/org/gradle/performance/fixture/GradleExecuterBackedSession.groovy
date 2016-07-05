@@ -40,17 +40,18 @@ class GradleExecuterBackedSession implements GradleSession {
 
     Runnable runner(GradleInvocationCustomizer invocationCustomizer) {
         def runner = createExecuter(invocationCustomizer, true)
-        return { runner.run() }
+        return {
+            if (invocation.expectFailure) {
+                runner.runWithFailure()
+            } else {
+                runner.run()
+            }
+        }
     }
 
     @Override
     void cleanup() {
-        def executer = createExecuter(null, false).withTasks().withArgument("--stop")
-        if (invocation.expectFailure) {
-            executer.runWithFailure()
-        } else {
-            executer.run()
-        }
+        createExecuter(null, false).withTasks().withArgument("--stop").run()
     }
 
     private GradleExecuter createExecuter(GradleInvocationCustomizer invocationCustomizer, boolean withGradleOpts) {

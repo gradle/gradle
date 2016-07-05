@@ -51,6 +51,10 @@ class DefaultVisitedTree implements VisitedTree {
         this.missingFiles = missingFiles;
     }
 
+    public static DefaultVisitedTree of(List<FileTreeElement> fileTreeElements) {
+        return new DefaultVisitedTree(null, null, ImmutableList.<FileTreeElement>copyOf(fileTreeElements), false, -1, null);
+    }
+
     @Override
     public String getAbsolutePath() {
         return absolutePath;

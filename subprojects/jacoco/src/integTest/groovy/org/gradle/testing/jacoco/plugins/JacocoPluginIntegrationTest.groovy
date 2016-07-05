@@ -164,7 +164,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @IgnoreIf({GradleContextualExecuter.parallel})
     void jacocoReportIsIncremental() {
-        def reportResourceDir = file("${REPORTING_BASE}/jacoco/test/html/.resources")
+        def reportResourceDir = file("${REPORTING_BASE}/jacoco/test/html/jacoco-resources")
 
         when:
         succeeds('test', 'jacocoTestReport')

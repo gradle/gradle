@@ -701,7 +701,9 @@ performanceTestTasks.all {
 
     // Some performance builds generate a lot of output,
     // that is buffered until the test finishes via GradleExecuter.
-    maxHeapSize "8g"
+    if(System.getProperty('sun.arch.data.model')?.indexOf('64') > -1) {
+        maxHeapSize "8g"
+    }
 }
 
 task largeJavaProjectWithBuildReceiptPlugin(type: JvmProjectGeneratorTask) {
@@ -789,6 +791,4 @@ java9IntegTest {
         excludeCategories 'org.gradle.performance.categories.PerformanceTest'
     }
 }
-
-verifyTestFilesCleanup.errorWhenNotEmpty = false
 

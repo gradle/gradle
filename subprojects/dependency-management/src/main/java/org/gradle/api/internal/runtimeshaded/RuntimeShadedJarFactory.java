@@ -41,13 +41,13 @@ public class RuntimeShadedJarFactory implements Closeable {
     private final ProgressLoggerFactory progressLoggerFactory;
 
     public RuntimeShadedJarFactory(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory, String gradleVersion) {
-        this.gradleVersion = gradleVersion;
-        this.progressLoggerFactory = progressLoggerFactory;
         this.cache = cacheRepository
             .cache(CACHE_KEY)
             .withDisplayName(CACHE_DISPLAY_NAME)
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .open();
+        this.progressLoggerFactory = progressLoggerFactory;
+        this.gradleVersion = gradleVersion;
     }
 
     public File get(final RuntimeShadedJarType type, final Collection<? extends File> classpath) {

@@ -440,4 +440,16 @@ dependencies { compile 'com.ibm.icu:icu4j:2.6.1' }
         expect:
         run "compileJava"
     }
+
+    @Issue("GRADLE-3495")
+    def "supports Java 1.1 dependencies"() {
+        java "class A {}"
+
+        buildFile << """
+repositories { jcenter() }
+dependencies { compile 'net.sf.ehcache:ehcache:2.10.2' }
+"""
+        expect:
+        run "compileJava"
+    }
 }

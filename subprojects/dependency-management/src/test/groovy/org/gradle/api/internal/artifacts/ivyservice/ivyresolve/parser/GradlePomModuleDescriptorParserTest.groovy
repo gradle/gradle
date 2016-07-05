@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
+import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
@@ -2272,5 +2274,36 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def depGroupOne = single(descriptor.dependencies)
         depGroupOne.requested == moduleId('group-one', 'artifact-one-xxx', 'version-one')
         hasDefaultDependencyArtifact(depGroupOne)
+    }
+
+    @NotYetImplemented
+    @Issue("GRADLE-3485")
+    def "throws appropriate exception if parent pom has the same GAV as resolved pom"() {
+        given:
+        def pomWithParent = """
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>group-one</groupId>
+    <artifactId>artifact-one</artifactId>
+    <version>version-one</version>
+
+    <parent>
+        <groupId>group-one</groupId>
+        <artifactId>artifact-one</artifactId>
+        <version>version-one</version>
+    </parent>
+</project>
+"""
+        def parent = tmpDir.file("parent.xml") << pomWithParent
+        pomFile << pomWithParent
+
+        and:
+        parseContext.getMetaDataArtifact(_, MAVEN_POM) >> { new DefaultLocallyAvailableExternalResource(parent.toURI(), new DefaultLocallyAvailableResource(parent)) }
+
+        when:
+        parsePom()
+
+        then:
+        thrown(MetaDataParseException)
     }
 }

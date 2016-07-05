@@ -26,7 +26,6 @@ import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepo
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.CachingTreeVisitor;
-import org.gradle.api.internal.changedetection.state.CachingTreeVisitorCleaner;
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultTaskArtifactStateCacheAccess;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
@@ -63,8 +62,10 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.RandomLongIdGenerator;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.operations.DefaultBuildOperationProcessor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
+import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
@@ -114,14 +115,6 @@ public class TaskExecutionServices {
         return new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner);
     }
 
-    CachingTreeVisitor createTreeVisitor() {
-        return new CachingTreeVisitor();
-    }
-
-    CachingTreeVisitorCleaner createTreeVisitorCleaner(CachingTreeVisitor cachingTreeVisitor, Gradle gradle) {
-        return new CachingTreeVisitorCleaner(cachingTreeVisitor, gradle);
-    }
-
     TreeSnapshotRepository createTreeSnapshotCache(TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner) {
         return new TreeSnapshotRepository(cacheAccess, stringInterner);
     }
@@ -161,12 +154,17 @@ public class TaskExecutionServices {
         );
     }
 
-    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory) {
-        int parallelThreads = startParameter.isParallelProjectExecutionEnabled() ? startParameter.getMaxWorkerCount() : 0;
-        return new TaskPlanExecutorFactory(parallelThreads, executorFactory).create();
+    TaskPlanExecutor createTaskExecutorFactory(StartParameter startParameter, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+        int parallelThreads = startParameter.isParallelProjectExecutionEnabled() ? startParameter.getMaxWorkerCount() : 1;
+        return new TaskPlanExecutorFactory(parallelThreads, executorFactory, buildOperationWorkerRegistry).create();
     }
 
     BuildOperationProcessor createBuildOperationProcessor(StartParameter startParameter, ExecutorFactory executorFactory) {
         return new DefaultBuildOperationProcessor(new DefaultBuildOperationQueueFactory(), executorFactory, startParameter.getMaxWorkerCount());
     }
+
+    BuildOperationWorkerRegistry createBuildOperationWorkerRegistry(StartParameter startParameter) {
+        return new DefaultBuildOperationWorkerRegistry(startParameter.getMaxWorkerCount());
+    }
+
 }

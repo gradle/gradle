@@ -22,6 +22,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.StoppableExecutor;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 
 import java.util.concurrent.Executor;
 
@@ -29,10 +30,12 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(ParallelTaskPlanExecutor.class);
     private final int executorCount;
     private final ExecutorFactory executorFactory;
+    private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
 
-    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory) {
+    public ParallelTaskPlanExecutor(int numberOfParallelExecutors, ExecutorFactory executorFactory, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
         this.executorFactory = executorFactory;
-        if (numberOfParallelExecutors < 1) {
+        this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
+        if (numberOfParallelExecutors < 2) {
             throw new IllegalArgumentException("Not a valid number of parallel executors: " + numberOfParallelExecutors);
         }
 
@@ -44,7 +47,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
         StoppableExecutor executor = executorFactory.create("Task worker");
         try {
             startAdditionalWorkers(taskExecutionPlan, taskWorker, executor);
-            taskWorker(taskExecutionPlan, taskWorker).run();
+            taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry).run();
             taskExecutionPlan.awaitCompletion();
         } finally {
             executor.stop();
@@ -55,7 +58,7 @@ class ParallelTaskPlanExecutor extends AbstractTaskPlanExecutor {
         LOGGER.info("Using {} parallel executor threads", executorCount);
 
         for (int i = 1; i < executorCount; i++) {
-            Runnable worker = taskWorker(taskExecutionPlan, taskWorker);
+            Runnable worker = taskWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
             executor.execute(worker);
         }
     }

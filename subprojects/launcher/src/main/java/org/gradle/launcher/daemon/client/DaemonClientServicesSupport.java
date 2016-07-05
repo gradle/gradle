@@ -15,6 +15,8 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.id.CompositeIdGenerator;
@@ -22,6 +24,9 @@ import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.id.UUIDGenerator;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.progress.DefaultProgressLoggerFactory;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.services.ProgressLoggingBridge;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.OutgoingConnector;
 import org.gradle.internal.remote.internal.inet.TcpOutgoingConnector;
@@ -55,6 +60,10 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new DaemonStopClient(connector, idGenerator);
     }
 
+    ReportDaemonStatusClient createReportDaemonStatusClient(DaemonRegistry registry, DaemonConnector connector, IdGenerator idGenerator, DocumentationRegistry documentationRegistry) {
+        return new ReportDaemonStatusClient(registry, connector, idGenerator, documentationRegistry);
+    }
+
     protected DaemonClient createDaemonClient() {
         DaemonCompatibilitySpec matchingContextSpec = new DaemonCompatibilitySpec(get(DaemonContext.class));
         return new DaemonClient(
@@ -85,7 +94,11 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
         return new TcpOutgoingConnector();
     }
 
-    DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager) {
-        return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class));
+    ProgressLoggerFactory createProgressLoggerFactory() {
+        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), new TrueTimeProvider());
+    }
+
+    DaemonConnector createDaemonConnector(DaemonRegistry daemonRegistry, OutgoingConnector outgoingConnector, DaemonStarter daemonStarter, ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory) {
+        return new DefaultDaemonConnector(daemonRegistry, outgoingConnector, daemonStarter, listenerManager.getBroadcaster(DaemonStartListener.class), progressLoggerFactory);
     }
 }

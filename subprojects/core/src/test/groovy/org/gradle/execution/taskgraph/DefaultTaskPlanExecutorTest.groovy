@@ -21,12 +21,13 @@ import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.invocation.Gradle
+import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import spock.lang.Specification
 
 class DefaultTaskPlanExecutorTest extends Specification {
     def taskPlan = Mock(TaskExecutionPlan)
     def worker = Mock(Action)
-    def executor = new DefaultTaskPlanExecutor()
+    def executor = new DefaultTaskPlanExecutor(Stub(BuildOperationWorkerRegistry))
 
     def "executes tasks until no further tasks remain"() {
         def gradle = Mock(Gradle)

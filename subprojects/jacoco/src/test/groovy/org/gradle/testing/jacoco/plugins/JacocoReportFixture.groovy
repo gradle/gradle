@@ -20,6 +20,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.jsoup.Jsoup
 
 class JacocoReportFixture {
+    private static final String NON_BREAKING_WHITESPACE = '\u00A0'
     private final TestFile htmlDir
 
     JacocoReportFixture(TestFile htmlDir) {
@@ -41,7 +42,7 @@ class JacocoReportFixture {
         def parsedHtmlReport = Jsoup.parse(htmlDir.file("index.html"), "UTF-8")
         def table = parsedHtmlReport.select("table#coveragetable").first()
         def td = table.select("tfoot td:eq(2)").first()
-        String totalCoverage = td.text()
-        return totalCoverage.endsWith("%") ? totalCoverage.subSequence(0, totalCoverage.length() -1) as BigDecimal : null
+        String totalCoverage = td.text().replaceAll(NON_BREAKING_WHITESPACE, '') // remove non-breaking whitespace
+        return totalCoverage.endsWith("%") ? totalCoverage.subSequence(0, totalCoverage.length() - 1) as BigDecimal : null
     }
 }

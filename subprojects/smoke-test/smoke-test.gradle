@@ -15,7 +15,7 @@ configurations {
 }
 
 dependencies {
-    smokeTestCompile gradleTestKit()
+    smokeTestCompile project(':testKit')
     smokeTestCompile libraries.spock
 }
 

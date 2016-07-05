@@ -162,15 +162,16 @@ class HttpServer extends ServerWithExpectations {
     }
 
     void stop() {
+        if (sslConnector) {
+            sslConnector.stop()
+            sslConnector.close()
+            server?.removeConnector(sslConnector)
+            sslConnector = null
+        }
         server?.stop()
         if (connector) {
             server?.removeConnector(connector)
             connector = null
-        }
-        if (sslConnector) {
-            sslConnector.stop()
-            server?.removeConnector(sslConnector)
-            sslConnector = null
         }
     }
 

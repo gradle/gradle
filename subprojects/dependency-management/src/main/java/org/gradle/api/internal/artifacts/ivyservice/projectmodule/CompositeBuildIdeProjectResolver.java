@@ -30,7 +30,7 @@ import java.util.Set;
 // TODO:DAZ Split out the non-composite resolution stuff and name appropriately
 public class CompositeBuildIdeProjectResolver {
     private final CompositeBuildContext discovered;
-    private final ProjectComponentRegistry registry;
+    private final LocalComponentRegistry registry;
     private final List<ProjectArtifactBuilder> artifactBuilders;
 
     public CompositeBuildIdeProjectResolver(ServiceRegistry services) {
@@ -40,7 +40,7 @@ public class CompositeBuildIdeProjectResolver {
         } else {
             discovered = null;
         }
-        registry = services.get(ProjectComponentRegistry.class);
+        registry = services.get(LocalComponentRegistry.class);
         artifactBuilders = services.getAll(ProjectArtifactBuilder.class);
     }
 

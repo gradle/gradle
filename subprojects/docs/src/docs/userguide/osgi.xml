@@ -25,7 +25,7 @@
     <para>The OSGi plugin makes heavy use of Peter Kriens <ulink url='http://www.aqute.biz/Bnd/Bnd'>BND tool</ulink>.
     </para>
 
-    <section>
+    <section id="sec:osgi_usage">
         <title>Usage</title>
         <para>To use the OSGi plugin, include the following in your build script:</para>
         <sample id="useOsgiPlugin" dir="osgi" title="Using the OSGi plugin">
@@ -33,33 +33,33 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:osgi_implicitly_applied_plugins">
         <title>Implicitly applied plugins</title>
         <para>Applies the Java base plugin.</para>
     </section>
 
-    <section>
+    <section id="sec:osgi_tasks">
         <title>Tasks</title>
         <para>This plugin does not add any tasks.</para>
     </section>
 
-    <section>
+    <section id="sec:osgi_dependency_management">
         <title>Dependency management</title>
         <para>TBD</para>
     </section>
 
-    <section>
+    <section id="sec:osgi_convention_object">
         <title>Convention object</title>
 
         <para>The OSGi plugin adds the following convention object: <apilink class="org.gradle.api.plugins.osgi.OsgiPluginConvention"/>
         </para>
-        <section>
+        <section id="sec:osgi_convention_properties">
             <title>Convention properties</title>
 
             <para>The OSGi plugin does not add any convention properties to the project.
             </para>
         </section>
-        <section>
+        <section id="sec:osgi_convention_methods">
             <title>Convention methods</title>
 
             <para>The OSGi plugin adds the following methods. For more details, see the API documentation of the convention
@@ -89,19 +89,17 @@
                     <td>Returns an OsgiManifest object configured by the closure.</td>
                 </tr>
             </table>
+            <para>The classes in the classes dir are analyzed regarding their package dependencies and the packages they expose.
+                Based on this the <emphasis>Import-Package</emphasis> and the <emphasis>Export-Package</emphasis> values of the
+                OSGi Manifest are calculated. If the classpath contains jars with an OSGi bundle, the bundle
+                information is used to specify version information for the <emphasis>Import-Package</emphasis>
+                value. Beside the explicit properties of the <literal>OsgiManifest</literal> object you can add instructions.
+            </para>
+            <sample id="osgi" dir="userguide/tutorial/osgi" title="Configuration of OSGi MANIFEST.MF file">
+                <sourcefile file="build.gradle" snippet="configure-jar"/>
+            </sample>
+            <para>The first argument of the instruction call is the key of the property. The other arguments form the value.
+                To learn more about the available instructions have a look at the <ulink url='http://www.aqute.biz/Bnd/Bnd'>BND tool</ulink>.</para>
         </section>
-    </section>
-    <section>
-        <para>The classes in the classes dir are analyzed regarding their package dependencies and the packages they expose.
-            Based on this the <emphasis>Import-Package</emphasis> and the <emphasis>Export-Package</emphasis> values of the
-            OSGi Manifest are calculated. If the classpath contains jars with an OSGi bundle, the bundle
-            information is used to specify version information for the <emphasis>Import-Package</emphasis>
-            value. Beside the explicit properties of the <literal>OsgiManifest</literal> object you can add instructions.
-        </para>
-        <sample id="osgi" dir="userguide/tutorial/osgi" title="Configuration of OSGi MANIFEST.MF file">
-            <sourcefile file="build.gradle" snippet="configure-jar"/>
-        </sample>
-        <para>The first argument of the instruction call is the key of the property. The other arguments form the value.
-            To learn more about the available instructions have a look at the <ulink url='http://www.aqute.biz/Bnd/Bnd'>BND tool</ulink>.</para>
     </section>
 </chapter>

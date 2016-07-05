@@ -24,7 +24,7 @@
 
     <para>The JaCoCo plugin provides code coverage metrics for Java code via integration with <ulink url="http://www.eclemma.org/jacoco/">JaCoCo</ulink>.
     </para>
-    <section>
+    <section id="sec:jacoco_getting_started">
         <title>Getting Started</title>
         <para>To get started, apply the JaCoCo plugin to the project you want to calculate code coverage for.</para>
         <sample id="applyJacoco" dir="testing/jacoco/quickstart" title="Applying the JaCoCo plugin">
@@ -41,7 +41,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:configuring_the_jacoco_plugin">
         <title>Configuring the JaCoCo Plugin</title>
         <para>
             The JaCoCo plugin adds a project extension named <literal>jacoco</literal> of type <apilink class="org.gradle.testing.jacoco.plugins.JacocoPluginExtension"/>,
@@ -65,7 +65,7 @@
             </tr>
         </table>
     </section>
-    <section>
+    <section id="sec:jacoco_report_configuration">
         <title>JaCoCo Report configuration</title>
         <para>The
             <apilink class="org.gradle.testing.jacoco.tasks.JacocoReport"/>
@@ -81,7 +81,7 @@
         </imageobject>
     </section>
 
-    <section>
+    <section id="sec:jacoco_specific_task_configuration">
         <title>JaCoCo specific task configuration</title>
         <para>The JaCoCo plugin adds a
             <apilink class="org.gradle.testing.jacoco.plugins.JacocoTaskExtension"/>
@@ -192,7 +192,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:jacoco_tasks">
         <title>Tasks</title>
         <para>For projects that also apply the Java Plugin, The JaCoCo plugin automatically adds the following tasks:</para>
         <table>
@@ -218,7 +218,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:jacoco_dependency_management">
         <title>Dependency management</title>
         <para>The JaCoCo plugin adds the following dependency configurations:</para>
         <table>

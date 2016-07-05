@@ -113,6 +113,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def baselineVersions = new LinkedHashSet()
 
 
+        // TODO: Make it possible to set the baseline version from the command line
         if (adhocRun) {
             baselineVersions.add(mostRecentSnapshot)
         } else {

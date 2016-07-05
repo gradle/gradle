@@ -18,7 +18,7 @@ package org.gradle.plugins.ide.eclipse.model.internal
 import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildIdeProjectResolver
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -30,8 +30,8 @@ import spock.lang.Specification
 class ProjectDependencyBuilderTest extends Specification {
     def ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId("anything")
     def Project project = TestUtil.createRootProject()
-    def projectComponentRegistry = Mock(ProjectComponentRegistry)
-    def serviceRegistry = new DefaultServiceRegistry().add(ProjectComponentRegistry, projectComponentRegistry)
+    def localComponentRegistry = Mock(LocalComponentRegistry)
+    def serviceRegistry = new DefaultServiceRegistry().add(LocalComponentRegistry, localComponentRegistry)
     def ProjectDependencyBuilder builder = new ProjectDependencyBuilder(new CompositeBuildIdeProjectResolver(serviceRegistry))
     def IdeProjectDependency ideProjectDependency = new IdeProjectDependency(projectId, "test")
 
@@ -43,7 +43,7 @@ class ProjectDependencyBuilderTest extends Specification {
         dependency.path == "/test"
 
         and:
-        projectComponentRegistry.getAdditionalArtifacts(_) >> []
+        localComponentRegistry.getAdditionalArtifacts(_) >> []
     }
 
     def "should create dependency using eclipse projectName"() {
@@ -51,7 +51,7 @@ class ProjectDependencyBuilderTest extends Specification {
         def projectArtifact = Stub(ComponentArtifactMetadata) {
             getName() >> new DefaultIvyArtifactName("foo", "eclipse.project", "project", null)
         }
-        projectComponentRegistry.getAdditionalArtifacts(_) >> [projectArtifact]
+        localComponentRegistry.getAdditionalArtifacts(_) >> [projectArtifact]
 
         when:
         def dependency = builder.build(ideProjectDependency)

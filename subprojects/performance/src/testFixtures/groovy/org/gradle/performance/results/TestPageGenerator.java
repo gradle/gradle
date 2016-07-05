@@ -37,6 +37,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
 
     @Override
     public void render(final PerformanceTestHistory testHistory, Writer writer) throws IOException {
+        // TODO: Add test name to the report
         new MetricsHtml(writer) {{
             html();
             head();

@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
 import org.junit.Assume
@@ -40,6 +41,8 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
                     mavenCentral()
                 }
                 apply plugin: 'java'
+
+                ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}
             }
 
             project("pmd-rule") {
@@ -61,7 +64,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
                     ruleSets = ["java-auxclasspath"]
                 }
             }
-        """
+        """.stripIndent()
 
         file("pmd-rule/src/main/resources/rulesets/java/auxclasspath.xml") << rulesetXml()
         file("pmd-rule/src/main/java/org/gradle/pmd/rules/AuxclasspathRule.java") << ruleCode()

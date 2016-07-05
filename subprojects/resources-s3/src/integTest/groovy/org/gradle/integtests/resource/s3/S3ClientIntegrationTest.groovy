@@ -57,6 +57,10 @@ class S3ClientIntegrationTest extends Specification {
         def fileContents = 'This is only a test'
         File file = temporaryFolder.createFile(FILE_NAME)
         file << fileContents
+        def directSubdirectories = ['some-dir', 'second-dir', 'some-other-dir']
+        directSubdirectories.each { temporaryFolder.createDir(it) }
+
+        temporaryFolder.createDir('some-dir', 'not-direct')
 
         server.stubPutFile(file, "/${bucketName}/maven/release/$FILE_NAME")
 
@@ -100,11 +104,7 @@ class S3ClientIntegrationTest extends Specification {
 
         then:
         def listing = s3Client.listDirectChildren(new URI("s3://${bucketName}/maven/release/"))
-        !listing.isEmpty()
-        listing.each {
-            // Files contain a "." and directories end with "/"
-            assert it.contains(".") || it.endsWith("/")
-        }
+        listing as Set == ([FILE_NAME] + directSubdirectories) as Set
 
         where:
         authenticationImpl | authenticationType

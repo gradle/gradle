@@ -39,6 +39,15 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
     }
 
     public void buildJar(File jarFile) {
+        buildJar(jarFile, false);
+    }
+
+    public void buildJar(File jarFile, boolean deleteIfExists) {
+        if (deleteIfExists && jarFile.exists()) {
+            if(!jarFile.delete()) {
+                throw new IllegalStateException("Couldn't delete file " + jarFile);
+            }
+        }
         rootDir.file("build.gradle").writelns(
                 "apply plugin: 'java'",
                 "dependencies { compile gradleApi() }",

@@ -50,7 +50,7 @@ import java.util.concurrent.Callable;
 @CompileStatic
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "5.2.3";
+    public static final String DEFAULT_PMD_VERSION = "5.5.0";
     private PmdExtension extension;
 
     @Override

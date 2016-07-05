@@ -1,4 +1,4 @@
 apply plugin: 'java'
 
-sourceCompatibility = 1.5
+sourceCompatibility = 1.7
 compileJava.options.debug = true

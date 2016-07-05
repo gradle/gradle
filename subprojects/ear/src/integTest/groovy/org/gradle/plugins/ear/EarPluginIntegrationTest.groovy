@@ -296,4 +296,45 @@ ear {
         module."web-uri" == "root.war"
         module."context-root" == "anywhere"
     }
+
+    @Issue("GRADLE-3486")
+    def "does not fail when provided with an existing descriptor without a version attribute"() {
+        given:
+        buildScript '''
+            apply plugin: 'ear'
+        '''.stripIndent()
+        createDir('src/main/application/META-INF') {
+            file('application.xml').text = '''
+                <?xml version="1.0"?>
+                <application xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/application_6.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                </application>
+            '''.stripIndent().trim()
+        }
+
+        when:
+        run 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("META-INF/application.xml")
+    }
+
+    def "does not fail when initializeInOrder is null"() {
+        given:
+        buildScript '''
+            apply plugin: 'ear'
+            ear {
+                deploymentDescriptor {
+                    initializeInOrder = null
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("META-INF/application.xml")
+    }
 }

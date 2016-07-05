@@ -30,7 +30,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationTest {
         executer.withTasks('compileJava').run().assertTasksSkipped()
 
         file('build.gradle').text += '''
-            sourceCompatibility = 1.4
+            sourceCompatibility = 1.6
 '''
 
         executer.withTasks('compileJava').run().assertTasksSkipped()
@@ -50,7 +50,7 @@ class IncrementalJavaCompileIntegrationTest extends AbstractIntegrationTest {
 
         // Update interface, compile should fail
         file('src/main/java/IPerson.java').assertIsFile().copyFrom(file('NewIPerson.java'))
-        
+
         ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileJava'.");
     }

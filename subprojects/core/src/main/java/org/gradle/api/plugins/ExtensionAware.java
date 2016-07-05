@@ -70,9 +70,8 @@ package org.gradle.api.plugins;
  * of the corresponding getter or setter method.</li>
  *
  * <li>Groovy Meta-programming methods implemented by the object's class, like <code>propertyMissing()</code>. Care must be taken by plugin authors to
- * ensure <code>propertyMissing()</code> is implemented such that if a property is not found a
- * {@link groovy.lang.MissingPropertyException#MissingPropertyException(String, Class)} is thrown. If <code>propertyMissing()</code> always
- * returns a value for any property, <em>Gradle will not search the rest of the scopes below.</em></li>
+ * ensure <code>propertyMissing()</code> is implemented such that if a property is not found a MissingPropertyException(String, Class) exception is thrown.
+ * If <code>propertyMissing()</code> always returns a value for any property, <em>Gradle will not search the rest of the scopes below.</em></li>
  *
  * <li>The <em>extra</em> properties of the object.  Each object maintains a map of extra properties, which
  * can contain any arbitrary name -> value pair.  Once defined, the properties of this scope are readable and writable.</li>

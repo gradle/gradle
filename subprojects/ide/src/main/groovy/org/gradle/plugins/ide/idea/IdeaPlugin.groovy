@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
+
 import groovy.transform.CompileStatic
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.JavaVersion
@@ -24,7 +25,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.ConventionMapping
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentProvider
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaBasePlugin
@@ -51,6 +52,7 @@ import org.gradle.plugins.ide.idea.model.PathFactory
 import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
+
 /**
  * Adds a GenerateIdeaModule task. When applied to a root project, also adds a GenerateIdeaProject task.
  * For projects that have the Java plugin applied, the tasks receive additional Java-specific configuration.
@@ -105,7 +107,7 @@ class IdeaPlugin extends IdePlugin {
     private void registerImlArtifacts() {
         def projectsWithIml = project.rootProject.allprojects.findAll({ it.plugins.hasPlugin(IdeaPlugin) })
         projectsWithIml.each { project ->
-            def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
+            def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider)
             def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
             projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project))
         }

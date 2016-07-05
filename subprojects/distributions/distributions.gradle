@@ -41,20 +41,6 @@ daemonIntegTest.enabled = false
 
 evaluationDependsOn ":docs"
 
-def runtimeConfig = rootProject.configurations.runtime
-
-def externalModulesConfig = rootProject.configurations.gradleKotlin
-
-task externalModules(type: Copy) {
-    description 'Patches the classpath manifests of external modules such as gradle-script-kotlin to match the Gradle runtime configuration.'
-    from externalModulesConfig
-    into "$rootProject.buildDir/external/files"
-    doLast {
-        new ClasspathManifestPatcher(rootProject, runtimeConfig, externalModulesConfig)
-            .writePatchedFilesTo(destinationDir)
-    }
-}
-
 ext {
     zipRootFolder = "gradle-$version"
 
@@ -72,10 +58,9 @@ ext {
             fileMode = 0755
         }
         into('lib') {
-            from runtimeConfig - externalModulesConfig
-            from externalModules
+            from rootProject.configurations.runtime
             into('plugins') {
-                from rootProject.configurations.gradlePlugins - runtimeConfig
+                from rootProject.configurations.gradlePlugins - rootProject.configurations.runtime
             }
         }
     }
@@ -149,82 +134,4 @@ integTest {
 
 java9IntegTest {
     inputs.files allZip, binZip, srcZip
-}
-
-/**
- * Patches the classpath manifests of external modules such as gradle-script-kotlin
- * to match the dependencies of the Gradle runtime configuration.
- */
-class ClasspathManifestPatcher {
-
-    /**
-     * The project.
-     */
-    Project project
-
-    /**
-     * The Gradle runtime configuration.
-     */
-    Configuration runtime
-
-    /**
-     * The configuration containing the external modules whose classpath manifests must be patched.
-     */
-    Configuration external
-
-    ClasspathManifestPatcher(Project project, Configuration runtime, Configuration external) {
-        this.project = project
-        this.runtime = runtime
-        this.external = external
-    }
-
-    def writePatchedFilesTo(File outputDir) {
-        resolveModules().each { module ->
-            def sourceFile = mainArtifactFileOf(module)
-            def outputFile = new File(outputDir, sourceFile.name)
-            def unpackDir = unpack(sourceFile)
-            patchManifestOf(module, unpackDir)
-            pack(unpackDir, outputFile)
-        }
-    }
-
-    /**
-     * Resolves each external module against the runtime configuration.
-     */
-    private Collection<ResolvedDependency> resolveModules() {
-        def externalModules = external.dependencies.collect { it.name }.toSet()
-        runtime
-            .resolvedConfiguration
-            .firstLevelModuleDependencies
-            .findAll { it.moduleName in externalModules }
-    }
-
-    private static void patchManifestOf(ResolvedDependency module, File unpackDir) {
-        def classpathManifestFile = new File(unpackDir, "${module.moduleName}-classpath.properties")
-        def classpathManifest = GUtil.loadProperties(classpathManifestFile)
-        classpathManifest.runtime = runtimeManifestOf(module)
-        classpathManifestFile.text = classpathManifest.collect { "${it.key}=${it.value}" }.join('\n')
-    }
-
-    private static String runtimeManifestOf(ResolvedDependency module) {
-        def dependencies = module.allModuleArtifacts - module.moduleArtifacts
-        dependencies.collect { it.file.name }.sort().join(',')
-    }
-
-    private File unpack(File file) {
-        def unpackDir = project.file("${project.buildDir}/external/unpack/${file.name}")
-        project.copy { spec ->
-            spec.into(unpackDir)
-            spec.from(project.zipTree(file))
-        }
-        unpackDir
-    }
-
-    private void pack(File baseDir, File destFile) {
-        project.ant.zip(basedir: baseDir, destfile: destFile)
-    }
-
-    private static File mainArtifactFileOf(ResolvedDependency module) {
-        CollectionUtils.single(module.moduleArtifacts).file
-    }
 }

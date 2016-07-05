@@ -29,8 +29,6 @@ class OsgiProjectSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(testDirectoryProvider, 'osgi')
 
     def "OSGi project samples"() {
-        long start = System.currentTimeMillis()
-
         TestFile osgiProjectDir = sample.dir
         executer.inDirectory(osgiProjectDir).withTasks('clean', 'assemble').run()
         TestFile tmpDir = testDirectory
@@ -45,7 +43,6 @@ class OsgiProjectSampleIntegrationTest extends AbstractIntegrationSpec {
         manifest.mainAttributes.getValue('Bundle-Name') == 'Example Gradle Activator'
         manifest.mainAttributes.getValue('Bundle-ManifestVersion') == '2'
         manifest.mainAttributes.getValue('Tool') == 'Bnd-3.2.0.201605172007'
-        Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')) >= start
         manifest.mainAttributes.getValue('Bundle-Version') == '1.0.0'
         manifest.mainAttributes.getValue('Bundle-SymbolicName') == 'gradle_tooling.osgi'
         manifest.mainAttributes.getValue('Built-By') ==  GradleVersion.current().version

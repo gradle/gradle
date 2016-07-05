@@ -32,10 +32,21 @@ public class OkTest {
         // check classloader and classpath
         assertSame(ClassLoader.getSystemClassLoader(), getClass().getClassLoader());
         assertSame(getClass().getClassLoader(), Thread.currentThread().getContextClassLoader());
-        assertEquals(System.getProperty("java.class.path"), System.getProperty("expectedClassPath"));
-        List<URL> expectedClassPath = buildExpectedClassPath(System.getProperty("expectedClassPath"));
-        List<URL> actualClassPath = buildActualClassPath();
-        assertEquals(expectedClassPath, actualClassPath);
+        boolean isJava9 = Boolean.valueOf(System.getProperty("isJava9"));
+        String classPathString = System.getProperty("java.class.path");
+        String expectedClassPathString = System.getProperty("expectedClassPath");
+        if (isJava9) {
+            String[] splittedClasspath = splitClasspath(classPathString);
+            String workerJar = splittedClasspath[0];
+            String[] classpathWithoutWorkerJar = Arrays.copyOfRange(splittedClasspath, 1, splittedClasspath.length);
+            assertTrue(workerJar + " is the worker jar", workerJar.contains("gradle-worker.jar"));
+            assertEquals(splitClasspath(expectedClassPathString), classpathWithoutWorkerJar);
+        } else {
+            assertEquals(expectedClassPathString, classPathString);
+            List<URL> expectedClassPath = buildExpectedClassPath(expectedClassPathString);
+            List<URL> actualClassPath = buildActualClassPath();
+            assertEquals(expectedClassPath, actualClassPath);
+        }
 
         // check Gradle and impl classes not visible
         try {
@@ -70,12 +81,16 @@ public class OkTest {
     }
 
     private List<URL> buildExpectedClassPath(String expectedClassPath) throws MalformedURLException {
-        String[] paths = expectedClassPath.split(Pattern.quote(File.pathSeparator));
+        String[] paths = splitClasspath(expectedClassPath);
         List<URL> urls = new ArrayList<URL>();
         for (String path : paths) {
             urls.add(new File(path).toURI().toURL());
         }
         return urls;
+    }
+
+    private String[] splitClasspath(String classpath) {
+        return classpath.split(Pattern.quote(File.pathSeparator));
     }
 
     @org.junit.Test

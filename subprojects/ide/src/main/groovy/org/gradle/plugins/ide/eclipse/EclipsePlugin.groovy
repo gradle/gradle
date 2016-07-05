@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.eclipse
-
 import com.google.common.base.Function
 import com.google.common.base.Predicate
 import com.google.common.collect.Iterables
@@ -32,7 +31,7 @@ import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.ConventionMapping
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentProvider
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.GroovyBasePlugin
@@ -61,7 +60,6 @@ import org.gradle.plugins.ide.internal.IdePlugin
 
 import javax.inject.Inject
 import java.util.concurrent.Callable
-
 /**
  * <p>A plugin which generates Eclipse files.</p>
  */
@@ -120,7 +118,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private static void registerEclipseArtifacts(Project project) {
-        def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectComponentProvider)
+        def projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider)
         def projectId = DefaultProjectComponentIdentifier.newId(project.getPath())
         String projectName = project.extensions.getByType(EclipseModel).project.name
         projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("project", projectId, projectName, project))

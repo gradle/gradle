@@ -59,6 +59,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
         InputStream inputStream = null;
         try {
             URLConnection connection = resource.openConnection();
+            connection.setUseCaches(false);
             inputStream = connection.getInputStream();
             Properties properties = new Properties();
             properties.load(inputStream);
@@ -183,9 +184,6 @@ public class GradleVersion implements Comparable<GradleVersion> {
     public GradleVersion getBaseVersion() {
         if (stage == null && snapshot == null) {
             return this;
-        }
-        if (stage != null && stage.stage == STAGE_MILESTONE) {
-            return version(versionPart + "-milestone-" + stage.number);
         }
         return version(versionPart);
     }

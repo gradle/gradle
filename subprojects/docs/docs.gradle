@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.build.docs.UserGuideSectionVerifier
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
@@ -266,8 +267,14 @@ task dslHtml(type: Docbook2Xhtml) {
     ext.entryPoint = "$destDir/index.html"
 }
 
+task checkSectionIds(type: UserGuideSectionVerifier) {
+    docbookFiles = fileTree(userguideSrcDir) { include "**/*.xml" }
+}
+
+[configureCss, samples, samplesDocbook, defaultImports]*.mustRunAfter(checkSectionIds)
+
 // This is used in the distribution and for the online version
-task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook, defaultImports]) {
+task userguideDocbook(type: UserGuideTransformTask, dependsOn: [checkSectionIds, samples, samplesDocbook, defaultImports]) {
     destFile = new File(docbookSrc, 'userguide.xml')
 }
 

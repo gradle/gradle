@@ -25,7 +25,7 @@
     <para>
         In this chapter we discuss how to use plugins and the terminology and concepts surrounding plugins.
     </para>
-    <section>
+    <section id="sec:what_plugins_do">
         <title>What plugins do</title>
         <para>
             Applying a plugin to a project allows the plugin to extend the project's capabilities. It can do things
@@ -56,31 +56,31 @@
             in a plugin jar.
         </para>
         <para>
-            Often a plugin starts out as a script plugin (because they are easy to write) and then, as the code becomes more valuable, is
-            migrated to a binary plugin so that it can be tested and shared between multiple projects or organizations.
+            A plugin often starts out as a script plugin (because they are easy to write) and then, as the code becomes more valuable, it's
+            migrated to a binary plugin that can be easily tested and shared between multiple projects or organizations.
         </para>
     </section>
-    <section id='sec:using_plugins'>
+    <section id="sec:using_plugins">
         <title>Using plugins</title>
         <para>
             To use the build logic encapsulated in a plugin, Gradle needs to perform two steps. First, it needs to <emphasis>resolve</emphasis> the
-            plugin, and then it needs to <emphasis>apply</emphasis> the plugin to the target, usually a <apilink class='org.gradle.api.Project'/>.)
+            plugin, and then it needs to <emphasis>apply</emphasis> the plugin to the target, usually a <apilink class='org.gradle.api.Project'/>.
         </para>
         <para>
-            <emphasis>Resolving</emphasis> a plugin means finding the correct version of the class which implements a given plugin and adding it the
-            script classpath. Once a plugin is resolved, its API can be used in a buildscript. Script plugins are self-resolving in that they are
-            resolved from the specific location provided when applying them. Core binary plugins provided as part of the Gradle distribution are
-            automatically resolved.
+            <emphasis>Resolving</emphasis> a plugin means finding the correct version of the jar which contains a given plugin and adding it the
+            script classpath. Once a plugin is resolved, its API can be used in a build script. Script plugins are self-resolving in that they are
+            resolved from the specific file path or URL provided when applying them. Core binary plugins provided as part of the Gradle distribution
+            are automatically resolved.
         </para>
         <para>
             <emphasis>Applying</emphasis> a plugin means actually executing the plugin's <apilink class="org.gradle.api.Plugin" method="apply(T)"/>
-            on the Project you want to enhance with the plugin. Applying plugins is <emphasis>idempotent</emphasis>. That is, the same plugin can be
-            applied multiple times. If the plugin has previously been applied, any further applications are safe and will have no effect.
+            on the Project you want to enhance with the plugin. Applying plugins is <emphasis>idempotent</emphasis>. That is, you can safely apply
+            any plugin multiple times without side effects.
         </para>
         <para>
-            The most common use case for using a plugin is to both resolve and apply the plugin to the current Project. Since this is such a common
-            use case, Gradle recommends that build authors use the <link linkend="sec:plugins_block">plugins DSL</link> to both resolve and apply
-            plugins in one step. The feature is technically still incubating, but it works well, and should be used by most users.
+            The most common use case for using a plugin is to both resolve the plugin and apply it to the current project. Since this is such a
+            common use case, it's recommended that build authors use the <link linkend="sec:plugins_block">plugins DSL</link> to both resolve and
+            apply plugins in one step. The feature is technically still incubating, but it works well, and should be used by most users.
         </para>
     </section>
     <section id="sec:script_plugins">
@@ -97,29 +97,29 @@
     <section id="sec:binary_plugins">
         <title>Binary plugins</title>
         <para>
-            Binary plugins are applied using, minimally, a <emphasis>plugin id</emphasis>. The plugin id is a globally unique identifier
-            for the plugin. Core Gradle plugins provide a short name like <literal>'java'</literal> which can be used as the plugin id
-            for the  <apilink class="org.gradle.api.plugins.JavaPlugin" /> All other binary plugins must use the fully qualified form of
+            You apply plugins by their <emphasis>plugin id</emphasis>, which is a globally unique identifier, or name, for plugins.
+            Core Gradle plugins are special in that they provide short names, such as <literal>'java'</literal> for the core
+            <apilink class="org.gradle.api.plugins.JavaPlugin" />. All other binary plugins must use the fully qualified form of
             the plugin id (e.g. <literal>com.github.foo.bar</literal>), although some legacy plugins may still utilize a short, unqualified
-            form. Where you use the plugin id, depends on whether you are using the <xref linkend="sec:plugins_block" /> or the
-            <link linkend="sec:old_plugin_application">buildscript block.</link>
+            form. Where you put the plugin id depends on whether you are using the <link linkend="sec:plugins_block">plugins DSL</link> or
+            the <link linkend="sec:old_plugin_application">buildscript block.</link>
         </para>
-        <section>
+        <section id="sec:binary_plugin_locations">
             <title>Locations of binary plugins</title>
             <para>
                 A plugin is simply any class that implements the <apilink class="org.gradle.api.Plugin" /> interface. Gradle provides
-                the core plugins (e.g. JavaPlugin) as part of its distribution which means they are automatically resolved. However,
-                non-core binary plugins need to be resolved before they can be applied. This can be achieved in a number of ways:
+                the core plugins (e.g. <literal>JavaPlugin</literal>) as part of its distribution which means they are automatically resolved.
+                However, non-core binary plugins need to be resolved before they can be applied. This can be achieved in a number of ways:
             </para>
             <itemizedlist>
                 <listitem>Including the plugin from the plugin portal or a
                     <link linkend="sec:custom_plugin_repositories">custom repository</link> using the plugins DSL
                     (see <xref linkend="sec:plugins_block" />).</listitem>
+                <listitem>Including the plugin from an external jar defined as a buildscript dependency
+                    (see <xref linkend="sec:applying_plugins_buildscript" />).</listitem>
                 <listitem>Defining the plugin as a source file under the buildSrc directory in the project
                     (see <xref linkend="sec:build_sources"/>).</listitem>
                 <listitem>Defining the plugin as an inline class declaration inside a build script.</listitem>
-                <listitem>Including the plugin from an external jar defined as a buildscript dependency
-                    (see <xref linkend="sec:applying_plugins_buildscript" />).</listitem>
             </itemizedlist>
             <para>
                 For more on defining your own plugins, see <xref linkend="custom_plugins" />.
@@ -174,7 +174,7 @@
                     mechanism. There are also some constraints, some of which are temporary limitations while the mechanism is still
                     being developed and some are inherent to the new approach.
                 </para>
-                <section>
+                <section id="sec:constrained_syntax">
                     <title>Constrained Syntax</title>
                     <para>
                         The new <code>plugins {}</code> block does not support arbitrary Groovy code. It is constrained, in order to be idempotent
@@ -185,20 +185,21 @@
                     </para>
                     <programlisting>
                         plugins {
-                        id «plugin id» version «plugin version» [apply «false»]
+                            id «plugin id» version «plugin version» [apply «false»]
                         }
                     </programlisting>
                     <para>
                         Where <literal>«plugin version»</literal> and <literal>«plugin id»</literal> must be constant, literal, strings and
-                        the <literal>apply</literal> statement can be used to disable the default behavior of applying the plugin immediately.
-                        No other statements are allowed; their presence will cause a compilation error.
+                        the <literal>apply</literal> statement with a <literal>boolean</literal> can be used to disable the default behavior
+                        of applying the plugin immediately (e.g. you want to apply it only in <literal>subprojects</literal>). No other statements
+                        are allowed; their presence will cause a compilation error.
                     </para>
                     <para>
                         The <code>plugins {}</code> block must also be a top level statement in the buildscript. It cannot be nested inside
                         another construct (e.g. an if-statement or for-loop).
                     </para>
                 </section>
-                <section>
+                <section id="sec:build_scripts_only">
                     <title>Can only be used in build scripts</title>
                     <para>
                         The <code>plugins {}</code> block can currently only be used in a project's build script. It cannot be used in
@@ -217,10 +218,11 @@
                 <title>Applying plugins to subprojects</title>
                 <para>
                     If you have a <link linkend="multi_project_builds">multi-project build</link>, you probably want to apply plugins to some or
-                    all of the subprojects in your build but, not the <literal>root</literal> or <literal>master</literal> project. The default
-                    behavior of the <literal>plugins {}</literal> block is to immediately <literal>resolve</literal> and <literal>apply</literal>
-                    the plugins. But, you can use the <literal>apply false</literal> syntax to tell Gradle not to apply the plugin to the current
-                    project:
+                    all of the subprojects in your build, but not to the <literal>root</literal> or <literal>master</literal> project. The default
+                    behavior of the <literal>plugins {}</literal> block is to immediately <literal>resolve</literal> <emphasis>and
+                    <literal>apply</literal></emphasis> the plugins. But, you can use the <literal>apply false</literal> syntax to tell Gradle not
+                    to apply the plugin to the current project and then use <literal>apply plugin: «plugin version»</literal> in the
+                    <literal>subprojects</literal> block:
                 </para>
                 <sample id="pluginsOnSubprojects" dir="plugins/multiproject" title="Applying plugins only on certain subprojects.">
                     <sourcefile file="settings.gradle" snippet="include-subprojects" />
@@ -342,7 +344,7 @@
             </section>
         </section>
     </section>
-    <section>
+    <section id="sec:finding_community_plugins">
         <title>Finding community plugins</title>
         <para>
             Gradle has a vibrant community of plugin developers who contribute plugins for a wide variety of capabilities.
@@ -350,7 +352,7 @@
             exploring community plugins.
         </para>
     </section>
-    <section>
+    <section id="sec:more_on_plugins">
         <title>More on plugins</title>
         <para>
             This chapter aims to serve as an introduction to plugins and Gradle and the role they play. For more information on the inner workings

@@ -30,6 +30,7 @@ import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.Factories
 import org.gradle.internal.TimeProvider
 import org.gradle.internal.event.DefaultListenerManager
+import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry
 import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.progress.OperationResult
 import org.gradle.internal.progress.OperationStartEvent
@@ -41,7 +42,7 @@ class DefaultTaskGraphExecuterSpec extends Specification {
     def project = ProjectBuilder.builder().build()
     def listenerManager = new DefaultListenerManager()
     def executer = Mock(TaskExecuter)
-    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(), Factories.constant(executer), cancellationToken, Stub(TimeProvider), Stub(BuildOperationExecutor))
+    def taskExecuter = new DefaultTaskGraphExecuter(listenerManager, new DefaultTaskPlanExecutor(new DefaultBuildOperationWorkerRegistry(1)), Factories.constant(executer), cancellationToken, Stub(TimeProvider), Stub(BuildOperationExecutor))
 
     def "notifies task listener as tasks are executed"() {
         def listener = Mock(TaskExecutionListener)

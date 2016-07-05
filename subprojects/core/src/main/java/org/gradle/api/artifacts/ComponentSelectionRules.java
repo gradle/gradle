@@ -33,12 +33,12 @@ import org.gradle.internal.HasInternalProtocol;
  *             resolutionStrategy {
  *                 componentSelection {
  *                     all { ComponentSelection selection ->
- *                         if (selection.candidate.name == 'someModule' && selection.candidate.version == '1.1') {
+ *                         if (selection.candidate.module == 'someModule' && selection.candidate.version == '1.1') {
  *                             selection.reject("bad version '1.1' for 'someModule'")
  *                         }
  *                     }
  *                     all { ComponentSelection selection, IvyModuleDescriptor descriptor, ComponentMetadata metadata ->
- *                         if (selection.candidate.name == 'someModule' && descriptor.branch == 'testing') {
+ *                         if (selection.candidate.module == 'someModule' && descriptor.branch == 'testing') {
  *                             if (metadata.status != 'milestone') {
  *                                 selection.reject("only use milestones for someModule:testing")
  *                             }

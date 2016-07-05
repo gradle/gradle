@@ -80,7 +80,8 @@ public class DeprecatedFeatureUsage {
                 || stackTrace[caller].getClassName().startsWith("org.gradle.internal.metaobject.")
                 || stackTrace[caller].getClassName().startsWith("groovy.")
                 || stackTrace[caller].getClassName().startsWith("java.")
-                || stackTrace[caller].getClassName().startsWith("sun.")) {
+                || stackTrace[caller].getClassName().startsWith("sun.")
+                || stackTrace[caller].getClassName().startsWith("jdk.internal.")) {
             caller++;
         }
         return caller;

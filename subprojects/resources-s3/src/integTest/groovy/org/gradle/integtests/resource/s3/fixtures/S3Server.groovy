@@ -265,7 +265,7 @@ class S3Server extends HttpServer implements RepositoryServer {
                 CommonPrefixes {
                     dirs.each { File dir ->
                         String path = TextUtil.normaliseFileSeparators(dir.absolutePath)
-                        Prefix("${(path =~ /(${prefix}.*)/)[0][1]}/")
+                        Prefix("${prefix}${dir.name}/")
                     }
                 }
             }

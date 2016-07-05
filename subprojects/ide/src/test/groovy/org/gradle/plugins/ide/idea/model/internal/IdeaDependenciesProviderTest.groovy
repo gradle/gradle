@@ -15,7 +15,7 @@
  */
 
 package org.gradle.plugins.ide.idea.model.internal
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectComponentRegistry
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
@@ -28,7 +28,7 @@ import spock.lang.Specification
 public class IdeaDependenciesProviderTest extends Specification {
     private final ProjectInternal project = TestUtil.createRootProject()
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
-    def serviceRegistry = new DefaultServiceRegistry().add(ProjectComponentRegistry, Stub(ProjectComponentRegistry))
+    def serviceRegistry = new DefaultServiceRegistry().add(LocalComponentRegistry, Stub(LocalComponentRegistry))
     private final dependenciesProvider = new IdeaDependenciesProvider(serviceRegistry)
 
     def "no dependencies test"() {

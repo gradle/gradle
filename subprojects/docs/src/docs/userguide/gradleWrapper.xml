@@ -23,7 +23,7 @@
     <para>The Gradle Wrapper (henceforth referred to as the “Wrapper”) solves both these problems and is the preferred
         way of starting a Gradle build.</para>
 
-    <section id='using_wrapper_scripts'>
+    <section id="using_wrapper_scripts">
         <title>Executing a build with the Wrapper</title>
         <para>If a Gradle project has set up the Wrapper (and we recommend all projects do so), you can execute
             the build using one of the following commands from the root of the project:
@@ -116,7 +116,7 @@
         </para>
     </section>
 
-    <section id='sec:configuration'>
+    <section id="sec:configuration">
         <title>Configuration</title>
         <para>If you run Gradle with <command>gradlew</command>, the Wrapper checks if a Gradle distribution for the Wrapper
             is available. If so, it delegates to the <command>gradle</command>
@@ -140,7 +140,7 @@
         <para>If you build via the Wrapper, any existing Gradle distribution installed on the machine is ignored.
         </para>
     </section>
-    <section id='sec:verification'>
+    <section id="sec:verification">
         <title>Verification of downloaded Gradle distributions</title>
         <para>The Gradle Wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison.
             This increases security against targeted attacks by preventing a man-in-the-middle attacker from tampering with the downloaded Gradle distribution.
@@ -167,7 +167,7 @@ distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b8236
 ]]></programlisting>
         </example>
     </section>
-    <section id='sec:unix_file_permissions'>
+    <section id="sec:unix_file_permissions">
         <title>Unix file permissions</title>
         <para>The Wrapper task adds appropriate file permissions to allow the execution of the <literal>gradlew</literal> *NIX command.
             Subversion preserves this file permission. We are not sure how other version control systems deal with this.

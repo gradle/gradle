@@ -26,7 +26,7 @@
         to an embedded Jetty web container.
     </para>
 
-    <section>
+    <section id="sec:building_a_war_file">
         <title>Building a WAR file</title>
         <para>To build a WAR file, you apply the War plugin to your project:</para>
         <sample id="webQuickstart" dir="webApplication/quickstart" includeLocation="true" title="War plugin">
@@ -43,7 +43,7 @@
             libraries will be added to the WAR file for you.</para></tip>
     </section>
 
-    <section>
+    <section id="sec:running_your_web_application">
         <title>Running your web application</title>
         <para>To run your web application, you apply the Jetty plugin to your project:</para>
         <sample id="webQuickstart" dir="webApplication/quickstart" title="Running web application with Jetty plugin">
@@ -56,7 +56,7 @@
         <para>TODO: which url, configure port, uses source files in place and can edit your files and reload.</para>
     </section>
 
-    <section>
+    <section id="sec:web_tutorial_summary">
         <title>Summary</title>
         <para>You can find out more about the War plugin in <xref linkend="war_plugin"/> and the Jetty plugin in
             <xref linkend="jetty_plugin"/>. You can find more sample Java projects in the

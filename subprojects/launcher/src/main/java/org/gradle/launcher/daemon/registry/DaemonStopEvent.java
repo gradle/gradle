@@ -63,10 +63,10 @@ public class DaemonStopEvent implements Serializable {
         return result;
     }
 
-    public boolean occurredInLastDays(final int numDays) {
+    public boolean occurredInLastHours(final int numHours) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date(System.currentTimeMillis()));
-        cal.add(Calendar.DAY_OF_MONTH, -1 * numDays);
+        cal.add(Calendar.HOUR_OF_DAY, -1 * numHours);
         return timestamp.after(cal.getTime());
     }
 }

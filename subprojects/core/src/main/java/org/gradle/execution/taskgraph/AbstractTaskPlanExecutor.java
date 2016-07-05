@@ -20,23 +20,26 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 
 import static org.gradle.util.Clock.prettyTime;
 
 abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
     private static final Logger LOGGER = Logging.getLogger(AbstractTaskPlanExecutor.class);
 
-    protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
-        return new TaskExecutorWorker(taskExecutionPlan, taskWorker);
+    protected Runnable taskWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
+        return new TaskExecutorWorker(taskExecutionPlan, taskWorker, buildOperationWorkerRegistry);
     }
 
     private static class TaskExecutorWorker implements Runnable {
         private final TaskExecutionPlan taskExecutionPlan;
         private final Action<? super TaskInternal> taskWorker;
+        private final BuildOperationWorkerRegistry buildOperationWorkerRegistry;
 
-        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker) {
+        private TaskExecutorWorker(TaskExecutionPlan taskExecutionPlan, Action<? super TaskInternal> taskWorker, BuildOperationWorkerRegistry buildOperationWorkerRegistry) {
             this.taskExecutionPlan = taskExecutionPlan;
             this.taskWorker = taskWorker;
+            this.buildOperationWorkerRegistry = buildOperationWorkerRegistry;
         }
 
         public void run() {
@@ -44,14 +47,19 @@ abstract class AbstractTaskPlanExecutor implements TaskPlanExecutor {
             long start = System.currentTimeMillis();
             TaskInfo task;
             while ((task = taskExecutionPlan.getTaskToExecute()) != null) {
-                final String taskPath = task.getTask().getPath();
-                LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
-                long startTask = System.currentTimeMillis();
-                processTask(task);
-                long taskDuration = System.currentTimeMillis() - startTask;
-                busy += taskDuration;
-                if (LOGGER.isInfoEnabled()) {
-                    LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
+                BuildOperationWorkerRegistry.Completion completion = buildOperationWorkerRegistry.operationStart();
+                try {
+                    final String taskPath = task.getTask().getPath();
+                    LOGGER.info("{} ({}) started.", taskPath, Thread.currentThread());
+                    long startTask = System.currentTimeMillis();
+                    processTask(task);
+                    long taskDuration = System.currentTimeMillis() - startTask;
+                    busy += taskDuration;
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("{} ({}) completed. Took {}.", taskPath, Thread.currentThread(), prettyTime(taskDuration));
+                    }
+                } finally {
+                    completion.operationFinish();
                 }
             }
             long total = System.currentTimeMillis() - start;

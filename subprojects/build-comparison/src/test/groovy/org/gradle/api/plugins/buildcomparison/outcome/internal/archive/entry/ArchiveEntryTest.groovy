@@ -18,10 +18,17 @@ package org.gradle.api.plugins.buildcomparison.outcome.internal.archive.entry
 
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableSet
+import org.gradle.util.Requires
+import spock.lang.Issue
 import spock.lang.Specification
+
+import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 class ArchiveEntryTest extends Specification {
 
+    // Something about BeanDynamicObject not being able to construct an ImmutableSet?
+    @Issue("gradle/core-issues#115")
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     def "equals and hash code"() {
         when:
         def props = [

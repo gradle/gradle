@@ -17,7 +17,7 @@
 package org.gradle.testing.fixture
 
 class GroovydocCoverage {
-    final static String NEWEST = '2.4.6'
-    final static String[] ALL_COVERAGE = ['1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.2.2', '2.3.10', '2.4.6', NEWEST]
-    final static String[] STAMPS_COVERAGE = ['2.4.6', NEWEST]
+    final static String NEWEST = '2.4.7'
+    final static String[] ALL_COVERAGE = ['1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.2.2', '2.3.10', '2.4.7', NEWEST]
+    final static String[] STAMPS_COVERAGE = ['2.4.7', NEWEST]
 }

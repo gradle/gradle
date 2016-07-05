@@ -28,7 +28,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
-    final ProjectComponentRegistry registry = Mock()
+    final LocalComponentRegistry registry = Mock()
     final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, [])
 
     def "resolves project dependency"() {
@@ -44,7 +44,7 @@ class ProjectDependencyResolverTest extends Specification {
         resolver.resolve(dependencyMetaData, result)
 
         then:
-        1 * registry.getProject(id) >> componentMetaData
+        1 * registry.getComponent(id) >> componentMetaData
         1 * result.resolved(componentMetaData)
         0 * result._
     }
@@ -59,7 +59,7 @@ class ProjectDependencyResolverTest extends Specification {
         resolver.resolve(projectComponentId, new DefaultComponentOverrideMetadata(), result)
 
         then:
-        1 * registry.getProject(projectComponentId) >> componentMetaData
+        1 * registry.getComponent(projectComponentId) >> componentMetaData
         1 * result.resolved(componentMetaData)
         0 * result._
     }
@@ -72,7 +72,7 @@ class ProjectDependencyResolverTest extends Specification {
         resolver.resolve(dependencyMetaData, result)
 
         then:
-        0 * registry.getProject(_)
+        0 * registry.getComponent(_)
         0 * _
     }
 
@@ -85,7 +85,7 @@ class ProjectDependencyResolverTest extends Specification {
         resolver.resolve(componentIdentifier, overrideMetaData, result)
 
         then:
-        0 * registry.getProject(_)
+        0 * registry.getComponent(_)
         0 * _
     }
 
@@ -95,7 +95,7 @@ class ProjectDependencyResolverTest extends Specification {
         def overrideMetaData = Mock(ComponentOverrideMetadata)
 
         when:
-        registry.getProject(_) >> null
+        registry.getComponent(_) >> null
         and:
         resolver.resolve(componentIdentifier, overrideMetaData, result)
 

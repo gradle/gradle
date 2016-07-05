@@ -17,11 +17,12 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.BasicPerformanceTest
+import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(BasicPerformanceTest)
+@Category([BasicPerformanceTest, Experiment])
 class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
     def "resolving dependencies"() {

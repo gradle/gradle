@@ -15,6 +15,7 @@
  */
 package org.gradle.testing.junit
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
@@ -39,6 +40,13 @@ public class JUnitIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def executesTestsInCorrectEnvironment() {
+        given:
+        buildFile << """
+        test {
+            systemProperties.isJava9 = ${JavaVersion.current().isJava9Compatible()}
+        }
+        """.stripIndent()
+
         when:
         executer.withTasks('build').run()
 

@@ -115,6 +115,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
+    @Override
     public void requestStop() {
         lock.lock();
         try {
@@ -175,11 +176,13 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
+    @Override
     public void requestForcefulStop(String reason) {
         LOGGER.debug("Daemon stop requested.");
         stopNow(reason);
     }
 
+    @Override
     public BuildCancellationToken getCancellationToken() {
         return cancellationToken;
     }
@@ -188,6 +191,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         cancellationToken = new DefaultBuildCancellationToken();
     }
 
+    @Override
     public void cancelBuild() {
         long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
         Date expiry = new Date(waitUntil);
@@ -230,6 +234,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
+    @Override
     public void runCommand(final Runnable command, String commandDisplayName) throws DaemonUnavailableException {
         onStartCommand(commandDisplayName);
         try {
@@ -247,10 +252,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         } finally {
             onFinishCommand();
         }
-    }
-
-    public boolean isStopping() {
-        return state == State.StopRequested || state == State.Stopped;
     }
 
     private void waitForCommandCompletion() {
@@ -318,7 +319,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                 throw new DaemonUnavailableException(String.format("This daemon is currently executing: %s", currentCommandExecution));
             }
 
-            LOGGER.debug("Command execution: started {} after {} minutes of idle", commandDisplayName, getIdleMinutes());
+            LOGGER.error("Command execution: started {} after {} minutes of idle", commandDisplayName, getIdleMinutes());
             try {
                 onStartCommand.run();
                 currentCommandExecution = commandDisplayName;
@@ -381,19 +382,27 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    public boolean isStopped() {
-        return state == State.Stopped;
-    }
-
     boolean isWillRefuseNewCommands() {
         return state != State.Running;
     }
 
-    boolean isIdle() {
+    @Override
+    public boolean isStopped() {
+        return state == State.Stopped;
+    }
+
+    @Override
+    public boolean isStopping() {
+        return state == State.StopRequested || state == State.Stopped;
+    }
+
+    @Override
+    public boolean isIdle() {
         return state == State.Running && currentCommandExecution == null;
     }
 
-    boolean isBusy() {
+    @Override
+    public boolean isBusy() {
         return (state == State.Running || state == State.StopRequested) && currentCommandExecution != null;
     }
 }

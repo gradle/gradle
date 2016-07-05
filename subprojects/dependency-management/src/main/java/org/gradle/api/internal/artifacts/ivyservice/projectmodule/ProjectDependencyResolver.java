@@ -43,11 +43,11 @@ import java.util.List;
 import java.util.Set;
 
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver {
-    private final ProjectComponentRegistry projectComponentRegistry;
+    private final LocalComponentRegistry localComponentRegistry;
     private final List<ProjectArtifactBuilder> artifactBuilders;
 
-    public ProjectDependencyResolver(ProjectComponentRegistry projectComponentRegistry, List<ProjectArtifactBuilder> artifactBuilders) {
-        this.projectComponentRegistry = projectComponentRegistry;
+    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, List<ProjectArtifactBuilder> artifactBuilders) {
+        this.localComponentRegistry = localComponentRegistry;
         this.artifactBuilders = artifactBuilders;
     }
 
@@ -55,7 +55,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         if (dependency.getSelector() instanceof ProjectComponentSelector) {
             ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
             ProjectComponentIdentifier project = DefaultProjectComponentIdentifier.newId(selector.getProjectPath());
-            LocalComponentMetadata componentMetaData = projectComponentRegistry.getProject(project);
+            LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(project);
             if (componentMetaData == null) {
                 result.failed(new ModuleVersionResolveException(selector, "project '" + project.getProjectPath() + "' not found."));
             } else {
@@ -66,7 +66,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         if (identifier instanceof ProjectComponentIdentifier) {
-            LocalComponentMetadata componentMetaData = projectComponentRegistry.getProject((ProjectComponentIdentifier) identifier);
+            LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent((ProjectComponentIdentifier) identifier);
             if (componentMetaData == null) {
                 String projectPath = ((ProjectComponentIdentifier) identifier).getProjectPath();
                 result.failed(new ModuleVersionResolveException(new DefaultProjectComponentSelector(projectPath), "project '" + projectPath + "' not found."));

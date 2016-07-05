@@ -17,10 +17,13 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.Requires
 import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 class JavaCompilationAgainstApiJarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -196,6 +199,7 @@ public class PersonInternal extends Person {
     }
 
     @Unroll
+    @Issue('Need to investigate the reason for the Java 9 failure')
     def "changing comment in API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)
@@ -244,6 +248,7 @@ public class Person {
     }
 
     @Unroll
+    @Requires(FIX_TO_WORK_ON_JAVA9)
     def "changing method body of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
         applyJavaPlugin(buildFile)

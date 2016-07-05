@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskPropertyBuilder;
@@ -41,7 +42,7 @@ public class FilePropertyContainer {
             }
             filePropertiesMap.put(propertyName, propertySpec.getPropertyFiles());
         }
-        return filePropertiesMap;
+        return ImmutableSortedMap.copyOf(filePropertiesMap);
     }
 
     protected static <T extends TaskPropertySpec & TaskPropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {

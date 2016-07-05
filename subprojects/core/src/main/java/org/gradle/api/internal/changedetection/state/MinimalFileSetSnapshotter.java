@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
@@ -59,7 +58,7 @@ public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter
                 missingFiles.add(file);
             }
         }
-        visitedTrees.add(new DefaultVisitedTree(null, null, ImmutableList.<FileTreeElement>copyOf(fileTreeElements), false, -1, null));
+        visitedTrees.add(DefaultVisitedTree.of(fileTreeElements));
     }
 
     @Override

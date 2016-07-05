@@ -15,7 +15,7 @@
   -->
 <chapter id='overview' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Overview</title>
-    <section id='sec:special_feature_of_gradle'>
+    <section id="sec:special_feature_of_gradle">
         <title>Features</title>
         <para>Here is a list of some of Gradle's features.
         </para>
@@ -149,7 +149,7 @@
             </varlistentry>
         </variablelist>
     </section>
-    <section id='sec:why_groovy'>
+    <section id="sec:why_groovy">
         <title>Why Groovy?</title>
         <para>We think the advantages of an internal DSL (based on a dynamic language) over XML are tremendous when used
             in <emphasis>build scripts</emphasis>. There are a couple of dynamic languages out there. Why Groovy? The

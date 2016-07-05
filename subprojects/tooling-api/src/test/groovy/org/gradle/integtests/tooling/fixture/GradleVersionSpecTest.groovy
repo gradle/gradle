@@ -25,6 +25,8 @@ class GradleVersionSpecTest extends Specification {
 
         expect:
         spec.isSatisfiedBy(GradleVersion.version("1.0"))
+        spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
+        spec.isSatisfiedBy(GradleVersion.version("1.0-snapshot-1"))
         spec.isSatisfiedBy(GradleVersion.version("1.0-rc-1"))
         spec.isSatisfiedBy(GradleVersion.version("1.0-12341010120000+1000"))
         spec.isSatisfiedBy(GradleVersion.version("1.1"))
@@ -32,7 +34,6 @@ class GradleVersionSpecTest extends Specification {
         spec.isSatisfiedBy(GradleVersion.version("1.1-12341010120000+1000"))
         spec.isSatisfiedBy(GradleVersion.version("2.56"))
 
-        !spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
         !spec.isSatisfiedBy(GradleVersion.version("0.9.2"))
         !spec.isSatisfiedBy(GradleVersion.version("0.5"))
     }
@@ -42,6 +43,8 @@ class GradleVersionSpecTest extends Specification {
 
         expect:
         !spec.isSatisfiedBy(GradleVersion.version("1.0"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
+        !spec.isSatisfiedBy(GradleVersion.version("1.0-snapshot-1"))
         !spec.isSatisfiedBy(GradleVersion.version("1.0-rc-1"))
         !spec.isSatisfiedBy(GradleVersion.version("1.0-12341010120000+1000"))
 
@@ -50,7 +53,6 @@ class GradleVersionSpecTest extends Specification {
         spec.isSatisfiedBy(GradleVersion.version("1.1-12341010120000+1000"))
         spec.isSatisfiedBy(GradleVersion.version("2.56"))
 
-        !spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
         !spec.isSatisfiedBy(GradleVersion.version("0.9.2"))
         !spec.isSatisfiedBy(GradleVersion.version("0.5"))
     }
@@ -144,6 +146,7 @@ class GradleVersionSpecTest extends Specification {
 
         expect:
         spec.isSatisfiedBy(GradleVersion.version("1.0"))
+        spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
         spec.isSatisfiedBy(GradleVersion.version("1.0-rc-1"))
         spec.isSatisfiedBy(GradleVersion.version("1.0-12341010120000+1000"))
         spec.isSatisfiedBy(GradleVersion.version("1.1"))
@@ -153,7 +156,6 @@ class GradleVersionSpecTest extends Specification {
         spec.isSatisfiedBy(GradleVersion.version("1.4-rc-1"))
         spec.isSatisfiedBy(GradleVersion.version("1.4-12341010120000+1000"))
 
-        !spec.isSatisfiedBy(GradleVersion.version("1.0-milestone-9"))
         !spec.isSatisfiedBy(GradleVersion.version("0.9.2"))
         !spec.isSatisfiedBy(GradleVersion.version("0.5"))
 

@@ -19,7 +19,7 @@
         It disables the default JAR archive generation of the Java plugin and adds a default WAR archive task.
     </para>
 
-    <section>
+    <section id="sec:war_usage">
         <title>Usage</title>
         <para>To use the War plugin, include the following in your build script:</para>
         <sample id="useWarPlugin" dir="webApplication/quickstart" title="Using the War plugin">
@@ -27,7 +27,7 @@
         </sample>
     </section>
 
-    <section>
+    <section id="sec:war_tasks">
         <title>Tasks</title>
         <para>The War plugin adds the following tasks to the project.</para>
         <table>
@@ -71,7 +71,7 @@
         </figure>
     </section>
 
-    <section>
+    <section id="sec:war_project_layout">
         <title>Project layout</title>
         <table>
             <title>War plugin - project layout</title>
@@ -90,7 +90,7 @@
         </table>
     </section>
 
-    <section>
+    <section id="sec:war_dependency_management">
         <title>Dependency management</title>
         <para>The War plugin adds two dependency configurations named <literal>providedCompile</literal> and
             <literal>providedRuntime</literal>. Those two configurations have the same scope as the respective
@@ -105,7 +105,7 @@
         </para>
     </section>
 
-    <section>
+    <section id="sec:war_convention_properties">
         <title>Convention properties</title>
         <table>
             <title>War plugin - directory properties</title>
@@ -152,7 +152,7 @@
         </para>
     </section>
 
-    <section id='sec:default_settings'>
+    <section id="sec:war_default_settings">
         <title>War</title>
 
         <para>The default behavior of the War task is to copy the content of <literal>src/main/webapp</literal>
@@ -171,7 +171,7 @@
             configuration are copied to <literal>WEB-INF/lib</literal>.</para>
         <para>The <apilink class="org.gradle.api.tasks.bundling.War"/> class in the API documentation has additional useful information.</para>
     </section>
-    <section id='sec:customizing'>
+    <section id="sec:war_customizing">
         <title>Customizing</title>
         <para>Here is an example with the most important customization options:
         </para>

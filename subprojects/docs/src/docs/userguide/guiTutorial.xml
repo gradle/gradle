@@ -38,7 +38,7 @@ gradle --gui
         the UI.
     </para>
     <para>The UI displays 4 tabs along the top and an output window along the bottom.</para>
-    <section>
+    <section id="sec:task_tree">
         <title>Task Tree</title>
         <para>
             The Task Tree shows a hierarchical display of all projects and their tasks.
@@ -59,7 +59,7 @@ gradle --gui
             </para></listitem>
         </itemizedlist>        
     </section>
-    <section>
+    <section id="sec:favorites">
         <title>Favorites</title>
         <para>
             The Favorites tab is a good place to store commonly-executed commands. These can be complex commands
@@ -74,7 +74,7 @@ gradle --gui
             This override always forces the output to be shown.
         </para>
     </section>
-    <section>
+    <section id="sec:command_line">
         <title>Command Line</title>
         <para>
             The Command Line tab is where you can execute a single Gradle command directly.
@@ -82,7 +82,7 @@ gradle --gui
             a place to try out commands before adding them to favorites.
         </para>
     </section>
-    <section>
+    <section id="sec:setup">
         <title>Setup</title>
         <para>The Setup tab allows configuration of some general settings.</para>
         <figure>

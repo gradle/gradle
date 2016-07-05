@@ -23,6 +23,7 @@ import org.gradle.language.fixtures.TestJavaComponent
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 
 @Requires(TestPrecondition.JDK8_OR_EARLIER)
 class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
@@ -59,6 +60,52 @@ class JvmApiSpecIntegrationTest extends AbstractJvmLanguageIntegrationTest {
                 }
             }
         """
+        then:
+        succeeds "assemble"
+    }
+
+    @Issue('GRADLE-3483')
+    def "can scan Annotations for public API"() {
+        when:
+        buildFile << """
+            repositories {
+                mavenCentral()
+            }
+
+            model {
+                components {
+                    myLib(JvmLibrarySpec) {
+                        api {
+                            exports 'com.example.p1'
+                        }
+                    }
+                }
+            }
+        """
+
+        app.sources.add(new JvmSourceFile("com/example/p1", "MyCustomAnnotation.java", """
+            package com.example.p1;
+
+            import java.lang.annotation.*;
+
+            @Retention(RetentionPolicy.RUNTIME)
+            public @interface MyCustomAnnotation {
+                String[] names();
+            }
+            """.stripIndent()))
+        app.sources.add(new JvmSourceFile("com/example/p1", "ExampleApi.java",
+            """
+            package com.example.p1;
+
+            public class ExampleApi {
+                @MyCustomAnnotation(names = {"Hello"})
+                public String field;
+
+                public void canRun() { }
+            }
+        """.stripIndent()))
+        app.sources*.writeToDir(file("src/myLib/java"))
+
         then:
         succeeds "assemble"
     }
