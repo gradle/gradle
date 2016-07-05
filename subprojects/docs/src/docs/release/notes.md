@@ -295,6 +295,21 @@ User who are building `war` projects with Eclipse, but for any reason do not wan
             it.name.startsWith('org.eclipse.wst')
         }
     }
+### NamedDomainObjectContainers no longer create objects when using explicit parameter syntax
+
+The following snippet used to create a new source set called `foo`:
+
+    sourceSets {
+        it.foo {}
+    }
+    
+This behavior was unintended and has been removed. The above code will now result in an exception if `foo` is not already defined. 
+
+Creation now only happens when using the implicit syntax
+
+    sourceSets {
+        foo {}
+    }
 
 ### Changes to previously deprecated APIs
 
