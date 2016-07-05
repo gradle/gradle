@@ -65,7 +65,6 @@ class S3ClientIntegrationTest extends Specification {
         awsCredentials.setSecretKey(secret)
     }
 
-
     @Requires(JDK9_OR_LATER)
     def "should inform the user to add the 'java.xml.bind' jigsaw module"() {
         when:
@@ -73,7 +72,7 @@ class S3ClientIntegrationTest extends Specification {
 
         then:
         GradleException jigsawException = thrown()
-        jigsawException.getMessage().contains('java.xml.bind')
+        jigsawException.getMessage().contains('-addmods java.xml.bind')
     }
 
     @Unroll
