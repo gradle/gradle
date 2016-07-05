@@ -38,12 +38,11 @@ We encourage you to give the improved Daemon a try. If for some reason you encou
 
 You can now check the status of running Daemons. A sample:
 
-```
-$> gradle --status
-   PID VERSION                 STATUS
- 28411 3.0                     IDLE
- 34247 3.0                     BUSY
-```
+
+    $> gradle --status
+     PID   VERSION                 STATUS
+     28411 3.0                     IDLE
+     34247 3.0                     BUSY
 
 Note that currently this does not list Gradle Daemons with version < 3.0. More details available in the [User Guide](userguide/gradle_daemon.html#status).
 
@@ -60,17 +59,15 @@ There are times when you want to resolve a plugin without actually applying it t
 
 This is now possible using the following syntax
 
-```
-plugins {
-    id 'my.special.plugin' version '1.0' apply false
-}
-
-subprojects {
-    if (someCondition) {
-        apply plugin 'my.special.plugin'
+    plugins {
+        id 'my.special.plugin' version '1.0' apply false
     }
-}
-```
+
+    subprojects {
+        if (someCondition) {
+            apply plugin 'my.special.plugin'
+        }
+    }
 
 ### Improved handling of external dependencies in `eclipse-wtp` plugin
 
@@ -288,12 +285,12 @@ For Java projects, the `eclipse-wtp` plugin no longer adds external dependencies
 
 User who are building `war` projects with Eclipse, but for any reason do not want to have WTP enabled can deactivate WTP like this:
 
-```
-eclipse.project {
-    natures.removeAll { it.startsWith('org.eclipse.wst') }
-    buildCommands.removeAll { it.name.startsWith('org.eclipse.wst') }
-}
-```
+    eclipse.project {
+        natures.removeAll { it.startsWith('org.eclipse.wst') }
+        buildCommands.removeAll {         
+            it.name.startsWith('org.eclipse.wst')
+        }
+    }
 
 ### Changes to previously deprecated APIs
 
