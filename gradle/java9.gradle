@@ -91,8 +91,7 @@ task java9IntegTest(type: Test) {
 
         // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
         // These tests need jvmArgs '-addmods', 'java.xml.bind'
-        // These jvmArgs should probably be added when running Gradle automatically
-        "S3ClientIntegrationTest",
+        // At some point Gradle should import this module automatically
         "IvyPublishS3IntegrationTest",
         "IvyS3UploadArchivesIntegrationTest",
         "MavenPublishS3IntegrationTest",
