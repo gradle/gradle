@@ -104,6 +104,7 @@ When invoked on a build with circular dependencies, the `dependentComponents` ta
 
 ## Open issues
 
+- Should we break the dependents graph at non-buildable nodes?
 - Make sure we handle a custom source set in one component depending on a different source set in the same component
 - Prebuilt libraries are not components, so you cannot generate a dependent component report for them.
 - Should we render each type of linkage differently?
