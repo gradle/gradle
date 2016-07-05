@@ -142,6 +142,17 @@ class AbstractNamedDomainObjectContainerTest extends Specification {
         container.obj2.prop == 'value'
     }
 
+    def "does not implicitly create an object when closure parameter is used explicitly"() {
+        when:
+        container.configure {
+            it.obj1
+        }
+
+        then:
+        MissingPropertyException missingProp = thrown()
+        missingProp.property == 'obj1'
+    }
+
     def "does not implicitly create an object when container is not being configured"() {
         when:
         container.obj1
@@ -235,7 +246,7 @@ class DynamicOwner {
     def ownerMethod(String value) {
         return value
     }
-    
+
     def getOwnerProp() {
         return 'ownerProp'
     }
