@@ -152,6 +152,7 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
             } else {
                 // Use highest version on highest scope, keep highest scope exclusions only
                 int duplicatePriority = dependenciesWithPriorities.get(duplicateDependency.get());
+                boolean samePriority = priority == duplicatePriority;
                 boolean higherPriority = priority > duplicatePriority;
                 boolean higherVersion = compareMavenVersionStrings(mavenDependency.getVersion(), duplicateDependency.get().getVersion()) > 0;
                 if (higherPriority || higherVersion) {
@@ -160,7 +161,9 @@ class DefaultPomDependenciesConverter implements PomDependenciesConverter {
                     if (!higherPriority) {
                         // Lower or equal priority but higher version, keep higher scope and exclusions
                         mavenDependency.setScope(duplicateDependency.get().getScope());
-                        mavenDependency.setExclusions(duplicateDependency.get().getExclusions());
+                        if (!samePriority) {
+                            mavenDependency.setExclusions(duplicateDependency.get().getExclusions());
+                        }
                     }
                     int highestPriority = higherPriority ? priority : duplicatePriority;
                     dependenciesWithPriorities.put(mavenDependency, highestPriority);
