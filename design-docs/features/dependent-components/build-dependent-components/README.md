@@ -64,7 +64,7 @@ This story is about adding the *checkability* concern to components.
 ### Implementation notes
 
 - The change is on `platform-base`, native, jvm and play ecosystems should be impacted
-- Introduce `Checkable` and `CheckableComponentSpec`
+- Introduce `CheckableComponentSpec`
 - `BinarySpec extends BuildableComponentSpec, CheckableComponentSpec`
 - `BinaryTaskCollection.getCheck()`
 - Bind components `check` task to lifecycle `check` task
@@ -74,7 +74,8 @@ This story is about adding the *checkability* concern to components.
 ### Out of scope
 
 - Tackling the terminology mismatch as this would result in breaking changes
-- `BinarySpec.isCheckable()`
+- `Checkable` next to `Buildable` is not defined enough 
+- `BinarySpec.isCheckable()`, will simply use `isBuildable()` for now
 
 
 ### (Story) Build dependents of a binary or component
