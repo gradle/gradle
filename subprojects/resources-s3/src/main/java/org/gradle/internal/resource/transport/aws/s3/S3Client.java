@@ -81,8 +81,8 @@ public class S3Client {
             try {
                 Class.forName("javax.xml.bind.DatatypeConverter");
             } catch (ClassNotFoundException e) {
-                throw new GradleException("Cannot use S3 since the module 'java.xml.bind' is not available. " +
-                    "Please add \"-addmods java.xml.bind '-Dorg.gradle.jvmargs=-addmods java.xml.bind'\" to your GRADLE_OPTS.");
+                throw new GradleException("Cannot use S3 since the module 'java.xml.bind' is not available. "
+                    + "Please add \"-addmods java.xml.bind '-Dorg.gradle.jvmargs=-addmods java.xml.bind'\" to your GRADLE_OPTS.");
             }
         }
     }
