@@ -50,7 +50,7 @@ class ArchiveEntryTest extends Specification {
 
         when:
         def a3 = ArchiveEntry.of(props)
-        a1 = ArchiveEntry.of(props + [subEntries: list(a3)])
+        a1 = ArchiveEntry.of(props + [subEntries: set(a3)])
 
         then:
         a1 != a2
@@ -58,7 +58,7 @@ class ArchiveEntryTest extends Specification {
         a1.hashCode() != a2.hashCode()
 
         when:
-        a2 = ArchiveEntry.of(props + [subEntries: list(a3)])
+        a2 = ArchiveEntry.of(props + [subEntries: set(a3)])
 
         then:
         a1 == a2
@@ -67,7 +67,7 @@ class ArchiveEntryTest extends Specification {
 
         when:
         def a4 = ArchiveEntry.of(props + [size: 20])
-        a1 = ArchiveEntry.of(props + [subEntries: list(a4)])
+        a1 = ArchiveEntry.of(props + [subEntries: set(a4)])
 
         then:
         a1 != a2
@@ -92,7 +92,7 @@ class ArchiveEntryTest extends Specification {
     }
 
     @CompileStatic // Workaround for https://issues.apache.org/jira/browse/GROOVY-7879 on Java 9
-    static <T> ImmutableSet<T> list(T entry) {
+    static <T> ImmutableSet<T> set(T entry) {
         ImmutableSet.of(entry)
     }
 
