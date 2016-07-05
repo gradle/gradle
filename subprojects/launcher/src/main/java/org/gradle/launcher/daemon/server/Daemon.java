@@ -30,6 +30,7 @@ import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
 import java.security.SecureRandom;
@@ -39,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE;
+import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*;
 
 /**
  * A long-lived build server that accepts commands via a communication channel.
@@ -50,8 +51,6 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO
  */
 public class Daemon implements Stoppable {
     private static final Logger LOGGER = Logging.getLogger(Daemon.class);
-    public static final String DAEMON_WILL_STOP_MESSAGE = "Daemon will be stopped at the end of the build ";
-    public static final String DAEMON_STOPPING_IMMEDIATELY_MESSAGE = "Daemon is stopping immediately ";
 
     private final DaemonServerConnector connector;
     private final DaemonRegistry daemonRegistry;
@@ -290,29 +289,19 @@ public class Daemon implements Stoppable {
 
         @Override
         public void onExpirationEvent(DaemonExpirationResult result) {
-            switch (result.getStatus()) {
-                case DO_NOT_EXPIRE:
-                    break;
-                case QUIET_EXPIRE:
-                    if (!stateControl.isStopping()) {
-                        LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + result.getReason());
-                        stateControl.requestStop();
-                    }
-                    break;
-                case GRACEFUL_EXPIRE:
-                    if (!stateControl.isStopping()) {
-                        LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + result.getReason());
-                        stateControl.requestStop();
-                        registryUpdater.onExpire(result.getReason());
-                    }
-                    break;
-                case IMMEDIATE_EXPIRE:
-                    if (!stateControl.isStopped()) {
-                        LOGGER.lifecycle(DAEMON_STOPPING_IMMEDIATELY_MESSAGE + result.getReason());
-                        stateControl.requestForcefulStop(result.getReason());
-                        registryUpdater.onExpire(result.getReason());
-                    }
-                    break;
+            final DaemonExpirationStatus expirationCheck = result.getStatus();
+
+            if (expirationCheck != DO_NOT_EXPIRE) {
+                if (expirationCheck == IMMEDIATE_EXPIRE) {
+                    stateControl.requestForcefulStop(result.getReason());
+                } else {
+                    stateControl.requestStop(result.getReason());
+                }
+
+                // Store DaemonStopEvent if not quiet expire
+                if (expirationCheck != QUIET_EXPIRE && !stateControl.isStopping()) {
+                    registryUpdater.onExpire(result.getReason());
+                }
             }
         }
     }

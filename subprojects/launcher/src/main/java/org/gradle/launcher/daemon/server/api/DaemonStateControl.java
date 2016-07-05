@@ -24,7 +24,7 @@ public interface DaemonStateControl {
      *
      * <p>The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will fail with {@link DaemonUnavailableException}.
      */
-    void requestStop();
+    void requestStop(String reason);
 
     /**
      * Requests a forceful stops of the daemon. Does not wait until the daemon is idle to begin stopping. The stop will happen asynchronously, and this method does not block.

@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server;
 
+import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.DefaultBuildCancellationToken;
@@ -26,7 +27,6 @@ import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.daemon.server.api.DaemonUnavailableException;
-import org.slf4j.Logger;
 
 import java.util.Date;
 import java.util.concurrent.locks.Condition;
@@ -41,6 +41,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * This is not exposed to clients of the daemon.
  */
 public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
+    public static final String DAEMON_WILL_STOP_MESSAGE = "Daemon will be stopped at the end of the build ";
+    public static final String DAEMON_STOPPING_IMMEDIATELY_MESSAGE = "Daemon is stopping immediately ";
     private static final Logger LOGGER = Logging.getLogger(DaemonStateCoordinator.class);
 
     private enum State {Running, StopRequested, Stopped, Broken}
@@ -107,27 +109,28 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
         }
     }
 
-    public long getIdleMillis(long currentTimeMillis) {
-        if (isIdle()) {
-            return currentTimeMillis - lastActivityAt;
-        } else {
-            return 0L;
+    @Override
+    public void requestStop(String reason) {
+        if (!isStopping()) {
+            LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + reason);
+            lock.lock();
+            try {
+                if (isBusy()) {
+                    LOGGER.debug("Stop as soon as idle requested. The daemon is busy: {}", isBusy());
+                    beginStopping();
+                } else {
+                    stopNow(reason);
+                }
+            } finally {
+                lock.unlock();
+            }
         }
     }
 
     @Override
-    public void requestStop() {
-        lock.lock();
-        try {
-            if (isBusy()) {
-                LOGGER.debug("Stop as soon as idle requested. The daemon is busy: {}", isBusy());
-                beginStopping();
-            } else {
-                stopNow("stop requested and daemon idle");
-            }
-        } finally {
-            lock.unlock();
-        }
+    public void requestForcefulStop(String reason) {
+        LOGGER.lifecycle(DAEMON_STOPPING_IMMEDIATELY_MESSAGE + reason);
+        stopNow(reason);
     }
 
     /**
@@ -135,7 +138,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
      *
      * If the daemon is busy and the client is waiting for a response, it may receive “null” from the daemon as the connection may be closed by this method before the result is sent back.
      *
-     * @see #requestStop()
+     * @see #requestStop(String reason)
      */
     public void stop() {
         stopNow("service stop");
@@ -174,12 +177,6 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             default:
                 throw new IllegalStateException("Daemon is in unexpected state: " + state);
         }
-    }
-
-    @Override
-    public void requestForcefulStop(String reason) {
-        LOGGER.debug("Daemon stop requested.");
-        stopNow(reason);
     }
 
     @Override
@@ -379,6 +376,14 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
             return (System.currentTimeMillis() - lastActivityAt) / 1000 / 60;
         } finally {
             lock.unlock();
+        }
+    }
+
+    public long getIdleMillis(long currentTimeMillis) {
+        if (isIdle()) {
+            return currentTimeMillis - lastActivityAt;
+        } else {
+            return 0L;
         }
     }
 

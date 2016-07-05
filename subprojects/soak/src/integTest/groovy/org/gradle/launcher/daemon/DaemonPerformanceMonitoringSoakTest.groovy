@@ -21,7 +21,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.fixtures.DaemonMultiJdkIntegrationTest
 import org.gradle.launcher.daemon.fixtures.JdkVendor
-import org.gradle.launcher.daemon.server.Daemon
+import org.gradle.launcher.daemon.server.DaemonStateCoordinator
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
 import org.gradle.launcher.daemon.server.health.GcThrashingDaemonExpirationStrategy
@@ -117,7 +117,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains(Daemon.DAEMON_WILL_STOP_MESSAGE)
+        daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)
     }
 
     def "when build leaks permgen space daemon is expired"() {
@@ -161,7 +161,7 @@ class DaemonPerformanceMonitoringSoakTest extends DaemonMultiJdkIntegrationTest 
         }
 
         and:
-        daemons.daemon.log.contains(Daemon.DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
+        daemons.daemon.log.contains(DaemonStateCoordinator.DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
 
         when:
         ExecutionFailure failure = gradle.waitForFailure()

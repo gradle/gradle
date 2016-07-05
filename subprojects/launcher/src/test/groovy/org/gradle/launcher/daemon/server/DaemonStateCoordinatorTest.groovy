@@ -123,7 +123,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         Runnable command = Mock()
 
         given:
-        coordinator.requestStop()
+        coordinator.requestStop("REASON")
 
         when:
         coordinator.runCommand(command, "command")
@@ -151,7 +151,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         Runnable command = Mock()
 
         given:
-        coordinator.requestStop()
+        coordinator.requestStop("REASON")
 
         when:
         coordinator.runCommand(command, "command")
@@ -299,7 +299,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         coordinator.idle
 
         when:
-        coordinator.requestStop()
+        coordinator.requestStop("REASON")
 
         then:
         coordinator.stopped
@@ -315,7 +315,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         then:
         1 * command.run() >> {
             assert coordinator.busy
-            coordinator.requestStop()
+            coordinator.requestStop("REASON")
             assert !coordinator.stopped
             assert coordinator.willRefuseNewCommands
         }
@@ -337,11 +337,11 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         then:
         1 * command.run() >> {
             assert coordinator.busy
-            coordinator.requestStop()
+            coordinator.requestStop("REASON")
             assert coordinator.busy
-            coordinator.requestStop()
+            coordinator.requestStop("REASON")
             assert coordinator.busy
-            coordinator.requestStop()
+            coordinator.requestStop("REASON")
             assert coordinator.busy
         }
 
@@ -362,7 +362,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         then:
         1 * command.run() >> {
             assert coordinator.busy
-            coordinator.requestStop()
+            coordinator.requestStop("REASON")
             assert !coordinator.stopped
             assert coordinator.willRefuseNewCommands
             throw failure
@@ -389,7 +389,7 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         }
         async {
             thread.blockUntil.actionStarted
-            coordinator.requestStop()
+            coordinator.requestStop("REASON")
             coordinator.awaitStop()
             instant.idle
         }
