@@ -67,8 +67,11 @@ class S3ClientIntegrationTest extends Specification {
 
     @Requires(JDK9_OR_LATER)
     def "should inform the user to add the 'java.xml.bind' jigsaw module"() {
+        given:
+        def s3Client = new S3Client(null, new S3ConnectionProperties())
+
         when:
-        new S3Client(null, new S3ConnectionProperties())
+        s3Client.put(null, null, null)
 
         then:
         GradleException jigsawException = thrown()

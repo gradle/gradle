@@ -61,7 +61,6 @@ public class S3Client {
         this.s3ConnectionProperties = s3ConnectionProperties;
         AWSCredentials credentials = awsCredentials == null ? null : new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
         amazonS3Client = createAmazonS3Client(credentials);
-        checkRequiredJigsawModuleIsOnPath();
     }
 
     private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
@@ -108,6 +107,7 @@ public class S3Client {
     }
 
     public void put(InputStream inputStream, Long contentLength, URI destination) {
+        checkRequiredJigsawModuleIsOnPath();
         try {
             S3RegionalResource s3RegionalResource = new S3RegionalResource(destination);
             String bucketName = s3RegionalResource.getBucketName();
