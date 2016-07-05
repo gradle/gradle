@@ -108,14 +108,14 @@ With these features Tooling API clients can provide a more complete IDE integrat
 Gradle 3.0 contains initial support for Java 9. This means that running Gradle on Java 9 and compiling,
 testing and running Java 9 applications is supported out of the box.
 
-The following plugins should work out of the box:
+The following plugins are known to have some issues with Java 9:
 
-- [Jacoco](userguide/jacoco_plugin.html)
-
-The following plugins still have some issues:
-
-- [PMD](userguide/pmd_plugin.html): Runs on Java 9 but cannot analyze Java 9 Bytecode as this is not yet supported by
+- [PMD plugin](userguide/pmd_plugin.html): Runs on Java 9 but cannot analyze Java 9 Bytecode as this is not yet supported by
   the latest version of PMD (5.5.0)
+- [Jetty plugin](userguide/jetty_plugin.html): The version of Jetty used for the Jetty plugin does not work with Java 9
+- [Scala plugin](userguide/scala_plugin.html): The Zinc compiler does not work with Java 9
+- [FindBugs plugin](userguide/findbugs_plugin.html): The latest release (3.0.1) does not work with Java 9
+- [Osgi plugin](userguide/findbugs_plugin.html): The latest version of BND does not work with Java 9
 
 CAVEAT: Your mileage my vary. If you run into any problems please report those on the forums.
 

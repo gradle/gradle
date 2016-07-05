@@ -219,9 +219,12 @@ idea {
                 "-Dorg.gradle.integtest.executer=embedded",
                 "-Dorg.gradle.integtest.versions=latest",
                 "-ea",
-                "-XX:MaxPermSize=512m",
                 "-Xmx512m"
         ]
+
+        if (!javaVersion.java8Compatible) {
+            defaultTestVmParams += "-XX:MaxPermSize=512m"
+        }
 
         vmParameters.'@value' = defaultTestVmParams.collect { it.contains(" ") ? "\"$it\"" : it }.join(" ")
 

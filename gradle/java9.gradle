@@ -20,9 +20,6 @@ task java9IntegTest(type: Test) {
         // Add a dedicated Findbugs test for Java 9
         "FindBugsIntegrationTest",
 
-        // Codenarc does not work on Java 9 - therefore it will not fail with PermGenSpaceError
-        "IsolatedAntBuilderMemoryLeakIntegrationTest",
-
         // Osgi is broken with a NPE in Processor - need to investigate
         "OsgiPluginIntegrationSpec",
 
@@ -99,10 +96,6 @@ task java9IntegTest(type: Test) {
         "IvyPublishS3IntegrationTest",
         "IvyS3UploadArchivesIntegrationTest",
         "MavenPublishS3IntegrationTest",
-
-        // Test assumes there is a tools.jar - provide a different large jar
-        "IvyPublishHttpIntegTest",
-        "IvyHttpPublishIntegrationTest",
 
         // Various problems, eg scala compile
         "UserGuideSamplesIntegrationTest",
