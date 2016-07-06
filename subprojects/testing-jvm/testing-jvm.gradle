@@ -29,12 +29,7 @@ dependencies {
     testCompile 'com.google.inject:guice:2.0@jar' // this is for TestNG
 }
 
-test {
-    exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
-    exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
-}
-
-java9Test {
+configure([test, java9Test]) {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
     exclude 'org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*'
 }
