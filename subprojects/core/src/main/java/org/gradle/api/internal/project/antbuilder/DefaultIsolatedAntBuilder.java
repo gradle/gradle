@@ -52,6 +52,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     private final ClassLoader baseAntLoader;
     private final ClassPath libClasspath;
     private final ClassLoader antAdapterLoader;
+    private final ClassLoader gradleApiLoader;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderFactory classLoaderFactory;
     private final ModuleRegistry moduleRegistry;
@@ -93,8 +94,9 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
         this.antAdapterLoader = new VisitableURLClassLoader(baseAntLoader, gradleCoreUrls);
+        this.gradleApiLoader = classLoaderFactory.createIsolatedClassLoader(gradleCoreUrls);
 
-        gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
+        gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(gradleApiLoader);
         antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
     }
 
@@ -104,6 +106,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         this.moduleRegistry = copy.moduleRegistry;
         this.antLoader = copy.antLoader;
         this.baseAntLoader = copy.baseAntLoader;
+        this.gradleApiLoader = copy.gradleApiLoader;
         this.antAdapterLoader = copy.antAdapterLoader;
         this.libClasspath = new DefaultClassPath(libClasspath);
         this.gradleApiGroovyLoader = copy.gradleApiGroovyLoader;

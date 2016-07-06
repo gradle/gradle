@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -30,7 +30,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * Note: It's usually a good idea to add a {@link CachingClassLoader} between this ClassLoader and any
  * ClassLoaders that use it as a parent, to prevent every path in the ClassLoader graph being searched.
  */
-public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHierarchy {
+public class MultiParentClassLoader extends GradleClassLoader implements ClassLoaderHierarchy, Closeable {
 
     private static final JavaMethod<ClassLoader, Package[]> GET_PACKAGES_METHOD = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
     private static final JavaMethod<ClassLoader, Package> GET_PACKAGE_METHOD = JavaReflectionUtil.method(ClassLoader.class, Package.class, "getPackage", String.class);
@@ -115,6 +115,13 @@ public class MultiParentClassLoader extends ClassLoader implements ClassLoaderHi
             }
         }
         return Collections.enumeration(resources);
+    }
+
+    @Override
+    public void close() throws IOException {
+        for (ClassLoader parent : parents) {
+            tryClose(parent);
+        }
     }
 
     public static class Spec extends ClassLoaderSpec {

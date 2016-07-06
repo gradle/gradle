@@ -78,7 +78,7 @@ public class ClassPathToClassLoaderCache implements Stoppable {
     /**
      * Provides execution of arbitrary code that consumes a cached class loader in a memory safe manner,
      * that is to say making sure that concurrent calls reuse the same classloader, or that the class loader
-     * is retrived from cache if available.
+     * is retrieved from cache if available.
      *
      * It will also make sure that once a cached class loader is unused and removed from cache, memory cleanup
      * is done.
