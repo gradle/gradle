@@ -569,6 +569,46 @@ uploadArchives {
         pom.scopes.test == null
     }
 
+    @Issue('GRADLE-3494')
+    def "dependencies de-duplication handles null versions"() {
+        given:
+        def localM2Repo = m2.mavenRepo()
+        executer.beforeExecute(m2)
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            dependencies {
+                compile('ch.qos.logback:logback-classic:1.1.5') {
+                    exclude group: 'org.slf4j', module: 'slf4j-api'
+                }
+                compile('ch.qos.logback:logback-classic') {
+                    exclude group: 'ch.qos.logback', module: 'logback-core'
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'install'
+
+        then:
+        def pom = localM2Repo.module("group", "root", "1.0").parsedPom
+        pom.scopes.provided == null
+        pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.5'
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions;
+        exclusions.size() == 1
+        exclusions[0].groupId == 'org.slf4j'
+        exclusions[0].artifactId == 'slf4j-api'
+        pom.scopes.runtime == null
+        pom.scopes.test == null
+    }
+
     @Issue('GRADLE-3496')
     def "dependencies are de-duplicated using the higher version on the same scope and exclusions from the higher version"() {
         given:
