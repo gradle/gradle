@@ -117,7 +117,7 @@ The following plugins are known to have some issues with Java 9:
 - [FindBugs plugin](userguide/findbugs_plugin.html): The latest release (3.0.1) does not work with Java 9
 - [Osgi plugin](userguide/findbugs_plugin.html): The latest version of BND does not work with Java 9
 
-Also, for working with S3 backed Maven and Ivy repositories, `-addmods java.xml.bind` has to be added to the JVM parameters. This can be accomplished by setting
+Also, for publishing to S3 backed Maven and Ivy repositories, `-addmods java.xml.bind` has to be added to the JVM parameters. This can be accomplished by setting
 
     GRADLE_OPTS="-addmods java.xml.bind '-Dorg.gradle.jvmargs=-addmods java.xml.bind'"
 

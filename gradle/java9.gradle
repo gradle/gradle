@@ -95,6 +95,7 @@ task java9IntegTest(type: Test) {
         "IvyPublishS3IntegrationTest",
         "IvyS3UploadArchivesIntegrationTest",
         "MavenPublishS3IntegrationTest",
+        "MavenPublishS3ErrorsIntegrationTest",
 
         // Various problems, eg scala compile
         "UserGuideSamplesIntegrationTest",
