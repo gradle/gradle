@@ -159,6 +159,23 @@ public class Signature extends AbstractPublishArtifact {
         this.signatureSpec = signatureSpec;
     }
 
+    /**
+     * Creates a signature artifact for the file returned by the {@code toSign} closure.
+     *
+     * <p>The closures will be “evaluated” on demand whenever the value is needed (e.g. at generation time)</p>
+     *
+     * @param toSign A closure that produces a File for the object to sign (non File return values will be used as the path to the file)
+     * @param classifier A closure that produces the classifier to assign to the signature artifact on demand
+     * @param signatureSpec The specification of how the artifact is to be signed
+     * @param tasks The task(s) that will invoke {@link #generate()} on this signature (optional)
+     */
+    public Signature(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec, Object... tasks) {
+        super(tasks);
+        this.toSignGenerator = toSign;
+        this.classifierGenerator = classifier;
+        this.signatureSpec = signatureSpec;
+    }
+
     private void init(Callable<File> toSign, Callable<String> classifier, SignatureSpec signatureSpec) {
         this.toSignGenerator = toSign;
         this.classifierGenerator = classifier;

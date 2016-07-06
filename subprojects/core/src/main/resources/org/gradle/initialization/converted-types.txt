@@ -92,3 +92,4 @@ org.gradle.testing.jacoco.tasks.JacocoBase
 org.gradle.testing.jacoco.tasks.JacocoReport
 org.gradle.api.tasks.bundling.Jar
 org.gradle.buildinit.tasks.InitBuild
+org.gradle.plugins.signing.Sign
