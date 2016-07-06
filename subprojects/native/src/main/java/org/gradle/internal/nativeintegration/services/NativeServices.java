@@ -78,8 +78,8 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                     useNativePlatform = false;
                 } catch (NativeException ex) {
                     if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase().contains("already loaded in another classloader")) {
-                LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
-                useNativePlatform = false;
+                        LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
+                        useNativePlatform = false;
                     } else {
                         throw ex;
                     }
