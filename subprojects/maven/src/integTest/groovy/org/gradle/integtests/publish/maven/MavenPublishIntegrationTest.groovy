@@ -475,4 +475,97 @@ uploadArchives {
         def exclusions = pom.scopes.compile.dependencies['commons-collections:commons-collections:3.2.2'].exclusions
         exclusions.size() == 1 && exclusions[0].groupId=='*' && exclusions[0].artifactId=='*'
     }
+
+    def "dependencies de-duplication uses a 0 priority for unmapped configurations"() {
+        given:
+        def localM2Repo = m2.mavenRepo()
+        executer.beforeExecute(m2)
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            configurations {
+                unmapped
+                compile {
+                    extendsFrom unmapped
+                }
+            }
+
+            dependencies {
+                unmapped('ch.qos.logback:logback-classic:1.1.7') {
+                    exclude group: 'ch.qos.logback', module: 'logback-core'
+                }
+                compile('ch.qos.logback:logback-classic:1.1.5') {
+                    exclude group: 'org.slf4j', module: 'slf4j-api'
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'install'
+
+        then:
+        def pom = localM2Repo.module("group", "root", "1.0").parsedPom
+        pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.5'
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions;
+        exclusions.size() == 1
+        exclusions[0].groupId == 'org.slf4j'
+        exclusions[0].artifactId == 'slf4j-api'
+        pom.scopes.provided == null
+        pom.scopes.runtime == null
+        pom.scopes.test == null
+    }
+
+    def "dependency de-duplication takes custom configuration to scope mapping into account"() {
+        given:
+        def localM2Repo = m2.mavenRepo()
+        executer.beforeExecute(m2)
+
+        and:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            apply plugin: 'maven'
+            apply plugin: 'java'
+
+            group = 'group'
+            version = '1.0'
+
+            configurations {
+                unmapped
+                compile {
+                    extendsFrom unmapped
+                }
+            }
+            conf2ScopeMappings.addMapping(400, configurations.unmapped, 'compile')
+
+            dependencies {
+                unmapped('ch.qos.logback:logback-classic:1.1.7') {
+                    exclude group: 'ch.qos.logback', module: 'logback-core'
+                }
+                compile('ch.qos.logback:logback-classic:1.1.5') {
+                    exclude group: 'org.slf4j', module: 'slf4j-api'
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run 'install'
+
+        then:
+        def pom = localM2Repo.module("group", "root", "1.0").parsedPom
+        pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.7'
+        def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.7').exclusions;
+        exclusions.size() == 1
+        exclusions[0].groupId == 'ch.qos.logback'
+        exclusions[0].artifactId == 'logback-core'
+        pom.scopes.provided == null
+        pom.scopes.runtime == null
+        pom.scopes.test == null
+    }
 }
