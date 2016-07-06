@@ -24,8 +24,10 @@ import spock.lang.Specification
 import javax.tools.JavaCompiler
 
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
+import static org.gradle.util.TestPrecondition.JDK
 
 class JdkToolsTest extends Specification {
+    @Requires(JDK)
     def "can get java compiler"() {
         def compiler = JdkTools.current().systemJavaCompiler
 
