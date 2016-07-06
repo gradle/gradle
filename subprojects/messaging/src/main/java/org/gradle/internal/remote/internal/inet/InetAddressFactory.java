@@ -64,6 +64,9 @@ public class InetAddressFactory {
 
     /**
      * Locates all local (loopback) addresses for this machine. Never returns an empty list.
+     *
+     * If there is no loopback device on the machine it falls back to the non-loopback addresses if there are any.
+     * If there are no non-loopback addresses then 127.0.0.1 resp. ::1 is returned.
      */
     public List<InetAddress> findLocalAddresses() {
         try {
@@ -171,7 +174,7 @@ public class InetAddressFactory {
                     }
                 }
 
-                if (!Boolean.FALSE.equals(isMulticast)) {
+                if (isMulticast) {
                     // Prefer remotely reachable interfaces over loopback interfaces for multicast
                     if (isRemote) {
                         LOGGER.debug("Adding remote multicast interface {}", networkInterface.getDisplayName());
@@ -187,9 +190,14 @@ public class InetAddressFactory {
         }
 
         if (localAddresses.isEmpty()) {
-            InetAddress fallback = InetAddress.getByName(null);
-            LOGGER.debug("No loopback addresses, using fallback {}", fallback);
-            localAddresses.add(fallback);
+            if (remoteAddresses.isEmpty()) {
+                InetAddress fallback = InetAddress.getByName(null);
+                LOGGER.debug("No loopback addresses, using fallback {}", fallback);
+                localAddresses.add(fallback);
+            } else {
+                LOGGER.debug("No loopback addresses, using remote addresses instead.");
+                localAddresses.addAll(remoteAddresses);
+            }
         }
         if (remoteAddresses.isEmpty()) {
             try {
