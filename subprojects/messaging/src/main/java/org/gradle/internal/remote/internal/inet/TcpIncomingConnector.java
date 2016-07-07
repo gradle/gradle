@@ -54,14 +54,14 @@ public class TcpIncomingConnector implements IncomingConnector {
         int localPort;
         try {
             serverSocket = ServerSocketChannel.open();
-            serverSocket.socket().bind(new InetSocketAddress(addressFactory.findLocalBindingAddress(), 0));
+            serverSocket.socket().bind(new InetSocketAddress(addressFactory.getLocalBindingAddress(), 0));
             localPort = serverSocket.socket().getLocalPort();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
 
         UUID id = idGenerator.generateId();
-        List<InetAddress> addresses = allowRemote ? addressFactory.findRemoteAddresses() : addressFactory.findLocalAddresses();
+        List<InetAddress> addresses = addressFactory.getCommunicationAddresses();
         final Address address = new MultiChoiceAddress(id, localPort, addresses);
         LOGGER.debug("Listening on {}.", address);
 
@@ -102,7 +102,7 @@ public class TcpIncomingConnector implements IncomingConnector {
                         final SocketChannel socket = serverSocket.accept();
                         InetSocketAddress remoteSocketAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
                         InetAddress remoteInetAddress = remoteSocketAddress.getAddress();
-                        if (!allowRemote && !addressFactory.isLocal(remoteInetAddress)) {
+                        if (!allowRemote && !addressFactory.isCommunicationAddress(remoteInetAddress)) {
                             LOGGER.error("Cannot accept connection from remote address {}.", remoteInetAddress);
                             socket.close();
                             continue;
