@@ -69,6 +69,7 @@ org.gradle.plugins.ide.eclipse.model.WtpFacet
 org.gradle.plugins.ide.idea.GenerateIdeaModule
 org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 org.gradle.plugins.ide.idea.GenerateIdeaProject
+org.gradle.plugins.ide.idea.IdeaPlugin
 org.gradle.plugins.ide.idea.model.IdeaLanguageLevel
 org.gradle.plugins.ide.idea.model.IdeaModel
 org.gradle.plugins.ide.idea.model.IdeaModule
