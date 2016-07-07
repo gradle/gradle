@@ -35,6 +35,7 @@ org.gradle.plugins.ide.api.FileContentMerger
 org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath
 org.gradle.plugins.ide.eclipse.GenerateEclipseJdt
 org.gradle.plugins.ide.eclipse.GenerateEclipseProject
+org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent
 org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 org.gradle.plugins.ide.eclipse.model.AbstractLibrary
 org.gradle.plugins.ide.eclipse.model.AccessRule
