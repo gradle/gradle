@@ -82,6 +82,14 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         return this;
     }
 
+    public ResolutionStrategy preferProjectModules(boolean value) {
+        mutationValidator.validateMutation(STRATEGY);
+        if (this.conflictResolution instanceof LatestConflictResolution) {
+            ((LatestConflictResolution) this.conflictResolution).setPreferProjectModules(value);
+        }
+        return this;
+    }
+
     public ConflictResolution getConflictResolution() {
         return this.conflictResolution;
     }
@@ -170,6 +178,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
         if (conflictResolution instanceof StrictConflictResolution) {
             out.failOnVersionConflict();
+        } else if (conflictResolution instanceof LatestConflictResolution) {
+            out.preferProjectModules(((LatestConflictResolution) conflictResolution).isPreferProjectModules());
         }
         out.setForcedModules(getForcedModules());
         for (SpecRuleAction<? super ComponentSelection> ruleAction : componentSelectionRules.getRules()) {
