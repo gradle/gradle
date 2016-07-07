@@ -64,9 +64,14 @@ class KotlinBuildScriptModelPlugin @Inject constructor(
         System.getProperty("idea.active", "false") == "true"
 
     private fun saveIdeaDaemonPropertiesOf(project: Project) {
-        daemonPropertiesFileOf(project.projectDir).apply { parentFile.mkdirs() }.bufferedWriter().use {
-            System.getProperties().store(it, null)
-        }
+        daemonPropertiesFileOf(project.projectDir)
+            .apply {
+                parentFile.mkdirs()
+            }
+            .bufferedWriter()
+            .use {
+                System.getProperties().store(it, null)
+            }
     }
 }
 
