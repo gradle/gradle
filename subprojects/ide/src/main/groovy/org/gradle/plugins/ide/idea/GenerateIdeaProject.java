@@ -45,6 +45,9 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
      * output *.ipr file
      */
     public File getOutputFile() {
+        if (ideaProject == null) {
+            return super.getOutputFile();
+        }
         return ideaProject.getOutputFile();
     }
 

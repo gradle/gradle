@@ -50,6 +50,9 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
      * the module name is the same as the name of the *.iml file.
      */
     public File getOutputFile() {
+        if (module == null) {
+            return super.getOutputFile();
+        }
         return module.getOutputFile();
     }
 
