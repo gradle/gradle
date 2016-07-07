@@ -18,6 +18,7 @@ org.gradle.api.plugins.quality.CodeNarcPlugin
 org.gradle.api.plugins.quality.CodeQualityExtension
 org.gradle.api.plugins.quality.FindBugs
 org.gradle.api.plugins.quality.FindBugsPlugin
+org.gradle.api.plugins.quality.JDepend
 org.gradle.api.plugins.quality.JDependPlugin
 org.gradle.api.plugins.scala.ScalaBasePlugin
 org.gradle.api.plugins.scala.ScalaPlugin
