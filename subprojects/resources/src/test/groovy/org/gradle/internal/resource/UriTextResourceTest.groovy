@@ -240,7 +240,7 @@ class UriTextResourceTest extends Specification {
     @Requires(TestPrecondition.ONLINE)
     def hasNoContentWhenUsingHttpUriAndFileDoesNotExist() {
         when:
-        UriTextResource resource = new UriTextResource('<display-name>', new URI("https://www.gradle.org/unknown.txt"));
+        UriTextResource resource = new UriTextResource('<display-name>', new URI("https://gradle.org/unknown.txt"));
 
         then:
         !resource.exists
@@ -250,7 +250,7 @@ class UriTextResourceTest extends Specification {
 
         then:
         def e = thrown(MissingResourceException)
-        e.message == "Could not read <display-name> 'https://www.gradle.org/unknown.txt' as it does not exist." as String
+        e.message == "Could not read <display-name> 'https://gradle.org/unknown.txt' as it does not exist." as String
     }
 
     def usesFilePathToBuildDisplayNameWhenUsingFile() {
