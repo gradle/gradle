@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.quality;
 
 import com.google.common.util.concurrent.Callables;
-import groovy.transform.CompileStatic;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
@@ -47,7 +46,6 @@ import java.util.concurrent.Callable;
  * @see PmdExtension
  * @see Pmd
  */
-@CompileStatic
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
     public static final String DEFAULT_PMD_VERSION = "5.5.0";
