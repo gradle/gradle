@@ -38,6 +38,7 @@ org.gradle.nativeplatform.tasks.LinkSharedLibrary
 org.gradle.plugins.ear.EarPluginConvention
 org.gradle.plugins.ide.api.FileContentMerger
 org.gradle.plugins.ide.eclipse.EclipsePlugin
+org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
 org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath
 org.gradle.plugins.ide.eclipse.GenerateEclipseJdt
 org.gradle.plugins.ide.eclipse.GenerateEclipseProject
