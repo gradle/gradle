@@ -26,7 +26,7 @@ import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.internal.Cast;
 import org.gradle.internal.metaobject.DynamicObject;
 
-import java.io.InputStream;
+import java.io.*;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
