@@ -15,47 +15,66 @@
  */
 package org.gradle.plugins.ide.idea.internal;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
-import groovy.transform.CompileStatic;
 import org.gradle.api.Project;
-import org.gradle.plugins.ide.idea.GenerateIdeaModule;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
+import org.gradle.plugins.ide.idea.model.IdeaModel;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
-import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget;
-import org.gradle.plugins.ide.internal.configurer.ProjectDeduper;
+import org.gradle.plugins.ide.internal.configurer.HierarchicalElementDeduplicator;
+import org.gradle.plugins.ide.internal.configurer.NameDeduplicationAdapter;
 
+import java.util.Map;
 import java.util.Set;
 
-@CompileStatic
 public class IdeaNameDeduper {
     public void configureRoot(Project rootProject) {
-        Set<Project> ideaProjects = Sets.filter(rootProject.getAllprojects(), new Predicate<Project>() {
+        Set<Project> projects = Sets.filter(rootProject.getAllprojects(), new Predicate<Project>() {
             @Override
             public boolean apply(Project project) {
-                return project.getPlugins().hasPlugin(IdeaPlugin.class);
+                return hasIdeaPlugin(project);
             }
 
         });
-        new ProjectDeduper().dedupe(ideaProjects, new Closure<DeduplicationTarget>(this, this) {
-            public DeduplicationTarget doCall(final Project project) {
-                DeduplicationTarget target = new DeduplicationTarget();
-                final IdeaModule module = ((GenerateIdeaModule) project.getTasks().getByName("ideaModule")).getModule();
-
-                target.setProject(project);
-                target.setModuleName(module.getName());
-                target.setUpdateModuleName(new Closure<String>(IdeaNameDeduper.this, IdeaNameDeduper.this) {
-                    public String doCall(String moduleName) {
-                        module.setName(moduleName);
-                        return moduleName;
-                    }
-
-                });
-                return target;
+        Iterable<IdeaModule> ideaModules = Iterables.transform(projects, new Function<Project, IdeaModule>() {
+            @Override
+            public IdeaModule apply(Project p) {
+                return getModule(p);
             }
-
         });
+        HierarchicalElementDeduplicator<IdeaModule> deduplicator = new HierarchicalElementDeduplicator<IdeaModule>(new IdeaDeduplicationAdapter());
+        Map<IdeaModule, String> deduplicated = deduplicator.deduplicate(ideaModules);
+        for (Map.Entry<IdeaModule, String> entry : deduplicated.entrySet()) {
+            entry.getKey().setName(entry.getValue());
+        }
+    }
+
+    private static class IdeaDeduplicationAdapter implements NameDeduplicationAdapter<IdeaModule> {
+
+        @Override
+        public String getName(IdeaModule element) {
+            return element.getName();
+        }
+
+        @Override
+        public IdeaModule getParent(IdeaModule element) {
+            Project parent = element.getProject().getParent();
+            if (parent == null) {
+                return null;
+            } else {
+                return hasIdeaPlugin(parent) ? getModule(parent) : null;
+            }
+        }
+    }
+
+    private static boolean hasIdeaPlugin(Project project) {
+        return project.getPlugins().hasPlugin(IdeaPlugin.class);
+    }
+
+    private static IdeaModule getModule(Project parent) {
+        return parent.getExtensions().getByType(IdeaModel.class).getModule();
     }
 
 }

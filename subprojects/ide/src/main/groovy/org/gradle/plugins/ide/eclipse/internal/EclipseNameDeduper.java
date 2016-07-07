@@ -15,46 +15,71 @@
  */
 package org.gradle.plugins.ide.eclipse.internal;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
-import groovy.transform.CompileStatic;
 import org.gradle.api.Project;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.GenerateEclipseProject;
 import org.gradle.plugins.ide.eclipse.model.EclipseProject;
-import org.gradle.plugins.ide.internal.configurer.DeduplicationTarget;
-import org.gradle.plugins.ide.internal.configurer.ProjectDeduper;
+import org.gradle.plugins.ide.internal.configurer.HierarchicalElementDeduplicator;
+import org.gradle.plugins.ide.internal.configurer.NameDeduplicationAdapter;
 
+import java.util.Map;
 import java.util.Set;
 
-@CompileStatic
 public class EclipseNameDeduper {
     public void configureRoot(Project rootProject) {
-        Set<Project> eclipseProjects = Sets.filter(rootProject.getAllprojects(), new Predicate<Project>() {
+        Set<Project> projects = Sets.filter(rootProject.getAllprojects(), new Predicate<Project>() {
             @Override
             public boolean apply(Project project) {
-                return project.getPlugins().hasPlugin(EclipsePlugin.class);
+                return hasEclipsePlugin(project);
             }
         });
-        new ProjectDeduper().dedupe(eclipseProjects, new Closure<DeduplicationTarget>(this, this) {
-            public DeduplicationTarget doCall(final Project project) {
-                DeduplicationTarget target = new DeduplicationTarget();
-
-                target.setProject(project);
-                final EclipseProject projectModel = ((GenerateEclipseProject) project.getTasks().getByName("eclipseProject")).getProjectModel();
-                target.setModuleName(projectModel.getName());
-                target.setUpdateModuleName(new Closure<String>(EclipseNameDeduper.this, EclipseNameDeduper.this) {
-                    public String doCall(String moduleName) {
-                        projectModel.setName(moduleName);
-                        return moduleName;
-                    }
-
-                });
-                return target;
+        ImmutableMap<EclipseProject, Project> eclipseProjects = Maps.uniqueIndex(projects, new Function<Project, EclipseProject>() {
+            @Override
+            public EclipseProject apply(Project p) {
+                return getEclipseProject(p);
             }
-
         });
+        HierarchicalElementDeduplicator<EclipseProject> deduplicator = new HierarchicalElementDeduplicator<EclipseProject>(new EclipseDeduplicationAdapter(eclipseProjects));
+        Map<EclipseProject, String> deduplicated = deduplicator.deduplicate(eclipseProjects.keySet());
+        for (Map.Entry<EclipseProject, String> entry : deduplicated.entrySet()) {
+            entry.getKey().setName(entry.getValue());
+        }
+    }
+
+    private static class EclipseDeduplicationAdapter implements NameDeduplicationAdapter<EclipseProject> {
+        final Map<EclipseProject, Project> eclipseProjects;
+
+        private EclipseDeduplicationAdapter(Map<EclipseProject, Project> eclipseProjects) {
+            this.eclipseProjects = eclipseProjects;
+        }
+
+        @Override
+        public String getName(EclipseProject element) {
+            return element.getName();
+        }
+
+        @Override
+        public EclipseProject getParent(EclipseProject element) {
+            Project parent = eclipseProjects.get(element).getParent();
+            if (parent == null) {
+                return null;
+            } else {
+                return hasEclipsePlugin(parent) ? getEclipseProject(parent) : null;
+            }
+        }
+    }
+
+    private static EclipseProject getEclipseProject(Project project) {
+        return ((GenerateEclipseProject) project.getTasks().getByName("eclipseProject")).getProjectModel();
+    }
+
+    private static boolean hasEclipsePlugin(Project project) {
+        return project.getPlugins().hasPlugin(EclipsePlugin.class);
     }
 
 }
