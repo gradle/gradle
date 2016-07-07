@@ -85,6 +85,7 @@ public class TaskExecutionServices {
                 new SkipTaskWithNoActionsExecuter(
                     new SkipEmptySourceFilesTaskExecuter(
                         taskInputsListener,
+                        repository,
                         new ValidatingTaskExecuter(
                             new SkipUpToDateTaskExecuter(
                                 repository,
