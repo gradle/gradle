@@ -276,6 +276,35 @@ public class ThingTest {
         succeeds "dependencies", "test", "jacocoTestReport"
     }
 
+    @Issue("GRADLE-3498")
+    void "can use different execution data"() {
+        setup:
+        buildFile << """
+        test {
+            jacoco {
+                append = false
+                destinationFile = file("\$buildDir/tmp/jacoco/jacocoTest.exec")
+                classDumpFile = file("\$buildDir/tmp/jacoco/classpathdumps")
+            }
+        }
+
+        jacocoTestReport {
+            reports {
+                xml.enabled false
+                csv.enabled false
+                html.destination "\${buildDir}/reports/jacoco/integ"
+            }
+            executionData test
+        }
+        """.stripIndent()
+
+        when:
+        succeeds 'test', 'jacocoTestReport'
+
+        then:
+        ':jacocoTestReport' in nonSkippedTasks
+    }
+
     private JacocoReportFixture htmlReport(String basedir = "${REPORTING_BASE}/jacoco/test/html") {
         return new JacocoReportFixture(file(basedir))
     }
