@@ -18,11 +18,10 @@ package org.gradle.configuration;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.DependencyInjectingServiceLoader;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.service.ServiceRegistry;
-
-import java.util.ServiceLoader;
 
 /**
  * Selects a {@link ScriptPluginFactory} suitable for handling a given build script based
@@ -74,6 +73,10 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     }
 
     private Iterable<ScriptPluginFactoryProvider> scriptPluginFactoryProviders() {
-        return ServiceLoader.load(ScriptPluginFactoryProvider.class, getClass().getClassLoader());
+        return serviceLoader().load(ScriptPluginFactoryProvider.class, getClass().getClassLoader());
+    }
+
+    private DependencyInjectingServiceLoader serviceLoader() {
+        return new DependencyInjectingServiceLoader(serviceRegistry);
     }
 }

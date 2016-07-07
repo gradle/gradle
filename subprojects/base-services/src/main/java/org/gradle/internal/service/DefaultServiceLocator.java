@@ -72,15 +72,21 @@ public class DefaultServiceLocator implements ServiceLocator {
         return factories.get(0);
     }
 
-    private <T> List<ServiceFactory<T>> findFactoriesForServiceType(Class<T> serviceType) {
-        List<Class<? extends T>> implementationClasses;
+    public <T> List<Class<? extends T>> implementationsOf(Class<T> serviceType) {
         try {
-            implementationClasses = findServiceImplementations(serviceType);
+            return findServiceImplementations(serviceType);
         } catch (ServiceLookupException e) {
             throw e;
         } catch (Exception e) {
             throw new ServiceLookupException(String.format("Could not determine implementation classes for service '%s'.", serviceType.getName()), e);
         }
+    }
+
+    private <T> List<ServiceFactory<T>> findFactoriesForServiceType(Class<T> serviceType) {
+        return factoriesFor(serviceType, implementationsOf(serviceType));
+    }
+
+    private <T> List<ServiceFactory<T>> factoriesFor(Class<T> serviceType, List<Class<? extends T>> implementationClasses) {
         List<ServiceFactory<T>> factories = new ArrayList<ServiceFactory<T>>();
         for (Class<? extends T> implementationClass : implementationClasses) {
             factories.add(new ServiceFactory<T>(serviceType, implementationClass));
