@@ -13,31 +13,39 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.idea
+package org.gradle.plugins.ide.idea;
 
-import groovy.transform.CompileStatic
-import org.gradle.api.tasks.Internal
-import org.gradle.plugins.ide.api.XmlGeneratorTask
-import org.gradle.plugins.ide.idea.model.IdeaWorkspace
-import org.gradle.plugins.ide.idea.model.Workspace
+import org.gradle.api.tasks.Internal;
+import org.gradle.plugins.ide.api.XmlGeneratorTask;
+import org.gradle.plugins.ide.idea.model.IdeaWorkspace;
+import org.gradle.plugins.ide.idea.model.Workspace;
 
 /**
- * Generates an IDEA workspace file *only* for root project.
- * There's little you can configure about workspace generation at the moment.
+ * Generates an IDEA workspace file *only* for root project. There's little you can configure about workspace generation at the moment.
  */
-@CompileStatic
 public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
+
+    @Internal
+    private IdeaWorkspace workspace;
+    @Override
+    protected Workspace create() {
+        return new Workspace(getXmlTransformer());
+    }
+
+    @Override
+    protected void configure(Workspace xmlWorkspace) {
+        getWorkspace().mergeXmlWorkspace(xmlWorkspace);
+    }
+
     /**
      * The Idea workspace model containing the details required to generate the workspace file.
      */
-    @Internal
-    IdeaWorkspace workspace
-
-    @Override protected Workspace create() {
-        return new Workspace(xmlTransformer)
+    public IdeaWorkspace getWorkspace() {
+        return workspace;
     }
 
-    @Override protected void configure(Workspace xmlWorkspace) {
-        getWorkspace().mergeXmlWorkspace(xmlWorkspace)
+    public void setWorkspace(IdeaWorkspace workspace) {
+        this.workspace = workspace;
     }
+
 }
