@@ -305,7 +305,7 @@ public class EclipseProject {
 
     @SuppressWarnings("unchecked")
     public void mergeXmlProject(Project xmlProject) {
-        NonRenamableProject decoratedProject = new NonRenamableProject(xmlProject);
+        Project decoratedProject = new NonRenamableProject(xmlProject);
         file.getBeforeMerged().execute(decoratedProject);
         xmlProject.configure(this);
         file.getWhenMerged().execute(decoratedProject);
