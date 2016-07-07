@@ -16,6 +16,7 @@
 package org.gradle.api.file;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 
 import java.util.regex.Pattern;
@@ -125,5 +126,5 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @param closure The action to execute.
      * @return this
      */
-    CopyProcessingSpec eachFile(Closure closure);
+    CopyProcessingSpec eachFile(@DelegatesTo(value=FileCopyDetails.class, strategy = Closure.DELEGATE_FIRST) Closure closure);
 }
