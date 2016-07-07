@@ -40,6 +40,7 @@ import org.gradle.plugins.ide.eclipse.GenerateEclipseProject
 import org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent
 import org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet
 import org.gradle.plugins.ide.idea.GenerateIdeaModule
+import org.gradle.plugins.ide.idea.GenerateIdeaProject
 import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -81,7 +82,8 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             GenerateEclipseWtpComponent,
             GenerateEclipseWtpFacet,
             GenerateIdeaModule,
-            GenerateIdeaWorkspace
+            GenerateIdeaWorkspace,
+            GenerateIdeaProject
         ]
 
         // Task types added after 1.0
