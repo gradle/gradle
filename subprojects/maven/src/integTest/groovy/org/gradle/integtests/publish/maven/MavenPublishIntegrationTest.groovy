@@ -599,12 +599,12 @@ uploadArchives {
 
         then:
         def pom = localM2Repo.module("group", "root", "1.0").parsedPom
-        pom.scopes.provided == null
         pom.scopes.compile.assertDependsOn 'ch.qos.logback:logback-classic:1.1.5'
         def exclusions = pom.scopes.compile.expectDependency('ch.qos.logback:logback-classic:1.1.5').exclusions;
         exclusions.size() == 1
         exclusions[0].groupId == 'org.slf4j'
         exclusions[0].artifactId == 'slf4j-api'
+        pom.scopes.provided == null
         pom.scopes.runtime == null
         pom.scopes.test == null
     }
