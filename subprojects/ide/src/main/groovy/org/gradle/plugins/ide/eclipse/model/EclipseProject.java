@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.eclipse.model
+package org.gradle.plugins.ide.eclipse.model;
 
-import com.google.common.collect.Lists
-import com.google.common.collect.Sets
-import groovy.transform.CompileStatic
-import groovy.transform.TypeCheckingMode
-import org.gradle.api.InvalidUserDataException
-import org.gradle.plugins.ide.api.XmlFileContentMerger
-import org.gradle.util.ConfigureUtil
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.api.InvalidUserDataException;
+import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.util.ConfigureUtil;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 /**
  * Enables fine-tuning project details (.project file) of the Eclipse plugin
  * <p>
@@ -103,8 +110,29 @@ import org.gradle.util.ConfigureUtil
  * }
  * </pre>
  */
-@CompileStatic
-class EclipseProject {
+public class EclipseProject {
+
+    private String name;
+
+    private String comment;
+
+    private Set<String> referencedProjects = Sets.newLinkedHashSet();
+
+    private List<String> natures = Lists.newArrayList();
+
+    private List<BuildCommand> buildCommands = Lists.newArrayList();
+
+    private Set<Link> linkedResources = Sets.newLinkedHashSet();
+
+    private final XmlFileContentMerger file;
+
+    public EclipseProject(XmlFileContentMerger file) {
+        this.file = file;
+    }
+
+    public String getName() {
+        return name;
+    }
 
     /**
      * Configures eclipse project name. It is <b>optional</b> because the task should configure it correctly for you.
@@ -126,14 +154,27 @@ class EclipseProject {
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    String name
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getComment() {
+        return comment;
+    }
 
     /**
      * A comment used for the eclipse project. By default it will be configured to <b>project.description</b>
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    String comment
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+
+    public Set<String> getReferencedProjects() {
+        return referencedProjects;
+    }
 
     /**
      * The referenced projects of this Eclipse project (*not*: java build path project references).
@@ -144,39 +185,45 @@ class EclipseProject {
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    Set<String> referencedProjects = Sets.newLinkedHashSet()
+    public void setReferencedProjects(Set<String> referencedProjects) {
+        this.referencedProjects = referencedProjects;
+    }
 
     /**
-     * The referenced projects of this Eclipse project (*not*: java build path project references).
-     * <p>
-     * Referencing projects does not mean adding a build path dependencies between them!
-     * If you need to configure a build path dependency use Gradle's dependencies section or
-     * eclipse.classpath.whenMerged { classpath -> ... to manipulate the classpath entries
+     * The referenced projects of this Eclipse project (*not*: java build path project references). <p> Referencing projects does not mean adding a build path dependencies between them! If you need to
+     * configure a build path dependency use Gradle's dependencies section or eclipse.classpath.whenMerged { classpath -> ... to manipulate the classpath entries
      *
      * @param referencedProjects The name of the project references.
      */
-    void referencedProjects(String... referencedProjects) {
-        assert referencedProjects != null
-        this.referencedProjects.addAll(Arrays.asList(referencedProjects))
+    public void referencedProjects(String... referencedProjects) {
+        assert referencedProjects != null;
+        this.referencedProjects.addAll(Arrays.asList(referencedProjects));
     }
 
+    public List<String> getNatures() {
+        return natures;
+    }
     /**
      * The natures to be added to this Eclipse project.
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    List<String> natures = Lists.newArrayList()
+    public void setNatures(List<String> natures) {
+        this.natures = natures;
+    }
 
     /**
-     * Appends natures entries to the eclipse project.
-     * <p>
-     * For example see docs for {@link EclipseProject}
+     * Appends natures entries to the eclipse project. <p> For example see docs for {@link EclipseProject}
      *
      * @param natures the nature names
      */
-    void natures(String... natures) {
-        assert natures != null
-        this.natures.addAll(Arrays.asList(natures))
+    public void natures(String... natures) {
+        assert natures != null;
+        this.natures.addAll(Arrays.asList(natures));
+    }
+
+    public List<BuildCommand> getBuildCommands() {
+        return buildCommands;
     }
 
     /**
@@ -184,33 +231,35 @@ class EclipseProject {
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    List<BuildCommand> buildCommands = Lists.newArrayList()
+    public void setBuildCommands(List<BuildCommand> buildCommands) {
+        this.buildCommands = buildCommands;
+    }
 
     /**
-     * Adds a build command with arguments to the eclipse project.
-     * <p>
-     * For example see docs for {@link EclipseProject}
+     * Adds a build command with arguments to the eclipse project. <p> For example see docs for {@link EclipseProject}
      *
      * @param args A map with arguments, where the key is the name of the argument and the value the value.
      * @param buildCommand The name of the build command.
      * @see #buildCommand(String)
      */
-    void buildCommand(Map args, String buildCommand) {
-        assert buildCommand != null
-        buildCommands.add(new BuildCommand(buildCommand, args))
+    public void buildCommand(Map<String, String> args, String buildCommand) {
+        assert buildCommand != null;
+        buildCommands.add(new BuildCommand(buildCommand, args));
     }
 
     /**
-     * Adds a build command to the eclipse project.
-     * <p>
-     * For example see docs for {@link EclipseProject}
+     * Adds a build command to the eclipse project. <p> For example see docs for {@link EclipseProject}
      *
      * @param buildCommand The name of the build command
      * @see #buildCommand(Map, String)
      */
-    void buildCommand(String buildCommand) {
-        assert buildCommand != null
-        buildCommands.add(new BuildCommand(buildCommand))
+    public void buildCommand(String buildCommand) {
+        assert buildCommand != null;
+        buildCommands.add(new BuildCommand(buildCommand));
+    }
+
+    public Set<Link> getLinkedResources() {
+        return linkedResources;
     }
 
     /**
@@ -218,65 +267,47 @@ class EclipseProject {
      * <p>
      * For example see docs for {@link EclipseProject}
      */
-    Set<Link> linkedResources = Sets.newLinkedHashSet()
-
-    /**
-     * Adds a resource link (aka 'source link') to the eclipse project.
-     * <p>
-     * For example see docs for {@link EclipseProject}
-     *
-     * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
-     */
-    void linkedResource(Map<String, String> args) {
-        def validKeys = ['name', 'type', 'location', 'locationUri']
-        def illegalArgs = args.keySet() - validKeys
-        if (illegalArgs) {
-            throw new InvalidUserDataException("You provided illegal argument for a link: $illegalArgs. Valid link args are: $validKeys")
-        }
-        linkedResources.add(new Link(args.name, args.type, args.location, args.locationUri))
+    public void setLinkedResources(Set<Link> linkedResources) {
+        this.linkedResources = linkedResources;
     }
 
     /**
-     * Enables advanced configuration like tinkering with the output XML
-     * or affecting the way existing .project content is merged with gradle build information
-     * <p>
-     * The object passed to whenMerged{} and beforeMerged{} closures is of type {@link Project}
-     * <p>
+     * Adds a resource link (aka 'source link') to the eclipse project. <p> For example see docs for {@link EclipseProject}
+     *
+     * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
+     */
+    public void linkedResource(Map<String, String> args) {
+        ArrayList<String> validKeys = new ArrayList<String>(Arrays.asList("name", "type", "location", "locationUri"));
+        Set<String> illegalArgs = DefaultGroovyMethods.minus(args.keySet(), validKeys);
+        if (!illegalArgs.isEmpty()) {
+            throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs + ". Valid link args are: " + validKeys);
+        }
+
+        linkedResources.add(new Link(args.get("name"), args.get("type"), args.get("location"), args.get("locationUri")));
+    }
+
+    /**
+     * Enables advanced configuration like tinkering with the output XML or affecting the way existing .project content is merged with gradle build information <p> The object passed to whenMerged{}
+     * and beforeMerged{} closures is of type {@link Project} <p>
      *
      * For example see docs for {@link EclipseProject}
      */
-    void file(Closure closure) {
-        ConfigureUtil.configure(closure, file)
+    public void file(Closure closure) {
+        ConfigureUtil.configure(closure, file);
     }
 
     /**
      * See {@link #file(Closure)}
      */
-    final XmlFileContentMerger file
-
-    /** ***/
-
-    EclipseProject(XmlFileContentMerger file) {
-        this.file = file;
+    public final XmlFileContentMerger getFile() {
+        return file;
     }
 
-    void mergeXmlProject(Project xmlProject) {
-        DeprecationWarningDecoratedProject decoratedProject = new DeprecationWarningDecoratedProject(xmlProject)
-        file.beforeMerged.execute(decoratedProject)
-        xmlProject.configure(this)
-        file.whenMerged.execute(decoratedProject)
-    }
-
-    @CompileStatic(TypeCheckingMode.SKIP)
-    class DeprecationWarningDecoratedProject {
-        @Delegate private Project delegate
-
-        DeprecationWarningDecoratedProject(Project delegate) {
-            this.delegate = delegate
-        }
-
-        void setName(String name){
-            throw new InvalidUserDataException("Configuring eclipse project name in 'beforeMerged' or 'whenMerged' hook is not allowed.")
-        }
+    @SuppressWarnings("unchecked")
+    public void mergeXmlProject(Project xmlProject) {
+        NonRenamableProject decoratedProject = new NonRenamableProject(xmlProject);
+        file.getBeforeMerged().execute(decoratedProject);
+        xmlProject.configure(this);
+        file.getWhenMerged().execute(decoratedProject);
     }
 }
