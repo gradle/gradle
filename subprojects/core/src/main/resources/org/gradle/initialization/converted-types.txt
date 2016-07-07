@@ -32,6 +32,7 @@ org.gradle.nativeplatform.tasks.LinkExecutable
 org.gradle.nativeplatform.tasks.LinkSharedLibrary
 org.gradle.plugins.ear.EarPluginConvention
 org.gradle.plugins.ide.api.FileContentMerger
+org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath
 org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
 org.gradle.plugins.ide.eclipse.model.AbstractLibrary
 org.gradle.plugins.ide.eclipse.model.AccessRule

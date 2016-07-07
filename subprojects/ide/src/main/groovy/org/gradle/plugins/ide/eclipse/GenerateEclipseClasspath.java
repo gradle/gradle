@@ -13,38 +13,45 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.ide.eclipse
+package org.gradle.plugins.ide.eclipse;
 
-import groovy.transform.CompileStatic
-import org.gradle.api.tasks.Internal
-import org.gradle.plugins.ide.api.XmlGeneratorTask
-import org.gradle.plugins.ide.eclipse.model.Classpath
-import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
+import org.gradle.api.tasks.Internal;
+import org.gradle.plugins.ide.api.XmlGeneratorTask;
+import org.gradle.plugins.ide.eclipse.model.Classpath;
+import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
 
 /**
  * Generates an Eclipse <code>.classpath</code> file. If you want to fine tune the eclipse configuration
  * <p>
  * At this moment nearly all configuration is done via {@link EclipseClasspath}.
  */
-@CompileStatic
-class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
-    /**
-     * The Eclipse Classpath model containing the information required to generate the classpath file.
-     */
-    @Internal
-    EclipseClasspath classpath
+public class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
 
-    GenerateEclipseClasspath() {
-        xmlTransformer.indentation = "\t"
+    @Internal
+    private EclipseClasspath classpath;
+
+    public GenerateEclipseClasspath() {
+        getXmlTransformer().setIndentation("\t");
     }
 
     @Override
     protected Classpath create() {
-        return new Classpath(xmlTransformer, classpath.fileReferenceFactory)
+        return new Classpath(getXmlTransformer(), classpath.getFileReferenceFactory());
     }
 
     @Override
     protected void configure(Classpath xmlClasspath) {
-        classpath.mergeXmlClasspath(xmlClasspath)
+        classpath.mergeXmlClasspath(xmlClasspath);
+    }
+
+    /**
+     * The Eclipse Classpath model containing the information required to generate the classpath file.
+     */
+    public EclipseClasspath getClasspath() {
+        return classpath;
+    }
+
+    public void setClasspath(EclipseClasspath classpath) {
+        this.classpath = classpath;
     }
 }
