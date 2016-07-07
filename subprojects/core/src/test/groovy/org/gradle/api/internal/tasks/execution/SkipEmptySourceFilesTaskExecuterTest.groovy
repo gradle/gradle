@@ -16,9 +16,14 @@
 package org.gradle.api.internal.tasks.execution
 
 import org.gradle.api.execution.internal.TaskInputsListener
+import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.TaskExecutionHistory
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.changedetection.TaskArtifactState
+import org.gradle.api.internal.changedetection.TaskArtifactStateRepository
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
 import org.gradle.api.internal.tasks.TaskStateInternal
@@ -32,11 +37,18 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
     final taskInputs = Mock(TaskInputsInternal)
     final FileCollectionInternal sourceFiles = Mock()
     def taskInputsListener = Mock(TaskInputsListener)
-    final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, target)
+    final TaskArtifactStateRepository taskArtifactStateRepository = Mock()
+    final TaskArtifactState taskArtifactState = Mock()
+    final TaskExecutionHistory taskExecutionHistory = Mock()
+    final FileCollection outputFiles = new SimpleFileCollection()
+    final SkipEmptySourceFilesTaskExecuter executer = new SkipEmptySourceFilesTaskExecuter(taskInputsListener, taskArtifactStateRepository, target)
 
     def setup() {
         _ * task.inputs >> taskInputs
         _ * taskInputs.sourceFiles >> sourceFiles
+        _ * taskArtifactStateRepository.getStateFor(_) >> taskArtifactState
+        _ * taskArtifactState.executionHistory >> taskExecutionHistory
+        _ * taskExecutionHistory.outputFiles >> outputFiles
     }
 
     def skipsTaskWhenItsSourceFilesCollectionIsEmpty() {
@@ -48,7 +60,7 @@ class SkipEmptySourceFilesTaskExecuterTest extends Specification {
         executer.execute(task, state, executionContext)
 
         then:
-        1 * state.upToDate()
+        1 * state.skipped('SKIPPED')
         0 * target._
         0 * state._
         1 * taskInputsListener.onExecute(task, sourceFiles)
