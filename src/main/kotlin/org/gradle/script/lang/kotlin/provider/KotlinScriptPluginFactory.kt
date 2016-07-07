@@ -18,9 +18,7 @@ package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.loggerFor
-import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.BUILDSCRIPT_PROTOTYPE
-import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.scriptDefinitionFor
-import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.scriptDefinitionFromTemplate
+import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.selectGradleApiJars
 
 import org.gradle.api.Project
@@ -36,6 +34,8 @@ import org.gradle.groovy.scripts.ScriptSource
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+
+import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromTemplate
 
 import java.io.File
 
@@ -106,12 +106,16 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
                                           classPath: ClassPath, classLoader: ClassLoader) =
         compileKotlinScript(
             tempBuildscriptFileFor(script.substring(buildscriptRange)),
-            scriptDefinitionFor(classPath.asFiles, prototype = BUILDSCRIPT_PROTOTYPE),
-            classLoader,
-            logger)
+            KotlinScriptDefinitionFromTemplate(KotlinBuildScriptSection::class, classPath),
+            classLoader, logger)
 
-    private fun compileScriptFile(scriptFile: File, classPath: ClassPath, classLoader: ClassLoader) =
-        compileKotlinScript(scriptFile, scriptDefinitionFromTemplate(classPath), classLoader, logger)
+    private fun compileScriptFile(scriptFile: File, classPath: ClassPath, classLoader: ClassLoader): Class<*> {
+        logger.info("Kotlin compilation classpath: {}", classPath)
+        return compileKotlinScript(
+            scriptFile,
+            KotlinScriptDefinitionFromTemplate(KotlinBuildScript::class, classPath),
+            classLoader, logger)
+    }
 
     private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Any) {
         withContextClassLoader(classLoader) {
@@ -128,7 +132,7 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
     }
 
     private fun tempBuildscriptFileFor(buildscript: String) =
-        createTempFile("buildscript", ".gradle.kts").apply {
+        createTempFile("buildscript-section", ".gradle.kts").apply {
             writeText(buildscript)
         }
 
