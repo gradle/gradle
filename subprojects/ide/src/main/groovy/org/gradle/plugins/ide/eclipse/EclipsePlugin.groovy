@@ -219,7 +219,7 @@ class EclipsePlugin extends IdePlugin {
 
                         //model properties:
                         task.classpath = model.classpath
-                        task.classpath.file = new XmlFileContentMerger((XmlTransformer) task.getProperty('xmlTransformer'))
+                        task.classpath.file = new XmlFileContentMerger((XmlTransformer) task.getXmlTransformer())
                         task.classpath.sourceSets = project.convention.getPlugin(JavaPluginConvention).sourceSets
 
                         project.afterEvaluate(new Action<Project>() {
