@@ -88,7 +88,7 @@ private fun daemonPropertiesOf(projectRoot: File): Properties =
         }
     }
 
-private fun connectorFor(projectRoot: File, gradleInstallation: File) =
+fun connectorFor(projectRoot: File, gradleInstallation: File) =
     GradleConnector.newConnector().forProjectDirectory(projectRoot).useInstallation(gradleInstallation)
 
 inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =

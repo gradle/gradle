@@ -2,12 +2,12 @@ package org.gradle.script.lang.kotlin.integration
 
 import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
+import org.gradle.script.lang.kotlin.support.connectorFor
+import org.gradle.script.lang.kotlin.support.withConnectionFrom
 import org.gradle.script.lang.kotlin.support.zipTo
 
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
-
-import org.gradle.tooling.GradleConnector
 
 import org.hamcrest.CoreMatchers.hasItem
 import org.hamcrest.MatcherAssert.assertThat
@@ -139,12 +139,9 @@ class GradleScriptKotlinIntegrationTest {
             .withProjectDir(projectDir.root)
 
     private fun kotlinBuildScriptModel(): KotlinBuildScriptModel =
-        GradleConnector
-            .newConnector()
-            .useInstallation(customInstallation())
-            .forProjectDirectory(projectDir.root)
-            .connect()
-            .getModel(KotlinBuildScriptModel::class.java)
+        withConnectionFrom(connectorFor(projectDir.root, customInstallation())) {
+            getModel(KotlinBuildScriptModel::class.java)
+        }
 
     private fun customInstallation() =
         File("build/custom").listFiles()?.let {
