@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.file.collections.SimpleFileCollection;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
 import java.util.Collection;
@@ -49,6 +50,8 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     public FileCollection getOutputFiles() {
-        throw new UnsupportedOperationException();
+        // can't always return the same instance since contained ListBackedFileSet does not
+        // support immutable sets
+        return new SimpleFileCollection();
     }
 }
