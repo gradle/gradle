@@ -50,7 +50,8 @@ abstract class PmdInvoker {
 
             // fallback to basic on pre 5.0 for backwards compatible
             if (ruleSets == ["java-basic"]) {
-                pmdTask.setRuleSets(["basic"])
+                ruleSets = ['basic']
+                pmdTask.setRuleSets(ruleSets)
             }
         }
 
