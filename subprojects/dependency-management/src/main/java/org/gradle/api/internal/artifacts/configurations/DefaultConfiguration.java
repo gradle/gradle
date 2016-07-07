@@ -162,6 +162,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         allArtifacts = new DefaultPublishArtifactSet(displayName + " all artifacts", inheritedArtifacts, fileCollectionFactory);
 
         resolutionStrategy.setMutationValidator(this);
+        resolutionStrategy.setCallingModule(this.getModule());
     }
 
     private static Runnable validateMutationType(final MutationValidator mutationValidator, final MutationType type) {

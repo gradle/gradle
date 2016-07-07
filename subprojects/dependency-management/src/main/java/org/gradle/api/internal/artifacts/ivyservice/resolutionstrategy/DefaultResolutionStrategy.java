@@ -51,6 +51,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     private boolean assumeFluidDependencies;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
+    private Module callingModule;
 
     public DefaultResolutionStrategy() {
         this(new DefaultCachePolicy(), new DefaultDependencySubstitutions());
@@ -70,6 +71,16 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         cachePolicy.setMutationValidator(validator);
         componentSelectionRules.setMutationValidator(validator);
         dependencySubstitutions.setMutationValidator(validator);
+    }
+
+    @Override
+    public void setCallingModule(Module module) {
+        this.callingModule = module;
+    }
+
+    @Override
+    public Module getCallingModule() {
+        return callingModule;
     }
 
     public Set<ModuleVersionSelector> getForcedModules() {

@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
+import org.gradle.api.artifacts.ConflictResolution;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
@@ -118,10 +119,11 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     private ConflictHandler createConflictHandler(ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules metadataHandler) {
         ModuleConflictResolver conflictResolver;
-        if (resolutionStrategy.getConflictResolution() instanceof StrictConflictResolution) {
+        ConflictResolution conflictResolution = resolutionStrategy.getConflictResolution();
+        if (conflictResolution instanceof StrictConflictResolution) {
             conflictResolver = new StrictConflictResolver();
         } else {
-            conflictResolver = new LatestModuleConflictResolver(versionComparator);
+            conflictResolver = new ProjectDependencyForcingResolver(resolutionStrategy.getCallingModule(), new LatestModuleConflictResolver(versionComparator));
         }
         conflictResolver = new VersionSelectionReasonResolver(conflictResolver);
         return new DefaultConflictHandler(conflictResolver, metadataHandler.getModuleMetadataProcessor().getModuleReplacements());

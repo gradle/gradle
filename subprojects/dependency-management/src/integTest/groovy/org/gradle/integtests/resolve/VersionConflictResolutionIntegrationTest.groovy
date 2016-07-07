@@ -636,6 +636,12 @@ repositories {
 dependencies {
     compile "org:other:1.7"
 }
+
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute project('test') with module('org:test:2.1')
+    }
+}
 """
 
         def resolve = new ResolveTestFixture(buildFile)

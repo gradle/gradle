@@ -453,6 +453,18 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                 configurations.conf.resolutionStrategy.dependencySubstitution {
                     substitute project(":api") with module("org.utils:api:1.5")
                 }
+
+                task check(dependsOn: configurations.conf) << {
+                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                    assert deps.size() == 1
+                    assert deps[0] instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult
+
+                    assert deps[0].requested.matchesStrictly(projectId(":api"))
+                    assert deps[0].selected.componentId == moduleId("org.utils", "api", "1.5")
+
+                    assert !deps[0].selected.selectionReason.forced
+                    assert deps[0].selected.selectionReason.selectedByRule
+                }
             }
 """
 
@@ -900,21 +912,20 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             configurations.conf.resolutionStrategy.dependencySubstitution {
                 substitute module('org.utils:a:1.2') with module('org.utils:a:1.4')
             }
+
+            task check << {
+                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
+                def a = modules.find { it.id.module == 'a' }
+                assert a.id.version == '1.4'
+                assert a.selectionReason.conflictResolution
+                assert a.selectionReason.selectedByRule
+                assert !a.selectionReason.forced
+                assert a.selectionReason.description == 'selected by rule and conflict resolution'
+            }
 """
 
-        when:
-        run "checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":", ":depsub:") {
-                module("org.utils:b:1.3") {
-                    edge("org.utils:a:1.3", "org.utils:a:1.4").selectedByRule().byConflictResolution()
-                }
-                edge("org.utils:a:1.2", "org.utils:a:1.4")
-
-            }
-        }
+        expect:
+        succeeds "check"
     }
 
     void "can blacklist a version that is not used"()
@@ -933,20 +944,19 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             configurations.conf.resolutionStrategy.dependencySubstitution {
                 substitute module('org.utils:a:1.2') with module('org.utils:a:1.2.1')
             }
+
+            task check << {
+                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
+                def a = modules.find { it.id.module == 'a' }
+                assert a.id.version == '1.3'
+                assert a.selectionReason.conflictResolution
+                assert !a.selectionReason.selectedByRule
+                assert !a.selectionReason.forced
+            }
 """
 
-        when:
-        run "checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":", ":depsub:") {
-                module("org.utils:b:1.3") {
-                    module("org.utils:a:1.3")
-                }
-                edge("org.utils:a:1.2", "org.utils:a:1.3").byConflictResolution()
-            }
-        }
+        expect:
+        succeeds "check"
     }
 
     def "can use custom versioning scheme"()
@@ -965,17 +975,18 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     it.useTarget group: it.requested.group, name: it.requested.module, version: '1.3'
                 }
             }
+
+            task check << {
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                assert deps.size() == 1
+                deps[0].requested.version == 'default'
+                deps[0].selected.id.version == '1.3'
+                deps[0].selected.selectionReason.selectedByRule
+            }
 """
 
-        when:
-        run "checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":", ":depsub:") {
-                edge("org.utils:api:default", "org.utils:api:1.3").selectedByRule()
-            }
-        }
+        expect:
+        succeeds "check"
     }
 
     def "can use custom versioning scheme for transitive dependencies"()
@@ -995,19 +1006,19 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
                     it.useTarget group: it.requested.group, name: it.requested.module, version: '1.3'
                 }
             }
+
+            task check << {
+                def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+                assert deps.size() == 2
+                def api = deps.find { it.requested.module == 'api' }
+                api.requested.version == 'default'
+                api.selected.id.version == '1.3'
+                api.selected.selectionReason.selectedByRule
+            }
 """
 
-        when:
-        run "checkDeps"
-
-        then:
-        resolve.expectGraph {
-            root(":", ":depsub:") {
-                module("org.utils:impl:1.3") {
-                    edge("org.utils:api:default", "org.utils:api:1.3").selectedByRule()
-                }
-            }
-        }
+        expect:
+        succeeds "check"
     }
 
     void "rule selects unavailable version"()
@@ -1038,8 +1049,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        succeeds "check"
-        fails "checkDeps"
+        fails "check", "resolveConf"
 
         then:
         failure.assertResolutionFailure(":conf")
@@ -1122,7 +1132,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        fails "checkDeps"
+        fails "resolveConf"
 
         then:
         failure.assertResolutionFailure(":conf")
@@ -1148,7 +1158,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        fails "checkDeps"
+        fails "dependencies"
 
         then:
         failure.assertHasCause("Must specify version for target of dependency substitution")
@@ -1171,7 +1181,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        fails "checkDeps"
+        fails "dependencies"
 
         then:
         failure.assertHasCause("Cannot convert the provided notation to an object of type ComponentSelector: :foo:bar:baz:")
@@ -1197,7 +1207,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        fails "checkDeps"
+        fails "dependencies"
 
         then:
         failure.assertHasCause("Must specify version for target of dependency substitution")
@@ -1219,18 +1229,26 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             configurations.conf.resolutionStrategy.dependencySubstitution {
                 substitute module('org.utils:a:1.2') with module('org.utils:b:2.1')
             }
+
+            task check << {
+                def modules = configurations.conf.incoming.resolutionResult.allComponents.findAll { it.id instanceof ModuleComponentIdentifier } as List
+                assert !modules.find { it.id.module == 'a' }
+                def b = modules.find { it.id.module == 'b' }
+                assert b.id.version == '2.1'
+                assert b.selectionReason.conflictResolution
+                assert b.selectionReason.selectedByRule
+                assert !b.selectionReason.forced
+                assert b.selectionReason.description == 'selected by rule and conflict resolution'
+            }
 """
 
         when:
-        run "checkDeps"
+        succeeds "check", "dependencies"
 
         then:
-        resolve.expectGraph {
-            root(":", ":depsub:") {
-                edge("org.utils:a:1.2", "org.utils:b:2.1").selectedByRule().byConflictResolution()
-                edge("org.utils:b:2.0", "org.utils:b:2.1")
-            }
-        }
+        output.contains """conf
++--- org.utils:a:1.2 -> org.utils:b:2.1
+\\--- org.utils:b:2.0 -> 2.1"""
     }
 
     def "can substitute module group"()
@@ -1257,21 +1275,14 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        run "checkDeps"
+        succeeds "dependencies"
 
         then:
-        resolve.expectGraph {
-            root(":", ":depsub:") {
-                edge("org:a:1.0", "org:a:2.0") {
-                    byConflictResolution()
-                    module("org:c:1.0")
-                }
-                edge("foo:b:1.0", "org:b:1.0") {
-                    selectedByRule()
-                    module("org:a:2.0")
-                }
-            }
-        }
+        output.contains """
++--- org:a:1.0 -> 2.0
+|    \\--- org:c:1.0
+\\--- foo:b:1.0 -> org:b:1.0
+     \\--- org:a:2.0 (*)"""
     }
 
     def "can substitute module group, name and version"()
@@ -1295,23 +1306,15 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-
         when:
-        run "checkDeps"
+        succeeds "dependencies"
 
         then:
-        resolve.expectGraph {
-            root(":", ":depsub:") {
-                edge("org:a:1.0", "org:a:2.0") {
-                    byConflictResolution()
-                    module("org:c:1.0")
-                }
-                edge("foo:bar:baz", "org:b:1.0") {
-                    selectedByRule()
-                    module("org:a:2.0")
-                }
-            }
-        }
+        output.contains """
++--- org:a:1.0 -> 2.0
+|    \\--- org:c:1.0
+\\--- foo:bar:baz -> org:b:1.0
+     \\--- org:a:2.0 (*)"""
     }
 
     def "provides decent feedback when target module incorrectly specified"()
@@ -1329,7 +1332,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 """
 
         when:
-        fails "checkDeps"
+        fails "dependencies"
 
         then:
         failure.assertResolutionFailure(":conf").assertHasCause("Invalid format: 'foobar'")
@@ -1353,23 +1356,17 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
             }
 """
 
-
         when:
-        run "checkDeps"
+        succeeds "dependencies"
 
         then:
-        resolve.expectGraph {
-            root(":", ":depsub:") {
-                edge("org:a:1.0", "org:c:2.0") {
-                    byConflictResolution()
-                }
-                module("org:a:2.0") {
-                    module("org:b:2.0") {
-                        module("org:c:2.0")
-                    }
-                }
-            }
-        }
+        output.contains """
+conf
++--- org:a:1.0 -> org:c:2.0
+\\--- org:a:2.0
+     \\--- org:b:2.0
+          \\--- org:c:2.0
+"""
     }
 
     String getCommon() {
@@ -1386,7 +1383,12 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
 
             task jar(type: Jar) { baseName = project.name }
             artifacts { conf jar }
+
+            task resolveConf(dependsOn: configurations.conf) << { configurations.conf.files }
         }
+
+        //resolving the configuration at the end:
+        gradle.startParameter.taskNames += 'resolveConf'
 
         def moduleId(String group, String name, String version) {
             return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(group, name, version)
