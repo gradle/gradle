@@ -128,15 +128,15 @@ public class DefaultServiceLocator implements ServiceLocator {
         InputStream inputStream = resource.openStream();
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-            List<String> implemetationClassNames = new ArrayList<String>();
+            List<String> implementationClassNames = new ArrayList<String>();
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.replaceAll("#.*", "").trim();
                 if (line.length() > 0) {
-                    implemetationClassNames.add(line);
+                    implementationClassNames.add(line);
                 }
             }
-            return implemetationClassNames;
+            return implementationClassNames;
         } finally {
             inputStream.close();
         }
