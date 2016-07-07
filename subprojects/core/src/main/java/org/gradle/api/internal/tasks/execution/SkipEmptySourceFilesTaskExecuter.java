@@ -57,10 +57,14 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
                 boolean deletedFiles = false;
                 for (File file : outputFileSet) {
                     if(file.delete()) {
-                        if (LOGGER.isDebugEnabled()) LOGGER.debug("Deleted stale output file '{}'.", file.getAbsolutePath());
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Deleted stale output file '{}'.", file.getAbsolutePath());
+                        }
                         deletedFiles = true;
                     } else {
-                        if (LOGGER.isWarnEnabled()) LOGGER.warn("Failed to delete stale output file '{}'.", file.getAbsolutePath());
+                        if (LOGGER.isWarnEnabled()) {
+                            LOGGER.warn("Failed to delete stale output file '{}'.", file.getAbsolutePath());
+                        }
                     }
                 }
                 if(deletedFiles) {
