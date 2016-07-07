@@ -75,6 +75,30 @@ class GradleScriptKotlinIntegrationTest {
             hasItem("fixture.jar"))
     }
 
+    @Test
+    fun `given a buildSrc dir, it will be added to the compilation classpath`() {
+
+        withFile("buildSrc/src/main/groovy/build/DeepThought.groovy", """
+            package build
+            class DeepThought {
+                def compute() { 42 }
+            }
+        """)
+
+        withBuildScript("""
+            task("answer") {
+                doLast {
+                    val computer = build.DeepThought()
+                    val answer = computer.compute()
+                    println("*" + answer + "*")
+                }
+            }
+        """)
+
+        assert(
+            build("answer").output.contains("*42*"))
+    }
+
     private fun withBuildScript(script: String) {
         withFile("settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
         withFile("build.gradle.kts", script)
@@ -93,7 +117,14 @@ class GradleScriptKotlinIntegrationTest {
             })
 
     private fun file(fileName: String) =
-        projectDir.newFile(fileName)
+        projectDir.run {
+            makeParentDirsOf(fileName)
+            newFile(fileName)
+        }
+
+    private fun TemporaryFolder.makeParentDirsOf(fileName: String) {
+        File(root, fileName).parentFile.mkdirs()
+    }
 
     private fun build(vararg arguments: String): BuildResult =
         gradleRunner()

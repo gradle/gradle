@@ -41,6 +41,8 @@ import java.io.File
 
 import java.lang.reflect.InvocationTargetException
 
+import java.net.URLClassLoader
+
 class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : ScriptPluginFactory {
 
     val logger = loggerFor<KotlinScriptPluginFactory>()
@@ -58,25 +60,26 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
         val script = resource.text
         val scriptFile = resource.file
         val buildscriptRange = extractBuildScriptFrom(script)
+        val buildSrc = exportClassPathOf(baseScope)
+        val defaultClassPath = gradleApi() + buildSrc
         return when {
             buildscriptRange != null ->
-                dualPhaseScript(scriptFile, script, buildscriptRange, scriptHandler, targetScope, baseScope)
+                dualPhaseScript(scriptFile, script, buildscriptRange, scriptHandler, defaultClassPath, targetScope, baseScope)
             else ->
-                singlePhaseScript(scriptFile, targetScope)
+                singlePhaseScript(scriptFile, defaultClassPath, targetScope)
         }
     }
 
-    private fun singlePhaseScript(scriptFile: File, targetScope: ClassLoaderScope): (Project) -> Unit {
-        val classPath = defaultClassPath()
+    private fun singlePhaseScript(scriptFile: File, classPath: ClassPath,
+                                  targetScope: ClassLoaderScope): (Project) -> Unit {
         val scriptClassLoader = classLoaderFor(targetScope)
         val scriptClass = compileScriptFile(scriptFile, classPath, scriptClassLoader)
         return { target -> executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target) }
     }
 
     private fun dualPhaseScript(scriptFile: File, script: String, buildscriptRange: IntRange,
-                                scriptHandler: ScriptHandlerInternal,
+                                scriptHandler: ScriptHandlerInternal, defaultClassPath: ClassPath,
                                 targetScope: ClassLoaderScope, baseScope: ClassLoaderScope): (Project) -> Unit {
-        val defaultClassPath = defaultClassPath()
         val buildscriptClassLoader = buildscriptClassLoaderFrom(baseScope)
         val buildscriptClass =
             compileBuildscriptSection(buildscriptRange, script, defaultClassPath, buildscriptClassLoader)
@@ -136,7 +139,11 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
             writeText(buildscript)
         }
 
-    private fun defaultClassPath(): ClassPath =
+    private fun exportClassPathOf(baseScope: ClassLoaderScope): ClassPath =
+        DefaultClassPath.of(
+            (baseScope.exportClassLoader as? URLClassLoader)?.urLs?.map { File(it.toURI()) })
+
+    private fun gradleApi(): ClassPath =
         DefaultClassPath.of(
             selectGradleApiJars(classPathRegistry))
 }
