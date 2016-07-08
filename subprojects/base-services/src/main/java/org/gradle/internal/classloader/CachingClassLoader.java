@@ -21,7 +21,7 @@ import com.google.common.collect.MapMaker;
 import java.io.*;
 import java.util.concurrent.ConcurrentMap;
 
-public class CachingClassLoader extends GradleClassLoader implements ClassLoaderHierarchy {
+public class CachingClassLoader extends ClassLoader implements ClassLoaderHierarchy, Closeable {
     private static final Object MISSING_CLASS = new Object();
     private final ConcurrentMap<String, Object> loadedClasses = new MapMaker().weakValues().makeMap();
     private final ClassLoader parent;
@@ -58,7 +58,7 @@ public class CachingClassLoader extends GradleClassLoader implements ClassLoader
     @Override
     public void close() throws IOException {
         loadedClasses.clear();
-        tryClose(parent);
+        ClassLoaderUtils.tryClose(parent);
     }
 
     public static class Spec extends ClassLoaderSpec {
