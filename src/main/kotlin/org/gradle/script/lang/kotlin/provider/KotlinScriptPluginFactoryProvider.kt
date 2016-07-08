@@ -23,12 +23,19 @@ import org.gradle.api.internal.ClassPathRegistry
 
 import org.gradle.internal.service.ServiceRegistry
 
-class KotlinScriptPluginFactoryProvider : ScriptPluginFactoryProvider {
+import javax.inject.Inject
+
+class KotlinScriptPluginFactoryProvider @Inject constructor(
+    val classPathRegistry: ClassPathRegistry) : ScriptPluginFactoryProvider {
 
     override fun getFor(fileName: String, serviceRegistry: ServiceRegistry): ScriptPluginFactory? =
-        when {
-            fileName.endsWith(".kts") -> KotlinScriptPluginFactory(serviceRegistry.get(ClassPathRegistry::class.java))
+        getFor(fileName)
+
+    override fun getFor(fileName: String): ScriptPluginFactory? {
+        return when {
+            fileName.endsWith(".kts") -> KotlinScriptPluginFactory(classPathRegistry)
             else -> null
         }
+    }
 }
 
