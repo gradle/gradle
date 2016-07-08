@@ -21,6 +21,7 @@ import org.gradle.api.tasks.testing.Test
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class JacocoPluginSpec extends Specification {
     Project project = TestUtil.createRootProject()
@@ -45,8 +46,9 @@ class JacocoPluginSpec extends Specification {
         task.extensions.getByType(JacocoTaskExtension) != null
     }
 
+    @Unroll
     @Issue("GRADLE-3498")
-    def 'jacoco task extension can be configured'() {
+    def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {
         given:
         project.apply plugin: 'java'
         project.repositories.jcenter()
