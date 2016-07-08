@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
@@ -63,10 +64,12 @@ public class Ear extends Jar {
                 @Override
                 public void execute(FileCopyDetails details) {
                     DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
-                    if (deploymentDescriptor != null && details.getPath().equalsIgnoreCase("META-INF/" + deploymentDescriptor.getFileName())) {
+                    String descriptorPath = deploymentDescriptor != null ? "META-INF/" + deploymentDescriptor.getFileName() : null;
+                    if (details.getPath().equalsIgnoreCase(descriptorPath)) {
                         // the deployment descriptor already exists; no need to generate it
                         deploymentDescriptor = null;
                         setDeploymentDescriptor(null);
+                        details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
                     }
 
                     // since we might generate the deployment descriptor, record each top-level module
@@ -85,6 +88,7 @@ public class Ear extends Jar {
                 }
             }
         );
+
         // create our own metaInf which runs after mainSpec's files
         // this allows us to generate the deployment descriptor after recording all modules it contains
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
@@ -93,7 +97,7 @@ public class Ear extends Jar {
                 final DeploymentDescriptor descriptor = getDeploymentDescriptor();
                 if (descriptor != null) {
                     MapFileTree descriptorSource = new MapFileTree(getTemporaryDirFactory(), getFileSystem());
-                    if (descriptor.getLibraryDirectory() != null) {
+                    if (descriptor.getLibraryDirectory() == null) {
                         descriptor.setLibraryDirectory(getLibDirName());
                     }
 
@@ -124,7 +128,7 @@ public class Ear extends Jar {
      * @param configureClosure The closure.
      * @return This.
      */
-    public Ear deploymentDescriptor(@DelegatesTo(value=DeploymentDescriptor.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+    public Ear deploymentDescriptor(@DelegatesTo(value = DeploymentDescriptor.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
         if (deploymentDescriptor == null) {
             deploymentDescriptor = getInstantiator().newInstance(DefaultDeploymentDescriptor.class, getFileResolver(), getInstantiator());
         }
@@ -149,7 +153,7 @@ public class Ear extends Jar {
      * @param configureClosure The closure.
      * @return The created {@code CopySpec}
      */
-    public CopySpec lib(@DelegatesTo(value=CopySpec.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
+    public CopySpec lib(@DelegatesTo(value = CopySpec.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getLib());
     }
 

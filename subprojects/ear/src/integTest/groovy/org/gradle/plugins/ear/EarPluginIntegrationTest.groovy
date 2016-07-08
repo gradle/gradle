@@ -115,11 +115,11 @@ dependencies {
 <application xmlns="http://java.sun.com/xml/ns/javaee" ${xsi.join(" ")} version="6">
   <application-name>customear</application-name>
   <display-name>displayname</display-name>
-  <library-directory>mylib</library-directory>
+  <library-directory>mylib-$metaInfFolder</library-directory>
 </application>
 """
 
-        file('META-INF/application.xml').createFile().write(applicationXml)
+        file("$metaInfFolder/application.xml").createFile().write(applicationXml)
         buildFile << """
 apply plugin: 'ear'
 ear {
