@@ -30,7 +30,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.GradleClassLoader;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -207,6 +207,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     @Override
     public void stop() {
         classLoaderCache.stop();
-        GradleClassLoader.tryClose(antAdapterLoader);
+        ClassLoaderUtils.tryClose(antAdapterLoader);
     }
 }

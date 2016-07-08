@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
-import org.gradle.internal.classloader.GradleClassLoader;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.ref.PhantomReference;
@@ -39,6 +39,6 @@ public class Cleanup extends PhantomReference<CachedClassLoader> {
     }
 
     public void cleanup() {
-        GradleClassLoader.tryClose(classLoader);
+        ClassLoaderUtils.tryClose(classLoader);
     }
 }

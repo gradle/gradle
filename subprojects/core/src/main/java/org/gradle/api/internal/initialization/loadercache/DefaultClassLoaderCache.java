@@ -23,13 +23,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClassPathSnapshot;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classloader.FilteringClassLoader;
-import org.gradle.internal.classloader.GradleClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.io.*;
 import java.util.Map;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache {
@@ -178,7 +177,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
         }
 
         private void close() {
-            GradleClassLoader.tryClose(classLoader);
+            ClassLoaderUtils.tryClose(classLoader);
         }
     }
 

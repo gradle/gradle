@@ -17,19 +17,7 @@ package org.gradle.internal.classloader;
 
 import java.io.*;
 
-public abstract class GradleClassLoader extends ClassLoader implements Closeable {
-    public GradleClassLoader(ClassLoader parent) {
-        super(parent);
-    }
-
-    public void tryClose() {
-        try {
-            close();
-        } catch (IOException ignore) {
-            // do nothing.
-        }
-    }
-
+public abstract class ClassLoaderUtils {
     public static void tryClose(ClassLoader classLoader) {
         if (classLoader instanceof Closeable) {
             try {

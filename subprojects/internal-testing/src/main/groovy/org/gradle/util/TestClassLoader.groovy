@@ -15,14 +15,11 @@
  */
 
 package org.gradle.util
-
-import org.gradle.internal.classloader.GradleClassLoader
-
 /**
  * A custom ClassLoader implementation. Used in various places to test that we work with things that are not a
  * URLClassLoader.
  */
-class TestClassLoader extends GradleClassLoader {
+class TestClassLoader extends ClassLoader {
     private final List<File> classpath
 
     TestClassLoader(ClassLoader classLoader, List<File> classpath) {
@@ -60,10 +57,5 @@ class TestClassLoader extends GradleClassLoader {
         }
         def byteCode = url.bytes
         return defineClass(name, byteCode, 0, byteCode.length)
-    }
-
-    @Override
-    void close() throws IOException {
-        // Do nothing.
     }
 }

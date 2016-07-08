@@ -32,7 +32,7 @@ import java.util.Set;
  * A ClassLoader which hides all non-system classes, packages and resources. Allows certain non-system packages and classes to be declared as visible. By default, only the Java system classes,
  * packages and resources are visible.
  */
-public class FilteringClassLoader extends GradleClassLoader implements ClassLoaderHierarchy, Closeable {
+public class FilteringClassLoader extends ClassLoader implements ClassLoaderHierarchy, Closeable {
     private static final ClassLoader EXT_CLASS_LOADER;
     private static final Set<String> SYSTEM_PACKAGES = new HashSet<String>();
     private final Set<String> packageNames = new HashSet<String>();
@@ -180,7 +180,7 @@ public class FilteringClassLoader extends GradleClassLoader implements ClassLoad
 
     @Override
     public void close() throws IOException {
-        tryClose(getParent());
+        ClassLoaderUtils.tryClose(getParent());
     }
 
     public static class Spec extends ClassLoaderSpec {
