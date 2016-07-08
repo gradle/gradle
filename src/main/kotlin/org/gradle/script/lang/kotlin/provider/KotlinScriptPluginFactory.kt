@@ -64,22 +64,22 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
         val defaultClassPath = gradleApi() + buildSrc
         return when {
             buildscriptRange != null ->
-                dualPhaseScript(scriptFile, script, buildscriptRange, scriptHandler, defaultClassPath, targetScope, baseScope)
+                twoPassScript(scriptFile, script, buildscriptRange, scriptHandler, defaultClassPath, targetScope, baseScope)
             else ->
-                singlePhaseScript(scriptFile, defaultClassPath, targetScope)
+                onePassScript(scriptFile, defaultClassPath, targetScope)
         }
     }
 
-    private fun singlePhaseScript(scriptFile: File, classPath: ClassPath,
-                                  targetScope: ClassLoaderScope): (Project) -> Unit {
+    private fun onePassScript(scriptFile: File, classPath: ClassPath,
+                              targetScope: ClassLoaderScope): (Project) -> Unit {
         val scriptClassLoader = classLoaderFor(targetScope)
         val scriptClass = compileScriptFile(scriptFile, classPath, scriptClassLoader)
         return { target -> executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target) }
     }
 
-    private fun dualPhaseScript(scriptFile: File, script: String, buildscriptRange: IntRange,
-                                scriptHandler: ScriptHandlerInternal, defaultClassPath: ClassPath,
-                                targetScope: ClassLoaderScope, baseScope: ClassLoaderScope): (Project) -> Unit {
+    private fun twoPassScript(scriptFile: File, script: String, buildscriptRange: IntRange,
+                              scriptHandler: ScriptHandlerInternal, defaultClassPath: ClassPath,
+                              targetScope: ClassLoaderScope, baseScope: ClassLoaderScope): (Project) -> Unit {
         val buildscriptClassLoader = buildscriptClassLoaderFrom(baseScope)
         val buildscriptClass =
             compileBuildscriptSection(buildscriptRange, script, defaultClassPath, buildscriptClassLoader)
