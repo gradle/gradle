@@ -15,7 +15,8 @@
  */
 package org.gradle.internal.classloader;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.IOException;
 
 public abstract class ClassLoaderUtils {
     public static void tryClose(ClassLoader classLoader) {

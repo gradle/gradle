@@ -19,7 +19,8 @@ package org.gradle.internal.classloader;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;

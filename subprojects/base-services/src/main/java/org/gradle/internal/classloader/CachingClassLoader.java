@@ -18,7 +18,8 @@ package org.gradle.internal.classloader;
 
 import com.google.common.collect.MapMaker;
 
-import java.io.*;
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.concurrent.ConcurrentMap;
 
 public class CachingClassLoader extends ClassLoader implements ClassLoaderHierarchy, Closeable {
