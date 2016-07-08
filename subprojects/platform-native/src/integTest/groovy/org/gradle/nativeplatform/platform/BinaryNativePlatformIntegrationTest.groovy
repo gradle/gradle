@@ -25,10 +25,11 @@ import org.gradle.nativeplatform.fixtures.app.PlatformDetectingTestApp
 import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
@@ -393,6 +394,21 @@ model {
 
         then:
         failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one', buildType: 'debug']")
+    }
+
+    @Issue("GRADLE-3499")
+    def "can create a binary which name contains dots"() {
+        when:
+        buildFile << '''
+            model {
+                components {
+                    'foo.bar'(NativeLibrarySpec)
+                }
+            }
+        '''
+        then:
+        succeeds 'components'
+
     }
 
     def binaryInfo(TestFile file) {
