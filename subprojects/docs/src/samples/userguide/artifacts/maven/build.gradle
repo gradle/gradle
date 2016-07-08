@@ -27,12 +27,6 @@ uploadArchives {
             }
 //END SNIPPET builder
 //START SNIPPET multiple-poms
-            addFilter('api') {artifact, file ->
-                artifact.name == 'api'
-            }
-            addFilter('service') {artifact, file ->
-                artifact.name == 'service'
-            }
             pom('api').version = 'mySpecialMavenVersion'
 //START SNIPPET customize-pom
 //START SNIPPET upload-file
@@ -41,9 +35,20 @@ uploadArchives {
     }
 }
 //END SNIPPET customize-pom
-//END SNIPPET multiple-poms
 //END SNIPPET upload-file
 //END SNIPPET builder
+
+tasks.withType(Upload) {
+    repositories.withType(MavenResolver) {
+        addFilter('api') {artifact, file ->
+            artifact.name == 'api'
+        }
+        addFilter('service') {artifact, file ->
+            artifact.name == 'service'
+        }
+    }
+}
+//END SNIPPET multiple-poms
 
 //START SNIPPET upload-with-ssh
 configurations {
