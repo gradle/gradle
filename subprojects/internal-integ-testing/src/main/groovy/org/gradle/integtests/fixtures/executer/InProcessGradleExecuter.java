@@ -40,6 +40,8 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.composite.CompositeBuildActionParametersConverter;
+import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
@@ -53,6 +55,7 @@ import org.gradle.launcher.cli.ParametersConverter;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
+import org.gradle.launcher.exec.DefaultCompositeBuildActionParameters;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -257,22 +260,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         try {
             // TODO: Reuse more of BuildActionsFactory
             BuildAction action = new ExecuteBuildAction(startParameter);
-            BuildActionParameters buildActionParameters = new DefaultBuildActionParameters(
-                System.getProperties(),
-                System.getenv(),
-                SystemProperties.getInstance().getCurrentDir(),
-                startParameter.getLogLevel(),
-                false,
-                startParameter.isContinuous(),
-                interactive,
-                ClassPath.EMPTY
-            );
-            BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(
-                new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
-                    System.currentTimeMillis()),
-                new DefaultBuildCancellationToken(),
-                new NoOpBuildEventConsumer(),
-                outputListener, errorListener);
+            BuildActionParameters buildActionParameters = createBuildActionParameters(startParameter);
+            BuildRequestContext buildRequestContext = createBuildRequestContext(outputListener, errorListener);
             actionExecuter.execute(action, buildRequestContext, buildActionParameters, GLOBAL_SERVICES);
             return new BuildResult(null, null);
         } catch (ReportedException e) {
@@ -280,6 +269,34 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         } finally {
             listenerManager.removeListener(listener);
         }
+    }
+
+    private BuildActionParameters createBuildActionParameters(StartParameter startParameter) {
+        BuildActionParameters buildActionParameters = new DefaultBuildActionParameters(
+            System.getProperties(),
+            System.getenv(),
+            SystemProperties.getInstance().getCurrentDir(),
+            startParameter.getLogLevel(),
+            false,
+            startParameter.isContinuous(),
+            interactive,
+            ClassPath.EMPTY
+        );
+        if (startParameter.getParticipantBuilds().isEmpty()) {
+            return buildActionParameters;
+        }
+
+        CompositeParameters compositeParameters = CompositeBuildActionParametersConverter.forStartParameter(startParameter);
+        return new DefaultCompositeBuildActionParameters(buildActionParameters, compositeParameters);
+    }
+
+    private BuildRequestContext createBuildRequestContext(StandardOutputListener outputListener, StandardOutputListener errorListener) {
+        return new DefaultBuildRequestContext(
+            new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
+                System.currentTimeMillis()),
+            new DefaultBuildCancellationToken(),
+            new NoOpBuildEventConsumer(),
+            outputListener, errorListener);
     }
 
     public void assertCanExecute() {
