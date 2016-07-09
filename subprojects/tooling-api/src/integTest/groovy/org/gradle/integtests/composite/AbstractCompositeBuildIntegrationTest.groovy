@@ -61,7 +61,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends CompositeToolingApi
         def executedTasks = result.executedTasks
         for (String task : tasks) {
             assert executedTasks.contains(task)
-//            assert executedTasks.findAll({ it == task }).size() == 1
+            assert executedTasks.findAll({ it == task }).size() == 1
         }
     }
 
