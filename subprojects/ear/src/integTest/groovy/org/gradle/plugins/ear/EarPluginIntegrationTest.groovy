@@ -19,10 +19,11 @@ package org.gradle.plugins.ear
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.TextUtil
 import org.hamcrest.Matchers
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class EarPluginIntegrationTest extends AbstractIntegrationSpec {
 
@@ -111,13 +112,15 @@ dependencies {
             xsi = xsi.reverse()
         }
 
-        def applicationXml = """<?xml version="1.0"?>
+        // Use platform line separators here, so that we get the same result for customMetaInf and default.
+        // The default application.xml file is generated (using the supplied content), and always contains platform line separators
+        def applicationXml = toPlatformLineSeparators("""<?xml version="1.0"?>
 <application xmlns="http://java.sun.com/xml/ns/javaee" ${xsi.join(" ")} version="6">
   <application-name>customear</application-name>
   <display-name>displayname</display-name>
   <library-directory>mylib-$metaInfFolder</library-directory>
 </application>
-"""
+""")
 
         file("$metaInfFolder/application.xml").createFile().write(applicationXml)
         buildFile << """
@@ -132,8 +135,7 @@ ear {
 
         then:
         def ear = new JarTestFixture(file('build/libs/root.ear'))
-        // Since the application.xml file is generated (using the supplied content), it uses platform line separators
-        ear.assertFileContent("META-INF/application.xml", TextUtil.toPlatformLineSeparators(applicationXml))
+        ear.assertFileContent("META-INF/application.xml", applicationXml)
 
         where:
         location                      | metaInfFolder   | appConfig
