@@ -22,13 +22,15 @@ import org.gradle.internal.composite.CompositeBuildActionParameters;
 import org.gradle.internal.composite.CompositeParameters;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.Map;
 
-public class DefaultCompositeBuildActionParameters extends DefaultBuildActionParameters implements CompositeBuildActionParameters {
+public class DefaultCompositeBuildActionParameters implements BuildActionParameters, CompositeBuildActionParameters, Serializable {
+    private final BuildActionParameters delegate;
     private final CompositeParameters compositeParameters;
 
-    public DefaultCompositeBuildActionParameters(Map<?, ?> systemProperties, Map<String, String> envVariables, File currentDir, LogLevel logLevel, boolean useDaemon, boolean continuous, boolean interactive, ClassPath injectedPluginClasspath, CompositeParameters compositeParameters) {
-        super(systemProperties, envVariables, currentDir, logLevel, useDaemon, continuous, interactive, injectedPluginClasspath);
+    public DefaultCompositeBuildActionParameters(BuildActionParameters parameters, CompositeParameters compositeParameters) {
+        this.delegate = parameters;
         this.compositeParameters = compositeParameters;
     }
 
@@ -39,8 +41,48 @@ public class DefaultCompositeBuildActionParameters extends DefaultBuildActionPar
     @Override
     public String toString() {
         return "DefaultCompositeBuildActionParameters{"
-            + "super=" + super.toString()
+            + "params=" + delegate.toString()
             + "compositeParameters=" + compositeParameters
             + '}';
+    }
+
+    @Override
+    public File getCurrentDir() {
+        return delegate.getCurrentDir();
+    }
+
+    @Override
+    public Map<String, String> getEnvVariables() {
+        return delegate.getEnvVariables();
+    }
+
+    @Override
+    public ClassPath getInjectedPluginClasspath() {
+        return delegate.getInjectedPluginClasspath();
+    }
+
+    @Override
+    public LogLevel getLogLevel() {
+        return delegate.getLogLevel();
+    }
+
+    @Override
+    public Map<String, String> getSystemProperties() {
+        return delegate.getSystemProperties();
+    }
+
+    @Override
+    public boolean isContinuous() {
+        return delegate.isContinuous();
+    }
+
+    @Override
+    public boolean isInteractive() {
+        return delegate.isInteractive();
+    }
+
+    @Override
+    public boolean isUseDaemon() {
+        return delegate.isUseDaemon();
     }
 }

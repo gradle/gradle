@@ -59,19 +59,16 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         }
         ClassPath classPath = DefaultClassPath.of(parameters.getInjectedPluginClasspath(Collections.<File>emptyList()));
 
-        BuildActionParameters actionParameters;
         List<GradleParticipantBuild> compositeParticipants = parameters.getBuilds(null);
+        BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
+            System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, false, classPath);
         if (compositeParticipants != null) {
             List<GradleParticipantBuild> clonedCompositeParticipants = new ArrayList<GradleParticipantBuild>();
             for (GradleParticipantBuild build : compositeParticipants) {
                 clonedCompositeParticipants.add(new DefaultGradleParticipantBuild(build));
             }
             CompositeParameters compositeParameters = new CompositeParameters(clonedCompositeParticipants);
-            actionParameters = new DefaultCompositeBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-                System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, false, classPath, compositeParameters);
-        } else {
-            actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-                System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, false, classPath);
+            actionParameters = new DefaultCompositeBuildActionParameters(actionParameters, compositeParameters);
         }
         try {
             return executer.execute(action, buildRequestContext, actionParameters, contextServices);
