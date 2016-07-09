@@ -38,7 +38,7 @@ public class ToolingBuilderServices implements PluginServiceRegistry {
             }
 
             CompositeBuildActionRunner createCompositeBuildActionRunner() {
-                return new ChainingCompositeBuildActionRunner(Arrays.asList(new CompositeBuildModelActionRunner()));
+                return new CompositeBuildModelActionRunner();
             }
         });
     }
