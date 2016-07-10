@@ -28,6 +28,7 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.Cast;
+import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.CompositeBuildActionParameters;
 import org.gradle.internal.composite.CompositeBuildActionRunner;
@@ -36,6 +37,7 @@ import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -173,13 +175,15 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     }
 
     private CompositeBuildContext constructCompositeContext(BuildModelAction modelAction, BuildRequestContext buildRequestContext,
-                                                                     CompositeParameters compositeParameters, ServiceRegistry sharedServices, boolean propagateFailures) {
+                                                            CompositeParameters compositeParameters, ServiceRegistry sharedServices, boolean propagateFailures) {
+        StartParameter actionStartParameter = modelAction.getStartParameter();
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
-        CompositeContextBuilder builder = new CompositeContextBuilder(propagateFailures);
+        BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(sharedServices.get(StyledTextOutputFactory.class), actionStartParameter, buildRequestContext.getClient());
+        CompositeContextBuilder builder = new CompositeContextBuilder(propagateFailures, exceptionReporter);
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, builder);
 
         for (GradleParticipantBuild participant : compositeParameters.getBuilds()) {
-            StartParameter startParameter = modelAction.getStartParameter().newInstance();
+            StartParameter startParameter = actionStartParameter.newInstance();
             startParameter.setProjectDir(participant.getProjectDir());
             startParameter.setConfigureOnDemand(false);
             if (startParameter.getLogLevel() == LogLevel.LIFECYCLE) {

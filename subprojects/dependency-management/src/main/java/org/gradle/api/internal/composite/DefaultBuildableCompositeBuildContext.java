@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
@@ -57,7 +56,7 @@ class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     public void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory) {
         if (projectMetadata.containsKey(project)) {
             String failureMessage = String.format("Project path '%s' is not unique in composite.", project.getProjectPath());
-            throw new ReportedException(new GradleException(failureMessage));
+            throw new GradleException(failureMessage);
         }
         projectMetadata.put(project, new RegisteredProject(localComponentMetadata, projectDirectory));
     }

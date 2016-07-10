@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.initialization.ReportedException;
+import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -46,9 +47,11 @@ import java.util.Set;
 public class CompositeContextBuilder implements BuildActionRunner {
     private final DefaultBuildableCompositeBuildContext context = new DefaultBuildableCompositeBuildContext();
     private final boolean propagateFailures;
+    private final BuildExceptionReporter exceptionReporter;
 
-    public CompositeContextBuilder(boolean propagateFailures) {
+    public CompositeContextBuilder(boolean propagateFailures, BuildExceptionReporter exceptionReporter) {
         this.propagateFailures = propagateFailures;
+        this.exceptionReporter = exceptionReporter;
     }
 
     @Override
@@ -62,11 +65,19 @@ public class CompositeContextBuilder implements BuildActionRunner {
                 registerProject(participantName, (ProjectInternal) project);
             }
         } catch (ReportedException e) {
-            // Ignore exceptions creating composite context for a model request
-            // TODO:DAZ Retain this configuration failure for subsequent model requests for this build
-            if (propagateFailures) {
-                throw e;
-            }
+            maybeRethrow(e);
+
+        } catch (RuntimeException e) {
+            exceptionReporter.execute(e);
+            maybeRethrow(new ReportedException(e));
+        }
+    }
+
+    private void maybeRethrow(RuntimeException e) {
+        // Ignore exceptions creating composite context for a model request
+        // TODO:DAZ Retain this configuration failure for subsequent model requests for this build
+        if (propagateFailures) {
+            throw e;
         }
     }
 
