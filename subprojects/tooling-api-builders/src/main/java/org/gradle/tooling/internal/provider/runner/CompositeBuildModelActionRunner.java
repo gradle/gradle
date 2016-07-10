@@ -136,7 +136,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
         // Use a ModelActionRunner to ensure that model events are emitted
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelActionRunner());
-        org.gradle.launcher.exec.BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
+        BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
         BuildModelAction participantAction = new BuildModelAction(startParameter, ModelIdentifier.NULL_MODEL, true, compositeAction.getClientSubscriptions());
         ServiceRegistry buildScopedServices = new BuildSessionScopeServices(compositeServices, startParameter, ClassPath.EMPTY);
 
