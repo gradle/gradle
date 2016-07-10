@@ -16,45 +16,38 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.fixtures.executer.ExecutionResult
-import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersions
+import com.beust.jcommander.internal.Lists
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 
 /**
  * Tests for composite build.
- *
- * Note that this test should be migrated to use the command-line entry point for composite build, when this is developed.
- * This is distinct from the specific test coverage for Tooling API access to a composite build.
  */
-@TargetGradleVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
-@ToolingApiVersion(ToolingApiVersions.SUPPORTS_INTEGRATED_COMPOSITE)
-@RequiresIntegratedComposite
-abstract class AbstractCompositeBuildIntegrationTest extends CompositeToolingApiSpecification {
-    def stdOut = new ByteArrayOutputStream()
-    def stdErr = new ByteArrayOutputStream()
+abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     List builds = []
 
     protected void execute(File build, String task, Iterable<String> arguments = []) {
-        stdOut.reset()
-        stdErr.reset()
-        withCompositeConnection(builds) { connection ->
-            def buildLauncher = connection.newBuild()
-            buildLauncher.setStandardOutput(stdOut)
-            buildLauncher.setStandardError(stdErr)
-            buildLauncher.forTasks(build, task)
-            buildLauncher.withArguments(arguments)
-            buildLauncher.run()
-        }
-        println stdOut
-        println stdErr
+        prepare(build, arguments)
+        succeeds(task)
     }
 
-    protected ExecutionResult getResult() {
-        return new OutputScrapingExecutionResult(stdOut.toString(), stdErr.toString())
+    protected void fails(File build, String task, Iterable<String> arguments = []) {
+        prepare(build, arguments)
+        fails(task)
+    }
+
+    private void prepare(File build, Iterable<String> arguments) {
+        executer.inDirectory(build)
+
+        List<File> participants = Lists.newArrayList(builds)
+        participants.remove(build)
+        for (File participant : participants) {
+            executer.withArgument("--participant")
+            executer.withArgument(participant.path)
+        }
+        for (String arg : arguments) {
+            executer.withArgument(arg)
+        }
     }
 
     protected void executed(String... tasks) {
@@ -62,6 +55,80 @@ abstract class AbstractCompositeBuildIntegrationTest extends CompositeToolingApi
         for (String task : tasks) {
             assert executedTasks.contains(task)
             assert executedTasks.findAll({ it == task }).size() == 1
+        }
+    }
+
+    TestFile getRootDir() {
+        temporaryFolder.testDirectory
+    }
+
+    def populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
+        def project = new ProjectTestFile(rootDir, projectName)
+        project.with(cl)
+        project
+    }
+
+    def singleProjectBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+        def project = populate(projectName) {
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+            """
+
+            buildFile << """
+                group = 'org.test'
+                version = '1.0'
+            """
+            file('src/main/java/Dummy.java') << "public class Dummy {}"
+        }
+        project.with(cl)
+        return project
+    }
+
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+        String subprojectList = subprojects.collect({"'$it'"}).join(',')
+        def rootMulti = populate(projectName) {
+            settingsFile << """
+                rootProject.name = '${rootProjectName}'
+                include ${subprojectList}
+            """
+
+            buildFile << """
+                allprojects {
+                    group = 'org.test'
+                    version = '1.0'
+                }
+            """
+        }
+        rootMulti.with(cl)
+        rootMulti.file('src/main/java/Dummy.java') << "public class Dummy {}"
+        subprojects.each {
+            rootMulti.file(it, 'src/main/java/Dummy.java') << "public class Dummy {}"
+        }
+        return rootMulti
+    }
+
+    TestFile projectDir(String project) {
+        file(project)
+    }
+
+    static class ProjectTestFile extends TestFile {
+        private final String projectName
+
+        ProjectTestFile(TestFile rootDir, String projectName) {
+            super(rootDir, [ projectName ])
+            this.projectName = projectName
+        }
+        String getRootProjectName() {
+            projectName
+        }
+        TestFile getBuildFile() {
+            file("build.gradle")
+        }
+        TestFile getSettingsFile() {
+            file("settings.gradle")
+        }
+        void addChildDir(String name) {
+            file(name).file("build.gradle") << "// Dummy child build"
         }
     }
 

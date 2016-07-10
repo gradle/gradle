@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -24,7 +23,6 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 /**
  * Tests for generating IDEA metadata for projects within a composite build.
  */
-@TargetGradleVersion(">=3.0")
 class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
     TestFile buildA
     TestFile buildB

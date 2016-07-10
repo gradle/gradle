@@ -15,11 +15,12 @@
  */
 
 package org.gradle.integtests.composite
+
 import groovy.transform.NotYetImplemented
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.tooling.BuildException
+
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
@@ -366,11 +367,10 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractComposit
         builds << buildC
 
         when:
-        resolveArtifacts()
+        resolveArtifactsFails()
 
         then:
-        def t = thrown(BuildException)
-        assertFailure(t, "Dependency cycle including project buildB::")
+        failure.assertHasCause("Dependency cycle including project buildB::")
 
         where:
         fromBuildA | fromBuildB | fromBuildC
@@ -390,12 +390,11 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractComposit
             }
 """
         when:
-        resolveArtifacts()
+        resolveArtifactsFails()
 
         then:
-        def t = thrown(BuildException)
-        assertFailure(t, "jar task failed")
-        assertFailure(t, "Execution failed for task ':jar'")
+        failure.assertHasDescription("Execution failed for task ':jar'")
+            .assertHasCause("jar task failed")
     }
 
     def "reports failure to build transitive dependent artifact"() {
@@ -418,12 +417,11 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractComposit
         builds << buildC
 
         when:
-        resolveArtifacts()
+        resolveArtifactsFails()
 
         then:
-        def t = thrown(BuildException)
-        assertFailure(t, "jar task failed")
-        assertFailure(t, "Execution failed for task ':jar'")
+        failure.assertHasDescription("Execution failed for task ':jar'")
+            .assertHasCause("jar task failed")
     }
 
     def dependency(String notation) {
@@ -436,6 +434,10 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractComposit
 
     private void resolveArtifacts() {
         execute(buildA, ":resolve", arguments)
+    }
+
+    private void resolveArtifactsFails() {
+        fails(buildA, ":resolve", arguments)
     }
 
     private void assertResolved(TestFile... files) {

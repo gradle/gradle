@@ -18,8 +18,6 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import org.gradle.tooling.BuildException
-
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
@@ -72,13 +70,11 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBui
         builds << buildC
 
         when:
-        checkDependencies()
+        checkDependenciesFails()
 
         then:
-        def t = thrown(BuildException)
-        assertFailure(t,
-            "A problem occurred evaluating root project 'buildC'.",
-            "exception thrown on configure")
+        failure.assertHasDescription("A problem occurred evaluating root project 'buildC'.")
+            .assertHasCause("exception thrown on configure")
     }
 
     def "reports failure for duplicate project path"() {
@@ -88,12 +84,10 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBui
         builds << buildC
 
         when:
-        checkDependencies()
+        checkDependenciesFails()
 
         then:
-        def t = thrown(BuildException)
-        assertFailure(t,
-            "Project path 'buildB::' is not unique in composite.")
+        failure.assertHasDescription("Project path 'buildB::' is not unique in composite.")
     }
 
     def "does no substitution when no project matches external dependencies"() {
@@ -593,11 +587,10 @@ afterEvaluate {
 """
 
         when:
-        checkDependencies()
+        checkDependenciesFails()
 
         then:
-        def t = thrown(BuildException)
-        assertFailure(t, "Module version 'org.test:b1:1.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
+        failure.assertHasCause("Module version 'org.test:b1:1.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
     }
 
     def "reports failure to resolve dependencies when substitution is ambiguous within single participant"() {
@@ -621,11 +614,10 @@ afterEvaluate {
 """
 
         when:
-        checkDependencies()
+        checkDependenciesFails()
 
         then:
-        def t = thrown(BuildException)
-        assertFailure(t, "Module version 'org.test:c1:1.0' is not unique in composite: can be provided by projects [buildC::c1, buildC::nested:c1].")
+        failure.assertHasCause("Module version 'org.test:c1:1.0' is not unique in composite: can be provided by projects [buildC::c1, buildC::nested:c1].")
     }
 
     def "reports failure to resolve dependencies when transitive dependency substitution is ambiguous"() {
@@ -633,11 +625,10 @@ afterEvaluate {
         transitiveDependencyIsAmbiguous("'org.test:b1:2.0'")
 
         when:
-        checkDependencies()
+        checkDependenciesFails()
 
         then:
-        def t = thrown(BuildException)
-        assertFailure(t, "Module version 'org.test:b1:2.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
+        failure.assertHasCause("Module version 'org.test:b1:2.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
     }
 
     def "resolve transitive project dependency that is ambiguous in the composite"() {
@@ -714,11 +705,10 @@ afterEvaluate {
 """
 
         when:
-        checkDependencies()
+        checkDependenciesFails()
 
         then:
-        def t = thrown(BuildException)
-        assertFailure(t, "Module version org.test:buildA:1.0, configuration 'compile' declares a dependency on configuration 'default' which is not declared in the module descriptor for org.test:buildC:1.0")
+        failure.assertHasCause("Module version org.test:buildA:1.0, configuration 'compile' declares a dependency on configuration 'default' which is not declared in the module descriptor for org.test:buildC:1.0")
     }
 
     private void withArgs(List<String> args) {
@@ -728,6 +718,11 @@ afterEvaluate {
     private void checkDependencies() {
         resolve.prepare()
         execute(buildA, ":checkDeps")
+    }
+
+    private void checkDependenciesFails() {
+        resolve.prepare()
+        fails(buildA, ":checkDeps")
     }
 
     void checkGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
