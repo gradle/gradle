@@ -18,6 +18,8 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.composite.fixtures.CompositeBuildTestFixture
+import org.gradle.integtests.composite.fixtures.ProjectTestFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
@@ -110,73 +112,19 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
     }
 
     def populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
-        def project = new ProjectTestFile(rootDir, projectName)
-        project.with(cl)
-        project
+        new CompositeBuildTestFixture(rootDir).populate(projectName, cl)
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
-        def project = populate(projectName) {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-            """
-
-            buildFile << """
-                group = 'org.test'
-                version = '1.0'
-            """
-            file('src/main/java/Dummy.java') << "public class Dummy {}"
-        }
-        project.with(cl)
-        return project
+        new CompositeBuildTestFixture(rootDir).singleProjectBuild(projectName, cl)
     }
 
     def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
-        String subprojectList = subprojects.collect({"'$it'"}).join(',')
-        def rootMulti = populate(projectName) {
-            settingsFile << """
-                rootProject.name = '${rootProjectName}'
-                include ${subprojectList}
-            """
-
-            buildFile << """
-                allprojects {
-                    group = 'org.test'
-                    version = '1.0'
-                }
-            """
-        }
-        rootMulti.with(cl)
-        rootMulti.file('src/main/java/Dummy.java') << "public class Dummy {}"
-        subprojects.each {
-            rootMulti.file(it, 'src/main/java/Dummy.java') << "public class Dummy {}"
-        }
-        return rootMulti
+        new CompositeBuildTestFixture(rootDir).multiProjectBuild(projectName, subprojects, cl)
     }
 
     TestFile projectDir(String project) {
         file(project)
-    }
-
-    static class ProjectTestFile extends TestFile {
-        private final String projectName
-
-        ProjectTestFile(TestFile rootDir, String projectName) {
-            super(rootDir, [ projectName ])
-            this.projectName = projectName
-        }
-        String getRootProjectName() {
-            projectName
-        }
-        TestFile getBuildFile() {
-            file("build.gradle")
-        }
-        TestFile getSettingsFile() {
-            file("settings.gradle")
-        }
-        void addChildDir(String name) {
-            file(name).file("build.gradle") << "// Dummy child build"
-        }
     }
 
     // Transforms Iterable<ModelResult<T>> into Iterable<T>
