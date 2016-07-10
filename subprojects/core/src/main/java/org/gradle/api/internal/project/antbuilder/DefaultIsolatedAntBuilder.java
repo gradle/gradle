@@ -53,13 +53,11 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     private final ClassLoader baseAntLoader;
     private final ClassPath libClasspath;
     private final ClassLoader antAdapterLoader;
-    private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderFactory classLoaderFactory;
     private final ModuleRegistry moduleRegistry;
     private final ClassPathToClassLoaderCache classLoaderCache;
 
     public DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
-        this.classPathRegistry = classPathRegistry;
         this.classLoaderFactory = classLoaderFactory;
         this.moduleRegistry = moduleRegistry;
         this.libClasspath = new DefaultClassPath();
@@ -94,7 +92,6 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     }
 
     protected DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> libClasspath) {
-        this.classPathRegistry = copy.classPathRegistry;
         this.classLoaderFactory = copy.classLoaderFactory;
         this.moduleRegistry = copy.moduleRegistry;
         this.antLoader = copy.antLoader;
