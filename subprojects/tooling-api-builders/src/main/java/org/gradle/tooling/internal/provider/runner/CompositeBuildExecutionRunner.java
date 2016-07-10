@@ -17,14 +17,9 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildContext;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeContextBuilder;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeScopeServices;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.CompositeBuildActionParameters;
 import org.gradle.internal.composite.CompositeBuildActionRunner;
@@ -33,10 +28,8 @@ import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
@@ -61,7 +54,7 @@ public class CompositeBuildExecutionRunner implements CompositeBuildActionRunner
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
 
-        DefaultServiceRegistry compositeServices = createCompositeAwareServices(actionStartParameter, buildRequestContext, compositeParameters, sharedServices);
+        DefaultServiceRegistry compositeServices = createCompositeAwareServices(actionStartParameter, true, buildRequestContext, compositeParameters, sharedServices);
 
         StartParameter startParameter = actionStartParameter.newInstance();
         GradleParticipantBuild targetParticipant = compositeParameters.getTargetBuild();
@@ -71,7 +64,6 @@ public class CompositeBuildExecutionRunner implements CompositeBuildActionRunner
 
         LOGGER.lifecycle("[composite-build] Executing tasks " + startParameter.getTaskNames() + " for participant: " + targetParticipant.getProjectDir());
 
-        // Use a ModelActionRunner to ensure that model events are emitted
         BuildActionRunner runner = new ExecuteBuildActionRunner();
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
         ServiceRegistry buildScopedServices = new BuildSessionScopeServices(compositeServices, startParameter, ClassPath.EMPTY);
@@ -79,39 +71,8 @@ public class CompositeBuildExecutionRunner implements CompositeBuildActionRunner
         buildActionExecuter.execute(new ExecuteBuildAction(startParameter), buildRequestContext, null, buildScopedServices);
     }
 
-    private DefaultServiceRegistry createCompositeAwareServices(StartParameter actionStartParameter, BuildRequestContext buildRequestContext,
-                                                                CompositeParameters compositeParameters, ServiceRegistry sharedServices) {
-        boolean propagateFailures = true;
-        CompositeBuildContext context = constructCompositeContext(actionStartParameter, buildRequestContext, compositeParameters, sharedServices, propagateFailures);
-
-        DefaultServiceRegistry compositeServices = (DefaultServiceRegistry) ServiceRegistryBuilder.builder()
-            .displayName("Composite services")
-            .parent(sharedServices)
-            .build();
-        compositeServices.add(CompositeBuildContext.class, context);
-        compositeServices.addProvider(new CompositeScopeServices(actionStartParameter, compositeServices));
-        return compositeServices;
-    }
-
-    private CompositeBuildContext constructCompositeContext(StartParameter actionStartParameter, BuildRequestContext buildRequestContext,
-                                                            CompositeParameters compositeParameters, ServiceRegistry sharedServices, boolean propagateFailures) {
-        GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
-        BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(sharedServices.get(StyledTextOutputFactory.class), actionStartParameter, buildRequestContext.getClient());
-        CompositeContextBuilder builder = new CompositeContextBuilder(propagateFailures, exceptionReporter);
-        BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, builder);
-
-        for (GradleParticipantBuild participant : compositeParameters.getBuilds()) {
-            StartParameter startParameter = actionStartParameter.newInstance();
-            startParameter.setProjectDir(participant.getProjectDir());
-
-            startParameter.setConfigureOnDemand(false);
-            if (startParameter.getLogLevel() == LogLevel.LIFECYCLE) {
-                startParameter.setLogLevel(LogLevel.QUIET);
-                LOGGER.lifecycle("[composite-build] Configuring participant: " + participant.getProjectDir());
-            }
-
-            buildActionExecuter.execute(new ExecuteBuildAction(startParameter), buildRequestContext, null, sharedServices);
-        }
-        return builder.build();
+    private DefaultServiceRegistry createCompositeAwareServices(StartParameter buildStartParameter, boolean propagateFailures,
+                                                                BuildRequestContext buildRequestContext, CompositeParameters compositeParameters, ServiceRegistry sharedServices) {
+        return new CompositeBuildServicesBuilder().createCompositeAwareServices(buildStartParameter, propagateFailures, buildRequestContext, compositeParameters, sharedServices);
     }
 }
