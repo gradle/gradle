@@ -43,7 +43,7 @@ import java.util.SortedSet;
  * Provides a dependency substitution rule for composite build,
  * that substitutes a project within the composite with any dependency with a matching ModuleIdentifier.
  */
-class CompositeBuildDependencySubstitutions implements DependencySubstitutionRuleProvider {
+public class CompositeBuildDependencySubstitutions implements DependencySubstitutionRuleProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeBuildDependencySubstitutions.class);
 
     private final CompositeBuildContext projectComponentRegistry;

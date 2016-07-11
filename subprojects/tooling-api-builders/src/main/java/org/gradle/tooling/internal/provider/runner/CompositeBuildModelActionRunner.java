@@ -29,6 +29,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.CompositeBuildActionParameters;
 import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.composite.CompositeBuildController;
+import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.invocation.BuildAction;
@@ -156,6 +157,10 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
     private DefaultServiceRegistry createCompositeAwareServices(StartParameter buildStartParameter, boolean propagateFailures,
                                                                 BuildRequestContext buildRequestContext, CompositeParameters compositeParameters, ServiceRegistry sharedServices) {
-        return new CompositeBuildServicesBuilder().createCompositeAwareServices(buildStartParameter, propagateFailures, buildRequestContext, compositeParameters, sharedServices);
+        DefaultServiceRegistry compositeServices = new BuildSessionScopeServices(sharedServices, buildStartParameter, ClassPath.EMPTY);
+        compositeServices.addProvider(new CompositeScopeServices(buildStartParameter, buildRequestContext, compositeServices, propagateFailures));
+
+        compositeServices.get(CompositeContextBuilder.class).addToCompositeContext(compositeParameters.getBuilds());
+        return compositeServices;
     }
 }

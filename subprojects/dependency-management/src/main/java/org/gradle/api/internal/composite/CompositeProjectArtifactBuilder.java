@@ -36,7 +36,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
+public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     private final CompositeBuildContext compositeBuildContext;
     private final GradleLauncherFactory gradleLauncherFactory;
     private final StartParameter requestedStartParameter;
