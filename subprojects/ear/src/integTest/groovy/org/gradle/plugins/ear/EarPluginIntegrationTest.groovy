@@ -339,4 +339,63 @@ ear {
         def ear = new JarTestFixture(file('build/libs/root.ear'))
         ear.assertContainsFile("META-INF/application.xml")
     }
+
+    @Issue("GRADLE-3497")
+    def "does not fail when provided with an existing descriptor with security roles without description"() {
+        given:
+        buildScript '''
+            apply plugin: 'ear'
+        '''.stripIndent()
+        createDir('src/main/application/META-INF') {
+            file('application.xml').text = '''
+                <application>
+                  <security-role>
+                    <role-name>ROLE_ADMINISTRATOR</role-name>
+                  </security-role>
+                  <security-role>
+                    <role-name>ROLE_USER</role-name>
+                  </security-role>
+                </application>
+            '''.stripIndent().trim()
+        }
+
+        when:
+        run 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("META-INF/application.xml")
+    }
+
+    @Issue("GRADLE-3497")
+    @Unroll
+    def "does not fail when provided with an existing descriptor with a web module without #missing"() {
+        given:
+        buildScript '''
+            apply plugin: 'ear'
+        '''.stripIndent()
+        createDir('src/main/application/META-INF') {
+            file('application.xml').text = """
+                <application>
+                  <module>
+                    <web>
+                      $webModuleContent
+                    </web>
+                  </module>
+                </application>
+            """.stripIndent().trim()
+        }
+
+        when:
+        run 'assemble'
+
+        then:
+        def ear = new JarTestFixture(file('build/libs/root.ear'))
+        ear.assertContainsFile("META-INF/application.xml")
+
+        where:
+        missing        | webModuleContent
+        'web-uri'      | '<context-root>Test</context-root>'
+        'context-root' | '<web-uri>My.war</web-uri>'
+    }
 }

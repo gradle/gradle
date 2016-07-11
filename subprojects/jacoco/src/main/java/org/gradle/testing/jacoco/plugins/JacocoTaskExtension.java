@@ -17,9 +17,9 @@
 package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
+import groovy.lang.GroovyObjectSupport;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
-import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.internal.jacoco.JacocoAgentJar;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.GFileUtils;
@@ -66,7 +66,7 @@ public class JacocoTaskExtension {
     private boolean dumpOnExit = true;
     private Output output = Output.FILE;
     private String address;
-    private Integer port;
+    private int port;
     private File classDumpFile;
     private boolean jmx;
 
@@ -285,49 +285,29 @@ public class JacocoTaskExtension {
     public String getAsJvmArg() {
         StringBuilder builder = new StringBuilder();
         ArgumentAppender argument = new ArgumentAppender(builder, task.getWorkingDir());
-        ConventionValueSupplier convention = new ConventionValueSupplier(this);
         builder.append("-javaagent:");
         builder.append(GFileUtils.relativePath(task.getWorkingDir(), agent.getJar()));
         builder.append('=');
-        argument.append("destfile", convention.get(destinationFile, "destinationFile"));
-        argument.append("append", convention.get(append, "append"));
-        argument.append("includes", convention.get(includes, "includes"));
-        argument.append("excludes", convention.get(excludes, "excludes"));
-        argument.append("exclclassloader", convention.get(excludeClassLoaders, "excludeClassLoaders"));
+        argument.append("destfile", getDestinationFile());
+        argument.append("append", getAppend());
+        argument.append("includes", getIncludes());
+        argument.append("excludes", getExcludes());
+        argument.append("exclclassloader", getExcludeClassLoaders());
         if (agent.supportsInclNoLocationClasses()) {
-            argument.append("inclnolocationclasses", convention.get(includeNoLocationClasses, "includeNoLocationClasses"));
+            argument.append("inclnolocationclasses", getIncludeNoLocationClasses());
         }
-        argument.append("sessionid", convention.get(sessionId, "sessionId"));
-        argument.append("dumponexit", convention.get(dumpOnExit, "dumpOnExit"));
-        argument.append("output", convention.get(output, "output").getAsArg());
-        argument.append("address", convention.get(address, "address"));
-        argument.append("port", convention.get(port, "port"));
-        argument.append("classdumpdir", classDumpFile);
+        argument.append("sessionid", getSessionId());
+        argument.append("dumponexit", getDumpOnExit());
+        argument.append("output", getOutput().getAsArg());
+        argument.append("address", getAddress());
+        argument.append("port", getPort());
+        argument.append("classdumpdir", getClassDumpFile());
 
         if (agent.supportsJmx()) {
-            argument.append("jmx", convention.get(jmx, "jmx"));
+            argument.append("jmx", getJmx());
         }
 
         return builder.toString();
-    }
-
-    private static class ConventionValueSupplier {
-
-        private final ConventionMapping mapping;
-
-        public ConventionValueSupplier(Object delegate) {
-            this.mapping = delegate instanceof IConventionAware
-                ? ((IConventionAware) delegate).getConventionMapping()
-                : null;
-        }
-
-        public <T> T get(T actualValue, String propertyName) {
-            if (mapping != null) {
-                return mapping.getConventionValue(actualValue, propertyName, false);
-            }
-            // For unit tests
-            return actualValue;
-        }
     }
 
     private static class ArgumentAppender {
@@ -342,7 +322,10 @@ public class JacocoTaskExtension {
         }
 
         public void append(String name, Object value) {
-            if (value != null && (!(value instanceof Collection) || !((Collection) value).isEmpty())) {
+            if (value != null
+                && !((value instanceof Collection) && ((Collection) value).isEmpty())
+                && !((value instanceof String) && (StringUtils.isEmpty((String) value)))
+                && !((value instanceof Integer) && (value == Integer.valueOf(0)))) {
                 if (anyArgs) {
                     builder.append(',');
                 }
