@@ -37,8 +37,6 @@ import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.tooling.internal.provider.ExecuteBuildActionRunner;
 
-import java.util.Collections;
-
 public class CompositeBuildExecutionRunner implements CompositeBuildActionRunner {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(CompositeBuildExecutionRunner.class);
 
@@ -60,7 +58,6 @@ public class CompositeBuildExecutionRunner implements CompositeBuildActionRunner
         GradleParticipantBuild targetParticipant = compositeParameters.getTargetBuild();
         startParameter.setProjectDir(targetParticipant.getProjectDir());
         startParameter.setSearchUpwards(false);
-        startParameter.setSystemPropertiesArgs(Collections.singletonMap("org.gradle.resolution.assumeFluidDependencies", "true"));
 
         LOGGER.lifecycle("[composite-build] Executing tasks " + startParameter.getTaskNames() + " for participant: " + targetParticipant.getProjectDir());
 

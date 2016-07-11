@@ -142,7 +142,6 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         GradleParticipantBuild targetParticipant = compositeParameters.getTargetBuild();
         startParameter.setProjectDir(targetParticipant.getProjectDir());
         startParameter.setSearchUpwards(false);
-        startParameter.setSystemPropertiesArgs(Collections.singletonMap("org.gradle.resolution.assumeFluidDependencies", "true"));
 
         LOGGER.lifecycle("[composite-build] Executing tasks " + startParameter.getTaskNames() + " for participant: " + targetParticipant.getProjectDir());
 
