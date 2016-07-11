@@ -18,7 +18,6 @@ package org.gradle.configuration;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.internal.service.ServiceRegistry;
 
 /**
  * A {@link ScriptPluginFactory} SPI suitable for use with Java's {@code ServiceLoader}.
@@ -31,13 +30,6 @@ import org.gradle.internal.service.ServiceRegistry;
  */
 @Incubating
 public interface ScriptPluginFactoryProvider {
-
-    /**
-     * Returns a {@link ScriptPluginFactory} suitable for creating a {@link ScriptPlugin}
-     * instances for files with the given name, otherwise {@code null}.
-     */
-    @Nullable @Deprecated
-    ScriptPluginFactory getFor(String fileName, ServiceRegistry serviceRegistry);
 
     /**
      * Returns a {@link ScriptPluginFactory} suitable for creating a {@link ScriptPlugin}

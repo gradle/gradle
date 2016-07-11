@@ -28,7 +28,7 @@ import org.gradle.internal.service.ServiceRegistry;
  * on its file name. Build script file names ending in ".gradle" are supported by the
  * {@link DefaultScriptPluginFactory}. Other files are delegated to the first available
  * implementation of the {@link ScriptPluginFactoryProvider} SPI to return non-null from
- * {@link ScriptPluginFactoryProvider#getFor(String, ServiceRegistry)}. If all provider
+ * {@link ScriptPluginFactoryProvider#getFor(String)}. If all provider
  * implementations return null for a given file name, handling falls back to the
  * {@link DefaultScriptPluginFactory}. This approach allows users to name build scripts
  * with a suffix of choice, e.g. "build.groovy" or "my.build" instead of the typical
@@ -64,7 +64,7 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
 
     private ScriptPluginFactory findScriptPluginFactoryFor(String fileName) {
         for (ScriptPluginFactoryProvider scriptPluginFactoryProvider : scriptPluginFactoryProviders()) {
-            ScriptPluginFactory scriptPluginFactory = scriptPluginFactoryProvider.getFor(fileName, serviceRegistry);
+            ScriptPluginFactory scriptPluginFactory = scriptPluginFactoryProvider.getFor(fileName);
             if (scriptPluginFactory != null) {
                 return scriptPluginFactory;
             }
