@@ -50,7 +50,7 @@ public class CompositeBuildExecutionRunner implements CompositeBuildActionRunner
         CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
 
         DefaultServiceRegistry compositeServices = new BuildSessionScopeServices(sharedServices, startParameter, ClassPath.EMPTY);
-        compositeServices.addProvider(new CompositeScopeServices(startParameter, buildRequestContext, compositeServices, true));
+        compositeServices.addProvider(new CompositeScopeServices(buildRequestContext, true));
 
         compositeServices.get(CompositeContextBuilder.class).addToCompositeContext(compositeParameters.getBuilds());
 

@@ -29,16 +29,11 @@ import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class CompositeScopeServices {
-    private final StartParameter startParameter;
     private final BuildRequestContext requestContext;
-    private final ServiceRegistry compositeServices;
     private final boolean propagateFailures;
 
-    public CompositeScopeServices(StartParameter startParameter, BuildRequestContext requestContext,
-                                  ServiceRegistry compositeServices, boolean propagateFailures) {
-        this.startParameter = startParameter;
+    public CompositeScopeServices(BuildRequestContext requestContext, boolean propagateFailures) {
         this.requestContext = requestContext;
-        this.compositeServices = compositeServices;
         this.propagateFailures = propagateFailures;
     }
 
@@ -46,11 +41,11 @@ public class CompositeScopeServices {
         return new DefaultBuildableCompositeBuildContext();
     }
 
-    public CompositeContextBuilder createCompositeContextBuilder() {
+    public CompositeContextBuilder createCompositeContextBuilder(StartParameter startParameter, ServiceRegistry compositeServices) {
         return new DefaultCompositeContextBuilder(startParameter, requestContext, compositeServices, propagateFailures);
     }
 
-    public ProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext, GradleLauncherFactory gradleLauncherFactory) {
+    public ProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext, GradleLauncherFactory gradleLauncherFactory, StartParameter startParameter, ServiceRegistry compositeServices) {
         return new CompositeProjectArtifactBuilder(compositeBuildContext, gradleLauncherFactory, startParameter, compositeServices);
     }
 

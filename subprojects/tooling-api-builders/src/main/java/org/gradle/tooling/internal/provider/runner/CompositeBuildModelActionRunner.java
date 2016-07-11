@@ -158,7 +158,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     private DefaultServiceRegistry createCompositeAwareServices(StartParameter buildStartParameter, boolean propagateFailures,
                                                                 BuildRequestContext buildRequestContext, CompositeParameters compositeParameters, ServiceRegistry sharedServices) {
         DefaultServiceRegistry compositeServices = new BuildSessionScopeServices(sharedServices, buildStartParameter, ClassPath.EMPTY);
-        compositeServices.addProvider(new CompositeScopeServices(buildStartParameter, buildRequestContext, compositeServices, propagateFailures));
+        compositeServices.addProvider(new CompositeScopeServices(buildRequestContext, propagateFailures));
 
         compositeServices.get(CompositeContextBuilder.class).addToCompositeContext(compositeParameters.getBuilds());
         return compositeServices;
