@@ -18,7 +18,6 @@ package org.gradle.api.tasks.bundling;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
-import org.gradle.api.Project;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
@@ -60,7 +59,7 @@ public class War extends Jar {
         setMetadataCharset("UTF-8");
         // Add these as separate specs, so they are not affected by the changes to the main spec
 
-        webInf = ((DefaultCopySpec) (getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF")));
+        webInf = (DefaultCopySpec) getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");
         webInf.into("classes", new Closure<CopySpec>(this, this) {
             public CopySpec doCall(CopySpec it) {
                 return it.from(new Callable<Iterable<File>>() {
@@ -139,7 +138,7 @@ public class War extends Jar {
     /**
      * Adds files to the classpath to include in the WAR archive.
      *
-     * @param classpath The files to add. These are evaluated as per {@link Project#files(Object...)}
+     * @param classpath The files to add. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      */
     public void classpath(Object... classpath) {
         FileCollection oldClasspath = getClasspath();
