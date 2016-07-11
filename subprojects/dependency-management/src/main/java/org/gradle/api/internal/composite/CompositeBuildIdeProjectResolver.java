@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
+package org.gradle.api.internal.composite;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;

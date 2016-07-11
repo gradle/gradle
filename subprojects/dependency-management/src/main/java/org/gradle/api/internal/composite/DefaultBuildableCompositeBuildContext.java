@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
+package org.gradle.api.internal.composite;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -29,7 +29,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
+class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
 
     @Override

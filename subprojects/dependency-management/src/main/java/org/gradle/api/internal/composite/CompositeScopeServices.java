@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
+package org.gradle.api.internal.composite;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRuleProvider;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.service.ServiceRegistry;
 

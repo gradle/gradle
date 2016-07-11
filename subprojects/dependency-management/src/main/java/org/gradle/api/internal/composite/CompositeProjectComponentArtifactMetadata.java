@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
+package org.gradle.api.internal.composite;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -25,7 +25,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import java.io.File;
 import java.util.Set;
 
-public class CompositeProjectComponentArtifactMetadata implements ComponentArtifactMetadata, LocalComponentArtifactIdentifier {
+class CompositeProjectComponentArtifactMetadata implements ComponentArtifactMetadata, LocalComponentArtifactIdentifier {
     private final ProjectComponentIdentifier componentIdentifier;
     private final IvyArtifactName ivyArtifactName;
     private final File artifactFile;

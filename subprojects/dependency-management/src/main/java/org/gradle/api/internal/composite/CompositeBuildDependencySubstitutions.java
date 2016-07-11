@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
+
+package org.gradle.api.internal.composite;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -42,7 +43,7 @@ import java.util.SortedSet;
  * Provides a dependency substitution rule for composite build,
  * that substitutes a project within the composite with any dependency with a matching ModuleIdentifier.
  */
-public class CompositeBuildDependencySubstitutions implements DependencySubstitutionRuleProvider {
+class CompositeBuildDependencySubstitutions implements DependencySubstitutionRuleProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeBuildDependencySubstitutions.class);
 
     private final CompositeBuildContext projectComponentRegistry;
