@@ -15,28 +15,17 @@
  */
 package org.gradle.testing.jacoco.plugins
 
-import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
-import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.junit.Rule
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import spock.lang.Issue
-import spock.lang.Specification
 import spock.lang.Unroll
 
-class JacocoPluginSpec extends Specification {
-    @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
-
-    Project project = TestUtil.createRootProject(temporaryFolder.testDirectory)
-
+class JacocoPluginSpec extends AbstractProjectBuilderSpec {
     def setup() {
         project.apply plugin: 'jacoco'
     }
 
-    @LeaksFileHandles
     def 'jacoco applied to specific JavaExec task'() {
         given:
         JavaExec task = project.tasks.create('exec', JavaExec)
@@ -46,7 +35,6 @@ class JacocoPluginSpec extends Specification {
         task.extensions.getByType(JacocoTaskExtension) != null
     }
 
-    @LeaksFileHandles
     def 'jacoco applied to Test task'() {
         given:
         Test task = project.tasks.create('customTest', Test)
@@ -56,7 +44,6 @@ class JacocoPluginSpec extends Specification {
 
     @Unroll
     @Issue("GRADLE-3498")
-    @LeaksFileHandles
     def 'jacoco task extension can be configured. includeNoLocationClasses: #includeNoLocationClassesValue'() {
         given:
         project.apply plugin: 'java'
