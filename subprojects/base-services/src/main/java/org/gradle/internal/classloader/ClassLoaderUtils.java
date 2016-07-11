@@ -15,11 +15,13 @@
  */
 package org.gradle.internal.classloader;
 
+import org.gradle.api.Nullable;
+
 import java.io.Closeable;
 import java.io.IOException;
 
 public abstract class ClassLoaderUtils {
-    public static void tryClose(ClassLoader classLoader) {
+    public static void tryClose(@Nullable ClassLoader classLoader) {
         if (classLoader instanceof Closeable) {
             try {
                 ((Closeable) classLoader).close();
