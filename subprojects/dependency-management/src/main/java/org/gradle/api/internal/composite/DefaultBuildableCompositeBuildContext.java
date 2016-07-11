@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
+public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
 
     @Override

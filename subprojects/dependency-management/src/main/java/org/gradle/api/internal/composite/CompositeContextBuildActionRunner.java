@@ -44,12 +44,13 @@ import org.gradle.internal.invocation.BuildController;
 import java.io.File;
 import java.util.Set;
 
-public class CompositeContextBuilder implements BuildActionRunner {
-    private final DefaultBuildableCompositeBuildContext context = new DefaultBuildableCompositeBuildContext();
+public class CompositeContextBuildActionRunner implements BuildActionRunner {
+    private final CompositeBuildContext context;
     private final boolean propagateFailures;
     private final BuildExceptionReporter exceptionReporter;
 
-    public CompositeContextBuilder(boolean propagateFailures, BuildExceptionReporter exceptionReporter) {
+    public CompositeContextBuildActionRunner(CompositeBuildContext context, boolean propagateFailures, BuildExceptionReporter exceptionReporter) {
+        this.context = context;
         this.propagateFailures = propagateFailures;
         this.exceptionReporter = exceptionReporter;
     }
@@ -137,10 +138,6 @@ public class CompositeContextBuilder implements BuildActionRunner {
     private ComponentArtifactMetadata createCompositeCopy(ProjectComponentIdentifier project, ComponentArtifactMetadata artifactMetaData) {
         File artifactFile = ((LocalComponentArtifactIdentifier) artifactMetaData).getFile();
         return new CompositeProjectComponentArtifactMetadata(project, artifactMetaData.getName(), artifactFile, getArtifactTasks(artifactMetaData));
-    }
-
-    public CompositeBuildContext build() {
-        return context;
     }
 
     private Set<String> determineTargetTasks(LocalConfigurationMetadata configuration) {

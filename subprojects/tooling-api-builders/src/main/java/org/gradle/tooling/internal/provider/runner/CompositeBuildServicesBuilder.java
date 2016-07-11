@@ -18,8 +18,9 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.composite.CompositeContextBuilder;
+import org.gradle.api.internal.composite.CompositeContextBuildActionRunner;
 import org.gradle.api.internal.composite.CompositeScopeServices;
+import org.gradle.api.internal.composite.DefaultBuildableCompositeBuildContext;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
@@ -56,7 +57,8 @@ class CompositeBuildServicesBuilder {
                                                             CompositeParameters compositeParameters, ServiceRegistry sharedServices, boolean propagateFailures) {
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(sharedServices.get(StyledTextOutputFactory.class), actionStartParameter, buildRequestContext.getClient());
-        CompositeContextBuilder builder = new CompositeContextBuilder(propagateFailures, exceptionReporter);
+        CompositeBuildContext context = new DefaultBuildableCompositeBuildContext();
+        CompositeContextBuildActionRunner builder = new CompositeContextBuildActionRunner(context, propagateFailures, exceptionReporter);
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, builder);
 
         for (GradleParticipantBuild participant : compositeParameters.getBuilds()) {
@@ -71,7 +73,7 @@ class CompositeBuildServicesBuilder {
 
             buildActionExecuter.execute(new ExecuteBuildAction(startParameter), buildRequestContext, null, sharedServices);
         }
-        return builder.build();
+        return context;
     }
 
 }
