@@ -26,6 +26,7 @@ org.gradle.api.plugins.scala.ScalaPlugin
 org.gradle.api.plugins.WarPluginConvention
 org.gradle.api.tasks.application.CreateStartScripts
 org.gradle.api.tasks.bundling.Jar
+org.gradle.api.tasks.bundling.War
 org.gradle.api.tasks.diagnostics.DependencyInsightReportTask
 org.gradle.buildinit.tasks.InitBuild
 org.gradle.ide.cdt.model.CprojectDescriptor
