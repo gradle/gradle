@@ -20,6 +20,7 @@ import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.loggerFor
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
 import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.selectGradleApiJars
+import org.gradle.script.lang.kotlin.support.kotlinScriptClassPath
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
@@ -74,7 +75,10 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
                               targetScope: ClassLoaderScope): (Project) -> Unit {
         val scriptClassLoader = classLoaderFor(targetScope)
         val scriptClass = compileScriptFile(scriptFile, classPath, scriptClassLoader)
-        return { target -> executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target) }
+        return { target ->
+            shareKotlinScriptClassPath(target, classPath)
+            executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
+        }
     }
 
     private fun twoPassScript(scriptFile: File, script: String, buildscriptRange: IntRange,
@@ -88,6 +92,7 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
             val effectiveClassPath = defaultClassPath + scriptHandler.scriptClassPath.asFiles
             val scriptClassLoader = scriptBodyClassLoaderFor(scriptHandler, targetScope)
             val scriptClass = compileScriptFile(scriptFile, effectiveClassPath, scriptClassLoader)
+            shareKotlinScriptClassPath(target, effectiveClassPath)
             executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
         }
     }
@@ -146,6 +151,10 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
     private fun gradleApi(): ClassPath =
         DefaultClassPath.of(
             selectGradleApiJars(classPathRegistry))
+
+    private fun shareKotlinScriptClassPath(target: Project, classPath: ClassPath) {
+        target.kotlinScriptClassPath = classPath
+    }
 }
 
 inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {

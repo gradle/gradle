@@ -16,10 +16,9 @@
 
 package org.gradle.script.lang.kotlin.support
 
-import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.selectGradleApiJars
+import org.gradle.script.lang.kotlin.extra
 
-import org.gradle.api.internal.ClassPathRegistry
-import org.gradle.api.internal.initialization.ScriptHandlerInternal
+import org.gradle.internal.classpath.ClassPath
 
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -37,8 +36,7 @@ interface KotlinBuildScriptModel {
 }
 
 class KotlinBuildScriptModelPlugin @Inject constructor(
-    val modelBuilderRegistry: ToolingModelBuilderRegistry,
-    val classPathRegistry: ClassPathRegistry) : Plugin<Project>, ToolingModelBuilder {
+    val modelBuilderRegistry: ToolingModelBuilderRegistry) : Plugin<Project>, ToolingModelBuilder {
 
     override fun apply(project: Project) {
         if (isIdeaActive()) {
@@ -51,14 +49,10 @@ class KotlinBuildScriptModelPlugin @Inject constructor(
         modelName == KotlinBuildScriptModel::class.qualifiedName
 
     override fun buildAll(modelName: String, project: Project): Any =
-        StandardKotlinBuildScriptModel(
-            (gradleApi() + scriptClassPathOf(project)).distinct())
-
-    private fun gradleApi() =
-        selectGradleApiJars(classPathRegistry)
+        StandardKotlinBuildScriptModel(scriptClassPathOf(project))
 
     private fun scriptClassPathOf(project: Project) =
-        (project.buildscript as ScriptHandlerInternal).scriptClassPath.asFiles
+        project.kotlinScriptClassPath.asFiles
 
     private fun isIdeaActive() =
         System.getProperty("idea.active", "false") == "true"
@@ -78,3 +72,10 @@ class KotlinBuildScriptModelPlugin @Inject constructor(
 class StandardKotlinBuildScriptModel(override val classPath: List<File>) : KotlinBuildScriptModel, Serializable
 
 fun daemonPropertiesFileOf(projectDir: File) = File(projectDir, ".gradle/gradle-script-kotlin-idea.properties")
+
+var Project.kotlinScriptClassPath: ClassPath
+    get() = extra.get(kotlinScriptClassPathPropertyName) as ClassPath
+    set(value) = extra.set(kotlinScriptClassPathPropertyName, value)
+
+private val kotlinScriptClassPathPropertyName = "org.gradle.script.lang.kotlin.classpath"
+

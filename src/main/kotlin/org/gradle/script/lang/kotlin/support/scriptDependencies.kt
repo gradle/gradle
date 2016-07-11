@@ -45,6 +45,7 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
                 .setJavaHome(javaHomeForDaemonOf(projectRoot))
                 .get()
                 .classPath
+                .filter { it.isFile } // See #93
                 .let {
                     val gradleScriptKotlinJar = it.filter { it.name.startsWith("gradle-script-kotlin-") }
                     makeDependencies(

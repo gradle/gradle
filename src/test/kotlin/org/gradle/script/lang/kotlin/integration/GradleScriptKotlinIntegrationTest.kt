@@ -97,6 +97,10 @@ class GradleScriptKotlinIntegrationTest {
 
         assert(
             build("answer").output.contains("*42*"))
+
+        assertThat(
+            kotlinBuildScriptModel().classPath.map { it.canonicalFile },
+            hasItem(existingFolder("buildSrc/build/classes/main")))
     }
 
     private fun withBuildScript(script: String) {
@@ -118,11 +122,17 @@ class GradleScriptKotlinIntegrationTest {
 
     private fun file(fileName: String) =
         projectDir.run {
-            makeParentDirsOf(fileName)
+            makeParentFoldersOf(fileName)
             newFile(fileName)
         }
 
-    private fun TemporaryFolder.makeParentDirsOf(fileName: String) {
+    private fun existingFolder(relativePath: String) =
+        File(projectDir.root, relativePath).run {
+            assert(isDirectory && exists())
+            canonicalFile
+        }
+
+    private fun TemporaryFolder.makeParentFoldersOf(fileName: String) {
         File(root, fileName).parentFile.mkdirs()
     }
 
