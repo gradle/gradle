@@ -17,7 +17,6 @@
 package org.gradle.testing.jacoco.plugins;
 
 import com.google.common.base.Joiner;
-import groovy.lang.GroovyObjectSupport;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Incubating;
 import org.gradle.internal.jacoco.JacocoAgentJar;
