@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.rules;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
@@ -42,19 +41,13 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     }
 
     @Override
-    protected HashCode getPreviousPreCheckHash() {
-        return previous.getOutputFilesHash();
-    }
-
-    @Override
     protected Set<ChangeFilter> getFileChangeFilters() {
         return IGNORE_ADDED_FILES;
     }
 
     @Override
     public void saveCurrent() {
-        PreCheckSet outputFilesAfterPreCheck = buildPreCheckSet();
-        Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(outputFilesAfterPreCheck);
+        final Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotter(), getTitle(), getFileProperties(), isAllowSnapshotReuse());
 
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
         for (Map.Entry<String, FileCollection> entry : fileProperties.entrySet()) {
@@ -68,7 +61,6 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
         }
 
         current.setOutputFilesSnapshot(builder.build());
-        current.setOutputFilesHash(outputFilesAfterPreCheck.getHash());
     }
 
     private FileCollectionSnapshot getSnapshotAfterPreviousExecution(String propertyName) {

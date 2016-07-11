@@ -51,7 +51,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     public History getHistory(final TaskInternal task) {
         final TaskHistory history = loadHistory(task);
-        final LazyTaskExecution currentExecution = new LazyTaskExecution(history);
+        final LazyTaskExecution currentExecution = new LazyTaskExecution();
         currentExecution.snapshotRepository = snapshotRepository;
         currentExecution.cacheAccess = cacheAccess;
         currentExecution.setOutputFiles(outputFiles(task));
@@ -111,18 +111,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                         taskHistoryCache.put(task.getPath(), history);
                     }
                 });
-            }
-
-            @Override
-            public void finished(boolean wasUpToDate) {
-                if (wasUpToDate && history.modified) {
-                    cacheAccess.useCache("Update task history", new Runnable() {
-                        public void run() {
-                            history.beforeSerialized();
-                            taskHistoryCache.put(task.getPath(), history);
-                        }
-                    });
-                }
             }
         };
     }
@@ -190,7 +178,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             LazyTaskExecution.TaskHistorySerializer executionSerializer = new LazyTaskExecution.TaskHistorySerializer(classLoader, stringInterner);
             for (int i = 0; i < executions; i++) {
                 LazyTaskExecution exec = executionSerializer.read(decoder);
-                exec.setTaskHistory(history);
                 history.configurations.add(exec);
             }
             return history;
@@ -221,15 +208,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             return super.toString() + "[" + configurations.size() + "]";
         }
 
-        private boolean modified;
-
         public void beforeSerialized() {
             //cleaning up the transient fields, so that any in-memory caching is happy
             for (LazyTaskExecution c : configurations) {
                 c.cacheAccess = null;
                 c.snapshotRepository = null;
             }
-            modified = false;
         }
     }
 
@@ -243,34 +227,6 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         private transient Map<String, FileCollectionSnapshot> outputFilesSnapshot;
         private transient FileCollectionSnapshot discoveredFilesSnapshot;
         private transient TaskArtifactStateCacheAccess cacheAccess;
-        private transient TaskHistory taskHistory;
-
-        LazyTaskExecution() {
-        }
-
-        LazyTaskExecution(TaskHistory taskHistory) {
-            this.taskHistory = taskHistory;
-        }
-
-        public void setTaskHistory(TaskHistory taskHistory) {
-            this.taskHistory = taskHistory;
-        }
-
-        @Override
-        public void setOutputFilesHash(HashCode outputFilesHash) {
-            if (taskHistory != null) {
-                taskHistory.modified = true;
-            }
-            super.setOutputFilesHash(outputFilesHash);
-        }
-
-        @Override
-        public void setInputFilesHash(HashCode inputFilesHash) {
-            if (taskHistory != null) {
-                taskHistory.modified = true;
-            }
-            super.setInputFilesHash(inputFilesHash);
-        }
 
         @Override
         public Map<String, FileCollectionSnapshot> getInputFilesSnapshot() {
@@ -346,12 +302,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             public LazyTaskExecution read(Decoder decoder) throws Exception {
                 LazyTaskExecution execution = new LazyTaskExecution();
-
                 execution.inputFilesSnapshotIds = readSnapshotIds(decoder);
-                execution.setInputFilesHash(HashCode.fromBytes(decoder.readBinary()));
-
                 execution.outputFilesSnapshotIds = readSnapshotIds(decoder);
-                execution.setOutputFilesHash(HashCode.fromBytes(decoder.readBinary()));
                 execution.discoveredFilesSnapshotId = decoder.readLong();
                 execution.setTaskClass(decoder.readString());
                 if (decoder.readBoolean()) {
@@ -379,11 +331,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
             public void write(Encoder encoder, LazyTaskExecution execution) throws Exception {
                 writeSnapshotIds(encoder, execution.inputFilesSnapshotIds);
-                encoder.writeBinary(execution.getInputFilesHash().asBytes());
-
                 writeSnapshotIds(encoder, execution.outputFilesSnapshotIds);
-                encoder.writeBinary(execution.getOutputFilesHash().asBytes());
-
                 encoder.writeLong(execution.discoveredFilesSnapshotId);
                 encoder.writeString(execution.getTaskClass());
                 HashCode classLoaderHash = execution.getTaskClassLoaderHash();

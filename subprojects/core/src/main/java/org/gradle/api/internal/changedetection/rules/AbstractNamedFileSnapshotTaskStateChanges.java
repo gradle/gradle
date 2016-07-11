@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.hash.HashCode;
-import com.google.common.hash.Hasher;
-import com.google.common.hash.Hashing;
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
@@ -44,13 +40,11 @@ import java.util.Set;
 import java.util.SortedMap;
 
 abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges, FilesSnapshotSet {
-    private final PreCheckSet preChecksBefore;
     private Map<String, FileCollectionSnapshot> fileSnapshotsBeforeExecution;
     private final String taskName;
     private final boolean allowSnapshotReuse;
     private final String title;
     protected final SortedMap<String, FileCollection> fileProperties;
-    private final boolean noChanges;
     private final FileCollectionSnapshotter snapshotter;
     protected final TaskExecution previous;
     protected final TaskExecution current;
@@ -63,34 +57,23 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         this.allowSnapshotReuse = allowSnapshotReuse;
         this.title = title;
         this.fileProperties = fileProperties;
-        this.preChecksBefore = buildPreCheckSet(taskName, snapshotter, allowSnapshotReuse, title, fileProperties);
-        this.noChanges = previous != null
-            && getPreviousPreCheckHash() != null
-            && getPreviousPreCheckHash() == getPreCheckHash();
+        this.fileSnapshotsBeforeExecution = buildSnapshots(taskName, snapshotter, title, fileProperties, allowSnapshotReuse);
     }
 
-    protected PreCheckSet buildPreCheckSet() {
-        return buildPreCheckSet(taskName, snapshotter, allowSnapshotReuse, title, fileProperties);
+    protected String getTaskName() {
+        return taskName;
     }
 
-    private static PreCheckSet buildPreCheckSet(String taskName, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, SortedMap<String, FileCollection> fileProperties) {
-        Hasher hasher = Hashing.md5().newHasher();
-        ImmutableMap.Builder<String, FileCollectionSnapshot.PreCheck> builder = ImmutableMap.builder();
-        for (Map.Entry<String, FileCollection> entry : fileProperties.entrySet()) {
-            String propertyName = entry.getKey();
-            FileCollection files = entry.getValue();
-            FileCollectionSnapshot.PreCheck result;
-            try {
-                result = snapshotter.preCheck(files, allowSnapshotReuse);
-            } catch (UncheckedIOException e) {
-                throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertyName), e);
-            }
-            builder.put(propertyName, result);
+    protected boolean isAllowSnapshotReuse() {
+        return allowSnapshotReuse;
+    }
 
-            hasher.putString(propertyName, Charsets.UTF_8);
-            hasher.putInt(result.getHash());
-        }
-        return new PreCheckSet(builder.build(), hasher.hash());
+    protected String getTitle() {
+        return title;
+    }
+
+    protected SortedMap<String, FileCollection> getFileProperties() {
+        return fileProperties;
     }
 
     protected abstract Set<FileCollectionSnapshot.ChangeFilter> getFileChangeFilters();
@@ -103,24 +86,17 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     }
 
     protected Map<String, FileCollectionSnapshot> getCurrent() {
-        if (fileSnapshotsBeforeExecution == null) {
-            fileSnapshotsBeforeExecution = buildSnapshots(preChecksBefore);
-        }
         return fileSnapshotsBeforeExecution;
     }
 
-    protected Map<String, FileCollectionSnapshot> buildSnapshots(PreCheckSet preCheckSet) {
-        return buildSnapshots(taskName, snapshotter, title, preCheckSet);
-    }
-
-    private static Map<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotter snapshotter, String title, PreCheckSet preCheckSet) {
+    protected static Map<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotter snapshotter, String title, SortedMap<String, FileCollection> fileProperties, boolean allowSnapshotReuse) {
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
-        for (Map.Entry<String, FileCollectionSnapshot.PreCheck> entry : preCheckSet.getPreChecks().entrySet()) {
+        for (Map.Entry<String, FileCollection> entry : fileProperties.entrySet()) {
             String propertyName = entry.getKey();
-            FileCollectionSnapshot.PreCheck preCheck = entry.getValue();
+            FileCollection files = entry.getValue();
             FileCollectionSnapshot result;
             try {
-                result = snapshotter.snapshot(preCheck);
+                result = snapshotter.snapshot(files, allowSnapshotReuse);
             } catch (UncheckedIOException e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertyName), e);
             }
@@ -129,17 +105,8 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return builder.build();
     }
 
-    protected HashCode getPreCheckHash() {
-        return preChecksBefore.getHash();
-    }
-
-    abstract protected HashCode getPreviousPreCheckHash();
-
     @Override
     public Iterator<TaskStateChange> iterator() {
-        if (noChanges) {
-            return Iterators.emptyIterator();
-        }
         if (getPrevious() == null) {
             return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange(title + " file history is not available."));
         }
@@ -177,11 +144,6 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     }
 
     @Override
-    public void snapshotBeforeTask() {
-        getCurrent();
-    }
-
-    @Override
     public void snapshotAfterTask() {
         saveCurrent();
     }
@@ -200,23 +162,5 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
             }
         }
         return null;
-    }
-
-    protected static class PreCheckSet {
-        private final Map<String, FileCollectionSnapshot.PreCheck> preChecks;
-        private final HashCode hashCode;
-
-        public PreCheckSet(Map<String, FileCollectionSnapshot.PreCheck> preChecks, HashCode hashCode) {
-            this.preChecks = preChecks;
-            this.hashCode = hashCode;
-        }
-
-        public Map<String, FileCollectionSnapshot.PreCheck> getPreChecks() {
-            return preChecks;
-        }
-
-        public HashCode getHash() {
-            return hashCode;
-        }
     }
 }
