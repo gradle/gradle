@@ -18,13 +18,18 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.testing.Test
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
 
 class JacocoPluginSpec extends Specification {
-    Project project = TestUtil.createRootProject()
+    @Rule
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
+    Project project = TestUtil.createRootProject(temporaryFolder.testDirectory)
 
     def setup() {
         project.apply plugin: 'jacoco'
