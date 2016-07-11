@@ -318,6 +318,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     throw new UnsupportedOperationException("Cannot load script that does nothing.");
                 }
                 try {
+                    // Classloader scope will be handled by the cache, class will be released when the classloader is.
                     ClassLoader loader = classLoaderCache.get(classLoaderId, new DefaultClassPath(scriptCacheDir), classLoader, null);
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {

@@ -139,6 +139,8 @@ public class PayloadSerializer {
             return objectStream.readObject();
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
+        } finally {
+            map.close();
         }
     }
 }
