@@ -22,6 +22,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.CompositeBuildActionParameters;
 import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.composite.CompositeBuildController;
+import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -48,8 +49,8 @@ public class CompositeBuildExecutionRunner implements CompositeBuildActionRunner
     }
 
     private void executeTasksInProcess(ExecuteBuildAction action, List<GradleParticipantBuild> participantBuilds, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
-        DefaultCompositeContextBuilder contextBuilder = new DefaultCompositeContextBuilder(action.getStartParameter(), buildRequestContext, sharedServices, true);
-        contextBuilder.addToCompositeContext(participantBuilds);
+        CompositeContextBuilder contextBuilder = sharedServices.get(CompositeContextBuilder.class);
+        contextBuilder.addToCompositeContext(participantBuilds, buildRequestContext, true);
 
         BuildActionRunner runner = new ExecuteBuildActionRunner();
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);

@@ -35,24 +35,18 @@ import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 
 import java.util.List;
 
-// TODO:DAZ Work out a way to have this registered as a BuildSession scoped service
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DefaultCompositeContextBuilder.class);
     private final StartParameter buildStartParam;
-    private final BuildRequestContext requestContext;
     private final ServiceRegistry sharedServices;
-    private final boolean propagateFailures;
 
-    public DefaultCompositeContextBuilder(StartParameter startParameter, BuildRequestContext requestContext,
-                                          ServiceRegistry services, boolean propagateFailures) {
+    public DefaultCompositeContextBuilder(StartParameter startParameter, ServiceRegistry services) {
         this.buildStartParam = startParameter;
-        this.requestContext = requestContext;
         this.sharedServices = services;
-        this.propagateFailures = propagateFailures;
     }
 
     @Override
-    public void addToCompositeContext(List<GradleParticipantBuild> participantBuilds) {
+    public void addToCompositeContext(List<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeBuildContext context = sharedServices.get(CompositeBuildContext.class);
         BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(sharedServices.get(StyledTextOutputFactory.class), buildStartParam, requestContext.getClient());

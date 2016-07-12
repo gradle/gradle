@@ -25,6 +25,7 @@ import org.gradle.api.internal.composite.CompositeProjectArtifactBuilder;
 import org.gradle.api.internal.composite.DefaultBuildableCompositeBuildContext;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.composite.CompositeBuildActionRunner;
+import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -65,6 +66,10 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     public static class CompositeBuildSessionScopeServices {
         public CompositeBuildContext createCompositeBuildContext() {
             return new DefaultBuildableCompositeBuildContext();
+        }
+
+        public CompositeContextBuilder createCompositeContextBuilder(StartParameter startParameter, ServiceRegistry serviceRegistry) {
+            return new DefaultCompositeContextBuilder(startParameter, serviceRegistry);
         }
 
         public ProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext, GradleLauncherFactory gradleLauncherFactory, StartParameter startParameter, ServiceRegistry compositeServices) {

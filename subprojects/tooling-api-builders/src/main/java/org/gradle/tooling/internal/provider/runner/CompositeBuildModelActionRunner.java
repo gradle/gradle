@@ -29,6 +29,7 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.CompositeBuildActionParameters;
 import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.composite.CompositeBuildController;
+import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.invocation.BuildAction;
@@ -85,7 +86,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
                                                        CompositeParameters compositeParameters, ServiceRegistry sharedServices) {
 
         boolean propagateFailures = ModelIdentifier.NULL_MODEL.equals(modelAction.getModelName());
-        registerParticipantsInContext(modelAction.getStartParameter(), propagateFailures, buildRequestContext, compositeParameters, sharedServices);
+        registerParticipantsInContext(compositeParameters, propagateFailures, buildRequestContext, sharedServices);
 
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelsActionRunner());
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(sharedServices.get(GradleLauncherFactory.class), runner);
@@ -134,8 +135,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     }
 
     private void executeTasksInProcess(BuildModelAction compositeAction, CompositeParameters compositeParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
-
-        registerParticipantsInContext(compositeAction.getStartParameter(), true, buildRequestContext, compositeParameters, sharedServices);
+        registerParticipantsInContext(compositeParameters, true, buildRequestContext, sharedServices);
 
         StartParameter startParameter = compositeAction.getStartParameter().newInstance();
         GradleParticipantBuild targetParticipant = compositeParameters.getTargetBuild();
@@ -154,9 +154,8 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         buildActionExecuter.execute(participantAction, buildRequestContext, null, buildScopedServices);
     }
 
-    private void registerParticipantsInContext(StartParameter startParameter, boolean propagateFailures,
-                                               BuildRequestContext buildRequestContext, CompositeParameters compositeParameters, ServiceRegistry sharedServices) {
-        DefaultCompositeContextBuilder contextBuilder = new DefaultCompositeContextBuilder(startParameter, buildRequestContext, sharedServices, propagateFailures);
-        contextBuilder.addToCompositeContext(compositeParameters.getBuilds());
+    private void registerParticipantsInContext(CompositeParameters compositeParameters, boolean propagateFailures, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
+        CompositeContextBuilder contextBuilder = sharedServices.get(CompositeContextBuilder.class);
+        contextBuilder.addToCompositeContext(compositeParameters.getBuilds(), buildRequestContext, propagateFailures);
     }
 }
