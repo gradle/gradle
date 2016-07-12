@@ -27,6 +27,7 @@ import org.gradle.api.tasks.OutputDirectories
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
+import spock.lang.Issue
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -134,5 +135,32 @@ class DefaultTaskClassInfoStoreTest extends Specification {
         def info = taskClassInfoStore.getTaskClassInfo(SimpleTask)
         expect:
         info == taskClassInfoStore.getTaskClassInfo(SimpleTask)
+    }
+
+    @SuppressWarnings("GroovyUnusedDeclaration")
+    private static class IsGetterTask extends DefaultTask {
+        @Input
+        private boolean feature1
+        private boolean feature2
+
+        boolean isFeature1() {
+            return feature1
+        }
+        void setFeature1(boolean enabled) {
+            this.feature1 = enabled
+        }
+        boolean isFeature2() {
+            return feature2
+        }
+        void setFeature2(boolean enabled) {
+            this.feature2 = enabled
+        }
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-2115")
+    def "annotation on private filed is recognized for is-getter"() {
+        def info = taskClassInfoStore.getTaskClassInfo(IsGetterTask)
+        expect:
+        info.validator.validatedProperties*.name as List == ["feature1"]
     }
 }
