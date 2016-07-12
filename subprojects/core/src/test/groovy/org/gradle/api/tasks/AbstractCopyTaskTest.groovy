@@ -16,16 +16,21 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.internal.file.copy.CopyAction
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.file.WorkspaceTest
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import org.junit.Test
 
 class AbstractCopyTaskTest extends WorkspaceTest {
 
     TestCopyTask task
 
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+
     def setup() {
-        task = TestUtil.createTask(TestCopyTask)
+        task = TestUtil.create(temporaryFolder).task(TestCopyTask)
     }
 
     @Test

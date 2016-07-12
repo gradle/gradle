@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.artifacts
 
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class ProjectBackedModuleTest extends Specification {
+class ProjectBackedModuleTest extends AbstractProjectBuilderSpec {
 
     def "module exposes project properties"() {
         given:
-        def project = TestUtil.createRootProject()
         def module = new ProjectBackedModule(project)
 
         expect:

@@ -19,14 +19,12 @@ package org.gradle.plugins.ide.internal.tooling
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.TestUtil
-import org.junit.Rule;
-import spock.lang.Specification;
 
-public class ProjectPublicationsBuilderTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir
+public class ProjectPublicationsBuilderTest extends AbstractProjectBuilderSpec {
+
     def publicationRegistry = Stub(ProjectPublicationRegistry) {
         getPublications(":") >> [Stub(ProjectPublication) {
             getId() >> Stub(ModuleVersionIdentifier) {
@@ -39,7 +37,7 @@ public class ProjectPublicationsBuilderTest extends Specification {
     def builder = new PublicationsBuilder(publicationRegistry)
 
     def "builds basics for project"() {
-        def project = TestUtil.builder().withName("test").withProjectDir(tmpDir.testDirectory).build()
+        def project = TestUtil.builder(temporaryFolder).withName("test").build()
         project.description = 'a test project'
 
         when:

@@ -18,11 +18,11 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class ProjectReportTaskTest extends Specification {
-    final ProjectInternal project = TestUtil.createRootProject()
+class ProjectReportTaskTest extends AbstractProjectBuilderSpec {
+    final ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     final ProjectReportTask task = TestUtil.createTask(ProjectReportTask, project)
     final TestStyledTextOutput output = new TestStyledTextOutput().ignoreStyle()
 

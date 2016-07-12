@@ -19,14 +19,21 @@ import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.tasks.TaskDependencyMatchers
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import org.junit.Test
 
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.instanceOf
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
 
 public class JettyPluginTest {
-    private final Project project = TestUtil.createRootProject()
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+
+    private final Project project = TestUtil.create(temporaryFolder).rootProject()
 
     @Test
     public void appliesWarPluginAndAddsConventionToProject() {
@@ -36,7 +43,7 @@ public class JettyPluginTest {
 
         assertThat(project.convention.plugins.jetty, instanceOf(JettyPluginConvention))
     }
-    
+
     @Test
     public void addsTasksToProject() {
         new JettyPlugin().apply(project)

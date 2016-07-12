@@ -57,6 +57,7 @@ import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
 import org.gradle.util.TestUtil
@@ -77,6 +78,8 @@ class DefaultProjectTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     static final String TEST_BUILD_FILE_NAME = 'build.gradle'
+    @org.junit.Rule
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     Task testTask;
 
@@ -135,7 +138,7 @@ class DefaultProjectTest {
 
         testScript = new EmptyScript()
 
-        testTask = TestUtil.createTask(DefaultTask)
+        testTask = TestUtil.create(temporaryFolder).task(DefaultTask)
 
         projectRegistry = new DefaultProjectRegistry()
 

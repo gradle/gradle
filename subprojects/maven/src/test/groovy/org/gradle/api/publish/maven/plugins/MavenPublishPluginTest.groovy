@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.publish.maven.plugins
+
 import org.gradle.api.artifacts.PublishArtifactSet
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.component.SoftwareComponentInternal
@@ -24,12 +25,10 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPublication
 import org.gradle.api.publish.maven.tasks.PublishToMavenLocal
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class MavenPublishPluginTest extends Specification {
+class MavenPublishPluginTest extends AbstractProjectBuilderSpec {
 
-    def project = TestUtil.createRootProject()
     PublishingExtension publishing
     def componentArtifacts = Mock(FileCollection)
     def component = Stub(SoftwareComponentInternal)

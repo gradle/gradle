@@ -13,29 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.diagnostics;
+package org.gradle.api.tasks.diagnostics
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
 import org.gradle.api.tasks.diagnostics.internal.dependencies.AsciiDependencyReportRenderer
-import org.gradle.testfixtures.ProjectBuilder
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class DependencyReportTaskTest extends Specification {
-    private Project project = new ProjectBuilder().build()
-    private DependencyReportTask task = TestUtil.createTask(DependencyReportTask.class, project)
+class DependencyReportTaskTest extends AbstractProjectBuilderSpec {
+    private DependencyReportTask task
     private DependencyReportRenderer renderer = Mock(DependencyReportRenderer)
-    private Configuration conf1 = project.configurations.create("conf1")
-    private Configuration conf2 = project.configurations.create("conf2")
+    private Configuration conf1
+    private Configuration conf2
 
-    void setup() {
+    def setup() {
+        task = TestUtil.createTask(DependencyReportTask.class, project)
+        conf1 = project.configurations.create("conf1")
+        conf2 = project.configurations.create("conf2")
         task.renderer = renderer
     }
 
     def "task is configured correctly"() {
-        task = TestUtil.createTask(DependencyReportTask.class);
+        task = TestUtil.create(temporaryFolder).task(DependencyReportTask.class);
 
         expect:
         task.renderer instanceof AsciiDependencyReportRenderer

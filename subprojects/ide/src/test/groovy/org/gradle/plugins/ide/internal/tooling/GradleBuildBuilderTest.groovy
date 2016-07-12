@@ -16,15 +16,25 @@
 
 package org.gradle.plugins.ide.internal.tooling
 
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.util.TestUtil
+import org.gradle.util.UsesNativeServices
+import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
 
+@UsesNativeServices
+@CleanupTestDirectory
 class GradleBuildBuilderTest extends Specification {
+    @Shared
+    @ClassRule
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
     def builder = new GradleBuildBuilder()
-    @Shared def project = TestUtil.builder().withName("root").build()
-    @Shared def child1 = TestUtil.builder().withName("child1").withParent(project).build()
-    @Shared def child2 = TestUtil.builder().withName("child2").withParent(project).build()
+    @Shared def project = TestUtil.builder(temporaryFolder).withName("root").build()
+    @Shared def child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
+    @Shared def child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
 
     def "builds model"() {
         expect:

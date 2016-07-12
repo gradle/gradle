@@ -20,12 +20,8 @@ import org.gradle.api.Plugin
 import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.toolchain.VisualCpp
 import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
 
 class MicrosoftVisualCppCompilerPluginTest extends NativeToolChainPluginTest {
-    @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     @Override
     Class<? extends Plugin> getPluginClass() {
@@ -67,6 +63,6 @@ class MicrosoftVisualCppCompilerPluginTest extends NativeToolChainPluginTest {
     }
 
     def file(String name) {
-        testDirectoryProvider.testDirectory.file(name)
+        temporaryFolder.testDirectory.file(name)
     }
 }

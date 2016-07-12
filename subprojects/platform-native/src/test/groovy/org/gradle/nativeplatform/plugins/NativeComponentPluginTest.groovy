@@ -25,13 +25,11 @@ import org.gradle.nativeplatform.tasks.InstallExecutable
 import org.gradle.nativeplatform.tasks.LinkExecutable
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary
 import org.gradle.platform.base.BinarySpec
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 
-class NativeComponentPluginTest extends Specification {
-    final def project = TestUtil.createRootProject()
+class NativeComponentPluginTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         project.pluginManager.apply(NativeComponentPlugin)

@@ -15,18 +15,16 @@
  */
 
 package org.gradle.api.publish.ivy.tasks
+
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.publish.ivy.IvyPublication
-import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class PublishToIvyRepositoryTest extends Specification {
+class PublishToIvyRepositoryTest extends AbstractProjectBuilderSpec {
 
-    Project project
     PublishToIvyRepository publish
 
     def normalizedPublication = Mock(IvyNormalizedPublication)
@@ -38,7 +36,6 @@ class PublishToIvyRepositoryTest extends Specification {
     def repository = Mock(IvyArtifactRepository) {}
 
     def setup() {
-        project = TestUtil.createRootProject()
         publish = createPublish("publish")
     }
 

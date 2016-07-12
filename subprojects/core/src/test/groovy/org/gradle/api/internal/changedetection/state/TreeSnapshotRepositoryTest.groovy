@@ -22,25 +22,22 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.internal.hash.HashValue
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Subject
 
-@UsesNativeServices
-class TreeSnapshotRepositoryTest extends Specification {
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+class TreeSnapshotRepositoryTest extends AbstractProjectBuilderSpec {
     def mapping = Stub(CacheScopeMapping) {
         getBaseDirectory(_, _, _) >> {
-            return tmpDir.createDir("history-cache")
+            return temporaryFolder.createDir("history-cache")
         }
     }
     CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
-    TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(TestUtil.createRootProject().gradle, cacheRepository, new NoOpDecorator())
+    TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(
+        TestUtil.create(temporaryFolder).rootProject().gradle,
+        cacheRepository,
+        new NoOpDecorator())
     @Subject
     TreeSnapshotRepository treeSnapshotRepository = new TreeSnapshotRepository(cacheAccess, new StringInterner())
 

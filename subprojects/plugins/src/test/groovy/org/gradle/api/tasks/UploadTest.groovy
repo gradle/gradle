@@ -16,14 +16,18 @@
 
 package org.gradle.api.tasks
 
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 class UploadTest extends Specification {
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
 
     def "can create task"() {
         when:
-        TestUtil.createTask(Upload)
+        TestUtil.create(temporaryFolder).task(Upload)
 
         then:
         noExceptionThrown()

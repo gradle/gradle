@@ -15,18 +15,23 @@
  */
 
 package org.gradle.api.internal.project
+
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
 import static org.gradle.util.TestUtil.createChildProject
 
-class NewDefaultProjectTest extends Specification {
+class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
 
-    DefaultProject root = TestUtil.createRootProject()
+    DefaultProject root
+
+    def setup() {
+        root = TestUtil.createRootProject(temporaryFolder.testDirectory)
+    }
 
     void "delegates to artifacts handler"() {
         def handler = Mock(ArtifactHandler)

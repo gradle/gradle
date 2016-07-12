@@ -26,26 +26,22 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.ParallelizableTask
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.util.TestUtil.createChildProject
 import static org.gradle.util.TestUtil.createRootProject
 
-class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
+class DefaultTaskExecutionPlanParallelTaskHandlingTest extends AbstractProjectBuilderSpec {
 
-    @Rule
-    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     FileSystem fs = NativeServicesTestFixture.instance.get(FileSystem)
 
     DefaultTaskExecutionPlan executionPlan = new DefaultTaskExecutionPlan(Stub(BuildCancellationToken), true)
-    ProjectInternal root = createRootProject()
+    ProjectInternal root = createRootProject(temporaryFolder.testDirectory)
 
     List<TaskInfo> startedTasks = []
     List<Thread> blockedThreads = []
@@ -79,7 +75,7 @@ class DefaultTaskExecutionPlanParallelTaskHandlingTest extends Specification {
     }
 
     TestFile file(String path) {
-        tmp.file(path)
+        temporaryFolder.file(path)
     }
 
     @ParallelizableTask

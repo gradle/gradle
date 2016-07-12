@@ -46,45 +46,42 @@ import org.gradle.internal.id.RandomLongIdGenerator
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.serialize.DefaultSerializerRegistry
 import org.gradle.internal.serialize.SerializerRegistry
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
 
 import static org.gradle.util.WrapUtil.toMap
 import static org.gradle.util.WrapUtil.toSet
 
-public class DefaultTaskArtifactStateRepositoryTest extends Specification {
+public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuilderSpec {
 
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final project = TestUtil.createRootProject()
-    final gradle = project.getGradle()
-    final outputFile = tmpDir.file("output-file")
-    final outputDir = tmpDir.file("output-dir")
+    def gradle
+    final outputFile = temporaryFolder.file("output-file")
+    final outputDir = temporaryFolder.file("output-dir")
     final outputDirFile = outputDir.file("some-file")
     final outputDirFile2 = outputDir.file("some-file-2")
-    final emptyOutputDir = tmpDir.file("empty-output-dir")
-    final missingOutputFile = tmpDir.file("missing-output-file")
-    final inputFile = tmpDir.createFile("input-file")
-    final inputDir = tmpDir.createDir("input-dir")
+    final emptyOutputDir = temporaryFolder.file("empty-output-dir")
+    final missingOutputFile = temporaryFolder.file("missing-output-file")
+    final inputFile = temporaryFolder.createFile("input-file")
+    final inputDir = temporaryFolder.createDir("input-dir")
     final inputDirFile = inputDir.file("input-file2").createFile()
-    final missingInputFile = tmpDir.file("missing-input-file")
+    final missingInputFile = temporaryFolder.file("missing-input-file")
     final inputFiles = toSet(inputFile, inputDir, missingInputFile)
     final outputFiles = toSet(outputFile, outputDir, emptyOutputDir, missingOutputFile)
     final createFiles = toSet(outputFile, outputDirFile, outputDirFile2)
-    TaskInternal task = builder.task()
+    TaskInternal task
     def mapping = Stub(CacheScopeMapping) {
         getBaseDirectory(_, _, _) >> {
-            return tmpDir.createDir("history-cache")
+            return temporaryFolder.createDir("history-cache")
         }
     }
     DefaultTaskArtifactStateRepository repository
     CachingTreeVisitor treeVisitor
 
     def setup() {
+        gradle = project.getGradle()
+        task  = builder.task()
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
         def stringInterner = new StringInterner()
@@ -179,7 +176,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     def artifactsAreNotUpToDateWhenAnyOutputFilesAddedToSet() {
         when:
         execute(task)
-        TaskInternal outputFilesAddedTask = builder.withOutputFiles(outputFile, outputDir, tmpDir.createFile("output-file-2"), emptyOutputDir, missingOutputFile).task()
+        TaskInternal outputFilesAddedTask = builder.withOutputFiles(outputFile, outputDir, temporaryFolder.createFile("output-file-2"), emptyOutputDir, missingOutputFile).task()
 
         then:
         outOfDate outputFilesAddedTask
@@ -205,7 +202,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
     }
 
     def artifactsAreNotUpToDateWhenAnyInputFilesAddedToSet() {
-        final addedFile = tmpDir.createFile("other-input")
+        final addedFile = temporaryFolder.createFile("other-input")
 
         when:
         execute(task)
@@ -554,7 +551,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends Specification {
 
     def taskCanProduceIntoDifferentSetsOfOutputFiles() {
         when:
-        TestFile outputDir2 = tmpDir.createDir("output-dir-2")
+        TestFile outputDir2 = temporaryFolder.createDir("output-dir-2")
         TestFile outputDirFile2 = outputDir2.file("output-file-2")
         TaskInternal task1 = builder.withOutputFiles(outputDir).createsFiles(outputDirFile).task()
         TaskInternal task2 = builder.withOutputFiles(outputDir2).createsFiles(outputDirFile2).task()
