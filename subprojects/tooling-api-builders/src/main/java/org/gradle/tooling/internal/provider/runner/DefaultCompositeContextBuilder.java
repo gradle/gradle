@@ -35,6 +35,7 @@ import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 
 import java.util.List;
 
+// TODO:DAZ Work out a way to have this registered as a BuildSession scoped service
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DefaultCompositeContextBuilder.class);
     private final StartParameter buildStartParam;
