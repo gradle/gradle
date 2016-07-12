@@ -21,10 +21,28 @@ class IvyDescriptorDependency {
     String module
     String revision
     String conf
+    String transitive
     Collection<IvyDescriptorDependencyExclusion> exclusions = []
 
     IvyDescriptorDependency hasConf(def conf) {
         assert this.conf == conf
         return this
+    }
+    boolean transitiveEnabled() { 
+        return this.transitive != 'false'
+    }
+    boolean hasExcludes() {
+        this.exclusions && !this.exclusions.isEmpty()
+    }
+    //For Legacy ivy publish via uploadAr
+    boolean hasExclude(String org, String module, String name, String type, String ext, String conf, String matcher){
+        if(hasExcludes()) {
+            for(IvyDescriptorDependencyExclusion exclude : this.exclusions) {
+                if (exclude.org == org && exclude.module == module && exclude.name == name && exclude.type == type &&  exclude.ext == ext && exclude.conf == conf && exclude.matcher == matcher) {
+                    return true;
+                }
+           }
+        }
+        return false;
     }
 }

@@ -36,7 +36,16 @@ class MavenScope {
             assert dependency.hasType(type)
         }
     }
-
+    boolean hasDependencyExclusion(String dependency, String excludeGrpId, String excludeArtifactId){
+        def dep = expectDependency(dependency)
+        for(MavenDependencyExclusion exclusion : dep.exclusions) {
+			assert exclusion.artifactId.equals(excludeArtifactId) && exclusion.groupId.equals(excludeGrpId)
+            if(exclusion.artifactId.equals(excludeArtifactId) && exclusion.groupId.equals(excludeGrpId)) {
+                return true
+            }
+        }
+        return false
+    }
     MavenDependency expectDependency(String key) {
         final dependency = dependencies[key]
         if (dependency == null) {
