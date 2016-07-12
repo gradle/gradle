@@ -36,8 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.internal.classloader.ClassLoaderUtil.closeClassLoader;
-
 public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
 
     private final Object lock = new Object();
@@ -111,7 +109,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
     public void stop() {
         synchronized (lock) {
             for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : sortClassLoadersLeafsFirst()) {
-                closeClassLoader(entry.getValue().classLoader);
+                ClassLoaderUtils.tryClose(entry.getValue().classLoader);
             }
             byId.clear();
             bySpec.clear();
