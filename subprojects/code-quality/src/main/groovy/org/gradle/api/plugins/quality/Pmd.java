@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.plugins.quality.internal.PmdInvoker;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
@@ -103,8 +104,9 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * @deprecated Use {@link #reports(Action)} instead
      */
     @Nested
+    @Deprecated
     public PmdReports reports(@DelegatesTo(value = PmdReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
-        return (PmdReports) reports.configure(closure);
+        return reports(new ClosureBackedAction<PmdReports>(closure));
     }
 
     /**

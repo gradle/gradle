@@ -20,6 +20,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
@@ -106,7 +107,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      */
     @Deprecated
     public CheckstyleReports reports(@DelegatesTo(value=CheckstyleReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
-        return (CheckstyleReports) reports.configure(closure);
+        return reports(new ClosureBackedAction<CheckstyleReports>(closure));
     }
 
     /**
@@ -129,7 +130,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @return The reports container
      */
     public CheckstyleReports reports(Action<? super CheckstyleReports> configureAction) {
-        CheckstyleReports reports = this.reports;
         configureAction.execute(reports);
         return reports;
     }

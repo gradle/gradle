@@ -17,9 +17,11 @@
 package org.gradle.api.reporting.dependencies;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -78,8 +80,14 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     }
 
     @Override
+    @Deprecated
     public DependencyReportContainer reports(Closure closure) {
-        reports.configure(closure);
+        return reports(new ClosureBackedAction<DependencyReportContainer>(closure));
+    }
+
+    @Override
+    public DependencyReportContainer reports(Action<? super DependencyReportContainer> configureAction) {
+        configureAction.execute(reports);
         return reports;
     }
 
