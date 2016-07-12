@@ -153,6 +153,19 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
     }
 
+    public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
+        if (copySpec == null) {
+            into(destPath);
+            return this;
+        } else {
+            CopySpecInternal child = addChild();
+            child.into(destPath);
+            CopySpecWrapper wrapper = instantiator.newInstance(CopySpecWrapper.class, child);
+            copySpec.execute(wrapper);
+            return wrapper;
+        }
+    }
+
     public boolean isCaseSensitive() {
         return buildRootResolver().isCaseSensitive();
     }

@@ -219,6 +219,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
+        getMainSpec().into(destPath, copySpec);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public AbstractCopyTask include(String... includes) {
         getMainSpec().include(includes);
         return this;

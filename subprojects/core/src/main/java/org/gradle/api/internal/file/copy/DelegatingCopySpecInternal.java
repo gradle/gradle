@@ -126,6 +126,10 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().into(destPath, configureClosure);
     }
 
+    public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
+        return getDelegateCopySpec().into(destPath, copySpec);
+    }
+
     public CopySpec rename(Closure closure) {
         return getDelegateCopySpec().rename(closure);
     }

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.bundling;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
@@ -60,19 +61,21 @@ public class War extends Jar {
         // Add these as separate specs, so they are not affected by the changes to the main spec
 
         webInf = (DefaultCopySpec) getRootSpec().addChildBeforeSpec(getMainSpec()).into("WEB-INF");
-        webInf.into("classes", new Closure<CopySpec>(this, this) {
-            public CopySpec doCall(CopySpec it) {
-                return it.from(new Callable<Iterable<File>>() {
-                    public Iterable<File> call() {
-                        FileCollection classpath = getClasspath();
-                        return classpath!=null ? Iterables.filter(classpath, IS_DIRECTORY) : new ArrayList<File>();
-                    }
-                });
-            }
-        });
-        webInf.into("lib", new Closure<CopySpec>(this, this) {
-            public CopySpec doCall(CopySpec it) {
-                return it.from(new Callable<Iterable<File>>() {
+        webInf.into("classes",
+            new Action<CopySpec>() {
+                @Override
+                public void execute(CopySpec copySpec) {
+                    copySpec.from(new Callable<Iterable<File>>() {
+                        public Iterable<File> call() {
+                            FileCollection classpath = getClasspath();
+                            return classpath!=null ? Iterables.filter(classpath, IS_DIRECTORY) : new ArrayList<File>();
+                        }
+                    });
+                }
+            });
+        webInf.into("lib", new Action<CopySpec>() {
+            public void execute(CopySpec it) {
+                it.from(new Callable<Iterable<File>>() {
                     public Iterable<File> call() {
                         FileCollection classpath = getClasspath();
                         return classpath!=null ? Iterables.filter(classpath, IS_FILE) : new ArrayList<File>();
@@ -81,14 +84,14 @@ public class War extends Jar {
             }
 
         });
-        webInf.into("", new Closure<CopySpec>(this, this) {
-            public CopySpec doCall(CopySpec it) {
+        webInf.into("", new Action<CopySpec>() {
+            public void execute(CopySpec it) {
                 it.from(new Callable<File>() {
                     public File call() {
                         return getWebXml();
                     }
                 });
-                return it.rename(new Closure<String>(War.this, War.this) {
+                it.rename(new Closure<String>(War.this, War.this) {
                     public String doCall(Object it) {
                         return "web.xml";
                     }

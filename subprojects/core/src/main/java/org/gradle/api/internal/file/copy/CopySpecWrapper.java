@@ -149,6 +149,11 @@ public class CopySpecWrapper implements CopySpec {
         return delegate.into(destPath, configureClosure);
     }
 
+    @Override
+    public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
+        return delegate.into(destPath, copySpec);
+    }
+
     public CopySpec rename(Closure closure) {
         delegate.rename(closure);
         return this;

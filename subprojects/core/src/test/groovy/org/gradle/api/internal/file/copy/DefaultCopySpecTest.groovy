@@ -133,6 +133,17 @@ public class DefaultCopySpecTest {
     }
 
     @Test
+    public void testDestinationWithAction() {
+        CopySpec child = spec.into('target', new Action<CopySpec>() {
+            @Override
+            void execute(CopySpec copySpec) {
+            }
+        })
+        assertThat(child, not(sameInstance(spec as CopySpec)))
+        assertThat(unpackWrapper(child).buildRootResolver().destPath, equalTo(new RelativePath(false, 'target')))
+    }
+
+    @Test
     public void testNoArgFilter() {
         spec.filter(StripJavaComments)
         assertThat(spec.copyActions.size(), equalTo(1))
