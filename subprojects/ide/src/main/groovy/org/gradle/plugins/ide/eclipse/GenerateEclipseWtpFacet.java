@@ -29,7 +29,6 @@ import org.gradle.plugins.ide.eclipse.model.WtpFacet;
  */
 public class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
 
-    @Internal
     private EclipseWtpFacet facet;
 
     public GenerateEclipseWtpFacet() {
@@ -50,6 +49,7 @@ public class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet> {
     /**
      * The Eclipse WTP facet model containing the details required to generate the settings file.
      */
+    @Internal
     public EclipseWtpFacet getFacet() {
         return facet;
     }

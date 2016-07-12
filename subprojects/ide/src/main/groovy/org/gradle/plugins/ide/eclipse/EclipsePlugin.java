@@ -120,12 +120,7 @@ public class EclipsePlugin extends IdePlugin {
     }
 
     private void registerEclipseArtifacts() {
-        Set<Project> projectsWithEclipse = Sets.filter(project.getRootProject().getAllprojects(), new Predicate<Project>() {
-            @Override
-            public boolean apply(Project project) {
-                return project.getPlugins().hasPlugin(EclipsePlugin.class);
-            }
-        });
+        Set<Project> projectsWithEclipse = Sets.filter(project.getRootProject().getAllprojects(), HAS_ECLIPSE_PLUGIN);
         for (Project project : projectsWithEclipse) {
             registerEclipseArtifacts(project);
         }
@@ -395,6 +390,13 @@ public class EclipsePlugin extends IdePlugin {
         action.execute(task);
         plugin.addWorker(task);
     }
+
+    private static final Predicate<Project> HAS_ECLIPSE_PLUGIN = new Predicate<Project>() {
+        @Override
+        public boolean apply(Project project) {
+            return project.getPlugins().hasPlugin(EclipsePlugin.class);
+        }
+    };
 
     @Deprecated
     public static String getECLIPSE_TASK_NAME() {

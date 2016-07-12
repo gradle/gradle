@@ -27,7 +27,6 @@ import java.io.File;
  */
 public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
 
-    @Internal
     private IdeaProject ideaProject;
 
     @Override
@@ -58,6 +57,7 @@ public class GenerateIdeaProject extends XmlGeneratorTask<Project> {
     /**
      * The Idea project model containing the details required to generate the project file.
      */
+    @Internal
     public IdeaProject getIdeaProject() {
         return ideaProject;
     }

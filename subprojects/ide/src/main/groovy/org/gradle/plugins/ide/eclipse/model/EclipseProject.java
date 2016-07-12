@@ -15,15 +15,14 @@
  */
 package org.gradle.plugins.ide.eclipse.model;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.util.ConfigureUtil;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -112,6 +111,7 @@ import java.util.Set;
  */
 public class EclipseProject {
 
+    public static final ImmutableSet<String> VALID_LINKED_RESOURCE_ARGS = ImmutableSet.of("name", "type", "location", "locationUri");
     private String name;
 
     private String comment;
@@ -277,10 +277,9 @@ public class EclipseProject {
      * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
      */
     public void linkedResource(Map<String, String> args) {
-        ArrayList<String> validKeys = new ArrayList<String>(Arrays.asList("name", "type", "location", "locationUri"));
-        Set<String> illegalArgs = DefaultGroovyMethods.minus(args.keySet(), validKeys);
+        Set<String> illegalArgs = Sets.difference(args.keySet(), VALID_LINKED_RESOURCE_ARGS);
         if (!illegalArgs.isEmpty()) {
-            throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs + ". Valid link args are: " + validKeys);
+            throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs + ". Valid link args are: " + VALID_LINKED_RESOURCE_ARGS);
         }
 
         linkedResources.add(new Link(args.get("name"), args.get("type"), args.get("location"), args.get("locationUri")));

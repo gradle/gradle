@@ -17,7 +17,6 @@ package org.gradle.plugins.ide.eclipse;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -106,11 +105,11 @@ public class EclipseWtpPlugin extends IdePlugin {
                     }
                 });
 
-                model.getClasspath().getFile().whenMerged(new Closure<Void>(EclipseWtpPlugin.this, EclipseWtpPlugin.this) {
-                    public void doCall(Classpath classpath) {
+                model.getClasspath().getFile().whenMerged(new Action<Classpath>() {
+                    @Override
+                    public void execute(Classpath classpath) {
                         new WtpClasspathAttributeSupport(project, model).enhance(classpath);
                     }
-
                 });
             }
         });

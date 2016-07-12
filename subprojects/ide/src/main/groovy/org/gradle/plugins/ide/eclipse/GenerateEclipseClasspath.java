@@ -27,7 +27,6 @@ import org.gradle.plugins.ide.eclipse.model.EclipseClasspath;
  */
 public class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
 
-    @Internal
     private EclipseClasspath classpath;
 
     public GenerateEclipseClasspath() {
@@ -47,6 +46,7 @@ public class GenerateEclipseClasspath extends XmlGeneratorTask<Classpath> {
     /**
      * The Eclipse Classpath model containing the information required to generate the classpath file.
      */
+    @Internal
     public EclipseClasspath getClasspath() {
         return classpath;
     }
