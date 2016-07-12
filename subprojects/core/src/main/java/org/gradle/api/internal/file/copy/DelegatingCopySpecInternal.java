@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.file.copy;
 
-import com.google.common.base.Function;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
@@ -160,7 +159,7 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().filter(closure);
     }
 
-    public CopySpec filter(Function<String, String> transformer) {
+    public CopySpec filter(Transformer<String, String> transformer) {
         return getDelegateCopySpec().filter(transformer);
     }
 

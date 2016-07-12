@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -283,9 +282,9 @@ public class DefaultCopySpec implements CopySpecInternal {
     public CopySpec filter(final Closure closure) {
         copyActions.add(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails fileCopyDetails) {
-                fileCopyDetails.filter(new Function<String, String>() {
+                fileCopyDetails.filter(new Transformer<String, String>() {
                     @Override
-                    public String apply(String input) {
+                    public String transform(String input) {
                         Object val = closure.call(input);
                         return val == null ? null : val.toString();
                     }
@@ -295,7 +294,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         return this;
     }
 
-    public CopySpec filter(final Function<String, String> transformer) {
+    public CopySpec filter(final Transformer<String, String> transformer) {
         copyActions.add(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails fileCopyDetails) {
                 fileCopyDetails.filter(transformer);

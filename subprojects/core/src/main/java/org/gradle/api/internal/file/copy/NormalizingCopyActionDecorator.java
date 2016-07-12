@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import groovy.lang.Closure;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.RelativePath;
@@ -199,7 +199,7 @@ public class NormalizingCopyActionDecorator implements CopyAction {
             throw new UnsupportedOperationException();
         }
 
-        public ContentFilterable filter(Function<String, String> transformer) {
+        public ContentFilterable filter(Transformer<String, String> transformer) {
             throw new UnsupportedOperationException();
         }
 

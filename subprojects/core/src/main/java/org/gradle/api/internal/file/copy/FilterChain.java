@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import com.google.common.base.Function;
 import groovy.lang.Closure;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
@@ -94,7 +93,7 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
         });
     }
 
-    public void add(final Function<String, String> transformer) {
+    public void add(final Transformer<String, String> transformer) {
         transformers.add(new Transformer<Reader, Reader>() {
             @Override
             public Reader transform(Reader reader) {
@@ -106,9 +105,9 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
     public void add(final Closure closure) {
         transformers.add(new Transformer<Reader, Reader>() {
             public Reader transform(Reader original) {
-                return new LineFilter(original, new Function<String, String>() {
+                return new LineFilter(original, new Transformer<String, String>() {
                     @Override
-                    public String apply(String input) {
+                    public String transform(String input) {
                         Object res = closure.call(input);
                         return res == null ? null : res.toString();
                     }

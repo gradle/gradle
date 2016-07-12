@@ -15,8 +15,8 @@
  */
 package org.gradle.api.file;
 
-import com.google.common.base.Function;
 import groovy.lang.Closure;
+import org.gradle.api.Transformer;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -65,7 +65,7 @@ public interface ContentFilterable {
      * endings) and should return a String to replace the line or {@code null} to remove the line.  If every line is
      * removed, the result will be an empty file, not an absent one.
      *
-     * @deprecated Use {@link #filter(Function)} instead
+     * @deprecated Use {@link #filter(Transformer)} instead
      *
      * @param closure to implement line based filtering
      * @return this
@@ -81,7 +81,7 @@ public interface ContentFilterable {
      * @param transformer to implement line based filtering
      * @return this
      */
-    ContentFilterable filter(Function<String, String> transformer);
+    ContentFilterable filter(Transformer<String, String> transformer);
 
     /**
      * <p>Expands property references in each file as it is copied. More specifically, each file is transformed using

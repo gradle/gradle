@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import com.google.common.base.Function;
+import org.gradle.api.Transformer;
 import org.gradle.internal.SystemProperties;
 
 import java.io.BufferedReader;
@@ -29,7 +29,7 @@ public class LineFilter extends Reader {
         EOF
     };
 
-    private final Function<String, String> function;
+    private final Transformer<String, String> transformer;
     private String transformedLine;
     private int transformedIndex;
     private final BufferedReader bufferedIn;
@@ -42,10 +42,10 @@ public class LineFilter extends Reader {
      * @param transformer a transformer to filter each line
      * @throws NullPointerException if <code>in</code> is <code>null</code>
      */
-    public LineFilter(Reader in, Function<String, String> transformer) {
+    public LineFilter(Reader in, Transformer<String, String> transformer) {
         this.in = in;
         this.bufferedIn = new BufferedReader(in);
-        this.function = transformer;
+        this.transformer = transformer;
     }
 
     private void readTransformedLine() throws IOException {
@@ -69,7 +69,7 @@ public class LineFilter extends Reader {
             state = State.EOF;
             return;
         }
-        String result = function.apply(line.toString());
+        String result = transformer.transform(line.toString());
         if (result == null) {
             state = State.SKIP_LINE;
             return;

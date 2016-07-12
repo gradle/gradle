@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.file.copy
 
-import com.google.common.base.Function
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Transformer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
@@ -153,9 +153,9 @@ public class DefaultCopySpecTest {
 
     @Test
     public void testFilterWithFunction() {
-        spec.filter(new Function<String, String>() {
+        spec.filter(new Transformer<String, String>() {
             @Override
-            String apply(String input) {
+            String transform(String input) {
                 input.length() > 10 ? null : input
             }
         })
