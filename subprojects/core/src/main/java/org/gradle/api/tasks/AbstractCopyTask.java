@@ -34,6 +34,7 @@ import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.util.ConfigureUtil;
 
 import javax.inject.Inject;
 import java.io.FilterReader;
@@ -188,8 +189,21 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask from(Object sourcePath, Closure c) {
-        getMainSpec().from(sourcePath, c);
+    public AbstractCopyTask from(Object sourcePath, final Closure c) {
+        getMainSpec().from(sourcePath, new Action<CopySpec>() {
+            @Override
+            public void execute(CopySpec copySpec) {
+                ConfigureUtil.configure(c, copySpec);
+            }
+        });
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask from(Object sourcePath, Action<? super CopySpec> configureAction) {
+        getMainSpec().from(sourcePath, configureAction);
         return this;
     }
 

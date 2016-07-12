@@ -192,6 +192,11 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      */
     CopySpec from(Object sourcePath, Closure c);
 
+    /**
+     * {@inheritDoc}
+     */
+    CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction);
+
     // PatternFilterable overrides to broaden return type
 
     /**

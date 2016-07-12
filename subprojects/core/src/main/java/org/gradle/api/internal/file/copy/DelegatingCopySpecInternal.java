@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.*;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -75,8 +76,17 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().from(sourcePaths);
     }
 
-    public CopySpec from(Object sourcePath, Closure c) {
-        return getDelegateCopySpec().from(sourcePath, c);
+    public CopySpec from(Object sourcePath, final Closure c) {
+        return getDelegateCopySpec().from(sourcePath, new Action<CopySpec>() {
+            @Override
+            public void execute(CopySpec copySpec) {
+                ConfigureUtil.configure(c, copySpec);
+            }
+        });
+    }
+
+    public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
+        return getDelegateCopySpec().from(sourcePath, configureAction);
     }
 
     public CopySpec setIncludes(Iterable<String> includes) {

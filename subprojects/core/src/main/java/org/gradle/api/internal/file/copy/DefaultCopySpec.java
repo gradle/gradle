@@ -101,14 +101,25 @@ public class DefaultCopySpec implements CopySpecInternal {
         return this;
     }
 
-    public CopySpec from(Object sourcePath, Closure c) {
-        if (c == null) {
+    public CopySpec from(Object sourcePath, final Closure c) {
+        return from(sourcePath, new Action<CopySpec>() {
+            @Override
+            public void execute(CopySpec copySpec) {
+                ConfigureUtil.configure(c, copySpec);
+            }
+        });
+    }
+
+    public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
+        if (configureAction == null) {
             from(sourcePath);
             return this;
         } else {
             CopySpecInternal child = addChild();
             child.from(sourcePath);
-            return ConfigureUtil.configure(c, instantiator.newInstance(CopySpecWrapper.class, child));
+            CopySpecWrapper wrapper = instantiator.newInstance(CopySpecWrapper.class, child);
+            configureAction.execute(wrapper);
+            return wrapper;
         }
     }
 

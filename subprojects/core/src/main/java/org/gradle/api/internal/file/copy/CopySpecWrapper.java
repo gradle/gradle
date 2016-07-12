@@ -23,6 +23,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.*;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -87,8 +88,17 @@ public class CopySpecWrapper implements CopySpec {
         return this;
     }
 
-    public CopySpec from(Object sourcePath, Closure c) {
-        return delegate.from(sourcePath, c);
+    public CopySpec from(Object sourcePath, final Closure c) {
+        return delegate.from(sourcePath, new Action<CopySpec>() {
+            @Override
+            public void execute(CopySpec copySpec) {
+                ConfigureUtil.configure(c, copySpec);
+            }
+        });
+    }
+
+    public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
+        return delegate.from(sourcePath, configureAction);
     }
 
     public CopySpec setIncludes(Iterable<String> includes) {
