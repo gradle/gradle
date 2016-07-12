@@ -24,6 +24,7 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.language.cpp.CppSourceSet;
 import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
@@ -76,6 +77,14 @@ public class CprojectSettings {
             });
         }
 
+    }
+
+    public FileCollection getIncludeRoots() {
+        return includeRoots;
+    }
+
+    public FileCollection getLibs() {
+        return libs;
     }
 
     public NativeComponentSpec getBinary() {
