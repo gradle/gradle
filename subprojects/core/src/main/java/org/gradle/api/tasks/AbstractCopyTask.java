@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 import com.google.common.base.Function;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
@@ -324,8 +325,23 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask rename(Closure closure) {
-        getMainSpec().rename(closure);
+    public AbstractCopyTask rename(final Closure closure) {
+        getMainSpec().rename(new Transformer<String, String>() {
+            @Override
+            public String transform(String s) {
+                Object res = closure.call(s);
+                return res == null ? null : res.toString();
+            }
+        });
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param renamer
+     */
+    public AbstractCopyTask rename(Transformer<String, String> renamer) {
+        getMainSpec().rename(renamer);
         return this;
     }
 

@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -324,6 +325,13 @@ public class DefaultCopySpec implements CopySpecInternal {
     public CopySpec rename(Closure closure) {
         ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class);
         transformer.add(closure);
+        copyActions.add(new RenamingCopyAction(transformer));
+        return this;
+    }
+
+    public CopySpec rename(Transformer<String, String> renamer) {
+        ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class);
+        transformer.add(renamer);
         copyActions.add(new RenamingCopyAction(transformer));
         return this;
     }

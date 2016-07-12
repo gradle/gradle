@@ -19,6 +19,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
@@ -91,8 +92,8 @@ public class War extends Jar {
                         return getWebXml();
                     }
                 });
-                it.rename(new Closure<String>(War.this, War.this) {
-                    public String doCall(Object it) {
+                it.rename(new Transformer<String, String>() {
+                    public String transform(String it) {
                         return "web.xml";
                     }
                 });

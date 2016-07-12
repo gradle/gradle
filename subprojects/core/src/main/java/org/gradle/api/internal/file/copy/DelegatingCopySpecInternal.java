@@ -19,6 +19,7 @@ package org.gradle.api.internal.file.copy;
 import com.google.common.base.Function;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.*;
 import org.gradle.api.specs.Spec;
 
@@ -133,6 +134,10 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
 
     public CopySpec rename(Closure closure) {
         return getDelegateCopySpec().rename(closure);
+    }
+
+    public CopySpec rename(Transformer<String, String> renamer) {
+        return getDelegateCopySpec().rename(renamer);
     }
 
     public CopySpec rename(String sourceRegEx, String replaceWith) {

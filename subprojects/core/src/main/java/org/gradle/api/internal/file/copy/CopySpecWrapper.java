@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.*;
 import org.gradle.api.specs.Spec;
 
@@ -155,8 +156,19 @@ public class CopySpecWrapper implements CopySpec {
         return delegate.into(destPath, copySpec);
     }
 
-    public CopySpec rename(Closure closure) {
-        delegate.rename(closure);
+    public CopySpec rename(final Closure closure) {
+        delegate.rename(new Transformer<String, String>() {
+            @Override
+            public String transform(String s) {
+                Object res = closure.call(s);
+                return res == null ? null : res.toString();
+            }
+        });
+        return this;
+    }
+
+    public CopySpec rename(Transformer<String, String> renamer) {
+        delegate.rename(renamer);
         return this;
     }
 
