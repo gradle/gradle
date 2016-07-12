@@ -117,11 +117,11 @@ The following plugins are known to have some issues with Java 9:
 - [FindBugs plugin](userguide/findbugs_plugin.html): The latest release (3.0.1) does not work with Java 9
 - [OSGi plugin](userguide/osgi_plugin.html): The latest version of BND does not work with Java 9
 
-When using [Continuous Build](userguide/continuous_build.html#continuous_build_limitations_jdk) we are not able to configure the file watcher service
-due to access restrictions on Jigsaw - this means that
+When using [continuous build](userguide/continuous_build.html#sec:continuous_build_limitations_jdk9) on Java 9,
+due to class access restrictions related to Jigsaw, Gradle cannot set some operating system specific options, which means that:
 
- - on Mac OS X polling for file changes will be 10 seconds instead of 2
- - on Windows we have extra file locks since the `FILE_TREE` option cannot be set.
+- On Mac OS X, Gradle will poll for file changes every 10 seconds instead of every 2 seconds.
+- On Windows, Gradle must use individual file watches (like on Linux/Mac OS), which may cause continuous build to no longer work on very large projects.
 
 Also, for publishing to S3 backed Maven and Ivy repositories, `-addmods java.xml.bind` has to be added to the JVM parameters. This can be accomplished by setting
 

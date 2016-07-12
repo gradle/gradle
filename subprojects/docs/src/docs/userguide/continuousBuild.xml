@@ -133,16 +133,13 @@
                 In other cases, you can use <literal>--info</literal> logging to find the task that is out-of-date due to the identified files.
             </para>
         </section>
-        <section id="continuous_build_limitations_jdk">
-            <title>Restrictions on Java 9 Jigsaw</title>
+        <section id="sec:continuous_build_limitations_jdk9">
+            <title>Restrictions with Java 9</title>
             <para>
-                Gradle uses the JDK's <ulink url="http://docs.oracle.com/javase/7/docs/api/java/nio/file/WatchService.html"><literal>WatchService</literal></ulink>
-                to receive notification of changes to files between builds.
-                For Java 9 with Jigsaw we are not able to set options on the <literal>WatchService</literal> due to access restrictions,
-                which means that:
+                Due to class access restrictions related to Java 9, Gradle cannot set some operating system specific options, which means that:
                 <itemizedlist>
-                    <listitem><para>on Mac OS X polling for file changes will be 10 seconds instead of 2</para></listitem>
-                    <listitem><para>on Windows we have extra file locks since the <literal>FILE_TREE</literal> option cannot be set</para></listitem>
+                    <listitem><para>On Mac OS X, Gradle will poll for file changes every 10 seconds instead of every 2 seconds.</para></listitem>
+                    <listitem><para>On Windows, Gradle must use individual file watches (like on Linux/Mac OS), which may cause continuous build to no longer work on very large projects.</para></listitem>
                 </itemizedlist>
             </para>
         </section>
