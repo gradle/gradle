@@ -292,8 +292,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     private BuildRequestContext createBuildRequestContext(StandardOutputListener outputListener, StandardOutputListener errorListener) {
         return new DefaultBuildRequestContext(
-            new DefaultBuildRequestMetaData(new GradleLauncherMetaData(),
-                System.currentTimeMillis()),
+            new DefaultBuildRequestMetaData(new GradleLauncherMetaData(), System.currentTimeMillis()),
             new DefaultBuildCancellationToken(),
             new NoOpBuildEventConsumer(),
             outputListener, errorListener);

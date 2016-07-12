@@ -71,24 +71,6 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractComposit
         assertResolved buildB.file('build/libs/buildB-1.0.jar')
     }
 
-    def "passes arguments to builds when building substituted dependency"() {
-        given:
-        dependency 'org.test:buildB:1.0'
-        and:
-
-        buildB.buildFile << """
-    assert project.hasProperty("passedProperty")
-"""
-        arguments << "-PpassedProperty"
-
-        when:
-        resolveArtifacts()
-
-        then:
-        executed ":buildB:jar"
-        assertResolved buildB.file('build/libs/buildB-1.0.jar')
-    }
-
     def "builds multiple artifacts for substituted dependency"() {
         given:
         dependency 'org.test:buildB:1.0'
