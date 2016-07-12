@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import groovy.lang.Closure;
@@ -195,6 +196,10 @@ public class NormalizingCopyActionDecorator implements CopyAction {
         }
 
         public ContentFilterable filter(Closure closure) {
+            throw new UnsupportedOperationException();
+        }
+
+        public ContentFilterable filter(Function<String, String> transformer) {
             throw new UnsupportedOperationException();
         }
 

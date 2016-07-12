@@ -15,6 +15,7 @@
  */
 package org.gradle.api.file;
 
+import com.google.common.base.Function;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
@@ -322,6 +323,11 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     CopySpec filter(Closure closure);
+
+    /**
+     * {@inheritDoc}
+     */
+    CopySpec filter(Function<String, String> transformer);
 
     /**
      * {@inheritDoc}

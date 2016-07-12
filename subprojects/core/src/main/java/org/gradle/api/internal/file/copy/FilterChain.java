@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import com.google.common.base.Function;
 import groovy.lang.Closure;
 import groovy.text.SimpleTemplateEngine;
 import groovy.text.Template;
@@ -25,7 +26,14 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.util.ConfigureUtil;
 
-import java.io.*;
+import java.io.FilterReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -86,10 +94,25 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
         });
     }
 
+    public void add(final Function<String, String> transformer) {
+        transformers.add(new Transformer<Reader, Reader>() {
+            @Override
+            public Reader transform(Reader reader) {
+                return new LineFilter(reader, transformer);
+            }
+        });
+    }
+
     public void add(final Closure closure) {
         transformers.add(new Transformer<Reader, Reader>() {
             public Reader transform(Reader original) {
-                return new LineFilter(original, closure);
+                return new LineFilter(original, new Function<String, String>() {
+                    @Override
+                    public String apply(String input) {
+                        Object res = closure.call(input);
+                        return res == null ? null : res.toString();
+                    }
+                });
             }
         });
     }

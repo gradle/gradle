@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file.copy;
 
+import com.google.common.base.Function;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
@@ -181,6 +182,12 @@ public class CopySpecWrapper implements CopySpec {
 
     public CopySpec filter(Closure closure) {
         delegate.filter(closure);
+        return this;
+    }
+
+    @Override
+    public CopySpec filter(Function<String, String> transformer) {
+        delegate.filter(transformer);
         return this;
     }
 

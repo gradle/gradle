@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.copy
 
+import com.google.common.base.Function
 import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.Action
@@ -141,6 +142,24 @@ public class DefaultCopySpecTest {
         })
         assertThat(child, not(sameInstance(spec as CopySpec)))
         assertThat(unpackWrapper(child).buildRootResolver().destPath, equalTo(new RelativePath(false, 'target')))
+    }
+
+
+    @Test
+    public void testFilterWithClosure() {
+        spec.filter { it.length() > 10 ? null : it }
+        assert spec.copyActions.size() == 1
+    }
+
+    @Test
+    public void testFilterWithFunction() {
+        spec.filter(new Function<String, String>() {
+            @Override
+            String apply(String input) {
+                input.length() > 10 ? null : input
+            }
+        })
+        assert spec.copyActions.size() == 1
     }
 
     @Test

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks;
 
+import com.google.common.base.Function;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
@@ -365,6 +366,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     public AbstractCopyTask filter(Closure closure) {
         getMainSpec().filter(closure);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask filter(Function<String, String> transformer) {
+        getMainSpec().filter(transformer);
         return this;
     }
 
