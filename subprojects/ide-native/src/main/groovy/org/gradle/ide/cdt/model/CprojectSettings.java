@@ -98,7 +98,7 @@ public class CprojectSettings {
     @SuppressWarnings("unchecked")
     private void applyBinaryTo(final CprojectDescriptor descriptor) {
         for (Object compiler : descriptor.getRootCppCompilerTools()) {
-            Node includePathsOption = descriptor.getOrCreateIncludePathsOption(compiler);
+            Node includePathsOption = descriptor.getOrCreateIncludePathsOption((Node) compiler);
             for (Object includePath : Lists.newArrayList(includePathsOption.children())) {
                 includePathsOption.remove((Node) includePath);
             }
@@ -111,7 +111,7 @@ public class CprojectSettings {
         }
 
         for (Object linker  : descriptor.getRootCppLinkerTools()) {
-            Node libsOption = descriptor.getOrCreateLibsOption(linker);
+            Node libsOption = descriptor.getOrCreateLibsOption((Node) linker);
             for (Object lib : Lists.newArrayList(libsOption.children())) {
                 libsOption.remove((Node) lib);
             }

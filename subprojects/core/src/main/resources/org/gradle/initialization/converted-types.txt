@@ -120,3 +120,4 @@ org.gradle.plugins.signing.Sign
 org.gradle.ide.cdt.model.ProjectSettings
 org.gradle.ide.cdt.model.ProjectDescriptor
 org.gradle.ide.cdt.model.CprojectSettings
+org.gradle.ide.cdt.model.CprojectDescriptor
