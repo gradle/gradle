@@ -36,6 +36,7 @@ class ModelReportIntegrationTest extends AbstractIntegrationSpec {
                     components(nodeValue: "task ':components'", type: 'org.gradle.api.reporting.components.ComponentReport')
                     dependencies()
                     dependencyInsight()
+                    dependentComponents()
                     help()
                     init()
                     model()
@@ -312,6 +313,12 @@ model {
           | Creator: \ttasks.addPlaceholderAction(dependencyInsight)
           | Rules:
              ⤷ HelpTasksPlugin.Rules#addDefaultDependenciesReportConfiguration(DependencyInsightReportTask, ServiceRegistry)
+             ⤷ copyToTaskContainer
+    + dependentComponents
+          | Type:   \torg.gradle.api.reporting.dependents.DependentComponentsReport
+          | Value:  \ttask ':dependentComponents'
+          | Creator: \ttasks.addPlaceholderAction(dependentComponents)
+          | Rules:
              ⤷ copyToTaskContainer
     + help
           | Type:   \torg.gradle.configuration.Help

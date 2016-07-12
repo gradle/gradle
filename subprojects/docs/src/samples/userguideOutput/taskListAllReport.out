@@ -36,6 +36,9 @@ webapp:dependencies - Displays all dependencies declared in project ':webapp'.
 dependencyInsight - Displays the insight into a specific dependency in root project 'projectReports'.
 api:dependencyInsight - Displays the insight into a specific dependency in project ':api'.
 webapp:dependencyInsight - Displays the insight into a specific dependency in project ':webapp'.
+dependentComponents - Displays the dependent components of components in root project 'projectReports'. [incubating]
+api:dependentComponents - Displays the dependent components of components in project ':api'. [incubating]
+webapp:dependentComponents - Displays the dependent components of components in project ':webapp'. [incubating]
 help - Displays a help message.
 api:help - Displays a help message.
 webapp:help - Displays a help message.
