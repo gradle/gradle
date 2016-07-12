@@ -343,15 +343,18 @@ public class Sign extends DefaultTask implements SignatureSpec {
     }
 
     /**
+     * @deprecated Use {@link #isRequired()} instead
+     */
+    public boolean getRequired() {
+        return required;
+    }
+
+    /**
      * Whether or not this task should fail if no signatory or signature type are configured at generation time.
      *
      * <p>Defaults to {@code true}.</p>
      */
     @Input
-    public boolean getRequired() {
-        return required;
-    }
-
     public boolean isRequired() {
         return required;
     }
