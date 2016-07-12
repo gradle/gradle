@@ -397,4 +397,3 @@ We love getting contributions from the Gradle community. For information on cont
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
 
-[GRADLE-3491](https://issues.gradle.org/browse/GRADLE-3491) - Android Library projects do not pick up changes
