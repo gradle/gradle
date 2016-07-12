@@ -120,7 +120,7 @@ The following plugins are known to have some issues with Java 9:
 When using Continuous Build we are not able to configure the file watcher service due to access restrictions on Jigsaw - this
 means that
 
- - on Mac OS X polling for file changes will be 10 seconds instead of 2 secs
+ - on Mac OS X polling for file changes will be 10 seconds instead of 2
  - on Windows we have extra file locks since FILE_TREE cannot be set.
 
 Also, for publishing to S3 backed Maven and Ivy repositories, `-addmods java.xml.bind` has to be added to the JVM parameters. This can be accomplished by setting
