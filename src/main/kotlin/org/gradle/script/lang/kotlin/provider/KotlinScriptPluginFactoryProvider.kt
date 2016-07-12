@@ -21,15 +21,10 @@ import org.gradle.configuration.ScriptPluginFactoryProvider
 
 import org.gradle.api.internal.ClassPathRegistry
 
-import org.gradle.internal.service.ServiceRegistry
-
 import javax.inject.Inject
 
 class KotlinScriptPluginFactoryProvider @Inject constructor(
     val classPathRegistry: ClassPathRegistry) : ScriptPluginFactoryProvider {
-
-    override fun getFor(fileName: String, serviceRegistry: ServiceRegistry): ScriptPluginFactory? =
-        getFor(fileName)
 
     override fun getFor(fileName: String): ScriptPluginFactory? {
         return when {
