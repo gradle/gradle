@@ -72,6 +72,21 @@ task checkSamples(type: integration.CheckSamples, dependsOn: customInstallation)
 }
 check.dependsOn checkSamples
 
+// To quickly iterate on a single sample, for instance:
+//
+//     check-hello-kotlin
+//
+tasks.addRule('Pattern: check-<SAMPLE>') { taskName ->
+    if (taskName.startsWith ("check-")) {
+        def checkSample = task ("$taskName-task", type: integration.CheckSample) {
+            dependsOn customInstallation
+            installation = customInstallationDir
+            sampleDir = file("samples/${taskName - 'check-'}")
+        }
+        task(taskName).dependsOn (checkSample)
+    }
+}
+
 
 // --- classpath.properties --------------------------------------------
 File generatedResourcesDir = file("$buildDir/generate-resources/main")

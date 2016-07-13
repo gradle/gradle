@@ -28,19 +28,60 @@ import org.apache.tools.ant.util.TeeOutputStream
 import java.io.File
 import java.io.FileOutputStream
 
-open class CheckSamples : DefaultTask() {
+/**
+ * Checks all sample projects under _samples_.
+ */
+open class CheckSamples() : AbstractCheckSampleTask() {
 
     override fun getDescription() =
         "Checks each sample by running `gradle help` on it."
 
+    override fun inputDir() = project.samplesDir()
+
+    @TaskAction
+    fun run() {
+        withUniqueDaemonRegistry {
+            project.sampleDirs().forEach { sampleDir ->
+                println("Checking ${relativeFile(sampleDir)}...")
+                check(sampleDir)
+            }
+        }
+    }
+
+    private fun relativeFile(file: File) =
+        file.relativeTo(project.projectDir)
+}
+
+/**
+ * Checks a single sample project.
+ */
+open class CheckSample() : AbstractCheckSampleTask() {
+
+    var sampleDir: File? = null
+
+    override fun inputDir() = sampleDir!!
+
+    @TaskAction
+    fun run() {
+        withUniqueDaemonRegistry {
+            check(sampleDir!!)
+        }
+    }
+}
+
+abstract class AbstractCheckSampleTask : DefaultTask() {
+
+    abstract protected fun inputDir(): File
+
     @get:InputDirectory
     var installation: File? = null
 
+    @Suppress("unused")
     @get:InputFiles
-    val samples: FileCollection by lazy {
-        project.fileTree(project.samplesDir()).apply {
+    val inputFiles: FileCollection by lazy {
+        project.fileTree(inputDir()).apply {
+            include("**/*.gradle")
             include("**/*.gradle.kts")
-            include("**/gradle-wrapper.properties")
         }
     }
 
@@ -49,23 +90,14 @@ open class CheckSamples : DefaultTask() {
         File(project.buildDir, "check-samples")
     }
 
-    @TaskAction
-    fun run() {
-        withUniqueDaemonRegistry {
-            project.sampleDirs().forEach { sampleDir ->
-                println("Checking ${relativeFile(sampleDir)}...")
-                OutputStreamForResultOf(sampleDir).use { stdout ->
-                    runGradleHelpOn(sampleDir, stdout)
-                }
-            }
+    protected fun check(sampleDir: File) {
+        outputStreamForResultOf(sampleDir).use { stdout ->
+            runGradleHelpOn(sampleDir, stdout)
         }
     }
 
-    private fun OutputStreamForResultOf(sampleDir: File) =
+    private fun outputStreamForResultOf(sampleDir: File) =
         File(outputDir, "${sampleDir.name}.txt").outputStream()
-
-    private fun relativeFile(file: File) =
-        file.relativeTo(project.projectDir)
 
     private fun runGradleHelpOn(projectDir: File, stdout: FileOutputStream) {
         withConnectionFrom(connectorFor(projectDir).useInstallation(installation!!)) {
