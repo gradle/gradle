@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.BuildResult;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.concurrent.Stoppable;
 
@@ -23,6 +24,8 @@ import org.gradle.internal.concurrent.Stoppable;
  * This was the old Gradle embedding API (it used to be in the public `org.gradle` package). It is now internal and is due to be merged into {@link org.gradle.internal.invocation.BuildController}.
  */
 public abstract class GradleLauncher implements Stoppable {
+
+    public abstract GradleInternal getGradle();
 
     /**
      * <p>Executes the build for this {@code GradleLauncher} instance and returns the result.</p>

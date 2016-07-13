@@ -37,14 +37,12 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
-import org.gradle.internal.invocation.BuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 
 import java.io.File;
 import java.util.Set;
 
-public class CompositeContextBuildActionRunner implements BuildActionRunner {
+public class CompositeContextBuildActionRunner {
     private final CompositeBuildContext context;
     private final boolean propagateFailures;
     private final BuildExceptionReporter exceptionReporter;
@@ -55,8 +53,7 @@ public class CompositeContextBuildActionRunner implements BuildActionRunner {
         this.exceptionReporter = exceptionReporter;
     }
 
-    @Override
-    public void run(BuildAction action, BuildController buildController) {
+    public void run(BuildController buildController) {
         try {
             GradleInternal gradle = buildController.configure();
             ProjectInternal rootProject = gradle.getRootProject();

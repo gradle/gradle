@@ -74,6 +74,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         loggingManager.start();
     }
 
+    @Override
     public GradleInternal getGradle() {
         return gradle;
     }

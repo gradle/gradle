@@ -16,13 +16,11 @@
 
 package org.gradle.launcher.exec;
 
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.DefaultGradleLauncher;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.ServiceRegistry;
 
 public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
@@ -35,74 +33,15 @@ public class InProcessBuildActionExecuter implements BuildActionExecuter<BuildAc
     }
 
     public Object execute(BuildAction action, BuildRequestContext buildRequestContext, BuildActionParameters actionParameters, ServiceRegistry contextServices) {
-        DefaultGradleLauncher gradleLauncher = (DefaultGradleLauncher) gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
+        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(action.getStartParameter(), buildRequestContext, contextServices);
         try {
             gradleLauncher.addStandardOutputListener(buildRequestContext.getOutputListener());
             gradleLauncher.addStandardErrorListener(buildRequestContext.getErrorListener());
-            DefaultBuildController buildController = new DefaultBuildController(gradleLauncher);
+            GradleBuildController buildController = new GradleBuildController(gradleLauncher);
             buildActionRunner.run(action, buildController);
-            return buildController.result;
+            return buildController.getResult();
         } finally {
             gradleLauncher.stop();
-        }
-    }
-
-    private static class DefaultBuildController implements BuildController {
-        private enum State {Created, Completed}
-
-        private State state = State.Created;
-        private boolean hasResult;
-        private Object result;
-        private final DefaultGradleLauncher gradleLauncher;
-
-        public DefaultBuildController(DefaultGradleLauncher gradleLauncher) {
-            this.gradleLauncher = gradleLauncher;
-        }
-
-        public DefaultGradleLauncher getLauncher() {
-            if (state == State.Completed) {
-                throw new IllegalStateException("Cannot use launcher after build has completed.");
-            }
-            return gradleLauncher;
-        }
-
-        @Override
-        public boolean hasResult() {
-            return hasResult;
-        }
-
-        @Override
-        public Object getResult() {
-            if (!hasResult) {
-                throw new IllegalStateException("No result has been provided for this build action.");
-            }
-            return result;
-        }
-
-        @Override
-        public void setResult(Object result) {
-            this.hasResult = true;
-            this.result = result;
-        }
-
-        public GradleInternal getGradle() {
-            return getLauncher().getGradle();
-        }
-
-        public GradleInternal run() {
-            try {
-                return (GradleInternal) getLauncher().run().getGradle();
-            } finally {
-                state = State.Completed;
-            }
-        }
-
-        public GradleInternal configure() {
-            try {
-                return (GradleInternal) getLauncher().getBuildAnalysis().getGradle();
-            } finally {
-                state = State.Completed;
-            }
         }
     }
 }

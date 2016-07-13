@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.composite.CompositeContextBuildActionRunner;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
@@ -28,10 +29,7 @@ import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.cli.ExecuteBuildAction;
-import org.gradle.launcher.exec.BuildActionExecuter;
-import org.gradle.launcher.exec.BuildActionParameters;
-import org.gradle.launcher.exec.InProcessBuildActionExecuter;
+import org.gradle.launcher.exec.GradleBuildController;
 
 import java.util.List;
 
@@ -50,8 +48,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeBuildContext context = sharedServices.get(CompositeBuildContext.class);
         BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(sharedServices.get(StyledTextOutputFactory.class), buildStartParam, requestContext.getClient());
-        CompositeContextBuildActionRunner builder = new CompositeContextBuildActionRunner(context, propagateFailures, exceptionReporter);
-        BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, builder);
+        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context, propagateFailures, exceptionReporter);
 
         for (GradleParticipantBuild participant : participantBuilds) {
             StartParameter participantStartParam = buildStartParam.newInstance();
@@ -63,7 +60,11 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
                 LOGGER.lifecycle("[composite-build] Configuring participant: " + participant.getProjectDir());
             }
 
-            buildActionExecuter.execute(new ExecuteBuildAction(participantStartParam), requestContext, null, sharedServices);
+            GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(participantStartParam, requestContext, sharedServices);
+            gradleLauncher.addStandardOutputListener(requestContext.getOutputListener());
+            gradleLauncher.addStandardErrorListener(requestContext.getErrorListener());
+
+            contextBuilder.run(new GradleBuildController(gradleLauncher));
         }
     }
 }

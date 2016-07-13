@@ -70,6 +70,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices.get(ListenerManager.class).removeListener(listener);
     }
 
+    // TODO:DAZ Give the next 2 methods better names (and better docs)
     @Override
     public GradleLauncher newInstance(StartParameter startParameter) {
         return newInstance(startParameter, sharedServices, true);
@@ -85,9 +86,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
 
-        final BuildScopeServices buildScopeServices = newSession
-            ? BuildScopeServices.singleSession(parentRegistry, startParameter)
-            : BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
+        final BuildScopeServices buildScopeServices = createBuildScopeServices(startParameter, parentRegistry, newSession);
         return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 
@@ -98,15 +97,24 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             throw new IllegalStateException("Cannot have a current build");
         }
 
-        if (!(parentRegistry instanceof BuildSessionScopeServices)) {
-            throw new IllegalArgumentException("Service registry must be of build session scope");
-        }
+        BuildScopeServices buildScopeServices = createBuildScopeServices(startParameter, parentRegistry, false);
 
-        BuildScopeServices buildScopeServices = BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
         DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
         return launcher;
+    }
+
+    private BuildScopeServices createBuildScopeServices(StartParameter startParameter, ServiceRegistry parentRegistry, boolean newSession) {
+        if (newSession) {
+            return BuildScopeServices.singleSession(parentRegistry, startParameter);
+        }
+
+        if (!(parentRegistry instanceof BuildSessionScopeServices)) {
+            throw new IllegalArgumentException("Service registry must be of build session scope");
+        }
+
+        return BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
     }
 
     private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry) {
