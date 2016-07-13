@@ -56,6 +56,34 @@ TBD.
 
 ## Feature: Reduce wasted heap in the daemon
 
+### Story: Allow memory to be reserved from cache use for memory hungry tasks
+
+Currently, we size our caches to be proportional to the maximum heap size.  To do this, we reserve a portion of the heap for 
+Gradle itself and then the remaining space is available to the cache.  We have had reports from Android users that when using 
+the daemon, the cache grows over time until it consumes enough heap to starve the dexing tasks and slow them down to the point 
+that they are unusable.  The result of this is that users then set their heap size to be extravagantly large so that the 
+"reserved" non-cache space is large enough to accommodate the dexing tasks.  The dexing case is the most common, but this issue
+exists for any memory-hungry task that runs in the Gradle process.
+
+The long term solution for this is to make the compiler api generic and public and move dexing into its own process with 
+an isolated heap.  This would require changes to the Android plugin to implement.
+
+In the short term, we want to give Android users a simple solution that would allow them to manage this problem once the 
+daemon is on by default.
+
+#### Implementation
+
+Introduce a "org.gradle.cache.reserved" system property that allows a user to assign space that should not be used for cache. 
+This essentially increases the "reserved" portion of the heap and adjusts how caches are sized.  For example, if they set a 
+4Gb max heap size, but specify 1.5Gb as reserved, we would calculate cache sizes as if a 2.5Gb heap size was specified 
+(i.e. 4Gb - 1.5Gb reserved).
+
+#### Test Cases
+
+- (Soak test) Create an Android build with enough source methods to cause dexing to consume a considerable amount of space.  
+Run a number of builds and fill up a large heap proportional cache over time.  Validate that performance of the dexing task 
+does not degrade over time when "org.gradle.cache.reserved" is set to an appropriate value.
+
 ## Feature: Reduce default heap sizes for the daemon
 
 ## Candidate improvements
