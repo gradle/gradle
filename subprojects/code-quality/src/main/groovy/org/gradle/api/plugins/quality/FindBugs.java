@@ -352,8 +352,10 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     /**
      * Whether or not to allow the build to continue if there are warnings.
+     *
+     * @deprecated Use {@link #isIgnoreFailures()} instead
      */
-    @Input
+    @Deprecated
     public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
@@ -361,6 +363,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Whether or not to allow the build to continue if there are warnings.
      */
+    @Input
     public boolean isIgnoreFailures() {
         return ignoreFailures;
     }
