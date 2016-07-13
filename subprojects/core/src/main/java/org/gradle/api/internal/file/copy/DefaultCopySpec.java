@@ -286,13 +286,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec filter(final Closure closure) {
-        return filter(new Transformer<String, String>() {
-            @Override
-            public String transform(String s) {
-                Object val = closure.call(s);
-                return val == null ? null : val.toString();
-            }
-        });
+        return filter(new ClosureBackedTransformer(closure));
     }
 
     public CopySpec filter(final Transformer<String, String> transformer) {
@@ -323,10 +317,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec rename(Closure closure) {
-        ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class);
-        transformer.add(closure);
-        copyActions.add(new RenamingCopyAction(transformer));
-        return this;
+        return rename(new ClosureBackedTransformer(closure));
     }
 
     public CopySpec rename(Transformer<String, String> renamer) {
@@ -404,6 +395,20 @@ public class DefaultCopySpec implements CopySpecInternal {
             throw new InvalidUserDataException(String.format("filteringCharset %s is not supported by your JVM", charset));
         }
         this.filteringCharset = charset;
+    }
+
+    private static class ClosureBackedTransformer implements Transformer<String, String> {
+        private final Closure closure;
+
+        public ClosureBackedTransformer(Closure closure) {
+            this.closure = closure;
+        }
+
+        @Override
+        public String transform(String s) {
+            Object val = closure.call(s);
+            return val == null ? null : val.toString();
+        }
     }
 
     public class DefaultCopySpecResolver implements CopySpecResolver {
