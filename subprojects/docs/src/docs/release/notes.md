@@ -108,6 +108,11 @@ With these features Tooling API clients can provide a more complete IDE integrat
 Gradle 3.0 contains initial support for Java 9. This means that running Gradle on Java 9 and compiling,
 testing and running Java 9 applications is supported out of the box.
 
+Preliminary support for JDK 9 `-release` compiler flag has been added. It can be specified via
+[compilerArgs](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgs), e.g.
+
+    compileJava.options.compilerArgs.addAll(['-release', '7'])
+
 The following plugins are known to have some issues with Java 9:
 
 - [PMD plugin](userguide/pmd_plugin.html): Runs on Java 9 but cannot analyze Java 9 Bytecode as this is not yet supported by
