@@ -1,0 +1,21 @@
+plugins {
+    id 'nebula.kotlin' version '1.0.3'
+}
+
+group 'org.gradle.script.lang.kotlin.fixtures'
+
+version '1.0'
+
+uploadArchives {
+    repositories.ivy { url '../repository' }
+}
+
+dependencies {
+    compile(gradleApi())
+}
+
+repositories {
+    jcenter()
+}
+
+defaultTasks 'uploadArchives'

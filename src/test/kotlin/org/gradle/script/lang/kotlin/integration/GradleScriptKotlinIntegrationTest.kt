@@ -1,5 +1,6 @@
 package org.gradle.script.lang.kotlin.integration
 
+import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
 import org.gradle.script.lang.kotlin.support.connectorFor
@@ -18,32 +19,12 @@ import org.junit.rules.TemporaryFolder
 
 import java.io.File
 
+import kotlin.test.assertNotEquals
+
 class GradleScriptKotlinIntegrationTest {
 
     @JvmField
     @Rule val projectDir = TemporaryFolder()
-
-    @Test
-    fun `given a script with SAM conversions, it can run it`() {
-        withBuildScript("""
-            import org.gradle.api.tasks.bundling.Zip
-            import java.util.concurrent.Callable
-
-            configurations.create("compile")
-
-            dependencies { compile(gradleApi()) }
-
-            task<Zip>("repackage") {
-                baseName = "gradle-api"
-                from(Callable {
-                    val files = configurations.getByName("compile").files
-                    zipTree(files.single { it.name.startsWith(baseName) })
-                })
-            }
-        """)
-        assert(
-            build("tasks").output.contains("repackage"))
-    }
 
     @Test
     fun `given a buildscript block, it will be used to compute the runtime classpath`() {
@@ -103,9 +84,112 @@ class GradleScriptKotlinIntegrationTest {
             hasItem(existingFolder("buildSrc/build/classes/main")))
     }
 
+    @Test
+    fun `given a Kotlin project in buildSrc, it will be added to the compilation classpath`() {
+
+        withFile("buildSrc/src/main/kotlin/build/DeepThought.kt", """
+            package build
+            class DeepThought() {
+                fun compute(handler: (Int) -> Unit) { handler(42) }
+            }
+        """)
+
+        withBuildScriptIn("buildSrc", """
+            buildscript {
+                repositories { gradleScriptKotlin() }
+                dependencies { classpath(kotlinModule("gradle-plugin")) }
+            }
+            apply { plugin("kotlin") }
+            dependencies { compile(kotlinModule("stdlib")) }
+            repositories { gradleScriptKotlin() }
+        """)
+
+        withBuildScript("""
+            task("answer") {
+                doLast {
+                    val computer = build.DeepThought()
+                    computer.compute { answer ->
+                        println("*" + answer + "*")
+                    }
+                }
+            }
+        """)
+
+        assert(
+            build("answer").output.contains("*42*"))
+    }
+
+    @Test
+    fun `given a plugin compiled against Kotlin one dot zero, it will run against the embedded Kotlin version`() {
+
+        withBuildScript("""
+            buildscript {
+                repositories {
+                    ivy { setUrl("$fixturesRepository") }
+                    jcenter()
+                }
+                dependencies {
+                    classpath("org.gradle.script.lang.kotlin.fixtures:plugin-compiled-against-kotlin-1.0:1.0")
+                }
+            }
+
+            apply<fixtures.ThePlugin>()
+
+            tasks.withType<fixtures.ThePluginTask> {
+                from = "new value"
+                doLast {
+                    println(configure { "*[" + it + "]*" })
+                }
+            }
+        """)
+
+        assert(
+            build("the-plugin-task").output.contains("*[new value]*"))
+    }
+
+    @Test
+    fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
+
+        val differentKotlinVersion = "1.1.0-dev-1159"
+        assertNotEquals(embeddedKotlinVersion, differentKotlinVersion)
+
+        withBuildScript("""
+            import org.jetbrains.kotlin.cli.common.KotlinVersion
+            import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+            buildscript {
+                repositories {
+                    gradleScriptKotlin()
+                }
+                dependencies {
+                    classpath(kotlinModule("gradle-plugin", version = "$differentKotlinVersion"))
+                }
+            }
+
+            tasks.withType<KotlinCompile> {
+                // can configure the Kotlin compiler
+                kotlinOptions.verbose = true
+            }
+
+            task("dump-kotlinVersion") {
+                doLast { println(KotlinVersion.VERSION) }
+            }
+        """)
+
+        assert(
+            build("dump-kotlinVersion").output.contains(differentKotlinVersion))
+    }
+
+    val fixturesRepository: File
+        get() = File("fixtures/repository").absoluteFile
+
     private fun withBuildScript(script: String) {
-        withFile("settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
-        withFile("build.gradle.kts", script)
+        withBuildScriptIn(".", script)
+    }
+
+    private fun withBuildScriptIn(baseDir: String, script: String) {
+        withFile("$baseDir/settings.gradle", "rootProject.buildFileName = 'build.gradle.kts'")
+        withFile("$baseDir/build.gradle.kts", script)
     }
 
     private fun withFile(fileName: String, text: String) {
@@ -142,11 +226,14 @@ class GradleScriptKotlinIntegrationTest {
             .build()
 
     private fun gradleRunner() =
+        gradleRunnerFor(projectDir.root)
+
+    private fun gradleRunnerFor(projectDir: File): GradleRunner =
         GradleRunner
             .create()
-            .withDebug(false)
+            .withDebug(true)
             .withGradleInstallation(customInstallation())
-            .withProjectDir(projectDir.root)
+            .withProjectDir(projectDir)
 
     private fun kotlinBuildScriptModel(): KotlinBuildScriptModel =
         withConnectionFrom(connectorFor(projectDir.root, customInstallation())) {
@@ -159,5 +246,4 @@ class GradleScriptKotlinIntegrationTest {
                 throw IllegalStateException(
                     "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`.")
         } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
-
 }

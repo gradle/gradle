@@ -97,6 +97,11 @@ tasks.addRule('Pattern: check-<SAMPLE>') { taskName ->
     }
 }
 
+task prepareIntegrationTestFixtures(type: GradleBuild) {
+    dir = file('fixtures')
+}
+test.dependsOn prepareIntegrationTestFixtures
+
 
 // --- classpath.properties --------------------------------------------
 File generatedResourcesDir = file("$buildDir/generate-resources/main")

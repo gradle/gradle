@@ -1,6 +1,6 @@
 buildscript {
 
-    extra["kotlinVersion"] = "1.1.0-dev-998"
+    extra["kotlinVersion"] = "1.1.0-dev-1159"
     extra["repo"] = "https://repo.gradle.org/gradle/repo"
 
     repositories {
