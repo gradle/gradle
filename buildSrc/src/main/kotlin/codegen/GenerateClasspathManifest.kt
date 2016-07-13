@@ -23,8 +23,6 @@ import org.gradle.api.tasks.TaskAction
 
 import java.io.File
 
-import java.nio.charset.Charset
-
 open class GenerateClasspathManifest : DefaultTask() {
 
     var outputDirectory: File? = null
@@ -50,6 +48,6 @@ open class GenerateClasspathManifest : DefaultTask() {
         ss.joinToString(separator = ",")
 
     private fun write(text: String) {
-        outputFile.writeText(text, Charset.forName("utf-8"))
+        outputFile.writeText(text)
     }
 }
