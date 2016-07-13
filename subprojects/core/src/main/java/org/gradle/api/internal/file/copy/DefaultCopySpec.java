@@ -30,6 +30,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
@@ -156,14 +157,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec into(Object destPath, Closure configureClosure) {
-        if (configureClosure == null) {
-            into(destPath);
-            return this;
-        } else {
-            CopySpecInternal child = addChild();
-            child.into(destPath);
-            return ConfigureUtil.configure(configureClosure, instantiator.newInstance(CopySpecWrapper.class, child));
-        }
+        return into(destPath, new ClosureBackedAction<CopySpec>(configureClosure));
     }
 
     public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
