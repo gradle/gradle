@@ -51,10 +51,12 @@ open class CheckSamples : DefaultTask() {
 
     @TaskAction
     fun run() {
-        project.sampleDirs().forEach { sampleDir ->
-            println("Checking ${relativeFile(sampleDir)}...")
-            OutputStreamForResultOf(sampleDir).use { stdout ->
-                runGradleHelpOn(sampleDir, stdout)
+        withUniqueDaemonRegistry {
+            project.sampleDirs().forEach { sampleDir ->
+                println("Checking ${relativeFile(sampleDir)}...")
+                OutputStreamForResultOf(sampleDir).use { stdout ->
+                    runGradleHelpOn(sampleDir, stdout)
+                }
             }
         }
     }
@@ -66,14 +68,12 @@ open class CheckSamples : DefaultTask() {
         file.relativeTo(project.projectDir)
 
     private fun runGradleHelpOn(projectDir: File, stdout: FileOutputStream) {
-        withUniqueDaemonRegistry {
-            withConnectionFrom(connectorFor(projectDir).useInstallation(installation!!)) {
-                newBuild()
-                    .forTasks("help")
-                    .setStandardOutput(TeeOutputStream(System.out, stdout))
-                    .setStandardError(TeeOutputStream(System.err, stdout))
-                    .run()
-            }
+        withConnectionFrom(connectorFor(projectDir).useInstallation(installation!!)) {
+            newBuild()
+                .forTasks("help")
+                .setStandardOutput(TeeOutputStream(System.out, stdout))
+                .setStandardError(TeeOutputStream(System.err, stdout))
+                .run()
         }
     }
 }
