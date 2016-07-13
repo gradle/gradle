@@ -103,17 +103,7 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
     }
 
     public void add(final Closure closure) {
-        transformers.add(new Transformer<Reader, Reader>() {
-            public Reader transform(Reader original) {
-                return new LineFilter(original, new Transformer<String, String>() {
-                    @Override
-                    public String transform(String input) {
-                        Object res = closure.call(input);
-                        return res == null ? null : res.toString();
-                    }
-                });
-            }
-        });
+        add(new ClosureBackedTransformer(closure));
     }
 
     public void expand(final Map<String, ?> properties) {
