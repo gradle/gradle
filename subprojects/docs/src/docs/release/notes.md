@@ -261,6 +261,10 @@ Support for compiling and testing on Java 5 has been dropped.
 
 The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
 
+### eclipse-cdt plugin has been removed
+
+The `eclipse-cdt` plugin was introduced before Gradle 2.0 but wasn't actively maintained.  It has now been removed.
+
 ### Test result and report directory take task name into account
 
 The defaults for the outputs of tasks of type Test have changed to take the task name into account when used with the `Java Plugin`.
