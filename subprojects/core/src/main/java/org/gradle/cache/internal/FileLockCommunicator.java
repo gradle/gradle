@@ -35,7 +35,7 @@ public class FileLockCommunicator {
     public FileLockCommunicator(InetAddressFactory addressFactory) {
         this.addressFactory = addressFactory;
         try {
-            socket = new DatagramSocket(0, addressFactory.findLocalBindingAddress());
+            socket = new DatagramSocket(0, addressFactory.getLocalBindingAddress());
         } catch (SocketException e) {
             throw throwAsUncheckedException(e);
         }
@@ -45,7 +45,7 @@ public class FileLockCommunicator {
         try {
             byte[] bytesToSend = encode(lockId);
             // Ping the owner via all available local addresses
-            for (InetAddress address : addressFactory.findLocalAddresses()) {
+            for (InetAddress address : addressFactory.getCommunicationAddresses()) {
                 socket.send(new DatagramPacket(bytesToSend, bytesToSend.length, address, ownerPort));
             }
         } catch (IOException e) {

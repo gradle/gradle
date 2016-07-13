@@ -20,9 +20,6 @@ task java9IntegTest(type: Test) {
         // Add a dedicated Findbugs test for Java 9
         "FindBugsIntegrationTest",
 
-        // Codenarc does not work on Java 9 - therefore it will not fail with PermGenSpaceError
-        "IsolatedAntBuilderMemoryLeakIntegrationTest",
-
         // Osgi is broken with a NPE in Processor - need to investigate
         "OsgiPluginIntegrationSpec",
 
@@ -94,15 +91,11 @@ task java9IntegTest(type: Test) {
 
         // Missing class javax/xml/bind/DatatypeConverter on PUT to S3
         // These tests need jvmArgs '-addmods', 'java.xml.bind'
-        // These jvmArgs should probably be added when running Gradle automatically
-        "S3ClientIntegrationTest",
+        // At some point Gradle should import this module automatically
         "IvyPublishS3IntegrationTest",
         "IvyS3UploadArchivesIntegrationTest",
         "MavenPublishS3IntegrationTest",
-
-        // Test assumes there is a tools.jar - provide a different large jar
-        "IvyPublishHttpIntegTest",
-        "IvyHttpPublishIntegrationTest",
+        "MavenPublishS3ErrorsIntegrationTest",
 
         // Various problems, eg scala compile
         "UserGuideSamplesIntegrationTest",
@@ -135,12 +128,6 @@ task java9IntegTest(type: Test) {
 }
 
 task java9Test(type: Test) {
-    excludes = [
-        // Caused by: java.lang.IncompatibleClassChangeError: Method Person.getName()Ljava/lang/String; must be InterfaceMethodref constant
-        // Fail since build 125
-        "AllDaemonExpirationStrategyTest",
-        "AnyDaemonExpirationStrategyTest",
-    ].collect { "**/*${it}*" }
 }
 
 tasks.withType(Test).matching { it.name.startsWith("java9") }.all {

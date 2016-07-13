@@ -52,7 +52,7 @@ class ArchiveTestFixture {
 
     String content(String relativePath) {
         List<String> files = filesByRelativePath.get(relativePath)
-        assertEquals(1, files.size())
+        assert files.size() == 1
         files.get(0)
     }
 

@@ -22,6 +22,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.FilesSnapshotSet
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -56,11 +57,12 @@ class TaskUpToDateStateTest extends Specification {
 
     def "constructor invokes snapshots" () {
         setup:
+        FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot) {
+            _ * getSnapshot() >> Stub(FilesSnapshotSet)
+        }
         OutputFilesCollectionSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         FileCollectionSnapshotter mockDiscoveredInputFileSnapshotter = Mock(FileCollectionSnapshotter)
-        FileCollectionSnapshot.PreCheck inputPreCheck = Mock(FileCollectionSnapshot.PreCheck)
-        FileCollectionSnapshot.PreCheck outputPreCheck = Mock(FileCollectionSnapshot.PreCheck)
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotter, mockDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
@@ -70,17 +72,15 @@ class TaskUpToDateStateTest extends Specification {
         1 * mockInputs.getProperties() >> [:]
         1 * mockInputs.getFileProperties() >> (["prop": new SimpleFileCollection(new File("a"))] as TreeMap)
         1 * mockOutputs.getFileProperties() >> (["out": new SimpleFileCollection(new File("b"))] as TreeMap)
-        1 * mockOutputFileSnapshotter.preCheck(_, _) >> outputPreCheck
-        1 * mockInputFileSnapshotter.preCheck(_, _) >> inputPreCheck
-        1 * inputPreCheck.getHash() >> 123
-        1 * outputPreCheck.getHash() >> 345
+        1 * mockOutputFileSnapshotter.snapshot(_, _) >> stubSnapshot
+        1 * mockInputFileSnapshotter.snapshot(_, _) >> stubSnapshot
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when input snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        _ * stubInputFileSnapshotter.preCheck(_, _) >> { throw cause }
+        _ * stubInputFileSnapshotter.snapshot(_, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
@@ -106,7 +106,7 @@ class TaskUpToDateStateTest extends Specification {
             }
         }
         def cause = new UncheckedIOException("thrown from stub")
-         _ * stubOutputFileSnapshotter.preCheck(_, _) >> { throw cause }
+        _ * stubOutputFileSnapshotter.snapshot(_, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)

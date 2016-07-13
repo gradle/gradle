@@ -17,7 +17,6 @@
 
 package org.gradle.launcher.daemon.server.expiry
 
-import com.google.common.collect.ImmutableList
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.*
@@ -33,7 +32,7 @@ class AnyDaemonExpirationStrategyTest extends Specification {
 
     def "expires when any child strategy expires"() {
         given:
-        AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy(ImmutableList.of(c1, c2))
+        AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy([c1, c2])
 
         when:
         1 * c1.checkExpiration() >> { new DaemonExpirationResult(c1Status, "r1") }
@@ -56,7 +55,7 @@ class AnyDaemonExpirationStrategyTest extends Specification {
 
     def "doesn't expire if no child strategies expire"() {
         given:
-        AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy(ImmutableList.of(c1, c2))
+        AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy([c1, c2])
 
         when:
         1 * c1.checkExpiration() >> { new DaemonExpirationResult(DO_NOT_EXPIRE, null) }

@@ -20,42 +20,29 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.util.List;
 
 /**
- * Provides some information about the network addresses of the local machine.
+ * Provides information on how two processes on this machine can communicate via IP addresses
  */
 public class InetAddressFactory {
-    private static final Logger LOGGER = LoggerFactory.getLogger(InetAddressFactory.class);
+    private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Object lock = new Object();
-    private List<InetAddress> localAddresses;
-    private List<InetAddress> remoteAddresses;
-    private List<NetworkInterface> multicastInterfaces;
+    private List<InetAddress> communicationAddresses;
     private InetAddress localBindingAddress;
+    private InetAddresses inetAddresses;
+    private boolean initialized;
 
     /**
-     * Determines the name of the local machine.
+     * Determines if the IP address can be used for communication with this machine
      */
-    public String getHostName() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            return findRemoteAddresses().get(0).toString();
-        }
-    }
-
-    /**
-     * Determines if the given source address is from the local machine.
-     */
-    public boolean isLocal(InetAddress address) {
+    public boolean isCommunicationAddress(InetAddress address) {
         try {
             synchronized (lock) {
                 init();
-                return localAddresses.contains(address);
+                return communicationAddresses.contains(address);
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not determine the IP addresses for this machine.", e);
@@ -63,48 +50,22 @@ public class InetAddressFactory {
     }
 
     /**
-     * Locates all local (loopback) addresses for this machine. Never returns an empty list.
+     * Locates the possible IP addresses which can be used to communicate with this machine.
+     *
+     * Loopback addresses are preferred.
      */
-    public List<InetAddress> findLocalAddresses() {
+    public List<InetAddress> getCommunicationAddresses() {
         try {
             synchronized (lock) {
                 init();
-                return localAddresses;
+                return communicationAddresses;
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not determine the local IP addresses for this machine.", e);
         }
     }
 
-    /**
-     * Locates the remote (non-loopback) addresses for this machine. Never returns an empty list.
-     */
-    public List<InetAddress> findRemoteAddresses() {
-        try {
-            synchronized (lock) {
-                init();
-                return remoteAddresses;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Could not determine the remote IP addresses for this machine.", e);
-        }
-    }
-
-    /**
-     * Locates the network interfaces that should be used for multicast, in order of preference.
-     */
-    public List<NetworkInterface> findMulticastInterfaces() {
-        try {
-            synchronized (lock) {
-                init();
-                return multicastInterfaces;
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Could not determine the multicast network interfaces for this machine.", e);
-        }
-    }
-
-    public InetAddress findLocalBindingAddress() {
+    public InetAddress getLocalBindingAddress() {
         try {
             synchronized (lock) {
                 init();
@@ -115,11 +76,36 @@ public class InetAddressFactory {
         }
     }
 
+    private void init() throws Exception {
+        if (initialized) {
+            return;
+        }
+
+        initialized = true;
+        if (inetAddresses == null) { // For testing
+            inetAddresses = new InetAddresses();
+        }
+        localBindingAddress = new InetSocketAddress(0).getAddress();
+
+        findCommunicationAddresses();
+
+        handleOpenshift();
+    }
+
+    private void handleOpenshift() {
+        InetAddress openshiftBindAddress = findOpenshiftAddresses();
+        if (openshiftBindAddress != null) {
+            localBindingAddress = openshiftBindAddress;
+            communicationAddresses.add(openshiftBindAddress);
+        }
+    }
+
+
     private InetAddress findOpenshiftAddresses() {
         for (String key : System.getenv().keySet()) {
             if (key.startsWith("OPENSHIFT_") && key.endsWith("_IP")) {
                 String ipAddress = System.getenv(key);
-                LOGGER.debug("OPENSHIFT IP environment variable {} detected. Using IP address {}.", key, ipAddress);
+                logger.debug("OPENSHIFT IP environment variable {} detected. Using IP address {}.", key, ipAddress);
                 try {
                     return InetAddress.getByName(ipAddress);
                 } catch (UnknownHostException e) {
@@ -130,92 +116,19 @@ public class InetAddressFactory {
         return null;
     }
 
-    private void init() throws Exception {
-        if (localAddresses != null) {
-            return;
-        }
-
-        localAddresses = new ArrayList<InetAddress>();
-        remoteAddresses = new ArrayList<InetAddress>();
-        multicastInterfaces = new ArrayList<NetworkInterface>();
-
-        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-        while (interfaces.hasMoreElements()) {
-            NetworkInterface networkInterface = interfaces.nextElement();
-            LOGGER.debug("Adding IP addresses for network interface {}", networkInterface.getDisplayName());
-            try {
-                boolean isLoopbackInterface = networkInterface.isLoopback();
-                LOGGER.debug("Is this a loopback interface? {}", isLoopbackInterface);
-                boolean isMulticast = networkInterface.supportsMulticast();
-                LOGGER.debug("Is this a multicast interface? {}", isMulticast);
-                boolean isRemote = false;
-
-                Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
-                while (candidates.hasMoreElements()) {
-                    InetAddress candidate = candidates.nextElement();
-                    if (isLoopbackInterface) {
-                        if (candidate.isLoopbackAddress()) {
-                            LOGGER.debug("Adding loopback address {}", candidate);
-                            localAddresses.add(candidate);
-                        } else {
-                            LOGGER.debug("Ignoring remote address on loopback interface {}", candidate);
-                        }
-                    } else {
-                        if (candidate.isLoopbackAddress()) {
-                            LOGGER.debug("Ignoring loopback address on remote interface {}", candidate);
-                        } else {
-                            LOGGER.debug("Adding remote address {}", candidate);
-                            remoteAddresses.add(candidate);
-                            isRemote = true;
-                        }
-                    }
-                }
-
-                if (!Boolean.FALSE.equals(isMulticast)) {
-                    // Prefer remotely reachable interfaces over loopback interfaces for multicast
-                    if (isRemote) {
-                        LOGGER.debug("Adding remote multicast interface {}", networkInterface.getDisplayName());
-                        multicastInterfaces.add(0, networkInterface);
-                    } else {
-                        LOGGER.debug("Adding loopback multicast interface {}", networkInterface.getDisplayName());
-                        multicastInterfaces.add(networkInterface);
-                    }
-                }
-            } catch (Throwable e) {
-                throw new RuntimeException(String.format("Could not determine the IP addresses for network interface %s", networkInterface.getName()), e);
+    private void findCommunicationAddresses() throws UnknownHostException {
+        communicationAddresses = new ArrayList<InetAddress>();
+        if (inetAddresses.getLoopback().isEmpty()) {
+            if (inetAddresses.getRemote().isEmpty()) {
+                InetAddress fallback = InetAddress.getByName(null);
+                logger.debug("No loopback addresses, using fallback {}", fallback);
+                communicationAddresses.add(fallback);
+            } else {
+                logger.debug("No loopback addresses, using remote addresses instead.");
+                communicationAddresses.addAll(inetAddresses.getRemote());
             }
-        }
-
-        if (localAddresses.isEmpty()) {
-            InetAddress fallback = InetAddress.getByName(null);
-            LOGGER.debug("No loopback addresses, using fallback {}", fallback);
-            localAddresses.add(fallback);
-        }
-        if (remoteAddresses.isEmpty()) {
-            try {
-                InetAddress fallback = InetAddress.getLocalHost();
-                LOGGER.debug("No remote addresses, using fallback {}", fallback);
-                remoteAddresses.add(fallback);
-            } catch (UnknownHostException e) {
-                LOGGER.debug("Could not map local host name to remote address, using local addresses instead.");
-                remoteAddresses.addAll(localAddresses);
-            }
-        }
-        if (multicastInterfaces.isEmpty()) {
-            LOGGER.debug("No multicast interfaces, using fallbacks");
-            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
-            while (networkInterfaces.hasMoreElements()) {
-                multicastInterfaces.add(networkInterfaces.nextElement());
-            }
-        }
-
-        // Detect Openshift IP environment variable.
-        InetAddress openshiftBindAddress = findOpenshiftAddresses();
-        if (openshiftBindAddress != null) {
-            localBindingAddress = openshiftBindAddress;
-            localAddresses.add(openshiftBindAddress);
         } else {
-            localBindingAddress = new InetSocketAddress(0).getAddress();
+            communicationAddresses.addAll(inetAddresses.getLoopback());
         }
     }
 }

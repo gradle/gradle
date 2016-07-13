@@ -51,7 +51,7 @@ class CreateDefaultFlavorsTest extends Specification {
         when:
         flavorContainer.configure {
             flavor1 {}
-            it.'default' {}
+            'default' {}
             flavor2 {}
         }
         and:

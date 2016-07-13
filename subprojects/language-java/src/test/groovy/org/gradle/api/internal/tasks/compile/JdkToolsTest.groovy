@@ -17,19 +17,17 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.internal.jvm.JavaInfo
-import org.gradle.internal.jvm.Jvm
 import org.gradle.util.Requires
-import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Specification
 
 import javax.tools.JavaCompiler
 
 import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
+import static org.gradle.util.TestPrecondition.JDK
 
 class JdkToolsTest extends Specification {
-
-    @IgnoreIf({ Jvm.current().toolsJar == null })
+    @Requires(JDK)
     def "can get java compiler"() {
         def compiler = JdkTools.current().systemJavaCompiler
 

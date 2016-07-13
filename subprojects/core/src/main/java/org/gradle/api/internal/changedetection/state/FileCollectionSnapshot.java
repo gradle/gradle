@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 
 import java.io.File;
@@ -48,18 +46,6 @@ public interface FileCollectionSnapshot {
     Map<String, IncrementalFileSnapshot> getSnapshots();
 
     FilesSnapshotSet getSnapshot();
-
-    interface PreCheck {
-        Integer getHash();
-
-        FileCollection getFiles();
-
-        Collection<VisitedTree> getVisitedTrees();
-
-        Collection<File> getMissingFiles();
-
-        boolean isEmpty();
-    }
 
     Collection<Long> getTreeSnapshotIds();
 }

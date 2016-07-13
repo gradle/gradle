@@ -16,40 +16,94 @@
 
 package org.gradle.internal.remote.internal.inet
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.Specification
 
 class InetAddressFactoryTest extends Specification {
     def factory = new InetAddressFactory()
+    InetAddresses addresses = Mock()
 
-    def "always contains at least one local address"() {
-        expect:
-        !factory.findLocalAddresses().empty
+    def setup() {
+        factory.inetAddresses = addresses
     }
 
-    def "always contains at least one remote address"() {
-        expect:
-        !factory.findRemoteAddresses().empty
+    def "Loopback addresses are preferred"() {
+        when:
+        def loopback = [ip(127, 0, 0, 1)]
+        loopbackAddresses(loopback)
+        remoteAddresses([ip(192, 168, 17, 256)])
+
+        then:
+        factory.communicationAddresses == loopback
     }
 
-    def "always contains at least multicast interface"() {
-        expect:
-        !factory.findMulticastInterfaces().empty
+    def "Use remote addresses if there are no loopback addresses"() {
+        when:
+        loopbackAddresses([])
+        def remote = [ip(192, 168, 18, 256)]
+        remoteAddresses(remote)
+
+        then:
+        factory.communicationAddresses == remote
     }
 
-    def "all local address is considered local"() {
-        expect:
-        factory.findLocalAddresses().every {
-            factory.isLocal(it)
+    def "Use 127.0.0.1 if there are no remote and no loopback addresses"() {
+        when:
+        loopbackAddresses([])
+        remoteAddresses([])
+
+        then:
+        factory.communicationAddresses == [InetAddress.getByName(null)]
+    }
+
+    def "communication addresses are detected"() {
+        when:
+        loopbackAddresses([ip(127, 0, 0, 1), ip(127, 0, 0, 2)])
+
+        then:
+        factory.communicationAddresses.every {
+            factory.isCommunicationAddress(it)
         }
+
+        !factory.isCommunicationAddress(ip(127, 0, 0, 3))
     }
 
-    @Requires(TestPrecondition.ONLINE)
-    def "no remote address is considered local"() {
+    def "0.0.0.0 is used as bind address by default"() {
+        when:
+        defaultAddresses()
+
+        then:
+        factory.localBindingAddress == new InetSocketAddress(0).address
+    }
+
+    @Ignore("Cannot set environment variables, yet")
+    def "Openshift IP is used when available"() {
+        when:
+        System.getenv().put('OPENSHIFT_JENKINS_IP', '134.12.45.15')
+        defaultAddresses()
+
+        then:
+        factory.communicationAddresses == [ip(134, 12, 45, 15)]
+    }
+
+    def "Always returns some communication address"() {
         expect:
-        factory.findRemoteAddresses().every {
-            !factory.isLocal(it)
-        }
+        !new InetAddressFactory().communicationAddresses.empty
+    }
+
+    private defaultAddresses() {
+        loopbackAddresses([ip(127, 0, 0, 1)])
+    }
+
+    InetAddress ip(int a, int b, int c, int d) {
+        InetAddress.getByAddress([a, b, c, d] as byte[])
+    }
+
+    private void loopbackAddresses(List<InetAddress> loopback) {
+        addresses.getLoopback() >> loopback
+    }
+
+    private void remoteAddresses(List<InetAddress> remote) {
+        addresses.getRemote() >> remote
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
@@ -37,14 +36,8 @@ public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
     }
 
     @Override
-    protected HashCode getPreviousPreCheckHash() {
-        return previous.getInputFilesHash();
-    }
-
-    @Override
     public void saveCurrent() {
         // Inputs are considered to be unchanged during task execution
-        current.setInputFilesHash(getPreCheckHash());
         current.setInputFilesSnapshot(getCurrent());
     }
 

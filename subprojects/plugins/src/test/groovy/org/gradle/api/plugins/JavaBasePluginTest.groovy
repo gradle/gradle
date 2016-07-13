@@ -200,8 +200,8 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
 
         def test = project.task('customTest', type: Test.class)
         test.workingDir == project.projectDir
-        test.reports.junitXml.destination == project.testResultsDir
-        test.reports.html.destination == project.testReportDir
+        test.reports.junitXml.destination == new File(project.testResultsDir, 'customTest')
+        test.reports.html.destination == new File(project.testReportDir, 'customTest')
         test.reports.junitXml.enabled
         test.reports.html.enabled
 

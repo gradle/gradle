@@ -43,7 +43,7 @@ public abstract class XmlGeneratorTask<T extends PersistableConfigurationObject>
     }
 
     @Internal
-    protected XmlTransformer getXmlTransformer() {
+    public XmlTransformer getXmlTransformer() {
         return xmlTransformer;
     }
 

@@ -56,7 +56,7 @@ class InitBuildSpec extends Specification {
         init.setupProjectLayout()
         then:
         def e = thrown(GradleException)
-        e.message == "The requested build setup type 'aType' is not supported. Supported types: 'another-supported-type', 'supported-type'."
+        e.message == "The requested build setup type 'aType' is not supported. Supported types: 'supported-type', 'another-supported-type'."
     }
 
     def "delegates task action to referenced setupDescriptor"() {

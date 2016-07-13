@@ -71,7 +71,7 @@ public abstract class AbstractNamedDomainObjectContainer<T> extends DefaultNamed
 
     public AbstractNamedDomainObjectContainer<T> configure(Closure configureClosure) {
         ConfigureDelegate delegate = createConfigureDelegate(configureClosure);
-        ConfigureUtil.configureSelf(configureClosure, delegate, delegate);
+        ConfigureUtil.configureSelf(configureClosure, this, delegate);
         return this;
     }
 

@@ -36,6 +36,12 @@ import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.plugins.ear.Ear
 import org.gradle.plugins.ide.eclipse.GenerateEclipseClasspath
 import org.gradle.plugins.ide.eclipse.GenerateEclipseJdt
+import org.gradle.plugins.ide.eclipse.GenerateEclipseProject
+import org.gradle.plugins.ide.eclipse.GenerateEclipseWtpComponent
+import org.gradle.plugins.ide.eclipse.GenerateEclipseWtpFacet
+import org.gradle.plugins.ide.idea.GenerateIdeaModule
+import org.gradle.plugins.ide.idea.GenerateIdeaProject
+import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
@@ -71,7 +77,13 @@ class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionInt
             Sign,
             org.gradle.api.tasks.application.CreateStartScripts,
             GenerateEclipseJdt,
-            GenerateEclipseClasspath
+            GenerateEclipseClasspath,
+            GenerateEclipseProject,
+            GenerateEclipseWtpComponent,
+            GenerateEclipseWtpFacet,
+            GenerateIdeaModule,
+            GenerateIdeaWorkspace,
+            GenerateIdeaProject
         ]
 
         // Task types added after 1.0

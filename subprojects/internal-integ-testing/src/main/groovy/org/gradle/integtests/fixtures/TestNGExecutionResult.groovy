@@ -23,7 +23,7 @@ import org.hamcrest.Matcher
 class TestNGExecutionResult implements TestExecutionResult {
     private final TestFile projectDir
     private GPathResult resultsXml
-    public static final String DEFAULT_TESTNG_REPORT = "build/reports/tests"
+    public static final String DEFAULT_TESTNG_REPORT = "build/reports/tests/test"
     private final String outputDirectory
 
     TestNGExecutionResult(projectDir, String outputDirectory = DEFAULT_TESTNG_REPORT) {

@@ -44,17 +44,18 @@
     </section>
     <section id="sec:status">
         <title>Running Daemon Status</title>
-        <para>You can get a list running Gradle Daemons and their statuses using <command>--status</command>.</para>
+        <para>To get a list of running Gradle Daemons and their statuses use the <command>--status</command> command.</para>
         <para>Sample output:
-<pre>
+<programlisting>
       PID VERSION                 STATUS
     28411 3.0                     IDLE
     34247 3.0                     BUSY
-</pre>
+</programlisting>
         </para>
         <para>
             Currently, a given Gradle version can only connect to daemons of the same version.
-            This prevents listing Daemons of all versions of Gradle. We will be implementing a cross-version Daemon registry in future versions of Gradle to improve this.
+            This means the status output will only show Daemons for the version of Gradle being invoked and not for any other versions. Future versions of Gradle will lift this constraint and will show
+            the running Daemons for all versions of Gradle.
         </para>
     </section>
     <section id="sec:disabling_the_daemon">

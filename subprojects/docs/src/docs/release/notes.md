@@ -22,10 +22,10 @@ Add-->
 
 ### New Features and Improvements since 3.0 M1
 
- * **Initial Java 9 Support.** Gradle now runs properly when run on the latest JDK 9 EAP builds, and users can build and run tests for their own projects against JDK 9 as well. Note, however, that Gradle does not yet support Jigsaw modules or JDK 9-specific compile options such as `-release` and `-modulepath`. 
+ * **Initial Java 9 Support.** Gradle now runs properly when run on the latest JDK 9 EAP builds, and users can build and run tests for their own projects against JDK 9 as well. Note, however, that Gradle does not yet support Jigsaw modules or JDK 9-specific compile options such as `-release` and `-modulepath`.
  * **Performance Improvements and new Performance Guide.** A number of performance improvements have acculmulated over the last several Gradle releases, and it's a good time to try them out for yourself in 3.0 M2. For details on many of these improvements, see [Cédric's blog post](http://gradle.org/blog/gradle-3-0-m2-java-9-support/). We're also pleased to make available a draft of our [new Performance Guide](https://gradle.github.io/performance-guide). This is intended to be a short (13-page) guide that allows you to dramatically improve your build performance over the course of an afternoon. Check it out and please provide any feedback via the guide's [GitHub Issues](https://github.com/gradle/performance-guide/issues).
  * **Improved Kotlin build scripting.** Gradle 3.0 M2 includes the newly-released Gradle Script Kotlin 0.2.0. Users can now modify the build script classpath and apply plugins in Kotlin-based build scripts, and project import into IDEA is now seamless. See the Gradle Script Kotlin [0.2.0 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/0.2.0) for details, samples and getting started instructions.
-    
+
 ### Improved Gradle Daemon, now enabled by default
 
 The performance improvement gained by using the Daemon is staggering: our performance tests [show that builds could be up to 75% faster](http://gradle.org/blog/gradle-3-0-m1-unleash-the-daemon/), just by enabling the Gradle Daemon.
@@ -38,14 +38,13 @@ We encourage you to give the improved Daemon a try. If for some reason you encou
 
 You can now check the status of running Daemons. A sample:
 
-```
-$> gradle --status
-   PID VERSION                 STATUS
- 28411 3.0                     IDLE
- 34247 3.0                     BUSY
-```
 
-Note that currently this does not list Gradle Daemons with version < 3.0. More details available in the [User Guide](userguide/gradle_daemon.html#status). 
+    $> gradle --status
+     PID   VERSION                 STATUS
+     28411 3.0                     IDLE
+     34247 3.0                     BUSY
+
+Note that currently this does not list Gradle Daemons with version < 3.0. More details available in the [User Guide](userguide/gradle_daemon.html#status).
 
 ### Up-to-date checks more robust against task implementation changes
 
@@ -60,17 +59,15 @@ There are times when you want to resolve a plugin without actually applying it t
 
 This is now possible using the following syntax
 
-```
-plugins {
-    id 'my.special.plugin' version '1.0' apply false
-}
-
-subprojects {
-    if (someCondition) {
-        apply plugin 'my.special.plugin'
+    plugins {
+        id 'my.special.plugin' version '1.0' apply false
     }
-}
-```
+
+    subprojects {
+        if (someCondition) {
+            apply plugin 'my.special.plugin'
+        }
+    }
 
 ### Improved handling of external dependencies in `eclipse-wtp` plugin
 
@@ -81,7 +78,7 @@ Before Gradle 3.0, the `eclipse-wtp` plugin always defined external dependencies
             <attribute name="org.eclipse.jst.component.dependency" value="WEB-INF/lib"/>
         </attributes>
     </classpath>
-    
+
 If the project is not a Java project (and thus has no classpath), the dependencies are added to the component descriptor as before.
 
 ### Improved dependency resolution for `eclipse-wtp` plugin
@@ -111,16 +108,20 @@ With these features Tooling API clients can provide a more complete IDE integrat
 Gradle 3.0 contains initial support for Java 9. This means that running Gradle on Java 9 and compiling,
 testing and running Java 9 applications is supported out of the box.
 
-The following plugins should work out of the box:
+The following plugins are known to have some issues with Java 9:
 
-- [Jacoco](userguide/jacoco_plugin.html)
-
-The following plugins still have some issues:
-
-- [PMD](userguide/pmd_plugin.html): Runs on Java 9 but cannot analyze Java 9 Bytecode as this is not yet supported by
+- [PMD plugin](userguide/pmd_plugin.html): Runs on Java 9 but cannot analyze Java 9 Bytecode as this is not yet supported by
   the latest version of PMD (5.5.0)
+- [Jetty plugin](userguide/jetty_plugin.html): The version of Jetty used for the Jetty plugin does not work with Java 9
+- [Scala plugin](userguide/scala_plugin.html): The Zinc compiler does not work with Java 9
+- [FindBugs plugin](userguide/findbugs_plugin.html): The latest release (3.0.1) does not work with Java 9
+- [OSGi plugin](userguide/osgi_plugin.html): The latest version of BND does not work with Java 9
 
-CAVEAT: Your mileage my vary. If you run into any problems please report those on the forums.
+Also, for publishing to S3 backed Maven and Ivy repositories, `-addmods java.xml.bind` has to be added to the JVM parameters. This can be accomplished by setting
+
+    GRADLE_OPTS="-addmods java.xml.bind '-Dorg.gradle.jvmargs=-addmods java.xml.bind'"
+
+CAVEAT: Your mileage may vary. If you run into any problems please report those on the forums.
 
 ### Upgrade of BND library used by OSGi plugin
 
@@ -193,7 +194,7 @@ The `Test` task type now honors the `max-workers` setting for the test processes
 - Text resources
 - Software model    
     - Dependency management for JVM libraries, target platform aware
-        - inter-project, intra-project and external libraries 
+        - inter-project, intra-project and external libraries
     - JVM library API definition, compile avoidance
     - JUnit support
     - Components report, model report
@@ -241,13 +242,24 @@ The following APIs have been deprecated:
 Gradle itself now requires Java 7 or better to run, but compiling project sources and running tests with Java 6 remains supported.
 See [Compiling and testing for Java 6](userguide/java_plugin.html#sec:java_cross_compilation) in the Userguide. There are also
 instructions on how to compile and test [Groovy](userguide/groovy_plugin.html#sec:groovy_cross_compilation) and
-[Scala](userguide/scala_plugin.html#sec:scala_cross_compilation) for Java 6. 
+[Scala](userguide/scala_plugin.html#sec:scala_cross_compilation) for Java 6.
 
 Support for compiling and testing on Java 5 has been dropped.
 
 ### Sonar plugin has been removed
 
 The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
+
+### Test result and report directory take task name into account
+
+The defaults for the outputs of tasks of type Test have changed to take the task name into account when used with the `Java Plugin`.
+This allows having multiple tasks of type Test with non conflicting default report and result folders.
+When the Java Plugin is applied, the report directory for a task of type `Test` with name `test` is now `$buildDir/reports/tests/test`. The `test-result` folder for task `test` is now `$buildDir/test-results/tests`.
+
+To keep the previous behaviour, the reports output directory of Test tasks can be configured explicitly:
+
+    test.reports.html.destination = testReportDir // build/reports/tests
+    test.reports.xml.destination = testResultDir // build/test-results
 
 ### Ant-Based Scala Compiler has been removed
 
@@ -277,12 +289,27 @@ For Java projects, the `eclipse-wtp` plugin no longer adds external dependencies
 
 User who are building `war` projects with Eclipse, but for any reason do not want to have WTP enabled can deactivate WTP like this:
 
-```
-eclipse.project {
-    natures.removeAll { it.startsWith('org.eclipse.wst') }
-    buildCommands.removeAll { it.name.startsWith('org.eclipse.wst') }
-}
-```
+    eclipse.project {
+        natures.removeAll { it.startsWith('org.eclipse.wst') }
+        buildCommands.removeAll {         
+            it.name.startsWith('org.eclipse.wst')
+        }
+    }
+### NamedDomainObjectContainers no longer create objects when using explicit parameter syntax
+
+The following snippet used to create a new source set called `foo`:
+
+    sourceSets {
+        it.foo {}
+    }
+    
+This behavior was unintended and has been removed. The above code will now result in an exception if `foo` is not already defined. 
+
+Creation now only happens when using the implicit syntax
+
+    sourceSets {
+        foo {}
+    }
 
 ### Changes to previously deprecated APIs
 
@@ -337,8 +364,8 @@ eclipse.project {
 #### Eclipse model contains classpath attributes for project and external dependencies
 
 The `EclipseProjectDependency` and `EclipseExternalDependency` models now contain `ClasspathAttribute`s. By default the JavaDoc location attribute and WTP deployment attributes are populated.
- 
-Any customizations done via `eclipse.classpath.file.beforeMerged` and `eclipse.classpath.file.whenMerged` are also reflected in these tooling models. 
+
+Any customizations done via `eclipse.classpath.file.beforeMerged` and `eclipse.classpath.file.whenMerged` are also reflected in these tooling models.
 
 ## External contributions
 
@@ -357,6 +384,7 @@ We would like to thank the following community members for making contributions 
  - [Alexander Shorin](https://github.com/kxepal) - Allow local connections for daemon and messaging services from all network devices (GRADLE-3121)
  - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Correct some typos in depMngmt.xml and README.md
  - [Ethan Hall](https://github.com/ethankhall) - Fixing documentation from candidate.name to candidate.module
+ - [Sebastian Schuberth](https://github.com/sschuberth) - Minor style fixes
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
