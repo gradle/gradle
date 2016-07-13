@@ -104,12 +104,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec from(Object sourcePath, final Closure c) {
-        return from(sourcePath, new Action<CopySpec>() {
-            @Override
-            public void execute(CopySpec copySpec) {
-                ConfigureUtil.configure(c, copySpec);
-            }
-        });
+        return from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
     }
 
     public CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {

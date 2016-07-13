@@ -21,9 +21,14 @@ import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Nullable;
 import org.gradle.api.Transformer;
-import org.gradle.api.file.*;
+import org.gradle.api.file.CopyProcessingSpec;
+import org.gradle.api.file.CopySourceSpec;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.ConfigureUtil;
 
 import java.io.FilterReader;
 import java.util.Map;
@@ -89,12 +94,7 @@ public class CopySpecWrapper implements CopySpec {
     }
 
     public CopySpec from(Object sourcePath, final Closure c) {
-        return delegate.from(sourcePath, new Action<CopySpec>() {
-            @Override
-            public void execute(CopySpec copySpec) {
-                ConfigureUtil.configure(c, copySpec);
-            }
-        });
+        return delegate.from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
     }
 
     public CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
