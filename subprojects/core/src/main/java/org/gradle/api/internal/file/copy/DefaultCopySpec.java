@@ -286,18 +286,13 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec filter(final Closure closure) {
-        copyActions.add(new Action<FileCopyDetails>() {
-            public void execute(FileCopyDetails fileCopyDetails) {
-                fileCopyDetails.filter(new Transformer<String, String>() {
-                    @Override
-                    public String transform(String input) {
-                        Object val = closure.call(input);
-                        return val == null ? null : val.toString();
-                    }
-                });
+        return filter(new Transformer<String, String>() {
+            @Override
+            public String transform(String s) {
+                Object val = closure.call(s);
+                return val == null ? null : val.toString();
             }
         });
-        return this;
     }
 
     public CopySpec filter(final Transformer<String, String> transformer) {
