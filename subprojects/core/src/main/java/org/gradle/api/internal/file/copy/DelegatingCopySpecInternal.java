@@ -85,7 +85,7 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
         });
     }
 
-    public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
+    public CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
         return getDelegateCopySpec().from(sourcePath, configureAction);
     }
 

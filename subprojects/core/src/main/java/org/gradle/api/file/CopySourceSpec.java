@@ -49,5 +49,5 @@ public interface CopySourceSpec {
      * @param sourcePath Path to source for the copy
      * @param configureAction action for configuring the child CopySourceSpec
      */
-    CopySourceSpec from(Object sourcePath, Action<? super CopySpec> configureAction);
+    CopySourceSpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction);
 }

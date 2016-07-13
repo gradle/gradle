@@ -97,7 +97,7 @@ public class CopySpecWrapper implements CopySpec {
         });
     }
 
-    public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
+    public CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
         return delegate.from(sourcePath, configureAction);
     }
 
