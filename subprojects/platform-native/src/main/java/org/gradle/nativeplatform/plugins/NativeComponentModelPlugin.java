@@ -308,6 +308,16 @@ public class NativeComponentModelPlugin implements Plugin<ProjectInternal> {
             NativeComponents.createExecutableTask(executableBinary, executableBinary.getExecutable().getFile());
         }
 
+        @BinaryTasks
+        public void createBuildDependentBinariesTasks(ModelMap<Task> tasks, NativeBinarySpecInternal nativeBinary) {
+            NativeComponents.createBuildDependentBinariesTasks(nativeBinary, nativeBinary.getNamingScheme());
+        }
+
+        @Finalize
+        public void wireBuildDependentTasks(ModelMap<Task> tasks, BinaryContainer binaries, DependentBinariesResolver dependentsResolver, ServiceRegistry serviceRegistry) {
+            NativeComponents.wireBuildDependentTasks(tasks, binaries, dependentsResolver, serviceRegistry.get(ProjectModelResolver.class));
+        }
+
         /**
          * Can't use @BinaryTasks because the binary is not _built-by_ the install task, but it is associated with it. Rule is called multiple times, so need to check for task existence before
          * creating.
