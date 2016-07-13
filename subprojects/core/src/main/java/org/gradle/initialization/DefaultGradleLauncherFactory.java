@@ -85,9 +85,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             cancellationToken = services.get(BuildCancellationToken.class);
             buildEventConsumer = services.get(BuildEventConsumer.class);
         } else {
-            requestMetaData = new DefaultBuildRequestMetaData(System.currentTimeMillis());
-            cancellationToken = new DefaultBuildCancellationToken();
-            buildEventConsumer = new NoOpBuildEventConsumer();
+            throw new IllegalStateException("Must have a current build");
         }
 
         final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(parentRegistry, startParameter);

@@ -48,13 +48,12 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         launcher.gradle.services.get(BuildEventConsumer) == eventConsumer
     }
 
-    def "provides default build context when no outer build is running"() {
-        expect:
-        def launcher = factory.newInstance(startParameter)
-        launcher.gradle.parent == null
-        launcher.gradle.services.get(BuildRequestMetaData) instanceof DefaultBuildRequestMetaData
-        launcher.gradle.services.get(BuildCancellationToken) instanceof DefaultBuildCancellationToken
-        launcher.gradle.services.get(BuildEventConsumer) instanceof NoOpBuildEventConsumer
+    def "cannot create child launcher when no outer build is running"() {
+        when:
+        factory.newInstance(startParameter)
+
+        then:
+        thrown IllegalStateException
     }
 
     def "reuses build context services for nested build"() {
