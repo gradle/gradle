@@ -164,8 +164,7 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     public ContentFilterable filter(Closure closure) {
-        filterChain.add(closure);
-        return this;
+        return filter(new ClosureBackedTransformer(closure));
     }
 
     @Override

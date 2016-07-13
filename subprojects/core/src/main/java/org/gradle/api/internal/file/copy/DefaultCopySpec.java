@@ -397,20 +397,6 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.filteringCharset = charset;
     }
 
-    private static class ClosureBackedTransformer implements Transformer<String, String> {
-        private final Closure closure;
-
-        public ClosureBackedTransformer(Closure closure) {
-            this.closure = closure;
-        }
-
-        @Override
-        public String transform(String s) {
-            Object val = closure.call(s);
-            return val == null ? null : val.toString();
-        }
-    }
-
     public class DefaultCopySpecResolver implements CopySpecResolver {
 
         private CopySpecResolver parentResolver;
