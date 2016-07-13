@@ -17,26 +17,15 @@ package org.gradle.nativeplatform.internal;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
-import org.gradle.api.DefaultTask;
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.ModelMap;
-import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.NativeDependencySet;
 import org.gradle.nativeplatform.NativeExecutableFileSpec;
 import org.gradle.nativeplatform.NativeInstallationSpec;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
-import org.gradle.platform.base.internal.BinarySpecInternal;
-import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
-import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 
 import java.io.File;
 import java.util.List;
@@ -87,43 +76,6 @@ public class NativeComponents {
                 installTask.dependsOn(binary);
             }
         });
-    }
-
-    public static void createBuildDependentBinariesTasks(final NativeBinarySpecInternal binary, BinaryNamingScheme namingScheme) {
-        binary.getTasks().create(namingScheme.getTaskName("assembleDependents"), DefaultTask.class, new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                task.setGroup("Build Dependents");
-                task.setDescription("Assemble dependents of " + binary.getDisplayName());
-                task.dependsOn(binary);
-            }
-        });
-    }
-
-    public static void wireBuildDependentTasks(ModelMap<Task> tasks, BinaryContainer binaries, final DependentBinariesResolver dependentsResolver, final ProjectModelResolver projectModelResolver) {
-        final ModelMap<NativeBinarySpecInternal> nativeBinaries = binaries.withType(NativeBinarySpecInternal.class);
-        for (final BinarySpecInternal binary : nativeBinaries) {
-            Task assembleDependents = tasks.get(binary.getNamingScheme().getTaskName("assembleDependents"));
-            // Wire dependent binaries tasks dependencies
-            // Defer dependencies gathering as we need to resolve across project's boundaries
-            Callable<Iterable<BinarySpec>> deferredDependencies = new Callable<Iterable<BinarySpec>>() {
-                @Override
-                public Iterable<BinarySpec> call() {
-                    List<BinarySpec> dependencies = Lists.newArrayList();
-                    DependentBinariesResolvedResult result = dependentsResolver.resolve(binary).getRoot();
-                    for (DependentBinariesResolvedResult dependent : result.getChildren()) {
-                        if (dependent.isBuildable()) {
-                            ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(dependent.getId().getProjectPath());
-                            ModelMap<NativeBinarySpecInternal> projectBinaries = modelRegistry.realize("binaries", ModelTypes.modelMap(NativeBinarySpecInternal.class));
-                            NativeBinarySpecInternal dependentBinary = projectBinaries.get(dependent.getProjectScopedName());
-                            dependencies.add(dependentBinary);
-                        }
-                    }
-                    return dependencies;
-                }
-            };
-            assembleDependents.dependsOn(deferredDependencies);
-        }
     }
 
     public abstract static class BinaryLibs implements Callable<List<FileCollection>> {
