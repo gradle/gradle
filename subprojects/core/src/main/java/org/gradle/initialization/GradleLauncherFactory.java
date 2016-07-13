@@ -42,7 +42,7 @@ public interface GradleLauncherFactory {
      * @param startParameter The settings for the build.
      * @param parent The parent service registry for this build.
      */
-    GradleLauncher newInstance(StartParameter startParameter, ServiceRegistry parent);
+    GradleLauncher newInstance(StartParameter startParameter, ServiceRegistry parent, boolean newSession);
 
     /**
      * Creates a new {@link GradleLauncher} instance for the given parameters.

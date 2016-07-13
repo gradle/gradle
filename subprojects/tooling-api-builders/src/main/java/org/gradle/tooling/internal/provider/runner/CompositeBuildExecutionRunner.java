@@ -18,43 +18,35 @@ package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.composite.CompositeBuildActionParameters;
 import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.composite.CompositeBuildController;
 import org.gradle.internal.composite.CompositeContextBuilder;
-import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 import org.gradle.tooling.internal.provider.ExecuteBuildActionRunner;
 
-import java.util.List;
-
 public class CompositeBuildExecutionRunner implements CompositeBuildActionRunner {
     public void run(BuildAction action, BuildRequestContext requestContext, CompositeBuildActionParameters actionParameters, CompositeBuildController buildController) {
         if (!(action instanceof ExecuteBuildAction)) {
             return;
         }
-        BuildSessionScopeServices compositeServices = new BuildSessionScopeServices(buildController.getBuildScopeServices(), action.getStartParameter(), ClassPath.EMPTY);
-        compositeServices.addProvider(new CompositeBuildServices.CompositeBuildSessionScopeServices());
 
-        executeTasksInProcess((ExecuteBuildAction) action, actionParameters.getCompositeParameters().getBuilds(), requestContext, compositeServices);
-        buildController.setResult(null);
-    }
-
-    private void executeTasksInProcess(ExecuteBuildAction action, List<GradleParticipantBuild> participantBuilds, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
+        ServiceRegistry sharedServices = buildController.getBuildScopeServices();
         CompositeContextBuilder contextBuilder = sharedServices.get(CompositeContextBuilder.class);
-        contextBuilder.addToCompositeContext(participantBuilds, buildRequestContext, true);
+        contextBuilder.addToCompositeContext(actionParameters.getCompositeParameters().getBuilds(), requestContext, true);
 
         BuildActionRunner runner = new ExecuteBuildActionRunner();
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
-        buildActionExecuter.execute(action, buildRequestContext, null, sharedServices);
+
+        buildActionExecuter.execute(action, requestContext, null, sharedServices);
+        buildController.setResult(null);
     }
+
 }

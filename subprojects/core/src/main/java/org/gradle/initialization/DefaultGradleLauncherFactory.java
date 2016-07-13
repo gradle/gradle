@@ -72,30 +72,31 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
     @Override
     public GradleLauncher newInstance(StartParameter startParameter) {
-        return newInstance(startParameter, sharedServices);
+        return newInstance(startParameter, sharedServices, true);
     }
 
-    public GradleLauncher newInstance(StartParameter startParameter, ServiceRegistry parentRegistry) {
-        BuildRequestMetaData requestMetaData;
-        BuildCancellationToken cancellationToken;
-        BuildEventConsumer buildEventConsumer;
-        if (tracker.getCurrentBuild() != null) {
-            ServiceRegistry services = tracker.getCurrentBuild().getServices();
-            requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class), System.currentTimeMillis());
-            cancellationToken = services.get(BuildCancellationToken.class);
-            buildEventConsumer = services.get(BuildEventConsumer.class);
-        } else {
+    public GradleLauncher newInstance(StartParameter startParameter, ServiceRegistry parentRegistry, boolean newSession) {
+        if (tracker.getCurrentBuild() == null) {
             throw new IllegalStateException("Must have a current build");
         }
 
-        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(parentRegistry, startParameter);
+        ServiceRegistry services = tracker.getCurrentBuild().getServices();
+        BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class), System.currentTimeMillis());
+        BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
+        BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
+
+        final BuildScopeServices buildScopeServices = newSession
+            ? BuildScopeServices.singleSession(parentRegistry, startParameter)
+            : BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
         return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 
     @Override
     public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
-        assert tracker.getCurrentBuild() == null;
+        if (tracker.getCurrentBuild() != null) {
+            throw new IllegalStateException("Cannot have a current build");
+        }
 
         if (!(parentRegistry instanceof BuildSessionScopeServices)) {
             throw new IllegalArgumentException("Service registry must be of build session scope");

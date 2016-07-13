@@ -35,7 +35,6 @@ import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
@@ -61,8 +60,9 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         BuildModelAction buildModelAction = (BuildModelAction) action;
         CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
 
-        BuildSessionScopeServices compositeServices = new BuildSessionScopeServices(buildController.getBuildScopeServices(), buildModelAction.getStartParameter(), ClassPath.EMPTY);
-        compositeServices.addProvider(new CompositeBuildServices.CompositeBuildSessionScopeServices());
+//        BuildSessionScopeServices compositeServices = new BuildSessionScopeServices(buildController.getBuildScopeServices(), buildModelAction.getStartParameter(), ClassPath.EMPTY);
+//        compositeServices.addProvider(new CompositeBuildServices.CompositeBuildSessionScopeServices());
+        ServiceRegistry compositeServices = buildController.getBuildScopeServices();
 
         List<Object> results = null;
         if (isModelRequest(buildModelAction)) {
@@ -149,9 +149,8 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
         BuildModelAction participantAction = new BuildModelAction(startParameter, ModelIdentifier.NULL_MODEL, true, compositeAction.getClientSubscriptions());
-        ServiceRegistry buildScopedServices = new BuildSessionScopeServices(sharedServices, startParameter, ClassPath.EMPTY);
 
-        buildActionExecuter.execute(participantAction, buildRequestContext, null, buildScopedServices);
+        buildActionExecuter.execute(participantAction, buildRequestContext, null, sharedServices);
     }
 
     private void registerParticipantsInContext(CompositeParameters compositeParameters, boolean propagateFailures, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {

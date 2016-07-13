@@ -55,6 +55,9 @@ public class CompositeBuildDependencySubstitutions implements DependencySubstitu
     @Override
     public Action<DependencySubstitution> getDependencySubstitutionRule() {
         final ReplacementProjects replacementProjects = new ReplacementProjects(projectComponentRegistry);
+        if (replacementProjects.isEmpty()) {
+            return DependencySubstitutionRuleProvider.NO_OP;
+        }
 
         return new Action<DependencySubstitution>() {
             @Override
@@ -84,6 +87,10 @@ public class CompositeBuildDependencySubstitutions implements DependencySubstitu
                 LOGGER.info("Registering project '" + projectId + "' in composite build. Will substitute for module '" + module + "'.");
                 replacements.put(module, projectId);
             }
+        }
+
+        public boolean isEmpty() {
+            return replacements.isEmpty();
         }
 
         public ProjectComponentIdentifier getReplacementFor(ModuleComponentSelector selector) {

@@ -37,9 +37,7 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
-        // TODO:DAZ It would be great to do this, but we are ending up with nested build-session scoped service registries,
-        // so we end up with multiple `CompositeBuildContext` instances (and thus the context is not shared).
-//        registration.addProvider(new CompositeBuildSessionScopeServices());
+        registration.addProvider(new CompositeBuildSessionScopeServices());
     }
 
     @Override

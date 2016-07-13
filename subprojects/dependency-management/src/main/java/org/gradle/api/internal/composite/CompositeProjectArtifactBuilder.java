@@ -99,7 +99,7 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
         param.setProjectDir(buildDirectory);
         param.setTaskNames(tasksToExecute);
 
-        GradleLauncher launcher = gradleLauncherFactory.newInstance(param, serviceRegistry);
+        GradleLauncher launcher = gradleLauncherFactory.newInstance(param, serviceRegistry, false);
         try {
             launcher.run();
         } finally {
