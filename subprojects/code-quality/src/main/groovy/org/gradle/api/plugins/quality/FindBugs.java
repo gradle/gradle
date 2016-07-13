@@ -15,11 +15,10 @@
  */
 package org.gradle.api.plugins.quality;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.collect.Iterables;
 import groovy.lang.Closure;
-import groovy.transform.PackageScope;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
@@ -233,11 +232,8 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         evaluateResult(result);
     }
 
-    /**
-     * For testing only.
-     */
-    @PackageScope
-    public FindBugsSpec generateSpec() {
+    @VisibleForTesting
+    FindBugsSpec generateSpec() {
         FindBugsSpecBuilder specBuilder = new FindBugsSpecBuilder(getClasses())
             .withPluginsList(getPluginClasspath())
             .withSources(getSource())
@@ -257,28 +253,25 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
         return specBuilder.build();
     }
 
-    /**
-     * For testing only.
-     */
-    @PackageScope
-    public void evaluateResult(FindBugsResult result) {
-        if (DefaultGroovyMethods.asBoolean(result.getException())) {
+    @VisibleForTesting
+    void evaluateResult(FindBugsResult result) {
+        if (result.getException() != null) {
             throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.", result.getException());
         }
 
-        if (DefaultGroovyMethods.asBoolean(result.getErrorCount())) {
+        if (result.getErrorCount() > 0) {
             throw new GradleException("FindBugs encountered an error. Run with --debug to get more information.");
         }
 
-        if (DefaultGroovyMethods.asBoolean(result.getBugCount())) {
+        if (result.getBugCount() > 0) {
             String message = "FindBugs rule violations were found.";
             SingleFileReport report = reports.getFirstEnabled();
-            if (DefaultGroovyMethods.asBoolean(report)) {
+            if (report != null) {
                 String reportUrl = new ConsoleRenderer().asClickableFileUrl(report.getDestination());
                 message += " See the report at: " + reportUrl;
             }
 
-            if (getIgnoreFailures()) {
+            if (isIgnoreFailures()) {
                 getLogger().warn(message);
             } else {
                 throw new GradleException(message);
