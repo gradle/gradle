@@ -137,8 +137,11 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * called with a {@link org.gradle.api.file.FileCopyDetails} as its parameter. Actions are executed in the order
      * added, and are inherited from the parent spec.
      *
+     * @deprecated Use {@link #eachFile(Action)} instead
+     *
      * @param closure The action to execute.
      * @return this
      */
+    @Deprecated
     CopyProcessingSpec eachFile(@DelegatesTo(value=FileCopyDetails.class, strategy = Closure.DELEGATE_FIRST) Closure closure);
 }
