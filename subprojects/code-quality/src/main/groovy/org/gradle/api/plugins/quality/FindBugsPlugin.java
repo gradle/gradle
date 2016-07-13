@@ -16,11 +16,9 @@
 package org.gradle.api.plugins.quality;
 
 import com.google.common.util.concurrent.Callables;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
-import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
@@ -190,11 +188,7 @@ public class FindBugsPlugin extends AbstractCodeQualityPlugin<FindBugs> {
             public FileCollection call() {
                 // the simple "classes = sourceSet.output" may lead to non-existing resources directory
                 // being passed to FindBugs Ant task, resulting in an error
-                return project.fileTree(sourceSet.getOutput().getClassesDir(), new Closure<ConfigurableFileTree>(this, this) {
-                    public ConfigurableFileTree doCall(ConfigurableFileTree fileTree) {
-                        return fileTree.builtBy(sourceSet.getOutput());
-                    }
-                });
+                return project.fileTree(sourceSet.getOutput().getClassesDir()).builtBy(sourceSet.getOutput());
             }
         });
         taskMapping.map("classpath", new Callable<FileCollection>() {

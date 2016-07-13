@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.osgi;
 
-import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -34,18 +34,14 @@ public class OsgiPlugin implements Plugin<Project> {
         final OsgiPluginConvention osgiConvention = new OsgiPluginConvention((ProjectInternal) project);
         project.getConvention().getPlugins().put("osgi", osgiConvention);
 
-        project.getPlugins().withType(JavaPlugin.class, new Closure<OsgiManifest>(this, this) {
-            @SuppressWarnings("unused")
-            public OsgiManifest doCall(JavaPlugin it) {
-                OsgiManifest osgiManifest = osgiConvention.osgiManifest(new Closure<Void>(OsgiPlugin.this) {
-                    public void doCall(OsgiManifest manifest) {
-                        manifest.setClassesDir(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main").getOutput().getClassesDir());
-                        manifest.setClasspath(project.getConfigurations().getByName("runtime"));
-                    }
-                });
+        project.getPlugins().withType(JavaPlugin.class, new Action<JavaPlugin>() {
+            @Override
+            public void execute(JavaPlugin javaPlugin) {
+                OsgiManifest osgiManifest = osgiConvention.osgiManifest();
+                osgiManifest.setClassesDir(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName("main").getOutput().getClassesDir());
+                osgiManifest.setClasspath(project.getConfigurations().getByName("runtime"));
                 Jar jarTask = (Jar) project.getTasks().getByName("jar");
                 jarTask.setManifest(osgiManifest);
-                return osgiManifest;
             }
         });
     }

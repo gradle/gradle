@@ -15,11 +15,13 @@
  */
 package org.gradle.plugins.ide.internal;
 
-import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.BuildAdapter;
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.api.tasks.Delete;
 
@@ -75,16 +77,21 @@ public abstract class IdePlugin implements Plugin<Project> {
     protected abstract String getLifecycleTaskName();
 
     /**
-     * Executes the provided closure after all projects have been evaluated.
-     * Closure will only be added once per provided key. Any subsequent calls for the same key will be ignored.
+     * Executes the provided Action after all projects have been evaluated.
+     * Action will only be added once per provided key. Any subsequent calls for the same key will be ignored.
      * This permits the plugin to be applied in multiple subprojects, with the postprocess action executed once only.
      */
-    protected void postProcess(String key, Closure closure) {
+    protected void postProcess(String key, final Action<? super Gradle> action) {
         Project rootProject = project.getRootProject();
         ExtraPropertiesExtension rootExtraProperties = rootProject.getExtensions().getByType(ExtraPropertiesExtension.class);
         String extraPropertyName = "org.gradle." + key + ".postprocess.applied";
         if (!rootExtraProperties.has(extraPropertyName)) {
-            project.getGradle().projectsEvaluated(closure);
+            project.getGradle().addBuildListener(new BuildAdapter() {
+                @Override
+                public void projectsEvaluated(Gradle gradle) {
+                    action.execute(gradle);
+                }
+            });
             rootExtraProperties.set(extraPropertyName, true);
         }
     }

@@ -16,11 +16,9 @@
 
 package org.gradle.api.tasks.testing.testng;
 
-import groovy.lang.Closure;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.xml.MarkupBuilder;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
@@ -89,16 +87,9 @@ public class TestNGOptions extends TestFrameworkOptions {
      * Add suite files by Strings. Each suiteFile String should be a path relative to the project root.
      */
     public void suites(String... suiteFiles) {
-        DefaultGroovyMethods.each(suiteFiles, new Closure<Boolean>(this, this) {
-            public Boolean doCall(String it) {
-                return suiteXmlFiles.add(new File(TestNGOptions.this.getProjectDir(), it));
-            }
-
-            public Boolean doCall() {
-                return doCall(null);
-            }
-
-        });
+        for (String suiteFile : suiteFiles) {
+            suiteXmlFiles.add(new File(TestNGOptions.this.getProjectDir(), suiteFile));
+        }
     }
 
     protected File getProjectDir() {

@@ -20,7 +20,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
 import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
@@ -100,8 +99,9 @@ public class EclipsePlugin extends IdePlugin {
         configureEclipseJdt(project, model);
         configureEclipseClasspath(project, model);
 
-        postProcess("eclipse", new Closure<Void>(this, this) {
-            public void doCall(Object it) {
+        postProcess("eclipse", new Action<Gradle>() {
+            @Override
+            public void execute(Gradle gradle) {
                 performPostEvaluationActions();
             }
         });
