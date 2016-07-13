@@ -28,6 +28,7 @@ import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.copy.ClosureBackedTransformer;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -335,14 +336,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * {@inheritDoc}
      */
     public AbstractCopyTask rename(final Closure closure) {
-        getMainSpec().rename(new Transformer<String, String>() {
-            @Override
-            public String transform(String s) {
-                Object res = closure.call(s);
-                return res == null ? null : res.toString();
-            }
-        });
-        return this;
+        return rename(new ClosureBackedTransformer(closure));
     }
 
     /**
