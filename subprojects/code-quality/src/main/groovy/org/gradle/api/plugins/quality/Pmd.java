@@ -103,7 +103,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * @deprecated Use {@link #reports(Action)} instead
      */
-    @Nested
     @Deprecated
     public PmdReports reports(@DelegatesTo(value = PmdReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
         return reports(new ClosureBackedAction<PmdReports>(closure));
@@ -114,7 +113,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * @since 3.0
      */
-    @Nested
     public PmdReports reports(Action<? super PmdReports> configureAction) {
         configureAction.execute(reports);
         return reports;
