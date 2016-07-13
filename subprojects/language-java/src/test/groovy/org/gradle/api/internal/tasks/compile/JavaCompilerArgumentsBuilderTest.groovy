@@ -70,6 +70,16 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == ["-target", "1.4", "-g", USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
+    def "removes -source and -target option if -release is present"() {
+        when:
+        spec.compileOptions.compilerArgs += ['-release', '7']
+        spec.sourceCompatibility = '1.7'
+        spec.targetCompatibility = '1.7'
+
+        then:
+        builder.build() == ['-g', '-release', '7', USE_UNSHARED_COMPILER_TABLE_OPTION]
+    }
+
     def "generates -d option"() {
         def file = new File("/project/build")
         spec.destinationDir = file
