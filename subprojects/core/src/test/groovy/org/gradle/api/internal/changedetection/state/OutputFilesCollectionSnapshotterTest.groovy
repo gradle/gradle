@@ -30,7 +30,6 @@ import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.ChangeListener
-import org.gradle.util.TestUtil
 import spock.lang.Subject
 
 class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
@@ -53,7 +52,7 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
         }
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(
-            TestUtil.createRootProject(temporaryFolder.testDirectory).gradle,
+            project.gradle,
             cacheRepository,
             new NoOpDecorator())
         def hasher = new DefaultHasher()
