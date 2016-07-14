@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.apache.commons.lang.SerializationUtils;
 import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder;
@@ -24,6 +25,10 @@ import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -97,17 +102,32 @@ public abstract class TaskExecution {
         builder.putString(taskClass);
         builder.putHashCode(taskClassLoaderHash);
         builder.putHashCode(taskActionsClassLoaderHash);
-        for (Map.Entry<String, Object> entry : inputProperties.entrySet()) {
+
+        // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
+
+        for (Map.Entry<String, Object> entry : sortEntries(inputProperties.entrySet())) {
             builder.putString(entry.getKey());
             Object value = entry.getValue();
             appendToCacheKey(builder, value);
         }
-        for (Map.Entry<String, FileCollectionSnapshot> entry : getInputFilesSnapshot().entrySet()) {
+
+        for (Map.Entry<String, FileCollectionSnapshot> entry : sortEntries(getInputFilesSnapshot().entrySet())) {
             builder.putString(entry.getKey());
             FileCollectionSnapshot snapshot = entry.getValue();
             snapshot.appendToCacheKey(builder);
         }
         return builder.build();
+    }
+
+    private static <T> List<Map.Entry<String, T>> sortEntries(Set<Map.Entry<String, T>> entries) {
+        ArrayList<Map.Entry<String, T>> sortedEntries = Lists.newArrayList(entries);
+        Collections.sort(sortedEntries, new Comparator<Map.Entry<String, T>>() {
+            @Override
+            public int compare(Map.Entry<String, T> o1, Map.Entry<String, T> o2) {
+                return o1.getKey().compareTo(o2.getKey());
+            }
+        });
+        return sortedEntries;
     }
 
     private static void appendToCacheKey(TaskCacheKeyBuilder builder, Object value) {
