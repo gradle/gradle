@@ -43,6 +43,7 @@ public interface JvmTestSuiteBinarySpec extends TestSuiteBinarySpec, JvmBinarySp
     @Override
     JvmTestSuiteSpec getTestSuite();
 
+    @Override
     JvmBinarySpec getTestedBinary();
 
     @Override

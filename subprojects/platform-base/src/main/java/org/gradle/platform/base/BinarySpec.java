@@ -17,6 +17,7 @@
 package org.gradle.platform.base;
 
 import org.gradle.api.BuildableComponentSpec;
+import org.gradle.api.CheckableComponentSpec;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
@@ -27,7 +28,7 @@ import org.gradle.model.ModelMap;
  * Represents a binary that is the result of building a component.
  */
 @Incubating @HasInternalProtocol
-public interface BinarySpec extends BuildableComponentSpec {
+public interface BinarySpec extends BuildableComponentSpec, CheckableComponentSpec {
 
     /**
      * Can this binary be built in the current environment?

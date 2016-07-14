@@ -37,6 +37,7 @@ interface CustomTestBinary extends TestSuiteBinarySpec {
 
 class DefaultCustomTestBinary extends BaseBinarySpec implements CustomTestBinary {
     TestSuiteSpec testSuite
+    BinarySpec testedBinary
     String data
 }
 

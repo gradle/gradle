@@ -52,6 +52,11 @@ public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> i
         return binary.getBuildTask();
     }
 
+    @Override
+    public Task getCheck() {
+        return binary.getCheckTask();
+    }
+
     public <T extends Task> T findSingleTaskWithType(Class<T> type) {
         DomainObjectSet<T> tasks = withType(type);
         if (tasks.size() == 0) {

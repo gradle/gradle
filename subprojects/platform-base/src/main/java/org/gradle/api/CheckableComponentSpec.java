@@ -14,25 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.testing.base;
+package org.gradle.api;
 
-import org.gradle.api.Incubating;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.ComponentSpec;
 
 /**
- * A binary which runs a suite of tests.
+ * A {@link ComponentSpec} that is directly checkable via a specified task.
  */
 @Incubating
-public interface TestSuiteBinarySpec extends BinarySpec {
+public interface CheckableComponentSpec extends ComponentSpec {
 
     /**
-     * Returns the test suite that this binary belongs to.
+     * Returns the task responsible for checking this component.
      */
-    TestSuiteSpec getTestSuite();
+    @Nullable
+    Task getCheckTask();
 
     /**
-     * Returns the binary tested by this test suite.
+     * Specifies the task responsible for checking this component.
      */
-    BinarySpec getTestedBinary();
+    void setCheckTask(Task checkTask);
+
+    /**
+     * Adds tasks required to check this component. Tasks added this way are subsequently
+     * added as dependencies of this component's {@link #getCheckTask() check task}.
+     */
+    void checkedBy(Object... tasks);
 
 }
