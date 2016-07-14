@@ -280,10 +280,10 @@ class TcpConnectorTest extends ConcurrentSpec {
     def "detects self connect when outgoing connection binds to same port"() {
         given:
         def socketChannel = SocketChannel.open()
-        def localAddress = addressFactory.findLocalAddresses().find { it instanceof Inet6Address }
-        def bindAnyPort = new InetSocketAddress(localAddress, 0)
+        def communicationAddress = addressFactory.getCommunicationAddresses().find { it instanceof Inet6Address }
+        def bindAnyPort = new InetSocketAddress(communicationAddress, 0)
         socketChannel.socket().bind(bindAnyPort)
-        def selfConnect = new InetSocketAddress(localAddress, socketChannel.socket().getLocalPort())
+        def selfConnect = new InetSocketAddress(communicationAddress, socketChannel.socket().getLocalPort())
 
         when:
         socketChannel.socket().connect(selfConnect)
@@ -301,9 +301,9 @@ class TcpConnectorTest extends ConcurrentSpec {
         def action = Mock(Action)
         def socketChannel = SocketChannel.open()
         def acceptor = incomingConnector.accept(action, false)
-        def localAddress = addressFactory.findLocalAddresses().find { it instanceof Inet6Address }
-        def bindAnyPort = new InetSocketAddress(localAddress, 0)
-        def connectAddress = new InetSocketAddress(localAddress, acceptor.address.port)
+        def communicationAddress = addressFactory.getCommunicationAddresses().find { it instanceof Inet6Address }
+        def bindAnyPort = new InetSocketAddress(communicationAddress, 0)
+        def connectAddress = new InetSocketAddress(communicationAddress, acceptor.address.port)
 
         when:
         socketChannel.socket().bind(bindAnyPort)

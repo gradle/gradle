@@ -43,6 +43,27 @@ class ReportDaemonStatusClientTest extends Specification {
         0 * _
     }
 
+    def "reports unknown status if command failed"() {
+        given:
+        def daemon1 = Stub(DaemonInfo)
+
+        when:
+        client.listAll()
+
+        then:
+        1 * registry.getAll() >> { [daemon1] as List<DaemonInfo> }
+        1 * connector.maybeConnect(daemon1) >>> connection
+        _ * connection.daemon >> daemon1
+        1 * connection.dispatch({it instanceof ReportStatus})
+        1 * connection.receive() >> null
+        1 * connection.dispatch({it instanceof Finished})
+        1 * connection.stop()
+
+        and:
+        1 * documentationRegistry.getDocumentationFor('gradle_daemon', 'status') >> { "DOCUMENTATION_URL" }
+        0 * _
+    }
+
     def "requests status report from all daemons"() {
         given:
         def daemon1 = Stub(DaemonInfo)

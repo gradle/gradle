@@ -25,7 +25,14 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.util.ConfigureUtil;
 
-import java.io.*;
+import java.io.FilterReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.nio.charset.Charset;
 import java.util.Map;
@@ -86,12 +93,17 @@ public class FilterChain implements Transformer<InputStream, InputStream> {
         });
     }
 
-    public void add(final Closure closure) {
+    public void add(final Transformer<String, String> transformer) {
         transformers.add(new Transformer<Reader, Reader>() {
-            public Reader transform(Reader original) {
-                return new LineFilter(original, closure);
+            @Override
+            public Reader transform(Reader reader) {
+                return new LineFilter(reader, transformer);
             }
         });
+    }
+
+    public void add(final Closure closure) {
+        add(new ClosureBackedTransformer(closure));
     }
 
     public void expand(final Map<String, ?> properties) {

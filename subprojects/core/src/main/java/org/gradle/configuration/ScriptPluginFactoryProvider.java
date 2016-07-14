@@ -18,10 +18,12 @@ package org.gradle.configuration;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
-import org.gradle.internal.service.ServiceRegistry;
 
 /**
  * A {@link ScriptPluginFactory} SPI suitable for use with Java's {@code ServiceLoader}.
+ *
+ * The SPI implementation can get access to Gradle services via {@link javax.inject.Inject}
+ * style dependency injection.
  *
  * @see ScriptPluginFactorySelector
  * @since 2.14
@@ -34,5 +36,5 @@ public interface ScriptPluginFactoryProvider {
      * instances for files with the given name, otherwise {@code null}.
      */
     @Nullable
-    ScriptPluginFactory getFor(String fileName, ServiceRegistry serviceRegistry);
+    ScriptPluginFactory getFor(String fileName);
 }

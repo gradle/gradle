@@ -21,6 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
+import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.reflect.Instantiator;
 
@@ -79,6 +80,11 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             return instantiator.newInstance(RebuildIncrementalTaskInputs.class, task, FilesSnapshotSet.EMPTY);
         }
 
+        @Override
+        public TaskCacheKey calculateCacheKey() {
+            return null;
+        }
+
         public TaskExecutionHistory getExecutionHistory() {
             return delegate.getExecutionHistory();
         }
@@ -91,8 +97,8 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
             delegate.afterTask();
         }
 
-        public void finished(boolean wasUpToDate) {
-            delegate.finished(wasUpToDate);
+        public void finished() {
+            delegate.finished();
         }
     }
 

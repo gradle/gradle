@@ -27,10 +27,9 @@ import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.util.Requires
 import org.gradle.util.TreeVisitor
-import spock.lang.Issue
 import spock.lang.Specification
 
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
+import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
 
 class DefaultJavaToolChainTest extends Specification {
     def javaCompilerFactory = Stub(JavaCompilerFactory)
@@ -78,9 +77,7 @@ class DefaultJavaToolChainTest extends Specification {
         0 * _
     }
 
-    // The test assumes that Java9 is in the future. But, it isn't if we're running it with Java 9.
-    @Issue("gradle/core-issues#115")
-    @Requires(FIX_TO_WORK_ON_JAVA9)
+    @Requires(JDK8_OR_EARLIER)
     def "creates unavailable tool provider for incompatible platform"() {
         def futurePlatform = platform(JavaVersion.VERSION_1_9)
         TreeVisitor<String> visitor = Mock()

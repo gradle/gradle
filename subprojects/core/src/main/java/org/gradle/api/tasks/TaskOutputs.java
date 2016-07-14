@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -55,6 +56,29 @@ public interface TaskOutputs {
      * @param upToDateSpec The spec to use to determine whether the task outputs are up-to-date.
      */
     void upToDateWhen(Spec<? super Task> upToDateSpec);
+
+    /**
+     * <p>Cache the results of the task only if the given closure returns true.  The closure will be evaluated at task execution
+     * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
+     * false, the results of the task will not be cached.</p>
+     *
+     * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return false.</p>
+     *
+     * @param closure code to execute to determine if the results of the task should be cached.
+     */
+    @Incubating
+    void cacheIf(Closure closure);
+
+    /**
+     * <p>Cache the results of the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
+     * during configuration. If the Spec is not satisfied, the results of the task will not be cached.</p>
+     *
+     * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return false.</p>
+     *
+     * @param spec specifies if the results of the task should be cached.
+     */
+    @Incubating
+    void cacheIf(Spec<? super Task> spec);
 
     /**
      * Returns true if this task has declared any outputs. Note that a task may be able to produce output files and

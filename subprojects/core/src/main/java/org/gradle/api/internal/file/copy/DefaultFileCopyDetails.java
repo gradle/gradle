@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ContentFilterable;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileVisitDetails;
@@ -163,7 +164,12 @@ public class DefaultFileCopyDetails extends AbstractFileTreeElement implements F
     }
 
     public ContentFilterable filter(Closure closure) {
-        filterChain.add(closure);
+        return filter(new ClosureBackedTransformer(closure));
+    }
+
+    @Override
+    public ContentFilterable filter(Transformer<String, String> transformer) {
+        filterChain.add(transformer);
         return this;
     }
 

@@ -1,5 +1,5 @@
 The docs project produces the [userguide](http://gradle.org/docs/current/userguide/userguide.html), [DSL reference](http://gradle.org/docs/current/dsl/),
-[javadoc](http://gradle.org/docs/current/javadoc/), [groovydoc](http://gradle.org/docs/current/groovydoc/) and [release notes](http://gradle.org/docs/current/release-notes)
+[javadoc](http://gradle.org/docs/current/javadoc/) and [release notes](http://gradle.org/docs/current/release-notes)
 (as well as some other minor bits).
 
 The following is some help for working with the docs, all file paths are relative to this directory unless specified otherwise.

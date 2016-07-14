@@ -1229,7 +1229,7 @@
                 <itemizedlist>
                     <listitem>Filtering at the level of specific test methods; executing a single test method</listitem>
                     <listitem>Filtering based on custom annotations (future)</listitem>
-                    <listitem>Filtering based on test hierarchy; executing all tests that extend ceratain base class (future)</listitem>
+                    <listitem>Filtering based on test hierarchy; executing all tests that extend a certain base class (future)</listitem>
                     <listitem>Filtering based on some custom runtime rule, e.g. particular value of a system property or some static state (future)</listitem>
                 </itemizedlist>
             </para>

@@ -17,6 +17,8 @@ package org.gradle.util
 import org.gradle.api.JavaVersion
 import org.gradle.internal.os.OperatingSystem
 
+import javax.tools.ToolProvider
+
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NULL_REQUIREMENT({ true }),
     SWING({
@@ -111,6 +113,9 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
+    }),
+    JDK({
+        ToolProvider.systemJavaCompiler != null
     }),
     ONLINE({
         try {

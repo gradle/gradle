@@ -22,6 +22,4 @@ public interface TaskStateChanges extends Iterable<TaskStateChange> {
      * Any persistent state should be added to the {@link org.gradle.api.internal.changedetection.state.TaskExecution} object for the current execution.
      */
     void snapshotAfterTask();
-
-    void snapshotBeforeTask();
 }

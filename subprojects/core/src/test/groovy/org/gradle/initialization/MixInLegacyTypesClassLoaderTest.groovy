@@ -67,6 +67,50 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         obj.setMetaClass(newMetaClass) == null
     }
 
+    def "add getters for String constants"() {
+        given:
+        def className = "org.gradle.api.plugins.JavaPluginConvention"
+
+        def original = compileJavaToDir(className, """
+            package org.gradle.api.plugins;
+            class JavaPluginConvention {
+                public static final String SOME_CONST = "Value";
+                public static final String SOME_CONST_WITH_GETTER = "Other Value";
+
+                public static String getSomeStuff() { return SOME_CONST; }
+                public static String getSOME_CONST_WITH_GETTER() { return SOME_CONST_WITH_GETTER; }
+                String _prop;
+                String getProp() { return _prop; }
+                void setProp(String value) { _prop = value; }
+                String doSomething(String arg) { return arg; }
+            }
+        """)
+
+        when:
+        original.getMethod("getSOME_CONST")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+
+        expect:
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+
+        def cl = loader.loadClass(className)
+        cl.classLoader.is(loader)
+        cl.protectionDomain.codeSource.location == classesDir.toURI().toURL()
+        cl.package.name == "org.gradle.api.plugins"
+
+        invokeStaticGetter(cl, "SOME_CONST") == "Value"
+        invokeStaticGetter(cl, "SOME_CONST_WITH_GETTER") == "Other Value"
+
+    }
+
+    private Object invokeStaticGetter(Class<?> cl, String constName) {
+        def method = cl.getMethod("get" + constName)
+        method.setAccessible(true); // necessary since the class is not public
+        return method.invoke(null);
+    }
+
     def "does not mix GroovyObject into other types"() {
         given:
         def className = "org.gradle.api.plugins.Thing"

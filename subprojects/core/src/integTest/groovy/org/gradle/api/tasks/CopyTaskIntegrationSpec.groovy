@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
@@ -1064,5 +1065,55 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         skippedTasks.empty
     }
 
+    @NotYetImplemented
+    @Issue("https://issues.gradle.org/browse/GRADLE-1276")
+    def "changing expansion makes task out-of-date"() {
+        given:
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'src'
+               into 'dest'
+               expand(one: 1)
+            }
+        '''.stripIndent()
+        run 'copy'
 
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'src'
+               into 'dest'
+               expand(one: 2)
+            }
+        '''.stripIndent()
+        when:
+        run "copy"
+        then:
+        skippedTasks.empty
+    }
+
+    @NotYetImplemented
+    @Issue("https://issues.gradle.org/browse/GRADLE-1298")
+    def "changing filter makes task out-of-date"() {
+        given:
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'src'
+               into 'dest'
+               filter { it.contains '$one' }
+            }
+        '''.stripIndent()
+        run 'copy'
+
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'src'
+               into 'dest'
+               filter { it.contains '$two' }
+            }
+        '''.stripIndent()
+        when:
+        run "copy"
+        then:
+        skippedTasks.empty
+    }
 }

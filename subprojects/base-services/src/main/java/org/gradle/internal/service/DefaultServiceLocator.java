@@ -72,15 +72,21 @@ public class DefaultServiceLocator implements ServiceLocator {
         return factories.get(0);
     }
 
-    private <T> List<ServiceFactory<T>> findFactoriesForServiceType(Class<T> serviceType) {
-        List<Class<? extends T>> implementationClasses;
+    public <T> List<Class<? extends T>> implementationsOf(Class<T> serviceType) {
         try {
-            implementationClasses = findServiceImplementations(serviceType);
+            return findServiceImplementations(serviceType);
         } catch (ServiceLookupException e) {
             throw e;
         } catch (Exception e) {
             throw new ServiceLookupException(String.format("Could not determine implementation classes for service '%s'.", serviceType.getName()), e);
         }
+    }
+
+    private <T> List<ServiceFactory<T>> findFactoriesForServiceType(Class<T> serviceType) {
+        return factoriesFor(serviceType, implementationsOf(serviceType));
+    }
+
+    private <T> List<ServiceFactory<T>> factoriesFor(Class<T> serviceType, List<Class<? extends T>> implementationClasses) {
         List<ServiceFactory<T>> factories = new ArrayList<ServiceFactory<T>>();
         for (Class<? extends T> implementationClass : implementationClasses) {
             factories.add(new ServiceFactory<T>(serviceType, implementationClass));
@@ -128,15 +134,15 @@ public class DefaultServiceLocator implements ServiceLocator {
         InputStream inputStream = resource.openStream();
         try {
             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-            List<String> implemetationClassNames = new ArrayList<String>();
+            List<String> implementationClassNames = new ArrayList<String>();
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.replaceAll("#.*", "").trim();
                 if (line.length() > 0) {
-                    implemetationClassNames.add(line);
+                    implementationClassNames.add(line);
                 }
             }
-            return implemetationClassNames;
+            return implementationClassNames;
         } finally {
             inputStream.close();
         }

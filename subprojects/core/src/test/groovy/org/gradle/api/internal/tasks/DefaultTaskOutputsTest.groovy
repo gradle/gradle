@@ -24,6 +24,9 @@ import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
+import static org.gradle.api.internal.tasks.TaskOutputFilePropertySpec.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.TaskOutputFilePropertySpec.OutputType.FILE
+
 @UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {
 
@@ -57,32 +60,40 @@ class DefaultTaskOutputsTest extends Specification {
         when: outputs.file("a")
         then:
         outputs.files.files.toList() == [new File('a')]
-        outputs.fileProperties.keySet().toList() == ['$1']
-        outputs.fileProperties.values()*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.propertyName == ['$1']
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.outputFile == [new File("a")]
+        outputs.fileProperties*.outputType == [FILE]
     }
 
     def "can register output file with property name"() {
         when: outputs.file("a").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a')]
-        outputs.fileProperties.keySet().toList() == ['prop']
-        outputs.fileProperties.values()*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.propertyName == ['prop']
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.outputFile == [new File("a")]
+        outputs.fileProperties*.outputType == [FILE]
     }
 
     def "can register output dir"() {
         when: outputs.file("a")
         then:
         outputs.files.files.toList() == [new File('a')]
-        outputs.fileProperties.keySet().toList() == ['$1']
-        outputs.fileProperties.values().files.flatten() == [new File("a")]
+        outputs.fileProperties*.propertyName == ['$1']
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.outputFile == [new File("a")]
+        outputs.fileProperties*.outputType == [FILE]
     }
 
     def "can register output dir with property name"() {
         when: outputs.dir("a").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a')]
-        outputs.fileProperties.keySet().toList() == ['prop']
-        outputs.fileProperties.values().files.flatten() == [new File("a")]
+        outputs.fileProperties*.propertyName == ['prop']
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.outputFile == [new File("a")]
+        outputs.fileProperties*.outputType == [DIRECTORY]
     }
 
     def "cannot register output file with same property name"() {
@@ -99,48 +110,60 @@ class DefaultTaskOutputsTest extends Specification {
         when: outputs.files("a", "b")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties.keySet().toList() == ['$1$1', '$1$2']
-        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.propertyName == ['$1$1', '$1$2']
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register unnamed output files with property name"() {
         when: outputs.files("a", "b").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties.keySet().toList() == ['prop$1', 'prop$2']
-        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.propertyName == ['prop$1', 'prop$2']
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register named output files"() {
         when: outputs.namedFiles("fileA": "a", "fileB": "b")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties.keySet().toList() == ['$1.fileA', '$1.fileB']
-        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register named output files with property name"() {
         when: outputs.namedFiles("fileA": "a", "fileB": "b").withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties.keySet().toList() == ['prop.fileA', 'prop.fileB']
-        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register future named output files"() {
         when: outputs.namedFiles({ ["fileA": "a", "fileB": "b"] })
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties.keySet().toList() == ['$1.fileA', '$1.fileB']
-        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register future named output files with property name"() {
         when: outputs.namedFiles({ ["fileA": "a", "fileB": "b"] }).withPropertyName("prop")
         then:
         outputs.files.files.toList() == [new File('a'), new File("b")]
-        outputs.fileProperties.keySet().toList() == ['prop.fileA', 'prop.fileB']
-        outputs.fileProperties.values().files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
+        outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     public void canRegisterOutputFiles() {
