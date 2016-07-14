@@ -19,11 +19,16 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.file.collections.SimpleFileCollection;
+import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
+import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
     public boolean isUpToDate(Collection<String> messages) {
@@ -56,8 +61,33 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     public FileCollection getOutputFiles() {
-        // can't always return the same instance since contained ListBackedFileSet does not
-        // support immutable sets
-        return new SimpleFileCollection();
+        return EMPTY_FILE_COLLECTION;
+    }
+
+    private static final FileCollection EMPTY_FILE_COLLECTION = new EmptyFileCollection();
+
+    private static class EmptyFileCollection extends FileCollectionAdapter implements Serializable {
+
+        private static final long serialVersionUID = -5671359228892430322L;
+
+        private EmptyFileCollection() {
+            super(new EmptyFileSet());
+        }
+    }
+
+    private static class EmptyFileSet implements MinimalFileSet, Serializable {
+
+        private static final long serialVersionUID = 8533471127662131385L;
+        private static final Set<File> EMPTY_FILE_SET = Collections.emptySet();
+
+        @Override
+        public Set<File> getFiles() {
+            return EMPTY_FILE_SET;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "empty file collection";
+        }
     }
 }
