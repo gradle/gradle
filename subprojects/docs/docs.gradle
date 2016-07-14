@@ -47,7 +47,6 @@ repositories {
 }
 
 configurations {
-    groovydocGroovy {}
     userGuideStyleSheets
     userGuideTask
     jquery
@@ -75,8 +74,6 @@ dependencies {
         "ubuntumono:regular-italic:3:KAKuHXAHZOeECOWAHsRKA-LrC4Du4e_yfTJ8Ol60xk0@ttf",
         "ubuntumono:bold:3:ceqTZGKHipo8pJj4molytp_TkvowlIOtbR7ePgFOpF4@ttf",
         "ubuntumono:bold-italic:3:n_d8tv_JOIiYyMXR4eaV9WsGzsqhEorxQDpu60nfWEc@ttf"
-
-    groovydocGroovy libraries.groovy
 
     testCompile libraries.groovy
     testCompile "org.pegdown:pegdown:1.1.0"
@@ -110,7 +107,7 @@ outputs.distDocs = files(distDocsDir) {
     builtBy 'distDocs'
 }
 outputs.docs = files(docsDir) {
-    builtBy 'javadocAll', 'groovydocAll', 'userguide', 'dslHtml', 'releaseNotes'
+    builtBy 'javadocAll', 'userguide', 'dslHtml', 'releaseNotes'
 }
 
 tasks.withType(Docbook2Xhtml) {
@@ -127,11 +124,9 @@ tasks.withType(UserGuideTransformTask) {
     if (name in ["pdfUserguideDocbook", "userguideFragmentSrc"]) {
         // These will only be valid for releases, but that's ok
         javadocUrl = "http://www.gradle.org/docs/${->version}/javadoc"
-        groovydocUrl = "http://www.gradle.org/docs/${->version}/groovydoc"
         dsldocUrl = "http://www.gradle.org/docs/${->version}/dsl"
     } else {
         javadocUrl = '../javadoc'
-        groovydocUrl = '../groovydoc'
         dsldocUrl = '../dsl'
     }
 }
@@ -216,7 +211,7 @@ task samplesDocs(type: Docbook2Xhtml) {
 }
 
 task dslMetaData(type: ExtractDslMetaDataTask) {
-    source { groovydocAll.source }
+    source { javadocAll.source }
     destFile = new File(docbookSrc, 'dsl-meta-data.bin')
 }
 
@@ -360,7 +355,7 @@ task javadocAll(type: Javadoc) {
     include 'org/gradle/nativeplatform/**'
     include 'org/gradle/platform/**'
     include 'org/gradle/play/**'
-    include 'org/gradle/plugin/devel/*'
+    include 'org/gradle/plugin/devel/**'
     include 'org/gradle/plugin/repository/*'
     include 'org/gradle/plugin/use/*'
     include 'org/gradle/plugins/**'
@@ -376,43 +371,6 @@ task javadocAll(type: Javadoc) {
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
     doFirst {
         title = "Gradle API $version"
-    }
-    ext.entryPoint = "$destinationDir/index.html"
-}
-
-task configureGroovydocAll {
-    doFirst {
-        project.configure(groovydocAll) {
-            [javaApiUrl].each {
-//            [javaApiUrl, groovyApiUrl].each {
-                link(it, *(new URL("$it/package-list").text.tokenize("\n")))
-            }
-            docTitle = "Gradle API $version"
-            windowTitle = "Gradle API $version"
-            footer = "Gradle API $version"
-        }
-    }
-}
-
-task groovydocAll(type: Groovydoc, dependsOn: configureGroovydocAll) {
-    group = 'documentation'
-    source publicGroovyProjects.collect {project -> project.sourceSets.main.groovy + project.sourceSets.main.java }
-    destinationDir = new File(docsDir, 'groovydoc')
-
-    // Groovydoc runs static initializers, and at least ProjectBuilder's initializers depend on runtime classes
-    // http://jira.codehaus.org/browse/GROOVY-7096
-    classpath = files(publicGroovyProjects.collect {project -> [project.sourceSets.main.runtimeClasspath, project.sourceSets.main.output] })
-
-    includes = javadocAll.includes
-    excludes = javadocAll.excludes
-    doFirst {
-        windowTitle = "Gradle API $version"
-        docTitle = windowTitle
-    }
-    groovyClasspath = configurations.groovydocGroovy
-    doLast {
-        def index = new File(destinationDir, "index.html")
-        index.text = index.text.replace("{todo.title}", windowTitle) // workaround groovydoc bug
     }
     ext.entryPoint = "$destinationDir/index.html"
 }
@@ -499,7 +457,7 @@ java9Test {
 }
 
 task docs {
-    dependsOn javadocAll, groovydocAll, userguide, distDocs, samplesDocs, dslHtml, releaseNotes
+    dependsOn javadocAll, userguide, distDocs, samplesDocs, dslHtml, releaseNotes
     description = 'Generates all documentation'
     group = 'documentation'
 }
