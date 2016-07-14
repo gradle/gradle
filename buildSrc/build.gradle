@@ -1,9 +1,8 @@
 buildscript {
-    ext.kotlinVersion = '1.1.0-dev-1159'
-    ext.repo = 'https://repo.gradle.org/gradle/repo'
+    ext.kotlinVersion = file('../kotlin-version.txt').text.trim()
 
-    repositories {
-        maven { url repo }
+    configure([repositories, project.repositories]) {
+        maven { url 'https://repo.gradle.org/gradle/repo' }
     }
 
     dependencies {
@@ -20,6 +19,3 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
-repositories {
-    maven { url repo }
-}

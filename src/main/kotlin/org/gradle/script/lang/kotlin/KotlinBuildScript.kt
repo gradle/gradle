@@ -21,14 +21,14 @@ import org.gradle.script.lang.kotlin.support.GradleKotlinScriptDependenciesResol
 import org.gradle.api.Project
 import org.gradle.api.plugins.ObjectConfigurationAction
 
-import org.jetbrains.kotlin.script.ScriptDependencyResolver
-import org.jetbrains.kotlin.script.ScriptFilePattern
+import org.jetbrains.kotlin.script.ScriptTemplateDefinition
 
 /**
  * Base class for Kotlin build scripts.
  */
-@ScriptFilePattern(".*\\.kts")
-@ScriptDependencyResolver(GradleKotlinScriptDependenciesResolver::class)
+@ScriptTemplateDefinition(
+    resolver = GradleKotlinScriptDependenciesResolver::class,
+    scriptFilePattern = ".*\\.gradle\\.kts")
 abstract class KotlinBuildScript(project: Project) : Project by project {
 
     /**

@@ -44,6 +44,8 @@ import java.lang.reflect.InvocationTargetException
 
 import java.net.URLClassLoader
 
+import kotlin.reflect.KClass
+
 class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : ScriptPluginFactory {
 
     val logger = loggerFor<KotlinScriptPluginFactory>()
@@ -114,16 +116,19 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
                                           classPath: ClassPath, classLoader: ClassLoader) =
         compileKotlinScript(
             tempBuildscriptFileFor(script.substring(buildscriptRange)),
-            KotlinScriptDefinitionFromTemplate(KotlinBuildScriptSection::class, classPath),
+            scriptDefinitionFromTemplate(KotlinBuildScriptSection::class, classPath),
             classLoader, logger)
 
     private fun compileScriptFile(scriptFile: File, classPath: ClassPath, classLoader: ClassLoader): Class<*> {
         logger.info("Kotlin compilation classpath: {}", classPath)
         return compileKotlinScript(
             scriptFile,
-            KotlinScriptDefinitionFromTemplate(KotlinBuildScript::class, classPath),
+            scriptDefinitionFromTemplate(KotlinBuildScript::class, classPath),
             classLoader, logger)
     }
+
+    private fun scriptDefinitionFromTemplate(template: KClass<out Any>, classPath: ClassPath) =
+        KotlinScriptDefinitionFromTemplate(template, mapOf("classPath" to classPath))
 
     private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Any) {
         withContextClassLoader(classLoader) {

@@ -21,31 +21,39 @@ import org.gradle.tooling.ProjectConnection
 
 import org.gradle.internal.classpath.ClassPath
 
-import org.jetbrains.kotlin.psi.KtAnnotationEntry
 import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
-import org.jetbrains.kotlin.script.ScriptDependenciesResolver
+import org.jetbrains.kotlin.script.ScriptContents
+import org.jetbrains.kotlin.script.ScriptDependenciesResolverEx
 
 import java.io.File
 
-import java.util.Properties
+class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
 
-class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
+    override fun resolve(script: ScriptContents, environment: Map<String, Any?>?, previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? {
+        if (environment == null)
+            return previousDependencies
 
-    override fun resolve(projectRoot: File?, scriptFile: File?,
-                         annotations: Iterable<KtAnnotationEntry>, context: Any?): KotlinScriptExternalDependencies? =
-        when (context) {
-            is ClassPath -> makeDependencies(context.asFiles) // Gradle compilation path
-            is Map<*, *> -> retrieveDependenciesFromProject(projectRoot!!, gradleHomeOf(context)) // IDEA content assist path
-            else -> null
-        }
+        // Gradle compilation path
+        val classPath = environment["classPath"] as? ClassPath
+        if (classPath != null)
+            return makeDependencies(classPath.asFiles)
 
-    private fun retrieveDependenciesFromProject(projectRoot: File, gradleInstallation: File) =
+        // IDEA content assist path
+        val projectRoot = environment["projectRoot"] as? File
+        val gradleHome = environment["gradleHome"] as? File
+        val gradleJavaHome = environment["gradleJavaHome"] as? String
+        if (gradleHome != null && projectRoot != null && gradleJavaHome != null)
+            return retrieveDependenciesFromProject(projectRoot, gradleHome, File(gradleJavaHome))
+
+        return previousDependencies
+    }
+
+    private fun retrieveDependenciesFromProject(projectRoot: File, gradleInstallation: File, javaHome: File) =
         withConnectionFrom(connectorFor(projectRoot, gradleInstallation)) {
             model(KotlinBuildScriptModel::class.java)
-                .setJavaHome(javaHomeForDaemonOf(projectRoot))
+                .setJavaHome(javaHome)
                 .get()
                 .classPath
-                .filter { it.isFile } // See #93
                 .let {
                     val gradleScriptKotlinJar = it.filter { it.name.startsWith("gradle-script-kotlin-") }
                     makeDependencies(
@@ -62,9 +70,6 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
                 emptyList()
         }
 
-    private fun gradleHomeOf(context: Map<*, *>) =
-        context["gradleHome"] as File
-
     private fun makeDependencies(classPath: Iterable<File>, sources: Iterable<File> = emptyList()): KotlinScriptExternalDependencies =
         object : KotlinScriptExternalDependencies {
             override val classpath = classPath
@@ -79,17 +84,7 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolver {
     }
 }
 
-private fun javaHomeForDaemonOf(projectRoot: File): File =
-    File(daemonPropertiesOf(projectRoot)["java.home"] as String)
-
-private fun daemonPropertiesOf(projectRoot: File): Properties =
-    daemonPropertiesFileOf(projectRoot).inputStream().use { input ->
-        Properties().apply {
-            load(input)
-        }
-    }
-
-fun connectorFor(projectRoot: File, gradleInstallation: File) =
+fun connectorFor(projectRoot: File, gradleInstallation: File): GradleConnector =
     GradleConnector.newConnector().forProjectDirectory(projectRoot).useInstallation(gradleInstallation)
 
 inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =

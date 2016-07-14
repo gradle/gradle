@@ -21,11 +21,11 @@ import org.gradle.script.lang.kotlin.KotlinScriptHandler
 
 import org.gradle.api.Project
 
-import org.jetbrains.kotlin.script.ScriptDependencyResolver
-import org.jetbrains.kotlin.script.ScriptFilePattern
+import org.jetbrains.kotlin.script.ScriptTemplateDefinition
 
-@ScriptFilePattern("buildscript-section.*\\.gradle\\.kts")
-@ScriptDependencyResolver(GradleKotlinScriptDependenciesResolver::class)
+@ScriptTemplateDefinition(
+    resolver = GradleKotlinScriptDependenciesResolver::class,
+    scriptFilePattern = "buildscript-section.*\\.gradle\\.kts")
 abstract class KotlinBuildScriptSection(project: Project) : KotlinBuildScript(project) {
 
     /**
