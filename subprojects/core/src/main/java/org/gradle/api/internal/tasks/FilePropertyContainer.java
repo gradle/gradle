@@ -16,13 +16,15 @@
 
 package org.gradle.api.internal.tasks;
 
-import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.TaskPropertyBuilder;
 
 import java.util.Iterator;
 import java.util.SortedMap;
+import java.util.SortedSet;
 
 public class FilePropertyContainer {
     private final String displayName;
@@ -32,17 +34,17 @@ public class FilePropertyContainer {
     }
 
     // Note: sorted map used to keep order of properties consistent
-    protected SortedMap<String, FileCollection> collectFileProperties(Iterator<? extends TaskFilePropertySpec> fileProperties) {
-        SortedMap<String, FileCollection> filePropertiesMap = Maps.newTreeMap();
+    protected SortedSet<TaskFilePropertySpec> collectFileProperties(Iterator<? extends TaskFilePropertySpec> fileProperties) {
+        SortedMap<String, TaskFilePropertySpec> filePropertiesMap = Maps.newTreeMap();
         while (fileProperties.hasNext()) {
             TaskFilePropertySpec propertySpec = fileProperties.next();
             String propertyName = propertySpec.getPropertyName();
             if (filePropertiesMap.containsKey(propertyName)) {
                 throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", displayName, propertyName));
             }
-            filePropertiesMap.put(propertyName, propertySpec.getPropertyFiles());
+            filePropertiesMap.put(propertyName, new ImmutableFilePropertySpec(propertyName, propertySpec.getPropertyFiles()));
         }
-        return ImmutableSortedMap.copyOf(filePropertiesMap);
+        return ImmutableSortedSet.copyOf(filePropertiesMap.values());
     }
 
     protected static <T extends TaskPropertySpec & TaskPropertyBuilder> void ensurePropertiesHaveNames(Iterable<T> properties) {
@@ -53,6 +55,49 @@ public class FilePropertyContainer {
                 propertyName = "$" + (++unnamedPropertyCounter);
                 propertySpec.withPropertyName(propertyName);
             }
+        }
+    }
+
+    private static class ImmutableFilePropertySpec implements TaskFilePropertySpec {
+        private final String propertyName;
+        private final FileCollection propertyFiles;
+
+        public ImmutableFilePropertySpec(String propertyName, FileCollection propertyFiles) {
+            this.propertyName = propertyName;
+            this.propertyFiles = propertyFiles;
+        }
+
+        @Override
+        public String getPropertyName() {
+            return propertyName;
+        }
+
+        @Override
+        public FileCollection getPropertyFiles() {
+            return propertyFiles;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            ImmutableFilePropertySpec that = (ImmutableFilePropertySpec) o;
+            return Objects.equal(propertyName, that.propertyName)
+                && Objects.equal(propertyFiles, that.propertyFiles);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(propertyName, propertyFiles);
+        }
+
+        @Override
+        public int compareTo(TaskPropertySpec o) {
+            return propertyName.compareTo(o.getPropertyName());
         }
     }
 }

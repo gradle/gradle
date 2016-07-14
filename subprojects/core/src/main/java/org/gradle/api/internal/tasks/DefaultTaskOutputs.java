@@ -41,7 +41,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
@@ -52,11 +52,11 @@ public class DefaultTaskOutputs extends FilePropertyContainer implements TaskOut
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = EMPTY_AND_SPEC;
     private TaskExecutionHistory history;
-    private final List<BasePropertySpec> fileProperties = Lists.newArrayList();
+    private final List<BasePropertySpec> filePropertiesInternal = Lists.newArrayList();
+    private SortedSet<TaskFilePropertySpec> fileProperties;
     private final FileResolver resolver;
     private final String taskName;
     private final TaskMutator taskMutator;
-    private SortedMap<String, FileCollection> filePropertiesMap;
 
     public DefaultTaskOutputs(FileResolver resolver, final TaskInternal task, TaskMutator taskMutator) {
         super("output");
@@ -74,8 +74,8 @@ public class DefaultTaskOutputs extends FilePropertyContainer implements TaskOut
 
             @Override
             public void visitContents(FileCollectionResolveContext context) {
-                for (FileCollection files : getFileProperties().values()) {
-                    context.add(files);
+                for (TaskFilePropertySpec propertySpec : getFileProperties()) {
+                    context.add(propertySpec.getPropertyFiles());
                 }
             }
 
@@ -112,7 +112,7 @@ public class DefaultTaskOutputs extends FilePropertyContainer implements TaskOut
 
     @Override
     public boolean getHasOutput() {
-        return !fileProperties.isEmpty() || !upToDateSpec.isEmpty();
+        return !filePropertiesInternal.isEmpty() || !upToDateSpec.isEmpty();
     }
 
     @Override
@@ -120,12 +120,11 @@ public class DefaultTaskOutputs extends FilePropertyContainer implements TaskOut
         return allOutputFiles;
     }
 
-    @Override
-    public SortedMap<String, FileCollection> getFileProperties() {
-        if (filePropertiesMap == null) {
-            ensurePropertiesHaveNames(fileProperties);
-            final Iterator<BasePropertySpec> rootIterator = fileProperties.iterator();
-            filePropertiesMap = collectFileProperties(new AbstractIterator<TaskFilePropertySpec>() {
+    public SortedSet<TaskFilePropertySpec> getFileProperties() {
+        if (fileProperties == null) {
+            ensurePropertiesHaveNames(filePropertiesInternal);
+            final Iterator<BasePropertySpec> rootIterator = filePropertiesInternal.iterator();
+            fileProperties = collectFileProperties(new AbstractIterator<TaskFilePropertySpec>() {
                 private Iterator<TaskFilePropertySpec> childIterator;
 
                 @Override
@@ -150,7 +149,7 @@ public class DefaultTaskOutputs extends FilePropertyContainer implements TaskOut
                 }
             });
         }
-        return filePropertiesMap;
+        return fileProperties;
     }
 
     @Override
@@ -210,7 +209,7 @@ public class DefaultTaskOutputs extends FilePropertyContainer implements TaskOut
     }
 
     private TaskOutputFilePropertyBuilder addSpec(BasePropertySpec spec) {
-        fileProperties.add(spec);
+        filePropertiesInternal.add(spec);
         return spec;
     }
 
@@ -308,6 +307,11 @@ public class DefaultTaskOutputs extends FilePropertyContainer implements TaskOut
         public TaskOutputFilePropertyBuilder dir(Object path) {
             return getTaskOutputs("dir(Object)").dir(path);
         }
+
+        @Override
+        public int compareTo(TaskPropertySpec o) {
+            return getPropertyName().compareTo(o.getPropertyName());
+        }
     }
 
     private class DefaultPropertySpec extends BasePropertySpec implements TaskFilePropertySpec {
@@ -393,6 +397,11 @@ public class DefaultTaskOutputs extends FilePropertyContainer implements TaskOut
         @Override
         public FileCollection getPropertyFiles() {
             return files;
+        }
+
+        @Override
+        public int compareTo(TaskPropertySpec o) {
+            return getPropertyName().compareTo(o.getPropertyName());
         }
     }
 }
