@@ -14,13 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.tasks.TaskInputs;
-
-import java.util.SortedSet;
-
-public interface TaskInputsInternal extends TaskInputs {
-    SortedSet<TaskInputFilePropertySpec> getFileProperties();
+public interface TaskInputFilePropertySpec extends TaskFilePropertySpec {
 }

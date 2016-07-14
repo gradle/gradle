@@ -32,9 +32,10 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
 import static org.gradle.util.GUtil.uncheckedCall;
 
-public class DefaultTaskInputs extends FilePropertyContainer implements TaskInputsInternal {
+public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allInputFiles;
     private final FileCollection allSourceFiles;
     private final FileResolver resolver;
@@ -42,10 +43,9 @@ public class DefaultTaskInputs extends FilePropertyContainer implements TaskInpu
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
     private final List<PropertySpec> filePropertiesInternal = Lists.newArrayList();
-    private SortedSet<TaskFilePropertySpec> fileProperties;
+    private SortedSet<TaskInputFilePropertySpec> fileProperties;
 
     public DefaultTaskInputs(FileResolver resolver, String taskName, TaskMutator taskMutator) {
-        super("input");
         this.resolver = resolver;
         this.taskName = taskName;
         this.taskMutator = taskMutator;
@@ -64,10 +64,10 @@ public class DefaultTaskInputs extends FilePropertyContainer implements TaskInpu
     }
 
     @Override
-    public SortedSet<TaskFilePropertySpec> getFileProperties() {
+    public SortedSet<TaskInputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
             ensurePropertiesHaveNames(filePropertiesInternal);
-            fileProperties = collectFileProperties(filePropertiesInternal.iterator());
+            fileProperties = TaskPropertyUtils.<TaskInputFilePropertySpec>collectFileProperties("input", filePropertiesInternal.iterator());
         }
         return fileProperties;
     }
@@ -208,7 +208,7 @@ public class DefaultTaskInputs extends FilePropertyContainer implements TaskInpu
         return this;
     }
 
-    private class PropertySpec extends AbstractTaskPropertyBuilder implements TaskFilePropertySpec, TaskInputFilePropertyBuilder {
+    private class PropertySpec extends AbstractTaskPropertyBuilder implements TaskInputFilePropertySpec, TaskInputFilePropertyBuilder {
 
         private final TaskPropertyFileCollection files;
         private boolean skipWhenEmpty;

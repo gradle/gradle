@@ -44,12 +44,12 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
     private final String taskName;
     private final boolean allowSnapshotReuse;
     private final String title;
-    protected final SortedSet<TaskFilePropertySpec> fileProperties;
+    protected final SortedSet<? extends TaskFilePropertySpec> fileProperties;
     private final FileCollectionSnapshotter snapshotter;
     protected final TaskExecution previous;
     protected final TaskExecution current;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, SortedSet<TaskFilePropertySpec> fileProperties) {
+    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties) {
         this.taskName = taskName;
         this.previous = previous;
         this.current = current;
@@ -72,7 +72,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return title;
     }
 
-    protected SortedSet<TaskFilePropertySpec> getFileProperties() {
+    protected SortedSet<? extends TaskFilePropertySpec> getFileProperties() {
         return fileProperties;
     }
 
@@ -89,7 +89,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return fileSnapshotsBeforeExecution;
     }
 
-    protected static Map<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotter snapshotter, String title, SortedSet<TaskFilePropertySpec> fileProperties, boolean allowSnapshotReuse) {
+    protected static Map<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotter snapshotter, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties, boolean allowSnapshotReuse) {
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {
             FileCollectionSnapshot result;

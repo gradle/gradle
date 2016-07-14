@@ -24,6 +24,9 @@ import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
+import static org.gradle.api.internal.tasks.TaskOutputFilePropertySpec.OutputType.DIRECTORY
+import static org.gradle.api.internal.tasks.TaskOutputFilePropertySpec.OutputType.FILE
+
 @UsesNativeServices
 class DefaultTaskOutputsTest extends Specification {
 
@@ -59,6 +62,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName == ['$1']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.outputFile == [new File("a")]
+        outputs.fileProperties*.outputType == [FILE]
     }
 
     def "can register output file with property name"() {
@@ -67,6 +72,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName == ['prop']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.outputFile == [new File("a")]
+        outputs.fileProperties*.outputType == [FILE]
     }
 
     def "can register output dir"() {
@@ -75,6 +82,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName == ['$1']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.outputFile == [new File("a")]
+        outputs.fileProperties*.outputType == [FILE]
     }
 
     def "can register output dir with property name"() {
@@ -83,6 +92,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a')]
         outputs.fileProperties*.propertyName == ['prop']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a")]
+        outputs.fileProperties*.outputFile == [new File("a")]
+        outputs.fileProperties*.outputType == [DIRECTORY]
     }
 
     def "cannot register output file with same property name"() {
@@ -101,6 +112,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['$1$1', '$1$2']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register unnamed output files with property name"() {
@@ -109,6 +122,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['prop$1', 'prop$2']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register named output files"() {
@@ -117,6 +132,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register named output files with property name"() {
@@ -125,6 +142,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register future named output files"() {
@@ -133,6 +152,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['$1.fileA', '$1.fileB']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     def "can register future named output files with property name"() {
@@ -141,6 +162,8 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.files.files.toList() == [new File('a'), new File("b")]
         outputs.fileProperties*.propertyName == ['prop.fileA', 'prop.fileB']
         outputs.fileProperties*.propertyFiles*.files.flatten() == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputFile == [new File("a"), new File("b")]
+        outputs.fileProperties*.outputType == [FILE, FILE]
     }
 
     public void canRegisterOutputFiles() {
