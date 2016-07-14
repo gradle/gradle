@@ -451,9 +451,4 @@ public class SigningExtension {
             ? uncheckedCall((Callable) maybeCallable)
             : maybeCallable;
     }
-
-    public static String getDEFAULT_CONFIGURATION_NAME() {
-        return DEFAULT_CONFIGURATION_NAME;
-    }
-
 }

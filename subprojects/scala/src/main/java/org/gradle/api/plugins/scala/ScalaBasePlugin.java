@@ -190,12 +190,4 @@ public class ScalaBasePlugin implements Plugin<Project> {
             }
         });
     }
-
-    public static String getZINC_CONFIGURATION_NAME() {
-        return ZINC_CONFIGURATION_NAME;
-    }
-
-    public static String getSCALA_RUNTIME_EXTENSION_NAME() {
-        return SCALA_RUNTIME_EXTENSION_NAME;
-    }
 }

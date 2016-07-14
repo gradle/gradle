@@ -366,19 +366,4 @@ public class EclipseWtpPlugin extends IdePlugin {
 
         return version.toString();
     }
-
-    @Deprecated
-    public static String getECLIPSE_WTP_COMPONENT_TASK_NAME() {
-        return ECLIPSE_WTP_COMPONENT_TASK_NAME;
-    }
-
-    @Deprecated
-    public static String getECLIPSE_WTP_FACET_TASK_NAME() {
-        return ECLIPSE_WTP_FACET_TASK_NAME;
-    }
-
-    @Deprecated
-    public static String getWEB_LIBS_CONTAINER() {
-        return WEB_LIBS_CONTAINER;
-    }
 }

@@ -507,8 +507,4 @@ public class Module extends XmlPersistableConfigurationObject {
     public int hashCode() {
         return Objects.hashCode(sourceFolders, generatedSourceFolders, testSourceFolders, excludeFolders, inheritOutputDirs, jdkName, outputDir, testOutputDir, dependencies);
     }
-
-    public static String getINHERITED() {
-        return INHERITED;
-    }
 }

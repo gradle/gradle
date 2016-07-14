@@ -27,6 +27,7 @@ import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -37,8 +38,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -124,7 +127,9 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     }
 
     private static class TransformingAdapter extends ClassVisitor {
+        private static final int PUBLIC_STATIC_FINAL = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL;
         private String className;
+        private Map<String, String> staticGetters = new HashMap<String, String>();
 
         TransformingAdapter(ClassVisitor cv) {
             super(Opcodes.ASM5, cv);
@@ -140,6 +145,22 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         }
 
         @Override
+        public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+            if (((access & (PUBLIC_STATIC_FINAL)) == PUBLIC_STATIC_FINAL) && Type.getDescriptor(String.class).equals(desc)) {
+                staticGetters.put("get" + name, (String) value);
+            }
+            return super.visitField(access, name, desc, signature, value);
+        }
+
+        @Override
+        public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+            if (staticGetters.containsKey(name)) {
+                staticGetters.remove(name);
+            }
+            return super.visitMethod(access, name, desc, signature, exceptions);
+        }
+
+        @Override
         public void visitEnd() {
             addMetaClassField();
             addGetMetaClass();
@@ -147,7 +168,21 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             addGetProperty();
             addSetProperty();
             addInvokeMethod();
+            addStaticGetters();
             cv.visitEnd();
+        }
+
+        private void addStaticGetters() {
+            for (Map.Entry<String, String> constant : staticGetters.entrySet()) {
+                MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC,
+                    constant.getKey(),
+                    Type.getMethodDescriptor(Type.getType(String.class)), null, null);
+                mv.visitCode();
+                mv.visitLdcInsn(constant.getValue());
+                mv.visitInsn(Opcodes.ARETURN);
+                mv.visitMaxs(1, 0);
+                mv.visitEnd();
+            }
         }
 
         private void addMetaClassField() {

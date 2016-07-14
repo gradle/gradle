@@ -397,25 +397,4 @@ public class EclipsePlugin extends IdePlugin {
             return project.getPlugins().hasPlugin(EclipsePlugin.class);
         }
     };
-
-    @Deprecated
-    public static String getECLIPSE_TASK_NAME() {
-        return ECLIPSE_TASK_NAME;
-    }
-
-    @Deprecated
-    public static String getECLIPSE_PROJECT_TASK_NAME() {
-        return ECLIPSE_PROJECT_TASK_NAME;
-    }
-
-    @Deprecated
-    public static String getECLIPSE_CP_TASK_NAME() {
-        return ECLIPSE_CP_TASK_NAME;
-    }
-
-    @Deprecated
-    public static String getECLIPSE_JDT_TASK_NAME() {
-        return ECLIPSE_JDT_TASK_NAME;
-    }
-
 }
