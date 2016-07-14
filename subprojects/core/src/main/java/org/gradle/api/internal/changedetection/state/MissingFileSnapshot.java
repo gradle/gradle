@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Charsets;
+import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+
 class MissingFileSnapshot implements IncrementalFileSnapshot {
     private static final MissingFileSnapshot INSTANCE = new MissingFileSnapshot();
+    private static final byte[] SIGNATURE = "MISSING_FILE".getBytes(Charsets.UTF_8);
 
     private MissingFileSnapshot() {
     }
@@ -33,5 +37,10 @@ class MissingFileSnapshot implements IncrementalFileSnapshot {
 
     public boolean isContentUpToDate(IncrementalFileSnapshot snapshot) {
         return snapshot instanceof MissingFileSnapshot;
+    }
+
+    @Override
+    public void appendToCacheKey(TaskCacheKeyBuilder builder) {
+        builder.putBytes(SIGNATURE);
     }
 }

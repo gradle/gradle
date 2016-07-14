@@ -52,16 +52,17 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     private final FileCollection allOutputFiles;
     private AndSpec<TaskInternal> upToDateSpec = EMPTY_AND_SPEC;
+    private AndSpec<TaskInternal> cacheIfSpec = EMPTY_AND_SPEC;
     private TaskExecutionHistory history;
     private final List<BasePropertySpec> filePropertiesInternal = Lists.newArrayList();
     private SortedSet<TaskOutputFilePropertySpec> fileProperties;
     private final FileResolver resolver;
-    private final String taskName;
+    private final TaskInternal task;
     private final TaskMutator taskMutator;
 
     public DefaultTaskOutputs(FileResolver resolver, final TaskInternal task, TaskMutator taskMutator) {
         this.resolver = resolver;
-        this.taskName = task.getName();
+        this.task = task;
         this.taskMutator = taskMutator;
 
         final DefaultTaskDependency buildDependencies = new DefaultTaskDependency();
@@ -106,6 +107,35 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         taskMutator.mutate("TaskOutputs.upToDateWhen(Spec)", new Runnable() {
             public void run() {
                 upToDateSpec = upToDateSpec.and(spec);
+            }
+        });
+    }
+
+    @Override
+    public boolean isCacheEnabled() {
+        return cacheIfSpec.isSatisfiedBy(task);
+    }
+
+    @Override
+    public boolean isCacheAllowed() {
+        // If there's nothing to cache, we don't allow caching
+        return !filePropertiesInternal.isEmpty();
+    }
+
+    @Override
+    public void cacheIf(final Closure closure) {
+        taskMutator.mutate("TaskOutputs.cacheIf(Closure)", new Runnable() {
+            public void run() {
+                cacheIfSpec = cacheIfSpec.and(closure);
+            }
+        });
+    }
+
+    @Override
+    public void cacheIf(final Spec<? super Task> spec) {
+        taskMutator.mutate("TaskOutputs.cacheIf(Spec)", new Runnable() {
+            public void run() {
+                cacheIfSpec = cacheIfSpec.and(spec);
             }
         });
     }
@@ -157,7 +187,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.file(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new DefaultPropertySpec(taskName, resolver, OutputType.FILE, path));
+                return addSpec(new DefaultPropertySpec(task.getName(), resolver, OutputType.FILE, path));
             }
         });
     }
@@ -167,7 +197,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.dir(Object)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new DefaultPropertySpec(taskName, resolver, OutputType.DIRECTORY, path));
+                return addSpec(new DefaultPropertySpec(task.getName(), resolver, OutputType.DIRECTORY, path));
             }
         });
     }
@@ -199,7 +229,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
-                return addSpec(new UnnamedCompositePropertySpec(taskName, resolver, OutputType.FILE, paths));
+                return addSpec(new UnnamedCompositePropertySpec(task.getName(), resolver, OutputType.FILE, paths));
             }
         });
     }
@@ -265,6 +295,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         @Override
         public void upToDateWhen(Spec<? super Task> upToDateSpec) {
             getTaskOutputs("upToDateWhen(Spec)").upToDateWhen(upToDateSpec);
+        }
+
+        @Override
+        public void cacheIf(Closure closure) {
+            getTaskOutputs("cacheIf(Closure)").cacheIf(closure);
+        }
+
+        @Override
+        public void cacheIf(Spec<? super Task> spec) {
+            getTaskOutputs("cacheIf(Spec)").cacheIf(spec);
         }
 
         @Override

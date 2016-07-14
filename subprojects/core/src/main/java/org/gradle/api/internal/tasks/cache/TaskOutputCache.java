@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.tasks.cache;
 
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import java.io.IOException;
 
-interface IncrementalFileSnapshot {
-    boolean isContentUpToDate(IncrementalFileSnapshot snapshot);
+public interface TaskOutputCache {
+    TaskOutputReader get(TaskCacheKey key) throws IOException;
 
-    boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot);
+    void put(TaskCacheKey key, TaskOutputWriter output) throws IOException;
 
-    void appendToCacheKey(TaskCacheKeyBuilder builder);
+    String getDescription();
 }

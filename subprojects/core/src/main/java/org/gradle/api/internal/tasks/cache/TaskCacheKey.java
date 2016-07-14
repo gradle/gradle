@@ -14,14 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.tasks.cache;
 
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import com.google.common.hash.HashCode;
 
-interface IncrementalFileSnapshot {
-    boolean isContentUpToDate(IncrementalFileSnapshot snapshot);
-
-    boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot);
-
-    void appendToCacheKey(TaskCacheKeyBuilder builder);
+public interface TaskCacheKey {
+    HashCode getHashCode();
 }

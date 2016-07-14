@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.tasks.AbstractCopyTask;
-import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.util.GUtil;
@@ -44,7 +43,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      *
      * @return the archive name.
      */
-    @Input
+    @Internal("Represented as part of archivePath")
     public String getArchiveName() {
         if (customName != null) {
             return customName;

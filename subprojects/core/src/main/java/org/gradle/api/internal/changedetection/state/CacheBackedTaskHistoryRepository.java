@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
@@ -140,23 +141,24 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private LazyTaskExecution findPreviousExecution(TaskExecution currentExecution, TaskHistory history) {
         Set<String> outputFiles = currentExecution.getOutputFiles();
+        int outputFilesSize = outputFiles.size();
         LazyTaskExecution bestMatch = null;
         int bestMatchOverlap = 0;
-        for (LazyTaskExecution configuration : history.configurations) {
-            if (outputFiles.size() == 0) {
-                if (configuration.getOutputFiles().size() == 0) {
-                    bestMatch = configuration;
+        for (LazyTaskExecution previousExecution : history.configurations) {
+            if (outputFilesSize == 0) {
+                if (previousExecution.getOutputFiles().size() == 0) {
+                    bestMatch = previousExecution;
                     break;
                 }
             }
 
-            Set<String> intersection = new HashSet<String>(outputFiles);
-            intersection.retainAll(configuration.getOutputFiles());
-            if (intersection.size() > bestMatchOverlap) {
-                bestMatch = configuration;
-                bestMatchOverlap = intersection.size();
+            Set<String> intersection = Sets.intersection(outputFiles, previousExecution.getOutputFiles());
+            int overlap = intersection.size();
+            if (overlap > bestMatchOverlap) {
+                bestMatch = previousExecution;
+                bestMatchOverlap = overlap;
             }
-            if (bestMatchOverlap == outputFiles.size()) {
+            if (bestMatchOverlap == outputFilesSize) {
                 break;
             }
         }

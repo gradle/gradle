@@ -52,7 +52,9 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(Gradle) >> gradle
         gradle.getTaskGraph() >> Mock(TaskGraphExecuter)
         _ * parent.get(ListenerManager) >> Mock(ListenerManager)
-        _ * parent.get(StartParameter) >> Mock(StartParameter)
+        _ * parent.get(StartParameter) >> Mock(StartParameter) {
+            getSystemPropertiesArgs() >> [:]
+        }
         _ * parent.get(GradleBuildEnvironment) >> Stub(GradleBuildEnvironment)
         _ * parent.get(CacheRepository) >> cacheRepository
         _ * parent.get(Instantiator) >> Mock(Instantiator)

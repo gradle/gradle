@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Charsets;
+import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+
 class DirSnapshot implements IncrementalFileSnapshot {
     private static final DirSnapshot INSTANCE = new DirSnapshot();
+    private static final byte[] SIGNATURE = "DIRECTORY".getBytes(Charsets.UTF_8);
 
     private DirSnapshot() {
     }
@@ -33,5 +37,10 @@ class DirSnapshot implements IncrementalFileSnapshot {
 
     public boolean isContentUpToDate(IncrementalFileSnapshot snapshot) {
         return snapshot instanceof DirSnapshot;
+    }
+
+    @Override
+    public void appendToCacheKey(TaskCacheKeyBuilder builder) {
+        builder.putBytes(SIGNATURE);
     }
 }
