@@ -17,7 +17,6 @@ package org.gradle.tooling.internal.consumer.loader;
 
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.Factory;
-import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -71,8 +70,8 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
     public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
         LOGGER.debug("Using tooling provider from {}", distribution.getDisplayName());
-        ClassLoader classLoader = createImplementationClassLoader(distribution, progressLoggerFactory, connectionParameters.getGradleUserHomeDir(), cancellationToken);
-        ServiceLocator serviceLocator = new DefaultServiceLocator(classLoader);
+        ClassLoader serviceClassLoader = createImplementationClassLoader(distribution, progressLoggerFactory, connectionParameters.getGradleUserHomeDir(), cancellationToken);
+        ServiceLocator serviceLocator = new DefaultServiceLocator(serviceClassLoader);
         try {
             Factory<ConnectionVersion4> factory = serviceLocator.findFactory(ConnectionVersion4.class);
             if (factory == null) {
@@ -112,8 +111,6 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
             throw e;
         } catch (Throwable t) {
             throw new GradleConnectionException(String.format("Could not create an instance of Tooling API implementation using the specified %s.", distribution.getDisplayName()), t);
-        } finally {
-            ClassLoaderUtils.tryClose(classLoader);
         }
     }
 
