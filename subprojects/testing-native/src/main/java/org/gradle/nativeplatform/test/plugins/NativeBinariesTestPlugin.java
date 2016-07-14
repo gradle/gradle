@@ -16,10 +16,12 @@
 
 package org.gradle.nativeplatform.test.plugins;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
@@ -30,7 +32,11 @@ import org.gradle.language.nativeplatform.DependentSourceSet;
 import org.gradle.model.Defaults;
 import org.gradle.model.Each;
 import org.gradle.model.Finalize;
+import org.gradle.model.ModelMap;
 import org.gradle.model.RuleSource;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.model.internal.type.ModelTypes;
+import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
@@ -38,12 +44,18 @@ import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.NativeDependentTestSuiteBinariesResolutionStrategy;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
+import org.gradle.platform.base.BinaryContainer;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentType;
 import org.gradle.platform.base.TypeBuilder;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
+import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
+import org.gradle.testing.base.TestSuiteContainer;
 import org.gradle.testing.base.plugins.TestingModelBasePlugin;
+
+import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries.
@@ -99,6 +111,37 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
             ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
             ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
             resolver.register(new NativeDependentTestSuiteBinariesResolutionStrategy(projectRegistry, projectModelResolver));
+        }
+
+        @Finalize
+        public void wireBuildDependentsTasks(ModelMap<Task> tasks, TestSuiteContainer testSuites, final BinaryContainer binaries, final DependentBinariesResolver dependentsResolver, ServiceRegistry serviceRegistry) {
+            final ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
+            final ModelMap<NativeBinarySpecInternal> nativeBinaries = binaries.withType(NativeBinarySpecInternal.class);
+            for (final NativeBinarySpecInternal binary : nativeBinaries) {
+                Task buildDependents = tasks.get(binary.getNamingScheme().getTaskName("buildDependents"));
+                Callable<Iterable<Task>> deferredDependencies = new Callable<Iterable<Task>>() {
+                    @Override
+                    public Iterable<Task> call() {
+                        List<Task> dependencies = Lists.newArrayList();
+                        DependentBinariesResolvedResult result = dependentsResolver.resolve(binary).getRoot();
+                        for (DependentBinariesResolvedResult dependent : result.getChildren()) {
+                            if (dependent.isBuildable() && dependent.isTestSuite()) {
+                                ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(dependent.getId().getProjectPath());
+                                ModelMap<NativeBinarySpecInternal> projectBinaries = modelRegistry.realize("binaries", ModelTypes.modelMap(NativeBinarySpecInternal.class));
+                                NativeBinarySpecInternal dependentBinary = projectBinaries.get(dependent.getProjectScopedName());
+                                NativeTestSuiteBinarySpecInternal testSuiteBinary = (NativeTestSuiteBinarySpecInternal) dependentBinary;
+                                dependencies.add(testSuiteBinary.getCheckTask());
+                            }
+                        }
+                        return dependencies;
+                    }
+                };
+                buildDependents.dependsOn(deferredDependencies);
+            }
+            for (NativeTestSuiteBinarySpecInternal testSuiteBinary : nativeBinaries.withType(NativeTestSuiteBinarySpecInternal.class)) {
+                Task buildDependents = tasks.get(testSuiteBinary.getNamingScheme().getTaskName("buildDependents"));
+                buildDependents.dependsOn(testSuiteBinary.getCheckTask());
+            }
         }
 
     }

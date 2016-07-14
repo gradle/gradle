@@ -102,6 +102,13 @@ public class NativeComponents {
                     assembleDependents.setDescription("Assemble dependents of " + component.getDisplayName());
                 }
             });
+            tasks.create(getBuildDependentComponentsTaskName(component), DefaultTask.class, new Action<DefaultTask>() {
+                @Override
+                public void execute(DefaultTask buildDependents) {
+                    buildDependents.setGroup("Build Dependents");
+                    buildDependents.setDescription("Build dependents of " + component.getDisplayName());
+                }
+            });
         }
     }
 
@@ -114,16 +121,29 @@ public class NativeComponents {
                 buildDependentsTask.dependsOn(binary);
             }
         });
+        binary.getTasks().create(namingScheme.getTaskName("buildDependents"), DefaultTask.class, new Action<DefaultTask>() {
+            @Override
+            public void execute(DefaultTask buildDependentsTask) {
+                buildDependentsTask.setGroup("Build Dependents");
+                buildDependentsTask.setDescription("Build dependents of " + binary.getDisplayName());
+                buildDependentsTask.dependsOn(binary);
+            }
+        });
     }
 
     public static void wireBuildDependentTasks(ModelMap<Task> tasks, BinaryContainer binaries, final DependentBinariesResolver dependentsResolver, final ProjectModelResolver projectModelResolver) {
         final ModelMap<NativeBinarySpecInternal> nativeBinaries = binaries.withType(NativeBinarySpecInternal.class);
         for (final BinarySpecInternal binary : nativeBinaries) {
             Task assembleDependents = tasks.get(binary.getNamingScheme().getTaskName("assembleDependents"));
+            Task buildDependents = tasks.get(binary.getNamingScheme().getTaskName("buildDependents"));
             // Wire build dependent components tasks dependencies
             Task assembleDependentComponents = tasks.get(getAssembleDependentComponentsTaskName(binary.getComponent()));
             if (assembleDependentComponents != null) {
                 assembleDependentComponents.dependsOn(assembleDependents);
+            }
+            Task buildDependentComponents = tasks.get(getBuildDependentComponentsTaskName(binary.getComponent()));
+            if (buildDependentComponents != null) {
+                buildDependentComponents.dependsOn(buildDependents);
             }
             // Wire build dependent binaries tasks dependencies
             // Defer dependencies gathering as we need to resolve across project's boundaries
@@ -144,11 +164,16 @@ public class NativeComponents {
                 }
             };
             assembleDependents.dependsOn(deferredDependencies);
+            buildDependents.dependsOn(deferredDependencies);
         }
     }
 
     private static String getAssembleDependentComponentsTaskName(ComponentSpec component) {
         return "assembleDependents" + StringUtils.capitalize(component.getName());
+    }
+
+    private static String getBuildDependentComponentsTaskName(ComponentSpec component) {
+        return "buildDependents" + StringUtils.capitalize(component.getName());
     }
 
     public abstract static class BinaryLibs implements Callable<List<FileCollection>> {
