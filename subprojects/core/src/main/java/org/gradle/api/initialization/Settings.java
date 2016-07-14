@@ -173,6 +173,6 @@ public interface Settings extends PluginAware {
      */
     Gradle getGradle();
 
-    void includeBuild(String[] projectPaths);
+    void includeBuild(Object projectPath);
 
 }

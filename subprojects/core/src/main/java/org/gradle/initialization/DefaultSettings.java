@@ -36,7 +36,6 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 
 public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
@@ -56,7 +55,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope rootClassLoaderScope;
     private final ServiceRegistry services;
-    private final List<String> includedBuilds = Lists.newArrayList();
+    private final List<File> includedBuilds = Lists.newArrayList();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
@@ -234,12 +233,12 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     @Override
-    public void includeBuild(String[] projectPaths) {
-        Collections.addAll(includedBuilds, projectPaths);
+    public void includeBuild(Object projectPath) {
+        includedBuilds.add(getFileResolver().resolve(projectPath));
     }
 
     @Override
-    public List<String> getIncludedBuilds() {
+    public List<File> getIncludedBuilds() {
         return includedBuilds;
     }
 }

@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 
+import java.io.File;
 import java.util.List;
 
 public interface SettingsInternal extends Settings {
@@ -47,5 +48,5 @@ public interface SettingsInternal extends Settings {
 
     void setDefaultProject(ProjectDescriptor defaultProject);
 
-    List<String> getIncludedBuilds();
+    List<File> getIncludedBuilds();
 }

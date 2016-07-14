@@ -135,7 +135,7 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBui
     def "substitutes external dependency with root project dependency using settings.gradle"() {
         given:
         buildA.settingsFile << """
-            includeBuild '${buildB.absolutePath}'
+            includeBuild '../buildB'
 """
         buildA.buildFile << """
             dependencies {

@@ -21,7 +21,6 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -176,8 +175,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private List<GradleParticipantBuild> getBuildRoots(SettingsInternal settings) {
         List<GradleParticipantBuild> participantBuilds = Lists.newArrayList();
-        for (String buildPath : settings.getIncludedBuilds()) {
-            File buildDir = buildServices.get(FileResolver.class).resolve(buildPath);
+        for (File buildDir : settings.getIncludedBuilds()) {
             participantBuilds.add(new DefaultGradleParticipantBuild(buildDir, null, null, null));
         }
         return participantBuilds;
