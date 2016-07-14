@@ -146,7 +146,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
 
         @Override
         public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-            if (((access & (PUBLIC_STATIC_FINAL)) == PUBLIC_STATIC_FINAL) && Type.getDescriptor(String.class).equals(desc)) {
+            if (((access & PUBLIC_STATIC_FINAL) == PUBLIC_STATIC_FINAL) && Type.getDescriptor(String.class).equals(desc)) {
                 staticGetters.put("get" + name, (String) value);
             }
             return super.visitField(access, name, desc, signature, value);
@@ -170,19 +170,6 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             addInvokeMethod();
             addStaticGetters();
             cv.visitEnd();
-        }
-
-        private void addStaticGetters() {
-            for (Map.Entry<String, String> constant : staticGetters.entrySet()) {
-                MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC,
-                    constant.getKey(),
-                    Type.getMethodDescriptor(Type.getType(String.class)), null, null);
-                mv.visitCode();
-                mv.visitLdcInsn(constant.getValue());
-                mv.visitInsn(Opcodes.ARETURN);
-                mv.visitMaxs(1, 0);
-                mv.visitEnd();
-            }
         }
 
         private void addMetaClassField() {
@@ -300,5 +287,17 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             methodVisitor.visitEnd();
         }
 
+        private void addStaticGetters() {
+            for (Map.Entry<String, String> constant : staticGetters.entrySet()) {
+                MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC,
+                    constant.getKey(),
+                    Type.getMethodDescriptor(Type.getType(String.class)), null, null);
+                mv.visitCode();
+                mv.visitLdcInsn(constant.getValue());
+                mv.visitInsn(Opcodes.ARETURN);
+                mv.visitMaxs(1, 0);
+                mv.visitEnd();
+            }
+        }
     }
 }
