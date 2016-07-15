@@ -61,24 +61,34 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     public FileCollection getOutputFiles() {
-        return EMPTY_FILE_COLLECTION;
+        return EmptyFileCollection.INSTANCE;
     }
 
-    private static final FileCollection EMPTY_FILE_COLLECTION = new EmptyFileCollection();
 
     private static class EmptyFileCollection extends FileCollectionAdapter implements Serializable {
 
         private static final long serialVersionUID = -5671359228892430322L;
 
+        private static final FileCollection INSTANCE = new EmptyFileCollection();
+
         private EmptyFileCollection() {
-            super(new EmptyFileSet());
+            super(EmptyFileSet.INSTANCE);
+        }
+
+        private Object readResolve() {
+            return INSTANCE;
         }
     }
 
     private static class EmptyFileSet implements MinimalFileSet, Serializable {
 
         private static final long serialVersionUID = 8533471127662131385L;
+
         private static final Set<File> EMPTY_FILE_SET = Collections.emptySet();
+        private static final MinimalFileSet INSTANCE = new EmptyFileSet();
+
+        private EmptyFileSet() {
+        }
 
         @Override
         public Set<File> getFiles() {
@@ -88,6 +98,10 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
         @Override
         public String getDisplayName() {
             return "empty file collection";
+        }
+
+        private Object readResolve() {
+            return INSTANCE;
         }
     }
 }
