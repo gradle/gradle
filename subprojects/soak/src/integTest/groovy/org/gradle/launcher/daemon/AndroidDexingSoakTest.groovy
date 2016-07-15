@@ -18,9 +18,12 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.soak.categories.SoakTest
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
 
 @Category(SoakTest)
+@Requires(TestPrecondition.NOT_WINDOWS)
 class AndroidDexingSoakTest extends DaemonIntegrationSpec {
     int buildCount
     int maxRatio
