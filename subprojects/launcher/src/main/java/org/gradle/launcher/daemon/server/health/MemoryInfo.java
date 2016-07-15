@@ -16,10 +16,16 @@
 
 package org.gradle.launcher.daemon.server.health;
 
+import org.gradle.internal.Cast;
+
+import javax.management.AttributeNotFoundException;
+import javax.management.InstanceNotFoundException;
+import javax.management.MBeanException;
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+import javax.management.ReflectionException;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
-import java.lang.management.OperatingSystemMXBean;
-import java.lang.reflect.InvocationTargetException;
 
 class MemoryInfo {
 
@@ -64,7 +70,7 @@ class MemoryInfo {
      * @throws UnsupportedOperationException if the JVM doesn't support getting total physical memory.
      */
     public long getTotalPhysicalMemory() {
-        return sunBean("getTotalPhysicalMemorySize");
+        return getMbeanAttribute("java.lang:type=OperatingSystem", "TotalPhysicalMemorySize", Long.class);
     }
 
     /**
@@ -73,31 +79,30 @@ class MemoryInfo {
      * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
      */
     public long getFreePhysicalMemory() {
-        return sunBean("getFreePhysicalMemorySize");
+        return getMbeanAttribute("java.lang:type=OperatingSystem", "FreePhysicalMemorySize", Long.class);
     }
 
     /**
-     * Reflectively runs an Oracle JVM specific OS method if available.
+     * Calls an mbean method if available.
      *
      * @throws UnsupportedOperationException if this method isn't available on this JVM.
      */
-    private static long sunBean(String methodName) {
-        OperatingSystemMXBean bean = ManagementFactory.getOperatingSystemMXBean();
-
-        Throwable rootCause = null;
-        ClassLoader beanLoader = ClassLoader.getSystemClassLoader();
+    private static <T> T getMbeanAttribute(String mbean, final String attribute, Class<T> type) {
+        Exception rootCause;
         try {
-            Class<?> osbean = beanLoader.loadClass("com.sun.management.OperatingSystemMXBean");
-            return (Long) osbean.getMethod(methodName).invoke(bean);
-        } catch (IllegalAccessException e) {
+            ObjectName objectName = new ObjectName(mbean);
+            return Cast.cast(type, ManagementFactory.getPlatformMBeanServer().getAttribute(objectName, attribute));
+        } catch (InstanceNotFoundException e) {
             rootCause = e;
-        } catch (InvocationTargetException e) {
+        } catch (ReflectionException e) {
             rootCause = e;
-        } catch (NoSuchMethodException e) {
+        } catch (MalformedObjectNameException e) {
             rootCause = e;
-        } catch (ClassNotFoundException e) {
+        } catch (MBeanException e) {
             rootCause = e;
+        } catch (AttributeNotFoundException e) {
+           rootCause = e;
         }
-        throw new UnsupportedOperationException(methodName + " is unsupported on this JVM.", rootCause);
+        throw new UnsupportedOperationException("(" + mbean + ")." + attribute + " is unsupported on this JVM.", rootCause);
     }
 }
