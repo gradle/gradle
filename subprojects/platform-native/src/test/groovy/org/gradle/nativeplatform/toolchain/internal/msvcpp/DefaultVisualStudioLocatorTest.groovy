@@ -274,6 +274,7 @@ class DefaultVisualStudioLocatorTest extends Specification {
         def result = visualStudioLocator.locateDefaultVisualStudioInstall(vsDir)
 
         then:
+        result.visualStudio.available
         result.visualStudio.visualCpp.getCompiler(platform(targetPlatform)) == new File(expectedBuilder.getBinPath(vcDir), "cl.exe")
         result.visualStudio.visualCpp.getLibraryPath(platform(targetPlatform)) == expectedBuilder.getLibPath(vcDir)
         result.visualStudio.visualCpp.getAssembler(platform(targetPlatform)) == new File(expectedBuilder.getBinPath(vcDir), expectedBuilder.asmFilename)

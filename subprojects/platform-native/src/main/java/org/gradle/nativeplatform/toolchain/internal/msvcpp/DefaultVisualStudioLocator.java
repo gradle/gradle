@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import net.rubygrapefruit.platform.MissingRegistryEntryException;
@@ -245,7 +246,7 @@ public class DefaultVisualStudioLocator implements VisualStudioLocator {
         private final VisualStudioInstall install;
 
         public InstallFound(VisualStudioInstall install) {
-            this.install = install;
+            this.install = Preconditions.checkNotNull(install);
         }
 
         @Override

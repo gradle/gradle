@@ -19,8 +19,10 @@ package org.gradle.nativeplatform.fixtures
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.binaryinfo.BinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinBinaryInfo
+import org.gradle.nativeplatform.fixtures.binaryinfo.FileArchOnlyBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
+import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestFile.Snapshot
 
@@ -74,6 +76,17 @@ class NativeBinaryFixture {
     boolean assertExistsAndDelete() {
         assertExists()
         file.delete()
+    }
+
+    ArchitectureInternal getArch() {
+        file.assertExists()
+        BinaryInfo info
+        if (OperatingSystem.current().isWindows() && !DumpbinBinaryInfo.findVisualStudio()) {
+            info = new FileArchOnlyBinaryInfo(file)
+        } else {
+            info = getBinaryInfo()
+        }
+        return info.getArch()
     }
 
     BinaryInfo getBinaryInfo() {

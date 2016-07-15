@@ -15,8 +15,10 @@
  */
 
 package org.gradle.nativeplatform.fixtures.binaryinfo
+
 import net.rubygrapefruit.platform.SystemInfo
 import net.rubygrapefruit.platform.WindowsRegistry
+import org.gradle.api.Nullable
 import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -34,12 +36,15 @@ class DumpbinBinaryInfo implements BinaryInfo {
         this.binaryFile = binaryFile
 
         VisualStudioInstall vsInstall = findVisualStudio()
+        if (vsInstall == null) {
+            throw new UnsupportedOperationException("Visual Studio is unavailable on this system.")
+        }
         DefaultNativePlatform targetPlatform = new DefaultNativePlatform("default");
         vcBin = vsInstall.getVisualCpp().getBinaryPath(targetPlatform)
         vcPath = vsInstall.getVisualCpp().getPath(targetPlatform).join(';')
     }
 
-    static VisualStudioInstall findVisualStudio() {
+    static @Nullable VisualStudioInstall findVisualStudio() {
         def vsLocator = new DefaultVisualStudioLocator(OperatingSystem.current(), NativeServices.instance.get(WindowsRegistry), NativeServices.instance.get(SystemInfo))
         return vsLocator.locateDefaultVisualStudioInstall().visualStudio
     }

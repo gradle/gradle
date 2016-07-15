@@ -18,6 +18,7 @@ package org.gradle.nativeplatform.fixtures.binaryinfo
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.Architectures
 
+import java.util.concurrent.TimeUnit
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 
@@ -27,6 +28,11 @@ class ReadelfBinaryInfo implements BinaryInfo {
 
     ReadelfBinaryInfo(File binaryFile) {
         this.binaryFile = binaryFile
+    }
+
+    static boolean canUseReadelf() {
+        def process = ['readelf', '-v'].execute()
+        return process.waitFor(1, TimeUnit.SECONDS) && process.exitValue() == 0
     }
 
     ArchitectureInternal getArch() {
