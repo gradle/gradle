@@ -33,13 +33,13 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import spock.lang.IgnoreIf
 
 class GroovyToJavaConversionIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreIf( { GradleContextualExecuter.embedded })
     def "For every boolean is getter there is a get Getter"() {
+        given:
+        executer.requireGradleDistribution() // We need to fork - if we do not fork Class-Decoration does not happen
+
         when:
         def convertedClasses = this.getClass().getResource( '/org/gradle/initialization/converted-types.txt' ).readLines()
         buildFile << """
