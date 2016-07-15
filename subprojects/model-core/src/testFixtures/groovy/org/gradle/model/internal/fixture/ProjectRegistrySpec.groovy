@@ -44,7 +44,7 @@ class ProjectRegistrySpec extends AbstractProjectBuilderSpec {
     public static final TestNameTestDirectoryProvider SERVICES_TEST_DIRECTORY = TestNameTestDirectoryProvider.newInstance()
 
     static {
-        def services = TestUtil.createRootProject(SERVICES_TEST_DIRECTORY.testDirectory).services
+        def services = TestUtil.create(SERVICES_TEST_DIRECTORY.testDirectory).rootProject().services
         SCHEMA_STORE = services.get(ModelSchemaStore)
         MANAGED_PROXY_FACTORY = services.get(ManagedProxyFactory)
         MODEL_RULE_EXTRACTOR = services.get(ModelRuleExtractor)
