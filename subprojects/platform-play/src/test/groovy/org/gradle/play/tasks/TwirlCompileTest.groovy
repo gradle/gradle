@@ -18,7 +18,6 @@ package org.gradle.play.tasks
 
 import org.gradle.api.Action
 import org.gradle.api.internal.TaskExecutionHistory
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.api.tasks.incremental.InputFileDetails
 import org.gradle.language.base.internal.compile.Compiler
@@ -26,16 +25,15 @@ import org.gradle.play.internal.toolchain.PlayToolChainInternal
 import org.gradle.play.internal.toolchain.PlayToolProvider
 import org.gradle.play.internal.twirl.TwirlCompileSpec
 import org.gradle.play.platform.PlayPlatform
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class TwirlCompileTest extends Specification {
-    ProjectInternal project = TestUtil.createRootProject()
-    TwirlCompile compile = project.tasks.create("compile", TwirlCompile)
+class TwirlCompileTest extends AbstractProjectBuilderSpec {
+    TwirlCompile compile
     Compiler<TwirlCompileSpec> twirlCompiler = Mock(Compiler)
     IncrementalTaskInputs taskInputs = Mock(IncrementalTaskInputs)
 
     def setup() {
+        compile = project.tasks.create("compile", TwirlCompile)
         def toolChain = Mock(PlayToolChainInternal)
         def platform = Mock(PlayPlatform)
         def toolProvider = Mock(PlayToolProvider)

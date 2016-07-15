@@ -22,21 +22,20 @@ import org.gradle.api.internal.artifacts.DependencyResolveContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.initialization.ProjectAccessListener
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.internal.artifacts.dependencies.AbstractModuleDependencySpec.assertDeepCopy
 import static org.gradle.util.Matchers.strictlyEqual
 import static org.junit.Assert.assertThat
 
-class DefaultProjectDependencyTest extends Specification {
+class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
 
-    ProjectInternal project = TestUtil.createRootProject()
     ProjectAccessListener listener = Mock()
 
-    private projectDependency = new DefaultProjectDependency(project, null, false)
+    private projectDependency
 
-    void setup() {
+    def setup() {
+        projectDependency = new DefaultProjectDependency(project, null, false)
         project.version = "1.2"
         project.group = "org.gradle"
     }

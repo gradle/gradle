@@ -19,11 +19,11 @@ package org.gradle.plugins.ide.idea.model
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class IdeaModuleTest extends Specification {
-    private final ProjectInternal rootProject = TestUtil.createRootProject()
+class IdeaModuleTest extends AbstractProjectBuilderSpec {
+    private final ProjectInternal rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final ProjectInternal moduleProject = TestUtil.createChildProject(rootProject, "child", new File("."))
 
     def "language level is null for non java projects"() {

@@ -17,19 +17,15 @@
 package org.gradle.plugins.ide.internal.tooling
 
 import org.gradle.api.DefaultTask
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
 
-class GradleProjectBuilderTest extends Specification {
-    @Rule
-    TestNameTestDirectoryProvider tmpDir
+class GradleProjectBuilderTest extends AbstractProjectBuilderSpec {
     def builder = new GradleProjectBuilder()
 
     def "builds basics for project"() {
-        def buildFile = tmpDir.file("build.gradle") << "//empty"
-        def project = TestUtil.builder().withName("test").withProjectDir(tmpDir.testDirectory).build()
+        def buildFile = temporaryFolder.file("build.gradle") << "//empty"
+        def project = TestUtil.builder(temporaryFolder).withName("test").build()
         project.description = 'a test project'
 
         when:
@@ -44,8 +40,8 @@ class GradleProjectBuilderTest extends Specification {
     }
 
     def "handles task placeholders"() {
-        def buildFile = tmpDir.file("build.gradle") << "//empty"
-        def project = TestUtil.builder().withName("test").withProjectDir(tmpDir.testDirectory).build()
+        def buildFile = temporaryFolder.file("build.gradle") << "//empty"
+        def project = TestUtil.builder(temporaryFolder.testDirectory).withName("test").build()
         project.description = 'a test project'
         project.tasks.addPlaceholderAction("placeholderTask", DefaultTask) {
             it.description = "some description"

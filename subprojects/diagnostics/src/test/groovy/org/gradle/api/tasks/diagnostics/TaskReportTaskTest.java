@@ -23,6 +23,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.Path;
 import org.gradle.util.TestUtil;
@@ -54,6 +55,9 @@ public class TaskReportTaskTest {
     private final TaskContainerInternal implicitTasks = context.mock(TaskContainerInternal.class);
     private TaskReportTask task;
 
+    @org.junit.Rule
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+
     @Before
     public void setup() {
         context.checking(new Expectations(){{
@@ -69,7 +73,7 @@ public class TaskReportTaskTest {
             will(returnValue(toSet()));
         }});
 
-        task = TestUtil.createTask(TaskReportTask.class);
+        task = TestUtil.create(temporaryFolder).task(TaskReportTask.class);
         task.setRenderer(renderer);
     }
 

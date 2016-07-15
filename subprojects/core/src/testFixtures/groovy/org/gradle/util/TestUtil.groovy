@@ -27,7 +27,6 @@ import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
@@ -51,32 +50,8 @@ class TestUtil {
         return new TestUtil(testDirectoryProvider.testDirectory);
     }
 
-    /**
-     * @deprecated Tests should create their own temporary directories
-     *     annotated with {@link org.junit.Rule} so that they will be cleaned
-     *     up, and pass that directory to {@link #create(java.io.File)} and
-     *     call {@link #task(java.lang.Class)}
-     */
-    @Deprecated
-    static <T extends Task> T createTask(Class<T> type) {
-        return createTask(type, createRootProject())
-    }
-
     public <T extends Task> T task(Class<T> type) {
         return createTask(type, createRootProject(this.rootDir))
-    }
-
-    /**
-     * @deprecated Tests should create their own temporary directories
-     *     annotated with {@link org.junit.Rule} so that they will be cleaned
-     *     up, and pass that directory to {@link #create(java.io.File)} and
-     *     call {@link #task(java.lang.Class, java.util.Map)}
-     */
-    @Deprecated
-    static <T extends Task> T createTask(Class<T> type, Map taskFields) {
-        def task = createTask(type, createRootProject())
-        hackInTaskProperties(type, task, taskFields)
-        return task
     }
 
     public <T extends Task> T task(Class<T> type, Map taskFields) {
@@ -106,31 +81,12 @@ class TestUtil {
         return project.services.get(ITaskFactory).createTask([name: name, type: type])
     }
 
-    /**
-     * @deprecated Tests should create their own temporary directories
-     *     annotated with {@link org.junit.Rule} so that they will be cleaned
-     *     up, and pass that directory to {@link #builder(java.io.File)}
-     */
-    @Deprecated
-    static ProjectBuilder builder() {
-        NativeServicesTestFixture.initialize()
-        return ProjectBuilder.builder().withProjectDir(TestNameTestDirectoryProvider.newInstance().testDirectory)
-    }
-
     static ProjectBuilder builder(File rootDir) {
         return ProjectBuilder.builder().withProjectDir(rootDir);
     }
 
-    /**
-     * @deprecated Tests should create their own temporary directories
-     *     annotated with {@link org.junit.Rule} so that they will be  cleaned
-     *     up, and pass that directory to
-     *     {@link #createRootProject(java.io.File)}
-     */
-    @Deprecated
-    static ProjectInternal createRootProject() {
-        NativeServicesTestFixture.initialize()
-        createRootProject(TestNameTestDirectoryProvider.newInstance().testDirectory)
+    static ProjectBuilder builder(TestDirectoryProvider temporaryFolder) {
+        return builder(temporaryFolder.testDirectory);
     }
 
     ProjectInternal rootProject() {

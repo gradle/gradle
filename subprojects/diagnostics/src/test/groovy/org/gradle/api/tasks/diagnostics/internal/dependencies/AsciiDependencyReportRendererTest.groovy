@@ -15,18 +15,15 @@
  */
 package org.gradle.api.tasks.diagnostics.internal.dependencies
 
-import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphRenderer
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.SimpleDependency
 import org.gradle.internal.logging.text.TestStyledTextOutput
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class AsciiDependencyReportRendererTest extends Specification {
+class AsciiDependencyReportRendererTest extends AbstractProjectBuilderSpec {
     private final TestStyledTextOutput textOutput = new TestStyledTextOutput().ignoreStyle()
     private final AsciiDependencyReportRenderer renderer = new AsciiDependencyReportRenderer()
-    private final Project project = TestUtil.createRootProject()
 
     def setup() {
         renderer.output = textOutput

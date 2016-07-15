@@ -16,18 +16,20 @@
 
 package org.gradle.api.internal.project
 
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.TestUtil
 import org.junit.Rule
-import spock.lang.Specification
 
-class DeferredProjectConfigurationTest extends Specification {
-
-    def project = TestUtil.createRootProject()
-    def config = new DeferredProjectConfiguration(project)
-
+class DeferredProjectConfigurationTest extends AbstractProjectBuilderSpec {
     @Rule
     SetSystemProperties setSystemProperties
+
+    def config
+
+    def setup() {
+        this.config = new DeferredProjectConfiguration(project)
+    }
+
 
     def "can add config and fire"() {
         given:

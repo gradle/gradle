@@ -21,7 +21,15 @@ import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.model.ModelMap
 import org.gradle.model.internal.type.ModelType
-import org.gradle.nativeplatform.*
+import org.gradle.nativeplatform.BuildType
+import org.gradle.nativeplatform.BuildTypeContainer
+import org.gradle.nativeplatform.Flavor
+import org.gradle.nativeplatform.FlavorContainer
+import org.gradle.nativeplatform.NativeExecutableBinarySpec
+import org.gradle.nativeplatform.NativeExecutableSpec
+import org.gradle.nativeplatform.NativeLibrarySpec
+import org.gradle.nativeplatform.SharedLibraryBinarySpec
+import org.gradle.nativeplatform.StaticLibraryBinarySpec
 import org.gradle.nativeplatform.internal.DefaultFlavor
 import org.gradle.nativeplatform.platform.internal.NativePlatformInternal
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
@@ -30,16 +38,16 @@ import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.PlatformContainer
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 
-class NativeComponentModelPluginTest extends Specification {
-    final def project = TestUtil.createRootProject()
-    def registry = project.modelRegistry
+class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
+    def registry
 
     def setup() {
+        registry = project.modelRegistry
         project.pluginManager.apply(NativeComponentModelPlugin)
     }
 

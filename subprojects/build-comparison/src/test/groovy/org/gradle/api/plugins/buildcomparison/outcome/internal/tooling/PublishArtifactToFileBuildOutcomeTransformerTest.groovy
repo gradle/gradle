@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.buildcomparison.outcome.internal.tooling
 
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
@@ -28,24 +27,15 @@ import org.gradle.api.tasks.bundling.War
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.jvm.tasks.Jar
 import org.gradle.plugins.ear.Ear
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.tooling.model.internal.outcomes.GradleFileBuildOutcome
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.plugins.buildcomparison.outcome.internal.FileOutcomeIdentifier.*
 
-@UsesNativeServices
-class PublishArtifactToFileBuildOutcomeTransformerTest extends Specification {
+class PublishArtifactToFileBuildOutcomeTransformerTest extends AbstractProjectBuilderSpec {
 
     def transformer = new PublishArtifactToFileBuildOutcomeTransformer()
-
-    @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
-    final Project project = TestUtil.createRootProject(testDir.testDirectory)
 
     @Unroll
     "can create outcome for #taskClass archive artifact"(Class<? extends AbstractArchiveTask> taskClass, FileOutcomeIdentifier typeIdentifier) {

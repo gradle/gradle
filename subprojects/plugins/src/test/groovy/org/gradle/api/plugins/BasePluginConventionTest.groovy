@@ -17,14 +17,19 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 import static org.junit.Assert.assertEquals
 
 class BasePluginConventionTest {
-    private ProjectInternal project = TestUtil.createRootProject()
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+
+    private ProjectInternal project = TestUtil.create(temporaryFolder).rootProject()
     private File testDir = project.projectDir
     private BasePluginConvention convention
 

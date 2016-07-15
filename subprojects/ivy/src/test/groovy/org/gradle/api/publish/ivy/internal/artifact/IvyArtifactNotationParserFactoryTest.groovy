@@ -15,22 +15,23 @@
  */
 
 package org.gradle.api.publish.ivy.internal.artifact
+
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.api.publish.ivy.IvyArtifact
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.typeconversion.NotationParser
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-public class IvyArtifactNotationParserFactoryTest extends Specification {
+public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
     Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     def fileNotationParser = Mock(NotationParser)
     def taskDependency = Mock(TaskDependency)
@@ -135,7 +136,7 @@ public class IvyArtifactNotationParserFactoryTest extends Specification {
 
     def "creates IvyArtifact for ArchivePublishArtifact"() {
         when:
-        def rootProject = TestUtil.createRootProject()
+        def rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
         def archive = rootProject.task('foo', type: Jar, {})
         archive.setBaseName("base-name")
         archive.setExtension('extension')

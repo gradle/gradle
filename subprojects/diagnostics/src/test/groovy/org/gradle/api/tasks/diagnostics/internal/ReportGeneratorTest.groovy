@@ -19,20 +19,15 @@ package org.gradle.api.tasks.diagnostics.internal
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.logging.text.StyledTextOutputFactory
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
 
-class ReportGeneratorTest extends Specification {
+class ReportGeneratorTest extends AbstractProjectBuilderSpec {
 
     ReportRenderer renderer = Mock(ReportRenderer)
     BuildClientMetaData buildClientMetaData = Mock(BuildClientMetaData)
     ProjectReportGenerator projectReportGenerator = Mock(ProjectReportGenerator)
     StyledTextOutput styledTextOutput = Mock(StyledTextOutput)
-
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
 
     def createReportGenerator(File file = null) {
         StyledTextOutputFactory textOutputFactory = Mock(StyledTextOutputFactory)
@@ -43,7 +38,6 @@ class ReportGeneratorTest extends Specification {
     def 'completes renderer at end of generation'() {
         setup:
         def generator = createReportGenerator()
-        def project = TestUtil.createRootProject()
 
         when:
         generator.generateReport([project] as Set)
@@ -70,9 +64,8 @@ class ReportGeneratorTest extends Specification {
 
     def 'sets outputFileName on renderer before generation'() {
         setup:
-        final File file = tmpDir.getTestDirectory().file("report.txt");
+        final File file = temporaryFolder.getTestDirectory().file("report.txt");
         def generator = createReportGenerator(file)
-        def project = TestUtil.createRootProject()
 
         when:
         generator.generateReport([project] as Set)
@@ -100,7 +93,6 @@ class ReportGeneratorTest extends Specification {
 
     def 'passes each project to renderer'() {
         setup:
-        def project = TestUtil.createRootProject()
         def child1 = TestUtil.createChildProject(project, "child1");
         def child2 = TestUtil.createChildProject(project, "child2");
         def generator = createReportGenerator()
