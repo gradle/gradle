@@ -106,6 +106,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
         1 * scriptRunner.run(target, _ as ServiceRegistry)
+        1 * scriptRunner.cleanup()
         0 * scriptRunner._
 
         then:
@@ -129,6 +130,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * target.setScript(script)
         0 * target.addDeferredConfiguration(_)
         1 * scriptRunner.run(target, _ as ServiceRegistry)
+        1 * scriptRunner.cleanup()
         0 * scriptRunner._
 
         then:
@@ -151,6 +153,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         0 * target.setScript(_)
         0 * target.addDeferredConfiguration(_)
         1 * scriptRunner.run(target, _ as ServiceRegistry)
+        1 * scriptRunner.cleanup()
         0 * scriptRunner._
 
         then:
@@ -173,6 +176,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptRunner.script >> script
         1 * target.setScript(script)
         1 * target.addDeferredConfiguration(_)
+        0 * scriptRunner.cleanup()  // Deferred and will never happen in this test.
         0 * scriptRunner._
 
         then:
@@ -194,6 +198,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         _ * scriptRunner.hasMethods >> false
         0 * target.setScript(_)
         1 * target.addDeferredConfiguration(_)
+        0 * scriptRunner.cleanup()  // Deferred and will never happen in this test.
         0 * scriptRunner._
 
         then:
@@ -213,6 +218,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
         _ * scriptRunner.data >> new BuildScriptData(false)
         _ * scriptRunner.runDoesSomething >> false
         _ * scriptRunner.hasMethods >> false
+        1 * scriptRunner.cleanup()
         0 * scriptRunner._
         0 * target.setScript(_)
         0 * target.addDeferredConfiguration(_)

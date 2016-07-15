@@ -27,7 +27,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashValue;
 
 public class CrossBuildInMemoryCachingScriptClassCache {
-    private final Cache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts = CacheBuilder.newBuilder().maximumSize(100).recordStats().build();
+    private final Cache<ScriptCacheKey, CachedCompiledScript> cachedCompiledScripts = CacheBuilder.newBuilder().weakKeys().maximumSize(100).recordStats().build();
     private final FileSnapshotter snapshotter;
 
     public CrossBuildInMemoryCachingScriptClassCache(FileSnapshotter snapshotter) {

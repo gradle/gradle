@@ -20,6 +20,7 @@ import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptExecutionListener;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -93,6 +94,14 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
             } finally {
                 script.getStandardOutputCapture().stop();
                 Thread.currentThread().setContextClassLoader(originalLoader);
+            }
+        }
+
+        @Override
+        public void cleanup() {
+            if (script != null) {
+                ClassLoaderUtils.tryClose(script.getContextClassloader());
+                script = null;
             }
         }
     }

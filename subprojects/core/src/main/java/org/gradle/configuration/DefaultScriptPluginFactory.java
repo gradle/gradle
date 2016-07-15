@@ -168,18 +168,20 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
                 scriptTarget.attachScript(runner.getScript());
             }
-            if (!runner.getRunDoesSomething()) {
-                return;
+
+            if (runner.getRunDoesSomething()) {
+                Runnable buildScriptRunner = new Runnable() {
+                    public void run() {
+                        runner.run(target, services);
+                        runner.cleanup();
+                    }
+                };
+
+                boolean hasImperativeStatements = runner.getData().getHasImperativeStatements();
+                scriptTarget.addConfiguration(buildScriptRunner, !hasImperativeStatements);
+            } else {
+                runner.cleanup();
             }
-
-            Runnable buildScriptRunner = new Runnable() {
-                public void run() {
-                    runner.run(target, services);
-                }
-            };
-
-            boolean hasImperativeStatements = runner.getData().getHasImperativeStatements();
-            scriptTarget.addConfiguration(buildScriptRunner, !hasImperativeStatements);
         }
 
         private ScriptTarget initialPassTarget(Object target) {
