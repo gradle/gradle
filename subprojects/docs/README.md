@@ -71,7 +71,7 @@ This is an inline element which adds a link to the API documentation for a parti
 
     You can use the <apilink class='org.gradle.api.Project' /> interface to do stuff.
 
-The link will point to the DSL reference for the specified class, if available. Otherwise, it will point to the javadoc for the class as appropriate.
+The link will point to the DSL reference for the specified class, if available. Otherwise, it will point to the javadoc for the class.
 
 To link to a method:
 
