@@ -149,16 +149,11 @@ public class PmdExtension extends CodeQualityExtension {
         this.ruleSetFiles.add(project.files(ruleSetFiles));
     }
 
-    @Incubating
-    public boolean isConsoleOutput() {
-        return consoleOutput;
-    }
-
     /**
      * Whether or not to write PMD results to {@code System.out}.
      */
     @Incubating
-    public boolean getConsoleOutput() {
+    public boolean isConsoleOutput() {
         return consoleOutput;
     }
 

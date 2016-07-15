@@ -228,15 +228,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @return true if violations should be displayed on console
      */
     @Console
-    public boolean getShowViolations() {
-        return showViolations;
-    }
-
-    /**
-     * Whether or not rule violations are to be displayed on the console.
-     *
-     * @return true if violations should be displayed on console
-     */
     public boolean isShowViolations() {
         return showViolations;
     }

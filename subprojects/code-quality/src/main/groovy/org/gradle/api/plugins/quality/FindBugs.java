@@ -271,7 +271,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
                 message += " See the report at: " + reportUrl;
             }
 
-            if (isIgnoreFailures()) {
+            if (getIgnoreFailures()) {
                 getLogger().warn(message);
             } else {
                 throw new GradleException(message);
@@ -345,19 +345,10 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     /**
      * Whether or not to allow the build to continue if there are warnings.
-     *
-     * @deprecated Use {@link #isIgnoreFailures()} instead
-     */
-    @Deprecated
-    public boolean getIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    /**
-     * Whether or not to allow the build to continue if there are warnings.
      */
     @Input
-    public boolean isIgnoreFailures() {
+    @Override
+    public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
 

@@ -20,9 +20,11 @@ import groovy.lang.GroovyObject;
 import groovy.lang.GroovySystem;
 import groovy.lang.MetaClass;
 import groovy.lang.MetaClassRegistry;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.TransformingClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.util.internal.Java9ClassReader;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
@@ -38,6 +40,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -129,7 +132,10 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     private static class TransformingAdapter extends ClassVisitor {
         private static final int PUBLIC_STATIC_FINAL = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL;
         private String className;
-        private Map<String, String> staticGetters = new HashMap<String, String>();
+        private Map<String, String> missingStaticStringConstantGetters = new HashMap<String, String>();
+        private Set<String> booleanGetGetters = new HashSet<String>();
+        private Set<String> booleanFields = new HashSet<String>();
+        private Set<String> booleanIsGetters = new HashSet<String>();
 
         TransformingAdapter(ClassVisitor cv) {
             super(Opcodes.ASM5, cv);
@@ -147,15 +153,29 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         @Override
         public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
             if (((access & PUBLIC_STATIC_FINAL) == PUBLIC_STATIC_FINAL) && Type.getDescriptor(String.class).equals(desc)) {
-                staticGetters.put("get" + name, (String) value);
+                missingStaticStringConstantGetters.put("get" + name, (String) value);
+            }
+            if (((access & Opcodes.ACC_PRIVATE) > 0) && !isStatic(access) && (Type.getDescriptor(boolean.class).equals(desc))) {
+                booleanFields.add(name);
             }
             return super.visitField(access, name, desc, signature, value);
         }
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-            if (staticGetters.containsKey(name)) {
-                staticGetters.remove(name);
+            if (missingStaticStringConstantGetters.containsKey(name)) {
+                missingStaticStringConstantGetters.remove(name);
+            }
+            if (((access & Opcodes.ACC_PUBLIC) > 0) && !isStatic(access) && Type.getMethodDescriptor(Type.BOOLEAN_TYPE).equals(desc)) {
+                PropertyAccessorType accessorType = PropertyAccessorType.fromName(name);
+                if (accessorType != null) {
+                    String propertyName = accessorType.propertyNameFor(name);
+                    if (accessorType == PropertyAccessorType.IS_GETTER) {
+                        booleanIsGetters.add(propertyName);
+                    } else if (accessorType == PropertyAccessorType.GET_GETTER) {
+                        booleanGetGetters.add(propertyName);
+                    }
+                }
             }
             return super.visitMethod(access, name, desc, signature, exceptions);
         }
@@ -169,7 +189,12 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             addSetProperty();
             addInvokeMethod();
             addStaticGetters();
+            addBooleanGetGetters();
             cv.visitEnd();
+        }
+
+        private boolean isStatic(int access) {
+            return (access & Opcodes.ACC_STATIC) > 0;
         }
 
         private void addMetaClassField() {
@@ -288,7 +313,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
         }
 
         private void addStaticGetters() {
-            for (Map.Entry<String, String> constant : staticGetters.entrySet()) {
+            for (Map.Entry<String, String> constant : missingStaticStringConstantGetters.entrySet()) {
                 MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC,
                     constant.getKey(),
                     Type.getMethodDescriptor(Type.getType(String.class)), null, null);
@@ -297,6 +322,29 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
                 mv.visitInsn(Opcodes.ARETURN);
                 mv.visitMaxs(1, 0);
                 mv.visitEnd();
+            }
+        }
+
+        private void addBooleanGetGetters() {
+            Collection<String> accessibleBooleanFieldsWithoutGetGetters = new HashSet<String>();
+            accessibleBooleanFieldsWithoutGetGetters.addAll(booleanFields);
+            accessibleBooleanFieldsWithoutGetGetters.retainAll(booleanIsGetters);
+            accessibleBooleanFieldsWithoutGetGetters.removeAll(booleanGetGetters);
+
+            for (String booleanField : accessibleBooleanFieldsWithoutGetGetters) {
+                MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC, "get" + StringUtils.capitalize(booleanField), "()Z", null, null);
+                mv.visitCode();
+                Label l0 = new Label();
+                mv.visitLabel(l0);
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                mv.visitFieldInsn(Opcodes.GETFIELD, className, booleanField, "Z");
+                mv.visitInsn(Opcodes.IRETURN);
+                Label l1 = new Label();
+                mv.visitLabel(l1);
+                mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
+                mv.visitMaxs(1, 1);
+                mv.visitEnd();
+
             }
         }
     }

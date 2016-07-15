@@ -182,18 +182,9 @@ public class CodeNarc extends SourceTask implements VerificationTask, Reporting<
     /**
      * Whether or not the build should break when the verifications performed by this task fail.
      *
-     * @deprecated Use {@link #isIgnoreFailures()} instead
-     */
-    @Deprecated
-    public boolean getIgnoreFailures() {
-        return ignoreFailures;
-    }
-
-    /**
-     * Whether or not the build should break when the verifications performed by this task fail.
      */
     @Input
-    public boolean isIgnoreFailures() {
+    public boolean getIgnoreFailures() {
         return ignoreFailures;
     }
 

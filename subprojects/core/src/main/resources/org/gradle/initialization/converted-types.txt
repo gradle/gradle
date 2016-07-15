@@ -12,6 +12,7 @@ org.gradle.api.plugins.osgi.OsgiPlugin
 org.gradle.api.plugins.ProjectReportsPluginConvention
 org.gradle.api.plugins.quality.Checkstyle
 org.gradle.api.plugins.quality.CheckstylePlugin
+org.gradle.api.plugins.quality.CheckstyleExtension
 org.gradle.api.plugins.quality.CodeNarc
 org.gradle.api.plugins.quality.CodeNarcPlugin
 org.gradle.api.plugins.quality.CodeQualityExtension
@@ -21,6 +22,7 @@ org.gradle.api.plugins.quality.JDepend
 org.gradle.api.plugins.quality.JDependPlugin
 org.gradle.api.plugins.quality.Pmd
 org.gradle.api.plugins.quality.PmdPlugin
+org.gradle.api.plugins.quality.PmdExtension
 org.gradle.api.plugins.scala.ScalaBasePlugin
 org.gradle.api.plugins.scala.ScalaPlugin
 org.gradle.api.plugins.WarPluginConvention

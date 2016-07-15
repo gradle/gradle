@@ -221,15 +221,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
 
-    /**
-     * Whether or not to allow the build to continue if there are warnings.
-     *
-     * Example: ignoreFailures = true
-     */
-    public boolean isIgnoreFailures() {
-        return ignoreFailures;
-    }
-
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
@@ -250,13 +241,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      */
     @Input
     @Incubating
-    public boolean getConsoleOutput() {
-        return consoleOutput;
-    }
-
-    /**
-     * Whether or not to write PMD results to {@code System.out}.
-     */
     public boolean isConsoleOutput() {
         return consoleOutput;
     }

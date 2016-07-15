@@ -97,18 +97,73 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
 
         def cl = loader.loadClass(className)
         cl.classLoader.is(loader)
-        cl.protectionDomain.codeSource.location == classesDir.toURI().toURL()
-        cl.package.name == "org.gradle.api.plugins"
 
-        invokeStaticGetter(cl, "SOME_CONST") == "Value"
-        invokeStaticGetter(cl, "SOME_CONST_WITH_GETTER") == "Other Value"
+        cl.SOME_CONST == "Value"
+        cl.getSOME_CONST() == "Value"
 
+        cl.SOME_CONST_WITH_GETTER == "Other Value"
+        cl.getSOME_CONST_WITH_GETTER() == "Other Value"
     }
 
-    private Object invokeStaticGetter(Class<?> cl, String constName) {
-        def method = cl.getMethod("get" + constName)
-        method.setAccessible(true); // necessary since the class is not public
-        return method.invoke(null);
+    def "add getters for booleans"() {
+        given:
+        def className = "org.gradle.api.plugins.JavaPluginConvention"
+
+        def original = compileJavaToDir(className, """
+            package org.gradle.api.plugins;
+            class JavaPluginConvention {
+                private boolean someBoolean = true;
+                private boolean booleanWithGetter = false;
+                private static boolean staticBoolean = true;
+
+                public boolean publicBoolean = true;
+
+                public boolean isSomeBoolean() { return someBoolean; }
+                public boolean isBooleanWithGetter() { return booleanWithGetter; }
+                public boolean getBooleanWithGetter() { return booleanWithGetter; }
+                public boolean isWithoutField() { return true; }
+
+                public static boolean isStaticBoolean() { return true; }
+            }
+        """)
+
+        when:
+        original.getMethod("getSomeBoolean")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+
+        expect:
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+
+        def cl = loader.loadClass(className)
+        def obj = cl.newInstance()
+        obj.getSomeBoolean() == true
+        obj.someBoolean == true
+
+        obj.getBooleanWithGetter() == false
+        obj.isBooleanWithGetter() == false
+        obj.booleanWithGetter == false
+
+        obj.publicBoolean == true
+
+        when:
+        cl.getMethod("getWithoutField")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+
+        when:
+        cl.getMethod("getPublicBoolean")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+
+        when:
+        cl.getMethod("getStaticBoolean")
+
+        then:
+        thrown java.lang.NoSuchMethodException
     }
 
     def "does not mix GroovyObject into other types"() {
