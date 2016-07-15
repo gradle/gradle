@@ -31,6 +31,8 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.JDK8_OR_LATER
+
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
 class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def testApp = new PlatformDetectingTestApp()
@@ -60,6 +62,7 @@ model {
         return [name: "x86-64", altName: "amd64"]
     }
 
+    @Requires(JDK8_OR_LATER)
     def "build binary for a default target platform"() {
         given:
         def arch = currentArch();
@@ -202,6 +205,7 @@ model {
         executable("build/exe/exe/exe").exec().out == "${arch.altName} ${os.familyName}" * 2
     }
 
+    @Requires(JDK8_OR_LATER)
     def "build binary for multiple target architectures"() {
         when:
         buildFile << """
