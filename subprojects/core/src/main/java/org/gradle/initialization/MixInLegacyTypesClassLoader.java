@@ -132,6 +132,10 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
     private static class TransformingAdapter extends ClassVisitor {
         private static final int PUBLIC_STATIC_FINAL = Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_FINAL;
         private String className;
+        /**
+         * We only add getters for `public static final String` constants. This is because in
+         * the converted classes only contain these kinds of constants.
+         */
         private Map<String, String> missingStaticStringConstantGetters = new HashMap<String, String>();
         private Set<String> booleanGetGetters = new HashSet<String>();
         private Set<String> booleanFields = new HashSet<String>();
@@ -188,7 +192,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             addGetProperty();
             addSetProperty();
             addInvokeMethod();
-            addStaticGetters();
+            addStaticStringConstantGetters();
             addBooleanGetGetters();
             cv.visitEnd();
         }
@@ -312,7 +316,7 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             methodVisitor.visitEnd();
         }
 
-        private void addStaticGetters() {
+        private void addStaticStringConstantGetters() {
             for (Map.Entry<String, String> constant : missingStaticStringConstantGetters.entrySet()) {
                 MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC,
                     constant.getKey(),
@@ -332,20 +336,23 @@ public class MixInLegacyTypesClassLoader extends TransformingClassLoader {
             accessibleBooleanFieldsWithoutGetGetters.removeAll(booleanGetGetters);
 
             for (String booleanField : accessibleBooleanFieldsWithoutGetGetters) {
-                MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC, "get" + StringUtils.capitalize(booleanField), "()Z", null, null);
-                mv.visitCode();
-                Label l0 = new Label();
-                mv.visitLabel(l0);
-                mv.visitVarInsn(Opcodes.ALOAD, 0);
-                mv.visitFieldInsn(Opcodes.GETFIELD, className, booleanField, "Z");
-                mv.visitInsn(Opcodes.IRETURN);
-                Label l1 = new Label();
-                mv.visitLabel(l1);
-                mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
-                mv.visitMaxs(1, 1);
-                mv.visitEnd();
-
+                addBooleanGetGetter(booleanField);
             }
+        }
+
+        private void addBooleanGetGetter(String booleanField) {
+            MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC | Opcodes.ACC_SYNTHETIC, "get" + StringUtils.capitalize(booleanField), "()Z", null, null);
+            mv.visitCode();
+            Label l0 = new Label();
+            mv.visitLabel(l0);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitFieldInsn(Opcodes.GETFIELD, className, booleanField, "Z");
+            mv.visitInsn(Opcodes.IRETURN);
+            Label l1 = new Label();
+            mv.visitLabel(l1);
+            mv.visitLocalVariable("this", "L" + className + ";", null, l0, l1, 0);
+            mv.visitMaxs(1, 1);
+            mv.visitEnd();
         }
     }
 }
