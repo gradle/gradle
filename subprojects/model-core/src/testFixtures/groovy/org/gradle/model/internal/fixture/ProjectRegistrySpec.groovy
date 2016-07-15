@@ -30,6 +30,7 @@ import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.ClassRule
 
 @SuppressWarnings("GrMethodMayBeStatic")
 class ProjectRegistrySpec extends AbstractProjectBuilderSpec {
@@ -39,8 +40,11 @@ class ProjectRegistrySpec extends AbstractProjectBuilderSpec {
     public static final NodeInitializerRegistry NODE_INITIALIZER_REGISTRY
     public static final StructBindingsStore STRUCT_BINDINGS_STORE
 
+    @ClassRule
+    public static final TestNameTestDirectoryProvider SERVICES_TEST_DIRECTORY = TestNameTestDirectoryProvider.newInstance()
+
     static {
-        def services = TestUtil.createRootProject(TestNameTestDirectoryProvider.newInstance().testDirectory).services
+        def services = TestUtil.createRootProject(SERVICES_TEST_DIRECTORY.testDirectory).services
         SCHEMA_STORE = services.get(ModelSchemaStore)
         MANAGED_PROXY_FACTORY = services.get(ManagedProxyFactory)
         MODEL_RULE_EXTRACTOR = services.get(ModelRuleExtractor)
