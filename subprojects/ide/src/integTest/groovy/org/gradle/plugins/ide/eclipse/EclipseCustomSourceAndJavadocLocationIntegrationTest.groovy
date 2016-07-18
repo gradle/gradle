@@ -19,8 +19,8 @@ class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclip
 
     def "Custom source and javadoc location"() {
         setup:
-        File customSource = temporaryFolder.file('guava-custom-source.jar')
-        File customJavadoc = temporaryFolder.file('guava-custom-javadoc.jar')
+        String customSourcePath = temporaryFolder.file('guava-custom-source.jar').absolutePath.replace('\\', '\\\\')
+        String customJavadocPath = temporaryFolder.file('guava-custom-javadoc.jar').absolutePath.replace('\\', '\\\\')
 
         buildFile << """
             apply plugin: 'java'
@@ -39,8 +39,8 @@ class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclip
                     file {
                         whenMerged { classpath ->
                             def guava = classpath.entries.find { it.path.contains('guava-18') }
-                            guava.setJavadoc(new File('${customJavadoc.absolutePath.replace('\\', '\\\\')}'))
-                            guava.setSource(new File('${customSource.absolutePath.replace('\\', '\\\\')}'))
+                            guava.javadocPath = classpath.fileReference('$customJavadocPath')
+                            guava.sourcePath = classpath.fileReference('$customSourcePath')
                         }
                     }
                 }
@@ -52,7 +52,7 @@ class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclip
 
         then:
         def cp = getClasspath()
-        cp.lib('guava-18.0.jar').assertHasJavadoc(customJavadoc)
-        cp.lib('guava-18.0.jar').assertHasSource(customSource)
+        cp.lib('guava-18.0.jar').assertHasJavadoc(new File(customJavadocPath))
+        cp.lib('guava-18.0.jar').assertHasSource(new File(customSourcePath))
     }
 }

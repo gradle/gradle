@@ -104,7 +104,6 @@ public class EclipseDependenciesCreator {
         out.setSourcePath(sourceRef);
         out.setExported(false);
         out.setModuleVersion(id);
-        out.setFileReferenceFactory(referenceFactory);
         return out;
     }
 }

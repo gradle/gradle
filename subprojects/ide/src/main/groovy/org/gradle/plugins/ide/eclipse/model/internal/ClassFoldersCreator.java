@@ -35,7 +35,6 @@ public class ClassFoldersCreator {
             for (File folder : classpath.getClassFolders()) {
                 Library library = new Library(fileReferenceFactory.fromFile(folder));
                 library.setExported(true);
-                library.setFileReferenceFactory(classpath.getFileReferenceFactory());
                 out.add(library);
             }
         }

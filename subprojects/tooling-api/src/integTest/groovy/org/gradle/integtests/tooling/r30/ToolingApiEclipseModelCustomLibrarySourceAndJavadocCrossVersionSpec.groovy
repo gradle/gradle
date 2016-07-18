@@ -34,6 +34,8 @@ class ToolingApiEclipseModelCustomLibrarySourceAndJavadocCrossVersionSpec extend
 
         File customSource = temporaryFolder.file('custom-source.jar')
         File customJavadoc = temporaryFolder.file('custom-javadoc.jar')
+        String customSourcePath = customSource.absolutePath.replace('\\', '\\\\')
+        String customJavadocPath = customJavadoc.absolutePath.replace('\\', '\\\\')
 
         buildFile << """
             apply plugin: 'java'
@@ -52,8 +54,8 @@ class ToolingApiEclipseModelCustomLibrarySourceAndJavadocCrossVersionSpec extend
                     file {
                         whenMerged { classpath ->
                             def lib = classpath.entries.find { it.path.contains('example-lib') }
-                            lib.setJavadoc(new File('${customJavadoc.absolutePath.replace('\\', '\\\\')}'))
-                            lib.setSource(new File('${customSource.absolutePath.replace('\\', '\\\\')}'))
+                            lib.javadocPath = classpath.fileReference('$customJavadocPath')
+                            lib.sourcePath  = classpath.fileReference('$customSourcePath')
                         }
                     }
                 }
@@ -65,7 +67,7 @@ class ToolingApiEclipseModelCustomLibrarySourceAndJavadocCrossVersionSpec extend
         EclipseExternalDependency dependency = project.classpath[0]
 
         then:
-        dependency.getSource() == customSource
-        dependency.getJavadoc() == customJavadoc
+        dependency.source == customSource
+        dependency.javadoc == customJavadoc
     }
 }
