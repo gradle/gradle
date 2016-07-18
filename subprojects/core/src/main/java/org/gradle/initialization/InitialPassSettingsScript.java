@@ -17,9 +17,6 @@ package org.gradle.initialization;
 
 import groovy.lang.Closure;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.ClosureBackedAction;
-import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
 import org.gradle.internal.metaobject.DynamicObject;
