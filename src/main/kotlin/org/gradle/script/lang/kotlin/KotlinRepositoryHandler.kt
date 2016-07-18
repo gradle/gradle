@@ -17,6 +17,7 @@
 package org.gradle.script.lang.kotlin
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 
 /**
@@ -29,6 +30,12 @@ class KotlinRepositoryHandler(val repositoryHandler: RepositoryHandler) : Reposi
      */
     fun maven(configuration: MavenArtifactRepository.() -> Unit) =
         repositoryHandler.maven({ it.configuration() })
+
+    /**
+     * Adds and configures an Ivy repository.
+     */
+    fun ivy(configuration: IvyArtifactRepository.() -> Unit) =
+        repositoryHandler.ivy({ it.configuration() })
 
     inline operator fun invoke(configuration: KotlinRepositoryHandler.() -> Unit) =
         configuration()
