@@ -15,7 +15,6 @@
  */
 
 package org.gradle.util
-
 /**
  * A custom ClassLoader implementation. Used in various places to test that we work with things that are not a
  * URLClassLoader.

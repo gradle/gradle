@@ -19,11 +19,11 @@ import org.gradle.api.Project
 import org.gradle.api.distribution.DistributionContainer
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class JavaLibraryDistributionPluginTest extends Specification {
-    private final Project project = TestUtil.builder().withName("test-project").build()
+class JavaLibraryDistributionPluginTest extends AbstractProjectBuilderSpec {
+    private final Project project = TestUtil.builder(temporaryFolder).withName("test-project").build()
 
     def "applies JavaPlugin and adds convention object with default values"() {
         when:

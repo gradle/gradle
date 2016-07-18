@@ -35,7 +35,7 @@ import static org.junit.Assert.*
 class GroovyPluginTest {
     @Rule
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    private final Project project = TestUtil.createRootProject()
+    private final Project project = TestUtil.create(tmpDir).rootProject()
     private final GroovyPlugin groovyPlugin = new GroovyPlugin()
 
     @Test

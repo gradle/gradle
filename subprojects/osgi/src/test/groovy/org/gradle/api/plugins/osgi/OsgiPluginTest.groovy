@@ -13,19 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.osgi;
+package org.gradle.api.plugins.osgi
 
-
-import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.util.TestUtil
-import spock.lang.Specification
 import org.gradle.api.tasks.SourceSet
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-public class OsgiPluginTest extends Specification {
-    private final Project project = TestUtil.createRootProject();
+public class OsgiPluginTest extends AbstractProjectBuilderSpec {
     private final OsgiPlugin osgiPlugin = new OsgiPlugin();
-    
+
     public void appliesTheJavaPlugin() {
         osgiPlugin.apply(project);
 
@@ -37,7 +33,7 @@ public class OsgiPluginTest extends Specification {
     public void addsAnOsgiManifestToTheDefaultJar() {
         project.apply(plugin: 'java')
         osgiPlugin.apply(project);
-        
+
         expect:
         OsgiManifest osgiManifest = project.jar.manifest
         osgiManifest.classpath == project.configurations."$JavaPlugin.RUNTIME_CONFIGURATION_NAME"

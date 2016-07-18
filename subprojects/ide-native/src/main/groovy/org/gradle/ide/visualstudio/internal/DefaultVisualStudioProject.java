@@ -87,6 +87,10 @@ public class DefaultVisualStudioProject extends AbstractBuildableComponentSpec i
         builtBy(sources);
     }
 
+    public Set<LanguageSourceSet> getSources() {
+        return sources;
+    }
+
     public List<File> getSourceFiles() {
         Set<File> allSource = new LinkedHashSet<File>();
         allSource.addAll(additionalFiles);
@@ -116,8 +120,9 @@ public class DefaultVisualStudioProject extends AbstractBuildableComponentSpec i
 
         for(LanguageSourceSet sourceSet : sources) {
             if (sourceSet instanceof HeaderExportingSourceSet) {
-                allHeaders.addAll(((HeaderExportingSourceSet) sourceSet).getExportedHeaders().getFiles());
-                allHeaders.addAll(((HeaderExportingSourceSet) sourceSet).getImplicitHeaders().getFiles());
+                HeaderExportingSourceSet exportingSourceSet = (HeaderExportingSourceSet) sourceSet;
+                allHeaders.addAll(exportingSourceSet.getExportedHeaders().getFiles());
+                allHeaders.addAll(exportingSourceSet.getImplicitHeaders().getFiles());
             }
         }
 

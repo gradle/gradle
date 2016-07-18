@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
@@ -1180,12 +1181,27 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Configures the reports that this task potentially produces.
      *
+     * @deprecated Use {@link #reports(Action)} instead
+     *
      * @param closure The configuration
      * @return The reports that this task potentially produces
      */
     @Override
+    @Deprecated
     public TestTaskReports reports(Closure closure) {
-        reports.configure(closure);
+        return reports(new ClosureBackedAction<TestTaskReports>(closure));
+    }
+
+    /**
+     * Configures the reports that this task potentially produces.
+     *
+     *
+     * @param configureAction The configuration
+     * @return The reports that this task potentially produces
+     */
+    @Override
+    public TestTaskReports reports(Action<? super TestTaskReports> configureAction) {
+        configureAction.execute(reports);
         return reports;
     }
 

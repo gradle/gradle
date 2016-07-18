@@ -95,6 +95,7 @@ public class PayloadSerializer {
     }
 
     public Object deserialize(SerializedPayload payload) {
+        // TODO: The classloaders in this map might need to be cleaned up, but we have unit tests that expect them to persist between deserialize() calls.
         final DeserializeMap map = classLoaderRegistry.newDeserializeSession();
         try {
             final ClassLoader systemClassLoader = SYSTEM_CLASS_LOADER;

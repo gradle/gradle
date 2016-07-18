@@ -616,6 +616,23 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         "'UTF-8'"       | null            | "contentCharset must not be null"
     }
 
+    def "JAR task is skipped when compiler output is unchanged"() {
+        file("src/main/java/Main.java") << "public class Main {}\n"
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        succeeds "jar"
+
+        file("src/main/java/Main.java") << "// This should not influence compiled output"
+
+        when:
+        succeeds "jar"
+        then:
+        nonSkippedTasks.contains ":compileJava"
+        skippedTasks.contains ":jar"
+    }
+
     private static String customJarManifestTask() {
         return '''
             class CustomJarManifest extends org.gradle.jvm.tasks.Jar {

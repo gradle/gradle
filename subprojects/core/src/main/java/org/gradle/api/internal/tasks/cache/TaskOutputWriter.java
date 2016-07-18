@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-/**
- * Task classes for Eclipse CDT.
- */
-@org.gradle.api.Incubating
-package org.gradle.ide.cdt.tasks;
+package org.gradle.api.internal.tasks.cache;
+
+import com.google.common.io.ByteSink;
+
+import java.io.IOException;
+
+public interface TaskOutputWriter {
+    void writeTo(ByteSink output) throws IOException;
+}

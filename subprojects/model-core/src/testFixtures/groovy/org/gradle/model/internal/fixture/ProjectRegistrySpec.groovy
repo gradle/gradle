@@ -27,19 +27,24 @@ import org.gradle.model.internal.manage.binding.StructBindingsStore
 import org.gradle.model.internal.manage.instance.ManagedProxyFactory
 import org.gradle.model.internal.manage.schema.ModelSchemaStore
 import org.gradle.model.internal.registry.ModelRegistry
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.junit.ClassRule
 
 @SuppressWarnings("GrMethodMayBeStatic")
-class ProjectRegistrySpec extends Specification {
+class ProjectRegistrySpec extends AbstractProjectBuilderSpec {
     public static final ModelSchemaStore SCHEMA_STORE
     public static final ManagedProxyFactory MANAGED_PROXY_FACTORY
     public static final ModelRuleExtractor MODEL_RULE_EXTRACTOR
     public static final NodeInitializerRegistry NODE_INITIALIZER_REGISTRY
     public static final StructBindingsStore STRUCT_BINDINGS_STORE
 
+    @ClassRule
+    public static final TestNameTestDirectoryProvider SERVICES_TEST_DIRECTORY = TestNameTestDirectoryProvider.newInstance()
+
     static {
-        def services = TestUtil.createRootProject().services
+        def services = TestUtil.create(SERVICES_TEST_DIRECTORY.testDirectory).rootProject().services
         SCHEMA_STORE = services.get(ModelSchemaStore)
         MANAGED_PROXY_FACTORY = services.get(ManagedProxyFactory)
         MODEL_RULE_EXTRACTOR = services.get(ModelRuleExtractor)

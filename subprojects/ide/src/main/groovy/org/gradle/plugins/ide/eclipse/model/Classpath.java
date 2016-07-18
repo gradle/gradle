@@ -25,6 +25,7 @@ import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -40,9 +41,12 @@ public class Classpath extends XmlPersistableConfigurationObject {
         this.fileReferenceFactory = fileReferenceFactory;
     }
 
+    public Classpath(FileReferenceFactory fileReferenceFactory) {
+        this(new XmlTransformer(), fileReferenceFactory);
+    }
+
     public Classpath() {
-        super(new XmlTransformer());
-        fileReferenceFactory = null;
+        this(new FileReferenceFactory());
     }
 
     public List<ClasspathEntry> getEntries() {
@@ -130,4 +134,16 @@ public class Classpath extends XmlPersistableConfigurationObject {
     private boolean isJreContainer(ClasspathEntry entry) {
         return entry instanceof Container && ((Container) entry).getPath().startsWith("org.eclipse.jdt.launching.JRE_CONTAINER");
     }
+
+    public FileReference fileReference(Object reference) {
+        if (reference instanceof File) {
+            return fileReferenceFactory.fromFile((File) reference);
+        } else if (reference instanceof String) {
+            return fileReferenceFactory.fromVariablePath((String) reference);
+        } else {
+            String type = reference == null ? "null" : reference.getClass().getName();
+            throw new RuntimeException("File reference can only be created from File or String instances but " + type + " was passed");
+        }
+    }
+
 }

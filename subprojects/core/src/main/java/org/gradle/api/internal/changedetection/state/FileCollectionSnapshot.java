@@ -16,9 +16,8 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
 import java.io.File;
 import java.util.Collection;
@@ -49,17 +48,7 @@ public interface FileCollectionSnapshot {
 
     FilesSnapshotSet getSnapshot();
 
-    interface PreCheck {
-        Integer getHash();
-
-        FileCollection getFiles();
-
-        Collection<VisitedTree> getVisitedTrees();
-
-        Collection<File> getMissingFiles();
-
-        boolean isEmpty();
-    }
-
     Collection<Long> getTreeSnapshotIds();
+
+    void appendToCacheKey(TaskCacheKeyBuilder builder);
 }

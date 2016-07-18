@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+
 interface IncrementalFileSnapshot {
     boolean isContentUpToDate(IncrementalFileSnapshot snapshot);
 
     boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot);
+
+    void appendToCacheKey(TaskCacheKeyBuilder builder);
 }

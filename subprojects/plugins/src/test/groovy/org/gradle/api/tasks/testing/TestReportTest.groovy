@@ -15,14 +15,11 @@
  */
 package org.gradle.api.tasks.testing
 
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
 
-class TestReportTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmp
-    def reportTask = TestUtil.createTask(TestReport)
+class TestReportTest extends AbstractProjectBuilderSpec {
+    def reportTask = TestUtil.create(temporaryFolder).task(TestReport)
 
     def "infers dependencies and results dirs from input tests"() {
         def test1 = test("test1")
@@ -39,7 +36,7 @@ class TestReportTest extends Specification {
     }
 
     def "can attach result dirs"() {
-        def binDir = tmp.file("other")
+        def binDir = temporaryFolder.file("other")
 
         when:
         reportTask.reportOn binDir
@@ -49,8 +46,8 @@ class TestReportTest extends Specification {
     }
 
     def test(String name) {
-        def test = TestUtil.createTask(Test, TestUtil.createRootProject(), name)
-        test.binResultsDir = tmp.file(name)
+        def test = TestUtil.createTask(Test, project, name)
+        test.binResultsDir = temporaryFolder.file(name)
         return test
     }
 }

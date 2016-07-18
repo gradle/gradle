@@ -19,11 +19,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection
 import org.gradle.api.plugins.GroovyBasePlugin
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class GroovyRuntimeTest extends Specification {
-    def project = TestUtil.createRootProject()
+class GroovyRuntimeTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         project.pluginManager.apply(GroovyBasePlugin)

@@ -18,7 +18,14 @@ package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.file.*;
+import org.gradle.api.Transformer;
+import org.gradle.api.file.CopyProcessingSpec;
+import org.gradle.api.file.CopySourceSpec;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.specs.Spec;
 
 import java.io.FilterReader;
@@ -74,8 +81,12 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().from(sourcePaths);
     }
 
-    public CopySpec from(Object sourcePath, Closure c) {
-        return getDelegateCopySpec().from(sourcePath, c);
+    public CopySpec from(Object sourcePath, final Closure c) {
+        return getDelegateCopySpec().from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
+    }
+
+    public CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
+        return getDelegateCopySpec().from(sourcePath, configureAction);
     }
 
     public CopySpec setIncludes(Iterable<String> includes) {
@@ -126,8 +137,16 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().into(destPath, configureClosure);
     }
 
+    public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
+        return getDelegateCopySpec().into(destPath, copySpec);
+    }
+
     public CopySpec rename(Closure closure) {
         return getDelegateCopySpec().rename(closure);
+    }
+
+    public CopySpec rename(Transformer<String, String> renamer) {
+        return getDelegateCopySpec().rename(renamer);
     }
 
     public CopySpec rename(String sourceRegEx, String replaceWith) {
@@ -148,6 +167,10 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
 
     public CopySpec filter(Closure closure) {
         return getDelegateCopySpec().filter(closure);
+    }
+
+    public CopySpec filter(Transformer<String, String> transformer) {
+        return getDelegateCopySpec().filter(transformer);
     }
 
     public CopySpec expand(Map<String, ?> properties) {

@@ -25,8 +25,8 @@ import org.gradle.plugins.ide.idea.model.Workspace;
  */
 public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
 
-    @Internal
     private IdeaWorkspace workspace;
+
     @Override
     protected Workspace create() {
         return new Workspace(getXmlTransformer());
@@ -40,6 +40,7 @@ public class GenerateIdeaWorkspace extends XmlGeneratorTask<Workspace> {
     /**
      * The Idea workspace model containing the details required to generate the workspace file.
      */
+    @Internal
     public IdeaWorkspace getWorkspace() {
         return workspace;
     }

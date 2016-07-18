@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
@@ -57,6 +58,29 @@ public interface TaskOutputs {
     void upToDateWhen(Spec<? super Task> upToDateSpec);
 
     /**
+     * <p>Cache the results of the task only if the given closure returns true.  The closure will be evaluated at task execution
+     * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
+     * false, the results of the task will not be cached.</p>
+     *
+     * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return false.</p>
+     *
+     * @param closure code to execute to determine if the results of the task should be cached.
+     */
+    @Incubating
+    void cacheIf(Closure closure);
+
+    /**
+     * <p>Cache the results of the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
+     * during configuration. If the Spec is not satisfied, the results of the task will not be cached.</p>
+     *
+     * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return false.</p>
+     *
+     * @param spec specifies if the results of the task should be cached.
+     */
+    @Incubating
+    void cacheIf(Spec<? super Task> spec);
+
+    /**
      * Returns true if this task has declared any outputs. Note that a task may be able to produce output files and
      * still have an empty set of output files.
      *
@@ -82,8 +106,25 @@ public interface TaskOutputs {
     @Deprecated
     TaskOutputs files(Object... paths);
 
+    /**
+     * Register some named outputs for this task.
+     *
+     * @param paths A {@link Callable} returning the actual output files. The keys of the returned map should not
+     * be {@code null}, and they must be
+     * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>}.
+     * The values will be evaluated to individual files as per {@link org.gradle.api.Project#file(Object)}.
+     */
+    @Incubating
     TaskOutputFilePropertyBuilder namedFiles(Callable<Map<?, ?>> paths);
 
+    /**
+     * Register some named outputs for this task.
+     *
+     * @param paths The output files. The keys of the map should not be {@code null}, and they must be
+     * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>}.
+     * The values will be evaluated to individual files as per {@link org.gradle.api.Project#file(Object)}.
+     */
+    @Incubating
     TaskOutputFilePropertyBuilder namedFiles(Map<?, ?> paths);
 
     /**

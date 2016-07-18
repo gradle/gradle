@@ -13,17 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.classloader;
 
-package org.gradle.performance.results;
+import org.gradle.api.Nullable;
 
-import org.gradle.performance.fixture.CrossBuildPerformanceResults;
+import java.io.Closeable;
+import java.io.IOException;
 
-import java.io.File;
-
-public class BuildReceiptsResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
-
-    public BuildReceiptsResultsStore() {
-        super(new File(System.getProperty("user.home"), ".gradle-performance-test-data/build-receipt-results"));
+public abstract class ClassLoaderUtils {
+    public static void tryClose(@Nullable ClassLoader classLoader) {
+        if (classLoader instanceof Closeable) {
+            try {
+                ((Closeable) classLoader).close();
+            } catch (IOException ignore) {
+                // do nothing.
+            }
+        }
     }
-
 }

@@ -293,8 +293,8 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
                     for (Node moduleNode : Cast.<List<Node>>uncheckedCast(child.children())) {
                         String moduleNodeLocalName = localNameOf(moduleNode);
                         if (moduleNodeLocalName.equals("web")) {
-                            String webUri = childNodeNamed(moduleNode, "web-uri").text();
-                            String contextRoot = childNodeNamed(moduleNode, "context-root").text();
+                            String webUri = childNodeText(moduleNode, "web-uri");
+                            String contextRoot = childNodeText(moduleNode, "context-root");
                             module = new DefaultEarWebModule(webUri, contextRoot);
                             modules.add(module);
                             moduleTypeMappings.put(module.getPath(), "web");
@@ -310,8 +310,8 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
 
                 } else if (childLocalName.equals("security-role")) {
 
-                    String roleName = childNodeNamed(child, "role-name").text();
-                    String description = childNodeNamed(child, "description").text();
+                    String roleName = childNodeText(child, "role-name");
+                    String description = childNodeText(child, "description");
                     securityRoles.add(new DefaultEarSecurityRole(roleName, description));
 
                 } else {
@@ -333,10 +333,10 @@ public class DefaultDeploymentDescriptor implements DeploymentDescriptor {
         return this;
     }
 
-    private static Node childNodeNamed(Node root, String name) {
+    private static String childNodeText(Node root, String name) {
         for (Node child : Cast.<List<Node>>uncheckedCast(root.children())) {
             if (localNameOf(child).equals(name)) {
-                return child;
+                return child.text();
             }
         }
         return null;

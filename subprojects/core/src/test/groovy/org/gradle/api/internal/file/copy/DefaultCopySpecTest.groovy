@@ -19,6 +19,7 @@ import org.apache.tools.ant.filters.HeadFilter
 import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.Transformer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
@@ -130,6 +131,35 @@ public class DefaultCopySpecTest {
 
         assertThat(child, not(sameInstance(spec as CopySpec)))
         assertThat(unpackWrapper(child).buildRootResolver().destPath, equalTo(new RelativePath(false, 'target')))
+    }
+
+    @Test
+    public void testDestinationWithAction() {
+        CopySpec child = spec.into('target', new Action<CopySpec>() {
+            @Override
+            void execute(CopySpec copySpec) {
+            }
+        })
+        assertThat(child, not(sameInstance(spec as CopySpec)))
+        assertThat(unpackWrapper(child).buildRootResolver().destPath, equalTo(new RelativePath(false, 'target')))
+    }
+
+
+    @Test
+    public void testFilterWithClosure() {
+        spec.filter { it.length() > 10 ? null : it }
+        assert spec.copyActions.size() == 1
+    }
+
+    @Test
+    public void testFilterWithFunction() {
+        spec.filter(new Transformer<String, String>() {
+            @Override
+            String transform(String input) {
+                input.length() > 10 ? null : input
+            }
+        })
+        assert spec.copyActions.size() == 1
     }
 
     @Test

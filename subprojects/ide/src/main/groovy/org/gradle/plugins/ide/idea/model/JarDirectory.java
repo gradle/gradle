@@ -54,10 +54,6 @@ public class JarDirectory {
         return recursive;
     }
 
-    public boolean getRecursive() {
-        return recursive;
-    }
-
     public void setRecursive(boolean recursive) {
         this.recursive = recursive;
     }

@@ -21,7 +21,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.JavaVersion;
@@ -36,6 +35,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -103,11 +103,11 @@ public class IdeaPlugin extends IdePlugin {
         configureIdeaModule(project);
         configureForJavaPlugin(project);
         configureForScalaPlugin();
-        postProcess("idea", new Closure<Void>(this, this) {
-            public void doCall(Object it) {
+        postProcess("idea", new Action<Gradle>() {
+            @Override
+            public void execute(Gradle gradle) {
                 performPostEvaluationActions();
             }
-
         });
     }
 
@@ -385,7 +385,7 @@ public class IdeaPlugin extends IdePlugin {
             }
 
             private void addScope(String name, LinkedHashMap<String, Map<String, Collection<Configuration>>> scopes) {
-                LinkedHashMap<String, Collection<Configuration>> scope = Maps.<String, Collection<Configuration>>newLinkedHashMap();
+                LinkedHashMap<String, Collection<Configuration>> scope = Maps.newLinkedHashMap();
                 scope.put("plus", Lists.<Configuration>newArrayList());
                 scope.put("minus", Lists.<Configuration>newArrayList());
                 scopes.put(name, scope);

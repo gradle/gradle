@@ -20,7 +20,14 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Nullable;
-import org.gradle.api.file.*;
+import org.gradle.api.Transformer;
+import org.gradle.api.file.CopyProcessingSpec;
+import org.gradle.api.file.CopySourceSpec;
+import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.specs.Spec;
 
 import java.io.FilterReader;
@@ -86,8 +93,12 @@ public class CopySpecWrapper implements CopySpec {
         return this;
     }
 
-    public CopySpec from(Object sourcePath, Closure c) {
-        return delegate.from(sourcePath, c);
+    public CopySpec from(Object sourcePath, final Closure c) {
+        return delegate.from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
+    }
+
+    public CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
+        return delegate.from(sourcePath, configureAction);
     }
 
     public CopySpec setIncludes(Iterable<String> includes) {
@@ -149,8 +160,24 @@ public class CopySpecWrapper implements CopySpec {
         return delegate.into(destPath, configureClosure);
     }
 
-    public CopySpec rename(Closure closure) {
-        delegate.rename(closure);
+    @Override
+    public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
+        return delegate.into(destPath, copySpec);
+    }
+
+    public CopySpec rename(final Closure closure) {
+        delegate.rename(new Transformer<String, String>() {
+            @Override
+            public String transform(String s) {
+                Object res = closure.call(s);
+                return res == null ? null : res.toString();
+            }
+        });
+        return this;
+    }
+
+    public CopySpec rename(Transformer<String, String> renamer) {
+        delegate.rename(renamer);
         return this;
     }
 
@@ -176,6 +203,12 @@ public class CopySpecWrapper implements CopySpec {
 
     public CopySpec filter(Closure closure) {
         delegate.filter(closure);
+        return this;
+    }
+
+    @Override
+    public CopySpec filter(Transformer<String, String> transformer) {
+        delegate.filter(transformer);
         return this;
     }
 

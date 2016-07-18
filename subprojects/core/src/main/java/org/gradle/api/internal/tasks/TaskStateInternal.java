@@ -71,7 +71,7 @@ public class TaskStateInternal implements TaskState {
      */
     public void skipped(String skipMessage) {
         this.executed = true;
-        skipped = true;
+        this.skipped = true;
         this.skippedMessage = skipMessage;
     }
 
@@ -79,7 +79,14 @@ public class TaskStateInternal implements TaskState {
      * Marks this task as up-to-date.
      */
     public void upToDate() {
-        skipped("UP-TO-DATE");
+        upToDate("UP-TO-DATE");
+    }
+
+    /**
+     * Marks this task as up-to-date with a custom message.
+     */
+    public void upToDate(String skipMessage) {
+        skipped(skipMessage);
         upToDate = true;
     }
 

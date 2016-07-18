@@ -29,23 +29,23 @@ import org.gradle.util.DeprecationLogger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
 import static org.gradle.util.GUtil.uncheckedCall;
 
-public class DefaultTaskInputs extends FilePropertyContainer implements TaskInputsInternal {
+public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allInputFiles;
     private final FileCollection allSourceFiles;
     private final FileResolver resolver;
     private final String taskName;
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
-    private final List<PropertySpec> fileProperties = Lists.newArrayList();
-    private SortedMap<String, FileCollection> filePropertiesMap;
+    private final List<PropertySpec> filePropertiesInternal = Lists.newArrayList();
+    private SortedSet<TaskInputFilePropertySpec> fileProperties;
 
     public DefaultTaskInputs(FileResolver resolver, String taskName, TaskMutator taskMutator) {
-        super("input");
         this.resolver = resolver;
         this.taskName = taskName;
         this.taskMutator = taskMutator;
@@ -55,7 +55,7 @@ public class DefaultTaskInputs extends FilePropertyContainer implements TaskInpu
 
     @Override
     public boolean getHasInputs() {
-        return !fileProperties.isEmpty() || !properties.isEmpty();
+        return !filePropertiesInternal.isEmpty() || !properties.isEmpty();
     }
 
     @Override
@@ -64,12 +64,12 @@ public class DefaultTaskInputs extends FilePropertyContainer implements TaskInpu
     }
 
     @Override
-    public SortedMap<String, FileCollection> getFileProperties() {
-        if (filePropertiesMap == null) {
-            ensurePropertiesHaveNames(fileProperties);
-            filePropertiesMap = collectFileProperties(fileProperties.iterator());
+    public SortedSet<TaskInputFilePropertySpec> getFileProperties() {
+        if (fileProperties == null) {
+            ensurePropertiesHaveNames(filePropertiesInternal);
+            fileProperties = TaskPropertyUtils.<TaskInputFilePropertySpec>collectFileProperties("input", filePropertiesInternal.iterator());
         }
-        return filePropertiesMap;
+        return fileProperties;
     }
 
     @Override
@@ -104,7 +104,7 @@ public class DefaultTaskInputs extends FilePropertyContainer implements TaskInpu
 
     @Override
     public boolean getHasSourceFiles() {
-        for (PropertySpec propertySpec : fileProperties) {
+        for (PropertySpec propertySpec : filePropertiesInternal) {
             if (propertySpec.isSkipWhenEmpty()) {
                 return true;
             }
@@ -159,7 +159,7 @@ public class DefaultTaskInputs extends FilePropertyContainer implements TaskInpu
 
     private TaskInputFilePropertyBuilder addSpec(Object paths, boolean skipWhenEmpty) {
         PropertySpec spec = new PropertySpec(taskName, skipWhenEmpty, resolver, paths);
-        fileProperties.add(spec);
+        filePropertiesInternal.add(spec);
         return spec;
     }
 
@@ -208,7 +208,7 @@ public class DefaultTaskInputs extends FilePropertyContainer implements TaskInpu
         return this;
     }
 
-    private class PropertySpec extends AbstractTaskPropertyBuilder implements TaskFilePropertySpec, TaskInputFilePropertyBuilder {
+    private class PropertySpec extends AbstractTaskPropertyBuilder implements TaskInputFilePropertySpec, TaskInputFilePropertyBuilder {
 
         private final TaskPropertyFileCollection files;
         private boolean skipWhenEmpty;
@@ -334,6 +334,11 @@ public class DefaultTaskInputs extends FilePropertyContainer implements TaskInpu
         public TaskInputs sourceDir(Object path) {
             return getTaskInputs("sourceDir(Object)").sourceDir(path);
         }
+
+        @Override
+        public int compareTo(TaskPropertySpec o) {
+            return getPropertyName().compareTo(o.getPropertyName());
+        }
     }
 
     private class TaskInputUnionFileCollection extends CompositeFileCollection {
@@ -352,7 +357,7 @@ public class DefaultTaskInputs extends FilePropertyContainer implements TaskInpu
 
         @Override
         public void visitContents(FileCollectionResolveContext context) {
-            for (PropertySpec fileProperty : fileProperties) {
+            for (PropertySpec fileProperty : filePropertiesInternal) {
                 if (!skipWhenEmptyOnly || fileProperty.isSkipWhenEmpty()) {
                     context.add(fileProperty.getPropertyFiles());
                 }

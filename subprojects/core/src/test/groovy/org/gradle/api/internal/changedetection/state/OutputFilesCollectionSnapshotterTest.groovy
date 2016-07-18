@@ -26,20 +26,13 @@ import org.gradle.api.internal.hash.DefaultHasher
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.ChangeListener
-import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Subject
 
-@UsesNativeServices
-class OutputFilesCollectionSnapshotterTest extends Specification {
-    @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
     @Subject
     OutputFilesCollectionSnapshotter snapshotter
     def listener = Mock(ChangeListener)
@@ -54,17 +47,20 @@ class OutputFilesCollectionSnapshotterTest extends Specification {
         def stringInterner = new StringInterner()
         def mapping = Stub(CacheScopeMapping) {
             getBaseDirectory(_, _, _) >> {
-                return testDir.createDir("history-cache")
+                return temporaryFolder.createDir("history-cache")
             }
         }
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
-        TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(TestUtil.createRootProject().gradle, cacheRepository, new NoOpDecorator())
+        TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(
+            project.gradle,
+            cacheRepository,
+            new NoOpDecorator())
         def hasher = new DefaultHasher()
         def fileSnapshotter = new CachingFileSnapshotter(hasher, cacheAccess, stringInterner)
         def treeSnapshotCache = new TreeSnapshotRepository(cacheAccess, stringInterner)
         def defaultSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.resolver(), cachingTreeVisitor, treeSnapshotCache)
         snapshotter = new OutputFilesCollectionSnapshotter(defaultSnapshotter, stringInterner)
-        rootDir = testDir.createDir("root")
+        rootDir = temporaryFolder.createDir("root")
     }
 
     def "output snapshotting should ignore files created between executions"() {
@@ -275,10 +271,6 @@ class OutputFilesCollectionSnapshotterTest extends Specification {
         snapshotter.createOutputSnapshot(null, snapshotter.emptySnapshot(), createSnapshot(rootDir), files(rootDir))
     }
 
-    private FileCollectionSnapshot snapshotFiles(File... filesToSnapshot) {
-        snapshotter.snapshot(snapshotter.preCheck(files(filesToSnapshot), false))
-    }
-
     private void snapshotBeforeAndAfterTasks(Closure betweenTasksClosure, Closure taskActionClosure) {
         previous = createInitialOutputSnapshot()
         if (betweenTasksClosure != null) {
@@ -296,15 +288,15 @@ class OutputFilesCollectionSnapshotterTest extends Specification {
         changes(target, previous, listener)
     }
 
-    private FileCollection files(File... files) {
+    private static FileCollection files(File... files) {
         new SimpleFileCollection(files)
     }
 
     private FileCollectionSnapshot createSnapshot(File dir) {
-        snapshotter.snapshot(snapshotter.preCheck(createFileCollection(dir), false))
+        snapshotter.snapshot(createFileCollection(dir), false)
     }
 
-    private FileCollection createFileCollection(File dir) {
+    private static FileCollection createFileCollection(File dir) {
         TestFiles.fileCollectionFactory().fixed("root", dir)
     }
 }

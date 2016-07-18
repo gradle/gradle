@@ -31,6 +31,7 @@ import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapsh
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.Instantiator;
@@ -113,6 +114,13 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return collectChangedMessages(null, getStates().getRebuildChanges());
         }
 
+        @Override
+        public TaskCacheKey calculateCacheKey() {
+            // Ensure that states are created
+            getStates();
+            return history.getCurrentExecution().calculateCacheKey();
+        }
+
         public FileCollection getOutputFiles() {
             TaskExecution lastExecution = history.getPreviousExecution();
             if (lastExecution != null && lastExecution.getOutputFilesSnapshot() != null) {
@@ -131,7 +139,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public void beforeTask() {
-            getStates().getAllTaskChanges().snapshotBeforeTask();
         }
 
         public void afterTask() {
@@ -146,8 +153,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             history.update();
         }
 
-        public void finished(boolean wasUpToDate) {
-            history.finished(wasUpToDate);
+        public void finished() {
         }
 
         private TaskUpToDateState getStates() {

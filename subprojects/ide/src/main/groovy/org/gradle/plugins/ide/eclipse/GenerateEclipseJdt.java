@@ -28,7 +28,6 @@ import org.gradle.plugins.ide.eclipse.model.Jdt;
  */
 public class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 
-    @Internal
     private EclipseJdt jdt;
 
     public GenerateEclipseJdt() {
@@ -51,6 +50,7 @@ public class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     /**
      * Eclipse JDT model that contains information needed to generate the JDT file.
      */
+    @Internal
     public EclipseJdt getJdt() {
         return jdt;
     }

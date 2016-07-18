@@ -22,11 +22,13 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.PlatformDetectingTestApp
 import org.gradle.nativeplatform.fixtures.binaryinfo.DumpbinBinaryInfo
+import org.gradle.nativeplatform.fixtures.binaryinfo.FileArchOnlyBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @Requires(TestPrecondition.NOT_UNKNOWN_OS)
@@ -67,7 +69,7 @@ model {
 
         then:
         executedAndNotSkipped(":mainExecutable")
-        executable("build/exe/main/main").binaryInfo.arch.name == arch.name
+        executable("build/exe/main/main").arch.name == arch.name
         executable("build/exe/main/main").exec().out == "${arch.altName} ${os.familyName}" * 2
         binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/mainCpp")).arch.name == arch.name
     }
@@ -99,7 +101,7 @@ model {
         then:
         // Platform dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
-        executable("build/exe/main/main").binaryInfo.arch.name == "x86"
+        executable("build/exe/main/main").arch.name == "x86"
         executable("build/exe/main/main").exec().out == "i386 ${os.familyName}" * 2
     }
 
@@ -125,7 +127,7 @@ model {
         then:
         // Platform dimension is flattened since there is only one possible value
         executedAndNotSkipped(":mainExecutable")
-        executable("build/exe/main/main").binaryInfo.arch.name == arch.name
+        executable("build/exe/main/main").arch.name == arch.name
         executable("build/exe/main/main").exec().out == "${arch.altName} ${os.familyName}" * 2
     }
 
@@ -167,7 +169,7 @@ model {
         then:
         // Platform dimension is flattened since there is only one possible value
         executedAndNotSkipped(":exeExecutable")
-        executable("build/exe/exe/exe").binaryInfo.arch.name == "x86"
+        executable("build/exe/exe/exe").arch.name == "x86"
         executable("build/exe/exe/exe").exec().out == "i386 ${os.familyName}" * 2
     }
 
@@ -196,7 +198,7 @@ model {
 
         then:
         executedAndNotSkipped(":exeExecutable")
-        executable("build/exe/exe/exe").binaryInfo.arch.name == arch.name
+        executable("build/exe/exe/exe").arch.name == arch.name
         executable("build/exe/exe/exe").exec().out == "${arch.altName} ${os.familyName}" * 2
     }
 
@@ -230,7 +232,7 @@ model {
         succeeds "assemble"
 
         then:
-        executable("build/exe/main/x86/main").binaryInfo.arch.name == "x86"
+        executable("build/exe/main/x86/main").arch.name == "x86"
         executable("build/exe/main/x86/main").exec().out == "i386 ${os.familyName}" * 2
         binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/x86/mainCpp")).arch.name == "x86"
 
@@ -238,14 +240,14 @@ model {
         if (toolChain.id == "mingw" || toolChain.id == "gcccygwin") {
             executable("build/exe/main/x86_64/main").assertDoesNotExist()
         } else {
-            executable("build/exe/main/x86_64/main").binaryInfo.arch.name == "x86_64"
+            executable("build/exe/main/x86_64/main").arch.name == "x86_64"
             executable("build/exe/main/x86_64/main").exec().out == "amd64 ${os.familyName}" * 2
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/x86_64/mainCpp")).arch.name == "x86_64"
         }
 
         // ARM only supported on visualCpp 2012+
         if (toolChain.meets(ToolChainRequirement.VISUALCPP_2012_OR_NEWER)) {
-            executable("build/exe/main/arm/main").binaryInfo.arch.name == "arm"
+            executable("build/exe/main/arm/main").arch.name == "arm"
             binaryInfo(objectFileFor(file("src/main/cpp/main.cpp"), "build/objs/main/arm/mainCpp")).arch.name == "arm"
         } else {
             executable("build/exe/main/arm/main").assertDoesNotExist()
@@ -392,15 +394,35 @@ model {
         failure.assertHasDescription("No shared library binary available for library 'hello' with [flavor: 'default', platform: 'one', buildType: 'debug']")
     }
 
+    @Issue("GRADLE-3499")
+    def "can create a binary which name contains dots"() {
+        when:
+        buildFile << '''
+            model {
+                components {
+                    'foo.bar'(NativeLibrarySpec)
+                }
+            }
+        '''
+        then:
+        succeeds 'components'
+
+    }
+
     def binaryInfo(TestFile file) {
+        // Only the arch functionality is needed for this test, so fall back to the file utility if nothing else works.
         file.assertIsFile()
         if (os.macOsX) {
             return new OtoolBinaryInfo(file)
         }
         if (os.windows) {
-            return new DumpbinBinaryInfo(file)
+            return DumpbinBinaryInfo.findVisualStudio() ? new DumpbinBinaryInfo(file) : new FileArchOnlyBinaryInfo(file)
         }
-        return new ReadelfBinaryInfo(file)
+        if (ReadelfBinaryInfo.canUseReadelf()) {
+            return new ReadelfBinaryInfo(file)
+        } else {
+            return new FileArchOnlyBinaryInfo(file)
+        }
     }
 
 }

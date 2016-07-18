@@ -19,6 +19,7 @@ package org.gradle.internal.classloader;
 import org.gradle.internal.reflect.JavaMethod;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ import java.util.Set;
  * A ClassLoader which hides all non-system classes, packages and resources. Allows certain non-system packages and classes to be declared as visible. By default, only the Java system classes,
  * packages and resources are visible.
  */
-public class FilteringClassLoader extends ClassLoader implements ClassLoaderHierarchy {
+public class FilteringClassLoader extends ClassLoader implements ClassLoaderHierarchy, Closeable {
     private static final ClassLoader EXT_CLASS_LOADER;
     private static final Set<String> SYSTEM_PACKAGES = new HashSet<String>();
     private final Set<String> packageNames = new HashSet<String>();
@@ -176,6 +177,11 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
             }
         }
         return false;
+    }
+
+    @Override
+    public void close() throws IOException {
+        ClassLoaderUtils.tryClose(getParent());
     }
 
     public static class Spec extends ClassLoaderSpec {

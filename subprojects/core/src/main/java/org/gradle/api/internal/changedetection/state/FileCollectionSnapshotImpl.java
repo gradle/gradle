@@ -23,10 +23,12 @@ import org.gradle.api.Nullable;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -142,4 +144,14 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapsho
         };
     }
 
+    @Override
+    public void appendToCacheKey(TaskCacheKeyBuilder builder) {
+        List<String> keys = Lists.newArrayList(snapshots.keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            builder.putString(key);
+            IncrementalFileSnapshot snapshot = snapshots.get(key);
+            snapshot.appendToCacheKey(builder);
+        }
+    }
 }

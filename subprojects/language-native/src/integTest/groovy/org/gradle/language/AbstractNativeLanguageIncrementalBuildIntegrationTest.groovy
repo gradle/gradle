@@ -380,7 +380,8 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         and:
         executable.assertExists()
 
-        if (toolChain.id != "mingw") { // Identical binary is produced on mingw
+        // Identical binaries produced on mingw and gcc cygwin
+        if (!(toolChain.id in ["mingw", "gcccygwin"])) {
             executable.assertHasChangedSince(snapshot)
         }
     }
@@ -424,7 +425,11 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         assert oldObjFile.file
         assert !newObjFile.file
 
-        assert staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(oldObjFile.name)
+        try {
+            assert staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(oldObjFile.name)
+        } catch (UnsupportedOperationException ignored) {
+            // Toolchain doesn't support this.
+        }
 
         when:
         librarySourceFiles.each { rename(it) }
@@ -440,8 +445,12 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
         newObjFile.file
 
         and:
-        assert staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(newObjFile.name)
-        assert !staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(oldObjFile.name)
+        try {
+            assert staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(newObjFile.name)
+            assert !staticLibrary("build/libs/hello/static/hello").listObjectFiles().contains(oldObjFile.name)
+        } catch (UnsupportedOperationException ignored) {
+            // Toolchain doesn't support this.
+        }
     }
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)

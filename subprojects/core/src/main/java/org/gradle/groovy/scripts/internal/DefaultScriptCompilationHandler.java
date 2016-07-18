@@ -24,7 +24,12 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.ast.ClassNode;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.classgen.Verifier;
-import org.codehaus.groovy.control.*;
+import org.codehaus.groovy.control.CompilationFailedException;
+import org.codehaus.groovy.control.CompilationUnit;
+import org.codehaus.groovy.control.CompilerConfiguration;
+import org.codehaus.groovy.control.MultipleCompilationErrorsException;
+import org.codehaus.groovy.control.Phases;
+import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.Action;
@@ -36,6 +41,7 @@ import org.gradle.groovy.scripts.ScriptCompilationException;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -119,18 +125,22 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         String scriptName = source.getClassName();
         GroovyCodeSource codeSource = new GroovyCodeSource(scriptText == null ? "" : scriptText, scriptName, "/groovy/script");
         try {
-            groovyClassLoader.parseClass(codeSource, false);
-        } catch (MultipleCompilationErrorsException e) {
-            wrapCompilationFailure(source, e);
-        } catch (CompilationFailedException e) {
-            throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
-        }
+            try {
+                groovyClassLoader.parseClass(codeSource, false);
+            } catch (MultipleCompilationErrorsException e) {
+                wrapCompilationFailure(source, e);
+            } catch (CompilationFailedException e) {
+                throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
+            }
 
-        if (packageDetector.hasPackageStatement) {
-            throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
-                StringUtils.capitalize(source.getDisplayName())));
+            if (packageDetector.hasPackageStatement) {
+                throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
+                    StringUtils.capitalize(source.getDisplayName())));
+            }
+            serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
+        } finally {
+            ClassLoaderUtils.tryClose(groovyClassLoader);
         }
-        serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
     }
 
     private <M> void serializeMetadata(ScriptSource scriptSource, CompileOperation<M> extractingTransformer, File metadataDir, boolean emptyScript, boolean hasMethods) {
@@ -318,6 +328,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                     throw new UnsupportedOperationException("Cannot load script that does nothing.");
                 }
                 try {
+                    // Classloader scope will be handled by the cache, class will be released when the classloader is.
                     ClassLoader loader = classLoaderCache.get(classLoaderId, new DefaultClassPath(scriptCacheDir), classLoader, null);
                     scriptClass = loader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
                 } catch (Exception e) {

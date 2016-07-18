@@ -15,25 +15,23 @@
  */
 
 package org.gradle.api.internal.project
+
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.util.TestUtil.createChildProject
 
-class NewDefaultProjectTest extends Specification {
-
-    DefaultProject root = TestUtil.createRootProject()
+class NewDefaultProjectTest extends AbstractProjectBuilderSpec {
 
     void "delegates to artifacts handler"() {
         def handler = Mock(ArtifactHandler)
-        root.artifactHandler = handler
+        project.artifactHandler = handler
 
         when:
-        root.artifacts {
+        project.artifacts {
             add('conf', 'art')
         }
 
@@ -43,10 +41,10 @@ class NewDefaultProjectTest extends Specification {
 
     void "delegates to dependency handler"() {
         def handler = Mock(DependencyHandler)
-        root.dependencyHandler = handler
+        project.dependencyHandler = handler
 
         when:
-        root.dependencies {
+        project.dependencies {
             add('conf', 'dep')
         }
 
@@ -57,27 +55,27 @@ class NewDefaultProjectTest extends Specification {
     void "delegates to configuration container"() {
         Closure cl = {}
         def container = Mock(ConfigurationContainer)
-        root.configurationContainer = container
+        project.configurationContainer = container
 
         when:
-        root.configurations cl
+        project.configurations cl
 
         then:
         1 * container.configure(cl)
     }
 
     def "provides all tasks recursively"() {
-        def a = createChildProject(root, "a")
+        def a = createChildProject(project, "a")
 
-        [root, a].each { it.task "foo"; it.task "bar" }
+        [project, a].each { it.task "foo"; it.task "bar" }
 
         when:
-        def rootTasks = root.getAllTasks(true)
+        def rootTasks = project.getAllTasks(true)
         def aTasks = a.getAllTasks(true)
 
         then:
         rootTasks.size() == 2
-        rootTasks[root]*.path as Set == [":bar", ":foo"] as Set
+        rootTasks[project]*.path as Set == [":bar", ":foo"] as Set
         rootTasks[a]*.path as Set == [":a:bar", ":a:foo"] as Set
 
         aTasks.size() == 1
@@ -85,29 +83,29 @@ class NewDefaultProjectTest extends Specification {
     }
 
     def "provides all tasks non-recursively"() {
-        def a = createChildProject(root, "a")
+        def a = createChildProject(project, "a")
 
-        [root, a].each { it.task "foo"; it.task "bar" }
+        [project, a].each { it.task "foo"; it.task "bar" }
 
         when:
-        def rootTasks = root.getAllTasks(false)
+        def rootTasks = project.getAllTasks(false)
         def aTasks = a.getAllTasks(false)
 
         then:
         rootTasks.size() == 1
-        rootTasks[root]*.path as Set == [":bar", ":foo"] as Set
+        rootTasks[project]*.path as Set == [":bar", ":foo"] as Set
 
         aTasks.size() == 1
         aTasks[a]*.path as Set == [":a:bar", ":a:foo"] as Set
     }
 
     def "provides task by name recursively"() {
-        def a = createChildProject(root, "a")
+        def a = createChildProject(project, "a")
 
-        [root, a].each { it.task "foo"; it.task "bar" }
+        [project, a].each { it.task "foo"; it.task "bar" }
 
         when:
-        def rootTasks = root.getTasksByName("foo", true)
+        def rootTasks = project.getTasksByName("foo", true)
         def aTasks = a.getTasksByName("bar", true)
 
         then:
@@ -116,12 +114,12 @@ class NewDefaultProjectTest extends Specification {
     }
 
     def "provides task by name non-recursively"() {
-        def a = createChildProject(root, "a")
+        def a = createChildProject(project, "a")
 
-        [root, a].each { it.task "foo"; it.task "bar" }
+        [project, a].each { it.task "foo"; it.task "bar" }
 
         when:
-        def rootTasks = root.getTasksByName("foo", false)
+        def rootTasks = project.getTasksByName("foo", false)
         def aTasks = a.getTasksByName("bar", false)
 
         then:
@@ -130,18 +128,18 @@ class NewDefaultProjectTest extends Specification {
     }
 
     def "does not allow asking for tasks using empty name"() {
-        when: root.getTasksByName('', true)
+        when: project.getTasksByName('', true)
         then: thrown(InvalidUserDataException)
 
-        when: root.getTasksByName(null, true)
+        when: project.getTasksByName(null, true)
         then: thrown(InvalidUserDataException)
     }
 
     def "allows asking for unknown tasks"() {
-        root.task "bar"
+        project.task "bar"
 
         expect:
-        root.getTasksByName('foo', true).empty
-        root.getTasksByName('foo', false).empty
+        project.getTasksByName('foo', true).empty
+        project.getTasksByName('foo', false).empty
     }
 }

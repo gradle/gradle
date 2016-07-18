@@ -20,11 +20,11 @@ import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class TaskSelectorTest extends Specification {
-    def rootProject = TestUtil.createRootProject()
+class TaskSelectorTest extends AbstractProjectBuilderSpec {
+    def rootProject = TestUtil.create(temporaryFolder).rootProject()
     def projectA = TestUtil.createChildProject(rootProject, "a")
     def projectB = TestUtil.createChildProject(rootProject, "b")
     def projectBChild = TestUtil.createChildProject(projectB, "child")

@@ -120,7 +120,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
         PluginId pluginId = plugin.getPluginId();
         String pluginIdStr = pluginId == null ? null : pluginId.toString();
         Class<?> pluginClass = plugin.asClass();
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         try {
+            Thread.currentThread().setContextClassLoader(pluginClass.getClassLoader());
             if (plugin.getType().equals(PotentialPlugin.Type.UNKNOWN)) {
                 throw new InvalidPluginException("'" + pluginClass.getName() + "' is neither a plugin or a rule source and cannot be applied.");
             } else {
@@ -151,6 +153,8 @@ public class DefaultPluginManager implements PluginManagerInternal {
             throw e;
         } catch (Exception e) {
             throw new PluginApplicationException(plugin.getDisplayName(), e);
+        } finally {
+            Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
     }
 

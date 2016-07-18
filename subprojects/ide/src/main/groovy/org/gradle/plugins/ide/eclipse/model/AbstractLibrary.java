@@ -106,7 +106,7 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
             return false;
         }
         AbstractLibrary that = (AbstractLibrary) o;
-        return Objects.equal(getExported(), that.getExported())
+        return Objects.equal(isExported(), that.isExported())
             && Objects.equal(getAccessRules(), that.getAccessRules())
             && Objects.equal(getJavadocPath(), that.getJavadocPath())
             && Objects.equal(getNativeLibraryLocation(), that.getNativeLibraryLocation())
@@ -116,12 +116,12 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getPath(), getNativeLibraryLocation(), getExported(), getAccessRules(), getSourcePath(), getJavadocPath());
+        return Objects.hashCode(getPath(), getNativeLibraryLocation(), isExported(), getAccessRules(), getSourcePath(), getJavadocPath());
     }
 
     @Override
     public String toString() {
-        return "{path='" + getPath() + "', nativeLibraryLocation='" + getNativeLibraryLocation() + "', exported=" + getExported()
+        return "{path='" + getPath() + "', nativeLibraryLocation='" + getNativeLibraryLocation() + "', exported=" + isExported()
             + ", accessRules=" + getAccessRules() + ", sourcePath='" + sourcePath + "', javadocPath='" + javadocPath + "', id='" + moduleVersion + "'}";
     }
 

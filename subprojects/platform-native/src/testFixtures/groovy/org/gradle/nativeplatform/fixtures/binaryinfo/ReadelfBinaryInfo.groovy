@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.fixtures.binaryinfo
+
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
 import org.gradle.nativeplatform.platform.internal.Architectures
 
@@ -27,6 +28,11 @@ class ReadelfBinaryInfo implements BinaryInfo {
 
     ReadelfBinaryInfo(File binaryFile) {
         this.binaryFile = binaryFile
+    }
+
+    static boolean canUseReadelf() {
+        def process = ['readelf', '-v'].execute()
+        return process.waitFor() && process.exitValue() == 0
     }
 
     ArchitectureInternal getArch() {

@@ -20,10 +20,8 @@ import org.gradle.api.Plugin
 import org.gradle.nativeplatform.toolchain.Gcc
 import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.toolchain.internal.gcc.GccToolChain
-import org.gradle.util.TestUtil
 
 class GccCompilerPluginTest extends NativeToolChainPluginTest {
-    def project = TestUtil.createRootProject()
 
     @Override
     Class<? extends Plugin> getPluginClass() {

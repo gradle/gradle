@@ -299,10 +299,15 @@ public class Daemon implements Stoppable {
                 }
 
                 // Store DaemonStopEvent if not quiet expire
-                if (expirationCheck != QUIET_EXPIRE && !stateControl.isStopping()) {
+                if (expirationCheck != QUIET_EXPIRE && !isStopping()) {
                     registryUpdater.onExpire(result.getReason());
                 }
             }
+        }
+
+        private boolean isStopping() {
+            DaemonStateControl.State state = stateControl.getState();
+            return state == DaemonStateControl.State.StopRequested || state == DaemonStateControl.State.Stopped;
         }
     }
 }

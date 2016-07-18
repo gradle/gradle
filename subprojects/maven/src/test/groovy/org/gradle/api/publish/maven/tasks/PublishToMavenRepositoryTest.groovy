@@ -16,12 +16,9 @@
 
 package org.gradle.api.publish.maven.tasks
 
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class PublishToMavenRepositoryTest extends Specification {
-
-    def project = TestUtil.createRootProject()
+class PublishToMavenRepositoryTest extends AbstractProjectBuilderSpec {
 
     def "can instantiate"() {
         when:

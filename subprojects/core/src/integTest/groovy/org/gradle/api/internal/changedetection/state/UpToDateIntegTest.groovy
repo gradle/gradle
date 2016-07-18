@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class UpToDateIntegTest extends AbstractIntegrationSpec {
 
@@ -53,5 +54,21 @@ public class CreateEmptyDirectory extends DefaultTask {
         succeeds("clean", "checkCreated")
         then:
         noExceptionThrown()
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-834")
+    def "task without actions is reported as up-to-date when it's up-to-date"() {
+        file("src/main/java/Main.java") << "public class Main {}"
+        buildFile << """
+            apply plugin: "java"
+        """
+
+        expect:
+        succeeds "jar"
+
+        when:
+        succeeds "jar"
+        then:
+        outputContains ":classes UP-TO-DATE"
     }
 }

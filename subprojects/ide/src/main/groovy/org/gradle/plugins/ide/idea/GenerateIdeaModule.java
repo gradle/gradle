@@ -31,7 +31,6 @@ import java.io.File;
  */
 public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
 
-    @Internal
     private IdeaModule module;
 
     @Override
@@ -63,6 +62,7 @@ public class GenerateIdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The Idea module model containing the details required to generate the module file.
      */
+    @Internal
     public IdeaModule getModule() {
         return module;
     }

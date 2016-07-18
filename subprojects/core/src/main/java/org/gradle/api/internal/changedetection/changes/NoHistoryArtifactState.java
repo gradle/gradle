@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
 import java.util.Collection;
@@ -35,6 +36,11 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
         throw new UnsupportedOperationException();
     }
 
+    @Override
+    public TaskCacheKey calculateCacheKey() {
+        return null;
+    }
+
     public TaskExecutionHistory getExecutionHistory() {
         return this;
     }
@@ -45,7 +51,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     public void afterTask() {
     }
 
-    public void finished(boolean wasUpToDate) {
+    public void finished() {
     }
 
     public FileCollection getOutputFiles() {

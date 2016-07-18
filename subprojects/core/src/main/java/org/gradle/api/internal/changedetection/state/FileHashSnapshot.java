@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import org.gradle.internal.hash.HashValue;
 
 class FileHashSnapshot implements IncrementalFileSnapshot, FileSnapshot {
@@ -23,8 +24,7 @@ class FileHashSnapshot implements IncrementalFileSnapshot, FileSnapshot {
     final transient long lastModified; // Currently not persisted
 
     public FileHashSnapshot(HashValue hash) {
-        this.hash = hash;
-        this.lastModified = 0;
+        this(hash, 0L);
     }
 
     public FileHashSnapshot(HashValue hash, long lastModified) {
@@ -56,5 +56,10 @@ class FileHashSnapshot implements IncrementalFileSnapshot, FileSnapshot {
 
     public HashValue getHash() {
         return hash;
+    }
+
+    @Override
+    public void appendToCacheKey(TaskCacheKeyBuilder builder) {
+        builder.putBytes(hash.asByteArray());
     }
 }

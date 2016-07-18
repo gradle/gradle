@@ -36,18 +36,17 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.gradle.util.TestUtil.createChildProject;
-import static org.gradle.util.TestUtil.createRootProject;
 import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(JMock.class)
 public class AbstractReportTaskTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final ProjectInternal project = createRootProject();
     private Runnable generator;
     private TestReportTask task;
     private ReportRenderer renderer;
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = TestNameTestDirectoryProvider.newInstance();
+    private ProjectInternal project = TestUtil.create(tmpDir).rootProject();
 
     @Before
     public void setUp() throws Exception {

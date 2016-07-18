@@ -23,6 +23,7 @@ import org.gradle.internal.TimeProvider;
 import org.gradle.internal.logging.events.LogEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.slf4j.Marker;
+import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
 public class OutputEventListenerBackedLogger implements Logger {
@@ -137,15 +138,18 @@ public class OutputEventListenerBackedLogger implements Logger {
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object arg) {
-        log(logLevel, throwable, MessageFormatter.format(format, arg).getMessage());
+        log(logLevel, throwable, format, new Object[] {arg});
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object arg1, Object arg2) {
-        log(logLevel, throwable, MessageFormatter.format(format, arg1, arg2).getMessage());
+        log(logLevel, throwable, format, new Object[] {arg1, arg2});
     }
 
     private void log(LogLevel logLevel, Throwable throwable, String format, Object[] args) {
-        log(logLevel, throwable, MessageFormatter.arrayFormat(format, args).getMessage());
+        FormattingTuple tuple = MessageFormatter.arrayFormat(format, args);
+        Throwable loggedThrowable = throwable == null ? tuple.getThrowable() : throwable;
+
+        log(logLevel, loggedThrowable, tuple.getMessage());
     }
 
     public void debug(String message) {

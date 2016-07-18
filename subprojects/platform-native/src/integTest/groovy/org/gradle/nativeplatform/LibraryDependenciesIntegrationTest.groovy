@@ -421,7 +421,11 @@ model {
         staticLibrary("build/libs/greetings/static/greetings").assertExists()
 
         and:
-        println executable("build/exe/main/main").binaryInfo.listLinkedLibraries()
-        println sharedLibrary("build/libs/hello/shared/hello").binaryInfo.listLinkedLibraries()
+        try {
+            println executable("build/exe/main/main").binaryInfo.listLinkedLibraries()
+            println sharedLibrary("build/libs/hello/shared/hello").binaryInfo.listLinkedLibraries()
+        } catch (UnsupportedOperationException ignored) {
+            // Toolchain doesn't support it.
+        }
     }
 }

@@ -18,12 +18,19 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
 
-    @Ignore("Failing test, not yet implemented")
+    def setup() {
+        executer.requireDaemon()
+        executer.requireIsolatedDaemons()
+    }
+
+    def cleanup() {
+        executer.withArguments("--stop").run()
+    }
+
     @Unroll("jars on buildscript classpath can change (deleteIfExists: #deleteIfExists, loopNumber: #loopNumber)")
     def "jars on buildscript classpath can change"() {
         given:
@@ -70,8 +77,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         result.assertOutputContains("hello again")
 
         where:
-        deleteIfExists << [false, true] * 3
-        loopNumber << (1..6).toList()
+        deleteIfExists << [false] * 3
+        loopNumber << (1..3).toList()
         sleepBefore = 1000L // fails on Linux when set to 1L
     }
 }

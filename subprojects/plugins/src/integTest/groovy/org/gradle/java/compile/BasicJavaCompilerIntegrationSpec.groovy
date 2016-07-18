@@ -142,6 +142,45 @@ public class FxApp extends Application {
         succeeds("compileJava")
     }
 
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile with release option"() {
+        given:
+        goodCode()
+        buildFile << """
+compileJava.options.compilerArgs.addAll(['-release', '7'])
+"""
+
+        expect:
+        succeeds 'compileJava'
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile fails when using newer API with release option"() {
+        given:
+        file("src/main/java/compile/test/FailsOnJava7.java") << '''
+package compile.test;
+
+import java.util.Optional;
+
+public class FailsOnJava7 {
+    public Optional<String> someOptional() {
+        return Optional.of("Hello");
+    }
+}
+'''
+
+        buildFile << """
+compileJava.options.compilerArgs.addAll(['-release', '7'])
+"""
+
+        expect:
+        fails 'compileJava'
+        output.contains(logStatement())
+        compilerErrorOutput.contains("cannot find symbol")
+        compilerErrorOutput.contains("class Optional")
+
+    }
+
     def getCompilerErrorOutput() {
         return errorOutput
     }

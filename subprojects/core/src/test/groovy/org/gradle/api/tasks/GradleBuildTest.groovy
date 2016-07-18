@@ -18,12 +18,16 @@ package org.gradle.api.tasks
 import org.gradle.BuildResult
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 public class GradleBuildTest extends Specification {
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
     GradleLauncherFactory launcherFactory = Mock()
-    GradleBuild task = TestUtil.createTask(GradleBuild, [gradleLauncherFactory: launcherFactory])
+    GradleBuild task = TestUtil.create(temporaryFolder).task(GradleBuild, [gradleLauncherFactory: launcherFactory])
 
     void usesCopyOfCurrentBuildsStartParams() {
         def expectedStartParameter = task.project.gradle.startParameter.newBuild()

@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Nullable;
+import org.gradle.api.Transformer;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.internal.HasInternalProtocol;
@@ -191,6 +192,11 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      */
     CopySpec from(Object sourcePath, Closure c);
 
+    /**
+     * {@inheritDoc}
+     */
+    CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction);
+
     // PatternFilterable overrides to broaden return type
 
     /**
@@ -274,16 +280,34 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * Creates and configures a child {@code CopySpec} with the given destination path.
      * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
+     * @deprecated Use {@link #into(Object, Action)} instead
+     *
      * @param destPath Path to the destination directory for a Copy
      * @param configureClosure The closure to use to configure the child {@code CopySpec}.
      * @return this
      */
+    @Deprecated
     CopySpec into(Object destPath, Closure configureClosure);
+
+    /**
+     * Creates and configures a child {@code CopySpec} with the given destination path.
+     * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     *
+     * @param destPath Path to the destination directory for a Copy
+     * @param copySpec The action to use to configure the child {@code CopySpec}.
+     * @return this
+     */
+    CopySpec into(Object destPath, Action<? super CopySpec> copySpec);
 
     /**
      * {@inheritDoc}
      */
     CopySpec rename(Closure closure);
+
+    /**
+     * {@inheritDoc}
+     */
+    CopySpec rename(Transformer<String, String> renamer);
 
     /**
      * {@inheritDoc}
@@ -309,6 +333,12 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     CopySpec filter(Closure closure);
+
+    /**
+     * {@inheritDoc}
+     * @param transformer
+     */
+    CopySpec filter(Transformer<String, String> transformer);
 
     /**
      * {@inheritDoc}

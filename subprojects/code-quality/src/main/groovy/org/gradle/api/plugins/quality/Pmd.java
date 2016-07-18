@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.plugins.quality.internal.PmdInvoker;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
@@ -102,9 +103,9 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * @deprecated Use {@link #reports(Action)} instead
      */
-    @Nested
+    @Deprecated
     public PmdReports reports(@DelegatesTo(value = PmdReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
-        return (PmdReports) reports.configure(closure);
+        return reports(new ClosureBackedAction<PmdReports>(closure));
     }
 
     /**
@@ -112,7 +113,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * @since 3.0
      */
-    @Nested
     public PmdReports reports(Action<? super PmdReports> configureAction) {
         configureAction.execute(reports);
         return reports;
@@ -221,15 +221,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
 
-    /**
-     * Whether or not to allow the build to continue if there are warnings.
-     *
-     * Example: ignoreFailures = true
-     */
-    public boolean isIgnoreFailures() {
-        return ignoreFailures;
-    }
-
     public void setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
     }
@@ -250,13 +241,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      */
     @Input
     @Incubating
-    public boolean getConsoleOutput() {
-        return consoleOutput;
-    }
-
-    /**
-     * Whether or not to write PMD results to {@code System.out}.
-     */
     public boolean isConsoleOutput() {
         return consoleOutput;
     }

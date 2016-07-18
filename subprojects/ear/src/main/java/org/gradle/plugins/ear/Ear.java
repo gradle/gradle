@@ -63,15 +63,12 @@ public class Ear extends Jar {
             new Action<FileCopyDetails>() {
                 @Override
                 public void execute(FileCopyDetails details) {
-                    DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
-                    String descriptorPath = deploymentDescriptor != null ? "META-INF/" + deploymentDescriptor.getFileName() : null;
-                    if (details.getPath().equalsIgnoreCase(descriptorPath)) {
-                        // the deployment descriptor already exists; no need to generate it
-                        deploymentDescriptor = null;
-                        setDeploymentDescriptor(null);
-                        details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
-                    }
+                    checkIfShouldGenerateDeploymentDescriptor(details);
+                    recordTopLevelModules(details);
+                }
 
+                private void recordTopLevelModules(FileCopyDetails details) {
+                    DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
                     // since we might generate the deployment descriptor, record each top-level module
                     if (deploymentDescriptor != null && details.getPath().lastIndexOf("/") <= 0) {
                         EarModule module;
@@ -84,6 +81,16 @@ public class Ear extends Jar {
                         if (!deploymentDescriptor.getModules().contains(module)) {
                             deploymentDescriptor.getModules().add(module);
                         }
+                    }
+                }
+
+                private void checkIfShouldGenerateDeploymentDescriptor(FileCopyDetails details) {
+                    DeploymentDescriptor deploymentDescriptor = getDeploymentDescriptor();
+                    String descriptorPath = deploymentDescriptor != null ? "META-INF/" + deploymentDescriptor.getFileName() : null;
+                    if (details.getPath().equalsIgnoreCase(descriptorPath)) {
+                        // the deployment descriptor already exists; no need to generate it
+                        setDeploymentDescriptor(null);
+                        details.setDuplicatesStrategy(DuplicatesStrategy.EXCLUDE);
                     }
                 }
             }

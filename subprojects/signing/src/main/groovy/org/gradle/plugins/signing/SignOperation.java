@@ -88,10 +88,6 @@ public class SignOperation implements SignatureSpec {
         this.required = required;
     }
 
-    public boolean getRequired() {
-        return required;
-    }
-
     @Override
     public boolean isRequired() {
         return required;

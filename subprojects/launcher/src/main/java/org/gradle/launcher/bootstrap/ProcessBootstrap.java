@@ -20,6 +20,7 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
@@ -48,10 +49,20 @@ public class ProcessBootstrap {
         ClassPath runtimeClasspath = classPathRegistry.getClassPath("GRADLE_RUNTIME");
         ClassLoader antClassLoader = classLoaderFactory.createIsolatedClassLoader(antClasspath);
         ClassLoader runtimeClassLoader = new VisitableURLClassLoader(antClassLoader, runtimeClasspath);
+
+        ClassLoader oldClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(runtimeClassLoader);
-        Class<?> mainClass = runtimeClassLoader.loadClass(mainClassName);
-        Object entryPoint = mainClass.newInstance();
-        Method mainMethod = mainClass.getMethod("run", String[].class);
-        mainMethod.invoke(entryPoint, new Object[]{args});
+
+        try {
+            Class<?> mainClass = runtimeClassLoader.loadClass(mainClassName);
+            Object entryPoint = mainClass.newInstance();
+            Method mainMethod = mainClass.getMethod("run", String[].class);
+            mainMethod.invoke(entryPoint, new Object[]{args});
+        } finally {
+            Thread.currentThread().setContextClassLoader(oldClassLoader);
+
+            ClassLoaderUtils.tryClose(runtimeClassLoader);
+            ClassLoaderUtils.tryClose(antClassLoader);
+        }
     }
 }

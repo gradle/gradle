@@ -15,6 +15,7 @@
  */
 
 package org.gradle.plugins.ide.idea.model.internal
+
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -22,11 +23,11 @@ import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.Dependency
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary
 import org.gradle.plugins.ide.internal.IdeDependenciesExtractor
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-public class IdeaDependenciesProviderTest extends Specification {
-    private final ProjectInternal project = TestUtil.createRootProject()
+public class IdeaDependenciesProviderTest extends AbstractProjectBuilderSpec {
+    private final ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
     def serviceRegistry = new DefaultServiceRegistry().add(LocalComponentRegistry, Stub(LocalComponentRegistry))
     private final dependenciesProvider = new IdeaDependenciesProvider(serviceRegistry)
