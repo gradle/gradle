@@ -101,11 +101,11 @@ public class DaemonStopEvent implements Serializable, Comparable<DaemonStopEvent
 
     @Override
     public String toString() {
-        return "DaemonStopEvent{" +
-            "timestamp=" + timestamp +
-            ", pid=" + pid +
-            ", status=" + status +
-            '}';
+        return "DaemonStopEvent{"
+            + "timestamp=" + timestamp
+            + ", pid=" + pid
+            + ", status=" + status
+            + "}";
     }
 
     public boolean occurredInLastHours(final int numHours) {
