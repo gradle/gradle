@@ -50,9 +50,4 @@ public interface ScriptRunner<T extends Script, M> {
      * @throws GradleScriptException On execution failure.
      */
     void run(Object target, ServiceRegistry scriptServices) throws GradleScriptException;
-
-    /**
-     * Cleans up when this runner is no longer required.
-     */
-    void cleanup();
 }

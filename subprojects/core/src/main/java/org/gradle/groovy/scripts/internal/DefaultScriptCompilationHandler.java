@@ -139,7 +139,6 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             }
             serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
         } finally {
-            groovyClassLoader.clearCache();
             ClassLoaderUtils.tryClose(groovyClassLoader);
         }
     }
