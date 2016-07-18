@@ -1,7 +1,8 @@
 buildscript {
     ext.kotlinVersion = file('kotlin-version.txt').text.trim()
+    ext.kotlinRepo = 'https://repo.gradle.org/gradle/repo'
     repositories {
-        maven { url 'https://repo.gradle.org/gradle/repo' }
+        maven { url kotlinRepo }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
@@ -14,8 +15,17 @@ apply from: 'build.gradle.kts'
 
 // --- Enable automatic generation of API extensions -------------------
 File apiExtensionsOutputDir = file("src/generated/kotlin")
-task generateApiExtensions(type: codegen.GenerateConfigurationExtensions) {
+task generateConfigurationExtensions(type: codegen.GenerateConfigurationExtensions) {
     outputFile = new File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/ConfigurationExtensions.kt")
+}
+task generateKotlinDependencyExtensions(type: codegen.GenerateKotlinDependencyExtensions) {
+    outputFile = new File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/KotlinDependencyExtensions.kt")
+    embeddedKotlinVersion = kotlinVersion
+    gradleScriptKotlinRepository = kotlinRepo
+}
+task generateApiExtensions {
+    dependsOn generateConfigurationExtensions
+    dependsOn generateKotlinDependencyExtensions
 }
 sourceSets {
     main.kotlin.srcDirs += apiExtensionsOutputDir
