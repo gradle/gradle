@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider;
+package org.gradle.performance.categories;
 
-import java.io.Closeable;
-
-public interface DeserializeMap extends Closeable {
-    /**
-     * Loads a serialized Class.
-     */
-    Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException;
-
-    /**
-     * Cleans up classloader references retained in this map.
-     */
-    void close();
+/**
+ * Tests designed to demonstrate specific performance characteristics when the build scans plugin has been applied
+ */
+public interface BuildScanPluginPerformanceTest extends PerformanceTest {
 }

@@ -208,6 +208,33 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
         includesLinkToUserguide()
     }
 
+    def "Can access properties in pluginRepositories block"() {
+        given:
+        settingsFile << """
+            pluginRepositories {
+                maven {
+                    url repoUrl
+                }
+            }
+        """
+        expect:
+        succeeds 'help', '-PrepoUrl=some/place'
+
+    }
+
+    def "Can access SettingsScript API in pluginRepositories block"() {
+        given:
+        settingsFile << """
+            pluginRepositories {
+                maven {
+                    url file('bar')
+                }
+            }
+        """
+        expect:
+        succeeds 'help'
+    }
+
     def "Cannot access Settings API in pluginRepositories block"() {
         given:
         settingsFile << """
@@ -221,21 +248,6 @@ class PluginRepositoriesDslSpec extends AbstractIntegrationSpec {
         then:
         failure.assertHasLineNumber(3)
         failure.assertThatCause(containsString("Could not find method include()"))
-    }
-
-    def "Cannot access SettingsScript API in pluginRepositories block"() {
-        given:
-        settingsFile << """
-            pluginRepositories {
-                file('bar')
-            }
-        """
-        when:
-        fails 'help'
-
-        then:
-        failure.assertHasLineNumber(3)
-        failure.assertThatCause(containsString("Could not find method file()"))
     }
 
     void includesLinkToUserguide() {

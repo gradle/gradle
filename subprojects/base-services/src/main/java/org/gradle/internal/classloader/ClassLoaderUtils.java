@@ -13,11 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.internal.classloader;
 
-package org.gradle.performance.categories;
+import org.gradle.api.Nullable;
 
-/**
- * Tests designed to demonstrate specific performance characteristics when the build receipts plugin has been applied
- */
-public interface BuildReceiptPluginPerformanceTest extends PerformanceTest {
+import java.io.Closeable;
+import java.io.IOException;
+
+public abstract class ClassLoaderUtils {
+    public static void tryClose(@Nullable ClassLoader classLoader) {
+        if (classLoader instanceof Closeable) {
+            try {
+                ((Closeable) classLoader).close();
+            } catch (IOException ignore) {
+                // do nothing.
+            }
+        }
+    }
 }

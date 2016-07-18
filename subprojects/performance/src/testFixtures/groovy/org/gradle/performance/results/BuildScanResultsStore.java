@@ -20,9 +20,9 @@ import org.gradle.performance.fixture.CrossBuildPerformanceResults;
 
 import java.io.File;
 
-public class BuildReceiptsResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
+public class BuildScanResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
 
-    public BuildReceiptsResultsStore() {
+    public BuildScanResultsStore() {
         super(new File(System.getProperty("user.home"), ".gradle-performance-test-data/build-receipt-results"));
     }
 

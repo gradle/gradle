@@ -649,14 +649,14 @@ task report {
     }
 }
 
-task buildReceiptReport {
+task buildScanReport {
     def reportDir = new File(buildDir, "performance-tests/report")
     inputs.files sourceSets.testFixtures.runtimeClasspath
     outputs.dir reportDir
 
     doLast {
         def cl = new URLClassLoader(sourceSets.testFixtures.runtimeClasspath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
-        def store = cl.loadClass("org.gradle.performance.results.BuildReceiptsResultsStore").newInstance()
+        def store = cl.loadClass("org.gradle.performance.results.BuildScansResultsStore").newInstance()
         try {
             def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
             generator.generate(store, reportDir)
@@ -706,8 +706,8 @@ performanceTestTasks.all {
     }
 }
 
-task largeJavaProjectWithBuildReceiptPlugin(type: JvmProjectGeneratorTask) {
-    buildReceiptPluginVersionProvider = {
+task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
+    buildScanPluginVersionProvider = {
         def pluginInfo = file("$rootDir/incoming/plugin.json")
         assert pluginInfo.exists()
         def json = new JsonSlurper().parse(pluginInfo) as Map<String, ?>
@@ -727,13 +727,13 @@ task largeJavaProjectWithBuildReceiptPlugin(type: JvmProjectGeneratorTask) {
     templateArgs = [fullTestLogging: true, testMethodCount: 20, halfTestsFail: true] // 50 test files with 20 tests per project
 }
 
-task buildReceiptPluginPerformanceTest(type: Test) {
-    dependsOn largeJavaProjectWithBuildReceiptPlugin
-    finalizedBy buildReceiptReport
+task buildScanPluginPerformanceTest(type: Test) {
+    dependsOn largeJavaProjectWithBuildScanPlugin
+    finalizedBy buildScanReport
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
 
     options {
-        includeCategories 'org.gradle.performance.categories.BuildReceiptPluginPerformanceTest'
+        includeCategories 'org.gradle.performance.categories.BuildScanPluginPerformanceTest'
     }
 }
 

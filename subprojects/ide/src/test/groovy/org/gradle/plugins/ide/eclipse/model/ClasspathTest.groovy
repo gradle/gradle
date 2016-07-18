@@ -42,7 +42,7 @@ public class ClasspathTest extends Specification {
     public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def setup() {
-
+        fileReferenceFactory.addPathVariable("USER_LIB_PATH", new File('/user/lib/path'))
     }
 
     def "load from reader"() {
@@ -86,6 +86,45 @@ public class ClasspathTest extends Specification {
 
         then:
         classpath == other
+    }
+
+    def "create file reference from string"() {
+        when:
+        FileReference reference = classpath.fileReference(path)
+
+        then:
+        reference.path == path
+        reference.relativeToPathVariable == isRelative
+
+        where:
+        path                 | isRelative
+        '/simple/path'       | false
+        'USER_LIB_PATH/file' | true
+    }
+
+    def 'create file reference from file'() {
+        when:
+        FileReference reference = classpath.fileReference(new File(path))
+
+        then:
+        reference.path.contains(expectedPath) // c: prefix on windows
+        reference.relativeToPathVariable == isRelative
+
+        where:
+        path                  | expectedPath         | isRelative
+        '/simple/path'        | '/simple/path'       | false
+        '/user/lib/path/file' | 'USER_LIB_PATH/file' | true
+    }
+
+    def 'invalid file reference creation'() {
+        when:
+        classpath.fileReference(arg)
+
+        then:
+        thrown RuntimeException
+
+        where:
+        arg << [null, 42]
     }
 
     private InputStream getCustomClasspathReader() {

@@ -18,10 +18,10 @@ package org.gradle.performance
 
 import groovy.json.JsonSlurper
 import org.gradle.performance.fixture.BuildExperimentRunner
-import org.gradle.performance.fixture.BuildReceiptPerformanceTestRunner
+import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
-import org.gradle.performance.results.BuildReceiptsResultsStore
+import org.gradle.performance.results.BuildScanResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
@@ -32,15 +32,15 @@ import spock.lang.Specification
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(org.gradle.performance.categories.BuildReceiptPluginPerformanceTest)
-class BuildReceiptPluginPerformanceTest extends Specification {
+@Category(org.gradle.performance.categories.BuildScanPluginPerformanceTest)
+class BuildScanPluginPerformanceTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @AutoCleanup
     @Shared
-    def resultStore = new BuildReceiptsResultsStore()
+    def resultStore = new BuildScanResultsStore()
 
     private static final String WITH_PLUGIN_LABEL = "with plugin"
     private static final String WITHOUT_PLUGIN_LABEL = "without plugin"
@@ -57,17 +57,17 @@ class BuildReceiptPluginPerformanceTest extends Specification {
         assert versionJsonData.commitId
         def pluginCommitId = versionJsonData.commitId as String
 
-        runner = new BuildReceiptPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId)
+        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId)
     }
 
-    def "build receipt plugin comparison"() {
+    def "build scan plugin comparison"() {
         given:
-        def sourceProject = "largeJavaProjectWithBuildReceiptPlugin"
+        def sourceProject = "largeJavaProjectWithBuildScanPlugin"
         def tasks = ['clean', 'build']
         def gradleOpts = ['-Xms4g', '-Xmx4g', '-XX:MaxPermSize=512m']
 
-        runner.testGroup = "build receipt plugin"
-        runner.testId = "large java project with and without build receipt"
+        runner.testGroup = "build scan plugin"
+        runner.testId = "large java project with and without build scan"
 
         runner.baseline {
             projectName(sourceProject).displayName(WITHOUT_PLUGIN_LABEL).invocation {
@@ -81,7 +81,7 @@ class BuildReceiptPluginPerformanceTest extends Specification {
 
         runner.buildSpec {
             projectName(sourceProject).displayName(WITH_PLUGIN_LABEL).invocation {
-                args("-Dreceipt", "-Dreceipt.dump")
+                args("-Dscan", "-Dscan.dump")
                 tasksToRun(*tasks)
                 invocation {
                     gradleOptions = gradleOpts
