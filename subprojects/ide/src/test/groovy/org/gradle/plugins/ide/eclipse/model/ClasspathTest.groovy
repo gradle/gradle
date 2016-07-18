@@ -107,7 +107,7 @@ public class ClasspathTest extends Specification {
         FileReference reference = classpath.fileReference(new File(path))
 
         then:
-        reference.path == expectedPath
+        reference.path.contains(expectedPath) // c: prefix on windows
         reference.relativeToPathVariable == isRelative
 
         where:

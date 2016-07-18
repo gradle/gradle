@@ -52,7 +52,7 @@ class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclip
 
         then:
         def cp = getClasspath()
-        cp.lib('guava-18.0.jar').assertHasJavadoc(new File(customJavadocPath))
-        cp.lib('guava-18.0.jar').assertHasSource(new File(customSourcePath))
+        cp.lib('guava-18.0.jar').sourcePath.contains('guava-custom-source.jar')
+        cp.lib('guava-18.0.jar').javadocLocation.contains('guava-custom-javadoc.jar')
     }
 }
