@@ -20,7 +20,6 @@ import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.internal.logging.ConsoleRenderer
-import org.gradle.util.GFileUtils
 
 abstract class CheckstyleInvoker {
     private final static String FAILURE_PROPERTY_NAME = 'org.gradle.checkstyle.violations'
@@ -68,11 +67,6 @@ abstract class CheckstyleInvoker {
                     style {
                         string(value: stylesheet)
                     }
-                }
-                if (!reports.xml.enabled) {
-                    logger.info("Moving Checkstyle XML report to temporary build dir, because it is not requested as output")
-                    File xmlTmpDestination = new File(checkstyleTask.temporaryDir, reports.xml.destination.name)
-                    GFileUtils.moveFile(reports.xml.destination, xmlTmpDestination)
                 }
             }
 

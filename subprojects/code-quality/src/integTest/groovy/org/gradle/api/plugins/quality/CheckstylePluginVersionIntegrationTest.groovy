@@ -183,6 +183,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @Issue("GRADLE-3490")
+    @NotYetImplemented
     def "do not output XML report when only HTML report is enabled"() {
         given:
         goodCode()
@@ -201,7 +202,6 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         then:
         file("build/reports/checkstyle/main.html").exists()
         !file("build/reports/checkstyle/main.xml").exists()
-        file("build/tmp/checkstyleMain/main.xml").exists()
     }
 
     private goodCode() {
