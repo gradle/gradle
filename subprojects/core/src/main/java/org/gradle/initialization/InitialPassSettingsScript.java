@@ -16,16 +16,24 @@
 package org.gradle.initialization;
 
 import groovy.lang.Closure;
+import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.DynamicObjectAware;
+import org.gradle.api.internal.DynamicObjectUtil;
+import org.gradle.api.internal.ExtensibleDynamicObject;
+import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.DefaultPluginRepositoriesSpec;
 import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
+import org.gradle.util.ConfigureUtil;
 
 /**
  * Endows a {@link SettingsScript} with methods which can only be used when
- * processing top-level blocks on the initial pass through a script.
+ * processing top-level blocks on the initial pass through a script. Restricts usage of
+ * APIs that would yield confusing results at that stage.
  */
 public abstract class InitialPassSettingsScript extends SettingsScript {
     private PluginRepositoriesSpec getPluginRepositorySpec() {
@@ -37,6 +45,14 @@ public abstract class InitialPassSettingsScript extends SettingsScript {
     }
 
     public void pluginRepositories(Closure config) {
-        new ClosureBackedAction<PluginRepositoriesSpec>(config, Closure.DELEGATE_ONLY, false).execute(getPluginRepositorySpec());
+        ConfigureUtil.configure(config, getPluginRepositorySpec());
+    }
+
+    /*
+     * Only allow accessing properties, not the whole `Settings` API
+     */
+    @Override
+    protected DynamicObject asDynamicObject(Object target) {
+        return new ExtraPropertiesDynamicObjectAdapter(Settings.class, ((ExtensibleDynamicObject) super.asDynamicObject(target)).getDynamicProperties());
     }
 }
