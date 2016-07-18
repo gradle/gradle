@@ -23,6 +23,7 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -35,16 +36,19 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
     private FileReference javadocPath;
     private FileReference library;
     private ModuleVersionIdentifier moduleVersion;
+    private FileReferenceFactory fileReferenceFactory;
 
     public AbstractLibrary(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node);
         String javadocLocation = (String) getEntryAttributes().get(ATTRIBUTE_JAVADOC_LOCATION);
         javadocPath = fileReferenceFactory.fromJarURI(javadocLocation);
+        this.fileReferenceFactory = fileReferenceFactory;
     }
 
     public AbstractLibrary(FileReference library) {
         super(library.getPath());
         this.library = library;
+        this.fileReferenceFactory = new FileReferenceFactory();
     }
 
     public FileReference getSourcePath() {
@@ -53,6 +57,10 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     public void setSourcePath(FileReference sourcePath) {
         this.sourcePath = sourcePath;
+    }
+
+    public void setSource(File source) {
+        setSourcePath(fileReferenceFactory.fromFile(source));
     }
 
     public FileReference getJavadocPath() {
@@ -67,6 +75,10 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
         } else {
             getEntryAttributes().remove(ATTRIBUTE_JAVADOC_LOCATION);
         }
+    }
+
+    public void setJavadoc(File javadoc) {
+        setJavadocPath(fileReferenceFactory.fromFile(javadoc));
     }
 
     public FileReference getLibrary() {
@@ -85,6 +97,10 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     public void setModuleVersion(@Nullable ModuleVersionIdentifier moduleVersion) {
         this.moduleVersion = moduleVersion;
+    }
+
+    public void setFileReferenceFactory(FileReferenceFactory fileReferenceFactory) {
+        this.fileReferenceFactory = fileReferenceFactory;
     }
 
     @Override
