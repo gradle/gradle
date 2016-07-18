@@ -27,7 +27,9 @@ import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo
 import org.gradle.launcher.daemon.registry.DaemonInfo
+import org.gradle.launcher.daemon.registry.DaemonStopEvent
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
 import spock.lang.Specification
 
 class DefaultDaemonConnectorTest extends Specification {
@@ -156,6 +158,21 @@ class DefaultDaemonConnectorTest extends Specification {
 
         and:
         numAllDaemons == 2
+    }
+
+    def "uniqueRecentDaemonStopEvents() logs unique stopped daemons sorted by severity"() {
+        given:
+        def immediateStop1 = new DaemonStopEvent(new Date(), 1L, DaemonExpirationStatus.IMMEDIATE_EXPIRE, "IMMEDIATE_EXPIRE_REASON")
+        def gracefulStop1 = new DaemonStopEvent(new Date(), 1L, DaemonExpirationStatus.GRACEFUL_EXPIRE, "GRACEFUL_EXPIRE_REASON")
+        def nullStop1 = new DaemonStopEvent(new Date(), 1L, null, null)
+        def gracefulStop2 = new DaemonStopEvent(new Date(), 2L, DaemonExpirationStatus.GRACEFUL_EXPIRE, "GRACEFUL_EXPIRE_REASON")
+
+        expect:
+        connector.uniqueRecentDaemonStopEvents([]) == []
+        connector.uniqueRecentDaemonStopEvents([immediateStop1, immediateStop1]) == [immediateStop1]
+        connector.uniqueRecentDaemonStopEvents([gracefulStop1, immediateStop1]) == [immediateStop1]
+        connector.uniqueRecentDaemonStopEvents([gracefulStop2, nullStop1, gracefulStop1]) == [gracefulStop2, gracefulStop1]
+        connector.uniqueRecentDaemonStopEvents([nullStop1, nullStop1]) == [nullStop1]
     }
 
     def "connect() will not use existing connection if it fails the compatibility spec"() {

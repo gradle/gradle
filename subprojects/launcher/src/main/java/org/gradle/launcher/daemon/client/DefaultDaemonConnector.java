@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
@@ -39,10 +40,14 @@ import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 import org.gradle.util.CollectionUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Provides the mechanics of connecting to a daemon, starting one via a given runnable if no suitable daemons are already available.
@@ -112,19 +117,32 @@ public class DefaultDaemonConnector implements DaemonConnector {
         daemonRegistry.removeStopEvents(stopEvents);
 
         // User likely doesn't care about daemons that stopped a long time ago
-        List<DaemonStopEvent> recentStopEvents = CollectionUtils.filter(stopEvents, new Spec<DaemonStopEvent>() {
-            public boolean isSatisfiedBy(DaemonStopEvent event) {
-                return event.occurredInLastHours(1);
-            }
-        });
-
+        final List<DaemonStopEvent> recentStopEvents = uniqueRecentDaemonStopEvents(stopEvents);
         for (DaemonStopEvent stopEvent : recentStopEvents) {
-            LOGGER.info("Previous Daemon stopped at " + stopEvent.getTimestamp() + " " + stopEvent.getReason());
+            LOGGER.info("Previous Daemon (" + stopEvent.getPid() + ") stopped at " + stopEvent.getTimestamp() + " " + stopEvent.getReason());
         }
 
         LOGGER.lifecycle(DaemonStartupMessage.generate(busyDaemons.size(), idleDaemons.size(), recentStopEvents.size()));
 
         return startDaemon(constraint);
+    }
+
+    @VisibleForTesting
+    public List<DaemonStopEvent> uniqueRecentDaemonStopEvents(final List<DaemonStopEvent> stopEvents) {
+        final Set<Long> uniqueStoppedPids = new HashSet<Long>(stopEvents.size());
+        final List<DaemonStopEvent> recentStopEvents = new ArrayList<DaemonStopEvent>(stopEvents.size());
+
+        // Do not sort original list
+        final List<DaemonStopEvent> stopEventsCopy = new ArrayList<DaemonStopEvent>(stopEvents);
+        Collections.sort(stopEventsCopy);
+
+        for (DaemonStopEvent event : stopEventsCopy) {
+            if (event.occurredInLastHours(1) && !uniqueStoppedPids.contains(event.getPid())) {
+                uniqueStoppedPids.add(event.getPid());
+                recentStopEvents.add(event);
+            }
+        }
+        return recentStopEvents;
     }
 
     private Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> partitionByIdleState(final Collection<DaemonInfo> daemons) {
@@ -232,7 +250,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
         public boolean maybeStaleAddress(Exception failure) {
             LOGGER.info("{}{}", DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE, daemon);
             final Date timestamp = new Date(System.currentTimeMillis());
-            daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, "by user or operating system"));
+            final DaemonStopEvent stopEvent = new DaemonStopEvent(timestamp, daemon.getPid(), null, "by user or operating system");
+            daemonRegistry.storeStopEvent(stopEvent);
             daemonRegistry.remove(daemon.getAddress());
             return exposeAsStale;
         }

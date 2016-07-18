@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.registry;
 
 import org.gradle.api.Nullable;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -25,20 +26,39 @@ import java.util.Date;
 /**
  * Information regarding when and why a daemon was stopped.
  */
-public class DaemonStopEvent implements Serializable {
+public class DaemonStopEvent implements Serializable, Comparable<DaemonStopEvent> {
     private final Date timestamp;
-    private final @Nullable String reason;
+    private final long pid;
+    @Nullable
+    private final DaemonExpirationStatus status;
+    @Nullable
+    private final String reason;
 
-    public DaemonStopEvent(Date timestamp, @Nullable String reason) {
+    public DaemonStopEvent(Date timestamp, long pid, @Nullable DaemonExpirationStatus status, @Nullable String reason) {
         this.timestamp = timestamp;
+        this.status = status;
         this.reason = reason;
+        this.pid = pid;
     }
 
     public Date getTimestamp() {
         return timestamp;
     }
 
-    @Nullable public String getReason() {
+    public long getPid() {
+        return pid;
+    }
+
+    @Nullable
+    public DaemonExpirationStatus getStatus() {
+        return status;
+    }
+
+    @Nullable
+    public String getReason() {
+        if (reason == null) {
+            return "";
+        }
         return reason;
     }
 
@@ -61,6 +81,31 @@ public class DaemonStopEvent implements Serializable {
         int result = timestamp.hashCode();
         result = 31 * result + (reason != null ? reason.hashCode() : 0);
         return result;
+    }
+
+    @Override
+    public int compareTo(@Nullable DaemonStopEvent other) {
+        if (other == null) {
+            return 1;
+        }
+
+        if (this.status != null && other.status == null) {
+            return -1;
+        } else if (this.status == null && other.status != null) {
+            return 1;
+        } else if (this.status != null && other.status != null) {
+            return other.status.compareTo(this.status);
+        }
+        return 0;
+    }
+
+    @Override
+    public String toString() {
+        return "DaemonStopEvent{" +
+            "timestamp=" + timestamp +
+            ", pid=" + pid +
+            ", status=" + status +
+            '}';
     }
 
     public boolean occurredInLastHours(final int numHours) {

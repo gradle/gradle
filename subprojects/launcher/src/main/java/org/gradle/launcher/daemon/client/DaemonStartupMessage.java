@@ -18,11 +18,8 @@ package org.gradle.launcher.daemon.client;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
-import org.gradle.launcher.daemon.registry.DaemonStopEvent;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class DaemonStartupMessage {
     public static final String STARTING_DAEMON_MESSAGE = "Starting a Gradle Daemon";
@@ -49,15 +46,5 @@ public class DaemonStartupMessage {
         } else {
             return STARTING_DAEMON_MESSAGE + " " + SUBSEQUENT_BUILDS_WILL_BE_FASTER;
         }
-    }
-
-    private static Map<String, Integer> countByReason(List<DaemonStopEvent> stopEvents) {
-        Map<String, Integer> countByReason = new HashMap<String, Integer>();
-        for (DaemonStopEvent event : stopEvents) {
-            final String reason = event.getReason();
-            Integer count = countByReason.get(reason) == null ? 0 : countByReason.get(reason);
-            countByReason.put(reason, count + 1);
-        }
-        return countByReason;
     }
 }
