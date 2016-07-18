@@ -44,7 +44,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     int numberOfExternalDependencies = 0
     MavenJarCreator mavenJarCreator = new MavenJarCreator()
 
-    Callable<String> buildReceiptPluginVersionProvider
+    Callable<String> buildScanPluginVersionProvider
 
     def ProjectGeneratorTask() {
         setProjects(1)
@@ -176,7 +176,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             repository: testProject.repository,
             dependencies: testProject.dependencies,
             testProject: testProject,
-            buildReceiptsPluginVersion: buildReceiptPluginVersionProvider?.call()
+            buildScanPluginVersion: buildScanPluginVersionProvider?.call()
         ]
 
         args += templateArgs

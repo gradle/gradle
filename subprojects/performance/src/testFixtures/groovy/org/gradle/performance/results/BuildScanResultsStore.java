@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.categories;
+package org.gradle.performance.results;
 
-/**
- * Tests designed to demonstrate specific performance characteristics when the build receipts plugin has been applied
- */
-public interface BuildReceiptPluginPerformanceTest extends PerformanceTest {
+import org.gradle.performance.fixture.CrossBuildPerformanceResults;
+
+import java.io.File;
+
+public class BuildScanResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
+
+    public BuildScanResultsStore() {
+        super(new File(System.getProperty("user.home"), ".gradle-performance-test-data/build-receipt-results"));
+    }
+
 }
