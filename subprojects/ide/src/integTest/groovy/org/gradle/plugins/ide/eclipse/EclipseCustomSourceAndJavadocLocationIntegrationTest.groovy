@@ -39,8 +39,8 @@ class EclipseCustomSourceAndJavadocLocationIntegrationTest extends AbstractEclip
                     file {
                         whenMerged { classpath ->
                             def guava = classpath.entries.find { it.path.contains('guava-18') }
-                            guava.setJavadoc(new File('$customJavadoc.absolutePath'))
-                            guava.setSource(new File('$customSource.absolutePath'))
+                            guava.setJavadoc(new File('${customJavadoc.absolutePath.replace('\\', '\\\\')}'))
+                            guava.setSource(new File('${customSource.absolutePath.replace('\\', '\\\\')}'))
                         }
                     }
                 }

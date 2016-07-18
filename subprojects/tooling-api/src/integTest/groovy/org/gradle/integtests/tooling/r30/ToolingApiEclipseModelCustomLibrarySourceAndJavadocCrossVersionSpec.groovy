@@ -52,8 +52,8 @@ class ToolingApiEclipseModelCustomLibrarySourceAndJavadocCrossVersionSpec extend
                     file {
                         whenMerged { classpath ->
                             def lib = classpath.entries.find { it.path.contains('example-lib') }
-                            lib.setJavadoc(new File('$customJavadoc.absolutePath'))
-                            lib.setSource(new File('$customSource.absolutePath'))
+                            lib.setJavadoc(new File('${customJavadoc.absolutePath.replace('\\', '\\\\')}'))
+                            lib.setSource(new File('${customSource.absolutePath.replace('\\', '\\\\')}'))
                         }
                     }
                 }
