@@ -79,12 +79,18 @@ public class ReportDaemonStatusClient {
         }
 
         final List<DaemonStopEvent> stopEvents = DaemonStopEvents.uniqueRecentDaemonStopEvents(daemonRegistry.getStopEvents());
-        if (statuses.isEmpty() && stopEvents.isEmpty()) {
+        if (statuses.isEmpty()) {
             LOGGER.quiet(DaemonMessages.NO_DAEMONS_RUNNING);
-        } else {
-            printRunningDaemons(statuses);
-            printStoppedDaemons(stopEvents);
         }
+
+        if (!(statuses.isEmpty() && stopEvents.isEmpty())) {
+            LOGGER.quiet(String.format(STATUS_FORMAT, "PID", "STATUS", "INFO"));
+        }
+
+        printRunningDaemons(statuses);
+        printStoppedDaemons(stopEvents);
+
+        LOGGER.quiet("");
 
         LOGGER.quiet(STATUS_FOOTER + " See " + documentationRegistry.getDocumentationFor("gradle_daemon", "sec:status"));
     }
@@ -92,22 +98,18 @@ public class ReportDaemonStatusClient {
     @VisibleForTesting
     void printRunningDaemons(final List<Status> statuses) {
         if (!statuses.isEmpty()) {
-            LOGGER.quiet(String.format(STATUS_FORMAT, "PID", "STATUS", "VERSION"));
             for(Status status : statuses) {
                 LOGGER.quiet(String.format(STATUS_FORMAT, status.getPid(), status.getStatus(), status.getVersion()));
             }
-            LOGGER.quiet(LINE_SEPARATOR);
         }
     }
 
     @VisibleForTesting
     void printStoppedDaemons(final List<DaemonStopEvent> stopEvents) {
         if (!stopEvents.isEmpty()) {
-            LOGGER.quiet(String.format(STATUS_FORMAT, "PID", "STATUS", "REASON"));
             for(DaemonStopEvent event : stopEvents) {
-                LOGGER.quiet(String.format(STATUS_FORMAT, event.getPid(), "STOPPED", event.getReason()));
+                LOGGER.quiet(String.format(STATUS_FORMAT, event.getPid(), "STOPPED", "(" + event.getReason() + ")"));
             }
-            LOGGER.quiet("");
         }
     }
 }
