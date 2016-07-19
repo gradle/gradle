@@ -67,6 +67,10 @@ task customInstallation(type: Copy, dependsOn: copyCurrentDistro) {
     from configurations.compile
     from tasks.jar
     into "$customInstallationDir/lib"
+
+    doFirst {
+        destinationDir.listFiles().findAll { it.name.contains('kotlin') }.each { it.delete() }
+    }
 }
 
 test.dependsOn customInstallation
