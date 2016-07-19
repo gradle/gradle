@@ -82,16 +82,16 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
     }
 }
 
-fun retrieveKotlinBuildScriptModelFrom(projectRoot: File, gradleInstallation: File, javaHome: File? = null): KotlinBuildScriptModel =
-    withConnectionFrom(connectorFor(projectRoot, gradleInstallation)) {
+fun retrieveKotlinBuildScriptModelFrom(projectDir: File, gradleInstallation: File, javaHome: File? = null): KotlinBuildScriptModel =
+    withConnectionFrom(connectorFor(projectDir, gradleInstallation)) {
         model(KotlinBuildScriptModel::class.java)
             .setJavaHome(javaHome)
             .setJvmArguments("-D${KotlinScriptPluginFactory.modeSystemPropertyName}=${KotlinScriptPluginFactory.classPathMode}")
             .get()
     }
 
-fun connectorFor(projectRoot: File, gradleInstallation: File): GradleConnector =
-    GradleConnector.newConnector().forProjectDirectory(projectRoot).useInstallation(gradleInstallation)
+fun connectorFor(projectDir: File, gradleInstallation: File): GradleConnector =
+    GradleConnector.newConnector().forProjectDirectory(projectDir).useInstallation(gradleInstallation)
 
 inline fun <T> withConnectionFrom(connector: GradleConnector, block: ProjectConnection.() -> T): T =
     connector.connect().use(block)
