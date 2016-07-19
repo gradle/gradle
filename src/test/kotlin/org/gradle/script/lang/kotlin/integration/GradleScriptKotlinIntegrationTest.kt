@@ -37,7 +37,7 @@ class GradleScriptKotlinIntegrationTest {
                 }
             }
 
-            task("answer") {
+            task("compute") {
                 doLast {
                     // resources.jar should be in the classpath
                     val computer = ${DeepThought::class.qualifiedName}()
@@ -48,7 +48,7 @@ class GradleScriptKotlinIntegrationTest {
         """)
 
         assert(
-            build("answer").output.contains("*42*"))
+            build("compute").output.contains("*42*"))
 
         assertBuildScriptModelClassPathContains(
             existing("fixture.jar"))
@@ -65,7 +65,7 @@ class GradleScriptKotlinIntegrationTest {
         """)
 
         withBuildScript("""
-            task("answer") {
+            task("compute") {
                 doLast {
                     val computer = build.DeepThought()
                     val answer = computer.compute()
@@ -75,7 +75,7 @@ class GradleScriptKotlinIntegrationTest {
         """)
 
         assert(
-            build("answer").output.contains("*42*"))
+            build("compute").output.contains("*42*"))
 
         assertBuildScriptModelClassPathContains(
             buildSrcOutput())
@@ -102,7 +102,7 @@ class GradleScriptKotlinIntegrationTest {
         """)
 
         withBuildScript("""
-            task("answer") {
+            task("compute") {
                 doLast {
                     val computer = build.DeepThought()
                     computer.compute { answer ->
@@ -113,7 +113,7 @@ class GradleScriptKotlinIntegrationTest {
         """)
 
         assert(
-            build("answer").output.contains("*42*"))
+            build("compute").output.contains("*42*"))
     }
 
     @Test
@@ -168,13 +168,13 @@ class GradleScriptKotlinIntegrationTest {
                 kotlinOptions.verbose = true
             }
 
-            task("dump-kotlinVersion") {
+            task("print-kotlin-version") {
                 doLast { println(KotlinVersion.VERSION) }
             }
         """)
 
         assert(
-            build("dump-kotlinVersion").output.contains(differentKotlinVersion))
+            build("print-kotlin-version").output.contains(differentKotlinVersion))
     }
 
     @Test
