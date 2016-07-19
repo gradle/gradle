@@ -307,12 +307,37 @@ class GradleScriptKotlinIntegrationTest {
     }
 
     private fun kotlinBuildScriptModel(): KotlinBuildScriptModel =
-        retrieveKotlinBuildScriptModelFrom(projectDir.root, customInstallation())
+        withDaemonRegistry(customDaemonRegistry()) {
+            retrieveKotlinBuildScriptModelFrom(projectDir.root, customInstallation())
+        }
+
+    private fun customDaemonRegistry() =
+        File("build/custom/daemon-registry")
 
     private fun customInstallation() =
         File("build/custom").listFiles()?.let {
-            it.singleOrNull() ?:
+            it.singleOrNull { it.name.startsWith("gradle") } ?:
                 throw IllegalStateException(
                     "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`.")
         } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
+}
+
+inline fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
+    withSystemProperty("org.gradle.daemon.registry.base", registryBase.absolutePath, block)
+
+inline fun <T> withSystemProperty(key: String, value: String, block: () -> T): T {
+    val originalValue = System.getProperty(key)
+    try {
+        System.setProperty(key, value)
+        return block()
+    } finally {
+        setOrClearProperty(key, originalValue)
+    }
+}
+
+fun setOrClearProperty(key: String, value: String?) {
+    when (value) {
+        null -> System.clearProperty(key)
+        else -> System.setProperty(key, value)
+    }
 }
