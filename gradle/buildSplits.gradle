@@ -76,6 +76,7 @@ def buckets = [
         ":internalTesting",
         ":performance",
         ":internalIntegTesting",
+        ":internalPerformanceTesting",
         ":processServices",
         ":installationBeacon",
     ],

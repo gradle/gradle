@@ -23,6 +23,7 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
+
 class MavenDownloaderTest extends Specification {
 
     @Rule
