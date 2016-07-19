@@ -70,7 +70,7 @@ class KotlinBuildScriptCompiler(
     }
 
     fun compile(): (Project) -> Unit {
-        val buildscriptRange = extractBuildScriptFrom(script)
+        val buildscriptRange = extractTopLevelBuildScriptRange()
         return when {
             buildscriptRange != null ->
                 twoPassScript(buildscriptRange)
@@ -83,6 +83,9 @@ class KotlinBuildScriptCompiler(
         executeBuildscriptSectionIgnoringErrors(target)
         shareKotlinScriptClassPathOn(target)
     }
+
+    private fun extractTopLevelBuildScriptRange() =
+        if (topLevelScript) extractBuildScriptFrom(script) else null
 
     private fun executeBuildscriptSectionIgnoringErrors(target: Project) {
         try {
