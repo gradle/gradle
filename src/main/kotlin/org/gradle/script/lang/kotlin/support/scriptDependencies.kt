@@ -16,6 +16,8 @@
 
 package org.gradle.script.lang.kotlin.support
 
+import org.gradle.script.lang.kotlin.provider.KotlinScriptPluginFactory
+
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 
@@ -49,18 +51,14 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
     }
 
     private fun retrieveDependenciesFromProject(projectRoot: File, gradleInstallation: File, javaHome: File) =
-        withConnectionFrom(connectorFor(projectRoot, gradleInstallation)) {
-            model(KotlinBuildScriptModel::class.java)
-                .setJavaHome(javaHome)
-                .get()
-                .classPath
-                .let {
-                    val gradleScriptKotlinJar = it.filter { it.name.startsWith("gradle-script-kotlin-") }
-                    makeDependencies(
-                        classPath = it,
-                        sources = gradleScriptKotlinJar + sourceRootsOf(gradleInstallation))
-                }
-        }
+        retrieveKotlinBuildScriptModelFrom(projectRoot, gradleInstallation, javaHome)
+            .classPath
+            .let {
+                val gradleScriptKotlinJar = it.filter { it.name.startsWith("gradle-script-kotlin-") }
+                makeDependencies(
+                    classPath = it,
+                    sources = gradleScriptKotlinJar + sourceRootsOf(gradleInstallation))
+            }
 
     private fun sourceRootsOf(gradleInstallation: File): Collection<File> =
         File(gradleInstallation, "src").let { srcDir ->
@@ -83,6 +81,14 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
             "org.gradle.script.lang.kotlin.*")
     }
 }
+
+fun retrieveKotlinBuildScriptModelFrom(projectRoot: File, gradleInstallation: File, javaHome: File? = null): KotlinBuildScriptModel =
+    withConnectionFrom(connectorFor(projectRoot, gradleInstallation)) {
+        model(KotlinBuildScriptModel::class.java)
+            .setJavaHome(javaHome)
+            .setJvmArguments("-D${KotlinScriptPluginFactory.modeSystemPropertyName}=${KotlinScriptPluginFactory.classPathMode}")
+            .get()
+    }
 
 fun connectorFor(projectRoot: File, gradleInstallation: File): GradleConnector =
     GradleConnector.newConnector().forProjectDirectory(projectRoot).useInstallation(gradleInstallation)

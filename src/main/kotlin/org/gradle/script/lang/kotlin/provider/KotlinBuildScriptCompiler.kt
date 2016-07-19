@@ -79,6 +79,22 @@ class KotlinBuildScriptCompiler(
         }
     }
 
+    fun compileForClassPath(): (Project) -> Unit = { target ->
+        executeBuildscriptSectionIgnoringErrors(target)
+        shareKotlinScriptClassPathOn(target)
+    }
+
+    private fun executeBuildscriptSectionIgnoringErrors(target: Project) {
+        try {
+            val buildscriptRange = extractBuildScriptFrom(script)
+            if (buildscriptRange != null) {
+                executeBuildscriptSection(buildscriptRange, target)
+            }
+        } catch(e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     private fun onePassScript(): (Project) -> Unit {
         val scriptClassLoader = scriptBodyClassLoaderFor(baseScope.exportClassLoader)
         val scriptClass = compileScriptFile(scriptClassLoader)
@@ -89,16 +105,21 @@ class KotlinBuildScriptCompiler(
     }
 
     private fun twoPassScript(buildscriptRange: IntRange): (Project) -> Unit {
-        val buildscriptClassLoader = buildscriptClassLoaderFrom(baseScope)
-        val buildscriptClass = compileBuildscriptSection(buildscriptRange, buildscriptClassLoader)
         return { target ->
-            executeScriptWithContextClassLoader(buildscriptClassLoader, buildscriptClass, target)
+            val buildscriptClassLoader = executeBuildscriptSection(buildscriptRange, target)
 
             val scriptClassLoader = scriptBodyClassLoaderFor(buildscriptClassLoader)
             val scriptClass = compileScriptFile(scriptClassLoader)
             shareKotlinScriptClassPathOn(target)
             executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
         }
+    }
+
+    private fun executeBuildscriptSection(buildscriptRange: IntRange, target: Project): ClassLoader {
+        val buildscriptClassLoader = buildscriptClassLoaderFrom(baseScope)
+        val buildscriptClass = compileBuildscriptSection(buildscriptRange, buildscriptClassLoader)
+        executeScriptWithContextClassLoader(buildscriptClassLoader, buildscriptClass, target)
+        return buildscriptClassLoader
     }
 
     private fun scriptBodyClassLoaderFor(parentClassLoader: ClassLoader): ClassLoader =

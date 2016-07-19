@@ -3,14 +3,13 @@ package org.gradle.script.lang.kotlin.integration
 import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
-import org.gradle.script.lang.kotlin.support.connectorFor
-import org.gradle.script.lang.kotlin.support.withConnectionFrom
+import org.gradle.script.lang.kotlin.support.retrieveKotlinBuildScriptModelFrom
 import org.gradle.script.lang.kotlin.support.zipTo
 
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 
-import org.hamcrest.CoreMatchers.hasItem
+import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Rule
@@ -51,9 +50,8 @@ class GradleScriptKotlinIntegrationTest {
         assert(
             build("answer").output.contains("*42*"))
 
-        assertThat(
-            kotlinBuildScriptModel().classPath.map { it.name },
-            hasItem("fixture.jar"))
+        assertBuildScriptModelClassPathContains(
+            existing("fixture.jar"))
     }
 
     @Test
@@ -79,9 +77,8 @@ class GradleScriptKotlinIntegrationTest {
         assert(
             build("answer").output.contains("*42*"))
 
-        assertThat(
-            kotlinBuildScriptModel().classPath.map { it.canonicalFile },
-            hasItem(existingFolder("buildSrc/build/classes/main")))
+        assertBuildScriptModelClassPathContains(
+            buildSrcOutput())
     }
 
     @Test
@@ -180,7 +177,45 @@ class GradleScriptKotlinIntegrationTest {
             build("dump-kotlinVersion").output.contains(differentKotlinVersion))
     }
 
-    val fixturesRepository: File
+    @Test
+    fun `can serve buildSrc classpath in face of compilation errors`() {
+
+        withFile("buildSrc/src/main/groovy/build/Foo.groovy", """
+            package build
+            class Foo {}
+        """)
+
+        withBuildScript("""
+            val p =
+        """)
+
+        assertBuildScriptModelClassPathContains(
+            buildSrcOutput())
+    }
+
+    @Test
+    fun `can serve buildscript classpath in face of compilation errors`() {
+
+        withFile("classes.jar", "")
+
+        withBuildScript("""
+            buildscript {
+                dependencies {
+                    classpath(files("classes.jar"))
+                }
+            }
+
+            val p =
+        """)
+
+        assertBuildScriptModelClassPathContains(
+            existing("classes.jar"))
+    }
+
+    private fun buildSrcOutput(): File =
+        existing("buildSrc/build/classes/main")
+
+    private val fixturesRepository: File
         get() = File("fixtures/repository").absoluteFile
 
     private fun withBuildScript(script: String) {
@@ -210,9 +245,8 @@ class GradleScriptKotlinIntegrationTest {
             newFile(fileName)
         }
 
-    private fun existingFolder(relativePath: String) =
+    private fun existing(relativePath: String) =
         File(projectDir.root, relativePath).run {
-            assert(isDirectory && exists())
             canonicalFile
         }
 
@@ -235,10 +269,14 @@ class GradleScriptKotlinIntegrationTest {
             .withGradleInstallation(customInstallation())
             .withProjectDir(projectDir)
 
+    private fun assertBuildScriptModelClassPathContains(vararg files: File) {
+        assertThat(
+            kotlinBuildScriptModel().classPath.map { it.canonicalFile },
+            hasItems(*files))
+    }
+
     private fun kotlinBuildScriptModel(): KotlinBuildScriptModel =
-        withConnectionFrom(connectorFor(projectDir.root, customInstallation())) {
-            getModel(KotlinBuildScriptModel::class.java)
-        }
+        retrieveKotlinBuildScriptModelFrom(projectDir.root, customInstallation())
 
     private fun customInstallation() =
         File("build/custom").listFiles()?.let {

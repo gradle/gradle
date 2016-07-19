@@ -41,9 +41,19 @@ class KotlinScriptPluginFactory(classPathRegistry: ClassPathRegistry) : ScriptPl
     override fun create(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
                         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
                         topLevelScript: Boolean): ScriptPlugin =
-        KotlinScriptPlugin(
-            scriptSource,
-            KotlinBuildScriptCompiler(
-                scriptSource, topLevelScript, scriptHandler as ScriptHandlerInternal,
-                targetScope, baseScope, gradleApiJars, logger).compile())
+        KotlinBuildScriptCompiler(
+            scriptSource, topLevelScript, scriptHandler as ScriptHandlerInternal,
+            targetScope, baseScope, gradleApiJars, logger).run {
+
+            val script = if (inClassPathMode()) compileForClassPath() else compile()
+            KotlinScriptPlugin(scriptSource, script)
+        }
+
+    private fun inClassPathMode() =
+        System.getProperty(modeSystemPropertyName) == classPathMode
+
+    companion object {
+        val modeSystemPropertyName = "org.gradle.script.lang.kotlin.provider.mode"
+        val classPathMode = "classpath"
+    }
 }
