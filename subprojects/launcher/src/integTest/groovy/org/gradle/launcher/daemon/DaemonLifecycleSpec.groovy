@@ -306,6 +306,9 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
             new DaemonDir(executer.daemonBaseDir).registry.delete()
         }
 
+        when:
+        waitForDaemonExpiration()
+
         then:
         completeBuild()
 
