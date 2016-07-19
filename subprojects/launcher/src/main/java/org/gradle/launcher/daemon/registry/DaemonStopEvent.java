@@ -108,7 +108,7 @@ public class DaemonStopEvent implements Serializable, Comparable<DaemonStopEvent
             + "}";
     }
 
-    public boolean occurredInLastHours(final int numHours) {
+    boolean occurredInLastHours(final int numHours) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date(System.currentTimeMillis()));
         cal.add(Calendar.HOUR_OF_DAY, -1 * numHours);

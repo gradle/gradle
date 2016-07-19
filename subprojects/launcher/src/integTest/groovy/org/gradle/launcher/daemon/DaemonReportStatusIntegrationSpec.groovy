@@ -17,7 +17,10 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+import org.gradle.launcher.daemon.client.ReportDaemonStatusClient
 import org.gradle.launcher.daemon.logging.DaemonMessages
+import org.gradle.launcher.daemon.registry.DaemonStopEvent
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.junit.Rule
 
@@ -29,8 +32,8 @@ class DaemonReportStatusIntegrationSpec extends DaemonIntegrationSpec {
         def out = executer.withArguments("--status").run().output
 
         then:
-        out == """$DaemonMessages.NO_DAEMONS_RUNNING
-""".toString()
+        out =~ """^$DaemonMessages.NO_DAEMONS_RUNNING
+$ReportDaemonStatusClient.STATUS_FOOTER.*""".toString()
     }
 
     def "reports idle and busy status of running daemons"() {
@@ -51,13 +54,27 @@ task block << {
 
         then:
         daemons.daemons.size() == 2
-        out =~ /^   PID VERSION\s+STATUS/
-        out =~ /\n\s*\d+ ([\w\.\+\-]+)\s+IDLE/
-        out =~ /\n\s*\d+ ([\w\.\+\-]+)\s+BUSY/
+        out =~ /^   PID STATUS\s+VERSION/
+        out =~ /\n\s*\d+\s+IDLE\s+([\w\.\+\-]+)/
+        out =~ /\n\s*\d+\s+BUSY\s+([\w\.\+\-]+)/
 
         cleanup:
         server.release()
         build.waitForFinish()
+    }
+
+    def "reports stopped status of recently stopped daemons"() {
+        given:
+        daemons.getRegistry().storeStopEvent(new DaemonStopEvent(new Date(), 12345L, DaemonExpirationStatus.IMMEDIATE_EXPIRE, "IMMEDIATE_EXPIRE_REASON"))
+        daemons.getRegistry().storeStopEvent(new DaemonStopEvent(new Date(), 12346L, DaemonExpirationStatus.GRACEFUL_EXPIRE, "GRACEFUL_EXPIRE_REASON"))
+
+        when:
+        def out = executer.withArguments("--status").run().output
+
+        then:
+        out =~ /^   PID STATUS\s+REASON/
+        out =~ /\n\s*12345\s+STOPPED\s+IMMEDIATE_EXPIRE_REASON/
+        out =~ /\n\s*12346\s+STOPPED\s+GRACEFUL_EXPIRE_REASON/
     }
 }
 
