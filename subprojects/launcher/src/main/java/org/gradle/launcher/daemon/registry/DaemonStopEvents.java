@@ -16,24 +16,39 @@
 
 package org.gradle.launcher.daemon.registry;
 
+import org.gradle.api.specs.Spec;
+import org.gradle.util.CollectionUtils;
+
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class DaemonStopEvents {
+    private static final int RECENTLY = 1;
+
     public static List<DaemonStopEvent> uniqueRecentDaemonStopEvents(final List<DaemonStopEvent> stopEvents) {
         final Set<Long> uniqueStoppedPids = new HashSet<Long>(stopEvents.size());
         final List<DaemonStopEvent> recentStopEvents = new ArrayList<DaemonStopEvent>(stopEvents.size());
 
-        // Do not sort original list
-        final List<DaemonStopEvent> stopEventsCopy = new ArrayList<DaemonStopEvent>(stopEvents);
-        Collections.sort(stopEventsCopy);
+        final List<DaemonStopEvent> sortedEvents = CollectionUtils.sort(stopEvents, new Comparator<DaemonStopEvent>() {
+            @Override
+            public int compare(DaemonStopEvent event1, DaemonStopEvent event2) {
+                if (event1.getStatus() != null && event2.getStatus() == null) {
+                    return -1;
+                } else if (event1.getStatus() == null && event2.getStatus() != null) {
+                    return 1;
+                } else if (event1.getStatus() != null && event2.getStatus() != null) {
+                    return event2.getStatus().compareTo(event1.getStatus());
+                }
+                return 0;
+            }
+        });
 
         // User likely doesn't care about daemons that stopped a long time ago
-        for (DaemonStopEvent event : stopEventsCopy) {
-            if (event.occurredInLastHours(1) && !uniqueStoppedPids.contains(event.getPid())) {
+        for (DaemonStopEvent event : sortedEvents) {
+            if (event.occurredInLastHours(RECENTLY) && !uniqueStoppedPids.contains(event.getPid())) {
                 uniqueStoppedPids.add(event.getPid());
                 recentStopEvents.add(event);
             }
@@ -42,12 +57,11 @@ public class DaemonStopEvents {
     }
 
     public static List<DaemonStopEvent> oldStopEvents(final List<DaemonStopEvent> stopEvents) {
-        final List<DaemonStopEvent> oldEvents = new ArrayList<DaemonStopEvent>(stopEvents.size());
-        for (DaemonStopEvent event : stopEvents) {
-            if (!event.occurredInLastHours(1)) {
-                oldEvents.add(event);
+        return CollectionUtils.filter(stopEvents, new Spec<DaemonStopEvent>() {
+            @Override
+            public boolean isSatisfiedBy(DaemonStopEvent event) {
+                return !event.occurredInLastHours(RECENTLY);
             }
-        }
-        return oldEvents;
+        });
     }
 }
