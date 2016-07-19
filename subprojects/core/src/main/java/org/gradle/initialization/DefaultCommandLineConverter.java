@@ -57,7 +57,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String CONTINUOUS = "continuous";
     private static final String CONTINUOUS_SHORT_FLAG = "t";
 
-    private static final String PARTICIPANT = "participant";
+    private static final String INCLUDE_BUILD = "include-build";
 
     private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
     private final SystemPropertiesCommandLineConverter systemPropertiesCommandLineConverter = new SystemPropertiesCommandLineConverter();
@@ -92,7 +92,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(MAX_WORKERS).hasArgument().hasDescription("Configure the number of concurrent workers Gradle is allowed to use.").incubating();
         parser.option(CONFIGURE_ON_DEMAND).hasDescription("Only relevant projects are configured in this build run. This means faster build for large multi-project builds.").incubating();
         parser.option(CONTINUOUS, CONTINUOUS_SHORT_FLAG).hasDescription("Enables continuous build. Gradle does not exit and will re-execute tasks when task file inputs change.").incubating();
-        parser.option(PARTICIPANT).hasArguments().hasDescription("Adds a participant to the composite build.").incubating();
+        parser.option(INCLUDE_BUILD).hasArguments().hasDescription("Includes the specified build in the composite.").incubating();
     }
 
     public StartParameter convert(final ParsedCommandLine options, final StartParameter startParameter) throws CommandLineArgumentException {
@@ -196,8 +196,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setContinuous(true);
         }
 
-        for (String participant : options.option(PARTICIPANT).getValues()) {
-            startParameter.addParticipant(resolver.transform(participant));
+        for (String includedBuild : options.option(INCLUDE_BUILD).getValues()) {
+            startParameter.includeBuild(resolver.transform(includedBuild));
         }
 
         return startParameter;

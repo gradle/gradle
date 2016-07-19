@@ -349,6 +349,6 @@ public class DefaultCommandLineConverterTest extends CommandLineConverterTestSup
     public void withCompositeBuild() {
         File build1 = currentDir.getParentFile().file("build1");
         expectedParticipants.add(build1);
-        checkConversion("--participant", "../build1");
+        checkConversion("--include-build", "../build1");
     }
 }

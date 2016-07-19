@@ -41,9 +41,9 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         succeeds('publishAll')
 
         then:
-        result.assertOutputContains("Running tasks [:uploadArchives] in participant: projectC")
-        result.assertOutputContains("Running tasks [:b1:uploadArchives, :b2:uploadArchives] in participant: projectB")
-        result.assertOutputContains("Running tasks [:uploadArchives] in participant: projectA")
+        result.assertOutputContains("Running tasks [:uploadArchives] in build: projectC")
+        result.assertOutputContains("Running tasks [:b1:uploadArchives, :b2:uploadArchives] in build: projectB")
+        result.assertOutputContains("Running tasks [:uploadArchives] in build: projectA")
 
         when:
         executer.inDirectory(sample.dir)

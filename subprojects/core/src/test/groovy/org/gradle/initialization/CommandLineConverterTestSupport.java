@@ -96,6 +96,6 @@ public class CommandLineConverterTestSupport {
         assertEquals(expectedConfigureOnDemand, startParameter.isConfigureOnDemand());
         assertEquals(expectedMaxWorkersCount, startParameter.getMaxWorkerCount());
         assertEquals(expectedContinuous, startParameter.isContinuous());
-        assertEquals(expectedParticipants, startParameter.getParticipantBuilds());
+        assertEquals(expectedParticipants, startParameter.getIncludedBuilds());
     }
 }

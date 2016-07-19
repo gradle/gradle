@@ -161,7 +161,7 @@ class BuildActionsFactory implements CommandLineAction {
 
     private BuildActionParameters createBuildActionParameters(StartParameter startParameter, DaemonParameters daemonParameters) {
         BuildActionParameters buildActionParameters = defaultBuildActionParameters(startParameter, daemonParameters);
-        if (startParameter.getParticipantBuilds().isEmpty()) {
+        if (startParameter.getIncludedBuilds().isEmpty()) {
             return buildActionParameters;
         }
 

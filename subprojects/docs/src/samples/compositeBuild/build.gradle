@@ -21,9 +21,9 @@ private openCompositeConnection() {
     return builder.build()
 }
 
-private executeTask(GradleConnection connection, String participant, String... tasks) {
-    logger.lifecycle("Running tasks ${tasks} in participant: ${participant}")
-    def rootDir = file("projects/${participant}")
+private executeTask(GradleConnection connection, String build, String... tasks) {
+    logger.lifecycle("Running tasks ${tasks} in build: ${build}")
+    def rootDir = file("projects/${build}")
     def buildLauncher = connection.newBuild()
     buildLauncher.forTasks(rootDir, tasks)
     buildLauncher.standardOutput = System.out

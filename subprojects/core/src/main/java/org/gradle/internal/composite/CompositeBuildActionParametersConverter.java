@@ -38,7 +38,7 @@ public class CompositeBuildActionParametersConverter {
         List<File> participantPaths = Lists.newArrayList();
         try {
             participantPaths.add(projectDir.getCanonicalFile());
-            for (File file : startParameter.getParticipantBuilds()) {
+            for (File file : startParameter.getIncludedBuilds()) {
                 participantPaths.add(file.getCanonicalFile());
             }
         } catch (IOException e) {

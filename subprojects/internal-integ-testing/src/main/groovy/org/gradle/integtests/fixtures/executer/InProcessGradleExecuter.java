@@ -282,7 +282,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             interactive,
             ClassPath.EMPTY
         );
-        if (startParameter.getParticipantBuilds().isEmpty()) {
+        if (startParameter.getIncludedBuilds().isEmpty()) {
             return buildActionParameters;
         }
 

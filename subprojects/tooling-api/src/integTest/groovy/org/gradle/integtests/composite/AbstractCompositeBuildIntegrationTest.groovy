@@ -41,11 +41,11 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     private void prepare(File build, Iterable<String> arguments) {
         executer.inDirectory(build)
 
-        List<File> participants = Lists.newArrayList(builds)
-        participants.remove(build)
-        for (File participant : participants) {
-            executer.withArgument("--participant")
-            executer.withArgument(participant.path)
+        List<File> includedBuilds = Lists.newArrayList(builds)
+        includedBuilds.remove(build)
+        for (File includedBuild : includedBuilds) {
+            executer.withArgument("--include-build")
+            executer.withArgument(includedBuild.path)
         }
         for (String arg : arguments) {
             executer.withArgument(arg)
