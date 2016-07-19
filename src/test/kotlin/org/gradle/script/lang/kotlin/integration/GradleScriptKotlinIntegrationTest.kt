@@ -230,6 +230,19 @@ class GradleScriptKotlinIntegrationTest {
             kotlinBuildScriptModel().classPath.isNotEmpty())
     }
 
+    @Test
+    fun `can use Closure only APIs`() {
+
+        withBuildScript("""
+            gradle.buildFinished(closureOf<org.gradle.BuildResult> {
+                println("*" + action + "*") // <- BuildResult.getAction()
+            })
+        """)
+
+        assert(
+            build("build").output.contains("*Build*"))
+    }
+
     private fun buildSrcOutput(): File =
         existing("buildSrc/build/classes/main")
 
