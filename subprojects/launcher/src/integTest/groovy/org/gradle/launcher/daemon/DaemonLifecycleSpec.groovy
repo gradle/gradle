@@ -353,6 +353,11 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         daemonContext(0) {
             assert(new DaemonDir(executer.daemonBaseDir).registry.exists())
         }
+
+        when:
+        waitForDaemonExpiration(0)
+
+        then:
         completeBuild(0)
         completeBuild(1)
 
