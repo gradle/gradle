@@ -30,7 +30,9 @@ open class GenerateConfigurationExtensions : DefaultTask() {
     @TaskAction
     fun generate() {
         outputFile!!.writeText(
-            """package org.gradle.script.lang.kotlin
+            """$licenseHeader
+
+package org.gradle.script.lang.kotlin
 
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
