@@ -52,7 +52,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def "no task is re-executed when inputs are unchanged"() {
         when:
-        succeedsWithCache "assemble"
+        succeedsWithCache "jar"
         then:
         skippedTasks.empty
 
@@ -60,9 +60,9 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeedsWithCache "clean"
 
         when:
-        succeedsWithCache "assemble"
+        succeedsWithCache "jar"
         then:
-        nonSkippedTasks.empty
+        skippedTasks.containsAll ":compileJava", ":jar"
     }
 
     def "outputs are correctly loaded from cache"() {
@@ -90,8 +90,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         when:
         succeedsWithCache "assemble"
         then:
-        nonSkippedTasks.containsAll ":compileJava"
-        skippedTasks.containsAll ":processResources", ":jar"
+        nonSkippedTasks.contains ":compileJava"
+        skippedTasks.contains ":jar"
     }
 
     def "tasks get cached when source code changes back to previous state"() {
@@ -168,20 +168,51 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         nonSkippedTasks.contains ":clean"
     }
 
-    def "task with cache disabled doesn't get cached"() {
+    def "cacheable task with cache disabled doesn't get cached"() {
         buildFile << """
             compileJava.outputs.cacheIf { false }
         """
 
-        runWithCache "assemble"
+        runWithCache "compileJava"
         runWithCache "clean"
 
         when:
-        succeedsWithCache "assemble"
+        succeedsWithCache "compileJava"
         then:
         // :compileJava is not cached, but :jar is still cached as its inputs haven't changed
         nonSkippedTasks.contains ":compileJava"
-        skippedTasks.contains ":jar"
+    }
+
+    def "non-cacheable task with cache enabled gets cached"() {
+        file("input.txt") << "data"
+        buildFile << """
+            class NonCacheableTask extends DefaultTask {
+                @InputFile inputFile
+                @OutputFile outputFile
+
+                @TaskAction copy() {
+                    project.mkdir outputFile.parentFile
+                    outputFile.text = inputFile.text
+                }
+            }
+            task customTask(type: NonCacheableTask) {
+                inputFile = file("input.txt")
+                outputFile = file("\$buildDir/output.txt")
+                outputs.cacheIf { true }
+            }
+            compileJava.dependsOn customTask
+        """
+
+        when:
+        runWithCache "jar"
+        then:
+        nonSkippedTasks.contains ":customTask"
+
+        when:
+        runWithCache "clean"
+        succeedsWithCache "jar"
+        then:
+        skippedTasks.contains ":customTask"
     }
 
     def runWithCache(String... tasks) {
