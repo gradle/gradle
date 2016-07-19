@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
-import org.gradle.internal.hash.HashValue;
 
 class FileHashSnapshot implements IncrementalFileSnapshot, FileSnapshot {
-    final HashValue hash;
-    final transient long lastModified; // Currently not persisted
+    private final HashCode hash;
+    private final transient long lastModified; // Currently not persisted
 
-    public FileHashSnapshot(HashValue hash) {
+    public FileHashSnapshot(HashCode hash) {
         this(hash, 0L);
     }
 
-    public FileHashSnapshot(HashValue hash, long lastModified) {
+    public FileHashSnapshot(HashCode hash, long lastModified) {
         this.hash = hash;
         this.lastModified = lastModified;
     }
@@ -51,15 +51,16 @@ class FileHashSnapshot implements IncrementalFileSnapshot, FileSnapshot {
 
     @Override
     public String toString() {
-        return hash.asHexString();
+        return hash.toString();
     }
 
-    public HashValue getHash() {
+    @Override
+    public HashCode getHash() {
         return hash;
     }
 
     @Override
     public void appendToCacheKey(TaskCacheKeyBuilder builder) {
-        builder.putBytes(hash.asByteArray());
+        builder.putHashCode(hash);
     }
 }

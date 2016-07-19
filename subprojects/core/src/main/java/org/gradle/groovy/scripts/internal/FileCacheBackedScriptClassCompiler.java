@@ -15,6 +15,7 @@
  */
 package org.gradle.groovy.scripts.internal;
 
+import com.google.common.hash.HashCode;
 import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
@@ -28,6 +29,7 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.model.dsl.internal.transform.RuleVisitor;
@@ -114,7 +116,8 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     private String hashFor(ScriptSource source) {
-        return snapshotter.snapshot(source.getResource()).getHash().asCompactString();
+        HashCode hash = snapshotter.snapshot(source.getResource()).getHash();
+        return new HashValue(hash.asBytes()).asCompactString();
     }
 
     public void close() {

@@ -16,6 +16,8 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.collect.Iterators
+import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTreeElement
 import org.gradle.api.internal.cache.StringInterner
@@ -23,7 +25,6 @@ import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.FileChange
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.ChangeListener
@@ -44,12 +45,12 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
     def setup() {
         fileSnapshotter.snapshot(_) >> { FileTreeElement fileTreeElement ->
             return Stub(FileSnapshot) {
-                getHash() >> HashUtil.sha1(fileTreeElement.file)
+                getHash() >> Files.asByteSource(fileTreeElement.file).hash(Hashing.md5())
             }
         }
         fileSnapshotter.snapshot(_) >> { File file ->
             return Stub(FileSnapshot) {
-                getHash() >> HashUtil.sha1(file)
+                getHash() >> Files.asByteSource(file).hash(Hashing.md5())
             }
         }
         cacheAccess.useCache(_, _) >> { String name, Runnable action ->

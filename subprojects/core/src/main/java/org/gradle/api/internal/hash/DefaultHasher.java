@@ -15,13 +15,20 @@
  */
 package org.gradle.api.internal.hash;
 
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
+import com.google.common.io.Files;
+import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
+import java.io.IOException;
 
 public class DefaultHasher implements Hasher {
-    public HashValue hash(File file) {
-        return HashUtil.createHash(file, "MD5");
+    public HashCode hash(File file) {
+        try {
+            return Files.asByteSource(file).hash(Hashing.md5());
+        } catch (IOException e) {
+            throw new UncheckedIOException(String.format("Failed to create MD5 hash for file '%s'.", file), e);
+        }
     }
 }
