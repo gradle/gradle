@@ -212,6 +212,24 @@ class GradleScriptKotlinIntegrationTest {
             existing("classes.jar"))
     }
 
+    @Test
+    fun `can serve buildscript classpath of non top level script required by Groovy script`() {
+
+        withFile("build.gradle", """
+            apply from: 'build.gradle.kts'
+
+            // sourceSets container is only available after build.gradle.kts
+            sourceSets { main.java.srcDirs += file('more') }
+        """)
+
+        withFile("build.gradle.kts", """
+            apply<JavaPlugin>()
+        """)
+
+        assert(
+            kotlinBuildScriptModel().classPath.isNotEmpty())
+    }
+
     private fun buildSrcOutput(): File =
         existing("buildSrc/build/classes/main")
 

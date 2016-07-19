@@ -45,7 +45,7 @@ class KotlinScriptPluginFactory(classPathRegistry: ClassPathRegistry) : ScriptPl
             scriptSource, topLevelScript, scriptHandler as ScriptHandlerInternal,
             targetScope, baseScope, gradleApiJars, logger).run {
 
-            val script = if (inClassPathMode()) compileForClassPath() else compile()
+            val script = if (topLevelScript && inClassPathMode()) compileForClassPath() else compile()
             KotlinScriptPlugin(scriptSource, script)
         }
 
