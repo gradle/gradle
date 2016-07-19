@@ -20,7 +20,7 @@ import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.ClassPath
 
 /**
- * A [VisitableURLClassLoader] that tries to load classes locally before delegating to the parent.
+ * A [VisitableURLClassLoader] that tries to load classes locally before delegating to its parent.
  */
 class PostDelegatingClassLoader(parent: ClassLoader, classPath: ClassPath) : VisitableURLClassLoader(parent, classPath) {
 
