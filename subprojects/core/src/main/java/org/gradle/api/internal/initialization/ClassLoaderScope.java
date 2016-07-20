@@ -18,6 +18,8 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.internal.classpath.ClassPath;
 
+import java.io.Closeable;
+
 /**
  * Represents a particular node in the ClassLoader graph.
  *
@@ -25,7 +27,7 @@ import org.gradle.internal.classpath.ClassPath;
  *
  * Use of this class allows class loader creation to be lazy, and potentially optimised. It also provides a central location for class loader reuse.
  */
-public interface ClassLoaderScope {
+public interface ClassLoaderScope extends Closeable {
 
     /**
      * The classloader for use at this node.

@@ -27,8 +27,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
-import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -51,9 +49,13 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
+import org.gradle.plugin.repository.internal.PluginRepositoryFactory;
+import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginRequestsSerializer;
+
+import java.io.IOException;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final static StringInterner INTERNER = new StringInterner();
@@ -175,6 +177,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {
                     runner.run(target, services);
+                    try {
+                        targetScope.close();
+                    } catch (IOException ignored) {
+                        // Should never happen.
+                    }
                 }
             };
 
