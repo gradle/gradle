@@ -29,49 +29,11 @@ import java.io.File
 import java.io.FileOutputStream
 
 /**
- * Checks all sample projects under _samples_.
- */
-open class CheckSamples() : AbstractCheckSampleTask() {
-
-    override fun getDescription() =
-        "Checks each sample by running `gradle help` on it."
-
-    override fun inputDir() = project.samplesDir()
-
-    @TaskAction
-    fun run() {
-        withUniqueDaemonRegistry {
-            project.sampleDirs().forEach { sampleDir ->
-                println("Checking ${relativeFile(sampleDir)}...")
-                check(sampleDir)
-            }
-        }
-    }
-
-    private fun relativeFile(file: File) =
-        file.relativeTo(project.projectDir)
-}
-
-/**
  * Checks a single sample project.
  */
-open class CheckSample() : AbstractCheckSampleTask() {
+open class CheckSample() : DefaultTask() {
 
     var sampleDir: File? = null
-
-    override fun inputDir() = sampleDir!!
-
-    @TaskAction
-    fun run() {
-        withUniqueDaemonRegistry {
-            check(sampleDir!!)
-        }
-    }
-}
-
-abstract class AbstractCheckSampleTask : DefaultTask() {
-
-    abstract protected fun inputDir(): File
 
     @get:InputDirectory
     var installation: File? = null
@@ -79,7 +41,7 @@ abstract class AbstractCheckSampleTask : DefaultTask() {
     @Suppress("unused")
     @get:InputFiles
     val inputFiles: FileCollection by lazy {
-        project.fileTree(inputDir()).apply {
+        project.fileTree(sampleDir!!).apply {
             include("**/*.gradle")
             include("**/*.gradle.kts")
         }
@@ -87,10 +49,23 @@ abstract class AbstractCheckSampleTask : DefaultTask() {
 
     @get:OutputDirectory
     val outputDir: File by lazy {
-        File(project.buildDir, "check-samples")
+        File(buildDir, "check-samples")
     }
 
-    protected fun check(sampleDir: File) {
+    @TaskAction
+    fun run() {
+        withDaemonRegistry(customDaemonRegistry()) {
+            check(sampleDir!!)
+        }
+    }
+
+    private fun customDaemonRegistry() =
+        File(buildDir, "custom/daemon-registry")
+
+    private val buildDir: File?
+        get() = project.buildDir
+
+    private fun check(sampleDir: File) {
         outputStreamForResultOf(sampleDir).use { stdout ->
             runGradleHelpOn(sampleDir, stdout)
         }

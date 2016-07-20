@@ -81,12 +81,8 @@ task benchmark(type: integration.Benchmark, dependsOn: customInstallation) {
 
 
 // -- Integration testing ---------------------------------------------
-task checkSamples(type: integration.CheckSamples, dependsOn: customInstallation) {
-    installation = customInstallationDir
-}
-check.dependsOn checkSamples
 
-// To quickly iterate on a single sample, for instance:
+// Checks a single sample, for instance:
 //
 //     check-hello-kotlin
 //
@@ -97,9 +93,17 @@ tasks.addRule('Pattern: check-<SAMPLE>') { taskName ->
             installation = customInstallationDir
             sampleDir = file("samples/${taskName - 'check-'}")
         }
-        task(taskName).dependsOn (checkSample)
+        task(taskName).dependsOn(checkSample)
     }
 }
+
+task checkSamples {
+    description 'Checks all samples'
+    file('samples').eachDir {
+        dependsOn "check-${it.name}"
+    }
+}
+check.dependsOn checkSamples
 
 task prepareIntegrationTestFixtures(type: GradleBuild) {
     dir = file('fixtures')
