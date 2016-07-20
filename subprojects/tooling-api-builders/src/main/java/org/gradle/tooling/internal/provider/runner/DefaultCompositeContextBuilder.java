@@ -76,7 +76,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
 
     private GradleLauncher createGradleLauncher(StartParameter participantStartParam, BuildRequestContext requestContext, GradleLauncherFactory gradleLauncherFactory) {
         if (requestContext == null) {
-            return gradleLauncherFactory.newInstance(participantStartParam, sharedServices, false);
+            return gradleLauncherFactory.nestedInstance(participantStartParam, sharedServices);
         }
 
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(participantStartParam, requestContext, sharedServices);

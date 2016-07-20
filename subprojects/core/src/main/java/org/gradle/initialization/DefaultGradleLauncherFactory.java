@@ -70,13 +70,19 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices.get(ListenerManager.class).removeListener(listener);
     }
 
-    // TODO:DAZ Give the next 2 methods better names (and better docs)
     @Override
-    public GradleLauncher newInstance(StartParameter startParameter) {
-        return newInstance(startParameter, sharedServices, true);
+    public GradleLauncher nestedInstance(StartParameter startParameter) {
+        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(sharedServices, startParameter);
+        return createChildInstance(startParameter, buildScopeServices);
     }
 
-    public GradleLauncher newInstance(StartParameter startParameter, ServiceRegistry parentRegistry, boolean newSession) {
+    public GradleLauncher nestedInstance(StartParameter startParameter, ServiceRegistry buildSessionServices) {
+        final BuildScopeServices buildScopeServices = createBuildScopeServices(buildSessionServices);
+
+        return createChildInstance(startParameter, buildScopeServices);
+    }
+
+    private GradleLauncher createChildInstance(StartParameter startParameter, BuildScopeServices buildScopeServices) {
         if (tracker.getCurrentBuild() == null) {
             throw new IllegalStateException("Must have a current build");
         }
@@ -86,7 +92,6 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
 
-        final BuildScopeServices buildScopeServices = createBuildScopeServices(startParameter, parentRegistry, newSession);
         return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 
@@ -97,7 +102,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             throw new IllegalStateException("Cannot have a current build");
         }
 
-        BuildScopeServices buildScopeServices = createBuildScopeServices(startParameter, parentRegistry, false);
+        BuildScopeServices buildScopeServices = createBuildScopeServices(parentRegistry);
 
         DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
@@ -105,11 +110,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         return launcher;
     }
 
-    private BuildScopeServices createBuildScopeServices(StartParameter startParameter, ServiceRegistry parentRegistry, boolean newSession) {
-        if (newSession) {
-            return BuildScopeServices.singleSession(parentRegistry, startParameter);
-        }
-
+    private BuildScopeServices createBuildScopeServices(ServiceRegistry parentRegistry) {
         if (!(parentRegistry instanceof BuildSessionScopeServices)) {
             throw new IllegalArgumentException("Service registry must be of build session scope");
         }

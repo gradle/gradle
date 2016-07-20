@@ -54,7 +54,7 @@ class BuildSourceBuilderTest extends Specification {
         def classpath = Mock(ClassPath)
         def launcher = Mock(GradleLauncher)
         executor.run(_, _) >> { BuildOperationDetails details, Factory factory -> return factory.create() }
-        launcherFactory.newInstance(_) >> launcher
+        launcherFactory.nestedInstance(_) >> launcher
         buildSourceBuilder.createCache(parameter) >> cache
         cache.useCache(_ as String, _ as BuildSrcUpdateFactory) >> classpath
 

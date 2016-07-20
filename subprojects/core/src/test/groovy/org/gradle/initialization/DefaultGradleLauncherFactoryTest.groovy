@@ -50,7 +50,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
 
     def "cannot create child launcher when no outer build is running"() {
         when:
-        factory.newInstance(startParameter)
+        factory.nestedInstance(startParameter)
 
         then:
         thrown IllegalStateException
@@ -70,7 +70,7 @@ class DefaultGradleLauncherFactoryTest extends Specification {
         parent.buildListener.buildStarted(parent.gradle)
 
         expect:
-        def launcher = factory.newInstance(startParameter)
+        def launcher = factory.nestedInstance(startParameter)
         launcher.gradle.parent == parent.gradle
         def request = launcher.gradle.services.get(BuildRequestMetaData)
         request instanceof DefaultBuildRequestMetaData
