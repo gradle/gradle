@@ -401,6 +401,7 @@ We would like to thank the following community members for making contributions 
  - [Ethan Hall](https://github.com/ethankhall) - Fixing documentation from candidate.name to candidate.module
  - [Sebastian Schuberth](https://github.com/sschuberth) - Minor style fixes
  - [Rob	Upcraft](https://github.com/upcrob) - Fix spelling in documentation
+ - [Emmanuel Bourg](https://github.com/ebourg) - Use the JCIP ThreadSafe annotation instead of the one from httpcomponents
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
