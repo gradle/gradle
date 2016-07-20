@@ -78,8 +78,8 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapsho
     @Override
     public FileSnapshot findSnapshot(File file) {
         IncrementalFileSnapshot s = snapshots.get(file.getAbsolutePath());
-        if (s instanceof FileSnapshot) {
-            return (FileSnapshot) s;
+        if (s instanceof FileHashSnapshot) {
+            return s;
         }
         return null;
     }
@@ -151,7 +151,7 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapsho
         for (String key : keys) {
             builder.putString(key);
             IncrementalFileSnapshot snapshot = snapshots.get(key);
-            snapshot.appendToCacheKey(builder);
+            builder.putHashCode(snapshot.getHash());
         }
     }
 }
