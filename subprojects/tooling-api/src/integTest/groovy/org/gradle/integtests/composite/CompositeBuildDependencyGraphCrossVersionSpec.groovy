@@ -19,6 +19,8 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.composite.fixtures.ProjectTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import spock.lang.Unroll
+
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
@@ -132,11 +134,9 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBui
         }
     }
 
-    def "substitutes external dependency with root project dependency using settings.gradle"() {
+    def "substitutes external dependency with project dependency using --include-build"() {
         given:
-        buildA.settingsFile << """
-            includeBuild '../buildB'
-"""
+        withArgs(["--include-build", '../buildB'])
         buildA.buildFile << """
             dependencies {
                 compile "org.test:buildB:1.0"

@@ -28,24 +28,23 @@ import org.gradle.test.fixtures.file.TestFile
 abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     List builds = []
 
-    protected void execute(File build, String task, Iterable<String> arguments = []) {
+    protected void execute(ProjectTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         succeeds(task)
     }
 
-    protected void fails(File build, String task, Iterable<String> arguments = []) {
+    protected void fails(ProjectTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         fails(task)
     }
 
-    private void prepare(File build, Iterable<String> arguments) {
+    private void prepare(ProjectTestFile build, Iterable<String> arguments) {
         executer.inDirectory(build)
 
         List<File> includedBuilds = Lists.newArrayList(builds)
         includedBuilds.remove(build)
         for (File includedBuild : includedBuilds) {
-            executer.withArgument("--include-build")
-            executer.withArgument(includedBuild.path)
+            build.settingsFile << "includeBuild '${includedBuild.path}'\n"
         }
         for (String arg : arguments) {
             executer.withArgument(arg)

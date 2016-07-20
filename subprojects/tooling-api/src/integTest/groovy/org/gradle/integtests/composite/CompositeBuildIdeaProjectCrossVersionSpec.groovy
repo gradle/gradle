@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.composite.fixtures.ProjectTestFile
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -24,8 +25,8 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
  * Tests for generating IDEA metadata for projects within a composite build.
  */
 class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
-    TestFile buildA
-    TestFile buildB
+    ProjectTestFile buildA
+    ProjectTestFile buildB
     MavenFileRepository mavenRepo
 
     def setup() {
@@ -333,7 +334,7 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
         imlHasDependencies "b1", "buildC", "c2"
     }
 
-    def dependency(TestFile buildRoot = buildA, String notation) {
+    def dependency(ProjectTestFile buildRoot = buildA, String notation) {
         buildRoot.buildFile << """
             dependencies {
                 compile '${notation}'
@@ -341,7 +342,7 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
 """
     }
 
-    def idea(TestFile projectDir = buildA) {
+    def idea(ProjectTestFile projectDir = buildA) {
         execute(projectDir, ":idea")
     }
 
