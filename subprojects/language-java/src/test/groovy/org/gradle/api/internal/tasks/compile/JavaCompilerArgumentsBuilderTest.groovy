@@ -337,6 +337,29 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.includeCustomizations(false).build() == ["-g"]
     }
 
+    def "generates -processorpath option"() {
+        def file1 = new File("/lib/lib1.jar")
+        def file2 = new File("/lib/lib2.jar")
+        spec.compileOptions.processorpath = new SimpleFileCollection(file1, file2)
+
+        expect:
+        builder.build() == ["-g", "-processorpath", asPath(file1, file2), USE_UNSHARED_COMPILER_TABLE_OPTION]
+    }
+
+    def "generates -processor option"() {
+        spec.compileOptions.processors = ["foo.FooProcessor", "bar.BarProcessor"]
+
+        expect:
+        builder.build() == ["-g", "-processor", "foo.FooProcessor,bar.BarProcessor", USE_UNSHARED_COMPILER_TABLE_OPTION]
+    }
+
+    def "generates processor arguments options"() {
+        spec.compileOptions.processorArgs = [foo: "bar", baz: "qux"]
+
+        expect:
+        builder.build() == ["-g", "-Afoo=bar", "-Abaz=qux", USE_UNSHARED_COMPILER_TABLE_OPTION]
+    }
+
     String asPath(File... files) {
         new SimpleFileCollection(files).asPath
     }
