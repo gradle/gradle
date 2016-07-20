@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
@@ -38,25 +39,30 @@ import java.util.Set;
 class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapshotSet {
     final Map<String, IncrementalFileSnapshot> snapshots;
     final List<TreeSnapshot> treeSnapshots;
+    final boolean orderSensitive;
 
-    public FileCollectionSnapshotImpl(List<TreeSnapshot> treeSnapshots) {
-        this.treeSnapshots = ImmutableList.copyOf(treeSnapshots);
-        this.snapshots = new HashMap<String, IncrementalFileSnapshot>();
-        for(TreeSnapshot treeSnapshot : treeSnapshots) {
-            addSnapshots(treeSnapshot.getFileSnapshots());
-        }
+    public FileCollectionSnapshotImpl(List<TreeSnapshot> treeSnapshots, boolean orderSensitive) {
+        this(convertTreeSnapshots(treeSnapshots), ImmutableList.copyOf(treeSnapshots), orderSensitive);
     }
 
-    public FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots) {
+    public FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots, boolean orderSensitive) {
+        this(snapshots, null, orderSensitive);
+    }
+
+    private FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots, List<TreeSnapshot> treeSnapshots, boolean orderSensitive) {
         this.snapshots = snapshots;
-        this.treeSnapshots = null;
+        this.treeSnapshots = treeSnapshots;
+        this.orderSensitive = orderSensitive;
     }
 
-
-    private void addSnapshots(Collection<FileSnapshotWithKey> fileSnapshots) {
-        for(FileSnapshotWithKey fileSnapshotWithKey : fileSnapshots) {
-            snapshots.put(fileSnapshotWithKey.getKey(), fileSnapshotWithKey.getIncrementalFileSnapshot());
+    private static Map<String, IncrementalFileSnapshot> convertTreeSnapshots(List<TreeSnapshot> treeSnapshots) {
+        Map<String, IncrementalFileSnapshot> snapshots = Maps.newLinkedHashMap();
+        for (TreeSnapshot treeSnapshot : treeSnapshots) {
+            for(FileSnapshotWithKey fileSnapshotWithKey : treeSnapshot.getFileSnapshots()) {
+                snapshots.put(fileSnapshotWithKey.getKey(), fileSnapshotWithKey.getIncrementalFileSnapshot());
+            }
         }
+        return snapshots;
     }
 
     public List<File> getFiles() {
@@ -94,7 +100,7 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapsho
         List<Long> snapshotIds = new ArrayList<Long>();
         if (treeSnapshots != null) {
             for (TreeSnapshot treeSnapshot : treeSnapshots) {
-                if (treeSnapshot.isShareable() && treeSnapshot.getAssignedId() != null && treeSnapshot.getAssignedId().longValue() != -1) {
+                if (treeSnapshot.isShareable() && treeSnapshot.getAssignedId() != null && treeSnapshot.getAssignedId() != -1L) {
                     snapshotIds.add(treeSnapshot.getAssignedId());
                 }
             }
@@ -107,9 +113,14 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapsho
         return snapshots.isEmpty();
     }
 
-
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, final String fileType, final Set<ChangeFilter> filters) {
+    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType, Set<ChangeFilter> filters) {
+        return orderSensitive
+            ? iterateOrderSensitiveContentChangesSince(oldSnapshot, fileType)
+            : iterateOrderInsensitiveContentChangesSince(oldSnapshot, fileType, filters);
+    }
+
+    private Iterator<TaskStateChange> iterateOrderInsensitiveContentChangesSince(FileCollectionSnapshot oldSnapshot, final String fileType, Set<ChangeFilter> filters) {
         final Map<String, IncrementalFileSnapshot> otherSnapshots = new HashMap<String, IncrementalFileSnapshot>(oldSnapshot.getSnapshots());
         final Iterator<String> currentFiles = snapshots.keySet().iterator();
         final boolean includeAdded = !filters.contains(ChangeFilter.IgnoreAddedFiles);
@@ -144,14 +155,52 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapsho
         };
     }
 
+    private Iterator<TaskStateChange> iterateOrderSensitiveContentChangesSince(FileCollectionSnapshot oldSnapshot, final String fileType) {
+        final Iterator<Map.Entry<String, IncrementalFileSnapshot>> currentEntries = snapshots.entrySet().iterator();
+        final Iterator<Map.Entry<String, IncrementalFileSnapshot>> otherEntries = oldSnapshot.getSnapshots().entrySet().iterator();
+        return new AbstractIterator<TaskStateChange>() {
+            @Override
+            protected TaskStateChange computeNext() {
+                while (true) {
+                    if (currentEntries.hasNext()) {
+                        Map.Entry<String, IncrementalFileSnapshot> current = currentEntries.next();
+                        if (otherEntries.hasNext()) {
+                            Map.Entry<String, IncrementalFileSnapshot> other = otherEntries.next();
+                            if (current.getKey().equals(other.getKey())) {
+                                if (current.getValue().isContentUpToDate(other.getValue())) {
+                                    continue;
+                                } else {
+                                    return new FileChange(current.getKey(), ChangeType.MODIFIED, fileType);
+                                }
+                            } else {
+                                return new FileChange(current.getKey(), ChangeType.MODIFIED, fileType);
+                            }
+                        } else {
+                            return new FileChange(current.getKey(), ChangeType.ADDED, fileType);
+                        }
+                    } else {
+                        if (otherEntries.hasNext()) {
+                            return new FileChange(otherEntries.next().getKey(), ChangeType.REMOVED, fileType);
+                        } else {
+                            return endOfData();
+                        }
+                    }
+                }
+            }
+        };
+    }
+
     @Override
     public void appendToCacheKey(TaskCacheKeyBuilder builder) {
+        FileCollectionHashBuilder hashBuilder = orderSensitive
+            ? new OrderInsensitiveFileCollectionHashBuilder(snapshots.size(), builder)
+            : new OrderSensitiveFileCollectionHashBuilder(builder);
         List<String> keys = Lists.newArrayList(snapshots.keySet());
         Collections.sort(keys);
         for (String key : keys) {
-            builder.putString(key);
             IncrementalFileSnapshot snapshot = snapshots.get(key);
-            builder.putHashCode(snapshot.getHash());
+            hashBuilder.hash(key, snapshot.getHash());
         }
+        hashBuilder.close();
     }
 }

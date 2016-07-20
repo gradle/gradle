@@ -74,15 +74,15 @@ class TaskUpToDateStateTest extends Specification {
         1 * mockInputs.getProperties() >> [:]
         1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        1 * mockOutputFileSnapshotter.snapshot(_, _) >> stubSnapshot
-        1 * mockInputFileSnapshotter.snapshot(_, _) >> stubSnapshot
+        1 * mockOutputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
+        1 * mockInputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when input snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        _ * stubInputFileSnapshotter.snapshot(_, _) >> { throw cause }
+        _ * stubInputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
@@ -108,7 +108,7 @@ class TaskUpToDateStateTest extends Specification {
             }
         }
         def cause = new UncheckedIOException("thrown from stub")
-        _ * stubOutputFileSnapshotter.snapshot(_, _) >> { throw cause }
+        _ * stubOutputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
@@ -127,7 +127,8 @@ class TaskUpToDateStateTest extends Specification {
         return props.collect { entry ->
             return new PropertySpec(
                 propertyName: entry.key,
-                propertyFiles: new SimpleFileCollection([new File(entry.value)])
+                propertyFiles: new SimpleFileCollection([new File(entry.value)]),
+                orderSensitive: false
             )
         } as SortedSet
     }
@@ -135,6 +136,7 @@ class TaskUpToDateStateTest extends Specification {
     private static class PropertySpec implements TaskFilePropertySpec {
         String propertyName
         FileCollection propertyFiles
+        boolean orderSensitive
 
         @Override
         int compareTo(TaskPropertySpec o) {

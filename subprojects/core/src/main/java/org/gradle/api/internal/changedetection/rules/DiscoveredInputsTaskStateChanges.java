@@ -51,12 +51,12 @@ public class DiscoveredInputsTaskStateChanges extends AbstractFileSnapshotTaskSt
     @Override
     public FileCollectionSnapshot getCurrent() {
         // Get the current state of the files from the previous execution
-        return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getFiles()));
+        return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getFiles()), false);
     }
 
     @Override
     public void saveCurrent() {
-        FileCollectionSnapshot discoveredFilesSnapshot = createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", discoveredFiles));
+        FileCollectionSnapshot discoveredFilesSnapshot = createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", discoveredFiles), false);
         current.setDiscoveredInputFilesSnapshot(discoveredFilesSnapshot);
     }
 

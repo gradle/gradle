@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.changedetection.state
+
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -58,7 +59,7 @@ class MinimalFileSetSnapshotterTest extends Specification {
         def collection = new SimpleFileCollection(included, missing, includedDirectory)
 
         when:
-        snapshot = minimalFileSnapshotter.snapshot(collection, true)
+        snapshot = minimalFileSnapshotter.snapshot(collection, true, false)
 
         then:
         findSnapshot(included) instanceof FileHashSnapshot

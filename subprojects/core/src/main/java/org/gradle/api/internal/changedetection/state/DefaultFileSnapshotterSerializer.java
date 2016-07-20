@@ -36,6 +36,7 @@ class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnaps
     }
 
     public FileCollectionSnapshotImpl read(Decoder decoder) throws Exception {
+        boolean orderSensitive = decoder.readBoolean();
         List<TreeSnapshot> treeSnapshots = new ArrayList<TreeSnapshot>();
         int sharedTreeCount = decoder.readSmallInt();
         for (int i = 0; i < sharedTreeCount; i++) {
@@ -46,10 +47,11 @@ class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnaps
         if (!nonShared.getFileSnapshots().isEmpty()) {
             treeSnapshots.add(nonShared);
         }
-        return new FileCollectionSnapshotImpl(treeSnapshots);
+        return new FileCollectionSnapshotImpl(treeSnapshots, orderSensitive);
     }
 
     public void write(Encoder encoder, FileCollectionSnapshotImpl value) throws Exception {
+        encoder.writeBoolean(value.orderSensitive);
         final List<TreeSnapshot> treeSnapshots = value.treeSnapshots;
         if (treeSnapshots != null) {
             TreeSnapshot nonShared = null;
@@ -81,5 +83,4 @@ class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnaps
             }
         }
     }
-
 }

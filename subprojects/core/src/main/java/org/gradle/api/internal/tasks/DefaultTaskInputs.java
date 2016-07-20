@@ -213,6 +213,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final TaskPropertyFileCollection files;
         private boolean skipWhenEmpty;
         private boolean optional;
+        private boolean orderSensitive;
 
         public PropertySpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
             this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
@@ -258,6 +259,22 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         @Override
         public TaskInputFilePropertyBuilder optional() {
             return optional(true);
+        }
+
+        @Override
+        public boolean isOrderSensitive() {
+            return orderSensitive;
+        }
+
+        @Override
+        public TaskInputFilePropertyBuilder orderSensitive() {
+            return orderSensitive(true);
+        }
+
+        @Override
+        public TaskInputFilePropertyBuilder orderSensitive(boolean orderSensitive) {
+            this.orderSensitive = orderSensitive;
+            return this;
         }
 
         // --- Deprecated delegate methods
