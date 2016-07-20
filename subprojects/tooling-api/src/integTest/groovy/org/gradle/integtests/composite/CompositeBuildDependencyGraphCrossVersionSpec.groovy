@@ -438,7 +438,8 @@ include ':b1:b11'
         }
     }
 
-    def "evaluates subprojects when substituting external dependencies with subproject dependencies"() {
+    @Unroll
+    def "evaluates subprojects when substituting external dependencies with #name"() {
         given:
         buildA.buildFile << """
             dependencies {
@@ -465,7 +466,7 @@ afterEvaluate {
 
         where:
         name                  | args
-        "regular"             | []
+        "regular build"       | []
         "configure on demand" | ["--configure-on-demand"]
         "parallel"            | ["--parallel"]
     }
@@ -753,12 +754,12 @@ afterEvaluate {
 
     private void checkDependencies() {
         resolve.prepare()
-        execute(buildA, ":checkDeps")
+        execute(buildA, ":checkDeps", buildArgs)
     }
 
     private void checkDependenciesFails() {
         resolve.prepare()
-        fails(buildA, ":checkDeps")
+        fails(buildA, ":checkDeps", buildArgs)
     }
 
     void checkGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {

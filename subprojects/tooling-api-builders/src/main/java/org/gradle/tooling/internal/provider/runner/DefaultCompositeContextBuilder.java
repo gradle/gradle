@@ -64,7 +64,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
 
             participantStartParam.setConfigureOnDemand(false);
             if (participantStartParam.getLogLevel() == LogLevel.LIFECYCLE) {
-                participantStartParam.setLogLevel(LogLevel.QUIET);
+                participantStartParam.setLogLevel(LogLevel.WARN);
                 LOGGER.lifecycle("[composite-build] Configuring participant: " + participant.getProjectDir());
             }
 
