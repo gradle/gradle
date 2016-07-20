@@ -134,9 +134,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
         // TODO:DAZ Move this into a subtype, rather than having the `createCompositeContext` flag.
         Collection<GradleParticipantBuild> participantBuilds = getBuildRoots(gradle.getStartParameter(), settings);
         if (createCompositeContext && !participantBuilds.isEmpty()) {
-            BuildRequestMetaData metaData = buildServices.get(BuildRequestMetaData.class);
             CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
-            compositeContextBuilder.addToCompositeContext(participantBuilds, metaData.getClient(), true);
+            compositeContextBuilder.addToCompositeContext(participantBuilds, true);
         }
 
         // Configure build

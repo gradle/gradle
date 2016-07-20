@@ -26,8 +26,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
-import org.gradle.initialization.ReportedException;
-import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -45,12 +43,10 @@ import java.util.Set;
 public class CompositeContextBuildActionRunner {
     private final CompositeBuildContext context;
     private final boolean propagateFailures;
-    private final BuildExceptionReporter exceptionReporter;
 
-    public CompositeContextBuildActionRunner(CompositeBuildContext context, boolean propagateFailures, BuildExceptionReporter exceptionReporter) {
+    public CompositeContextBuildActionRunner(CompositeBuildContext context, boolean propagateFailures) {
         this.context = context;
         this.propagateFailures = propagateFailures;
-        this.exceptionReporter = exceptionReporter;
     }
 
     public void run(BuildController buildController) {
@@ -62,11 +58,8 @@ public class CompositeContextBuildActionRunner {
             for (Project project : rootProject.getAllprojects()) {
                 registerProject(participantName, (ProjectInternal) project);
             }
-        } catch (ReportedException e) {
-            maybeRethrow(e);
         } catch (RuntimeException e) {
-            exceptionReporter.execute(e);
-            maybeRethrow(new ReportedException(e));
+            maybeRethrow(e);
         }
     }
 

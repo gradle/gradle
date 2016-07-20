@@ -21,14 +21,11 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.composite.CompositeContextBuildActionRunner;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.composite.GradleParticipantBuild;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.GradleBuildController;
 
@@ -46,21 +43,19 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     }
 
     @Override
-    public void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
-        BuildClientMetaData client = requestContext.getClient();
-        addToCompositeContext(participantBuilds, requestContext, client, propagateFailures);
+    public void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, boolean propagateFailures) {
+        doAddToCompositeContext(participantBuilds, null, propagateFailures);
     }
 
     @Override
-    public void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildClientMetaData client, boolean propagateFailures) {
-        addToCompositeContext(participantBuilds, null, client, propagateFailures);
+    public void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
+        doAddToCompositeContext(participantBuilds, requestContext, propagateFailures);
     }
 
-    private void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, BuildClientMetaData client, boolean propagateFailures) {
+    private void doAddToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeBuildContext context = sharedServices.get(CompositeBuildContext.class);
-        BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(sharedServices.get(StyledTextOutputFactory.class), buildStartParam, client);
-        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context, propagateFailures, exceptionReporter);
+        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context, propagateFailures);
 
         for (GradleParticipantBuild participant : participantBuilds) {
             StartParameter participantStartParam = buildStartParam.newInstance();

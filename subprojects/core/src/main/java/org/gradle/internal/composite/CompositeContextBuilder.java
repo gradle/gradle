@@ -16,10 +16,16 @@
 
 package org.gradle.internal.composite;
 
-import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.BuildRequestContext;
 
 public interface CompositeContextBuilder {
+    /**
+     * Add the participants to the composite context, using the currently executing build context.
+     */
+    void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, boolean propagateFailures);
+
+    /**
+     * Add the participants to the composite context, creating a new GradleLauncher using the supplied build context.
+     */
     void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, boolean propagateFailures);
-    void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildClientMetaData client, boolean propagateFailures);
 }
