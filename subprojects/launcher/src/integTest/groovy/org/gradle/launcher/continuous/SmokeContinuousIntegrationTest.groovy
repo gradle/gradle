@@ -175,43 +175,6 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         output.contains("Exiting continuous build as no executed tasks declared file system inputs.")
     }
 
-    def "reuses build script classes"() {
-        given:
-        def markerFile = file("marker")
-
-        when:
-        markerFile.text = "original"
-
-        buildFile << """
-            task echo {
-              inputs.files file("marker")
-              doLast {
-                println "value: " + file("marker").text
-                println "reuse: " + Reuse.initialized
-                Reuse.initialized = true
-              }
-            }
-            class Reuse {
-                public static Boolean initialized = false
-            }
-        """
-
-        then:
-        succeeds("echo")
-        output.contains "value: original"
-        output.contains "reuse: false"
-
-        when:
-        waitBeforeModification(markerFile)
-        markerFile.text = "changed"
-
-        then:
-        succeeds()
-        output.contains "value: changed"
-        output.contains "reuse: true"
-
-    }
-
     def "considered to be long lived process"() {
         when:
         buildFile << """

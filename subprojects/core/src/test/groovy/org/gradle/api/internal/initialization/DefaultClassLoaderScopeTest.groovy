@@ -48,6 +48,10 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope = root.createChild("child")
     }
 
+    def cleanup() {
+        scope.close();
+    }
+
     TestFile file(String path) {
         testDirectoryProvider.testDirectory.file(path)
     }
@@ -56,32 +60,12 @@ class DefaultClassLoaderScopeTest extends Specification {
         new DefaultClassPath(paths.collect { file(it).createDir() } as Iterable<File>)
     }
 
-    def "locked scope with no modifications exports parent"() {
-        when:
-        scope.lock()
-
-        then:
-        scope.localClassLoader.is rootClassLoader
-        scope.exportClassLoader.is rootClassLoader
-    }
-
     def "locked empty scope does not define any classes"() {
         when:
         scope.lock()
 
         then:
         !scope.defines(String)
-    }
-
-    def "ignores empty classpaths"() {
-        when:
-        scope.export(classPath())
-        scope.local(classPath())
-        scope.lock()
-
-        then:
-        scope.localClassLoader.is rootClassLoader
-        scope.exportClassLoader.is rootClassLoader
     }
 
     def "locked scope with only exports uses same export and local loader"() {
@@ -127,7 +111,6 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.localClassLoader.getResource("foo").text == "foo"
         scope.localClassLoader.getResource("bar").text == "bar"
         scope.localClassLoader != scope.exportClassLoader
-        scope.exportClassLoader.is rootClassLoader
     }
 
     def "locked scope with only one local exports parent loader to children and uses loader as local loader"() {
@@ -140,7 +123,6 @@ class DefaultClassLoaderScopeTest extends Specification {
         scope.localClassLoader.getResource("foo").text == "foo"
         scope.localClassLoader instanceof URLClassLoader
         scope.localClassLoader.parent.is rootClassLoader
-        scope.exportClassLoader.is rootClassLoader
     }
 
     def "locked scope with local and exports exports custom ClassLoader to children"() {

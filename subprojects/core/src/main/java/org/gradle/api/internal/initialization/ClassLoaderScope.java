@@ -102,4 +102,5 @@ public interface ClassLoaderScope extends Closeable {
 
     boolean isLocked();
 
+    ClassPath getExportClassPath();
 }

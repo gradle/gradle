@@ -19,6 +19,7 @@ package org.gradle.api.internal.initialization.loadercache;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.HashMultiset;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import org.gradle.api.Nullable;
@@ -76,6 +77,16 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
             CachedClassLoader cachedClassLoader = byId.remove(id);
             if (cachedClassLoader != null) {
                 cachedClassLoader.release(id);
+            }
+        }
+    }
+
+    @Override
+    public void clear() {
+        synchronized (lock) {
+            // Need to make a copy of the key set to avoid concurrent modification of byId.
+            for (ClassLoaderId id : ImmutableSet.copyOf(byId.keySet())) {
+                remove(id);
             }
         }
     }

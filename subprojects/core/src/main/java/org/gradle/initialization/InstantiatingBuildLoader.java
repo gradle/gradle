@@ -42,15 +42,17 @@ public class InstantiatingBuildLoader implements BuildLoader {
     }
 
     private void createProjects(ProjectDescriptor rootProjectDescriptor, GradleInternal gradle, ClassLoaderScope baseClassLoaderScope) {
-        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle, baseClassLoaderScope.createChild("root-project"), baseClassLoaderScope);
+        ClassLoaderScope rootProjectScope = baseClassLoaderScope.createChild("root-project");
+        ProjectInternal rootProject = projectFactory.createProject(rootProjectDescriptor, null, gradle, rootProjectScope, baseClassLoaderScope);
         gradle.setRootProject(rootProject);
-        addProjects(rootProject, rootProjectDescriptor, gradle, baseClassLoaderScope);
+        addChildProjects(rootProject, rootProjectDescriptor, gradle, baseClassLoaderScope);
     }
 
-    private void addProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle, ClassLoaderScope baseClassLoaderScope) {
+    private void addChildProjects(ProjectInternal parent, ProjectDescriptor parentProjectDescriptor, GradleInternal gradle, ClassLoaderScope baseClassLoaderScope) {
         for (ProjectDescriptor childProjectDescriptor : parentProjectDescriptor.getChildren()) {
-            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle, parent.getClassLoaderScope().createChild("project-" + childProjectDescriptor.getName()), baseClassLoaderScope);
-            addProjects(childProject, childProjectDescriptor, gradle, baseClassLoaderScope);
+            ClassLoaderScope childProjectScope = parent.getClassLoaderScope().createChild("project-" + childProjectDescriptor.getName());
+            ProjectInternal childProject = projectFactory.createProject(childProjectDescriptor, parent, gradle, childProjectScope, baseClassLoaderScope);
+            addChildProjects(childProject, childProjectDescriptor, gradle, baseClassLoaderScope);
         }
     }
 }

@@ -55,8 +55,6 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginRequestsSerializer;
 
-import java.io.IOException;
-
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final static StringInterner INTERNER = new StringInterner();
 
@@ -177,11 +175,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             Runnable buildScriptRunner = new Runnable() {
                 public void run() {
                     runner.run(target, services);
-                    try {
-                        targetScope.close();
-                    } catch (IOException ignored) {
-                        // Should never happen.
-                    }
                 }
             };
 

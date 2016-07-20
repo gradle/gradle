@@ -132,6 +132,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope baseClassLoaderScope;
+
     private ServiceRegistry services;
 
     private final ProjectInternal rootProject;

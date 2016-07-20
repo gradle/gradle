@@ -18,7 +18,6 @@ package org.gradle.integtests;
 import org.gradle.integtests.fixtures.AbstractIntegrationTest;
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder;
 import org.gradle.integtests.fixtures.executer.ExecutionFailure;
-import org.gradle.test.fixtures.file.LeaksFileHandles;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -34,7 +33,6 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @LeaksFileHandles("second build opens repo/test-1.3.jar and doesn't release")
     public void canExtendTheDefaultBuildForBuildSrcProject() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile("org/gradle/test/DepClass.java").writelns(
@@ -85,7 +83,6 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @LeaksFileHandles("second build opens repo/test-1.3.jar and doesn't release")
     public void canDeclareClasspathInBuildScript() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile("org/gradle/test/ImportedClass.java").writelns(
@@ -176,7 +173,6 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @LeaksFileHandles("second build opens repo/test-1.3.jar and doesn't release")
     public void inheritsClassPathOfParentProject() {
         ArtifactBuilder builder = artifactBuilder();
         builder.sourceFile("org/gradle/test/BuildClass.java").writelns(
@@ -194,7 +190,6 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "}"
         );
         testFile("child/build.gradle").writelns(
-                "assert parent.buildscript.classLoader == buildscript.classLoader",
                 "task hello << ",
                 "{",
                 "    new org.gradle.test.BuildClass()",

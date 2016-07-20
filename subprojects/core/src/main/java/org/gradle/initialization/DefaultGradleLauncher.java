@@ -19,15 +19,16 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.logging.LoggingManagerInternal;
 
 public class DefaultGradleLauncher extends GradleLauncher {
 
@@ -192,6 +193,16 @@ public class DefaultGradleLauncher extends GradleLauncher {
         try {
             loggingManager.stop();
             CompositeStoppable.stoppable(buildServices).stop();
+
+            try {
+                ProjectInternal rootProject = getGradle().getRootProject();
+                CompositeStoppable.stoppable(
+                    rootProject.getClassLoaderScope(),
+                    rootProject.getBaseClassLoaderScope()
+                ).stop();
+            } catch (IllegalStateException ignored) {
+                // getRootProject throws ISE instead of returning null when the root project hasn't been configured yet
+            }
         } finally {
             buildCompletionListener.completed();
         }

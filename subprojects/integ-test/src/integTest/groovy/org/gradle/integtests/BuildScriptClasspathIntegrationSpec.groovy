@@ -77,8 +77,8 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         result.assertOutputContains("hello again")
 
         where:
-        deleteIfExists << [false] * 3
-        loopNumber << (1..3).toList()
+        deleteIfExists << [false, true] * 3
+        loopNumber << (1..6).toList()
         sleepBefore = 1000L // fails on Linux when set to 1L
     }
 }
