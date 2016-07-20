@@ -42,12 +42,13 @@ The option can be repeated to get a report for several components.
 ### (Story) Hide non-buildable components by default
 
 By default, non-buildables components are not shown in the report.
-A `--all` option on `dependentComponents` task allows to show them all, annotated, so one can distinguish them from buildable ones.
+A `--non-buildables` option on `dependentComponents` task allows to show them all, annotated, so one can distinguish them from buildable ones.
+The `--all` option on `dependentComponents` task also allows to show them.
 
 #### Test coverage
 
 - [x] Non-buildable components are hidden from the report by default
-- [x] When `--all` task option is provided, non-buildable components are shown in the report
+- [ ] When `--non-buildables` or `--all` task option is provided, non-buildable components are shown in the report
 - [x] Reported non-buildable components are annotated to distinguish them from buildable components 
 - [x] Make sure we handle `util (non-buildable) <- lib <- exe`, `util <- lib (non-buildable) <- exe` and `util <- lib <- exe (non-buildable)`
 - [x] `gradle help --task dependentComponents` describes the `--all` task option 
@@ -57,13 +58,19 @@ A `--all` option on `dependentComponents` task allows to show them all, annotate
 - Enrich dependents resolution result with the buildability of components
 
 
-### (Story) Report dependent test suites
+### (Story) Report dependent test suites, hidden by default
 
 The report shows test suites components and include them in dependents graphs.
 The test suites components are annotated so one can distinguish them from regular components.
 
+By default, test suites components are not shown in the report.
+A `--test-suites` option on `dependentComponents` task allows to show them, annotated, so one can distinguish them from other components.
+The `--all` option on `dependentComponents` task also allows to show them.
+
 #### Test coverage
 
+- [ ] Test suites components are hidden from the report by default
+- [ ] When `--test-suites` or `--all` task option is provided, test suites are shown in the report
 - [x] Test suites are reported as dependent of their target components
 - [x] Reported test suites are annotated to distinguish them from regular components
 - [x] Make sure we handle util <- utilTest and util <- libTest when util <- lib <- exe
