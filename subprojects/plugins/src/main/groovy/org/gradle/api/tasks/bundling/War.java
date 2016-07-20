@@ -27,6 +27,7 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
@@ -124,6 +125,7 @@ public class War extends Jar {
      *
      * @return The classpath. Returns an empty collection when there is no classpath to include in the WAR.
      */
+    @OrderSensitive
     @InputFiles
     @Optional
     public FileCollection getClasspath() {

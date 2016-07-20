@@ -30,6 +30,7 @@ import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFacto
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -121,6 +122,7 @@ public class GroovyCompile extends AbstractCompile {
      *
      * @return The classpath.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
