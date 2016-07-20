@@ -54,8 +54,8 @@ class ToolingApiEclipseModelCustomLibrarySourceAndJavadocCrossVersionSpec extend
                     file {
                         whenMerged { classpath ->
                             def lib = classpath.entries.find { it.path.contains('example-lib') }
-                            lib.javadocPath = classpath.fileReference('$customJavadocPath')
-                            lib.sourcePath  = classpath.fileReference('$customSourcePath')
+                            lib.javadocPath = fileReference('$customJavadocPath')
+                            lib.sourcePath  = fileReference('$customSourcePath')
                         }
                     }
                 }
