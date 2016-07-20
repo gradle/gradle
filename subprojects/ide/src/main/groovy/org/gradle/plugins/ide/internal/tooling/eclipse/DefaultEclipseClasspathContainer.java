@@ -19,10 +19,12 @@ import java.util.List;
 
 public class DefaultEclipseClasspathContainer extends DefaultEclipseClasspathEntry {
     private final String path;
+    private final boolean isExported;
 
-    public DefaultEclipseClasspathContainer(String path, List<DefaultClasspathAttribute> classpathAttributes, List<DefaultAccessRule> accessRules) {
+    public DefaultEclipseClasspathContainer(String path, boolean isExported, List<DefaultClasspathAttribute> classpathAttributes, List<DefaultAccessRule> accessRules) {
         super(classpathAttributes, accessRules);
         this.path = path;
+        this.isExported = isExported;
     }
 
     @Override
@@ -32,5 +34,9 @@ public class DefaultEclipseClasspathContainer extends DefaultEclipseClasspathEnt
 
     public String getPath() {
         return path;
+    }
+
+    public boolean isExported() {
+        return isExported;
     }
 }
