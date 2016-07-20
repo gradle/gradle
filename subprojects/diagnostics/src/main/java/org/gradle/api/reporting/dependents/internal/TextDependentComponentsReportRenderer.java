@@ -38,13 +38,7 @@ public class TextDependentComponentsReportRenderer extends TextReportRenderer {
             getTextOutput().withStyle(Info).println("No components.");
             return;
         }
-        boolean seen = false;
         for (ComponentSpec component : components) {
-            if (seen) {
-                getBuilder().getOutput().println();
-            } else {
-                seen = true;
-            }
             getBuilder().item(component, dependentComponentsRenderer);
         }
         dependentComponentsRenderer.printLegend(getBuilder());

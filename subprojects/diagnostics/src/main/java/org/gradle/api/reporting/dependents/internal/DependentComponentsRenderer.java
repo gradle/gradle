@@ -68,6 +68,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
             output.println();
         } else {
             dependentsGraphRenderer.render(root);
+            output.println();
         }
         if (dependentsGraphRenderer.hasSeenTestSuite()) {
             seenTestSuite = true;
@@ -95,11 +96,12 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         if (seenTestSuite || hiddenNonBuildable) {
             StyledTextOutput output = builder.getOutput();
             if (seenTestSuite) {
-                output.println();
                 output.withStyle(Info).println("(t) - Test suite binary");
+                if (hiddenNonBuildable) {
+                    output.println();
+                }
             }
             if (hiddenNonBuildable) {
-                output.println();
                 output.withStyle(Info).println("Some non-buildable binaries were not shown, use --all to show them.");
             }
         }
