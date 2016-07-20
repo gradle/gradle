@@ -40,8 +40,6 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.composite.CompositeBuildActionParametersConverter;
-import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.invocation.BuildAction;
@@ -55,7 +53,6 @@ import org.gradle.launcher.cli.ParametersConverter;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.DefaultCompositeBuildActionParameters;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
@@ -272,7 +269,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     private BuildActionParameters createBuildActionParameters(StartParameter startParameter) {
-        BuildActionParameters buildActionParameters = new DefaultBuildActionParameters(
+        return new DefaultBuildActionParameters(
             System.getProperties(),
             System.getenv(),
             SystemProperties.getInstance().getCurrentDir(),
@@ -282,12 +279,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             interactive,
             ClassPath.EMPTY
         );
-        if (startParameter.getIncludedBuilds().isEmpty()) {
-            return buildActionParameters;
-        }
-
-        CompositeParameters compositeParameters = CompositeBuildActionParametersConverter.forStartParameter(startParameter);
-        return new DefaultCompositeBuildActionParameters(buildActionParameters, compositeParameters);
     }
 
     private BuildRequestContext createBuildRequestContext(StandardOutputListener outputListener, StandardOutputListener errorListener) {

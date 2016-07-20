@@ -55,10 +55,6 @@ public class CompositeBuildServices implements PluginServiceRegistry {
         public CompositeBuildActionRunner createCompositeBuildActionRunner() {
             return new CompositeBuildModelActionRunner();
         }
-
-        public CompositeBuildExecutionRunner createCompositeExecutionRunner() {
-            return new CompositeBuildExecutionRunner();
-        }
     }
 
     public static class CompositeBuildSessionScopeServices {

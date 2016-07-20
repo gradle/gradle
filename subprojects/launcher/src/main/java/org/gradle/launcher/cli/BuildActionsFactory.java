@@ -23,8 +23,6 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.composite.CompositeBuildActionParametersConverter;
-import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -44,7 +42,6 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.DefaultCompositeBuildActionParameters;
 
 import java.lang.management.ManagementFactory;
 import java.util.UUID;
@@ -155,21 +152,11 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Runnable runBuild(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer, ServiceRegistry sharedServices) {
-        BuildActionParameters parameters = createBuildActionParameters(startParameter, daemonParameters);
+        BuildActionParameters parameters = createBuildActionParamters(startParameter, daemonParameters);
         return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices);
     }
 
-    private BuildActionParameters createBuildActionParameters(StartParameter startParameter, DaemonParameters daemonParameters) {
-        BuildActionParameters buildActionParameters = defaultBuildActionParameters(startParameter, daemonParameters);
-        if (startParameter.getIncludedBuilds().isEmpty()) {
-            return buildActionParameters;
-        }
-
-        CompositeParameters compositeParameters = CompositeBuildActionParametersConverter.forStartParameter(startParameter);
-        return new DefaultCompositeBuildActionParameters(buildActionParameters, compositeParameters);
-    }
-
-    private BuildActionParameters defaultBuildActionParameters(StartParameter startParameter, DaemonParameters daemonParameters) {
+    private BuildActionParameters createBuildActionParamters(StartParameter startParameter, DaemonParameters daemonParameters) {
         return new DefaultBuildActionParameters(
                 daemonParameters.getEffectiveSystemProperties(),
                 System.getenv(),

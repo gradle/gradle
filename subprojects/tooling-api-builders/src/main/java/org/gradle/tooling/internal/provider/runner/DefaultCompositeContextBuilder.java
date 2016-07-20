@@ -32,7 +32,8 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.GradleBuildController;
 
-import java.util.List;
+import java.io.File;
+import java.util.Collections;
 
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DefaultCompositeContextBuilder.class);
@@ -45,17 +46,17 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     }
 
     @Override
-    public void addToCompositeContext(List<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
+    public void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
         BuildClientMetaData client = requestContext.getClient();
         addToCompositeContext(participantBuilds, requestContext, client, propagateFailures);
     }
 
     @Override
-    public void addToCompositeContext(List<GradleParticipantBuild> participantBuilds, BuildClientMetaData client, boolean propagateFailures) {
+    public void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildClientMetaData client, boolean propagateFailures) {
         addToCompositeContext(participantBuilds, null, client, propagateFailures);
     }
 
-    private void addToCompositeContext(List<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, BuildClientMetaData client, boolean propagateFailures) {
+    private void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, BuildClientMetaData client, boolean propagateFailures) {
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeBuildContext context = sharedServices.get(CompositeBuildContext.class);
         BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(sharedServices.get(StyledTextOutputFactory.class), buildStartParam, client);
@@ -64,6 +65,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
         for (GradleParticipantBuild participant : participantBuilds) {
             StartParameter participantStartParam = buildStartParam.newInstance();
             participantStartParam.setProjectDir(participant.getProjectDir());
+            participantStartParam.setIncludedBuilds(Collections.<File>emptyList());
 
             participantStartParam.setConfigureOnDemand(false);
             if (participantStartParam.getLogLevel() == LogLevel.LIFECYCLE) {

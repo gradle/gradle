@@ -31,7 +31,6 @@ public interface GradleLauncherFactory {
      * @param requestContext The context in which the build is running.
      * @param parent The parent service registry for this build.
      */
-    // USED only for `InProcessBuildActionExecuter`
     GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parent);
 
     /**

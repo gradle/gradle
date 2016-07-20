@@ -15,9 +15,11 @@
  */
 package org.gradle.initialization;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
+import org.gradle.StartParameter;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -33,9 +35,11 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
+import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.List;
+import java.util.Collection;
+import java.util.Set;
 
 public class DefaultGradleLauncher extends GradleLauncher {
 
@@ -56,6 +60,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
+    public boolean createCompositeContext;
 
     /**
      * Creates a new instance.
@@ -126,8 +131,9 @@ public class DefaultGradleLauncher extends GradleLauncher {
         // Calculate projects
         SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
 
-        List<GradleParticipantBuild> participantBuilds = getBuildRoots(settings);
-        if (!participantBuilds.isEmpty()) {
+        // TODO:DAZ Move this into a subtype, rather than having the `createCompositeContext` flag.
+        Collection<GradleParticipantBuild> participantBuilds = getBuildRoots(gradle.getStartParameter(), settings);
+        if (createCompositeContext && !participantBuilds.isEmpty()) {
             BuildRequestMetaData metaData = buildServices.get(BuildRequestMetaData.class);
             CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
             compositeContextBuilder.addToCompositeContext(participantBuilds, metaData.getClient(), true);
@@ -173,12 +179,17 @@ public class DefaultGradleLauncher extends GradleLauncher {
         assert upTo == Stage.Build;
     }
 
-    private List<GradleParticipantBuild> getBuildRoots(SettingsInternal settings) {
-        List<GradleParticipantBuild> participantBuilds = Lists.newArrayList();
-        for (File buildDir : settings.getIncludedBuilds()) {
-            participantBuilds.add(new DefaultGradleParticipantBuild(buildDir, null, null, null));
-        }
-        return participantBuilds;
+    private Collection<GradleParticipantBuild> getBuildRoots(StartParameter startParameter, SettingsInternal settings) {
+        Set<File> buildRoots = Sets.newTreeSet();
+        buildRoots.addAll(startParameter.getIncludedBuilds());
+        buildRoots.addAll(settings.getIncludedBuilds());
+
+        return CollectionUtils.collect(buildRoots, new Transformer<GradleParticipantBuild, File>() {
+            @Override
+            public GradleParticipantBuild transform(File buildRoot) {
+                return new DefaultGradleParticipantBuild(buildRoot, null, null, null);
+            }
+        });
     }
 
     /**
