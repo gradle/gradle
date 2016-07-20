@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -28,6 +30,7 @@ import java.lang.annotation.Target;
  * <p>When a task property is file order sensitive, a change in the order of the files makes the task out-of-date,
  * while an order change in a property that is not file order sensitive allows the task to stay up-to-date.</p>
  */
+@Incubating
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
