@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllComponents;
+import static org.gradle.api.reporting.dependents.internal.DependentComponentsUtils.getAllTestSuites;
 
 /**
  * Displays dependent components.
@@ -46,6 +47,7 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
 public class DependentComponentsReport extends DefaultTask {
 
     private boolean showNonBuildable;
+    private boolean showTestSuites;
     private List<String> components;
 
     @Console
@@ -53,9 +55,25 @@ public class DependentComponentsReport extends DefaultTask {
         return showNonBuildable;
     }
 
-    @Option(option = "all", description = "Show all dependents, including non-buildable ones.")
+    @Option(option = "non-buildables", description = "Show non-buildable components.")
     public void setShowNonBuildable(boolean showNonBuildable) {
         this.showNonBuildable = showNonBuildable;
+    }
+
+    @Console
+    public boolean isShowTestSuites() {
+        return showTestSuites;
+    }
+
+    @Option(option = "test-suites", description = "Show test suites components.")
+    public void setShowTestSuites(boolean showTestSuites) {
+        this.showTestSuites = showTestSuites;
+    }
+
+    @Option(option = "all", description = "Show all components.")
+    public void setShowAll(boolean showAll) {
+        this.showNonBuildable = showAll;
+        this.showTestSuites = showAll;
     }
 
     /**
@@ -96,13 +114,18 @@ public class DependentComponentsReport extends DefaultTask {
         DependentBinariesResolver dependentBinariesResolver = modelRegistry.find("dependentBinariesResolver", DependentBinariesResolver.class);
 
         StyledTextOutput textOutput = getTextOutputFactory().create(DependentComponentsReport.class);
-        TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(dependentBinariesResolver, showNonBuildable);
+        TextDependentComponentsReportRenderer reportRenderer = new TextDependentComponentsReportRenderer(dependentBinariesResolver, showNonBuildable, showTestSuites);
 
         reportRenderer.setOutput(textOutput);
         reportRenderer.startProject(project);
 
         Set<ComponentSpec> allComponents = getAllComponents(modelRegistry);
         reportRenderer.renderComponents(getReportedComponents(allComponents));
+        if (showTestSuites) {
+            Set<ComponentSpec> allTestSuites = getAllTestSuites(modelRegistry);
+            reportRenderer.renderComponents(allTestSuites);
+        }
+        reportRenderer.renderLegend();
 
         reportRenderer.completeProject(project);
         reportRenderer.complete();

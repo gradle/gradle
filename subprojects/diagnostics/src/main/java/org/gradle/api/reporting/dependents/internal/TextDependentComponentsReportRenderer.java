@@ -29,8 +29,8 @@ public class TextDependentComponentsReportRenderer extends TextReportRenderer {
 
     private final DependentComponentsRenderer dependentComponentsRenderer;
 
-    public TextDependentComponentsReportRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver, boolean showNonBuildable) {
-        this.dependentComponentsRenderer = new DependentComponentsRenderer(dependentBinariesResolver, showNonBuildable);
+    public TextDependentComponentsReportRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver, boolean showNonBuildable, boolean showTestSuites) {
+        this.dependentComponentsRenderer = new DependentComponentsRenderer(dependentBinariesResolver, showNonBuildable, showTestSuites);
     }
 
     public void renderComponents(Set<ComponentSpec> components) {
@@ -41,6 +41,9 @@ public class TextDependentComponentsReportRenderer extends TextReportRenderer {
         for (ComponentSpec component : components) {
             getBuilder().item(component, dependentComponentsRenderer);
         }
+    }
+
+    public void renderLegend() {
         dependentComponentsRenderer.printLegend(getBuilder());
     }
 }

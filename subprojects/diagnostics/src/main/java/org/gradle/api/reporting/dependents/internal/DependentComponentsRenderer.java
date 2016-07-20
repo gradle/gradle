@@ -40,13 +40,16 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
 
     private final DependentBinariesResolver resolver;
     private final boolean showNonBuildable;
+    private final boolean showTestSuites;
 
     private boolean seenTestSuite;
+    private boolean hiddenTestSuite;
     private boolean hiddenNonBuildable;
 
-    public DependentComponentsRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver, boolean showNonBuildable) {
+    public DependentComponentsRenderer(@Nullable DependentBinariesResolver dependentBinariesResolver, boolean showNonBuildable, boolean showTestSuites) {
         this.resolver = dependentBinariesResolver;
         this.showNonBuildable = showNonBuildable;
+        this.showTestSuites = showTestSuites;
     }
 
     @Override
@@ -61,7 +64,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
                 output.withStyle(Description).text(" - Components that depend on " + component.getDisplayName());
             }
         }, true);
-        DependentComponentsGraphRenderer dependentsGraphRenderer = new DependentComponentsGraphRenderer(renderer, showNonBuildable);
+        DependentComponentsGraphRenderer dependentsGraphRenderer = new DependentComponentsGraphRenderer(renderer, showNonBuildable, showTestSuites);
         DependentComponentsRenderableDependency root = getRenderableDependencyOf(component, internalProtocol);
         if (root.getChildren().isEmpty()) {
             output.withStyle(Info).text("No dependents");
@@ -72,6 +75,9 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
         }
         if (dependentsGraphRenderer.hasSeenTestSuite()) {
             seenTestSuite = true;
+        }
+        if (dependentsGraphRenderer.hasHiddenTestSuite()) {
+            hiddenTestSuite = true;
         }
         if (dependentsGraphRenderer.hasHiddenNonBuildable()) {
             hiddenNonBuildable = true;
@@ -93,16 +99,18 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
     }
 
     public void printLegend(TextReportBuilder builder) {
-        if (seenTestSuite || hiddenNonBuildable) {
+        if (seenTestSuite || hiddenTestSuite || hiddenNonBuildable) {
             StyledTextOutput output = builder.getOutput();
             if (seenTestSuite) {
                 output.withStyle(Info).println("(t) - Test suite binary");
                 if (hiddenNonBuildable) {
                     output.println();
                 }
+            } else if (hiddenTestSuite) {
+                output.withStyle(Info).println("Some test suites were not shown, use --test-suites or --all to show them.");
             }
             if (hiddenNonBuildable) {
-                output.withStyle(Info).println("Some non-buildable binaries were not shown, use --all to show them.");
+                output.withStyle(Info).println("Some non-buildable components were not shown, use --non-buildables or --all to show them.");
             }
         }
     }

@@ -48,7 +48,7 @@ The `--all` option on `dependentComponents` task also allows to show them.
 #### Test coverage
 
 - [x] Non-buildable components are hidden from the report by default
-- [ ] When `--non-buildables` or `--all` task option is provided, non-buildable components are shown in the report
+- [x] When `--non-buildables` or `--all` task option is provided, non-buildable components are shown in the report
 - [x] Reported non-buildable components are annotated to distinguish them from buildable components 
 - [x] Make sure we handle `util (non-buildable) <- lib <- exe`, `util <- lib (non-buildable) <- exe` and `util <- lib <- exe (non-buildable)`
 - [x] `gradle help --task dependentComponents` describes the `--all` task option 
@@ -69,8 +69,8 @@ The `--all` option on `dependentComponents` task also allows to show them.
 
 #### Test coverage
 
-- [ ] Test suites components are hidden from the report by default
-- [ ] When `--test-suites` or `--all` task option is provided, test suites are shown in the report
+- [x] Test suites components are hidden from the report by default
+- [x] When `--test-suites` or `--all` task option is provided, test suites are shown in the report
 - [x] Test suites are reported as dependent of their target components
 - [x] Reported test suites are annotated to distinguish them from regular components
 - [x] Make sure we handle util <- utilTest and util <- libTest when util <- lib <- exe

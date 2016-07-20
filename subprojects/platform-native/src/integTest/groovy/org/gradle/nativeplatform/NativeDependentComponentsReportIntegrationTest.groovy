@@ -113,6 +113,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         run 'dependentComponents'
 
         then:
+        output.contains('Some non-buildable components were not shown, use --non-buildables or --all to show them.')
         nonBuildables.each {
             assert !output.contains("$it:")
         }
@@ -128,7 +129,8 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         ['util', 'lib', 'main'] | _
     }
 
-    def "displays non-buildable dependents when using --all"() {
+    @Unroll
+    def "displays non-buildable dependents when using #option"() {
         given:
         buildScript simpleCppBuild() + '''
             model {
@@ -143,7 +145,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '''.stripIndent()
 
         when:
-        run 'dependentComponents', '--all'
+        run 'dependentComponents', option
 
         then:
         output.contains '''
@@ -163,6 +165,11 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    \\--- main:executable
             \\--- util:staticLibrary
         '''.stripIndent()
+
+        where:
+        option             | _
+        '--all'            | _
+        '--non-buildables' | _
     }
 
     def "displays dependents across projects in a build"() {
@@ -197,12 +204,27 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         succeeds 'dependentComponents'
     }
 
-    def "displays dependent test suites"() {
+    def "hide test suites by default"() {
         given:
         buildScript simpleBuildWithTestSuites()
 
         when:
         run 'dependentComponents'
+
+        then:
+        !output.contains('utilTest')
+        !output.contains('libTest')
+        !output.contains('(t) - Test suite binary')
+        output.contains 'Some test suites were not shown, use --test-suites or --all to show them.'
+    }
+
+    @Unroll
+    def "displays dependent test suites when using #option"() {
+        given:
+        buildScript simpleBuildWithTestSuites()
+
+        when:
+        run 'dependentComponents', option
 
         then:
         output.contains """
@@ -234,6 +256,11 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
             (t) - Test suite binary
         """.stripIndent()
+
+        where:
+        option          | _
+        '--all'         | _
+        '--test-suites' | _
     }
 
     def "direct circular dependencies are handled gracefully"() {

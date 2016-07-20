@@ -32,12 +32,12 @@ public class DependentComponentsGraphRenderer {
 
     private final GraphRenderer renderer;
     private final DependentBinaryNodeRenderer nodeRenderer;
-    private final ShowNonBuildablePredicate showNonBuildablePredicate;
+    private final ShowDependentPredicate showDependentPredicate;
 
-    public DependentComponentsGraphRenderer(GraphRenderer renderer, boolean showNonBuildable) {
+    public DependentComponentsGraphRenderer(GraphRenderer renderer, boolean showNonBuildable, boolean showTestSuites) {
         this.renderer = renderer;
         this.nodeRenderer = new DependentBinaryNodeRenderer();
-        this.showNonBuildablePredicate = new ShowNonBuildablePredicate(showNonBuildable);
+        this.showDependentPredicate = new ShowDependentPredicate(showNonBuildable, showTestSuites);
     }
 
     public void render(DependentComponentsRenderableDependency root) {
@@ -67,12 +67,16 @@ public class DependentComponentsGraphRenderer {
         return nodeRenderer.seenTestSuite;
     }
 
+    public boolean hasHiddenTestSuite() {
+        return showDependentPredicate.hiddenTestSuite;
+    }
+
     public boolean hasHiddenNonBuildable() {
-        return showNonBuildablePredicate.hiddenNonBuildable;
+        return showDependentPredicate.hiddenNonBuildable;
     }
 
     private Set<? extends RenderableDependency> getChildren(RenderableDependency node) {
-        return Sets.filter(node.getChildren(), showNonBuildablePredicate);
+        return Sets.filter(node.getChildren(), showDependentPredicate);
     }
 
     private static class DependentBinaryNodeRenderer implements NodeRenderer {
@@ -95,24 +99,31 @@ public class DependentComponentsGraphRenderer {
         }
     }
 
-    private static class ShowNonBuildablePredicate implements Predicate<RenderableDependency> {
+    private static class ShowDependentPredicate implements Predicate<RenderableDependency> {
         private final boolean showNonBuildable;
+        private final boolean showTestSuites;
 
         private boolean hiddenNonBuildable;
+        private boolean hiddenTestSuite;
 
-        private ShowNonBuildablePredicate(boolean showNonBuildable) {
+        private ShowDependentPredicate(boolean showNonBuildable, boolean showTestSuites) {
             this.showNonBuildable = showNonBuildable;
+            this.showTestSuites = showTestSuites;
         }
 
         @Override
         public boolean apply(RenderableDependency node) {
             if (node instanceof DependentComponentsRenderableDependency) {
                 DependentComponentsRenderableDependency dep = (DependentComponentsRenderableDependency) node;
-                boolean allow = dep.isBuildable() || showNonBuildable;
-                if (!allow) {
+                boolean hideNonBuildable = !dep.isBuildable() && !showNonBuildable;
+                boolean hideTestSuite = dep.isTestSuite() && !showTestSuites;
+                if (hideNonBuildable) {
                     hiddenNonBuildable = true;
                 }
-                return allow;
+                if (hideTestSuite) {
+                    hiddenTestSuite = true;
+                }
+                return !hideNonBuildable && !hideTestSuite;
             }
             return false;
         }

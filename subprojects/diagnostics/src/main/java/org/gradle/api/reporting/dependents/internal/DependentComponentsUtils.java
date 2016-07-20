@@ -54,6 +54,11 @@ public class DependentComponentsUtils {
         if (componentSpecs != null) {
             components.addAll(componentSpecs.values());
         }
+        return components;
+    }
+
+    public static Set<ComponentSpec> getAllTestSuites(ModelRegistry registry) {
+        Set<ComponentSpec> components = Sets.newLinkedHashSet();
         ModelMap<ComponentSpec> testSuites = modelElement(registry, "testSuites", modelMap(ComponentSpec.class));
         if (testSuites != null) {
             components.addAll(testSuites.values());
