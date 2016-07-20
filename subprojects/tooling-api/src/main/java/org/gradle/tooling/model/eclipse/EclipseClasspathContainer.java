@@ -32,11 +32,4 @@ public interface EclipseClasspathContainer extends EclipseClasspathEntry {
      * @return The path of this container. Does not return null.
      */
     String getPath();
-
-    /**
-     * Marks this container as exported.
-     *
-     * @return whether this container needs to be exported.
-     */
-    boolean isExported();
 }
