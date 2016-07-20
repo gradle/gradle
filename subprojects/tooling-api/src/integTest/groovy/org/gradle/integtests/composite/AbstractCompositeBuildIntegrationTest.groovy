@@ -44,7 +44,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
         List<File> includedBuilds = Lists.newArrayList(builds)
         includedBuilds.remove(build)
         for (File includedBuild : includedBuilds) {
-            build.settingsFile << "includeBuild '${includedBuild.path}'\n"
+            build.settingsFile << "includeBuild '${includedBuild.toURI()}'\n"
         }
         for (String arg : arguments) {
             executer.withArgument(arg)
