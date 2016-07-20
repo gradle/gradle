@@ -92,7 +92,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
 
-        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
+        return doNewInstance(startParameter, false, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 
     @Override
@@ -104,7 +104,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         BuildScopeServices buildScopeServices = createBuildScopeServices(parentRegistry);
 
-        DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, true, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
         return launcher;
@@ -118,7 +118,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         return BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
     }
 
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry) {
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, boolean processComposite,
+                                                BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry) {
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
@@ -160,7 +161,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             serviceRegistry.get(BuildOperationExecutor.class),
             gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
-            serviceRegistry
+            serviceRegistry, processComposite
         );
     }
 }

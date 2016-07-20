@@ -60,7 +60,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
-    public boolean createCompositeContext;
+    private final boolean createCompositeContext;
 
     /**
      * Creates a new instance.
@@ -70,7 +70,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
-                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, BuildScopeServices buildServices) {
+                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, BuildScopeServices buildServices,
+                                 boolean createCompositeContext) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -84,6 +85,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
+        this.createCompositeContext = createCompositeContext;
         loggingManager.start();
     }
 
@@ -128,15 +130,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
         // Evaluate init scripts
         initScriptHandler.executeScripts(gradle);
 
-        // Calculate projects
-        SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
-
-        // TODO:DAZ Move this into a subtype, rather than having the `createCompositeContext` flag.
-        Collection<GradleParticipantBuild> participantBuilds = getBuildRoots(gradle.getStartParameter(), settings);
-        if (createCompositeContext && !participantBuilds.isEmpty()) {
-            CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
-            compositeContextBuilder.addToCompositeContext(participantBuilds, true);
-        }
+        // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
+        loadSettings();
 
         // Configure build
         buildOperationExecutor.run("Configure build", new Runnable() {
@@ -176,6 +171,19 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         assert upTo == Stage.Build;
+    }
+
+    private void loadSettings() {
+        SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
+
+        // TODO:DAZ Extract this logic into a loader, rather than having a boolean flag
+        if (createCompositeContext) {
+            Collection<GradleParticipantBuild> participantBuilds = getBuildRoots(gradle.getStartParameter(), settings);
+            if (!participantBuilds.isEmpty()) {
+                CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
+                compositeContextBuilder.addToCompositeContext(participantBuilds, true);
+            }
+        }
     }
 
     private Collection<GradleParticipantBuild> getBuildRoots(StartParameter startParameter, SettingsInternal settings) {

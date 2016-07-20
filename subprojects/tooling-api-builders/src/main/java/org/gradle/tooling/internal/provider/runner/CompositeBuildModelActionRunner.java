@@ -60,8 +60,6 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         BuildModelAction buildModelAction = (BuildModelAction) action;
         CompositeParameters compositeParameters = actionParameters.getCompositeParameters();
 
-//        BuildSessionScopeServices compositeServices = new BuildSessionScopeServices(buildController.getBuildScopeServices(), buildModelAction.getStartParameter(), ClassPath.EMPTY);
-//        compositeServices.addProvider(new CompositeBuildServices.CompositeBuildSessionScopeServices());
         ServiceRegistry compositeServices = buildController.getBuildScopeServices();
 
         List<Object> results = null;

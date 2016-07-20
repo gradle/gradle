@@ -16,21 +16,15 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.initialization.DefaultGradleLauncher;
-import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.launcher.cli.ExecuteBuildAction;
-import org.gradle.internal.invocation.BuildActionRunner;
-import org.gradle.launcher.exec.GradleBuildController;
 
 public class ExecuteBuildActionRunner implements BuildActionRunner {
     @Override
     public void run(BuildAction action, BuildController buildController) {
         if (action instanceof ExecuteBuildAction) {
-            // TODO:DAZ Use a `GradleLauncher` subtype that handles composite context
-            GradleLauncher launcher = ((GradleBuildController) buildController).getLauncher();
-            ((DefaultGradleLauncher) launcher).createCompositeContext = true;
             buildController.run();
             buildController.setResult(null);
         }
