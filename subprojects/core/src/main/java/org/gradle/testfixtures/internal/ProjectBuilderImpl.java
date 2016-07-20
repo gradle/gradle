@@ -30,6 +30,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
@@ -97,6 +98,9 @@ public class ProjectBuilderImpl {
                     .parent(NativeServices.getInstance())
                     .provider(new TestGlobalScopeServices())
                     .build();
+            // Registers a logger that will otherwise be registered when resolving dependencies with the ProjectBuilder
+            // Without this, ProjectBuilder will fail to resolve dependencies with a strange "Logging operation was not started" error
+            globalServices.get(GradleLauncherFactory.class);
         }
         return globalServices;
     }
