@@ -16,19 +16,7 @@
 import org.gradle.internal.hash.HashUtil
 import org.gradle.performance.tasks.PerformanceTest
 
-buildscript {
-    repositories {
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath 'me.champeau.gradle:jmh-gradle-plugin:0.3.1'
-    }
-}
-
 apply plugin: 'javascript-base'
-apply plugin: 'me.champeau.gradle.jmh'
 apply from: 'templates.gradle'
 
 configurations {
@@ -45,8 +33,6 @@ dependencies {
 
     testCompile project(':internalPerformanceTesting')
     testCompile libraries.jsoup
-
-    jmh project(':baseServices')
 }
 
 useTestFixtures()
@@ -56,6 +42,7 @@ task reportResources(type: Copy) {
     from configurations.reports
     into "$generatedResourcesDir/org/gradle/reporting"
 }
+
 sourceSets.test.output.dir generatedResourcesDir, builtBy: reportResources
 
 task report {
@@ -151,16 +138,6 @@ configure([performanceTest, performanceExperiments]) {
 }
 
 [integTest, java9IntegTest]*.enabled = false
-
-jmh {
-    jmhVersion = '1.12'
-    include = 'org\\.gradle\\.experiments\\.reflection\\..*'
-    includeTests = false
-    warmupIterations = 10
-    threads = 2
-    synchronizeIterations = false
-    fork = 4
-}
 
 task checkNoIdenticalBuildFiles {
     doLast {

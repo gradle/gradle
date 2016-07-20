@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.experiments.reflection;
 
-import org.gradle.internal.reflect.DirectInstantiator;
+package org.gradle.internal.reflect;
+
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 
