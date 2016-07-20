@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.ObjectUtils;
 
 import java.util.HashMap;
@@ -36,7 +37,7 @@ public class DiffUtil {
             changeListener.removed(t);
         }
     }
-    
+
     public static <K, V> void diff(Map<K, V> newMap, Map<K, V> oldMap, ChangeListener<? super Map.Entry<K, V>> changeListener) {
         Map<K, V> added = new HashMap<K, V>(newMap);
         added.keySet().removeAll(oldMap.keySet());
@@ -53,9 +54,31 @@ public class DiffUtil {
         Map<K, V> same = new HashMap<K, V>(newMap);
         same.keySet().retainAll(oldMap.keySet());
         for (Map.Entry<K, V> entry : same.entrySet()) {
-            if (!ObjectUtils.equals(entry.getValue(), oldMap.get(entry.getKey()))) {
+            if (!checkEquality(entry.getValue(), oldMap.get(entry.getKey()))) {
                 changeListener.changed(entry);
             }
         }
+    }
+
+    @VisibleForTesting
+    static boolean checkEquality(Object obj1, Object obj2) {
+        return ObjectUtils.equals(obj1, obj2) || checkEnumEquality(obj1, obj2);
+    }
+
+    private static boolean checkEnumEquality(Object obj1, Object obj2) {
+        if (!(obj1 instanceof Enum) || !(obj2 instanceof Enum)) {
+            return false;
+        }
+
+        Enum e1 = (Enum) obj1;
+        Enum e2 = (Enum) obj2;
+
+        // Check enum equality without checking loading ClassLoader.
+        // There is a slight risk that two versions of the same enum class are compared,
+        // (that's why classloaders are used in equality checks), but checking both name
+        // and ordinal should make this very unlikely.
+        return e1.getClass().getCanonicalName().equals(e2.getClass().getCanonicalName())
+            && e1.ordinal() == e2.ordinal()
+            && e1.name().equals(e2.name());
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api;
 
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.NoConventionMapping;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.ParallelizableTask;
 
 /**
@@ -25,5 +26,6 @@ import org.gradle.api.tasks.ParallelizableTask;
  */
 @NoConventionMapping
 @ParallelizableTask
+@CacheableTask
 public class DefaultTask extends AbstractTask {
 }

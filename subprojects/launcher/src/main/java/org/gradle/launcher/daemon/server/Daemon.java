@@ -292,22 +292,16 @@ public class Daemon implements Stoppable {
             final DaemonExpirationStatus expirationCheck = result.getStatus();
 
             if (expirationCheck != DO_NOT_EXPIRE) {
+                if (expirationCheck != QUIET_EXPIRE) {
+                    registryUpdater.onExpire(result.getReason(), expirationCheck);
+                }
+
                 if (expirationCheck == IMMEDIATE_EXPIRE) {
                     stateControl.requestForcefulStop(result.getReason());
                 } else {
                     stateControl.requestStop(result.getReason());
                 }
-
-                // Store DaemonStopEvent if not quiet expire
-                if (expirationCheck != QUIET_EXPIRE && !isStopping()) {
-                    registryUpdater.onExpire(result.getReason());
-                }
             }
-        }
-
-        private boolean isStopping() {
-            DaemonStateControl.State state = stateControl.getState();
-            return state == DaemonStateControl.State.StopRequested || state == DaemonStateControl.State.Stopped;
         }
     }
 }

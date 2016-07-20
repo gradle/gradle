@@ -24,6 +24,7 @@ import org.gradle.launcher.daemon.protocol.Status
 import org.gradle.launcher.daemon.protocol.Success
 import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
+import org.gradle.launcher.daemon.registry.DaemonStopEvent
 import spock.lang.Specification
 
 class ReportDaemonStatusClientTest extends Specification {
@@ -40,6 +41,8 @@ class ReportDaemonStatusClientTest extends Specification {
 
         then:
         1 * registry.getAll() >> []
+        1 * registry.getStopEvents() >> []
+        1 * documentationRegistry.getDocumentationFor('gradle_daemon', _) >> { "DOCUMENTATION_URL" }
         0 * _
     }
 
@@ -60,7 +63,10 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * connection.stop()
 
         and:
-        1 * documentationRegistry.getDocumentationFor('gradle_daemon', 'status') >> { "DOCUMENTATION_URL" }
+        1 * registry.getStopEvents() >> []
+
+        and:
+        1 * documentationRegistry.getDocumentationFor('gradle_daemon', _) >> { "DOCUMENTATION_URL" }
         0 * _
     }
 
@@ -90,7 +96,26 @@ class ReportDaemonStatusClientTest extends Specification {
         1 * connection.stop()
 
         and:
-        1 * documentationRegistry.getDocumentationFor('gradle_daemon', 'status') >> { "DOCUMENTATION_URL" }
+        1 * registry.getStopEvents() >> []
+
+        and:
+        1 * documentationRegistry.getDocumentationFor('gradle_daemon', _) >> { "DOCUMENTATION_URL" }
+        0 * _
+    }
+
+    def "reports recently stopped daemons"() {
+        given:
+        def stopEvent1 = Stub(DaemonStopEvent)
+
+        when:
+        client.listAll()
+
+        then:
+        1 * registry.getAll() >> []
+        1 * registry.getStopEvents() >> [stopEvent1]
+
+        and:
+        1 * documentationRegistry.getDocumentationFor('gradle_daemon', _) >> { "DOCUMENTATION_URL" }
         0 * _
     }
 
@@ -104,6 +129,8 @@ class ReportDaemonStatusClientTest extends Specification {
         then:
         1 * registry.getAll() >> { [daemon1] as List<DaemonInfo> }
         1 * connector.maybeConnect(daemon1) >> { null }
+        1 * registry.getStopEvents() >> []
+        1 * documentationRegistry.getDocumentationFor('gradle_daemon', _) >> { "DOCUMENTATION_URL" }
         0 * _
     }
 }

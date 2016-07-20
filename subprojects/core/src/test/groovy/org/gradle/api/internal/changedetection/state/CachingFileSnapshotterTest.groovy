@@ -16,10 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import com.google.common.base.Charsets
+import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.hash.Hasher
 import org.gradle.cache.PersistentIndexedCache
-import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.resource.TextResource
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -31,7 +32,7 @@ class CachingFileSnapshotterTest extends Specification {
     def target = Mock(Hasher)
     def cache = Mock(PersistentIndexedCache)
     def cacheAccess = Mock(TaskArtifactStateCacheAccess)
-    def hash = HashUtil.createHash("hello", "md5")
+    def hash = Hashing.md5().hashString("hello", Charsets.UTF_8)
     def file = tmpDir.createFile("testfile")
     CachingFileSnapshotter hasher
 

@@ -16,20 +16,20 @@
 
 package org.gradle.internal.serialize;
 
-import org.gradle.internal.hash.HashValue;
+import com.google.common.hash.HashCode;
 
-public class HashValueSerializer implements Serializer<HashValue> {
+public class HashCodeSerializer implements Serializer<HashCode> {
     @Override
-    public HashValue read(Decoder decoder) throws Exception {
+    public HashCode read(Decoder decoder) throws Exception {
         byte hashSize = decoder.readByte();
         byte[] hash = new byte[hashSize];
         decoder.readBytes(hash);
-        return new HashValue(hash);
+        return HashCode.fromBytes(hash);
     }
 
     @Override
-    public void write(Encoder encoder, HashValue value) throws Exception {
-        byte[] hash = value.asByteArray();
+    public void write(Encoder encoder, HashCode value) throws Exception {
+        byte[] hash = value.asBytes();
         encoder.writeByte((byte) hash.length);
         encoder.writeBytes(hash);
     }

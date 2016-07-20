@@ -15,8 +15,15 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.serialize.*;
+import com.google.common.hash.HashCode;
+import org.gradle.internal.serialize.BaseSerializerFactory;
+import org.gradle.internal.serialize.Decoder;
+import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.serialize.HashCodeSerializer;
+import org.gradle.internal.serialize.ListSerializer;
+import org.gradle.internal.serialize.MapSerializer;
+import org.gradle.internal.serialize.Serializer;
+import org.gradle.internal.serialize.SetSerializer;
 import org.gradle.language.nativeplatform.internal.Include;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.IncludeType;
@@ -61,7 +68,7 @@ public class CompilationStateSerializer implements Serializer<CompilationState> 
     }
 
     private class CompilationFileStateSerializer implements Serializer<CompilationFileState> {
-        private final Serializer<HashValue> hashSerializer = new HashValueSerializer();
+        private final Serializer<HashCode> hashSerializer = new HashCodeSerializer();
         private final Serializer<Set<ResolvedInclude>> resolveIncludesSerializer = new SetSerializer<ResolvedInclude>(new ResolvedIncludeSerializer());
         private final Serializer<IncludeDirectives> sourceIncludesSerializer = new SourceIncludesSerializer();
 

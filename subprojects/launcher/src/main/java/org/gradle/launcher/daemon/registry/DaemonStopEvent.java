@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.registry;
 
 import org.gradle.api.Nullable;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -27,18 +28,37 @@ import java.util.Date;
  */
 public class DaemonStopEvent implements Serializable {
     private final Date timestamp;
-    private final @Nullable String reason;
+    private final long pid;
+    @Nullable
+    private final DaemonExpirationStatus status;
+    @Nullable
+    private final String reason;
 
-    public DaemonStopEvent(Date timestamp, @Nullable String reason) {
+    public DaemonStopEvent(Date timestamp, long pid, @Nullable DaemonExpirationStatus status, @Nullable String reason) {
         this.timestamp = timestamp;
+        this.status = status;
         this.reason = reason;
+        this.pid = pid;
     }
 
     public Date getTimestamp() {
         return timestamp;
     }
 
-    @Nullable public String getReason() {
+    public long getPid() {
+        return pid;
+    }
+
+    @Nullable
+    public DaemonExpirationStatus getStatus() {
+        return status;
+    }
+
+    @Nullable
+    public String getReason() {
+        if (reason == null) {
+            return "";
+        }
         return reason;
     }
 
@@ -63,7 +83,16 @@ public class DaemonStopEvent implements Serializable {
         return result;
     }
 
-    public boolean occurredInLastHours(final int numHours) {
+    @Override
+    public String toString() {
+        return "DaemonStopEvent{"
+            + "timestamp=" + timestamp
+            + ", pid=" + pid
+            + ", status=" + status
+            + "}";
+    }
+
+    boolean occurredInLastHours(final int numHours) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Date(System.currentTimeMillis()));
         cal.add(Calendar.HOUR_OF_DAY, -1 * numHours);

@@ -18,13 +18,13 @@ package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.HashValueSerializer;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.EOFException;
 
 class IncrementalFileSnapshotSerializer implements Serializer<IncrementalFileSnapshot> {
-    private final HashValueSerializer hashValueSerializer = new HashValueSerializer();
+    private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
 
     @Override
     public IncrementalFileSnapshot read(Decoder decoder) throws EOFException, Exception {
@@ -35,7 +35,7 @@ class IncrementalFileSnapshotSerializer implements Serializer<IncrementalFileSna
         } else if (fileSnapshotKind == 2) {
             incrementalFileSnapshot = MissingFileSnapshot.getInstance();
         } else if (fileSnapshotKind == 3) {
-            incrementalFileSnapshot = new FileHashSnapshot(hashValueSerializer.read(decoder));
+            incrementalFileSnapshot = new FileHashSnapshot(hashCodeSerializer.read(decoder));
         } else {
             throw new RuntimeException("Unable to read serialized file collection snapshot. Unrecognized value found in the data stream.");
         }
@@ -50,7 +50,7 @@ class IncrementalFileSnapshotSerializer implements Serializer<IncrementalFileSna
             encoder.writeByte((byte) 2);
         } else if (incrementalFileSnapshot instanceof FileHashSnapshot) {
             encoder.writeByte((byte) 3);
-            hashValueSerializer.write(encoder, ((FileHashSnapshot) incrementalFileSnapshot).hash);
+            hashCodeSerializer.write(encoder, ((FileHashSnapshot) incrementalFileSnapshot).getHash());
         }
     }
 }

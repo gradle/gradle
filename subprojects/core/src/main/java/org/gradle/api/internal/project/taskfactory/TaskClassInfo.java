@@ -28,6 +28,7 @@ public class TaskClassInfo {
     private TaskClassValidator validator;
     private final List<Factory<Action<Task>>> taskActions = new ArrayList<Factory<Action<Task>>>();
     private boolean incremental;
+    private boolean cacheable;
 
     public TaskClassValidator getValidator() {
         return validator;
@@ -51,5 +52,13 @@ public class TaskClassInfo {
 
     public Set<String> getNonAnnotatedPropertyNames() {
         return validator.getNonAnnotatedPropertyNames();
+    }
+
+    public boolean isCacheable() {
+        return cacheable;
+    }
+
+    public void setCacheable(boolean cacheable) {
+        this.cacheable = cacheable;
     }
 }

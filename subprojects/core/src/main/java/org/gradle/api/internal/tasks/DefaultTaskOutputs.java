@@ -113,7 +113,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public boolean isCacheEnabled() {
-        return cacheIfSpec.isSatisfiedBy(task);
+        return !cacheIfSpec.getSpecs().isEmpty() && cacheIfSpec.isSatisfiedBy(task);
     }
 
     @Override
