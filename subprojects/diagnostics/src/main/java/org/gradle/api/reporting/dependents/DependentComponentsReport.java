@@ -120,11 +120,10 @@ public class DependentComponentsReport extends DefaultTask {
         reportRenderer.startProject(project);
 
         Set<ComponentSpec> allComponents = getAllComponents(modelRegistry);
-        reportRenderer.renderComponents(getReportedComponents(allComponents));
         if (showTestSuites) {
-            Set<ComponentSpec> allTestSuites = getAllTestSuites(modelRegistry);
-            reportRenderer.renderComponents(allTestSuites);
+            allComponents.addAll(getAllTestSuites(modelRegistry));
         }
+        reportRenderer.renderComponents(getReportedComponents(allComponents));
         reportRenderer.renderLegend();
 
         reportRenderer.completeProject(project);

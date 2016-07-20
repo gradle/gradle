@@ -69,10 +69,10 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
     def "fails when some of the targeted components are not found"() {
         given:
-        buildScript simpleCppBuild()
+        buildScript simpleBuildWithTestSuites()
 
         when:
-        fails 'dependentComponents', '--component', 'unknown', '--component', 'anonymous', '--component', 'whatever', '--component', 'lib', '--component', 'main'
+        fails 'dependentComponents', '--test-suites', '--component', 'unknown', '--component', 'anonymous', '--component', 'whatever', '--component', 'lib', '--component', 'main', '--component', 'libTest'
 
         then:
         failure.assertHasCause "Components 'unknown', 'anonymous' and 'whatever' not found."
@@ -431,6 +431,56 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             +--- main:sharewareExecutable
             \\--- main:shrinkwareExecutable
         """.stripIndent()
+    }
+
+    def "report for empty build displays no component"() {
+        given:
+        buildScript emptyNativeBuild()
+
+        when:
+        run 'dependentComponents'
+
+        then:
+        output.contains emptyDependents()
+    }
+
+    @Unroll
+    def "report for empty build displays no component with task option #option"() {
+        given:
+        buildScript emptyNativeBuild()
+
+        when:
+        run 'dependentComponents', option
+
+        then:
+        output.contains emptyDependents()
+
+        where:
+        option             | _
+        "--test-suites"    | _
+        "--non-buildables" | _
+        "--all"            | _
+    }
+
+    private static String emptyNativeBuild() {
+        return """
+            plugins {
+                id 'c'
+                id 'cpp'
+            }
+        """.stripIndent()
+    }
+
+    private static String emptyDependents() {
+        return """
+            ------------------------------------------------------------
+            Root project
+            ------------------------------------------------------------
+
+            No components.
+
+            BUILD SUCCESSFUL
+        """.stripIndent().trim()
     }
 
     private static String simpleCppBuild() {
