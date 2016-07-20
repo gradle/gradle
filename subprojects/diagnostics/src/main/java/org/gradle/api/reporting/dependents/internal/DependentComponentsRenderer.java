@@ -55,6 +55,11 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
     @Override
     public void render(final ComponentSpec component, final TextReportBuilder builder) {
         ComponentSpecInternal internalProtocol = (ComponentSpecInternal) component;
+        DependentComponentsRenderableDependency root = getRenderableDependencyOf(component, internalProtocol);
+        if (!showNonBuildable && !root.isBuildable()) {
+            hiddenNonBuildable = true;
+            return;
+        }
         StyledTextOutput output = builder.getOutput();
         GraphRenderer renderer = new GraphRenderer(output);
         renderer.visit(new Action<StyledTextOutput>() {
@@ -65,7 +70,6 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
             }
         }, true);
         DependentComponentsGraphRenderer dependentsGraphRenderer = new DependentComponentsGraphRenderer(renderer, showNonBuildable, showTestSuites);
-        DependentComponentsRenderableDependency root = getRenderableDependencyOf(component, internalProtocol);
         if (root.getChildren().isEmpty()) {
             output.withStyle(Info).text("No dependents");
             output.println();

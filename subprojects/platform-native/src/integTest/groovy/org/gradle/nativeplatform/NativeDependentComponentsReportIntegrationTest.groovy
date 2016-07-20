@@ -172,6 +172,29 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         '--non-buildables' | _
     }
 
+    def "consider components with no buildable binaries as non-buildables"() {
+        given:
+        buildScript simpleCppBuild()
+        buildFile << '''
+            model {
+                components {
+                    main {
+                        binaries.all {
+                            buildable = false
+                        }
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'dependentComponents'
+
+        then:
+        !output.contains('main')
+        output.contains('Some non-buildable components were not shown, use --non-buildables or --all to show them.')
+    }
+
     def "displays dependents across projects in a build"() {
         given:
         settingsFile.text = multiProjectSettings()

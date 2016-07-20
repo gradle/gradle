@@ -16,10 +16,14 @@
 
 package org.gradle.api.reporting.dependents.internal;
 
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
+import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
@@ -41,6 +45,16 @@ public class DependentComponentsRenderableDependency implements RenderableDepend
         String name = DependentComponentsUtils.getBuildScopedTerseName(id);
         String description = componentSpec.getDisplayName();
         boolean buildable = true;
+        if (componentSpec instanceof VariantComponentSpec) {
+            // Consider variant aware components with no buildable binaries as non-buildables
+            VariantComponentSpec variantComponentSpec = (VariantComponentSpec) componentSpec;
+            buildable = Iterables.any(variantComponentSpec.getBinaries().values(), new Predicate<BinarySpec>() {
+                @Override
+                public boolean apply(BinarySpec binarySpec) {
+                    return binarySpec.isBuildable();
+                }
+            });
+        }
         boolean testSuite = false;
         return new DependentComponentsRenderableDependency(id, name, description, buildable, testSuite, children);
     }
