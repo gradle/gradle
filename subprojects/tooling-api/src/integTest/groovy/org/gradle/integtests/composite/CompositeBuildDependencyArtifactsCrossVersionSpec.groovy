@@ -17,16 +17,18 @@
 package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
+import org.gradle.integtests.composite.fixtures.ProjectTestFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
+import spock.lang.Unroll
 
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
 class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
-    TestFile buildA
-    TestFile buildB
+    ProjectTestFile buildA
+    ProjectTestFile buildB
     MavenModule publishedModuleB
     List arguments = []
     MavenFileRepository mavenRepo
@@ -324,12 +326,13 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractComposit
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
-    def "reports failure to build artifacts with dependency cycle between substituted participants in a composite build"() {
+    @Unroll
+    def "reports failure to build artifacts with cycle involving substituted #name dependency"() {
         given:
-        dependency "org.test:${fromBuildA}:1.0"
+        dependency "org.test:buildB:1.0"
         buildB.buildFile << """
             dependencies {
-                compile "org.test:${fromBuildB}:1.0"
+                compile "org.test:${dep}:1.0"
             }
             project(":b1") {
                 dependencies {
@@ -342,7 +345,7 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractComposit
             buildFile << """
             apply plugin: 'java'
             dependencies {
-                compile "org.test:${fromBuildC}:1.0"
+                compile "org.test:buildB:1.0"
             }
 """
         }
@@ -355,11 +358,9 @@ class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractComposit
         failure.assertHasCause("Dependency cycle including project buildB::")
 
         where:
-        fromBuildA | fromBuildB | fromBuildC
-        "buildB"   | "buildA"   | "."
-        "buildB"   | "buildC"   | "buildA"
-        "buildB"   | "buildC"   | "buildB"
-        "buildB"   | "b1"       | "."       // b1 -> buildB
+        name          | dep
+        "subproject"  | "b1"
+        "other-build" | "buildC"
     }
 
     def "reports failure to build dependent artifact"() {

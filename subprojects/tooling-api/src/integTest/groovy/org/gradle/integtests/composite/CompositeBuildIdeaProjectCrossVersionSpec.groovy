@@ -89,13 +89,14 @@ class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIn
 
     def "builds IDEA metadata with substituted dependency from same build"() {
         given:
+        dependency('org.test:buildB:1.0')
         dependency(buildB, "org.test:b1:1.0")
 
         when:
-        idea(buildB)
+        idea()
 
         then:
-        iprHasModules(buildB, "buildB.iml", "b1/b1.iml", "b2/b2.iml", "../buildA/buildA.iml")
+        iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
         imlHasDependencies(buildB, "b1")
     }
 

@@ -178,14 +178,16 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBui
         }
     }
 
-    def "substitutes external dependency with project dependency from same build"() {
+    def "substitutes external dependency with project dependency from same participant build"() {
         given:
         buildA.buildFile << """
             dependencies {
-                compile "org.test:a2:1.0"
+                compile "org.test:buildB:1.0"
             }
-            project(':a2') {
-                apply plugin: 'java' // Ensure that the project produces a jar
+"""
+        buildB.buildFile << """
+            dependencies {
+                compile "org.test:b2:1.0"
             }
 """
 
@@ -194,8 +196,12 @@ class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBui
 
         then:
         checkGraph {
-            edge("org.test:a2:1.0", "project buildA::a2", "org.test:a2:1.0") {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
                 compositeSubstitute()
+                edge("org.test:b2:1.0", "project buildB::b2", "org.test:b2:2.0") {
+                    compositeSubstitute()
+                }
+
             }
         }
     }
@@ -468,18 +474,21 @@ afterEvaluate {
         given:
         buildA.buildFile << """
             dependencies {
-                compile "org.test:a1:1.0"
+                compile "org.test:buildB:1.0"
             }
-            project(':a1') {
-                apply plugin: 'java'
+"""
+        buildB.buildFile << """
+            dependencies {
+                compile "org.test:b1:1.0"
+            }
+            project(':b1') {
                 dependencies {
-                    compile "org.test:a2:1.0"
+                    compile "org.test:b2:1.0"
                 }
             }
-            project(':a2') {
-                apply plugin: 'java'
+            project(':b2') {
                 dependencies {
-                    compile "org.test:a1:1.0"
+                    compile "org.test:b1:1.0"
                 }
             }
 """
@@ -490,11 +499,14 @@ afterEvaluate {
 
         then:
         checkGraph {
-            edge("org.test:a1:1.0", "project buildA::a1", "org.test:a1:1.0") {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                edge("org.test:a2:1.0", "project buildA::a2", "org.test:a2:1.0") {
+                edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
                     compositeSubstitute()
-                    edge("org.test:a1:1.0", "project buildA::a1", "org.test:a1:1.0") {}
+                    edge("org.test:b2:1.0", "project buildB::b2", "org.test:b2:2.0") {
+                        compositeSubstitute()
+                        edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {}
+                    }
                 }
             }
         }
