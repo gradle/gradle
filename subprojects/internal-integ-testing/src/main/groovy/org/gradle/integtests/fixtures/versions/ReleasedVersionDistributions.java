@@ -65,6 +65,8 @@ public class ReleasedVersionDistributions {
 
         if (mostRecentFinal == null) {
             throw new RuntimeException("Unable to get the last version");
+        } else if (mostRecentFinal.contains("-milestone-")) {
+            return getAll().get(0);
         }
 
         return buildContext.distribution(mostRecentFinal);
