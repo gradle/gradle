@@ -62,8 +62,8 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse, boolean orderSensitive) {
-        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, allowReuse, orderSensitive));
+    public FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse, TaskFilePropertyCompareType compareType) {
+        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, allowReuse, compareType));
     }
 
     private Map<String, Boolean> getRoots(FileCollection files) {
@@ -77,7 +77,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     /**
      * Returns a new snapshot that ignores new files between 2 previous snapshots
      */
-    public OutputFilesSnapshot createOutputSnapshot(FileCollectionSnapshot afterPreviousExecution, FileCollectionSnapshot beforeExecution, FileCollectionSnapshot afterExecution, FileCollection roots, boolean orderSensitive) {
+    public OutputFilesSnapshot createOutputSnapshot(FileCollectionSnapshot afterPreviousExecution, FileCollectionSnapshot beforeExecution, FileCollectionSnapshot afterExecution, FileCollection roots) {
         FileCollectionSnapshot filesSnapshot;
         if (!beforeExecution.getSnapshots().isEmpty() && !afterExecution.getSnapshots().isEmpty()) {
             Map<String, IncrementalFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
@@ -100,7 +100,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
                 for (Map.Entry<String, IncrementalFileSnapshot> entry : newEntries) {
                     newSnapshots.put(entry.getKey(), entry.getValue());
                 }
-                filesSnapshot = new FileCollectionSnapshotImpl(newSnapshots.build(), orderSensitive);
+                filesSnapshot = new FileCollectionSnapshotImpl(newSnapshots.build(), TaskFilePropertyCompareType.OUTPUT);
             }
         } else {
             filesSnapshot = afterExecution;
@@ -144,10 +144,10 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         @Override
-        public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType, Set<ChangeFilter> filters) {
+        public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType) {
             final OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
             final Iterator<TaskStateChange> rootFileIdIterator = iterateRootFileIdChanges(other, fileType);
-            final Iterator<TaskStateChange> fileIterator = filesSnapshot.iterateContentChangesSince(other.filesSnapshot, fileType, filters);
+            final Iterator<TaskStateChange> fileIterator = filesSnapshot.iterateContentChangesSince(other.filesSnapshot, fileType);
             return Iterators.concat(rootFileIdIterator, fileIterator);
         }
 

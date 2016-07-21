@@ -28,6 +28,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static TaskFilePropertyCompareType.UNORDERED
+
 class MinimalFileSetSnapshotterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -59,7 +61,7 @@ class MinimalFileSetSnapshotterTest extends Specification {
         def collection = new SimpleFileCollection(included, missing, includedDirectory)
 
         when:
-        snapshot = minimalFileSnapshotter.snapshot(collection, true, false)
+        snapshot = minimalFileSnapshotter.snapshot(collection, true, UNORDERED)
 
         then:
         findSnapshot(included) instanceof FileHashSnapshot

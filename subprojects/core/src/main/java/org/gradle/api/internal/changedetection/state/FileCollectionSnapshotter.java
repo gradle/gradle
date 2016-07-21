@@ -32,12 +32,12 @@ public interface FileCollectionSnapshotter {
     FileCollectionSnapshot emptySnapshot();
 
     /**
-     * Creates a snapshot of the contents of the given collection
+     * Creates a snapshot of the contents of the given collection.
      *
-     * @param files The files to snapshot
-     * @param allowReuse When true, can use cached snapshot trees
-     * @param orderSensitive Whether order of snapshots matters when comparing the collection
+     * @param files The files to snapshot.
+     * @param allowReuse When true, can use cached snapshot trees.
+     * @param compareType How to compare this collection snapshot to others.
      * @return The snapshot.
      */
-    FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse, boolean orderSensitive);
+    FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse, TaskFilePropertyCompareType compareType);
 }

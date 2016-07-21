@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-import com.google.common.hash.HashCode;
-
 public interface TaskCacheKeyBuilder {
     TaskCacheKeyBuilder putByte(byte b);
     TaskCacheKeyBuilder putBytes(byte[] bytes);
     TaskCacheKeyBuilder putBytes(byte[] bytes, int off, int len);
-    TaskCacheKeyBuilder putHashCode(HashCode hashCode);
     TaskCacheKeyBuilder putInt(int i);
     TaskCacheKeyBuilder putLong(long l);
     TaskCacheKeyBuilder putDouble(double d);

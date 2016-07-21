@@ -20,6 +20,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -37,12 +38,12 @@ abstract class AbstractFileSnapshotTaskStateChanges implements TaskStateChanges 
     protected abstract void saveCurrent();
 
     protected Iterator<TaskStateChange> getChanges(String fileType) {
-        return getCurrent().iterateContentChangesSince(getPrevious(), fileType, Collections.<FileCollectionSnapshot.ChangeFilter>emptySet());
+        return getCurrent().iterateContentChangesSince(getPrevious(), fileType);
     }
 
-    protected FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection, boolean orderSensitive) {
+    protected FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection, TaskFilePropertyCompareType compareType) {
         try {
-            return snapshotter.snapshot(fileCollection, isAllowSnapshotReuse(), orderSensitive);
+            return snapshotter.snapshot(fileCollection, isAllowSnapshotReuse(), compareType);
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' during up-to-date check.", getInputFileType().toLowerCase(), taskName), e);
         }

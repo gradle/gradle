@@ -17,8 +17,9 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
 
 public interface TaskFilePropertySpec extends TaskPropertySpec {
     FileCollection getPropertyFiles();
-    boolean isOrderSensitive();
+    TaskFilePropertyCompareType getCompareType();
 }

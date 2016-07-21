@@ -16,43 +16,37 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.changedetection.rules.ChangeType;
-import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapshotSet {
     final Map<String, IncrementalFileSnapshot> snapshots;
     final List<TreeSnapshot> treeSnapshots;
-    final boolean orderSensitive;
+    final TaskFilePropertyCompareType compareType;
 
-    public FileCollectionSnapshotImpl(List<TreeSnapshot> treeSnapshots, boolean orderSensitive) {
-        this(convertTreeSnapshots(treeSnapshots), ImmutableList.copyOf(treeSnapshots), orderSensitive);
+    public FileCollectionSnapshotImpl(List<TreeSnapshot> treeSnapshots, TaskFilePropertyCompareType compareType) {
+        this(convertTreeSnapshots(treeSnapshots), ImmutableList.copyOf(treeSnapshots), compareType);
     }
 
-    public FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots, boolean orderSensitive) {
-        this(snapshots, null, orderSensitive);
+    public FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots, TaskFilePropertyCompareType compareType) {
+        this(snapshots, null, compareType);
     }
 
-    private FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots, List<TreeSnapshot> treeSnapshots, boolean orderSensitive) {
+    private FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots, List<TreeSnapshot> treeSnapshots, TaskFilePropertyCompareType compareType) {
         this.snapshots = snapshots;
         this.treeSnapshots = treeSnapshots;
-        this.orderSensitive = orderSensitive;
+        this.compareType = compareType;
     }
 
     private static Map<String, IncrementalFileSnapshot> convertTreeSnapshots(List<TreeSnapshot> treeSnapshots) {
@@ -114,93 +108,12 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapsho
     }
 
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType, Set<ChangeFilter> filters) {
-        return orderSensitive
-            ? iterateOrderSensitiveContentChangesSince(oldSnapshot, fileType)
-            : iterateOrderInsensitiveContentChangesSince(oldSnapshot, fileType, filters);
-    }
-
-    private Iterator<TaskStateChange> iterateOrderInsensitiveContentChangesSince(FileCollectionSnapshot oldSnapshot, final String fileType, Set<ChangeFilter> filters) {
-        final Map<String, IncrementalFileSnapshot> otherSnapshots = new HashMap<String, IncrementalFileSnapshot>(oldSnapshot.getSnapshots());
-        final Iterator<String> currentFiles = snapshots.keySet().iterator();
-        final boolean includeAdded = !filters.contains(ChangeFilter.IgnoreAddedFiles);
-        return new AbstractIterator<TaskStateChange>() {
-            private Iterator<String> removedFiles;
-
-            @Override
-            protected TaskStateChange computeNext() {
-                while (currentFiles.hasNext()) {
-                    String currentFile = currentFiles.next();
-                    IncrementalFileSnapshot otherFile = otherSnapshots.remove(currentFile);
-                    if (otherFile == null) {
-                        if (includeAdded) {
-                            return new FileChange(currentFile, ChangeType.ADDED, fileType);
-                        }
-                    } else if (!snapshots.get(currentFile).isContentUpToDate(otherFile)) {
-                        return new FileChange(currentFile, ChangeType.MODIFIED, fileType);
-                    }
-                }
-
-                // Create a single iterator to use for all of the removed files
-                if (removedFiles == null) {
-                    removedFiles = otherSnapshots.keySet().iterator();
-                }
-
-                if (removedFiles.hasNext()) {
-                    return new FileChange(removedFiles.next(), ChangeType.REMOVED, fileType);
-                }
-
-                return endOfData();
-            }
-        };
-    }
-
-    private Iterator<TaskStateChange> iterateOrderSensitiveContentChangesSince(FileCollectionSnapshot oldSnapshot, final String fileType) {
-        final Iterator<Map.Entry<String, IncrementalFileSnapshot>> currentEntries = snapshots.entrySet().iterator();
-        final Iterator<Map.Entry<String, IncrementalFileSnapshot>> otherEntries = oldSnapshot.getSnapshots().entrySet().iterator();
-        return new AbstractIterator<TaskStateChange>() {
-            @Override
-            protected TaskStateChange computeNext() {
-                while (true) {
-                    if (currentEntries.hasNext()) {
-                        Map.Entry<String, IncrementalFileSnapshot> current = currentEntries.next();
-                        if (otherEntries.hasNext()) {
-                            Map.Entry<String, IncrementalFileSnapshot> other = otherEntries.next();
-                            if (current.getKey().equals(other.getKey())) {
-                                if (current.getValue().isContentUpToDate(other.getValue())) {
-                                    continue;
-                                } else {
-                                    return new FileChange(current.getKey(), ChangeType.MODIFIED, fileType);
-                                }
-                            } else {
-                                return new FileChange(current.getKey(), ChangeType.MODIFIED, fileType);
-                            }
-                        } else {
-                            return new FileChange(current.getKey(), ChangeType.ADDED, fileType);
-                        }
-                    } else {
-                        if (otherEntries.hasNext()) {
-                            return new FileChange(otherEntries.next().getKey(), ChangeType.REMOVED, fileType);
-                        } else {
-                            return endOfData();
-                        }
-                    }
-                }
-            }
-        };
+    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType) {
+        return compareType.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType);
     }
 
     @Override
     public void appendToCacheKey(TaskCacheKeyBuilder builder) {
-        FileCollectionHashBuilder hashBuilder = orderSensitive
-            ? new OrderInsensitiveFileCollectionHashBuilder(snapshots.size(), builder)
-            : new OrderSensitiveFileCollectionHashBuilder(builder);
-        List<String> keys = Lists.newArrayList(snapshots.keySet());
-        Collections.sort(keys);
-        for (String key : keys) {
-            IncrementalFileSnapshot snapshot = snapshots.get(key);
-            hashBuilder.hash(key, snapshot.getHash());
-        }
-        hashBuilder.close();
+        compareType.appendToCacheKey(builder, snapshots);
     }
 }

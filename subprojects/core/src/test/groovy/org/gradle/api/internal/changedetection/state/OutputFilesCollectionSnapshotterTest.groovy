@@ -32,6 +32,8 @@ import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.ChangeListener
 import spock.lang.Subject
 
+import static TaskFilePropertyCompareType.OUTPUT
+
 class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
     @Subject
     OutputFilesCollectionSnapshotter snapshotter
@@ -79,7 +81,7 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
         target.files as Set == [file1, file2, file3, file5] as Set
     }
 
-    def 'output snapshot detects new files'() {
+    def 'output snapshot ignores new files'() {
         given:
         TestFile file
         snapshotBeforeAndAfterTasks(null) {
@@ -91,7 +93,6 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
 
         then:
         target.files == [file]
-        1 * listener.added(file.path)
         0 * listener._
     }
 
@@ -139,7 +140,7 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
         0 * _
     }
 
-    def "output snapshot detects 2 new files"() {
+    def "output snapshot ignores 2 new files"() {
         given:
         TestFile file1
         TestFile file2
@@ -153,8 +154,6 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
 
         then:
         target.files as Set == [file1, file2] as Set
-        1 * listener.added(file1.path)
-        1 * listener.added(file2.path)
         0 * _
     }
 
@@ -174,7 +173,7 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
         0 * listener._
     }
 
-    def "output snapshot detects a file change for a file that didn't exist originally"() {
+    def "output snapshot ignores a file change for a file that didn't exist originally"() {
         given:
         TestFile file
         snapshotBeforeAndAfterTasks({
@@ -188,7 +187,6 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
 
         then:
         target.files == [file]
-        1 * listener.added(file.path)
         0 * listener._
     }
 
@@ -252,7 +250,7 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
     }
 
     private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
-        newSnapshot.iterateContentChangesSince(oldSnapshot, "TYPE", [] as Set).each { FileChange change ->
+        newSnapshot.iterateContentChangesSince(oldSnapshot, "TYPE").each { FileChange change ->
             switch (change.type) {
                 case ChangeType.ADDED:
                     listener.added(change.path)
@@ -267,8 +265,8 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
         }
     }
 
-    private OutputFilesCollectionSnapshotter.OutputFilesSnapshot createInitialOutputSnapshot(def orderSensitive = false) {
-        snapshotter.createOutputSnapshot(null, snapshotter.emptySnapshot(), createSnapshot(rootDir, orderSensitive), files(rootDir), orderSensitive)
+    private OutputFilesCollectionSnapshotter.OutputFilesSnapshot createInitialOutputSnapshot() {
+        snapshotter.createOutputSnapshot(null, snapshotter.emptySnapshot(), createSnapshot(rootDir), files(rootDir))
     }
 
     private void snapshotBeforeAndAfterTasks(Closure betweenTasksClosure, Closure taskActionClosure) {
@@ -283,8 +281,8 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
         after = createSnapshot(rootDir)
     }
 
-    private void createOutputSnapshot(def orderSensitive = false) {
-        target = snapshotter.createOutputSnapshot(previous, before, after, files(rootDir), orderSensitive)
+    private void createOutputSnapshot() {
+        target = snapshotter.createOutputSnapshot(previous, before, after, files(rootDir))
         changes(target, previous, listener)
     }
 
@@ -292,8 +290,8 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
         new SimpleFileCollection(files)
     }
 
-    private FileCollectionSnapshot createSnapshot(File dir, def orderSensitive = false) {
-        snapshotter.snapshot(createFileCollection(dir), false, orderSensitive)
+    private FileCollectionSnapshot createSnapshot(File dir) {
+        snapshotter.snapshot(createFileCollection(dir), false, OUTPUT)
     }
 
     private static FileCollection createFileCollection(File dir) {

@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -45,6 +46,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.OUTPUT;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -380,8 +382,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
 
         @Override
-        public boolean isOrderSensitive() {
-            return false;
+        public TaskFilePropertyCompareType getCompareType() {
+            return OUTPUT;
         }
     }
 
@@ -477,8 +479,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
 
         @Override
-        public boolean isOrderSensitive() {
-            return false;
+        public TaskFilePropertyCompareType getCompareType() {
+            return OUTPUT;
         }
 
         @Override

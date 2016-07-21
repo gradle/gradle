@@ -16,23 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.hash.HashCode;
+import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
-class OrderSensitiveFileCollectionHashBuilder implements FileCollectionHashBuilder {
-    private final TaskCacheKeyBuilder builder;
+import java.util.Iterator;
+import java.util.Map;
 
-    public OrderSensitiveFileCollectionHashBuilder(TaskCacheKeyBuilder builder) {
-        this.builder = builder;
-    }
-
-    @Override
-    public void hash(String key, HashCode hashCode) {
-        builder.putString(key);
-        builder.putHashCode(hashCode);
-    }
-
-    @Override
-    public void close() {
-    }
+interface TaskFilePropertyCompareStrategy {
+    Iterator<TaskStateChange> iterateContentChangesSince(Map<String, IncrementalFileSnapshot> current, Map<String, IncrementalFileSnapshot> previous, String fileType);
+    void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, IncrementalFileSnapshot> snapshots);
 }

@@ -28,6 +28,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.UNORDERED;
+
 abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
     protected final FileSnapshotter snapshotter;
     protected final StringInterner stringInterner;
@@ -43,11 +45,11 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
 
     @Override
     public FileCollectionSnapshot emptySnapshot() {
-        return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap(), false);
+        return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap(), UNORDERED);
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(final FileCollection input, final boolean allowReuse, boolean orderSensitive) {
+    public FileCollectionSnapshot snapshot(FileCollection input, boolean allowReuse, TaskFilePropertyCompareType compareType) {
         final List<VisitedTree> fileTreeElements = Lists.newLinkedList();
         final List<File> missingFiles = Lists.newArrayList();
         visitFiles(input, fileTreeElements, missingFiles, allowReuse);
@@ -73,7 +75,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
                 }
             }
         });
-        return new FileCollectionSnapshotImpl(treeSnapshots, orderSensitive);
+        return new FileCollectionSnapshotImpl(treeSnapshots, compareType);
     }
 
     abstract VisitedTree createJoinedTree(List<VisitedTree> nonShareableTrees, Collection<File> missingFiles);

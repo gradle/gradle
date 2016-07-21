@@ -100,8 +100,8 @@ public abstract class TaskExecution {
     public TaskCacheKey calculateCacheKey() {
         TaskCacheKeyBuilder builder = new DefaultTaskCacheKeyBuilder();
         builder.putString(taskClass);
-        builder.putHashCode(taskClassLoaderHash);
-        builder.putHashCode(taskActionsClassLoaderHash);
+        builder.putBytes(taskClassLoaderHash.asBytes());
+        builder.putBytes(taskActionsClassLoaderHash.asBytes());
 
         // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
 

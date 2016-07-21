@@ -26,27 +26,27 @@ class FileCollectionSnapshotImplTest extends Specification {
         def oldSnapshot = new FileCollectionSnapshotImpl([
             "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
             "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
-        ], false)
+        ], TaskFilePropertyCompareType.UNORDERED)
         def newSnapshot = new FileCollectionSnapshotImpl([
             "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
             "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
-        ], false)
+        ], TaskFilePropertyCompareType.UNORDERED)
         when:
         oldSnapshot.appendToCacheKey(builder)
         then:
         1 * builder.putString("file1.txt")
-        1 * builder.putHashCode(HashCode.fromInt(123))
+        1 * builder.putBytes(HashCode.fromInt(123).asBytes())
         1 * builder.putString("file2.txt")
-        1 * builder.putHashCode(HashCode.fromInt(234))
+        1 * builder.putBytes(HashCode.fromInt(234).asBytes())
         0 * _
 
         when:
         newSnapshot.appendToCacheKey(builder)
         then:
         1 * builder.putString("file1.txt")
-        1 * builder.putHashCode(HashCode.fromInt(123))
+        1 * builder.putBytes(HashCode.fromInt(123).asBytes())
         1 * builder.putString("file2.txt")
-        1 * builder.putHashCode(HashCode.fromInt(234))
+        1 * builder.putBytes(HashCode.fromInt(234).asBytes())
         0 * _
     }
 
@@ -55,11 +55,11 @@ class FileCollectionSnapshotImplTest extends Specification {
         def oldSnapshot = new FileCollectionSnapshotImpl([
             "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
             "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
-        ], true)
+        ], TaskFilePropertyCompareType.ORDERED)
         def newSnapshot = new FileCollectionSnapshotImpl([
             "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
             "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
-        ], true)
+        ], TaskFilePropertyCompareType.ORDERED)
         when:
         oldSnapshot.appendToCacheKey(builder)
         then:

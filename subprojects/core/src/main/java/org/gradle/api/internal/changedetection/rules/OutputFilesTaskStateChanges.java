@@ -20,18 +20,13 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot.ChangeFilter;
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 
-import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
 
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    private static final EnumSet<ChangeFilter> IGNORE_ADDED_FILES = EnumSet.of(ChangeFilter.IgnoreAddedFiles);
-
     public OutputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, OutputFilesCollectionSnapshotter snapshotter) {
         super(task.getName(), previous, current, snapshotter, false, "Output", task.getOutputs().getFileProperties());
     }
@@ -39,11 +34,6 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     @Override
     public Map<String, FileCollectionSnapshot> getPrevious() {
         return previous.getOutputFilesSnapshot();
-    }
-
-    @Override
-    protected Set<ChangeFilter> getFileChangeFilters() {
-        return IGNORE_ADDED_FILES;
     }
 
     @Override
@@ -57,7 +47,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
             FileCollectionSnapshot beforeExecution = getCurrent().get(propertyName);
             FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
             FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);
-            FileCollectionSnapshot outputSnapshot = getSnapshotter().createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution, roots, propertySpec.isOrderSensitive());
+            FileCollectionSnapshot outputSnapshot = getSnapshotter().createOutputSnapshot(afterPreviousExecution, beforeExecution, afterExecution, roots);
             builder.put(propertyName, outputSnapshot);
         }
 
