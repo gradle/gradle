@@ -246,14 +246,6 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
-### Plural task output registration APIs
-
-The `@OutputFiles` and `@OutputDirectories` annotations support only properties with a `Map` type, where the values in the map can be resolved to individual files, while the keys represent unique identifiers for each file. Using either of the annotations with an `Iterable<File>` or `FileCollection` property is deprecated.
-
-The following APIs have been deprecated:
-
-`TaskOutputs.files()` method is now deprecated. Use either of the new `TaskOutputs.namedFiles()` methods instead.
-
 ## Potential breaking changes
 
 ### Running Gradle on Java 6 is no longer supported.

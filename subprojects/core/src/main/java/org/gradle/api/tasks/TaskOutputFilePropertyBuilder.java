@@ -90,7 +90,7 @@ public interface TaskOutputFilePropertyBuilder extends TaskPropertyBuilder, Task
      */
     @Deprecated
     @Override
-    TaskOutputs files(Object... paths);
+    TaskOutputFilePropertyBuilder files(Object... paths);
 
     /**
      * {@inheritDoc}

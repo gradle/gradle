@@ -225,7 +225,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public TaskOutputFilePropertyBuilder files(final Object... paths) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskOutputs.files(Object...)", "Please use the TaskOutputs.file(Object) or the TaskOutputs.dir(Object) method instead.");
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
@@ -319,20 +318,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         @Override
         @Deprecated
-        public TaskOutputs files(Object... paths) {
+        public TaskOutputFilePropertyBuilder files(Object... paths) {
             return getTaskOutputs("files(Object...)").files(paths);
-        }
-
-        @Override
-        @Deprecated
-        public TaskOutputFilePropertyBuilder namedFiles(Callable<Map<?, ?>> paths) {
-            return getTaskOutputs("namedFiles(Callable)").namedFiles(paths);
-        }
-
-        @Override
-        @Deprecated
-        public TaskOutputFilePropertyBuilder namedFiles(Map<?, ?> paths) {
-            return getTaskOutputs("namedFiles(Map)").namedFiles(paths);
         }
 
         @Override

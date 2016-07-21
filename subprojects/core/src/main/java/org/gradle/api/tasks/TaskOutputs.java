@@ -23,9 +23,6 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
 
-import java.util.Map;
-import java.util.concurrent.Callable;
-
 /**
  * <p>A {@code TaskOutputs} represents the outputs of a task.</p>
  *
@@ -100,32 +97,8 @@ public interface TaskOutputs {
      *
      * @param paths The output files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return this
-     *
-     * @deprecated Use {@link #namedFiles(Map)} or {@link #namedFiles(Callable)} instead.
      */
-    @Deprecated
-    TaskOutputs files(Object... paths);
-
-    /**
-     * Register some named outputs for this task.
-     *
-     * @param paths A {@link Callable} returning the actual output files. The keys of the returned map should not
-     * be {@code null}, and they must be
-     * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>}.
-     * The values will be evaluated to individual files as per {@link org.gradle.api.Project#file(Object)}.
-     */
-    @Incubating
-    TaskOutputFilePropertyBuilder namedFiles(Callable<Map<?, ?>> paths);
-
-    /**
-     * Register some named outputs for this task.
-     *
-     * @param paths The output files. The keys of the map should not be {@code null}, and they must be
-     * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>}.
-     * The values will be evaluated to individual files as per {@link org.gradle.api.Project#file(Object)}.
-     */
-    @Incubating
-    TaskOutputFilePropertyBuilder namedFiles(Map<?, ?> paths);
+    TaskOutputFilePropertyBuilder files(Object... paths);
 
     /**
      * Registers some output file for this task.
