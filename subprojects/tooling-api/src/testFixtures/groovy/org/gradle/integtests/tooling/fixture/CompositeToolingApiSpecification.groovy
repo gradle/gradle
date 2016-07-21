@@ -18,8 +18,8 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.gradle.integtests.composite.fixtures.CompositeBuildTestFixture
-import org.gradle.integtests.composite.fixtures.ProjectTestFile
+import org.gradle.integtests.composite.fixtures.BuildTestFixture
+import org.gradle.integtests.composite.fixtures.BuildTestFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
@@ -111,16 +111,16 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         rootDir.file(path)
     }
 
-    def populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
-        new CompositeBuildTestFixture(rootDir).populate(projectName, cl)
+    def populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
+        new BuildTestFixture(rootDir).populate(projectName, cl)
     }
 
-    def singleProjectBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
-        new CompositeBuildTestFixture(rootDir).singleProjectBuild(projectName, cl)
+    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(rootDir).singleProjectBuild(projectName, cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
-        new CompositeBuildTestFixture(rootDir).multiProjectBuild(projectName, subprojects, cl)
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(rootDir).multiProjectBuild(projectName, subprojects, cl)
     }
 
     TestFile projectDir(String project) {

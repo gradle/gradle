@@ -18,20 +18,20 @@ package org.gradle.integtests.composite.fixtures
 
 import org.gradle.test.fixtures.file.TestFile
 
-class CompositeBuildTestFixture {
+class BuildTestFixture {
     private final TestFile rootDir
 
-    CompositeBuildTestFixture(TestFile rootDir) {
+    BuildTestFixture(TestFile rootDir) {
         this.rootDir = rootDir
     }
 
-    def populate(String projectName, @DelegatesTo(ProjectTestFile) Closure cl) {
-        def project = new ProjectTestFile(rootDir, projectName)
+    def populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
+        def project = new BuildTestFile(rootDir, projectName)
         project.with(cl)
         project
     }
 
-    def singleProjectBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         def project = populate(projectName) {
             settingsFile << """
                     rootProject.name = '${rootProjectName}'
@@ -47,7 +47,7 @@ class CompositeBuildTestFixture {
         return project
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         String subprojectList = subprojects.collect({ "'$it'" }).join(',')
         def rootMulti = populate(projectName) {
             settingsFile << """

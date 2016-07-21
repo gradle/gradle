@@ -17,8 +17,8 @@
 package org.gradle.integtests.composite
 
 import com.beust.jcommander.internal.Lists
-import org.gradle.integtests.composite.fixtures.CompositeBuildTestFixture
-import org.gradle.integtests.composite.fixtures.ProjectTestFile
+import org.gradle.integtests.composite.fixtures.BuildTestFixture
+import org.gradle.integtests.composite.fixtures.BuildTestFile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
@@ -28,17 +28,17 @@ import org.gradle.test.fixtures.file.TestFile
 abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     List builds = []
 
-    protected void execute(ProjectTestFile build, String task, Iterable<String> arguments = []) {
+    protected void execute(BuildTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         succeeds(task)
     }
 
-    protected void fails(ProjectTestFile build, String task, Iterable<String> arguments = []) {
+    protected void fails(BuildTestFile build, String task, Iterable<String> arguments = []) {
         prepare(build, arguments)
         fails(task)
     }
 
-    private void prepare(ProjectTestFile build, Iterable<String> arguments) {
+    private void prepare(BuildTestFile build, Iterable<String> arguments) {
         executer.inDirectory(build)
 
         List<File> includedBuilds = Lists.newArrayList(builds)
@@ -63,11 +63,11 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
         temporaryFolder.testDirectory
     }
 
-    def singleProjectBuild(String projectName, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
-        new CompositeBuildTestFixture(rootDir).singleProjectBuild(projectName, cl)
+    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(rootDir).singleProjectBuild(projectName, cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(ProjectTestFile) Closure cl = {}) {
-        new CompositeBuildTestFixture(rootDir).multiProjectBuild(projectName, subprojects, cl)
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(rootDir).multiProjectBuild(projectName, subprojects, cl)
     }
 }

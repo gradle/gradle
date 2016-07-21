@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.composite
 
-import org.gradle.integtests.composite.fixtures.ProjectTestFile
+import org.gradle.integtests.composite.fixtures.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Unroll
@@ -25,8 +25,8 @@ import spock.lang.Unroll
  * Tests for resolving dependency graph with substitution within a composite build.
  */
 class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
-    ProjectTestFile buildA
-    ProjectTestFile buildB
+    BuildTestFile buildA
+    BuildTestFile buildB
     MavenFileRepository mavenRepo
     ResolveTestFixture resolve
     def buildArgs = []

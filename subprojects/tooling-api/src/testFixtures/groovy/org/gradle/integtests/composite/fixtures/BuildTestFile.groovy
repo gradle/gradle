@@ -18,10 +18,10 @@ package org.gradle.integtests.composite.fixtures
 
 import org.gradle.test.fixtures.file.TestFile
 
-class ProjectTestFile extends TestFile {
+class BuildTestFile extends TestFile {
     private final String projectName
 
-    ProjectTestFile(TestFile rootDir, String projectName) {
+    BuildTestFile(TestFile rootDir, String projectName) {
         super(rootDir, [projectName])
         this.projectName = projectName
     }

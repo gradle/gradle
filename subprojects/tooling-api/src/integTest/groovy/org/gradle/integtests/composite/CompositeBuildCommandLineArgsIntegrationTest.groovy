@@ -17,7 +17,7 @@
 package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
-import org.gradle.integtests.composite.fixtures.ProjectTestFile
+import org.gradle.integtests.composite.fixtures.BuildTestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
 
@@ -25,8 +25,8 @@ import org.gradle.test.fixtures.maven.MavenModule
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
 class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    ProjectTestFile buildA
-    ProjectTestFile buildB
+    BuildTestFile buildA
+    BuildTestFile buildB
     MavenModule publishedModuleB
     MavenFileRepository mavenRepo
 
