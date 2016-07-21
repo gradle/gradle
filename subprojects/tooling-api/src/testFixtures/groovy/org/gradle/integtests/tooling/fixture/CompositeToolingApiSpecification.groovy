@@ -18,8 +18,8 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.gradle.integtests.composite.fixtures.BuildTestFixture
-import org.gradle.integtests.composite.fixtures.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder

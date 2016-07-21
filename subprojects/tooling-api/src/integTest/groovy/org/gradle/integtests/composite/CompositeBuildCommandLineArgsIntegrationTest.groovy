@@ -17,7 +17,7 @@
 package org.gradle.integtests.composite
 
 import groovy.transform.NotYetImplemented
-import org.gradle.integtests.composite.fixtures.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
 
