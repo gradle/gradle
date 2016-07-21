@@ -19,9 +19,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 
-import java.util.jar.JarOutputStream
-import java.util.zip.ZipEntry
-
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     public static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {
@@ -140,22 +137,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":jar"
         !file("build/libs/test.jar").isFile()
         file("build/other-jar/other-jar.jar").isFile()
-    }
-
-    def jarWithContents(Map<String, String> contents) {
-        def out = new ByteArrayOutputStream()
-        def jarOut = new JarOutputStream(out)
-        try {
-            contents.each { file, fileContents ->
-                def zipEntry = new ZipEntry(file)
-                zipEntry.setTime(0)
-                jarOut.putNextEntry(zipEntry)
-                jarOut << fileContents
-            }
-        } finally {
-            jarOut.close()
-        }
-        return out.toByteArray()
     }
 
     def "clean doesn't get cached"() {

@@ -33,7 +33,7 @@ class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
         FileCollectionSnapshotImpl out = serialize(new FileCollectionSnapshotImpl([
             "1": DirSnapshot.getInstance(),
             "2": MissingFileSnapshot.getInstance(),
-            "3": new FileHashSnapshot(hash)]), serializer)
+            "3": new FileHashSnapshot(hash)], false), serializer)
 
         then:
         out.snapshots.size() == 3

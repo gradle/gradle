@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.file.FileCollection;
+import com.google.common.hash.HashCode;
 
-public interface TaskFilePropertySpec extends TaskPropertySpec {
-    FileCollection getPropertyFiles();
-    boolean isOrderSensitive();
+import java.io.Closeable;
+
+interface FileCollectionHashBuilder extends Closeable {
+    void hash(String key, HashCode hash);
+    @Override
+    void close();
 }

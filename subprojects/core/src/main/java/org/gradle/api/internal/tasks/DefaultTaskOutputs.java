@@ -378,6 +378,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         public OutputType getOutputType() {
             return outputType;
         }
+
+        @Override
+        public boolean isOrderSensitive() {
+            return false;
+        }
     }
 
     private class UnnamedCompositePropertySpec extends DefaultPropertySpec implements CompositePropertySpec {
@@ -469,6 +474,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         @Override
         public OutputType getOutputType() {
             return parentProperty.getOutputType();
+        }
+
+        @Override
+        public boolean isOrderSensitive() {
+            return false;
         }
 
         @Override

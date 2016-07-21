@@ -36,7 +36,8 @@ public interface FileCollectionSnapshotter {
      *
      * @param files The files to snapshot
      * @param allowReuse When true, can use cached snapshot trees
+     * @param orderSensitive Whether order of snapshots matters when comparing the collection
      * @return The snapshot.
      */
-    FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse);
+    FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse, boolean orderSensitive);
 }

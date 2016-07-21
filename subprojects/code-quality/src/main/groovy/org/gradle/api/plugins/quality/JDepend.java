@@ -27,6 +27,7 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
@@ -128,6 +129,7 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
     /**
      * The class path containing the JDepend library to be used.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getJdependClasspath() {
         return jdependClasspath;

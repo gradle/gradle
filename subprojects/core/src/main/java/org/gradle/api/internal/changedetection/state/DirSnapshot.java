@@ -17,11 +17,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Charsets;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 
 class DirSnapshot implements IncrementalFileSnapshot {
     private static final DirSnapshot INSTANCE = new DirSnapshot();
-    private static final byte[] SIGNATURE = "DIRECTORY".getBytes(Charsets.UTF_8);
+    private static final HashCode SIGNATURE = Hashing.md5().hashString(DirSnapshot.class.getName(), Charsets.UTF_8);
 
     private DirSnapshot() {
     }
@@ -40,7 +41,7 @@ class DirSnapshot implements IncrementalFileSnapshot {
     }
 
     @Override
-    public void appendToCacheKey(TaskCacheKeyBuilder builder) {
-        builder.putBytes(SIGNATURE);
+    public HashCode getHash() {
+        return SIGNATURE;
     }
 }

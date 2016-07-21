@@ -17,7 +17,7 @@
 package org.gradle.plugin.repository.internal;
 
 import com.google.common.collect.ImmutableList;
-import org.apache.http.annotation.ThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.repository.PluginRepository;
 

@@ -267,8 +267,8 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
         }
     }
 
-    private OutputFilesCollectionSnapshotter.OutputFilesSnapshot createInitialOutputSnapshot() {
-        snapshotter.createOutputSnapshot(null, snapshotter.emptySnapshot(), createSnapshot(rootDir), files(rootDir))
+    private OutputFilesCollectionSnapshotter.OutputFilesSnapshot createInitialOutputSnapshot(def orderSensitive = false) {
+        snapshotter.createOutputSnapshot(null, snapshotter.emptySnapshot(), createSnapshot(rootDir, orderSensitive), files(rootDir), orderSensitive)
     }
 
     private void snapshotBeforeAndAfterTasks(Closure betweenTasksClosure, Closure taskActionClosure) {
@@ -283,8 +283,8 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
         after = createSnapshot(rootDir)
     }
 
-    private void createOutputSnapshot() {
-        target = snapshotter.createOutputSnapshot(previous, before, after, files(rootDir))
+    private void createOutputSnapshot(def orderSensitive = false) {
+        target = snapshotter.createOutputSnapshot(previous, before, after, files(rootDir), orderSensitive)
         changes(target, previous, listener)
     }
 
@@ -292,8 +292,8 @@ class OutputFilesCollectionSnapshotterTest extends AbstractProjectBuilderSpec {
         new SimpleFileCollection(files)
     }
 
-    private FileCollectionSnapshot createSnapshot(File dir) {
-        snapshotter.snapshot(createFileCollection(dir), false)
+    private FileCollectionSnapshot createSnapshot(File dir, def orderSensitive = false) {
+        snapshotter.snapshot(createFileCollection(dir), false, orderSensitive)
     }
 
     private static FileCollection createFileCollection(File dir) {

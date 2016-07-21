@@ -14,11 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.file.FileCollection;
+import com.google.common.hash.HashCode;
+import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
-public interface TaskFilePropertySpec extends TaskPropertySpec {
-    FileCollection getPropertyFiles();
-    boolean isOrderSensitive();
+class OrderSensitiveFileCollectionHashBuilder implements FileCollectionHashBuilder {
+    private final TaskCacheKeyBuilder builder;
+
+    public OrderSensitiveFileCollectionHashBuilder(TaskCacheKeyBuilder builder) {
+        this.builder = builder;
+    }
+
+    @Override
+    public void hash(String key, HashCode hashCode) {
+        builder.putString(key);
+        builder.putHashCode(hashCode);
+    }
+
+    @Override
+    public void close() {
+    }
 }

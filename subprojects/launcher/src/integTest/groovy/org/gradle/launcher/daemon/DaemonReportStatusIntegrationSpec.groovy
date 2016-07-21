@@ -33,16 +33,18 @@ class DaemonReportStatusIntegrationSpec extends DaemonIntegrationSpec {
 
         then:
         out =~ """^$DaemonMessages.NO_DAEMONS_RUNNING
+
 $ReportDaemonStatusClient.STATUS_FOOTER.*""".toString()
     }
 
-    def "reports idle and busy status of running daemons"() {
+    def "reports idle, busy and stopped statuses of daemons"() {
         given:
         buildFile << """
 task block << {
     new URL("$server.uri").text
 }
 """
+        daemons.getRegistry().storeStopEvent(new DaemonStopEvent(new Date(), 12346L, DaemonExpirationStatus.GRACEFUL_EXPIRE, "GRACEFUL_EXPIRE_REASON"))
         def build = executer.withTasks("block").start()
         server.waitFor()
         daemons.daemon.assertBusy()
@@ -54,9 +56,10 @@ task block << {
 
         then:
         daemons.daemons.size() == 2
-        out =~ /^   PID STATUS\s+VERSION/
+        out =~ /^   PID STATUS\s+INFO/
         out =~ /\n\s*\d+\s+IDLE\s+([\w\.\+\-]+)/
         out =~ /\n\s*\d+\s+BUSY\s+([\w\.\+\-]+)/
+        out =~ /\n\s*12346\s+STOPPED\s+\(GRACEFUL_EXPIRE_REASON\)/
 
         cleanup:
         server.release()
@@ -66,15 +69,18 @@ task block << {
     def "reports stopped status of recently stopped daemons"() {
         given:
         daemons.getRegistry().storeStopEvent(new DaemonStopEvent(new Date(), 12345L, DaemonExpirationStatus.IMMEDIATE_EXPIRE, "IMMEDIATE_EXPIRE_REASON"))
+        daemons.getRegistry().storeStopEvent(new DaemonStopEvent(new Date(), 12345L, DaemonExpirationStatus.GRACEFUL_EXPIRE, "GRACEFUL_EXPIRE_REASON"))
         daemons.getRegistry().storeStopEvent(new DaemonStopEvent(new Date(), 12346L, DaemonExpirationStatus.GRACEFUL_EXPIRE, "GRACEFUL_EXPIRE_REASON"))
 
         when:
         def out = executer.withArguments("--status").run().output
 
         then:
-        out =~ /^   PID STATUS\s+REASON/
-        out =~ /\n\s*12345\s+STOPPED\s+IMMEDIATE_EXPIRE_REASON/
-        out =~ /\n\s*12346\s+STOPPED\s+GRACEFUL_EXPIRE_REASON/
+        out.startsWith(DaemonMessages.NO_DAEMONS_RUNNING)
+        out =~ /\n   PID STATUS\s+INFO/
+        out =~ /\n\s*12345\s+STOPPED\s+\(IMMEDIATE_EXPIRE_REASON\)/
+        out =~ /\n\s*12346\s+STOPPED\s+\(GRACEFUL_EXPIRE_REASON\)/
+        out !=~ /\n\s*12345\s+STOPPED\s+\(GRACEFUL_EXPIRE_REASON\)/
     }
 }
 

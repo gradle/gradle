@@ -87,15 +87,27 @@ public class DefaultFileOperationsTest extends Specification {
         fileOperations.uri('path') == uri
     }
 
-    def resolvesFiles() {
+    def resolvesFilesInOrder() {
         when:
-        def fileCollection = fileOperations.files('a', 'b')
+        def fileCollection = fileOperations.files('a', 'b', 'c')
 
         then:
         fileCollection instanceof DefaultConfigurableFileCollection
-        fileCollection.from == ['a', 'b'] as LinkedHashSet
+        fileCollection.from as List == ['a', 'b', 'c']
         fileCollection.resolver.is(resolver)
         fileCollection.buildDependency.resolver.is(taskResolver)
+
+        when:
+        def files = fileCollection.files
+        then:
+        1 * resolver.resolve('a') >> new File('a')
+        then:
+        1 * resolver.resolve('b') >> new File('b')
+        then:
+        1 * resolver.resolve('c') >> new File('c')
+        then:
+        files*.name as List == ['a', 'b', 'c']
+        0 * _
     }
 
     def createsFileTree() {

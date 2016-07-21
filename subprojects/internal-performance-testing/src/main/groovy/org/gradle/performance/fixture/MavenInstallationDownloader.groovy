@@ -17,12 +17,15 @@
 package org.gradle.performance.fixture
 
 import groovy.json.JsonSlurper
+import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
+import org.gradle.api.UncheckedIOException
 import org.gradle.internal.os.OperatingSystem
 
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 
+@Slf4j
 class MavenInstallationDownloader {
 
     private final static Lock LOCK = new ReentrantLock()
@@ -39,18 +42,38 @@ class MavenInstallationDownloader {
             if (MavenInstallation.valid(home)) {
                 return new MavenInstallation(mavenVersion, home)
             }
-            def binArchive
-            try {
-                binArchive = downloadMavenBinFromRandomMirror(mavenVersion)
-            } catch (IOException ignored) {
-                // Retry getting maven once in case we get a bad mirror
-                binArchive = downloadMavenBinFromRandomMirror(mavenVersion)
-            }
+            def binArchive = downloadMavenBinArchiveWithRetry(mavenVersion)
             def tempHome = extractBinArchive(mavenVersion, binArchive)
             home = moveToInstallsRoot(tempHome)
             new MavenInstallation(mavenVersion, home)
         } finally {
             LOCK.unlock()
+        }
+    }
+
+    private static File downloadMavenBinArchiveWithRetry(String mavenVersion) {
+        def binArchiveUrls = [
+            new URL("http://repo1.maven.org/maven2/org/apache/maven/apache-maven/$mavenVersion/apache-maven-$mavenVersion-bin.zip"),
+            new URL(fetchPreferredUrl(mavenVersion))
+        ]
+
+        for (int i = 0; i < binArchiveUrls.size(); i++) {
+            File mavenBinArchive = downloadMavenBinArchive(mavenVersion, binArchiveUrls[i])
+
+            if (mavenBinArchive) {
+                return mavenBinArchive
+            } else if (!mavenBinArchive && i == (binArchiveUrls.size() - 1)) {
+                throw new UncheckedIOException("Unable to download Maven binary distribution from any of the repositories")
+            }
+        }
+    }
+
+    private static File downloadMavenBinArchive(String mavenVersion, URL binArchiveUrl) {
+        try {
+            log.info "Attempting to downloading Maven binary distribution from '$binArchiveUrl'"
+            return downloadBinArchive(mavenVersion, binArchiveUrl)
+        } catch (IOException e) {
+            log.warn "Unable to download Maven distribution from '$binArchiveUrl'", e
         }
     }
 
@@ -60,15 +83,15 @@ class MavenInstallationDownloader {
 
     private static String fetchPreferredUrl(String mavenVersion) {
         // Use ASF preferred mirror resolution
-        def url = "http://www.apache.org/dyn/closer.cgi/maven/maven-3/$mavenVersion/binaries/apache-maven-$mavenVersion-bin.tar.gz?as_json=1"
+        def url = "http://www.apache.org/dyn/closer.cgi/maven/maven-3/$mavenVersion/binaries/apache-maven-$mavenVersion-bin.zip?as_json=1"
         def parsed = new JsonSlurper().parse(new URL(url))
         parsed.preferred + parsed.path_info
     }
 
-    private static File downloadBinArchive(String mavenVersion, String binArchiveUrl) {
-        def target = File.createTempFile("maven-bin-$mavenVersion-", ".tar.gz")
+    private static File downloadBinArchive(String mavenVersion, URL binArchiveUrl) {
+        def target = File.createTempFile("maven-bin-$mavenVersion-", ".zip")
         target.withOutputStream { out ->
-            out << new URL(binArchiveUrl).openStream()
+            out << binArchiveUrl.openStream()
         }
         target
     }
@@ -77,13 +100,8 @@ class MavenInstallationDownloader {
         def target = File.createTempDir("maven-install-$mavenVersion-", "")
         def ant = new AntBuilder()
         ant.mkdir(dir: target)
-        ant.untar(src: binArchive, dest: target, compression: "gzip")
+        ant.unzip(src: binArchive, dest: target)
         mavenInstallDirectory(target, mavenVersion)
-    }
-
-    private static File downloadMavenBinFromRandomMirror(String mavenVersion) {
-        def preferredUrl = fetchPreferredUrl(mavenVersion)
-        downloadBinArchive(mavenVersion, preferredUrl)
     }
 
     private File moveToInstallsRoot(File tmpHome) {

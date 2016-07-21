@@ -41,11 +41,13 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         this.fileResolver = fileResolver;
     }
 
+    @Override
     public FileCollectionSnapshot emptySnapshot() {
-        return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap());
+        return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap(), false);
     }
 
-    public FileCollectionSnapshot snapshot(final FileCollection input, final boolean allowReuse) {
+    @Override
+    public FileCollectionSnapshot snapshot(final FileCollection input, final boolean allowReuse, boolean orderSensitive) {
         final List<VisitedTree> fileTreeElements = Lists.newLinkedList();
         final List<File> missingFiles = Lists.newArrayList();
         visitFiles(input, fileTreeElements, missingFiles, allowReuse);
@@ -71,7 +73,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
                 }
             }
         });
-        return new FileCollectionSnapshotImpl(treeSnapshots);
+        return new FileCollectionSnapshotImpl(treeSnapshots, orderSensitive);
     }
 
     abstract VisitedTree createJoinedTree(List<VisitedTree> nonShareableTrees, Collection<File> missingFiles);

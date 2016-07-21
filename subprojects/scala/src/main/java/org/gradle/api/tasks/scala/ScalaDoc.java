@@ -58,6 +58,7 @@ public class ScalaDoc extends SourceTask {
      *
      * @return The classpath.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
@@ -70,6 +71,7 @@ public class ScalaDoc extends SourceTask {
     /**
      * Returns the classpath to use to load the ScalaDoc tool.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getScalaClasspath() {
         return scalaClasspath;

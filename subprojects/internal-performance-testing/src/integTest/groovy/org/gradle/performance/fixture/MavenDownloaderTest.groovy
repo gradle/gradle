@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.api.UncheckedIOException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
@@ -23,19 +24,22 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import spock.lang.Unroll
 
-
+@Requires([TestPrecondition.ONLINE])
 class MavenDownloaderTest extends Specification {
 
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
 
-    @Requires([TestPrecondition.ONLINE])
-    @Unroll
-    def "can download maven #mavenVersion"() {
-        given:
-        def installRoot = tmpDir.newFolder()
-        def downloader = new MavenInstallationDownloader(installRoot)
+    def installRoot
+    def downloader
 
+    def setup() {
+        installRoot = tmpDir.newFolder()
+        downloader = new MavenInstallationDownloader(installRoot)
+    }
+
+    @Unroll
+    def "can download Maven distribution with version #mavenVersion"() {
         when:
         def install = downloader.getMavenInstallation(mavenVersion)
 
@@ -46,8 +50,15 @@ class MavenDownloaderTest extends Specification {
         MavenInstallation.probeVersion(install.home) == mavenVersion
 
         where:
-        mavenVersion | _
-        "3.2.5"      | _
-        "3.3.9"      | _
+        mavenVersion << ['3.2.5', '3.3.9']
+    }
+
+    def "throws exception if Maven distribution cannot be downloaded from any repository"() {
+        when:
+        downloader.getMavenInstallation('unknown')
+
+        then:
+        def t = thrown(UncheckedIOException)
+        t.message == 'Unable to download Maven binary distribution from any of the repositories'
     }
 }

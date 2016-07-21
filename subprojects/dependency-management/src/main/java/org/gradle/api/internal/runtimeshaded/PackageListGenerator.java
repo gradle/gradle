@@ -23,6 +23,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.ErroringAction;
@@ -69,6 +70,7 @@ public class PackageListGenerator extends DefaultTask {
         excludes = DEFAULT_EXCLUDES;
     }
 
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;

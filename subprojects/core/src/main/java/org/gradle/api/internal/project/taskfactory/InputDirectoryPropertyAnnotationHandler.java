@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 
 import java.io.File;
@@ -44,9 +45,13 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
     public boolean attachActions(final TaskPropertyActionContext context) {
         context.setValidationAction(inputDirValidation);
         final boolean skipWhenEmpty = context.isAnnotationPresent(SkipWhenEmpty.class);
+        final boolean orderSensitive = context.isAnnotationPresent(OrderSensitive.class);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().dir(futureValue).withPropertyName(context.getName()).skipWhenEmpty(skipWhenEmpty);
+                task.getInputs().dir(futureValue)
+                    .withPropertyName(context.getName())
+                    .skipWhenEmpty(skipWhenEmpty)
+                    .orderSensitive(orderSensitive);
             }
         });
         return true;
