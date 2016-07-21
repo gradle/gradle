@@ -17,13 +17,6 @@ import org.gradle.testing.PerformanceTest
 
 apply from: 'templates.gradle'
 
-dependencies {
-    testCompile libraries.jsoup
-}
-
-useTestFixtures()
-useClassycle()
-
 tasks.withType(PerformanceTest) {
     dependsOn prepareSamples
 }
