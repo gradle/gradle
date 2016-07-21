@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-
-import jdk.internal.util.xml.impl.Input
 import org.gradle.testing.PerformanceTest
+import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
+
 
 apply plugin: 'java'
 apply from: "${rootDir}/gradle/distributionTesting.gradle"
@@ -31,6 +32,7 @@ sourceSets {
 configurations {
     performanceTestCompile.extendsFrom testCompile
     performanceTestRuntime.extendsFrom testRuntime
+    junit
 }
 
 dependencies {
@@ -40,8 +42,44 @@ dependencies {
     performanceTestRuntime project(':diagnostics')
 
     //So that the wrapper and init task are added when performanceTests are run via commandline
-    performanceTestRuntime project(':buildInit')
     //above can be removed when we implement the auto-apply plugins
+    performanceTestRuntime project(':buildInit')
+
+    junit 'junit:junit:4.12'
+}
+
+task checkNoIdenticalBuildFiles {
+    doLast {
+        def files = [:].withDefault { [] }
+        buildDir.eachFileRecurse {
+            if (it.name.endsWith('.gradle')) {
+                def hash = HashUtil.createHash(it, 'sha1').asHexString()
+                files[hash] << it
+            }
+        }
+        files.each { hash, candidates ->
+            if (candidates.size()>1) {
+                println "Duplicate build files found for hash '$hash' : $candidates"
+            }
+        }
+    }
+}
+
+tasks.withType(ProjectGeneratorTask) {
+    group = 'Project setup'
+    if(project.hasProperty("maxProjects")) {
+        projects = maxProjects as Integer
+    }
+}
+
+tasks.withType(JvmProjectGeneratorTask) {
+    testDependencies = configurations.junit
+}
+
+task prepareSamples {
+    dependsOn tasks.withType(ProjectGeneratorTask)
+    group = "Project Setup"
+    description = "Generates all sample projects for automated performance tests"
 }
 
 task report(type: PerformanceReport) {
@@ -56,8 +94,10 @@ ext.performanceTestTasks = tasks.withType(PerformanceTest)
 performanceTestTasks.all { PerformanceTest task ->
     testClassesDir = sourceSets.performanceTest.output.classesDir
     classpath = sourceSets.performanceTest.runtimeClasspath
+    dependsOn prepareSamples
     finalizedBy report
 }
+
 task performanceTest(type: PerformanceTest) {
     options {
         includeCategories 'org.gradle.performance.categories.GradleCorePerformanceTest'

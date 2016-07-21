@@ -14,48 +14,11 @@
  * limitations under the License.
  */
 import groovy.json.JsonSlurper
-import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
-
-configurations {
-    junit
-}
-
-dependencies {
-    junit 'junit:junit:4.12'
-}
-
-task checkNoIdenticalBuildFiles {
-    doLast {
-        def files = [:].withDefault { [] }
-        buildDir.eachFileRecurse {
-            if (it.name.endsWith('.gradle')) {
-                def hash = HashUtil.createHash(it, 'sha1').asHexString()
-                files[hash] << it
-            }
-        }
-        files.each { hash, candidates ->
-            if (candidates.size()>1) {
-                println "Duplicate build files found for hash '$hash' : $candidates"
-            }
-        }
-    }
-}
-
-tasks.withType(ProjectGeneratorTask) {
-    group = 'Project setup'
-}
 
 tasks.withType(JvmProjectGeneratorTask) {
-    testDependencies = configurations.junit
     if(project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
-    }
-    if(project.hasProperty("maxProjects")) {
-        projects = maxProjects as Integer
     }
 }
 
@@ -78,16 +41,4 @@ task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
     sourceFiles = 50
     subProjectTemplates = ['project-with-source', 'with-verbose-junit']
     templateArgs = [fullTestLogging: true, testMethodCount: 20, halfTestsFail: true] // 50 test files with 20 tests per project
-}
-
-task all {
-    dependsOn tasks.withType(ProjectGeneratorTask)
-    group = "Project Setup"
-    description = "Generates all samples"
-}
-
-task prepareSamples {
-    dependsOn largeJavaProjectWithBuildScanPlugin
-    group = "Project Setup"
-    description = "Generates all sample projects for automated performance tests"
 }

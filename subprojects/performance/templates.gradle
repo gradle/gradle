@@ -13,49 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import groovy.json.JsonSlurper
 import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 
-configurations {
-    junit
-}
-
-dependencies {
-    junit 'junit:junit:4.12'
-}
-
-task checkNoIdenticalBuildFiles {
-    doLast {
-        def files = [:].withDefault { [] }
-        buildDir.eachFileRecurse {
-            if (it.name.endsWith('.gradle')) {
-                def hash = HashUtil.createHash(it, 'sha1').asHexString()
-                files[hash] << it
-            }
-        }
-        files.each { hash, candidates ->
-            if (candidates.size()>1) {
-                println "Duplicate build files found for hash '$hash' : $candidates"
-            }
-        }
-    }
-}
-
-tasks.withType(ProjectGeneratorTask) {
-    group = 'Project setup'
-}
-
 tasks.withType(JvmProjectGeneratorTask) {
-    testDependencies = configurations.junit
     if(project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
-    }
-    if(project.hasProperty("maxProjects")) {
-        projects = maxProjects as Integer
     }
 }
 
@@ -582,24 +548,4 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
     rootProjectTemplates = ['native-monolithic']
     subProjectTemplates = []
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
-}
-task all {
-    dependsOn tasks.withType(ProjectGeneratorTask)
-    group = "Project Setup"
-    description = "Generates all samples"
-}
-
-task prepareSamples {
-    dependsOn bigEmpty, small, multi, lotDependencies, withJUnit, mediumWithJUnit, largeWithJUnit, withTestNG, withVerboseTestNG, withVerboseJUnit, manyProjects,
-        smallOldJava, mediumOldJava, bigOldJava, smallNewJava, mediumNewJava, bigNewJava,
-        smallVariantsNewModel, mediumVariantsNewModel, bigVariantsNewModel, smallVariantsOldModel, mediumVariantsOldModel, bigVariantsOldModel,
-        variantsNewModelMultiproject, variantsOldModelMultiproject, smallNative, mediumNative, bigNative, smallPCHNative, mediumPCHNative, bigPCHNative, multiNative,
-        smallScenarioNative, mediumScenarioNative, bigScenarioNative, manyProjectsNative,
-        bigOldJavaMoreSource, lotProjectDependencies, smallJavaSwModelProject, largeJavaSwModelProject,
-        nativeMonolithic, nativeMonolithicOverlapping, smallNativeMonolithic, mediumNativeMonolithic,
-        smallJavaSwModelCompileAvoidanceWithApi, largeJavaSwModelCompileAvoidanceWithApi, smallJavaSwModelCompileAvoidanceWithoutApi, largeJavaSwModelCompileAvoidanceWithoutApi,
-        tinyJavaSwApiJarStubbingWithoutApi,
-        createSomeTasks, createLotsOfTasks
-    group = "Project Setup"
-    description = "Generates all sample projects for automated performance tests"
 }
