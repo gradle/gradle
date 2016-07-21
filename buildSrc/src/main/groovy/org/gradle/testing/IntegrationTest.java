@@ -17,7 +17,7 @@
 package org.gradle.testing;
 
 /**
- * Verified the correct behavior of a feature, as opposed to just a small unit of code.
+ * Verifies the correct behavior of a feature, as opposed to just a small unit of code.
  * Usually referred to as 'functional tests' in literature, but our code base has historically
  * been using the term 'integration test'.
  */

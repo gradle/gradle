@@ -116,23 +116,6 @@ configure([performanceTest, performanceExperiments]) {
     }
 }
 
-task checkNoIdenticalBuildFiles {
-    doLast {
-        def files = [:].withDefault { [] }
-        buildDir.eachFileRecurse {
-            if (it.name.endsWith('.gradle')) {
-                def hash = HashUtil.createHash(it, 'sha1').asHexString()
-                files[hash] << it
-            }
-        }
-        files.each { hash, candidates ->
-            if (candidates.size()>1) {
-                println "Duplicate build files found for hash '$hash' : $candidates"
-            }
-        }
-    }
-}
-
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
     idea {
         module {

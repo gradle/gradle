@@ -1,25 +1,11 @@
 
-This project contains the Gradle performance test infrastructure and test suite.
-
-## Test infrastructure
-
-A performance test is implemented as a Spock test. There are several base classes and a performance test should extend one of these:
-
-- [`AbstractCrossVersionPerformanceTest`](src/testFixtures/groovy/org/gradle/performance/AbstractCrossVersionPerformanceTest.groovy): A performance test that runs a particular scenario using the 
-Gradle version under test and using several other baseline Gradle versions. The test compares the results to report on performance regressions relative to these baseline versions. 
-- `AbstractCrossBuildPerformanceTest`: A performance test that runs several different scenarios using the Gradle version under test and compares the results.
-- `AbstractGradleVsMavenPerformanceTest`: A performance test that runs a particular scenario using the Gradle version under test and a particular Maven version and compares the results.
-- `BuildScanPluginPerformanceTest`: A variation on `AbstractCrossBuildPerformanceTest`.
-
-The Gradle version under test is often a Gradle distribution built from the same source git revision as the performance test suite, but may be any Gradle distribution. 
-
-The baseline Gradle versions are often one or more released versions of Gradle, but may be any Gradle distribution.
+This project contains the Gradle performance test suite. For information about the test infrastructure, see [internal-performance-testing](../internal-performance-testing)
 
 ## Performance test scenarios
 
 A performance test scenario is made up of 2 parts:
 
-1. A test build to use. The test builds are generated from templates and are defined in the [`performance.gradle`](performance.gradle) build script. 
+1. A test build to use. The test builds are generated from templates and are defined in the [`templates.gradle`](templates.gradle) build script. 
 2. Details for how to invoke Gradle (or Maven). This includes the tasks to run, the JVM args, whether the daemon or tooling API should be used to invoke Gradle, and so on.
 
 A performance test configure various fixtures to describe each scenario. The fixtures will then run the scenario several times to warm up, and then several more times, capturing metrics.
@@ -30,7 +16,7 @@ The metrics are collected in a database under `~/.gradle-performance-test-data` 
 The build templates live in [`src/templates`](src/templates). Each template build is parameterized to some degree. For example, it is possible for define how many projects, source 
 or test files to generate for a performance test build.
 
-There is a task defined in [`performance.gradle`](performance.gradle) for each performance test build, that specifies which templates to use and the build parameters.
+There is a task defined in [`templates.gradle`](templates.gradle) for each performance test build, that specifies which templates to use and the build parameters.
 
 ### Metrics collected
 
