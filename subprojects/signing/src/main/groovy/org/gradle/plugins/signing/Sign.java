@@ -348,10 +348,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
      * <p>Defaults to {@code true}.</p>
      */
     @Input
-    public boolean getRequired() {
-        return required;
-    }
-
     public boolean isRequired() {
         return required;
     }

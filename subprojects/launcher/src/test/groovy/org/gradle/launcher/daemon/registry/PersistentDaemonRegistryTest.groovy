@@ -21,6 +21,7 @@ import org.gradle.internal.nativeintegration.filesystem.Chmod
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.gradle.internal.remote.Address
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -111,7 +112,7 @@ class PersistentDaemonRegistryTest extends Specification {
 
     def "clears single stop event when non-empty"() {
         given:
-        def stopEvent = new DaemonStopEvent(new Date(1L), "STOP_REASON")
+        def stopEvent = new DaemonStopEvent(new Date(1L), new Random().nextLong(), DaemonExpirationStatus.GRACEFUL_EXPIRE, "STOP_REASON")
         registry.storeStopEvent(stopEvent)
 
         when:
@@ -124,8 +125,8 @@ class PersistentDaemonRegistryTest extends Specification {
     def "clears multiple stop events when non-empty"() {
         given:
         def stopEvents = [
-            new DaemonStopEvent(new Date(1L), "STOP_REASON"),
-            new DaemonStopEvent(new Date(42L), "ANOTHER_STOP_REASON")
+            new DaemonStopEvent(new Date(1L), new Random().nextLong(), DaemonExpirationStatus.GRACEFUL_EXPIRE, "STOP_REASON"),
+            new DaemonStopEvent(new Date(42L), new Random().nextLong(), DaemonExpirationStatus.IMMEDIATE_EXPIRE, "ANOTHER_STOP_REASON")
         ]
         stopEvents.each { registry.storeStopEvent(it) }
 

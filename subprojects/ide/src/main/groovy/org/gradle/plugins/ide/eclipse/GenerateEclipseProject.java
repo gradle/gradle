@@ -28,7 +28,6 @@ import org.gradle.plugins.ide.eclipse.model.Project;
  */
 public class GenerateEclipseProject extends XmlGeneratorTask<Project> {
 
-    @Internal
     private EclipseProject projectModel;
 
     public GenerateEclipseProject() {
@@ -49,6 +48,7 @@ public class GenerateEclipseProject extends XmlGeneratorTask<Project> {
     /**
      * The Eclipse project model that contains the details required to generate the project file.
      */
+    @Internal
     public EclipseProject getProjectModel() {
         return projectModel;
     }

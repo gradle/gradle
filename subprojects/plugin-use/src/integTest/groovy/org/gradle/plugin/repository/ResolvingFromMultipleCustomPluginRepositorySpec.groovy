@@ -24,6 +24,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Unroll
 
@@ -235,6 +236,37 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
             plugins {
                 id "org.gradle.hello-world" version "0.2" //exists in the plugin portal
             }
+        """
+
+        when:
+        settingsFile << """
+            pluginRepositories {
+                maven {url '${repoA.uri}' }
+                gradlePluginPortal()
+            }
+        """
+
+        then:
+        succeeds("helloWorld")
+    }
+
+    @Requires(TestPrecondition.ONLINE)
+    @Issue("GRADLE-3502")
+    def "Plugin Portal provides transitive dependencies for other plugins"() {
+        given:
+        publishPlugins(MAVEN)
+        requireOwnGradleUserHomeDir()
+        buildScript """
+            //this simulates pluginA having a dependency on the hello world plugin
+            buildscript {
+                dependencies {
+                    classpath "org.gradle:gradle-hello-world-plugin:0.2"
+                }
+            }
+            plugins {
+              id "$pluginA" version "1.0"
+            }
+            apply plugin: "org.gradle.hello-world"
         """
 
         when:

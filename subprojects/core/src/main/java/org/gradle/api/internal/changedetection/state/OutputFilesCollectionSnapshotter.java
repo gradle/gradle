@@ -23,6 +23,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 
@@ -184,6 +185,11 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
                     return endOfData();
                 }
             };
+        }
+
+        @Override
+        public void appendToCacheKey(TaskCacheKeyBuilder builder) {
+            filesSnapshot.appendToCacheKey(builder);
         }
     }
 }

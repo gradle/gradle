@@ -18,17 +18,14 @@ package org.gradle.language.base.plugins
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.gradle.language.base.plugins.LifecycleBasePlugin.*
 import static org.hamcrest.Matchers.instanceOf
 
-class LifecycleBasePluginTest extends Specification {
-    private final ProjectInternal project = TestUtil.createRootProject()
+class LifecycleBasePluginTest extends AbstractProjectBuilderSpec {
 
     def "can apply plugin by id"() {
         given:

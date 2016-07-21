@@ -16,9 +16,10 @@
 
 package org.gradle.api.tasks.bundling
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.archive.ZipTestFixture
-
+import spock.lang.Issue
 import spock.lang.Unroll
 
 import java.nio.charset.Charset
@@ -186,6 +187,47 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
         metadataCharset | cause
         "'UNSUPPORTED'" | "Charset for metadataCharset 'UNSUPPORTED' is not supported by your JVM"
         null            | "metadataCharset must not be null"
+    }
+
+    @NotYetImplemented
+    @Issue("https://issues.gradle.org/browse/GRADLE-1346")
+    def "Zip task notices updates to build.gradle"() {
+        file("src/main/java/Main.java") << "public class Main {}"
+        buildFile << """
+            apply plugin: "java"
+
+            task zip(type: Zip) {
+                into('src') {
+                    from sourceSets.main.java
+                }
+            }
+        """
+
+        when:
+        succeeds "zip"
+        then:
+        skippedTasks.empty
+
+        when:
+        succeeds "zip"
+        then:
+        skippedTasks as List == ["zip"]
+
+        buildFile.delete()
+        buildFile << """
+            apply plugin: "java"
+
+            task zip(type: Zip) {
+                into('sources') {
+                    from sourceSets.main.java
+                }
+            }
+        """
+
+        when:
+        succeeds "zip"
+        then:
+        skippedTasks.empty
     }
 
     private def createTestFiles() {

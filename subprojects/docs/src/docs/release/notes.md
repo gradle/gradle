@@ -108,6 +108,11 @@ With these features Tooling API clients can provide a more complete IDE integrat
 Gradle 3.0 contains initial support for Java 9. This means that running Gradle on Java 9 and compiling,
 testing and running Java 9 applications is supported out of the box.
 
+Preliminary support for JDK 9 `-release` compiler flag has been added. It can be specified via
+[compilerArgs](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgs), e.g.
+
+    compileJava.options.compilerArgs.addAll(['-release', '7'])
+
 The following plugins are known to have some issues with Java 9:
 
 - [PMD plugin](userguide/pmd_plugin.html): Runs on Java 9 but cannot analyze Java 9 Bytecode as this is not yet supported by
@@ -116,6 +121,12 @@ The following plugins are known to have some issues with Java 9:
 - [Scala plugin](userguide/scala_plugin.html): The Zinc compiler does not work with Java 9
 - [FindBugs plugin](userguide/findbugs_plugin.html): The latest release (3.0.1) does not work with Java 9
 - [OSGi plugin](userguide/osgi_plugin.html): The latest version of BND does not work with Java 9
+
+When using [continuous build](userguide/continuous_build.html#sec:continuous_build_limitations_jdk9) on Java 9,
+due to class access restrictions related to Jigsaw, Gradle cannot set some operating system specific options, which means that:
+
+- On Mac OS X, Gradle will poll for file changes every 10 seconds instead of every 2 seconds.
+- On Windows, Gradle must use individual file watches (like on Linux/Mac OS), which may cause continuous build to no longer work on very large projects.
 
 Also, for publishing to S3 backed Maven and Ivy repositories, `-addmods java.xml.bind` has to be added to the JVM parameters. This can be accomplished by setting
 
@@ -249,6 +260,10 @@ Support for compiling and testing on Java 5 has been dropped.
 ### Sonar plugin has been removed
 
 The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
+
+### eclipse-cdt plugin has been removed
+
+The `eclipse-cdt` plugin was introduced before Gradle 2.0 but wasn't actively maintained.  It has now been removed.
 
 ### Test result and report directory take task name into account
 
@@ -385,6 +400,7 @@ We would like to thank the following community members for making contributions 
  - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Correct some typos in depMngmt.xml and README.md
  - [Ethan Hall](https://github.com/ethankhall) - Fixing documentation from candidate.name to candidate.module
  - [Sebastian Schuberth](https://github.com/sschuberth) - Minor style fixes
+ - [Rob	Upcraft](https://github.com/upcrob) - Fix spelling in documentation
 
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
@@ -396,4 +412,3 @@ We love getting contributions from the Gradle community. For information on cont
 
 Known issues are problems that were discovered post release that are directly related to changes made in this release.
 
-[GRADLE-3491](https://issues.gradle.org/browse/GRADLE-3491) - Android Library projects do not pick up changes

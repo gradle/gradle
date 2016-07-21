@@ -20,7 +20,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
 import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
@@ -100,8 +99,9 @@ public class EclipsePlugin extends IdePlugin {
         configureEclipseJdt(project, model);
         configureEclipseClasspath(project, model);
 
-        postProcess("eclipse", new Closure<Void>(this, this) {
-            public void doCall(Object it) {
+        postProcess("eclipse", new Action<Gradle>() {
+            @Override
+            public void execute(Gradle gradle) {
                 performPostEvaluationActions();
             }
         });
@@ -120,12 +120,7 @@ public class EclipsePlugin extends IdePlugin {
     }
 
     private void registerEclipseArtifacts() {
-        Set<Project> projectsWithEclipse = Sets.filter(project.getRootProject().getAllprojects(), new Predicate<Project>() {
-            @Override
-            public boolean apply(Project project) {
-                return project.getPlugins().hasPlugin(EclipsePlugin.class);
-            }
-        });
+        Set<Project> projectsWithEclipse = Sets.filter(project.getRootProject().getAllprojects(), HAS_ECLIPSE_PLUGIN);
         for (Project project : projectsWithEclipse) {
             registerEclipseArtifacts(project);
         }
@@ -396,24 +391,10 @@ public class EclipsePlugin extends IdePlugin {
         plugin.addWorker(task);
     }
 
-    @Deprecated
-    public static String getECLIPSE_TASK_NAME() {
-        return ECLIPSE_TASK_NAME;
-    }
-
-    @Deprecated
-    public static String getECLIPSE_PROJECT_TASK_NAME() {
-        return ECLIPSE_PROJECT_TASK_NAME;
-    }
-
-    @Deprecated
-    public static String getECLIPSE_CP_TASK_NAME() {
-        return ECLIPSE_CP_TASK_NAME;
-    }
-
-    @Deprecated
-    public static String getECLIPSE_JDT_TASK_NAME() {
-        return ECLIPSE_JDT_TASK_NAME;
-    }
-
+    private static final Predicate<Project> HAS_ECLIPSE_PLUGIN = new Predicate<Project>() {
+        @Override
+        public boolean apply(Project project) {
+            return project.getPlugins().hasPlugin(EclipsePlugin.class);
+        }
+    };
 }

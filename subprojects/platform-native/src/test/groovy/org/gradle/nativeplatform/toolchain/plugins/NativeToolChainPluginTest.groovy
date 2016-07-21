@@ -23,19 +23,14 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain
 import org.gradle.nativeplatform.toolchain.NativeToolChainRegistry
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainRegistryInternal
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.TestUtil
-import org.junit.Rule
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-abstract class NativeToolChainPluginTest extends Specification {
-    @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+abstract class NativeToolChainPluginTest extends AbstractProjectBuilderSpec {
 
-    def project = TestUtil.create(testDir).rootProject()
-    def registry = project.modelRegistry
+    def registry
 
     def setup() {
+        registry = project.modelRegistry
         project.pluginManager.apply(getPluginClass())
     }
 

@@ -16,8 +16,8 @@
 package org.gradle.api.plugins.scala;
 
 import com.google.common.annotations.VisibleForTesting;
-import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.InvokerHelper;
+import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -27,6 +27,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.tasks.DefaultScalaSourceSet;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -122,9 +123,9 @@ public class ScalaBasePlugin implements Plugin<Project> {
 
         // cannot use convention mapping because the resulting object won't be serializable
         // cannot compute at task execution time because we need association with source set
-        project.getGradle().projectsEvaluated(new Closure<Void>(project) {
-            @SuppressWarnings("unused")
-            public void doCall() {
+        project.getGradle().addBuildListener(new BuildAdapter() {
+            @Override
+            public void projectsEvaluated(Gradle gradle) {
                 IncrementalCompileOptions incrementalOptions = scalaCompile.getScalaCompileOptions().getIncrementalOptions();
                 if (incrementalOptions.getAnalysisFile() == null) {
                     String analysisFilePath = project.getBuildDir().getPath() + "/tmp/scala/compilerAnalysis/" + scalaCompile.getName() + ".analysis";
@@ -140,9 +141,9 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private static void configureCompileDefaults(final Project project, final ScalaRuntime scalaRuntime) {
-        project.getTasks().withType(ScalaCompile.class, new Closure<Void>(project) {
-            @SuppressWarnings("unused")
-            public void doCall(final ScalaCompile compile) {
+        project.getTasks().withType(ScalaCompile.class, new Action<ScalaCompile>() {
+            @Override
+            public void execute(final ScalaCompile compile) {
                 compile.getConventionMapping().map("scalaClasspath", new Callable<FileCollection>() {
                     @Override
                     public FileCollection call() throws Exception {
@@ -164,9 +165,9 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private static void configureScaladoc(final Project project, final ScalaRuntime scalaRuntime) {
-        project.getTasks().withType(ScalaDoc.class, new Closure<Void>(project) {
-            @SuppressWarnings("unused")
-            public void doCall(final ScalaDoc scalaDoc) {
+        project.getTasks().withType(ScalaDoc.class, new Action<ScalaDoc>() {
+            @Override
+            public void execute(final ScalaDoc scalaDoc) {
                 scalaDoc.getConventionMapping().map("destinationDir", new Callable<File>() {
                     @Override
                     public File call() throws Exception {
@@ -188,13 +189,5 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 });
             }
         });
-    }
-
-    public static String getZINC_CONFIGURATION_NAME() {
-        return ZINC_CONFIGURATION_NAME;
-    }
-
-    public static String getSCALA_RUNTIME_EXTENSION_NAME() {
-        return SCALA_RUNTIME_EXTENSION_NAME;
     }
 }

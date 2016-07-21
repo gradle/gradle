@@ -16,31 +16,28 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import com.google.common.hash.HashCode
 import org.gradle.api.Action
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
-import org.gradle.internal.hash.HashValue
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
 import spock.lang.Subject
 
-@UsesNativeServices
-class TreeSnapshotRepositoryTest extends Specification {
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+class TreeSnapshotRepositoryTest extends AbstractProjectBuilderSpec {
     def mapping = Stub(CacheScopeMapping) {
         getBaseDirectory(_, _, _) >> {
-            return tmpDir.createDir("history-cache")
+            return temporaryFolder.createDir("history-cache")
         }
     }
     CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
-    TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(TestUtil.createRootProject().gradle, cacheRepository, new NoOpDecorator())
+    TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(
+        TestUtil.create(temporaryFolder).rootProject().gradle,
+        cacheRepository,
+        new NoOpDecorator())
     @Subject
     TreeSnapshotRepository treeSnapshotRepository = new TreeSnapshotRepository(cacheAccess, new StringInterner())
 
@@ -61,7 +58,7 @@ class TreeSnapshotRepositoryTest extends Specification {
         fileSnapshots.get(1).incrementalFileSnapshot instanceof DirSnapshot
         fileSnapshots.get(2).key == 'c'
         fileSnapshots.get(2).incrementalFileSnapshot instanceof FileHashSnapshot
-        fileSnapshots.get(2).incrementalFileSnapshot.hash.asBigInteger().intValue() == 1
+        fileSnapshots.get(2).incrementalFileSnapshot.hash.asBytes() == [(byte) 0x12]
     }
 
     def "tree snapshot usage is tracked and removed when all dependent file collection snapshots are removed"() {
@@ -99,7 +96,7 @@ class TreeSnapshotRepositoryTest extends Specification {
             }
 
             Collection<FileSnapshotWithKey> getFileSnapshots() {
-                [new FileSnapshotWithKey("a", MissingFileSnapshot.instance), new FileSnapshotWithKey("b", DirSnapshot.instance), new FileSnapshotWithKey("c", new FileHashSnapshot(new HashValue("1")))]
+                [new FileSnapshotWithKey("a", MissingFileSnapshot.instance), new FileSnapshotWithKey("b", DirSnapshot.instance), new FileSnapshotWithKey("c", new FileHashSnapshot(HashCode.fromString("12")))]
             }
 
             Long getAssignedId() {

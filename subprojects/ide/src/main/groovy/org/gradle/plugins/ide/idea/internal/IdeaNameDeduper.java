@@ -31,19 +31,8 @@ import java.util.Set;
 
 public class IdeaNameDeduper {
     public void configureRoot(Project rootProject) {
-        Set<Project> projects = Sets.filter(rootProject.getAllprojects(), new Predicate<Project>() {
-            @Override
-            public boolean apply(Project project) {
-                return hasIdeaPlugin(project);
-            }
-
-        });
-        Iterable<IdeaModule> ideaModules = Iterables.transform(projects, new Function<Project, IdeaModule>() {
-            @Override
-            public IdeaModule apply(Project p) {
-                return getModule(p);
-            }
-        });
+        Set<Project> projects = Sets.filter(rootProject.getAllprojects(), HAS_IDEA_PLUGIN);
+        Iterable<IdeaModule> ideaModules = Iterables.transform(projects, GET_IDEA_MODULE);
         HierarchicalElementDeduplicator<IdeaModule> deduplicator = new HierarchicalElementDeduplicator<IdeaModule>(new IdeaDeduplicationAdapter());
         Map<IdeaModule, String> deduplicated = deduplicator.deduplicate(ideaModules);
         for (Map.Entry<IdeaModule, String> entry : deduplicated.entrySet()) {
@@ -77,4 +66,18 @@ public class IdeaNameDeduper {
         return parent.getExtensions().getByType(IdeaModel.class).getModule();
     }
 
+    private static final Predicate<Project> HAS_IDEA_PLUGIN = new Predicate<Project>() {
+        @Override
+        public boolean apply(Project project) {
+            return hasIdeaPlugin(project);
+        }
+
+    };
+
+    private static final Function<Project, IdeaModule> GET_IDEA_MODULE = new Function<Project, IdeaModule>() {
+        @Override
+        public IdeaModule apply(Project p) {
+            return getModule(p);
+        }
+    };
 }

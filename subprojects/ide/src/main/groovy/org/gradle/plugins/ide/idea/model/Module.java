@@ -127,10 +127,6 @@ public class Module extends XmlPersistableConfigurationObject {
         return inheritOutputDirs;
     }
 
-    public boolean getInheritOutputDirs() {
-        return inheritOutputDirs;
-    }
-
     public void setInheritOutputDirs(boolean inheritOutputDirs) {
         this.inheritOutputDirs = inheritOutputDirs;
     }
@@ -506,9 +502,5 @@ public class Module extends XmlPersistableConfigurationObject {
     @Override
     public int hashCode() {
         return Objects.hashCode(sourceFolders, generatedSourceFolders, testSourceFolders, excludeFolders, inheritOutputDirs, jdkName, outputDir, testOutputDir, dependencies);
-    }
-
-    public static String getINHERITED() {
-        return INHERITED;
     }
 }

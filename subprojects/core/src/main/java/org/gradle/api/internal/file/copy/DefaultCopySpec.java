@@ -20,7 +20,9 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonExtensible;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
+import org.gradle.api.file.CopySourceSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
@@ -28,6 +30,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.ChainingTransformer;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
@@ -100,14 +103,20 @@ public class DefaultCopySpec implements CopySpecInternal {
         return this;
     }
 
-    public CopySpec from(Object sourcePath, Closure c) {
-        if (c == null) {
+    public CopySpec from(Object sourcePath, final Closure c) {
+        return from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
+    }
+
+    public CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
+        if (configureAction == null) {
             from(sourcePath);
             return this;
         } else {
             CopySpecInternal child = addChild();
             child.from(sourcePath);
-            return ConfigureUtil.configure(c, instantiator.newInstance(CopySpecWrapper.class, child));
+            CopySpecWrapper wrapper = instantiator.newInstance(CopySpecWrapper.class, child);
+            configureAction.execute(wrapper);
+            return wrapper;
         }
     }
 
@@ -143,13 +152,19 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec into(Object destPath, Closure configureClosure) {
-        if (configureClosure == null) {
+        return into(destPath, new ClosureBackedAction<CopySpec>(configureClosure));
+    }
+
+    public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
+        if (copySpec == null) {
             into(destPath);
             return this;
         } else {
             CopySpecInternal child = addChild();
             child.into(destPath);
-            return ConfigureUtil.configure(configureClosure, instantiator.newInstance(CopySpecWrapper.class, child));
+            CopySpecWrapper wrapper = instantiator.newInstance(CopySpecWrapper.class, child);
+            copySpec.execute(wrapper);
+            return wrapper;
         }
     }
 
@@ -266,9 +281,13 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec filter(final Closure closure) {
+        return filter(new ClosureBackedTransformer(closure));
+    }
+
+    public CopySpec filter(final Transformer<String, String> transformer) {
         copyActions.add(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails fileCopyDetails) {
-                fileCopyDetails.filter(closure);
+                fileCopyDetails.filter(transformer);
             }
         });
         return this;
@@ -293,8 +312,12 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec rename(Closure closure) {
+        return rename(new ClosureBackedTransformer(closure));
+    }
+
+    public CopySpec rename(Transformer<String, String> renamer) {
         ChainingTransformer<String> transformer = new ChainingTransformer<String>(String.class);
-        transformer.add(closure);
+        transformer.add(renamer);
         copyActions.add(new RenamingCopyAction(transformer));
         return this;
     }

@@ -17,17 +17,28 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
 
-import java.util.SortedMap;
+import java.util.SortedSet;
 
 public interface TaskOutputsInternal extends TaskOutputs {
     Spec<? super TaskInternal> getUpToDateSpec();
 
-    SortedMap<String, FileCollection> getFileProperties();
+    SortedSet<TaskOutputFilePropertySpec> getFileProperties();
 
     FileCollection getPreviousFiles();
 
     void setHistory(TaskExecutionHistory history);
+
+    /**
+     * Check if caching is explicitly enabled for the task outputs.
+     */
+    boolean isCacheEnabled();
+
+    /**
+     * Checks if caching is allowed based on the output properties.
+     */
+    boolean isCacheAllowed();
 }

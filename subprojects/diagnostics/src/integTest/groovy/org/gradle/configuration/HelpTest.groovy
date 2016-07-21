@@ -16,14 +16,10 @@
 
 package org.gradle.configuration
 
-import org.gradle.api.Project
 import org.gradle.execution.TaskSelectionException
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-
-class HelpTest extends Specification {
-    Project project = TestUtil.createRootProject()
+class HelpTest extends AbstractProjectBuilderSpec {
     Help helpTask
 
     def setup() {

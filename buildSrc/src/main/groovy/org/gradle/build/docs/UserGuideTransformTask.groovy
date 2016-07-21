@@ -42,7 +42,6 @@ public class UserGuideTransformTask extends DefaultTask {
     String getVersion() { return project.version.toString() }
 
     def javadocUrl
-    def groovydocUrl
     def dsldocUrl
     def websiteUrl
 
@@ -61,10 +60,6 @@ public class UserGuideTransformTask extends DefaultTask {
 
     @Input String getJavadocUrl() {
         javadocUrl
-    }
-
-    @Input String getGroovydocUrl() {
-        groovydocUrl
     }
 
     @Input String getDsldocUrl() {
@@ -132,8 +127,8 @@ public class UserGuideTransformTask extends DefaultTask {
             String href
             if (style == 'dsldoc') {
                 href = "$dsldocUrl/${className}.html"
-            } else if (style == "groovydoc" || style == "javadoc") {
-                def base = style == "groovydoc" ? groovydocUrl : javadocUrl
+            } else if (style == "javadoc") {
+                def base = javadocUrl
                 def packageName = classMetaData.packageName
                 href = "$base/${packageName.replace('.', '/')}/${className.substring(packageName.length()+1)}.html"
             } else {

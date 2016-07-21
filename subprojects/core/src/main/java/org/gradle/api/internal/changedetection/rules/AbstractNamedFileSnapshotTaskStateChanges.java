@@ -23,12 +23,12 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
@@ -37,19 +37,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedMap;
+import java.util.SortedSet;
 
 abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges, FilesSnapshotSet {
     private Map<String, FileCollectionSnapshot> fileSnapshotsBeforeExecution;
     private final String taskName;
     private final boolean allowSnapshotReuse;
     private final String title;
-    protected final SortedMap<String, FileCollection> fileProperties;
+    protected final SortedSet<? extends TaskFilePropertySpec> fileProperties;
     private final FileCollectionSnapshotter snapshotter;
     protected final TaskExecution previous;
     protected final TaskExecution current;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, SortedMap<String, FileCollection> fileProperties) {
+    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties) {
         this.taskName = taskName;
         this.previous = previous;
         this.current = current;
@@ -72,7 +72,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return title;
     }
 
-    protected SortedMap<String, FileCollection> getFileProperties() {
+    protected SortedSet<? extends TaskFilePropertySpec> getFileProperties() {
         return fileProperties;
     }
 
@@ -89,18 +89,16 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return fileSnapshotsBeforeExecution;
     }
 
-    protected static Map<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotter snapshotter, String title, SortedMap<String, FileCollection> fileProperties, boolean allowSnapshotReuse) {
+    protected static Map<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotter snapshotter, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties, boolean allowSnapshotReuse) {
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
-        for (Map.Entry<String, FileCollection> entry : fileProperties.entrySet()) {
-            String propertyName = entry.getKey();
-            FileCollection files = entry.getValue();
+        for (TaskFilePropertySpec propertySpec : fileProperties) {
             FileCollectionSnapshot result;
             try {
-                result = snapshotter.snapshot(files, allowSnapshotReuse);
+                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), allowSnapshotReuse);
             } catch (UncheckedIOException e) {
-                throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertyName), e);
+                throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertySpec.getPropertyName()), e);
             }
-            builder.put(propertyName, result);
+            builder.put(propertySpec.getPropertyName(), result);
         }
         return builder.build();
     }

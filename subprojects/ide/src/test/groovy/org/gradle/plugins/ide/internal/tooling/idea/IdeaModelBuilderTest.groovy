@@ -27,20 +27,20 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
 import org.gradle.plugins.ide.internal.tooling.IdeaModelBuilder
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.tooling.internal.gradle.DefaultGradleProject
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class IdeaModelBuilderTest extends Specification {
-
+class IdeaModelBuilderTest extends AbstractProjectBuilderSpec {
     Project root
     Project child1
     Project child2
 
     def setup() {
-        root = TestUtil.builder().withName("root").build()
-        child1 = TestUtil.builder().withName("child1").withParent(root).build()
-        child2 = TestUtil.builder().withName("child2").withParent(root).build()
+        root = TestUtil.builder(temporaryFolder).withName("root").build()
+        child1 = ProjectBuilder.builder().withName("child1").withParent(root).build()
+        child2 = ProjectBuilder.builder().withName("child2").withParent(root).build()
         [root, child1, child2].each { it.pluginManager.apply(IdeaPlugin) }
     }
 

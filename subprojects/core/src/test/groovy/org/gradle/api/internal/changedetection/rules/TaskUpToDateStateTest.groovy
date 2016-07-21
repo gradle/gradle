@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.rules
 
 import org.gradle.api.UncheckedIOException
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
@@ -28,6 +29,7 @@ import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.TaskFilePropertySpec
+import org.gradle.api.internal.tasks.TaskPropertySpec
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Issue
 import spock.lang.Specification
@@ -70,8 +72,8 @@ class TaskUpToDateStateTest extends Specification {
         then:
         noExceptionThrown()
         1 * mockInputs.getProperties() >> [:]
-        1 * mockInputs.getFileProperties() >> (["prop": new SimpleFileCollection(new File("a"))] as TreeMap)
-        1 * mockOutputs.getFileProperties() >> (["out": new SimpleFileCollection(new File("b"))] as TreeMap)
+        1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
+        1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
         1 * mockOutputFileSnapshotter.snapshot(_, _) >> stubSnapshot
         1 * mockInputFileSnapshotter.snapshot(_, _) >> stubSnapshot
     }
@@ -87,8 +89,8 @@ class TaskUpToDateStateTest extends Specification {
 
         then:
         1 * mockInputs.getProperties() >> [:]
-        1 * mockInputs.getFileProperties() >> (["prop": new SimpleFileCollection(new File("a"))] as TreeMap)
-        1 * mockOutputs.getFileProperties() >> (["out": new SimpleFileCollection(new File("b"))] as TreeMap)
+        1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
+        1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
         def e = thrown(UncheckedIOException)
         e.message.contains(stubTask.getName())
         e.message.contains("up-to-date")
@@ -113,11 +115,30 @@ class TaskUpToDateStateTest extends Specification {
 
         then:
         1 * mockInputs.getProperties() >> [:]
-        1 * mockOutputs.getFileProperties() >> (["out": new SimpleFileCollection(new File("b"))] as TreeMap)
+        1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
         def e = thrown(UncheckedIOException)
         e.message.contains(stubTask.getName())
         e.message.contains("up-to-date")
         e.message.contains("output")
         e.cause == cause
+    }
+
+    private static def fileProperties(Map<String, String> props) {
+        return props.collect { entry ->
+            return new PropertySpec(
+                propertyName: entry.key,
+                propertyFiles: new SimpleFileCollection([new File(entry.value)])
+            )
+        } as SortedSet
+    }
+
+    private static class PropertySpec implements TaskFilePropertySpec {
+        String propertyName
+        FileCollection propertyFiles
+
+        @Override
+        int compareTo(TaskPropertySpec o) {
+            return propertyName.compareTo(o.propertyName)
+        }
     }
 }

@@ -33,21 +33,24 @@ import org.gradle.plugins.ide.eclipse.EclipseWtpPlugin
 import org.gradle.plugins.ide.eclipse.model.BuildCommand
 import org.gradle.plugins.ide.internal.tooling.EclipseModelBuilder
 import org.gradle.plugins.ide.internal.tooling.GradleProjectBuilder
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.tooling.internal.gradle.DefaultGradleProject
 import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.util.UsesNativeServices
 import spock.lang.Unroll
 
-class EclipseModelBuilderTest extends Specification {
-
-    Project project
+@UsesNativeServices
+@CleanupTestDirectory
+class EclipseModelBuilderTest extends AbstractProjectBuilderSpec {
     Project child1
     Project child2
 
     def setup() {
-        project = TestUtil.builder().withName("project").build()
-        child1 = TestUtil.builder().withName("child1").withParent(project).build()
-        child2 = TestUtil.builder().withName("child2").withParent(project).build()
+        project = TestUtil.builder(temporaryFolder.testDirectory).withName("project").build()
+        child1 = ProjectBuilder.builder().withName("child1").withParent(project).build()
+        child2 = ProjectBuilder.builder().withName("child2").withParent(project).build()
         [project, child1, child2].each { it.pluginManager.apply(EclipsePlugin.class) }
     }
 

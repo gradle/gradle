@@ -78,13 +78,7 @@ public abstract class AbstractClasspathEntry implements ClasspathEntry {
         this.path = path;
     }
 
-    // TODO both the getExported and isExported is called in the code; we should unify that
-
     public boolean isExported() {
-        return exported;
-    }
-
-    public boolean getExported() {
         return exported;
     }
 

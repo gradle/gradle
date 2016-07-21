@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.serialize;
+package org.gradle.api.internal.tasks.cache;
 
-import org.gradle.internal.hash.HashValue;
+import com.google.common.io.ByteSink;
 
-public class HashValueSerializer implements Serializer<HashValue> {
-    @Override
-    public HashValue read(Decoder decoder) throws Exception {
-        byte hashSize = decoder.readByte();
-        byte[] hash = new byte[hashSize];
-        decoder.readBytes(hash);
-        return new HashValue(hash);
-    }
+import java.io.IOException;
 
-    @Override
-    public void write(Encoder encoder, HashValue value) throws Exception {
-        byte[] hash = value.asByteArray();
-        encoder.writeByte((byte) hash.length);
-        encoder.writeBytes(hash);
-    }
+public interface TaskOutputWriter {
+    void writeTo(ByteSink output) throws IOException;
 }

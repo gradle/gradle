@@ -15,8 +15,20 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
+import org.apache.commons.lang.SerializationUtils;
+import org.gradle.api.internal.tasks.cache.DefaultTaskCacheKeyBuilder;
+import org.gradle.api.internal.tasks.cache.TaskCacheKey;
+import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
+import java.io.Serializable;
+import java.lang.reflect.Array;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -84,4 +96,100 @@ public abstract class TaskExecution {
     public abstract FileCollectionSnapshot getDiscoveredInputFilesSnapshot();
 
     public abstract void setDiscoveredInputFilesSnapshot(FileCollectionSnapshot inputFilesSnapshot);
+
+    public TaskCacheKey calculateCacheKey() {
+        TaskCacheKeyBuilder builder = new DefaultTaskCacheKeyBuilder();
+        builder.putString(taskClass);
+        builder.putHashCode(taskClassLoaderHash);
+        builder.putHashCode(taskActionsClassLoaderHash);
+
+        // TODO:LPTR Use sorted maps instead of explicitly sorting entries here
+
+        for (Map.Entry<String, Object> entry : sortEntries(inputProperties.entrySet())) {
+            builder.putString(entry.getKey());
+            Object value = entry.getValue();
+            appendToCacheKey(builder, value);
+        }
+
+        for (Map.Entry<String, FileCollectionSnapshot> entry : sortEntries(getInputFilesSnapshot().entrySet())) {
+            builder.putString(entry.getKey());
+            FileCollectionSnapshot snapshot = entry.getValue();
+            snapshot.appendToCacheKey(builder);
+        }
+        return builder.build();
+    }
+
+    private static <T> List<Map.Entry<String, T>> sortEntries(Set<Map.Entry<String, T>> entries) {
+        ArrayList<Map.Entry<String, T>> sortedEntries = Lists.newArrayList(entries);
+        Collections.sort(sortedEntries, new Comparator<Map.Entry<String, T>>() {
+            @Override
+            public int compare(Map.Entry<String, T> o1, Map.Entry<String, T> o2) {
+                return o1.getKey().compareTo(o2.getKey());
+            }
+        });
+        return sortedEntries;
+    }
+
+    private static void appendToCacheKey(TaskCacheKeyBuilder builder, Object value) {
+        if (value == null) {
+            builder.putString("$NULL");
+            return;
+        }
+
+        if (value.getClass().isArray()) {
+            builder.putString("Array");
+            for (int idx = 0, len = Array.getLength(value); idx < len; idx++) {
+                builder.putInt(idx);
+                appendToCacheKey(builder, Array.get(value, idx));
+            }
+            return;
+        }
+
+        if (value instanceof Iterable) {
+            builder.putString("Iterable");
+            int idx = 0;
+            for (Object elem : (Iterable<?>) value) {
+                builder.putInt(idx);
+                appendToCacheKey(builder, elem);
+                idx++;
+            }
+            return;
+        }
+
+        if (value instanceof Map) {
+            builder.putString("Map");
+            int idx = 0;
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) value).entrySet()) {
+                builder.putInt(idx);
+                appendToCacheKey(builder, entry.getKey());
+                appendToCacheKey(builder, entry.getValue());
+                idx++;
+            }
+            return;
+        }
+
+        if (value instanceof Boolean) {
+            builder.putBoolean((Boolean) value);
+        } else if (value instanceof Integer) {
+            builder.putInt((Integer) value);
+        } else if (value instanceof Short) {
+            builder.putInt((Short) value);
+        } else if (value instanceof Byte) {
+            builder.putInt((Byte) value);
+        } else if (value instanceof Double) {
+            builder.putDouble((Double) value);
+        } else if (value instanceof Float) {
+            builder.putDouble((Float) value);
+        } else if (value instanceof BigInteger) {
+            builder.putBytes(((BigInteger) value).toByteArray());
+        } else if (value instanceof CharSequence) {
+            builder.putString((CharSequence) value);
+        } else if (value instanceof Enum) {
+            builder.putString(value.getClass().getName());
+            builder.putString(((Enum) value).name());
+        } else {
+            byte[] bytes = SerializationUtils.serialize((Serializable) value);
+            builder.putBytes(bytes);
+        }
+    }
 }

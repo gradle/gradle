@@ -177,7 +177,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             task test(type: TaskWithOutputFilesProperty)
         """
         executer.expectDeprecationWarning()
-
+        executer.requireGradleDistribution()
         expect:
         succeeds "test"
         output.contains 'The use of the @OutputFiles annotation on non-Map properties has been deprecated and is scheduled to be removed in Gradle 4.0. ' +
@@ -203,7 +203,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         executer.expectDeprecationWarning()
-
+        executer.requireGradleDistribution()
         expect:
         succeeds "test"
         output.contains 'The use of the @OutputDirectories annotation on non-Map properties has been deprecated and is scheduled to be removed in Gradle 4.0. ' +
@@ -240,6 +240,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         executer.expectDeprecationWarning()
+        executer.requireGradleDistribution()
 
         expect:
         succeeds "test"
@@ -255,6 +256,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         executer.expectDeprecationWarning()
+        executer.requireGradleDistribution()
 
         expect:
         succeeds "test"
@@ -276,6 +278,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
         executer.expectDeprecationWarning()
+        executer.requireGradleDistribution()
 
         expect:
         succeeds "test"

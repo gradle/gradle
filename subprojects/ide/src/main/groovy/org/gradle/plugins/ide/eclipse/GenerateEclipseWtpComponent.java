@@ -29,7 +29,6 @@ import org.gradle.plugins.ide.eclipse.model.WtpComponent;
  */
 public class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> {
 
-    @Internal
     private EclipseWtpComponent component;
 
     public GenerateEclipseWtpComponent() {
@@ -50,6 +49,7 @@ public class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpComponent> 
     /**
      * The Eclipse WTP component model that contains details required to generate the settings file.
      */
+    @Internal
     public EclipseWtpComponent getComponent() {
         return component;
     }

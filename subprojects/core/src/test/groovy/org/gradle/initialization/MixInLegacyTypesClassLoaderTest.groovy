@@ -67,6 +67,105 @@ class MixInLegacyTypesClassLoaderTest extends Specification {
         obj.setMetaClass(newMetaClass) == null
     }
 
+    def "add getters for String constants"() {
+        given:
+        def className = "org.gradle.api.plugins.JavaPluginConvention"
+
+        def original = compileJavaToDir(className, """
+            package org.gradle.api.plugins;
+            class JavaPluginConvention {
+                public static final String SOME_CONST = "Value";
+                public static final String SOME_CONST_WITH_GETTER = "Other Value";
+
+                public static String getSomeStuff() { return SOME_CONST; }
+                public static String getSOME_CONST_WITH_GETTER() { return SOME_CONST_WITH_GETTER; }
+                String _prop;
+                String getProp() { return _prop; }
+                void setProp(String value) { _prop = value; }
+                String doSomething(String arg) { return arg; }
+            }
+        """)
+
+        when:
+        original.getMethod("getSOME_CONST")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+
+        expect:
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+
+        def cl = loader.loadClass(className)
+        cl.classLoader.is(loader)
+
+        cl.SOME_CONST == "Value"
+        cl.getSOME_CONST() == "Value"
+
+        cl.SOME_CONST_WITH_GETTER == "Other Value"
+        cl.getSOME_CONST_WITH_GETTER() == "Other Value"
+    }
+
+    def "add getters for booleans"() {
+        given:
+        def className = "org.gradle.api.plugins.JavaPluginConvention"
+
+        def original = compileJavaToDir(className, """
+            package org.gradle.api.plugins;
+            class JavaPluginConvention {
+                private boolean someBoolean = true;
+                private boolean booleanWithGetter = false;
+                private static boolean staticBoolean = true;
+
+                public boolean publicBoolean = true;
+
+                public boolean isSomeBoolean() { return someBoolean; }
+                public boolean isBooleanWithGetter() { return booleanWithGetter; }
+                public boolean getBooleanWithGetter() { return booleanWithGetter; }
+                public boolean isWithoutField() { return true; }
+
+                public static boolean isStaticBoolean() { return true; }
+            }
+        """)
+
+        when:
+        original.getMethod("getSomeBoolean")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+
+        expect:
+        def loader = new MixInLegacyTypesClassLoader(groovyClassLoader, new DefaultClassPath(classesDir))
+
+        def cl = loader.loadClass(className)
+        def obj = cl.newInstance()
+        obj.getSomeBoolean() == true
+        obj.someBoolean == true
+
+        obj.getBooleanWithGetter() == false
+        obj.isBooleanWithGetter() == false
+        obj.booleanWithGetter == false
+
+        obj.publicBoolean == true
+
+        when:
+        cl.getMethod("getWithoutField")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+
+        when:
+        cl.getMethod("getPublicBoolean")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+
+        when:
+        cl.getMethod("getStaticBoolean")
+
+        then:
+        thrown java.lang.NoSuchMethodException
+    }
+
     def "does not mix GroovyObject into other types"() {
         given:
         def className = "org.gradle.api.plugins.Thing"

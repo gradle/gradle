@@ -21,8 +21,10 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.tasks.bundling.War
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
@@ -33,10 +35,12 @@ import static org.junit.Assert.*
 class WarPluginTest {
     private Project project // = TestUtil.createRootProject()
     private WarPlugin warPlugin// = new WarPlugin()
+    @Rule
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     @Before
     public void setUp() {
-        project = TestUtil.createRootProject()
+        project = TestUtil.create(tmpDir).rootProject()
         warPlugin = new WarPlugin()
     }
 

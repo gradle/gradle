@@ -36,24 +36,11 @@ public interface DaemonStateControl {
     void requestForcefulStop(String reason);
 
     /**
-     * @return true if daemon is running and is executing a command-.
+     * Returns the current state of the daemon
+     *
+     * @return The current state of the daemon
      */
-    boolean isBusy();
-
-    /**
-     * @return true if daemon is running and idle.
-     */
-    boolean isIdle();
-
-    /**
-     * @return true if daemon is stopping or stopped.
-     */
-    boolean isStopping();
-
-    /**
-     * @return true if daemon is stopped.
-     */
-    boolean isStopped();
+    State getState();
 
     /**
      * Communicates a request for build cancellation. Note that this method blocks until the operation has been cancelled.
@@ -82,4 +69,6 @@ public interface DaemonStateControl {
      * The caller should note that the command may still be running at the time the method returns but should consider the command as abandoned.
      */
     void runCommand(Runnable command, String commandDisplayName) throws DaemonUnavailableException, DaemonStoppedException;
+
+    enum State {Idle, Busy, StopRequested, Stopped, Broken}
 }

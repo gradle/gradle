@@ -20,10 +20,10 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.GradleVersion
 
-class BuildReceiptPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
+class BuildScanPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
     private final String pluginCommitSha
 
-    public BuildReceiptPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha) {
+    public BuildScanPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter, String pluginCommitSha) {
         super(experimentRunner, dataReporter)
         this.pluginCommitSha = pluginCommitSha
     }

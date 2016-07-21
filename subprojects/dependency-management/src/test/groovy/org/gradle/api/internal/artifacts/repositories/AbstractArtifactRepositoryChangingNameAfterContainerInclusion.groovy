@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.artifacts.repositories
 
-import org.gradle.api.Project
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class AbstractArtifactRepositoryChangingNameAfterContainerInclusion extends Specification {
-    Project project = TestUtil.createRootProject()
+class AbstractArtifactRepositoryChangingNameAfterContainerInclusion extends AbstractProjectBuilderSpec {
 
     def "cannot change the name of the repository after it has been added to a container"() {
         def repo = new TestRepo(name: "name")

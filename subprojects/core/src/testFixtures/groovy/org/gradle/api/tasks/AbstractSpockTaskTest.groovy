@@ -33,24 +33,16 @@ import org.gradle.api.internal.tasks.TaskStateInternal
 import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.DirectInstantiator
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
-import org.gradle.util.UsesNativeServices
-import org.junit.Rule
-import spock.lang.Specification
 
 import java.util.concurrent.atomic.AtomicBoolean
 
 import static org.junit.Assert.assertFalse
 
-@UsesNativeServices
-public abstract class AbstractSpockTaskTest extends Specification {
+public abstract class AbstractSpockTaskTest extends AbstractProjectBuilderSpec {
     public static final String TEST_TASK_NAME = "taskname"
-    @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-
-    private ProjectInternal project
 
     private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new DefaultTaskClassInfoStore(), new TaskFactory(new AsmBackedClassGenerator()))
 
@@ -70,10 +62,6 @@ public abstract class AbstractSpockTaskTest extends Specification {
                         Task.TASK_NAME, name))
         assert type.isAssignableFrom(task.getClass())
         return type.cast(task);
-    }
-
-    def setup() {
-        project = TestUtil.createRootProject(tmpDir.testDirectory)
     }
 
     def testTask() {
@@ -180,14 +168,6 @@ public abstract class AbstractSpockTaskTest extends Specification {
         then:
         1 * executer.execute(task, _ as TaskStateInternal, _ as TaskExecutionContext)
 
-    }
-
-    public ProjectInternal getProject() {
-        return project;
-    }
-
-    public void setProject(ProjectInternal project) {
-        this.project = project;
     }
 
     def setGetDescription() {

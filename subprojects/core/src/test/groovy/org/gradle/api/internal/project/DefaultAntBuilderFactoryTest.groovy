@@ -16,18 +16,16 @@
 package org.gradle.api.internal.project
 
 import org.gradle.api.AntBuilder
-import org.gradle.api.Project
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.ant.AntLoggingAdapterFactory
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-public class DefaultAntBuilderFactoryTest extends Specification {
-    private final AntLoggingAdapterFactory adapterFactory = Stub(AntLoggingAdapterFactory)
-    private final Project project = TestUtil.createRootProject()
-    private final DefaultAntBuilderFactory factory = new DefaultAntBuilderFactory(project, adapterFactory)
+public class DefaultAntBuilderFactoryTest extends AbstractProjectBuilderSpec {
+    private AntLoggingAdapterFactory adapterFactory = Stub(AntLoggingAdapterFactory)
+    private DefaultAntBuilderFactory factory
 
     def setup() {
+        factory = new DefaultAntBuilderFactory(project, adapterFactory)
         adapterFactory.create() >> Stub(AntLoggingAdapter)
     }
 

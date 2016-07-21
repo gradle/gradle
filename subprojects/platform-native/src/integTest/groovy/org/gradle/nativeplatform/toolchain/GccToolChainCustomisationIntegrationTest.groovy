@@ -96,10 +96,10 @@ model {
         succeeds "mainArmExecutable", "mainI386Executable", "mainSparcExecutable"
 
         then:
-        executable("build/exe/main/arm/main").binaryInfo.arch.name == "x86"
+        executable("build/exe/main/arm/main").arch.name == "x86"
         executable("build/exe/main/arm/main").exec().out == helloWorldApp.frenchOutput
 
-        executable("build/exe/main/i386/main").binaryInfo.arch.name == "x86"
+        executable("build/exe/main/i386/main").arch.name == "x86"
         executable("build/exe/main/i386/main").exec().out == helloWorldApp.englishOutput
 
         executable("build/exe/main/sparc/main").exec().out == helloWorldApp.englishOutput

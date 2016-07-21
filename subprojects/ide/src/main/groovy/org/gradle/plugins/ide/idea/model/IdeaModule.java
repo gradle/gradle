@@ -268,14 +268,10 @@ public class IdeaModule {
         this.scopes = scopes;
     }
 
-    public boolean isDownloadSources() {
-        return downloadSources;
-    }
-
     /**
      * Whether to download and add sources associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
      */
-    public boolean getDownloadSources() {
+    public boolean isDownloadSources() {
         return downloadSources;
     }
 
@@ -283,14 +279,10 @@ public class IdeaModule {
         this.downloadSources = downloadSources;
     }
 
-    public boolean isDownloadJavadoc() {
-        return downloadJavadoc;
-    }
-
     /**
      * Whether to download and add javadoc associated with the dependency jars. <p> For example see docs for {@link IdeaModule}
      */
-    public boolean getDownloadJavadoc() {
+    public boolean isDownloadJavadoc() {
         return downloadJavadoc;
     }
 
@@ -473,14 +465,10 @@ public class IdeaModule {
         this.pathFactory = pathFactory;
     }
 
-    public boolean isOffline() {
-        return offline;
-    }
-
     /**
      * If true then external artifacts (e.g. those found in repositories) will not be included in the resulting classpath (only project and local file dependencies will be included).
      */
-    public boolean getOffline() {
+    public boolean isOffline() {
         return offline;
     }
 

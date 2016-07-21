@@ -133,6 +133,16 @@
                 In other cases, you can use <literal>--info</literal> logging to find the task that is out-of-date due to the identified files.
             </para>
         </section>
+        <section id="sec:continuous_build_limitations_jdk9">
+            <title>Restrictions with Java 9</title>
+            <para>
+                Due to class access restrictions related to Java 9, Gradle cannot set some operating system specific options, which means that:
+                <itemizedlist>
+                    <listitem><para>On Mac OS X, Gradle will poll for file changes every 10 seconds instead of every 2 seconds.</para></listitem>
+                    <listitem><para>On Windows, Gradle must use individual file watches (like on Linux/Mac OS), which may cause continuous build to no longer work on very large projects.</para></listitem>
+                </itemizedlist>
+            </para>
+        </section>
         <section id="sec:performance_and_stability">
             <title>Performance and stability</title>
             <para>

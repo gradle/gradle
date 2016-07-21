@@ -23,14 +23,15 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import groovy.lang.Closure;
 import groovy.util.Node;
+import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.XmlProvider;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.ScalaRuntime;
 import org.gradle.language.scala.ScalaPlatform;
@@ -51,7 +52,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.*;
+import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.findOrCreateFirstChildNamed;
+import static org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObject.findOrCreateFirstChildWithAttributeValue;
 
 public class IdeaScalaConfigurer {
 
@@ -64,9 +66,8 @@ public class IdeaScalaConfigurer {
     }
 
     public void configure() {
-        rootProject.getGradle().projectsEvaluated(new Closure(this, this) {
-            @SuppressWarnings("unused")
-            public void doCall() {
+        rootProject.getGradle().addBuildListener(new BuildAdapter() {
+            public void projectsEvaluated(Gradle gradle) {
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
                 final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();

@@ -16,6 +16,17 @@
 
 package org.gradle.api.plugins.jetty.internal;
 
+import org.mortbay.jetty.plus.annotation.InjectionCollection;
+import org.mortbay.jetty.plus.annotation.LifeCycleCallbackCollection;
+import org.mortbay.jetty.plus.annotation.RunAsCollection;
+import org.mortbay.jetty.plus.webapp.Configuration;
+import org.mortbay.jetty.servlet.FilterHolder;
+import org.mortbay.jetty.servlet.ServletHolder;
+import org.mortbay.jetty.webapp.WebAppClassLoader;
+import org.mortbay.jetty.webapp.WebAppContext;
+import org.mortbay.log.Log;
+import org.mortbay.util.LazyList;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -23,17 +34,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Iterator;
 import java.util.List;
-
-import org.mortbay.jetty.plus.annotation.InjectionCollection;
-import org.mortbay.jetty.plus.annotation.LifeCycleCallbackCollection;
-import org.mortbay.jetty.plus.annotation.RunAsCollection;
-import org.mortbay.jetty.plus.webapp.Configuration;
-import org.mortbay.jetty.servlet.FilterHolder;
-import org.mortbay.jetty.servlet.ServletHolder;
-import org.mortbay.jetty.webapp.WebAppContext;
-import org.mortbay.jetty.webapp.WebAppClassLoader;
-import org.mortbay.log.Log;
-import org.mortbay.util.LazyList;
 
 public class JettyConfiguration extends Configuration {
     private List<File> classPathFiles;
@@ -97,7 +97,7 @@ public class JettyConfiguration extends Configuration {
         int major = Integer.parseInt(version[0]);
         int minor = Integer.parseInt(version[1]);
         if ((major >= 1) && (minor >= 5)) {
-            //TODO it would be nice to be able to re-use the parseAnnotations() method on 
+            //TODO it would be nice to be able to re-use the parseAnnotations() method on
             //the org.mortbay.jetty.annotations.Configuration class, but it's too difficult?
 
             //able to use annotations on jdk1.5 and above
@@ -110,6 +110,7 @@ public class JettyConfiguration extends Configuration {
             Iterator itor = LazyList.iterator(_servlets);
             while (itor.hasNext()) {
                 ServletHolder holder = (ServletHolder) itor.next();
+                //TODO: Some paths within Jetty can acquire persistent file locks on the jars containing these classes.
                 Class servlet = getWebAppContext().loadClass(holder.getClassName());
                 parseAnnotationsMethod.invoke(null, getWebAppContext(), servlet, _runAsCollection, _injections,
                         _callbacks);

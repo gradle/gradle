@@ -17,14 +17,18 @@ package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
+import org.gradle.api.file.CopySourceSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.copy.ClosureBackedTransformer;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
@@ -187,8 +191,16 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask from(Object sourcePath, Closure c) {
-        getMainSpec().from(sourcePath, c);
+    public AbstractCopyTask from(Object sourcePath, final Closure c) {
+        getMainSpec().from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
+        getMainSpec().from(sourcePath, configureAction);
         return this;
     }
 
@@ -213,6 +225,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     public AbstractCopyTask into(Object destPath, Closure configureClosure) {
         getMainSpec().into(destPath, configureClosure);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public CopySpec into(Object destPath, Action<? super CopySpec> copySpec) {
+        getMainSpec().into(destPath, copySpec);
         return this;
     }
 
@@ -315,8 +335,16 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask rename(Closure closure) {
-        getMainSpec().rename(closure);
+    public AbstractCopyTask rename(final Closure closure) {
+        return rename(new ClosureBackedTransformer(closure));
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param renamer
+     */
+    public AbstractCopyTask rename(Transformer<String, String> renamer) {
+        getMainSpec().rename(renamer);
         return this;
     }
 
@@ -357,6 +385,15 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     public AbstractCopyTask filter(Closure closure) {
         getMainSpec().filter(closure);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     * @param transformer
+     */
+    public AbstractCopyTask filter(Transformer<String, String> transformer) {
+        getMainSpec().filter(transformer);
         return this;
     }
 

@@ -37,6 +37,11 @@ import java.util.List;
 import java.util.Set;
 
 public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec implements VisualStudioSolution {
+
+    private final DefaultVisualStudioProject rootProject;
+    private final SolutionFile solutionFile;
+    private final VisualStudioProjectResolver vsProjectResolver;
+
     public DefaultVisualStudioSolution(ComponentSpecIdentifier componentIdentifier, DefaultVisualStudioProject rootProject, PathToFileResolver fileResolver, VisualStudioProjectResolver vsProjectResolver, Instantiator instantiator) {
         super(componentIdentifier, VisualStudioSolution.class);
         this.rootProject = rootProject;
@@ -90,10 +95,6 @@ public class DefaultVisualStudioSolution extends AbstractBuildableComponentSpec 
     public final DefaultVisualStudioProject getRootProject() {
         return rootProject;
     }
-
-    private final DefaultVisualStudioProject rootProject;
-    private final SolutionFile solutionFile;
-    private final VisualStudioProjectResolver vsProjectResolver;
 
     public static class SolutionFile implements TextConfigFile {
         private final List<Action<? super TextProvider>> actions = new ArrayList<Action<? super TextProvider>>();

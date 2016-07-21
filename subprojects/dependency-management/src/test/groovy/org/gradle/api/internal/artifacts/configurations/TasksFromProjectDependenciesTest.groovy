@@ -23,15 +23,15 @@ import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.initialization.ProjectAccessListener
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class TasksFromProjectDependenciesTest extends Specification {
+class TasksFromProjectDependenciesTest extends AbstractProjectBuilderSpec {
 
     def dependencies = Mock(DependencySet)
     def context = Mock(TaskDependencyResolveContext)
     def projectAccessListener = Mock(ProjectAccessListener)
-    def project1 = TestUtil.createRootProject()
+    def project1 = TestUtil.create(temporaryFolder).rootProject()
     def project2 = TestUtil.createChildProject(project1, "project2")
     def projectDep1 = Mock(ProjectDependency) { getDependencyProject() >> project1 }
     def projectDep2 = Mock(ProjectDependency) { getDependencyProject() >> project2 }

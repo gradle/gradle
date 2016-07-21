@@ -81,6 +81,10 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 ClassLoader classLoader = getClassLoader(classLoaderDetails);
                 return Class.forName(className, false, classLoader);
             }
+
+            public void close() {
+                cache.clear();
+            }
         };
     }
 

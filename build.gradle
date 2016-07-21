@@ -254,7 +254,7 @@ def patchedExternalModules = fileTree(patchedExternalModulesDir) {
 }
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.2.1'
+    externalModules 'org.gradle:gradle-script-kotlin:0.3.0'
     coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")
@@ -264,7 +264,7 @@ dependencies {
     gradlePlugins project(':testKit')
 }
 
-task patchExternalModules(type: Copy) {
+task patchExternalModules(type: Sync) {
     description 'Patches the classpath manifests of external modules such as gradle-script-kotlin to match the Gradle runtime configuration.'
     // Include any dependency jars that are not available in the core runtime
     from configurations.externalModulesRuntime.minus(configurations.coreRuntime)

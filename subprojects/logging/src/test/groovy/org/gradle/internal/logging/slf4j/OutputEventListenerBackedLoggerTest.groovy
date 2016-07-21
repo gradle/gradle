@@ -349,6 +349,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         then:
         singleLogEvent().message("message").logLevel(DEBUG).throwable(throwable).eventExpected(eventExpected)
 
+        when:
+        logger().debug("There was a {} error", "bad", throwable)
+
+        then:
+        singleLogEvent().message("There was a bad error").logLevel(DEBUG).throwable(throwable).eventExpected(eventExpected)
+
         where:
         level     | eventExpected
         DEBUG     | true
@@ -445,6 +451,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
         then:
         singleLogEvent().message("message").logLevel(INFO).throwable(throwable).eventExpected(eventExpected)
+
+        when:
+        logger().info("There was a {} error", "bad", throwable)
+
+        then:
+        singleLogEvent().message("There was a bad error").logLevel(INFO).throwable(throwable).eventExpected(eventExpected)
 
         where:
         level     | eventExpected
@@ -562,6 +574,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         then:
         singleLogEvent().message("message").logLevel(LIFECYCLE).throwable(throwable).eventExpected(eventExpected)
 
+        when:
+        logger().lifecycle("There was a {} error", "bad", throwable)
+
+        then:
+        singleLogEvent().message("There was a bad error").logLevel(LIFECYCLE).throwable(throwable).eventExpected(eventExpected)
+
         where:
         level     | eventExpected
         DEBUG     | true
@@ -678,6 +696,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         then:
         singleLogEvent().message("message").logLevel(QUIET).throwable(throwable).eventExpected(eventExpected)
 
+        when:
+        logger().quiet("There was a {} error", "bad", throwable)
+
+        then:
+        singleLogEvent().message("There was a bad error").logLevel(QUIET).throwable(throwable).eventExpected(eventExpected)
+
         where:
         level     | eventExpected
         DEBUG     | true
@@ -774,6 +798,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
 
         then:
         singleLogEvent().message("message").logLevel(WARN).throwable(throwable).eventExpected(eventExpected)
+
+        when:
+        logger().warn("There was a {} error", "bad", throwable)
+
+        then:
+        singleLogEvent().message("There was a bad error").logLevel(WARN).throwable(throwable).eventExpected(eventExpected)
 
         where:
         level     | eventExpected
@@ -872,6 +902,12 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         then:
         singleLogEvent().message("message").logLevel(ERROR).throwable(throwable)
 
+        when:
+        logger().error("There was a {} error", "bad", throwable)
+
+        then:
+        singleLogEvent().message("There was a bad error").logLevel(ERROR).throwable(throwable)
+
         where:
         level << LogLevel.values()
 
@@ -902,6 +938,4 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         then:
         singleLogEvent().eventExpected(false)
     }
-
-
 }

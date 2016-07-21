@@ -16,11 +16,15 @@
 
 package org.gradle.plugin.repository.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.artifacts.repositories.ArtifactRepository;
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.plugin.repository.GradlePluginPortal;
 import org.gradle.plugin.use.resolve.internal.PluginResolver;
 import org.gradle.plugin.use.resolve.service.internal.PluginResolutionServiceResolver;
 
-class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepositoryInternal {
+class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepositoryInternal, BackedByArtifactRepository {
     private PluginResolutionServiceResolver pluginResolutionServiceResolver;
 
     DefaultGradlePluginPortal(PluginResolutionServiceResolver pluginResolutionServiceResolver) {
@@ -30,5 +34,15 @@ class DefaultGradlePluginPortal implements GradlePluginPortal, PluginRepositoryI
     @Override
     public PluginResolver asResolver() {
         return pluginResolutionServiceResolver;
+    }
+
+    @Override
+    public ArtifactRepository createArtifactRepository(RepositoryHandler repositoryHandler) {
+        return repositoryHandler.maven(new Action<MavenArtifactRepository>() {
+            @Override
+            public void execute(MavenArtifactRepository mavenArtifactRepository) {
+                mavenArtifactRepository.setUrl("https://plugins.gradle.org/m2");
+            }
+        });
     }
 }

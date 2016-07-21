@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.GUtil;
 import org.gradle.util.TestUtil;
 import org.jmock.Expectations;
@@ -25,6 +26,7 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -36,6 +38,9 @@ public class PropertyReportTaskTest {
     private ProjectInternal project;
     private PropertyReportTask task;
     private PropertyReportRenderer renderer;
+
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
 
     @Before
     public void setup() {
@@ -50,7 +55,7 @@ public class PropertyReportTaskTest {
             will(returnValue(null));
         }});
 
-        task = TestUtil.createTask(PropertyReportTask.class);
+        task = TestUtil.create(temporaryFolder).task(PropertyReportTask.class);
         task.setRenderer(renderer);
     }
 

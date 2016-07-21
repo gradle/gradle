@@ -121,7 +121,7 @@ public class TypeNameResolver {
                 if (metaDataRepository.find(candidateClassName) != null) {
                     return candidateClassName;
                 }
-                if (importedClass.startsWith("java.") && isVisibleClass(candidateClassName)) {
+                if (importedClass.startsWith("java.") && isVisibleSystemClass(candidateClassName)) {
                     return candidateClassName;
                 }
             } else if (name.equals(baseName)) {
@@ -135,7 +135,7 @@ public class TypeNameResolver {
         }
 
         candidateClassName = "java.lang." + name;
-        if (isVisibleClass(candidateClassName)) {
+        if (isVisibleSystemClass(candidateClassName)) {
             return candidateClassName;
         }
 
@@ -146,7 +146,7 @@ public class TypeNameResolver {
             }
             for (String prefix : groovyImplicitImportPackages) {
                 candidateClassName = prefix + name;
-                if (isVisibleClass(candidateClassName)) {
+                if (isVisibleSystemClass(candidateClassName)) {
                     return candidateClassName;
                 }
             }
@@ -155,7 +155,8 @@ public class TypeNameResolver {
         return name;
     }
 
-    private boolean isVisibleClass(String candidateClassName) {
+    // Only use for system Java/Groovy classes; arbitrary use on the build classpath will result in class/jar leaks.
+    private boolean isVisibleSystemClass(String candidateClassName) {
         try {
             getClass().getClassLoader().loadClass(candidateClassName);
             return true;

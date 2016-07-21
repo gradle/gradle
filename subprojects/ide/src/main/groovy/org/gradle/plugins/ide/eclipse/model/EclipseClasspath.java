@@ -208,16 +208,12 @@ public class EclipseClasspath {
         this.defaultOutputDir = defaultOutputDir;
     }
 
-    public boolean isDownloadSources() {
-        return downloadSources;
-    }
-
     /**
      * Whether to download and associate source Jars with the dependency Jars. Defaults to true.
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    public boolean getDownloadSources() {
+    public boolean isDownloadSources() {
         return downloadSources;
     }
 
@@ -225,16 +221,12 @@ public class EclipseClasspath {
         this.downloadSources = downloadSources;
     }
 
-    public boolean isDownloadJavadoc() {
-        return downloadJavadoc;
-    }
-
     /**
      * Whether to download and associate Javadoc Jars with the dependency Jars. Defaults to false.
      * <p>
      * See {@link EclipseClasspath} for an example.
      */
-    public boolean getDownloadJavadoc() {
+    public boolean isDownloadJavadoc() {
         return downloadJavadoc;
     }
 
@@ -262,10 +254,6 @@ public class EclipseClasspath {
     }
 
     public boolean isProjectDependenciesOnly() {
-        return projectDependenciesOnly;
-    }
-
-    public boolean getProjectDependenciesOnly() {
         return projectDependenciesOnly;
     }
 

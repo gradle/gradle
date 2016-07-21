@@ -18,6 +18,7 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
+import org.gradle.api.Transformer;
 
 import java.util.regex.Pattern;
 
@@ -39,10 +40,23 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * The closure should return a String object with a new target name. The closure may return null,
      * in which case the original name will be used.
      *
+     * @deprecated Use {@link #rename(Transformer)} instead
+     *
      * @param closure rename closure
      * @return this
      */
+    @Deprecated
     CopyProcessingSpec rename(Closure closure);
+
+    /**
+     * Renames a source file. The function will be called with a single parameter, the name of the file.
+     * The function should return a new target name. The function may return null,
+     * in which case the original name will be used.
+     *
+     * @param renamer rename function
+     * @return this
+     */
+    CopyProcessingSpec rename(Transformer<String, String> renamer);
 
     /**
      * Renames files based on a regular expression.  Uses java.util.regex type of regular expressions.  Note that the
@@ -123,8 +137,11 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * called with a {@link org.gradle.api.file.FileCopyDetails} as its parameter. Actions are executed in the order
      * added, and are inherited from the parent spec.
      *
+     * @deprecated Use {@link #eachFile(Action)} instead
+     *
      * @param closure The action to execute.
      * @return this
      */
+    @Deprecated
     CopyProcessingSpec eachFile(@DelegatesTo(value=FileCopyDetails.class, strategy = Closure.DELEGATE_FIRST) Closure closure);
 }

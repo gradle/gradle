@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.project.taskfactory
+
 import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
@@ -22,20 +23,18 @@ import org.gradle.api.Task
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.TaskInstantiationException
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.reflect.ObjectInstantiationException
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class TaskFactoryTest extends Specification {
+class TaskFactoryTest extends AbstractProjectBuilderSpec {
     final ClassGenerator generator = Mock()
     final Instantiator instantiator = Mock()
-    final ProjectInternal project = TestUtil.createRootProject()
-    final ITaskFactory taskFactory = new TaskFactory(generator).createChild(project, instantiator)
+    ITaskFactory taskFactory
 
     def setup() {
+        taskFactory = new TaskFactory(generator).createChild(project, instantiator)
         _ * generator.generate(_) >> { Class type -> type }
         _ * instantiator.newInstance(_) >> { args -> args[0].newInstance() }
     }

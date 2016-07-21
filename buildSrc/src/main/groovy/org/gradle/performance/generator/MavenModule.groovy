@@ -110,7 +110,8 @@ class MavenModule {
   <artifactId>$artifactId</artifactId>
   <packaging>$type</packaging>
   <version>$version</version>
-  <description>Published on $publishTimestamp</description>"""
+  <description>Published on $publishTimestamp</description>
+  <dependencies>"""
 
         if (parentPomSection) {
             pomFile << "\n$parentPomSection\n"
@@ -118,16 +119,16 @@ class MavenModule {
 
         dependencies.each { dependency ->
             pomFile << """
-  <dependencies>
     <dependency>
       <groupId>$dependency.groupId</groupId>
       <artifactId>$dependency.artifactId</artifactId>
       <version>$dependency.version</version>
-    </dependency>
-  </dependencies>"""
+    </dependency>"""
         }
 
-        pomFile << "\n</project>"
+        pomFile << """
+  </dependencies>
+</project>"""
 
         artifacts.each { artifact ->
             publishArtifact(artifact)

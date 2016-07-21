@@ -160,7 +160,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         if (eclipseClasspath.getFile() == null) {
             classpathEntries = eclipseClasspath.resolveDependencies();
         } else {
-            Classpath classpath = new Classpath();
+            Classpath classpath = new Classpath(eclipseClasspath.getFileReferenceFactory());
             eclipseClasspath.mergeXmlClasspath(classpath);
             classpathEntries = classpath.getEntries();
         }

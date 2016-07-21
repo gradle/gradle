@@ -15,7 +15,7 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.internal.hash.HashValue;
+import com.google.common.hash.HashCode;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives;
 
@@ -23,15 +23,15 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class CompilationFileState {
-    private HashValue hash;
+    private HashCode hash;
     private IncludeDirectives includeDirectives = new DefaultIncludeDirectives();
     private Set<ResolvedInclude> resolvedIncludes = new HashSet<ResolvedInclude>();
 
-    public CompilationFileState(HashValue hash) {
+    public CompilationFileState(HashCode hash) {
         this.hash = hash;
     }
 
-    public HashValue getHash() {
+    public HashCode getHash() {
         return hash;
     }
 

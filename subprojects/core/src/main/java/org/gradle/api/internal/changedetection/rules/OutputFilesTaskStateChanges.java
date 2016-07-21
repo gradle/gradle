@@ -23,6 +23,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot.ChangeFilter;
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 
 import java.util.EnumSet;
 import java.util.Map;
@@ -50,9 +51,9 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
         final Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotter(), getTitle(), getFileProperties(), isAllowSnapshotReuse());
 
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
-        for (Map.Entry<String, FileCollection> entry : fileProperties.entrySet()) {
-            String propertyName = entry.getKey();
-            FileCollection roots = entry.getValue();
+        for (TaskFilePropertySpec propertySpec : fileProperties) {
+            String propertyName = propertySpec.getPropertyName();
+            FileCollection roots = propertySpec.getPropertyFiles();
             FileCollectionSnapshot beforeExecution = getCurrent().get(propertyName);
             FileCollectionSnapshot afterExecution = outputFilesAfter.get(propertyName);
             FileCollectionSnapshot afterPreviousExecution = getSnapshotAfterPreviousExecution(propertyName);

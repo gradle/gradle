@@ -31,19 +31,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class EclipseNameDeduper {
+
     public void configureRoot(Project rootProject) {
-        Set<Project> projects = Sets.filter(rootProject.getAllprojects(), new Predicate<Project>() {
-            @Override
-            public boolean apply(Project project) {
-                return hasEclipsePlugin(project);
-            }
-        });
-        ImmutableMap<EclipseProject, Project> eclipseProjects = Maps.uniqueIndex(projects, new Function<Project, EclipseProject>() {
-            @Override
-            public EclipseProject apply(Project p) {
-                return getEclipseProject(p);
-            }
-        });
+        Set<Project> projects = Sets.filter(rootProject.getAllprojects(), HAS_ECLIPSE_PLUGIN);
+        ImmutableMap<EclipseProject, Project> eclipseProjects = Maps.uniqueIndex(projects, GET_ECLIPSE_PROJECT);
         HierarchicalElementDeduplicator<EclipseProject> deduplicator = new HierarchicalElementDeduplicator<EclipseProject>(new EclipseDeduplicationAdapter(eclipseProjects));
         Map<EclipseProject, String> deduplicated = deduplicator.deduplicate(eclipseProjects.keySet());
         for (Map.Entry<EclipseProject, String> entry : deduplicated.entrySet()) {
@@ -82,4 +73,17 @@ public class EclipseNameDeduper {
         return project.getPlugins().hasPlugin(EclipsePlugin.class);
     }
 
+    private static final Predicate<Project> HAS_ECLIPSE_PLUGIN = new Predicate<Project>() {
+        @Override
+        public boolean apply(Project project) {
+            return hasEclipsePlugin(project);
+        }
+    };
+
+    private static final Function<Project, EclipseProject> GET_ECLIPSE_PROJECT = new Function<Project, EclipseProject>() {
+        @Override
+        public EclipseProject apply(Project p) {
+            return getEclipseProject(p);
+        }
+    };
 }

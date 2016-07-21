@@ -15,10 +15,11 @@
  */
 package org.gradle.language.nativeplatform.internal.incremental
 
+import com.google.common.hash.Hashing
+import com.google.common.io.Files
 import org.gradle.api.internal.changedetection.state.FileSnapshot
 import org.gradle.api.internal.changedetection.state.FileSnapshotter
 import org.gradle.cache.PersistentStateCache
-import org.gradle.internal.hash.HashUtil
 import org.gradle.language.nativeplatform.internal.IncludeDirectives
 import org.gradle.language.nativeplatform.internal.incremental.sourceparser.DefaultIncludeDirectives
 import org.gradle.test.fixtures.file.TestFile
@@ -49,7 +50,7 @@ class IncrementalCompileProcessorTest extends Specification {
     def setup() {
         fileSnapshotter.snapshot(_) >> { File file ->
             return Stub(FileSnapshot) {
-                getHash() >> HashUtil.sha1(file)
+                getHash() >> Files.asByteSource(file).hash(Hashing.sha1())
             }
         }
 

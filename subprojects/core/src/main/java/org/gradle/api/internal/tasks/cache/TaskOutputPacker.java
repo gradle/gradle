@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 
-/**
- * Task classes for Eclipse CDT.
- */
-@org.gradle.api.Incubating
-package org.gradle.ide.cdt.tasks;
+package org.gradle.api.internal.tasks.cache;
+
+import org.gradle.api.internal.TaskOutputsInternal;
+
+import java.io.IOException;
+
+public interface TaskOutputPacker {
+    TaskOutputWriter createWriter(TaskOutputsInternal taskOutputs) throws IOException;
+
+    void unpack(TaskOutputsInternal taskOutputs, TaskOutputReader result) throws IOException;
+}
