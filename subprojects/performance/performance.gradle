@@ -701,8 +701,8 @@ performanceTestTasks.all {
 
     // Some performance builds generate a lot of output,
     // that is buffered until the test finishes via GradleExecuter.
-    if(System.getProperty('sun.arch.data.model')?.indexOf('64') > -1) {
-        maxHeapSize "8g"
+    if (System.getProperty('sun.arch.data.model').contains("64")) {
+        jvmArgs '-Xmx4g'
     }
 }
 
