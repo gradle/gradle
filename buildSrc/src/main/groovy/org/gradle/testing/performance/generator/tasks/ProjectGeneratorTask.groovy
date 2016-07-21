@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator.tasks
+package org.gradle.testing.performance.generator.tasks
 
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
@@ -22,7 +22,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import org.gradle.performance.generator.*
+import org.gradle.testing.performance.generator.*
 
 import java.util.concurrent.Callable
 

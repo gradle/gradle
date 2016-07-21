@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.tasks;
+package org.gradle.testing;
 
-import org.gradle.api.tasks.testing.Test;
-
-public class PerformanceTest extends Test {
+/**
+ * A test that checks execution time and memory consumption.
+ */
+public class PerformanceTest extends DistributionTest {
 }

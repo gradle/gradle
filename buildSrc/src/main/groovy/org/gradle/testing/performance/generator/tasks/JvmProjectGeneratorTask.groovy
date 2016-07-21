@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator.tasks
+package org.gradle.testing.performance.generator.tasks
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
-import org.gradle.performance.generator.*
+import org.gradle.testing.performance.generator.*
 
 class JvmProjectGeneratorTask extends ProjectGeneratorTask {
     boolean groovyProject

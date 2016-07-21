@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 import groovy.json.JsonSlurper
-import org.gradle.performance.generator.DependencyGenerator
-import org.gradle.performance.generator.tasks.JvmProjectGeneratorTask
-import org.gradle.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
-import org.gradle.performance.generator.tasks.NativeProjectGeneratorTask
-import org.gradle.performance.generator.tasks.ProjectGeneratorTask
+import org.gradle.testing.performance.generator.DependencyGenerator
+import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 
 configurations {
     junit

@@ -1,0 +1,324 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import java.util.regex.Pattern
+import org.gradle.testing.DistributionTest
+
+ext.distributionTestTasks = tasks.withType(DistributionTest)
+
+distributionTestTasks.all { DistributionTest task ->
+    dependsOn ':intTestImage'
+    dependsOn ':toolingApi:shadedJar'
+    dependsOn ':cleanUpCaches'
+    finalizedBy ':cleanUpDaemons'
+    shouldRunAfter 'test'
+
+    jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
+    if (!javaVersion.java8Compatible) {
+        jvmArgs '-XX:MaxPermSize=768m'
+
+    }
+
+    reports.junitXml.destination = file("${project.testResultsDir}/$name")
+
+    // use -PtestVersions=all or -PtestVersions=1.2,1.3…
+    systemProperties['org.gradle.integtest.versions'] = project.hasProperty('testVersions') ? project.testVersions : 'latest'
+
+    systemProperties['org.gradle.integtest.cpp.toolChains'] = project.hasProperty("testAllPlatforms") && project.testAllPlatforms ? 'all' : 'default'
+
+    systemProperties['org.gradle.integtest.multiversion'] = project.hasProperty("testAllVersions") && project.testAllVersions ? 'all' : 'default'
+
+    dependsOn project.task("configure${task.name.capitalize()}") << {
+        configure(task) {
+            reports.html.destination = file("${project.reporting.baseDir}/$name")
+            systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.destinationDir.absolutePath
+            systemProperties['integTest.gradleUserHomeDir'] = rootProject.file('intTestHomeDir').absolutePath
+            systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
+            systemProperties['integTest.toolingApiShadedJarDir'] = rootProject.project(':toolingApi').shadedJar.outputDir
+
+            // If the projects int test need the distributions, they should add:
+            // inputs.files rootProject.buildDists
+            systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
+
+            // The user home dir is not wiped out by clean
+            // Move the daemon working space underneath the build dir so they don't pile up on CI
+            systemProperties['org.gradle.integtest.daemon.registry'] = file("$rootProject.buildDir/daemon").absolutePath
+        }
+    }
+
+    ext.daemonListener = null
+
+    doFirst {
+        def daemonPids = rootProject.cleanUpDaemons.daemonPids
+        def suspiciousDaemons = rootProject.cleanUpDaemons.suspiciousDaemons
+        daemonListener = [
+            beforeTest : { test -> },
+            afterTest  : { test, result -> },
+            beforeSuite: { suite ->
+                forEachJavaProcess { pid, process ->
+                    // processes that exist before the test suite execution should
+                    // not trigger a warning
+                    daemonPids << pid
+                }
+            },
+            afterSuite : { suite, result ->
+                forEachJavaProcess { pid, process ->
+                    if (!daemonPids.contains(pid)) {
+                        daemonPids << pid
+                        suspiciousDaemons."$suite" << pid
+                    }
+                }
+            }] as TestListener
+        gradle.addListener(daemonListener)
+    }
+
+    doLast {
+        gradle.removeListener(daemonListener)
+    }
+}
+
+
+/**
+ * Clean up cache files for older versions that aren't multi-process safe.
+ */
+def removeDodgyCacheFiles(File dir) {
+    if (dir.directory) {
+        for (File cacheDir : dir.listFiles()) {
+            if (!cacheDir.name.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
+                continue
+            }
+            for (String name : ["fileHashes", "outputFileStates", "fileSnapshots"]) {
+                def stateDir = new File(cacheDir, name)
+                if (stateDir.directory) {
+                    println "Removing old cache directory : ${stateDir}"
+                    delete(stateDir)
+                }
+            }
+        }
+    }
+}
+
+
+/**
+ * Clean up daemon log files produced in integration tests.
+ */
+def removeDaemonLogFiles(File dir) {
+    if (dir.directory) {
+        def daemonLogFiles = fileTree(dir) {
+            include '**/*.log'
+        }
+        delete daemonLogFiles
+    }
+}
+
+/**
+ * Removes state for versions that we're unlikely to ever need again, such as old snapshot versions.
+ */
+def removeOldVersionsFromDir(File dir, def shouldDelete, def dirPrefix = "", def dirSuffix = "") {
+    if (dir.directory) {
+
+        for (File cacheDir : dir.listFiles()) {
+            if (!cacheDir.name.startsWith(dirPrefix) || !cacheDir.name.endsWith(dirSuffix)) {
+                continue
+            }
+            def dirVersion = cacheDir.name.substring(dirPrefix.length(), cacheDir.name.length() - dirSuffix.length())
+            if (!dirVersion.matches("\\d+\\.\\d+(\\.\\d+)?(-\\w+)*(-\\d{14}[+-]\\d{4})?")) {
+                continue
+            }
+
+            def cacheVersion
+            try {
+                cacheVersion = GradleVersion.version(dirVersion)
+            } catch (IllegalArgumentException e) {
+                // Ignore
+                continue
+            }
+
+            if (shouldDelete(cacheVersion)) {
+                println "Removing old cache directory : ${cacheDir}"
+                delete(cacheDir)
+            }
+        }
+    }
+}
+
+def removeCachedScripts(File cachesDir) {
+    if (cachesDir.directory) {
+        for (File cacheDir : cachesDir.listFiles()) {
+            if(cacheDir.directory) {
+                ["scripts", "scripts-remapped"].each {
+                    File scriptsCacheDir = new File(cacheDir, it)
+                    if(scriptsCacheDir.directory) {
+                        println "Removing scripts cache directory : ${scriptsCacheDir}"
+                        delete(scriptsCacheDir)
+                    }
+                }
+            }
+        }
+    }
+}
+
+project(":") {
+    if (tasks.findByName('cleanUpCaches')) {
+        return
+    }
+
+    task cleanUpCaches {
+        dependsOn ':createBuildReceipt'
+        doLast {
+            def executingVersion = GradleVersion.version(gradle.gradleVersion)
+
+            def versionProps = readBuildReceipt("${buildDir}/${buildReceiptFileName}")
+            def testedVersion = GradleVersion.version(versionProps.versionNumber)
+
+            // Expire .gradle cache where major version is older than executing version
+            def expireTaskCache = { def candidateVersion ->
+                return candidateVersion.baseVersion < executingVersion.baseVersion
+            }
+
+            // Expire intTestImage cache snapshots that are older than the tested version
+            // Also expire version-specific cache snapshots when they can't be re-used (for 'snapshot-1' developer builds)
+            def expireIntegTestCache = { def candidateVersion ->
+                return (candidateVersion.snapshot && candidateVersion < testedVersion) || candidateVersion.version.endsWith('-snapshot-1')
+            }
+
+            // Remove state for old versions of Gradle that we're unlikely to ever require again
+            removeOldVersionsFromDir(file("buildSrc/.gradle"), expireTaskCache)
+            removeOldVersionsFromDir(file(".gradle"), expireTaskCache)
+            removeOldVersionsFromDir(file("intTestHomeDir/worker-1/caches"), expireIntegTestCache)
+
+            // Remove scripts caches
+            removeCachedScripts(file("intTestHomeDir/worker-1/caches"))
+            // Remove script caches from TestKit integTest temp dir
+            // location defined in TempTestKitDirProvider, copied here
+            def testKitTmpDir = new File(new File(System.getProperty("java.io.tmpdir")), String.format(".gradle-test-kit-%s", System.getProperty("user.name")))
+            removeCachedScripts(new File(testKitTmpDir, "caches"))
+
+            removeOldVersionsFromDir(file("intTestHomeDir/worker-1/daemon"), expireIntegTestCache)
+
+            // Remove old distributions used by wrapper that we're unlikely to ever require again
+            removeOldVersionsFromDir(file("intTestHomeDir/worker-1/wrapper/dists"), expireIntegTestCache, "gradle-", "-bin")
+            delete(file("intTestHomeDir/worker-1/wrapper/dists/dist"))
+
+            // Remove caches that weren't multi-process safe and may be corrupt
+            removeDodgyCacheFiles(file("intTestHomeDir/worker-1/caches"))
+
+            // Remove old daemon log files
+            removeDaemonLogFiles(file("intTestHomeDir/worker-1/daemon"))
+        }
+    }
+}
+
+def forEachJavaProcess(Closure action) {
+    String queryString = "(?i)[/\\\\](java(?:\\.exe)?.+?(?:(?:-cp.+${Pattern.quote(rootProject.projectDir.absolutePath)}.+?org\\.gradle\\.)|(?:-classpath.+${Pattern.quote(rootProject.buildDir.absolutePath)}.+?org\\.gradle\\.)).+)"
+    def output = new ByteArrayOutputStream()
+    def error = new ByteArrayOutputStream()
+    def pidPattern
+    def result
+    if (org.gradle.internal.os.OperatingSystem.current().windows) {
+        result = exec {
+            commandLine('wmic', 'process', 'get', 'processid,commandline')
+            standardOutput = output
+            errorOutput = error
+            ignoreExitValue = true
+        }
+        pidPattern = /([0-9]+)\s*$/
+    } else {
+        result = exec {
+            commandLine('ps', 'x')
+            standardOutput = output
+            errorOutput = output
+            ignoreExitValue = true
+        }
+        pidPattern = /([0-9]+)/
+    }
+    if (result.exitValue != 0) {
+        def errorLog = file("${rootProject.buildDir}/errorLogs/process-list-${System.currentTimeMillis()}.log")
+        project.mkdir(errorLog.parent)
+        errorLog.text = "[Output]\n${output.toString()}\n[Error Output]\n${error.toString()}"
+        logger.quiet "Error obtaining process list, output log created at $errorLog"
+        result.assertNormalExitValue()
+    }
+    output.toString().readLines().each { String line ->
+        def processMatcher = line =~ queryString
+        if (processMatcher.find()) {
+            def pidMatcher = line =~ pidPattern
+            if (pidMatcher.find()) {
+                def pid = pidMatcher.group(1)
+                def process = processMatcher.group(1)
+                action.call(pid, process)
+            }
+        }
+    }
+}
+
+def pkill(pid) {
+    def killOutput = new ByteArrayOutputStream()
+    def result = exec {
+        if (org.gradle.internal.os.OperatingSystem.current().windows) {
+            commandLine = ["taskkill.exe", "/F", "/T", "/PID", pid]
+        } else {
+            commandLine = ["kill", pid]
+        }
+        standardOutput = killOutput
+        errorOutput = killOutput
+        ignoreExitValue = true
+    }
+    if (result.exitValue != 0) {
+        String out = killOutput.toString()
+        if (!out.contains('No such process')) {
+            logger.warn("""Failed to kill daemon process $pid. Maybe already killed?
+Output: ${killOutput}
+""")
+        }
+    }
+}
+
+project(":") {
+    if (tasks.findByName('cleanUpDaemons')) {
+        return
+    }
+    task killExistingDaemons {
+        doLast {
+            forEachJavaProcess { pid, process ->
+                logger.warn("A process wasn't shutdown properly in a previous Gradle run. Killing process with PID $pid (Command line: $process)")
+                pkill(pid)
+            }
+        }
+    }
+
+    task cleanUpDaemons {
+        ext.suspiciousDaemons = [:].withDefault { [].asSynchronized() }.asSynchronized()
+        ext.daemonPids = ([] as Set).asSynchronized()
+        doLast {
+            Set alreadyKilled = []
+            forEachJavaProcess { pid, process ->
+                suspiciousDaemons.each { suite, pids ->
+                    if (pids.contains(pid) && !alreadyKilled.contains(pid)) {
+                        logger.warn("A process was created in $suite but wasn't shutdown properly. Killing PID $pid (Command line: $process)")
+                        pkill(pid)
+                    }
+                }
+            }
+        }
+    }
+}
+
+allprojects {
+    tasks.whenTaskAdded {
+        it.dependsOn(':killExistingDaemons')
+    }
+}

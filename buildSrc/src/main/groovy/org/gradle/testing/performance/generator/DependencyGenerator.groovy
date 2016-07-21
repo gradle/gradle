@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator
+package org.gradle.testing.performance.generator
 
 /**
  * Generates project dependencies for generated test projects used in performance tests

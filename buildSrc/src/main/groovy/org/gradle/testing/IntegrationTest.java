@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator
+package org.gradle.testing;
 
-class DependencyGraph {
-    int size = 0
-    int depth = 1
-    boolean useSnapshotVersions = false
-
-    boolean isEmpty() {
-        size == 0
-    }
+/**
+ * Verified the correct behavior of a feature, as opposed to just a small unit of code.
+ * Usually referred to as 'functional tests' in literature, but our code base has historically
+ * been using the term 'integration test'.
+ */
+public class IntegrationTest extends DistributionTest {
 }

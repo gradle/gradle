@@ -14,12 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator
+package org.gradle.testing.performance.generator
 
-class MavenScope {
-    final dependencies = []
+class MavenPom {
+    final Map<String, MavenScope> scopes = [:]
 
-    void addDependency(String groupId, String artifactId, String version) {
-        dependencies << [groupId: groupId, artifactId: artifactId, version: version]
+    MavenPom(File pomFile) {
+        def pom = new XmlParser().parse(pomFile)
+        pom.dependencies.dependency.each { dep ->
+            def scopeElement = dep.scope
+            def scopeName = scopeElement ? scopeElement.text() : "runtime"
+            def scope = scopes[scopeName]
+            if (!scope) {
+                scope = new MavenScope()
+                scopes[scopeName] = scope
+            }
+            scope.addDependency(dep.groupId.text(), dep.artifactId.text(), dep.version.text())
+        }
     }
 }

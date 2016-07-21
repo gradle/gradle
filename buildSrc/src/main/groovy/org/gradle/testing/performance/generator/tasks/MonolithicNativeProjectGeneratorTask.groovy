@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.generator.tasks
+package org.gradle.testing.performance.generator.tasks
 
-import org.gradle.performance.generator.*
+import org.gradle.testing.performance.generator.*
 
 /**
  * Generates native projects with prebuilt library dependencies, using a non-standard layout

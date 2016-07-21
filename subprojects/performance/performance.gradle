@@ -13,44 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.internal.hash.HashUtil
-import org.gradle.performance.tasks.PerformanceTest
+import org.gradle.testing.PerformanceTest
 
 apply from: 'templates.gradle'
 
 dependencies {
-    testCompile project(':internalPerformanceTesting')
     testCompile libraries.jsoup
 }
 
 useTestFixtures()
 useClassycle()
 
-task report {
-    def reportDir = new File(buildDir, "performance-tests/report")
-    inputs.files sourceSets.test.runtimeClasspath
-    inputs.dir file("${System.getProperty("user.home")}/.gradle-performance-test-data")
-    outputs.dir reportDir
-
-    doLast {
-        def cl = new URLClassLoader(sourceSets.test.runtimeClasspath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
-        def store = cl.loadClass("org.gradle.performance.results.AllResultsStore").newInstance()
-        try {
-            def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
-            generator.generate(store, reportDir)
-        } finally {
-            store.close()
-        }
-    }
+tasks.withType(PerformanceTest) {
+    dependsOn prepareSamples
 }
 
 task buildScanReport {
     def reportDir = new File(buildDir, "performance-tests/report")
-    inputs.files sourceSets.test.runtimeClasspath
+    inputs.files sourceSets.performanceTest.runtimeClasspath
     outputs.dir reportDir
 
     doLast {
-        def cl = new URLClassLoader(sourceSets.test.runtimeClasspath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
+        def cl = new URLClassLoader(sourceSets.performanceTest.runtimeClasspath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
         def store = cl.loadClass("org.gradle.performance.results.BuildScansResultsStore").newInstance()
         try {
             def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
@@ -61,23 +45,6 @@ task buildScanReport {
     }
 }
 
-task performanceTest(type: PerformanceTest) {
-    options {
-        includeCategories 'org.gradle.performance.categories.GradleCorePerformanceTest'
-    }
-}
-
-task performanceExperiments(type: PerformanceTest) {
-    options {
-        includeCategories 'org.gradle.performance.categories.Experiment'
-    }
-}
-
-task performanceAdhocTest(type: PerformanceTest) {
-    systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
-    maxParallelForks = 1
-}
-
 task buildScanPluginPerformanceTest(type: PerformanceTest) {
     dependsOn largeJavaProjectWithBuildScanPlugin
     finalizedBy buildScanReport
@@ -85,58 +52,5 @@ task buildScanPluginPerformanceTest(type: PerformanceTest) {
 
     options {
         includeCategories 'org.gradle.performance.categories.BuildScanPluginPerformanceTest'
-    }
-}
-
-tasks.withType(PerformanceTest) {
-    dependsOn prepareSamples
-    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
-    finalizedBy report
-    maxParallelForks = 1
-
-    doFirst {
-        // Some performance builds generate a lot of output,
-        // that is buffered until the test finishes via GradleExecuter.
-        if (System.getProperty('sun.arch.data.model').contains("64")) {
-            jvmArgs '-Xmx4g'
-        } else {
-            println "not increasing JVM heap size due to use of 32bit JVM"
-        }
-    }
-}
-
-configure([performanceTest, performanceExperiments]) {
-    if (project.hasProperty('org.gradle.performance.use_yourkit')) {
-        testLogging.showStandardStreams = true
-        systemProperties['org.gradle.performance.use_yourkit'] = '1'
-        outputs.upToDateWhen { false }
-    }
-    if (project.hasProperty('org.gradle.performance.heapdump')) {
-        systemProperties['org.gradle.performance.heapdump'] = '1'
-    }
-    if (project.hasProperty('org.gradle.performance.hotspotlog')) {
-        systemProperties['org.gradle.performance.hotspotlog'] = '1'
-    }
-    if (project.hasProperty('performanceTest.verbose')) {
-        testLogging.showStandardStreams = true
-    }
-}
-
-[integTest, java9IntegTest]*.enabled = false
-
-task checkNoIdenticalBuildFiles {
-    doLast {
-        def files = [:].withDefault { [] }
-        buildDir.eachFileRecurse {
-            if (it.name.endsWith('.gradle')) {
-                def hash = HashUtil.createHash(it, 'sha1').asHexString()
-                files[hash] << it
-            }
-        }
-        files.each { hash, candidates ->
-            if (candidates.size()>1) {
-                println "Duplicate build files found for hash '$hash' : $candidates"
-            }
-        }
     }
 }
