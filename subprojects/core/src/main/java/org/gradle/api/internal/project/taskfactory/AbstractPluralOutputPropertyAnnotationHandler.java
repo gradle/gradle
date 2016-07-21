@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.internal.Cast;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.Collection;
@@ -32,19 +31,6 @@ import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public abstract class AbstractPluralOutputPropertyAnnotationHandler extends AbstractOutputPropertyAnnotationHandler {
-
-    @Override
-    public boolean attachActions(TaskPropertyActionContext context) {
-        if (!Map.class.isAssignableFrom(context.getType())) {
-            DeprecationLogger.nagUserOfDiscontinuedApi(
-                String.format("use of the @%s annotation on non-Map properties",
-                    getAnnotationType().getSimpleName()),
-                getDeprecatedIterableMessage());
-        }
-        return super.attachActions(context);
-    }
-
-    abstract protected String getDeprecatedIterableMessage();
 
     @Override
     protected void validate(String propertyName, Object value, Collection<String> messages) {
@@ -60,13 +46,7 @@ public abstract class AbstractPluralOutputPropertyAnnotationHandler extends Abst
         if (Map.class.isAssignableFrom(context.getType())) {
             task.getOutputs().namedFiles(Cast.<Callable<Map<?, ?>>>uncheckedCast(futureValue));
         } else {
-            DeprecationLogger.whileDisabled(new Runnable() {
-                @Override
-                @SuppressWarnings("deprecation")
-                public void run() {
-                    task.getOutputs().files(futureValue);
-                }
-            });
+            task.getOutputs().files(futureValue);
         }
         task.prependParallelSafeAction(new Action<Task>() {
             public void execute(Task task) {

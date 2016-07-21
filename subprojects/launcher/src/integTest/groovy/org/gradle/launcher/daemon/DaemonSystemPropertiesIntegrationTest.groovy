@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon
 
+import org.gradle.api.internal.cache.HeapProportionalCacheSizer
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import spock.lang.Issue
 
@@ -192,6 +193,36 @@ task verify << {
 
         then:
         output.contains("verified = anotherSecret")
+        daemons(gradleVersion).daemons.size() == 2
+    }
+
+    def "forks new daemon for changed cache reserved space sys property"() {
+        setup:
+        executer.requireGradleDistribution()
+        buildScript """
+            println "GRADLE_VERSION: " + gradle.gradleVersion
+
+            task verify {
+                doFirst {
+                    println "verified = " + System.getProperty('${HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY}', 'none')
+                }
+            }
+        """
+
+        when:
+        run "verify"
+
+        then:
+        String gradleVersion = (output =~ /GRADLE_VERSION: (.*)/)[0][1]
+        daemons(gradleVersion).daemons.size() == 1
+        output.contains("verified = none")
+
+        when:
+        executer.withEnvironmentVars(GRADLE_OPTS: "-D${HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY}=200");
+        run "verify"
+
+        then:
+        output.contains("verified = 200")
         daemons(gradleVersion).daemons.size() == 2
     }
 

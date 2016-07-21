@@ -70,7 +70,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     public SortedSet<TaskInputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
             ensurePropertiesHaveNames(filePropertiesInternal);
-            fileProperties = TaskPropertyUtils.<TaskInputFilePropertySpec>collectFileProperties("input", filePropertiesInternal.iterator());
+            fileProperties = TaskPropertyUtils.<TaskInputFilePropertySpec>collectFileProperties("input", filePropertiesInternal);
         }
         return fileProperties;
     }

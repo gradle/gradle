@@ -120,13 +120,13 @@ $standardErr""")
         if (version.broken == true || version.snapshot == true) {
             return false
         }
+        // Ignore milestone releases
+        if (version.version.contains('milestone')) {
+            return false;
+        }
         // Include only active RCs
         if (version.rcFor != "") {
             return version.activeRc
-        }
-        // Include only active milestones
-        if (version.milestoneFor != "") {
-            return version.version != "3.0-milestone-1" // TODO: should be publishing an 'activeMilestone' property
         }
         // Include all other versions
         return true

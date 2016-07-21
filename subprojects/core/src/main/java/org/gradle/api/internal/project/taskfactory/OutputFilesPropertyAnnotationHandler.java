@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.OutputFiles;
 
 import java.io.File;
@@ -28,21 +26,9 @@ import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirector
 @SuppressWarnings("deprecation")
 public class OutputFilesPropertyAnnotationHandler extends AbstractPluralOutputPropertyAnnotationHandler {
 
-    private static final String DEPRECATION_MESSAGE = String.format(
-        "Please use separate properties for each file annotated with @%s, "
-        + "reorganize output files under a single output directory annotated with @%s, "
-        + "or change the property type to Map.",
-        OutputFile.class.getSimpleName(), OutputDirectory.class.getSimpleName()
-    );
-
     @Override
     public Class<? extends Annotation> getAnnotationType() {
         return OutputFiles.class;
-    }
-
-    @Override
-    protected String getDeprecatedIterableMessage() {
-        return DEPRECATION_MESSAGE;
     }
 
     @Override
