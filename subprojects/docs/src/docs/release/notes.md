@@ -150,6 +150,14 @@ The PMD plugin has been updated to use PMD version 5.5.0 by default.
 
 The `Test` task type now honors the `max-workers` setting for the test processes that are started. This means that Gradle will now run at most `max-workers` tasks and test processes at the same time.
 
+### Better control of JVM memory
+
+The Gradle Daemon maintains a cache of objects to speed up performance.  By default, an amount of JVM memory is reserved for tasks
+and other Gradle internals, while the rest of the memory is made available for cache use.  If a build runs tasks that require more memory
+than this reserved space, the performance of those tasks can become worse as the memory available to the cache fills up.  With this 
+release, the `org.gradle.cache.reserved.mb` system property allows for increasing the amount of space reserved from cache use.  Set 
+this value to a number of MB to make available for tasks and other non-cache-related operations.
+ 
 ### Improvements since Gradle 2.0
 <a id="all-improvements" name="all-improvements"/>
 
