@@ -82,7 +82,14 @@ public class ReleasedVersionDistributions {
 
     public List<GradleDistribution> getAll() {
         if (distributions == null) {
-            distributions = CollectionUtils.collect(getProperties().getProperty("versions").split("\\s+"), new Transformer<GradleDistribution, String>() {
+            List<String> versions = CollectionUtils.filter(getProperties().getProperty("versions").split("\\s+"), new Spec<String>() {
+                @Override
+                public boolean isSatisfiedBy(String version) {
+                    return !version.contains("-milestone-");
+                }
+            });
+
+            distributions = CollectionUtils.collect(versions, new Transformer<GradleDistribution, String>() {
                 public GradleDistribution transform(String version) {
                     return buildContext.distribution(version);
                 }
