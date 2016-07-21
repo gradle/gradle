@@ -1,0 +1,6 @@
+dependencies {
+    integTestRuntime project(":toolingApiBuilders")
+}
+
+useTestFixtures(project: ':dependencyManagement')
+useTestFixtures(project: ':ide')

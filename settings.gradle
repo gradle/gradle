@@ -80,6 +80,7 @@ include 'testKit'
 include 'installationBeacon'
 include 'soak'
 include 'smokeTest'
+include 'compositeBuilds'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

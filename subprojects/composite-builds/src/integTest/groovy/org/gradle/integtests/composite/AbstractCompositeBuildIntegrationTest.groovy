@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.composite
 
-import com.beust.jcommander.internal.Lists
-import org.gradle.integtests.fixtures.build.BuildTestFixture
-import org.gradle.integtests.fixtures.build.BuildTestFile
+import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.test.fixtures.file.TestFile
 
 /**
