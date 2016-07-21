@@ -583,28 +583,6 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
     subProjectTemplates = []
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
 }
-
-task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
-    buildScanPluginVersionProvider = {
-        def pluginInfo = file("$rootDir/incoming/plugin.json")
-        assert pluginInfo.exists()
-        def json = new JsonSlurper().parse(pluginInfo) as Map<String, ?>
-        assert json.versionNumber
-        json.versionNumber
-    }
-
-    dependencyGraph {
-        size = 100
-        depth = 4
-        useSnapshotVersions = true
-    }
-
-    projects = 100
-    sourceFiles = 50
-    subProjectTemplates = ['project-with-source', 'with-verbose-junit']
-    templateArgs = [fullTestLogging: true, testMethodCount: 20, halfTestsFail: true] // 50 test files with 20 tests per project
-}
-
 task all {
     dependsOn tasks.withType(ProjectGeneratorTask)
     group = "Project Setup"

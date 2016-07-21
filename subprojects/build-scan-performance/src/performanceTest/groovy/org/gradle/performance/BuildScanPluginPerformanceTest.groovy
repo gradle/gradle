@@ -17,11 +17,13 @@
 package org.gradle.performance
 
 import groovy.json.JsonSlurper
+import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.results.BuildScanResultsStore
+import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
@@ -32,7 +34,7 @@ import spock.lang.Specification
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category(org.gradle.performance.categories.BuildScanPluginPerformanceTest)
+@Category(GradleCorePerformanceTest)
 class BuildScanPluginPerformanceTest extends Specification {
 
     @Rule

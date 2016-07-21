@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.testing.PerformanceTest
 
-package org.gradle.performance.results;
+apply from: 'templates.gradle'
 
-import org.gradle.performance.fixture.CrossBuildPerformanceResults;
-
-import java.io.File;
-
-public class BuildScanResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
-
-    public BuildScanResultsStore() {
-        super(new File(System.getProperty("user.home"), ".gradle-performance-test-data/build-receipt-results"));
-    }
-
+tasks.withType(PerformanceTest) {
+    dependsOn prepareSamples
 }
+
+report {
+    resultStoreClass = "org.gradle.performance.results.BuildScanResultsStore"
+}
+
+dependencies {
+    testFixturesCompile project(':internalPerformanceTesting')
+}
+
+useClassycle()

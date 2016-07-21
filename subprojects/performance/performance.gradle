@@ -20,30 +20,3 @@ apply from: 'templates.gradle'
 tasks.withType(PerformanceTest) {
     dependsOn prepareSamples
 }
-
-task buildScanReport {
-    def reportDir = new File(buildDir, "performance-tests/report")
-    inputs.files sourceSets.performanceTest.runtimeClasspath
-    outputs.dir reportDir
-
-    doLast {
-        def cl = new URLClassLoader(sourceSets.performanceTest.runtimeClasspath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
-        def store = cl.loadClass("org.gradle.performance.results.BuildScansResultsStore").newInstance()
-        try {
-            def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
-            generator.generate(store, reportDir)
-        } finally {
-            store.close()
-        }
-    }
-}
-
-task buildScanPluginPerformanceTest(type: PerformanceTest) {
-    dependsOn largeJavaProjectWithBuildScanPlugin
-    finalizedBy buildScanReport
-    systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
-
-    options {
-        includeCategories 'org.gradle.performance.categories.BuildScanPluginPerformanceTest'
-    }
-}

@@ -1,0 +1,93 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import groovy.json.JsonSlurper
+import org.gradle.testing.performance.generator.DependencyGenerator
+import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
+
+configurations {
+    junit
+}
+
+dependencies {
+    junit 'junit:junit:4.12'
+}
+
+task checkNoIdenticalBuildFiles {
+    doLast {
+        def files = [:].withDefault { [] }
+        buildDir.eachFileRecurse {
+            if (it.name.endsWith('.gradle')) {
+                def hash = HashUtil.createHash(it, 'sha1').asHexString()
+                files[hash] << it
+            }
+        }
+        files.each { hash, candidates ->
+            if (candidates.size()>1) {
+                println "Duplicate build files found for hash '$hash' : $candidates"
+            }
+        }
+    }
+}
+
+tasks.withType(ProjectGeneratorTask) {
+    group = 'Project setup'
+}
+
+tasks.withType(JvmProjectGeneratorTask) {
+    testDependencies = configurations.junit
+    if(project.hasProperty("springDmPluginVersion")) {
+        templateArgs['springDmPluginVersion'] = springDmPluginVersion
+    }
+    if(project.hasProperty("maxProjects")) {
+        projects = maxProjects as Integer
+    }
+}
+
+task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
+    buildScanPluginVersionProvider = {
+        def pluginInfo = file("$rootDir/incoming/plugin.json")
+        assert pluginInfo.exists()
+        def json = new JsonSlurper().parse(pluginInfo) as Map<String, ?>
+        assert json.versionNumber
+        json.versionNumber
+    }
+
+    dependencyGraph {
+        size = 100
+        depth = 4
+        useSnapshotVersions = true
+    }
+
+    projects = 100
+    sourceFiles = 50
+    subProjectTemplates = ['project-with-source', 'with-verbose-junit']
+    templateArgs = [fullTestLogging: true, testMethodCount: 20, halfTestsFail: true] // 50 test files with 20 tests per project
+}
+
+task all {
+    dependsOn tasks.withType(ProjectGeneratorTask)
+    group = "Project Setup"
+    description = "Generates all samples"
+}
+
+task prepareSamples {
+    dependsOn largeJavaProjectWithBuildScanPlugin
+    group = "Project Setup"
+    description = "Generates all sample projects for automated performance tests"
+}

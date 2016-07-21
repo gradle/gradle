@@ -75,6 +75,7 @@ def buckets = [
         ":languageGroovy",
         ":internalTesting",
         ":performance",
+        ":buildScanPerformance",
         ":internalIntegTesting",
         ":internalPerformanceTesting",
         ":processServices",

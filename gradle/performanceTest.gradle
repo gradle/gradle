@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+import jdk.internal.util.xml.impl.Input
 import org.gradle.testing.PerformanceTest
 
 apply plugin: 'java'
@@ -42,22 +44,11 @@ dependencies {
     //above can be removed when we implement the auto-apply plugins
 }
 
-task report {
-    def reportDir = new File(buildDir, "performance-tests/report")
-    inputs.files sourceSets.performanceTest.runtimeClasspath
-    inputs.dir file("${System.getProperty("user.home")}/.gradle-performance-test-data")
-    outputs.dir reportDir
-
-    doLast {
-        def cl = new URLClassLoader(sourceSets.performanceTest.runtimeClasspath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
-        def store = cl.loadClass("org.gradle.performance.results.AllResultsStore").newInstance()
-        try {
-            def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
-            generator.generate(store, reportDir)
-        } finally {
-            store.close()
-        }
-    }
+task report(type: PerformanceReport) {
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    database = file("${System.getProperty("user.home")}/.gradle-performance-test-data")
+    resultStoreClass = "org.gradle.performance.results.AllResultsStore"
+    reportDir = new File(buildDir, "performance-tests/report")
 }
 
 ext.performanceTestTasks = tasks.withType(PerformanceTest)
@@ -132,6 +123,29 @@ plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) {
         classpath {
             plusConfigurations.add(configurations.performanceTestCompile)
             plusConfigurations.add(configurations.performanceTestRuntime)
+        }
+    }
+}
+
+class PerformanceReport extends DefaultTask {
+    @InputFiles
+    def classpath
+    @InputDirectory
+    def database
+    @Input
+    def resultStoreClass
+    @OutputDirectory
+    def reportDir
+
+    @TaskAction
+    def report() {
+        def cl = new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
+        def store = cl.loadClass(resultStoreClass).newInstance()
+        try {
+            def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
+            generator.generate(store, reportDir)
+        } finally {
+            store.close()
         }
     }
 }
