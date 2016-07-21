@@ -670,9 +670,6 @@ tasks.withType(Test){
     ext.performanceTest = false
 }
 
-def performanceTestTasks = tasks.withType(Test).matching { it.performanceTest }
-
-
 task performanceTest(type: Test) {
     performanceTest = true
     options {
@@ -691,23 +688,6 @@ task performanceAdhocTest(type: Test) {
     performanceTest = true
     systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
     maxParallelForks = 1
-}
-
-performanceTestTasks.all {
-    dependsOn prepareSamples
-    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
-    finalizedBy report
-    maxParallelForks = 1
-
-    doFirst {
-        // Some performance builds generate a lot of output,
-        // that is buffered until the test finishes via GradleExecuter.
-        if (System.getProperty('sun.arch.data.model').contains("64")) {
-            jvmArgs '-Xmx4g'
-        } else {
-            println "not increasing JVM heap size due to use of 32bit JVM"
-        }
-    }
 }
 
 task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
@@ -732,12 +712,31 @@ task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
 }
 
 task buildScanPluginPerformanceTest(type: Test) {
+    performanceTest = true
     dependsOn largeJavaProjectWithBuildScanPlugin
     finalizedBy buildScanReport
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
 
     options {
         includeCategories 'org.gradle.performance.categories.BuildScanPluginPerformanceTest'
+    }
+}
+
+def performanceTestTasks = tasks.withType(Test).matching { it.performanceTest }
+performanceTestTasks.all {
+    dependsOn prepareSamples
+    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+    finalizedBy report
+    maxParallelForks = 1
+
+    doFirst {
+        // Some performance builds generate a lot of output,
+        // that is buffered until the test finishes via GradleExecuter.
+        if (System.getProperty('sun.arch.data.model').contains("64")) {
+            jvmArgs '-Xmx4g'
+        } else {
+            println "not increasing JVM heap size due to use of 32bit JVM"
+        }
     }
 }
 
