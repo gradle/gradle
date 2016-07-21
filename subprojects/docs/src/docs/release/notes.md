@@ -246,6 +246,27 @@ The following are the newly deprecated items in this Gradle release. If you have
 ### Example deprecation
 -->
 
+### Chaining `TaskInputs` and `TaskOutputs` methods
+
+In Gradle 2.x chaining the following methods was allowed, but is now deprecated:
+
+* `TaskInputs.dir()`
+* `TaskInputs.file()`
+* `TaskInputs.files()`
+* `TaskOutputs.dir()`
+* `TaskOutputs.file()`
+* `TaskOutputs.files()`
+
+Since 3.0 this code produces a deprecation warning:
+
+```groovy
+task myTask {
+  inputs.file("input1.txt").file("input2.txt")
+}
+```
+
+> The chaining of the `file(Object)` method has been deprecated and is scheduled to be removed in Gradle 4.0. Please use the `file(Object)` method on `TaskInputs` directly instead.
+
 ## Potential breaking changes
 
 ### Running Gradle on Java 6 is no longer supported.
