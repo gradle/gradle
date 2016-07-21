@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+apply plugin: 'javascript-base'
+
+configurations {
+    reports
+}
+
+repositories {
+    javaScript.googleApis()
+}
 
 dependencies {
+    reports "jquery:jquery.min:1.11.0@js"
+    reports "flot:flot:0.8.1:min@js"
+
     compile libraries.groovy
     compile project(':baseServices')
     compile libraries.slf4j_api
@@ -26,6 +38,14 @@ dependencies {
 
     testCompile libraries.jsoup
 }
+
+task reportResources(type: Copy) {
+    from configurations.reports
+    into "$generatedResourcesDir/org/gradle/reporting"
+}
+
+sourceSets.main.output.dir generatedResourcesDir, builtBy: reportResources
+
 
 useTestFixtures(sourceSet: 'main')
 useTestFixtures(project: ':toolingApi', sourceSet: 'main')

@@ -16,34 +16,15 @@
 import org.gradle.internal.hash.HashUtil
 import org.gradle.performance.tasks.PerformanceTest
 
-apply plugin: 'javascript-base'
 apply from: 'templates.gradle'
 
-configurations {
-    reports
-}
-
-repositories {
-    javaScript.googleApis()
-}
-
 dependencies {
-    reports "jquery:jquery.min:1.11.0@js"
-    reports "flot:flot:0.8.1:min@js"
-
     testCompile project(':internalPerformanceTesting')
     testCompile libraries.jsoup
 }
 
 useTestFixtures()
 useClassycle()
-
-task reportResources(type: Copy) {
-    from configurations.reports
-    into "$generatedResourcesDir/org/gradle/reporting"
-}
-
-sourceSets.test.output.dir generatedResourcesDir, builtBy: reportResources
 
 task report {
     def reportDir = new File(buildDir, "performance-tests/report")
