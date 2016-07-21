@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.composite.CompositeContextBuildActionRunner;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
@@ -63,10 +62,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
             participantStartParam.setIncludedBuilds(Collections.<File>emptyList());
 
             participantStartParam.setConfigureOnDemand(false);
-            if (participantStartParam.getLogLevel() == LogLevel.LIFECYCLE) {
-                participantStartParam.setLogLevel(LogLevel.WARN);
-                LOGGER.lifecycle("[composite-build] Configuring participant: " + participant.getProjectDir());
-            }
+            LOGGER.lifecycle("[composite-build] Configuring participant: " + participant.getProjectDir());
 
             GradleLauncher gradleLauncher = createGradleLauncher(participantStartParam, requestContext, gradleLauncherFactory);
 
