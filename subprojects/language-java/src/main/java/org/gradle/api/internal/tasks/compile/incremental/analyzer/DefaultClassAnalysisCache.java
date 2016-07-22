@@ -16,17 +16,17 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.analyzer;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.internal.cache.MinimalPersistentCache;
 import org.gradle.cache.CacheRepository;
-import org.gradle.internal.hash.HashValue;
-import org.gradle.internal.serialize.HashValueSerializer;
+import org.gradle.internal.serialize.HashCodeSerializer;
 
 /**
  * Cross-process, global cache of class bytecode/dependency analysis. Required to make incremental java compilation fast.
  * The class analysis results are cached globally, so if one project caches ClassA, it can be used by some other project.
  */
-public class DefaultClassAnalysisCache extends MinimalPersistentCache<HashValue, ClassAnalysis> implements ClassAnalysisCache {
+public class DefaultClassAnalysisCache extends MinimalPersistentCache<HashCode, ClassAnalysis> implements ClassAnalysisCache {
     public DefaultClassAnalysisCache(CacheRepository cacheRepository) {
-        super(cacheRepository, "class analysis", new HashValueSerializer(), new ClassAnalysisSerializer());
+        super(cacheRepository, "class analysis", new HashCodeSerializer(), new ClassAnalysisSerializer());
     }
 }

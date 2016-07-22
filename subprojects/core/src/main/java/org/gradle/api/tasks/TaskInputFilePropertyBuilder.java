@@ -59,6 +59,16 @@ public interface TaskInputFilePropertyBuilder extends TaskPropertyBuilder, TaskI
     TaskInputFilePropertyBuilder optional(boolean optional);
 
     /**
+     * Sets the order of the files to be relevant when observing this property.
+     */
+    TaskInputFilePropertyBuilder orderSensitive();
+
+    /**
+     * Sets whether the order of the files is relevant when observing this property.
+     */
+    TaskInputFilePropertyBuilder orderSensitive(boolean orderSensitive);
+
+    /**
      * {@inheritDoc}
      *
      * @deprecated Use {@link TaskInputs#getHasInputs()} directly instead.

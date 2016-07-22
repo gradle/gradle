@@ -51,6 +51,7 @@ public class JsHint extends SourceTask {
         throw new UnsupportedOperationException();
     }
 
+    @OrderSensitive
     @InputFiles
     public FileCollection getRhinoClasspath() {
         return getProject().files(rhinoClasspath);

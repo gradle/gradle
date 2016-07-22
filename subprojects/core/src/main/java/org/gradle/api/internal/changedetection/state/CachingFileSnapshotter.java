@@ -15,18 +15,19 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
-import org.gradle.internal.hash.HashUtil;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.HashValueSerializer;
+import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
@@ -49,17 +50,17 @@ public class CachingFileSnapshotter implements FileSnapshotter {
         if (file != null) {
             return snapshot(file);
         }
-        final HashValue md5 = HashUtil.createHash(resource.getText(), "md5");
+        final HashCode md5 = Hashing.md5().hashString(resource.getText(), Charsets.UTF_8);
         return new FileSnapshot() {
             @Override
-            public HashValue getHash() {
+            public HashCode getHash() {
                 return md5;
             }
         };
     }
 
     @Override
-    public HashValue hash(File file) {
+    public HashCode hash(File file) {
         return snapshot(file).getHash();
     }
 
@@ -79,40 +80,40 @@ public class CachingFileSnapshotter implements FileSnapshotter {
             return info;
         }
 
-        HashValue hash = hasher.hash(file);
+        HashCode hash = hasher.hash(file);
         info = new FileInfo(hash, length, timestamp);
         cache.put(stringInterner.intern(absolutePath), info);
         return info;
     }
 
     public static class FileInfo implements FileSnapshot {
-        private final HashValue hash;
+        private final HashCode hash;
         private final long timestamp;
         private final long length;
 
-        public FileInfo(HashValue hash, long length, long timestamp) {
+        public FileInfo(HashCode hash, long length, long timestamp) {
             this.hash = hash;
             this.length = length;
             this.timestamp = timestamp;
         }
 
-        public HashValue getHash() {
+        public HashCode getHash() {
             return hash;
         }
     }
 
     private static class FileInfoSerializer implements Serializer<FileInfo> {
-        private final HashValueSerializer hashValueSerializer = new HashValueSerializer();
+        private final HashCodeSerializer hashCodeSerializer = new HashCodeSerializer();
 
         public FileInfo read(Decoder decoder) throws Exception {
-            HashValue hash = hashValueSerializer.read(decoder);
+            HashCode hash = hashCodeSerializer.read(decoder);
             long timestamp = decoder.readLong();
             long length = decoder.readLong();
             return new FileInfo(hash, length, timestamp);
         }
 
         public void write(Encoder encoder, FileInfo value) throws Exception {
-            hashValueSerializer.write(encoder, value.hash);
+            hashCodeSerializer.write(encoder, value.hash);
             encoder.writeLong(value.timestamp);
             encoder.writeLong(value.length);
         }

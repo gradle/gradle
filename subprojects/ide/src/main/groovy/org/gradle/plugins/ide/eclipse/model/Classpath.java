@@ -135,6 +135,18 @@ public class Classpath extends XmlPersistableConfigurationObject {
         return entry instanceof Container && ((Container) entry).getPath().startsWith("org.eclipse.jdt.launching.JRE_CONTAINER");
     }
 
+    /**
+     * Creates a new {@link FileReference} instance.
+     * <p>
+     * The created object can be used to configure custom source or javadoc location on {@link Library} and on {@link Variable} objects.
+     * <p>
+     * This method can receive either String or File instances.
+     *
+     * @param reference The object to transform into a new file reference. Can be instance of File or String.
+     * @return The new file reference.
+     * @see AbstractLibrary#setJavadocPath(FileReference)
+     * @see AbstractLibrary#setSourcePath(FileReference)
+     */
     public FileReference fileReference(Object reference) {
         if (reference instanceof File) {
             return fileReferenceFactory.fromFile((File) reference);

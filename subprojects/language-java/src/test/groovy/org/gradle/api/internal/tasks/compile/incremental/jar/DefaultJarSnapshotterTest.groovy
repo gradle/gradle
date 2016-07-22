@@ -18,6 +18,8 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.jar
 
+import com.google.common.base.Charsets
+import com.google.common.hash.Hashing
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
@@ -25,7 +27,6 @@ import org.gradle.api.internal.hash.Hasher
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassFilesAnalyzer
 import org.gradle.api.internal.tasks.compile.incremental.deps.ClassSetAnalysisData
-import org.gradle.internal.hash.HashUtil
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -42,7 +43,7 @@ class DefaultJarSnapshotterTest extends Specification {
 
     def "creates snapshot for an empty jar"() {
         expect:
-        def snapshot = snapshotter.createSnapshot(HashUtil.createHash("foo", "md5"), new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing"))), TestFiles.resolver().getPatternSetFactory()))
+        def snapshot = snapshotter.createSnapshot(Hashing.md5().hashString("foo", Charsets.UTF_8), new JarArchive(new File("a.jar"), new FileTreeAdapter(new DirectoryFileTree(new File("missing"))), TestFiles.resolver().getPatternSetFactory()))
         snapshot.hashes.isEmpty()
         snapshot.analysis
     }
@@ -53,7 +54,7 @@ class DefaultJarSnapshotterTest extends Specification {
         def analyzer = Mock(ClassFilesAnalyzer)
 
         when:
-        def snapshot = snapshotter.createSnapshot(HashUtil.createHash("foo", "md5"), new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), analyzer)
+        def snapshot = snapshotter.createSnapshot(Hashing.md5().hashString("foo", Charsets.UTF_8), new FileTreeAdapter(new DirectoryFileTree(temp.file("foo"))), analyzer)
 
         then:
         2 * analyzer.visitFile(_)

@@ -37,6 +37,7 @@ import org.gradle.launcher.daemon.protocol.Message;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
+import org.gradle.launcher.daemon.registry.DaemonStopEvents;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
@@ -107,19 +108,14 @@ public class DefaultDaemonConnector implements DaemonConnector {
             return connection;
         }
 
-        // Remove the stop events we're about to display
         final List<DaemonStopEvent> stopEvents = daemonRegistry.getStopEvents();
-        daemonRegistry.removeStopEvents(stopEvents);
 
-        // User likely doesn't care about daemons that stopped a long time ago
-        List<DaemonStopEvent> recentStopEvents = CollectionUtils.filter(stopEvents, new Spec<DaemonStopEvent>() {
-            public boolean isSatisfiedBy(DaemonStopEvent event) {
-                return event.occurredInLastHours(1);
-            }
-        });
+        // Clean up old stop events
+        daemonRegistry.removeStopEvents(DaemonStopEvents.oldStopEvents(stopEvents));
 
+        final List<DaemonStopEvent> recentStopEvents = DaemonStopEvents.uniqueRecentDaemonStopEvents(stopEvents);
         for (DaemonStopEvent stopEvent : recentStopEvents) {
-            LOGGER.info("Previous Daemon stopped at " + stopEvent.getTimestamp() + " " + stopEvent.getReason());
+            LOGGER.info("Previous Daemon (" + stopEvent.getPid() + ") stopped at " + stopEvent.getTimestamp() + " " + stopEvent.getReason());
         }
 
         LOGGER.lifecycle(DaemonStartupMessage.generate(busyDaemons.size(), idleDaemons.size(), recentStopEvents.size()));
@@ -232,7 +228,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
         public boolean maybeStaleAddress(Exception failure) {
             LOGGER.info("{}{}", DaemonMessages.REMOVING_DAEMON_ADDRESS_ON_FAILURE, daemon);
             final Date timestamp = new Date(System.currentTimeMillis());
-            daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, "by user or operating system"));
+            final DaemonStopEvent stopEvent = new DaemonStopEvent(timestamp, daemon.getPid(), null, "by user or operating system");
+            daemonRegistry.storeStopEvent(stopEvent);
             daemonRegistry.remove(daemon.getAddress());
             return exposeAsStale;
         }

@@ -20,18 +20,16 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.tasks.TaskPropertyBuilder;
 
-import java.util.Iterator;
 import java.util.Set;
 import java.util.SortedSet;
 
 public class TaskPropertyUtils {
 
     // Note: sorted set used to keep order of properties consistent
-    public static <T extends TaskFilePropertySpec> SortedSet<T> collectFileProperties(String displayName, Iterator<? extends T> fileProperties) {
+    public static <T extends TaskFilePropertySpec> SortedSet<T> collectFileProperties(String displayName, Iterable<? extends T> fileProperties) {
         Set<String> names = Sets.newHashSet();
         ImmutableSortedSet.Builder<T> builder = ImmutableSortedSet.naturalOrder();
-        while (fileProperties.hasNext()) {
-            T propertySpec = fileProperties.next();
+        for (T propertySpec : fileProperties) {
             String propertyName = propertySpec.getPropertyName();
             if (!names.add(propertyName)) {
                 throw new IllegalArgumentException(String.format("Multiple %s file properties with name '%s'", displayName, propertyName));

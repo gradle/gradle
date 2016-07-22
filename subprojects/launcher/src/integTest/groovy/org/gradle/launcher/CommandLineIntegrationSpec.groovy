@@ -65,6 +65,9 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "can debug with org.gradle.debug=true"() {
+        given:
+        debugPortIsFree()
+
         when:
         def gradle = executer.withArgument("-Dorg.gradle.debug=true").withTasks("help").start()
 
@@ -74,5 +77,27 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
             jdwpClient.connect().dispose()
         }
         gradle.waitForFinish()
+    }
+
+    boolean debugPortIsFree() {
+        ConcurrentTestUtil.poll(30) {
+            boolean listening = false
+            Socket probe;
+            try {
+                probe = new Socket(InetAddress.getLocalHost(), 5005)
+                // something is listening, keep polling
+                listening = true
+            } catch (Exception e) {
+                // nothing listening - exit the polling loop
+            } finally {
+                if (probe != null) {
+                    probe.close()
+                }
+            }
+
+            if (listening) {
+                throw new IllegalStateException("Something is listening on port 5005")
+            }
+        }
     }
 }

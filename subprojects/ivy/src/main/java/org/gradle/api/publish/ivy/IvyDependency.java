@@ -48,4 +48,11 @@ public interface IvyDependency {
      * @return the configuration mapping
      */
     String getConfMapping();
+
+    /**
+     * The transitive value for this dependency.
+     *
+     * @since 3.1
+     */
+    boolean isTransitive();
 }

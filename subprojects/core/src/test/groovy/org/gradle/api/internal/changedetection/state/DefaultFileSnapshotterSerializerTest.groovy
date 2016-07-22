@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import com.google.common.base.Charsets
+import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.internal.MapBackedInMemoryStore
-import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.serialize.SerializerSpec
+
+import static TaskFilePropertyCompareType.UNORDERED
 
 class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
@@ -28,11 +31,11 @@ class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
 
     def "reads and writes the snapshot"() {
         when:
-        def hash = HashUtil.createHash("foo", "md5")
+        def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
         FileCollectionSnapshotImpl out = serialize(new FileCollectionSnapshotImpl([
             "1": DirSnapshot.getInstance(),
             "2": MissingFileSnapshot.getInstance(),
-            "3": new FileHashSnapshot(hash)]), serializer)
+            "3": new FileHashSnapshot(hash)], UNORDERED), serializer)
 
         then:
         out.snapshots.size() == 3

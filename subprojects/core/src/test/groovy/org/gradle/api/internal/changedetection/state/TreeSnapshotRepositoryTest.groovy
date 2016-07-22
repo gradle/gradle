@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import com.google.common.hash.HashCode
 import org.gradle.api.Action
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.DefaultCacheRepository
-import org.gradle.internal.hash.HashValue
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.testfixtures.internal.InMemoryCacheFactory
 import org.gradle.util.TestUtil
@@ -58,7 +58,7 @@ class TreeSnapshotRepositoryTest extends AbstractProjectBuilderSpec {
         fileSnapshots.get(1).incrementalFileSnapshot instanceof DirSnapshot
         fileSnapshots.get(2).key == 'c'
         fileSnapshots.get(2).incrementalFileSnapshot instanceof FileHashSnapshot
-        fileSnapshots.get(2).incrementalFileSnapshot.hash.asBigInteger().intValue() == 1
+        fileSnapshots.get(2).incrementalFileSnapshot.hash.asBytes() == [(byte) 0x12]
     }
 
     def "tree snapshot usage is tracked and removed when all dependent file collection snapshots are removed"() {
@@ -96,7 +96,7 @@ class TreeSnapshotRepositoryTest extends AbstractProjectBuilderSpec {
             }
 
             Collection<FileSnapshotWithKey> getFileSnapshots() {
-                [new FileSnapshotWithKey("a", MissingFileSnapshot.instance), new FileSnapshotWithKey("b", DirSnapshot.instance), new FileSnapshotWithKey("c", new FileHashSnapshot(new HashValue("1")))]
+                [new FileSnapshotWithKey("a", MissingFileSnapshot.instance), new FileSnapshotWithKey("b", DirSnapshot.instance), new FileSnapshotWithKey("c", new FileHashSnapshot(HashCode.fromString("12")))]
             }
 
             Long getAssignedId() {

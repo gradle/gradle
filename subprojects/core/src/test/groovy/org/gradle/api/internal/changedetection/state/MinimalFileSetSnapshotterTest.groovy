@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.changedetection.state
+
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -26,6 +27,8 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
+
+import static TaskFilePropertyCompareType.UNORDERED
 
 class MinimalFileSetSnapshotterTest extends Specification {
     @Rule
@@ -58,7 +61,7 @@ class MinimalFileSetSnapshotterTest extends Specification {
         def collection = new SimpleFileCollection(included, missing, includedDirectory)
 
         when:
-        snapshot = minimalFileSnapshotter.snapshot(collection, true)
+        snapshot = minimalFileSnapshotter.snapshot(collection, true, UNORDERED)
 
         then:
         findSnapshot(included) instanceof FileHashSnapshot

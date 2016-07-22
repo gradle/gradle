@@ -17,11 +17,12 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Charsets;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 
 class MissingFileSnapshot implements IncrementalFileSnapshot {
     private static final MissingFileSnapshot INSTANCE = new MissingFileSnapshot();
-    private static final byte[] SIGNATURE = "MISSING_FILE".getBytes(Charsets.UTF_8);
+    private static final HashCode SIGNATURE = Hashing.md5().hashString(MissingFileSnapshot.class.getName(), Charsets.UTF_8);
 
     private MissingFileSnapshot() {
     }
@@ -40,7 +41,7 @@ class MissingFileSnapshot implements IncrementalFileSnapshot {
     }
 
     @Override
-    public void appendToCacheKey(TaskCacheKeyBuilder builder) {
-        builder.putBytes(SIGNATURE);
+    public HashCode getHash() {
+        return SIGNATURE;
     }
 }

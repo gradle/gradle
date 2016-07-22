@@ -29,6 +29,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -132,6 +133,7 @@ public class Groovydoc extends SourceTask {
      *
      * @return The classpath containing the Groovy library to be used
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
@@ -149,6 +151,7 @@ public class Groovydoc extends SourceTask {
      *
      * @return The classpath used to locate classes referenced by the documented sources
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;

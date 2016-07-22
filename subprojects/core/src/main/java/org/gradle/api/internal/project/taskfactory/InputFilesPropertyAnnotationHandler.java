@@ -17,6 +17,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 
 import java.lang.annotation.Annotation;
@@ -29,9 +30,13 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
 
     public boolean attachActions(final TaskPropertyActionContext context) {
         final boolean skipWhenEmpty = context.isAnnotationPresent(SkipWhenEmpty.class);
+        final boolean orderSensitive = context.isAnnotationPresent(OrderSensitive.class);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().files(futureValue).withPropertyName(context.getName()).skipWhenEmpty(skipWhenEmpty);
+                task.getInputs().files(futureValue)
+                    .withPropertyName(context.getName())
+                    .skipWhenEmpty(skipWhenEmpty)
+                    .orderSensitive(orderSensitive);
             }
         });
         return true;

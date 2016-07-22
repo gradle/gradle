@@ -25,6 +25,7 @@ import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.registry.DaemonInfo;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.registry.DaemonStopEvent;
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 
 import java.util.Date;
 
@@ -68,10 +69,10 @@ class DomainRegistryUpdater implements Stoppable {
         daemonRegistry.store(new DaemonInfo(connectorAddress, daemonContext, token, false));
     }
 
-    public void onExpire(String reason) {
+    public void onExpire(String reason, DaemonExpirationStatus status) {
         LOGGER.debug("Storing daemon stop event: {}", reason);
         final Date timestamp = new Date(System.currentTimeMillis());
-        daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, reason));
+        daemonRegistry.storeStopEvent(new DaemonStopEvent(timestamp, daemonContext.getPid(), status, reason));
     }
 
     public void stop() {

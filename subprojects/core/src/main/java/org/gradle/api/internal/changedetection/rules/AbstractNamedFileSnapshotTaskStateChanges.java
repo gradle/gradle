@@ -28,6 +28,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSnapshot;
 import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
@@ -36,7 +37,6 @@ import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.SortedSet;
 
 abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges, FilesSnapshotSet {
@@ -76,7 +76,6 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return fileProperties;
     }
 
-    protected abstract Set<FileCollectionSnapshot.ChangeFilter> getFileChangeFilters();
     protected abstract Map<String, FileCollectionSnapshot> getPrevious();
 
     protected abstract void saveCurrent();
@@ -93,8 +92,9 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {
             FileCollectionSnapshot result;
+            TaskFilePropertyCompareType compareType = propertySpec.getCompareType();
             try {
-                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), allowSnapshotReuse);
+                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), allowSnapshotReuse, compareType);
             } catch (UncheckedIOException e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertySpec.getPropertyName()), e);
             }
@@ -136,7 +136,7 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
                 FileCollectionSnapshot currentSnapshot = entry.getValue();
                 FileCollectionSnapshot previousSnapshot = getPrevious().get(propertyName);
                 String propertyTitle = title + " property '" + propertyName + "'";
-                return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle, getFileChangeFilters());
+                return currentSnapshot.iterateContentChangesSince(previousSnapshot, propertyTitle);
             }
         }).iterator());
     }

@@ -16,6 +16,8 @@
 
 package org.gradle.launcher.daemon.server.scaninfo;
 
+import org.gradle.BuildAdapter;
+import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
@@ -68,16 +70,25 @@ public class DefaultDaemonScanInfo implements DaemonScanInfo {
             Ideally, the value given would describe the problem and not be phrased in terms of why we are shutting down,
             but this is a practical compromise born out of piggy backing on the expiration listener mechanism to implement it.
          */
-        listenerManager.addListener(
-            new DaemonExpirationListener() {
-                @Override
-                public void onExpirationEvent(DaemonExpirationResult result) {
-                    if (result.getStatus() == DaemonExpirationStatus.GRACEFUL_EXPIRE) {
+        final DaemonExpirationListener daemonExpirationListener = new DaemonExpirationListener() {
+            @Override
+            public void onExpirationEvent(DaemonExpirationResult result) {
+                if (result.getStatus() == DaemonExpirationStatus.GRACEFUL_EXPIRE) {
+                    try {
                         listener.execute(result.getReason());
+                    } finally {
+                        listenerManager.removeListener(this);
                     }
                 }
             }
-        );
+        };
+        listenerManager.addListener(daemonExpirationListener);
+        listenerManager.addListener(new BuildAdapter() {
+            @Override
+            public void buildFinished(BuildResult result) {
+                listenerManager.removeListener(daemonExpirationListener);
+            }
+        });
     }
 
 }

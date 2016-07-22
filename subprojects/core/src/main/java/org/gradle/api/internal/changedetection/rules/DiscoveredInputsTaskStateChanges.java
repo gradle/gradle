@@ -20,6 +20,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
 import org.gradle.api.internal.file.FileCollectionFactory;
 
 import java.io.File;
@@ -51,12 +52,12 @@ public class DiscoveredInputsTaskStateChanges extends AbstractFileSnapshotTaskSt
     @Override
     public FileCollectionSnapshot getCurrent() {
         // Get the current state of the files from the previous execution
-        return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getFiles()));
+        return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getFiles()), TaskFilePropertyCompareType.UNORDERED);
     }
 
     @Override
     public void saveCurrent() {
-        FileCollectionSnapshot discoveredFilesSnapshot = createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", discoveredFiles));
+        FileCollectionSnapshot discoveredFilesSnapshot = createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", discoveredFiles), TaskFilePropertyCompareType.UNORDERED);
         current.setDiscoveredInputFilesSnapshot(discoveredFilesSnapshot);
     }
 
