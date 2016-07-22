@@ -124,13 +124,13 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                     exclude group: 'commons-logging', module: 'commons-logging'
                 }
                 compile ("commons-beanutils:commons-beanutils:1.8.3") {
-                    exclude group : 'commons-logging'
+                    exclude group: 'commons-logging'
                 }
                 compile ("commons-dbcp:commons-dbcp:1.4") {
                     transitive = false
                 }
                 compile ("org.apache.camel:camel-jackson:2.15.3") {
-                    exclude module : 'camel-core'
+                    exclude module: 'camel-core'
                 }
             }
 
@@ -156,10 +156,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
 
         ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("runtime->default")
         ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].exclusions[0].org == 'commons-logging'
-
-        //TODO: Ivy-publish not supports this?
-        //assert !ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].transitiveEnabled()
-
+        !ivyModule.parsedIvy.dependencies["commons-dbcp:commons-dbcp:1.4"].transitiveEnabled()
         ivyModule.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].hasConf("runtime->default")
         ivyModule.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].exclusions[0].module == 'camel-core'
 
@@ -170,7 +167,6 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
             "commons-collections-3.2.2.jar",
             "commons-dbcp-1.4.jar",
             "commons-io-1.4.jar",
-            "commons-pool-1.5.4.jar",
             "jackson-annotations-2.4.0.jar",
             "jackson-core-2.4.3.jar",
             "jackson-databind-2.4.3.jar",
