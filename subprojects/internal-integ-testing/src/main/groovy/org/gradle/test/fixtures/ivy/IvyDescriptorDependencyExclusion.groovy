@@ -19,4 +19,9 @@ package org.gradle.test.fixtures.ivy
 class IvyDescriptorDependencyExclusion {
     String org
     String module
+    String name
+    String type
+    String ext
+    String conf
+    String matcher 
 }

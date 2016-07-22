@@ -23,6 +23,7 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -87,7 +88,13 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         for (IvyArtifactName artifactName : dependencyMetadata.getArtifacts()) {
             dependency.addArtifact(artifactName, configurations);
         }
-
+        //GRADLE-3440
+        List<Exclude> excludeRules = dependencyMetadata.getExcludes(Arrays.asList(dependencyMetadata.getModuleConfigurations()));
+        if(excludeRules != null) {
+            for (Exclude rule : excludeRules) {
+                dependency.addExcludeRule(rule);
+            }
+        }
         dependencies.add(dependency);
     }
 }
