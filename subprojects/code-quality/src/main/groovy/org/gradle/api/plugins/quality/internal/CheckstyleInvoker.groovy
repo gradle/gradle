@@ -75,6 +75,10 @@ abstract class CheckstyleInvoker {
                 }
             }
 
+            if (!reports.xml.enabled && reports.html.enabled) {
+                xmlDestination.delete()
+            }
+
             if (ant.project.properties[FAILURE_PROPERTY_NAME]) {
                 def message = "Checkstyle rule violations were found."
                 def report = reports.html.enabled ? reports.html : reports.xml.enabled ? reports.xml : null
