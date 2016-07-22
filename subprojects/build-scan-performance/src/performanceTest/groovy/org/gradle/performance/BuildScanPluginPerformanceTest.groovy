@@ -23,7 +23,6 @@ import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
 import org.gradle.performance.results.BuildScanResultsStore
-import org.gradle.performance.results.CrossBuildResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
