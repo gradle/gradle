@@ -41,13 +41,16 @@ class MavenPublishJavaIntegTest extends AbstractMavenPublishIntegTest {
 
         mavenModule.parsedPom.scopes.keySet() == ["runtime"] as Set
         mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-collections:commons-collections:3.2.2", "commons-io:commons-io:1.4", "org.springframework:spring-core:2.5.6","commons-beanutils:commons-beanutils:1.8.3", "commons-dbcp:commons-dbcp:1.4","org.apache.camel:camel-jackson:2.15.3")
-        assert mavenModule.parsedPom.scopes.runtime.hasDependencyExclusion("org.springframework:spring-core:2.5.6","commons-logging", "commons-logging")		
+        assert mavenModule.parsedPom.scopes.runtime.hasDependencyExclusion("org.springframework:spring-core:2.5.6","commons-logging", "commons-logging")
         assert mavenModule.parsedPom.scopes.runtime.hasDependencyExclusion("commons-beanutils:commons-beanutils:1.8.3","commons-logging", "*")
         assert mavenModule.parsedPom.scopes.runtime.hasDependencyExclusion("commons-dbcp:commons-dbcp:1.4","*", "*")
         assert mavenModule.parsedPom.scopes.runtime.hasDependencyExclusion("org.apache.camel:camel-jackson:2.15.3","*", "camel-core")
-		
+
         and:
-        resolveArtifacts(mavenModule) == ["camel-jackson-2.15.3.jar", "commons-beanutils-1.8.3.jar", "commons-collections-3.2.2.jar", "commons-dbcp-1.4.jar", "commons-io-1.4.jar", "jackson-annotations-2.4.0.jar", "jackson-core-2.4.3.jar", "jackson-databind-2.4.3.jar", "jackson-module-jaxb-annotations-2.4.3.jar", "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
+        resolveArtifacts(mavenModule) == [
+            "camel-jackson-2.15.3.jar", "commons-beanutils-1.8.3.jar", "commons-collections-3.2.2.jar", "commons-dbcp-1.4.jar", "commons-io-1.4.jar",
+            "jackson-annotations-2.4.0.jar", "jackson-core-2.4.3.jar", "jackson-databind-2.4.3.jar", "jackson-module-jaxb-annotations-2.4.3.jar",
+            "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
     }
 
     def "can publish attached artifacts to maven repository"() {
@@ -107,7 +110,6 @@ $append
                 compileOnly "javax.servlet:servlet-api:2.5"
                 runtime "commons-io:commons-io:1.4"
                 testCompile "junit:junit:4.12"
-                //GRADLE-3440: Adding some exclusions for additional test coverage.
                 compile ("org.springframework:spring-core:2.5.6") {
                     exclude group: 'commons-logging', module: 'commons-logging'
                 }

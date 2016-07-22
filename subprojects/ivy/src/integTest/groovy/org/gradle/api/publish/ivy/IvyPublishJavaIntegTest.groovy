@@ -24,7 +24,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         given:
         createBuildScripts("""
             publishing {
-                publications {  
+                publications {
                     ivy(IvyPublication) {
                         from components.java
                     }
