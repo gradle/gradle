@@ -20,7 +20,6 @@ import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 
 
 apply plugin: 'java'
-apply from: "${rootDir}/gradle/distributionTesting.gradle"
 
 sourceSets {
     performanceTest {
