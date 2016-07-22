@@ -25,3 +25,5 @@ dependencies {
 }
 
 useClassycle()
+
+performanceAdhocTest.enabled = false
