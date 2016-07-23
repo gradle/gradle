@@ -19,13 +19,24 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
-import org.gradle.internal.metaobject.*;
+import org.gradle.internal.metaobject.AbstractDynamicObject;
+import org.gradle.internal.metaobject.BeanDynamicObject;
+import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.metaobject.GetPropertyResult;
+import org.gradle.internal.metaobject.InvokeMethodResult;
+import org.gradle.internal.metaobject.SetPropertyResult;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-public class DefaultConvention implements Convention, ExtensionContainerInternal {
+public class DefaultConvention implements Convention, ExtensionContainer {
 
     private final Map<String, Object> plugins = new LinkedHashMap<String, Object>();
     private final DefaultConvention.ExtensionsDynamicObject extensionsDynamicObject = new ExtensionsDynamicObject();
@@ -129,10 +140,6 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         extensionsStorage.configureExtension(type, action);
     }
 
-    public Map<String, Object> getAsMap() {
-        return extensionsStorage.getAsMap();
-    }
-
     public Object propertyMissing(String name) {
         return getByName(name);
     }
@@ -141,7 +148,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         extensionsStorage.checkExtensionIsNotReassigned(name);
         add(name, value);
     }
-    
+
     private class ExtensionsDynamicObject extends AbstractDynamicObject {
         @Override
         public String getDisplayName() {
@@ -227,7 +234,7 @@ public class DefaultConvention implements Convention, ExtensionContainerInternal
         public Object methodMissing(String name, Object args) {
             return invokeMethod(name, (Object[])args);
         }
-        
+
         @Override
         public boolean hasMethod(String name, Object... args) {
             if (extensionsStorage.isConfigureExtensionMethod(name, args)) {

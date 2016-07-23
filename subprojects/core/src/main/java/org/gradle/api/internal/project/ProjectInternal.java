@@ -20,21 +20,20 @@ import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.ProcessOperations;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.logging.StandardOutputCapture;
+import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
-import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.registry.ModelRegistryScope;
 
@@ -81,8 +80,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, FileOperati
     StandardOutputCapture getStandardOutputCapture();
 
     ProjectStateInternal getState();
-
-    ExtensionContainerInternal getExtensions();
 
     ProjectConfigurationActionContainer getConfigurationActions();
 
