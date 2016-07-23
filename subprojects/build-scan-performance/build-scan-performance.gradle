@@ -26,4 +26,8 @@ dependencies {
 
 useClassycle()
 
-performanceAdhocTest.enabled = false
+performanceAdhocTest {
+    enabled = false
+    dependsOn largeJavaProjectWithBuildScanPlugin
+    systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
+}
