@@ -1,12 +1,24 @@
-The Gradle team is pleased to announce Gradle 3.0 M2.
+The Gradle team is pleased to announce Gradle 3.0.
 
-This second release leading up to Gradle 3.0 builds on [3.0 M1](https://github.com/gradle/gradle/releases/tag/v3.0.0-M1) with several key improvements listed below. For more information, see the [announcement blog post](http://gradle.org/blog/gradle-3-0-m2-java-9-support/).
+Performance continues to be a focus for the Gradle team and the third major release reflects this.  The [Gradle Daemon](userguide/gradle_daemon.html) is a key performance enhancer, 
+making builds _up to 75% faster_, but it needed to be explicitly enabled in previous version of Gradle.  This is no longer necessary as the Daemon is now **enabled by default** in 3.0.  We've 
+put a lot of effort into addressing some of the issues with the Gradle Daemon in previous versions, especially on Windows platforms, so relax and enjoy the fact that all of your 
+builds will now be faster without any additional configuration necessary.
 
-Check out some of [the improvements we've made](#all-improvements) since Gradle 2.0. Lots of reasons to upgrade!
+We're also pleased to make available a draft of our [new Performance Guide](https://gradle.github.io/performance-guide). This is intended to be a short (13-page) guide that shows you how to 
+dramatically improve your build performance in the time it takes to eat lunch. Check it out and please provide any feedback via the guide's 
+[GitHub Issues](https://github.com/gradle/performance-guide/issues).
 
-## Compatibility and Support
+Ever wished for better IDE support when writing Gradle build scripts?  This release provides the first support for [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), 
+which is a Kotlin-based build language for Gradle scripts.  It's deep integration with both IDEA and Eclipse provides many of the things you would expect from an IDE such as auto-completion, 
+refactoring, navigation to source, and more.  Don't worry, Groovy is still the primary build language for Gradle scripts, but we'll continue to evolve Gradle Script Kotlin in order to provide 
+the best possible development experience to Gradle users.  See Chris Beam's [blog post](https://gradle.org/blog/kotlin-meets-gradle/) for more information about this exciting new feature.
 
-This release is intended as a _preview_ for new features we'll be releasing soon in Gradle 3.0. As such, it is not intended to be used in a production environment and features may change significantly before they are released in Gradle 3.0.
+Additionally, Gradle 3.0 provides support for running on the latest Java 9 EAP builds.  Users can also build and run tests using these early versions of JDK 9, but there are some limitations.
+Check out the section on [Java 9 support](#java9-support) below for more details.
+
+Lastly, with the release of Gradle 3.0, it's a good time to reflect on the progress we've made over the last 2 years. Check out some of [the improvements](#all-improvements) since Gradle 2.0. 
+Lots of reasons to upgrade!
 
 ## New and noteworthy
 
@@ -20,44 +32,66 @@ Add-->
 ### Example new and noteworthy
 -->
 
-### New Features and Improvements since 3.0 M1
-
- * **Initial Java 9 Support.** Gradle now runs properly when run on the latest JDK 9 EAP builds, and users can build and run tests for their own projects against JDK 9 as well. Note, however, that Gradle does not yet support Jigsaw modules or JDK 9-specific compile options such as `-release` and `-modulepath`.
- * **Performance Improvements and new Performance Guide.** A number of performance improvements have acculmulated over the last several Gradle releases, and it's a good time to try them out for yourself in 3.0 M2. For details on many of these improvements, see [Cédric's blog post](http://gradle.org/blog/gradle-3-0-m2-java-9-support/). We're also pleased to make available a draft of our [new Performance Guide](https://gradle.github.io/performance-guide). This is intended to be a short (13-page) guide that allows you to dramatically improve your build performance over the course of an afternoon. Check it out and please provide any feedback via the guide's [GitHub Issues](https://github.com/gradle/performance-guide/issues).
- * **Improved Kotlin build scripting.** Gradle 3.0 M2 includes the newly-released Gradle Script Kotlin 0.2.0. Users can now modify the build script classpath and apply plugins in Kotlin-based build scripts, and project import into IDEA is now seamless. See the Gradle Script Kotlin [0.2.0 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/0.2.0) for details, samples and getting started instructions.
-
 ### Improved Gradle Daemon, now enabled by default
 
-The performance improvement gained by using the Daemon is staggering: our performance tests [show that builds could be up to 75% faster](http://gradle.org/blog/gradle-3-0-m1-unleash-the-daemon/), just by enabling the Gradle Daemon.
+The performance improvements gained by using the Daemon are staggering: our performance tests [show that builds could be up to 75% faster](http://gradle.org/blog/gradle-3-0-m1-unleash-the-daemon/), 
+just by enabling the Gradle Daemon.
 
-We have been working hard to make the Gradle Daemon aware of its health and impact on the system it's running on; and we believe that it is now robust enough to be **enabled by default**.
+We have been working hard to make the Gradle Daemon aware of its health and impact on the system it's running on; and we believe that it is now robust enough to be enabled by default.
 
-We encourage you to give the improved Daemon a try. If for some reason you encounter problems, you can [disable the Daemon](userguide/gradle_daemon.html#daemon_faq). Please [submit feedback to us](https://discuss.gradle.org/c/3-0-m1/) if you encounter instability so that we can make further improvements.
+We encourage you to give the improved Daemon a try. If for some reason you encounter problems, it can always [be disabled](userguide/gradle_daemon.html#daemon_faq) if necessary. 
 
-### List Running Gradle Daemons with `gradle --status`
+### View the status of Gradle Daemons
 
-You can now check the status of running Daemons. A sample:
-
+Before Gradle 3.0, there was no easy way to determine the status of a running Gradle Daemon or why a Daemon might have stopped.  With this release, you
+can now check the status of running and recently stopped daemons using the `--status` command and get better insight into the state your Gradle environment.  
 
     $> gradle --status
-     PID   VERSION                 STATUS
-     28411 3.0                     IDLE
-     34247 3.0                     BUSY
+       PID STATUS   INFO
+     43536 BUSY     3.0
+     43542 IDLE     3.0
+     43418 STOPPED  (stop command received)
+     43366 STOPPED  (stop command received)
 
-Note that currently this does not list Gradle Daemons with version < 3.0. More details available in the [User Guide](userguide/gradle_daemon.html#status).
+Note that the status command currently does not list Gradle Daemons with version < 3.0. More details are available in the [User Guide](userguide/gradle_daemon.html#status).
 
-### Up-to-date checks more robust against task implementation changes
+<a id="java9-support" name="java9-support"></a>
+### Initial Java 9 support
 
-Previously if a task's implementation class name changed, the class was deemed out-of-date even if its inputs and outputs matched the previous execution. However, if only the code of the task, or a dependent library changed, the task was still considered up-to-date. Since this version Gradle notices if the code of a task or its dependencies change between executions, and marks tasks as out-of-date when needed.
+Gradle 3.0 contains initial support for running Gradle on Java 9 as well as compiling, testing and running Java 9 applications from Gradle.
 
-### `plugins` DSL can resolve plugins without applying them
+Preliminary support for the JDK 9 `-release` compiler flag has been added as well. It can be specified via
+[compilerArgs](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgs), e.g.
 
-There are times when you want to resolve a plugin without actually applying it to the current project, e.g.
+    compileJava.options.compilerArgs.addAll(['-release', '7'])
 
-- you only want to reuse a task class from that plugin
-- you want to apply that plugin to subprojects of the current one
+The following plugins have known issues with Java 9:
 
-This is now possible using the following syntax
+- [PMD plugin](userguide/pmd_plugin.html): The latest version of [PMD](https://pmd.github.io/pmd-5.4.1/pmd-java/) (5.5.0) can run on Java 9 but does not yet support analysis of Java 9 Bytecode.  
+- [Jetty plugin](userguide/jetty_plugin.html): The version of [Jetty](http://www.eclipse.org/jetty/) used with this plugin does not support Java 9.
+- [Scala plugin](userguide/scala_plugin.html): The [Zinc compiler](https://github.com/typesafehub/zinc) does not currently support Java 9
+- [FindBugs plugin](userguide/findbugs_plugin.html): The latest release of [FindBugs](http://findbugs.sourceforge.net/) (3.0.1) does not support Java 9
+- [OSGi plugin](userguide/osgi_plugin.html): The latest version of [BND](http://bnd.bndtools.org/) does not work with Java 9
+
+When using [continuous build](userguide/continuous_build.html) on Java 9, the following constraints apply due to class access restrictions related to Jigsaw:
+
+- On Mac OS X, Gradle will poll for file changes every 10 seconds instead of every 2 seconds.
+- On Windows, continuous build may be slow to detect changes on very large projects.
+
+Additionally, when publishing to S3 backed Maven and Ivy repositories, `-addmods java.xml.bind` will have to be added to the JVM parameters when using Java 9.
+
+    GRADLE_OPTS="-addmods java.xml.bind '-Dorg.gradle.jvmargs=-addmods java.xml.bind'"
+
+Please report any issues you may experience running or building with Java 9 on the [Gradle Forums](https://discuss.gradle.org/).
+
+### Improved `plugins` DSL
+
+There are times when it might be useful to resolve a plugin without actually applying it to the current project, for example:
+
+- When you only want to reuse a task class from the plugin
+- When you only want to apply the plugin to subprojects of the current project
+
+Previously, this could only be done with the `buildscript` DSL syntax, but this is now possible via the `plugins` DSL, too:
 
     plugins {
         id 'my.special.plugin' version '1.0' apply false
@@ -69,29 +103,28 @@ This is now possible using the following syntax
         }
     }
 
-### Improved handling of external dependencies in `eclipse-wtp` plugin
+Note the `apply false` at the end of the plugin declaration.  This instructs Gradle to resolve the plugin and make it available on the classpath, but not to apply it.
 
-Before Gradle 3.0, the `eclipse-wtp` plugin always defined external dependencies the WTP component descriptor. This caused several problems, listed at [GRADLE-2123](https://issues.gradle.org/browse/GRADLE-2123). To resolve this, the plugin now defines external dependencies in the Eclipse classpath and marks them as deployed/non-deployed accordingly. For each library a classpath entry similar to the one below is generated:
+### Incremental builds are more robust
 
-    <classpathentry kind="lib" path=“/path/to/lib-1.0.0.jar" exported=“false">
-        <attributes>
-            <attribute name="org.eclipse.jst.component.dependency" value="WEB-INF/lib"/>
-        </attributes>
-    </classpath>
+Previous versions of Gradle would consider a task up-to-date as long as its inputs and outputs remained unchanged.  Gradle now recognizes when _the code_ of a task or its dependencies changes 
+between executions and properly marks the task as out-of-date.
 
-If the project is not a Java project (and thus has no classpath), the dependencies are added to the component descriptor as before.
+### Improvements to the `eclipse-wtp` plugin
 
-### Improved dependency resolution for `eclipse-wtp` plugin
+Before Gradle 3.0, the `eclipse-wtp` plugin defined external dependencies for a Java project in the WTP component descriptor. This lead to the issues detailed in 
+[GRADLE-2123](https://issues.gradle.org/browse/GRADLE-2123). This has been fixed so that dependencies are now generated in the proper metadata locations according to the
+type of project being configured.
 
-The `eclipse-wtp` plugin now fully leverages Gradle's dependency resolution engine. As a result, all dependency customisations like substitution rules and forced versions work in WTP projects.
+Additionally, the `eclipse-wtp` plugin now fully leverages Gradle's dependency resolution engine. As a result, dependency customisations such as substitution rules and 
+forced versions work with WTP projects.
 
-### `eclipse` plugin also applies `eclipse-wtp` for web projects
+Lastly, if a project applies the `war` or `ear` plugins, applying the `eclipse` plugin now also applies `eclipse-wtp`. This makes configuration simpler, especially when
+using [Eclipse Buildship](https://projects.eclipse.org/projects/tools.buildship).
 
-If a project applies the `war` or `ear` plugins, then applying the `eclipse` plugin also applies `eclipse-wtp`. This improves the out-of-the box experience for Eclipse Buildship users.
+### New features in the `EclipseProject` model.
 
-### Tooling API exposes more information via the `EclipseProject` model.
-
-The `EclipseProject` model was supplemented with a set of new features:
+The `EclipseProject` model has been enhanced with many new features:
 
 - The [EclipseSourceDirectory](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html) exposes the following information:
     - exclude and include patterns: [getExcludes()](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html#getExcludes%28%29) and [getIncludes()](javadoc/org/gradle/tooling/model/eclipse/EclipseSourceDirectory.html#getIncludes%28%29),
@@ -101,111 +134,79 @@ The `EclipseProject` model was supplemented with a set of new features:
 - The project output location is available via the [EclipseProject.getOutputLocation()](javadoc/org/gradle/tooling/model/eclipse/EclipseProject.html#getOutputLocation%28%29) method.
 - All classpath entries (project and external dependencies, classpath containers and source folders) expose their access rules via [EclipseClasspathEntry.getAccessRules()](javadoc/org/gradle/tooling/model/eclipse/EclipseClasspathEntry.html#getAccessRules%28%29).
 
-With these features Tooling API clients can provide a more complete IDE integration. Buildship will make use of them very soon.
+This allows Tooling API clients (such as [Eclipse Buildship](https://projects.eclipse.org/projects/tools.buildship)) to provide more robust and complete IDE integration.
 
-### Initial Java 9 support
+### Plugin library upgrades
 
-Gradle 3.0 contains initial support for Java 9. This means that running Gradle on Java 9 and compiling,
-testing and running Java 9 applications is supported out of the box.
+Several libraries that are used by Gradle plugins have been upgraded:
 
-Preliminary support for JDK 9 `-release` compiler flag has been added. It can be specified via
-[compilerArgs](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:compilerArgs), e.g.
-
-    compileJava.options.compilerArgs.addAll(['-release', '7'])
-
-The following plugins are known to have some issues with Java 9:
-
-- [PMD plugin](userguide/pmd_plugin.html): Runs on Java 9 but cannot analyze Java 9 Bytecode as this is not yet supported by
-  the latest version of PMD (5.5.0)
-- [Jetty plugin](userguide/jetty_plugin.html): The version of Jetty used for the Jetty plugin does not work with Java 9
-- [Scala plugin](userguide/scala_plugin.html): The Zinc compiler does not work with Java 9
-- [FindBugs plugin](userguide/findbugs_plugin.html): The latest release (3.0.1) does not work with Java 9
-- [OSGi plugin](userguide/osgi_plugin.html): The latest version of BND does not work with Java 9
-
-When using [continuous build](userguide/continuous_build.html#sec:continuous_build_limitations_jdk9) on Java 9,
-due to class access restrictions related to Jigsaw, Gradle cannot set some operating system specific options, which means that:
-
-- On Mac OS X, Gradle will poll for file changes every 10 seconds instead of every 2 seconds.
-- On Windows, Gradle must use individual file watches (like on Linux/Mac OS), which may cause continuous build to no longer work on very large projects.
-
-Also, for publishing to S3 backed Maven and Ivy repositories, `-addmods java.xml.bind` has to be added to the JVM parameters. This can be accomplished by setting
-
-    GRADLE_OPTS="-addmods java.xml.bind '-Dorg.gradle.jvmargs=-addmods java.xml.bind'"
-
-CAVEAT: Your mileage may vary. If you run into any problems please report those on the forums.
-
-### Upgrade of BND library used by OSGi plugin
-
-The OSGi plugin now uses the version 3.2.0 of the BND library.
-
-### Upgrade of the default Jacoco version
-
-The Jacoco plugin has been updated to use Jacoco version 0.7.7.201606060606 by default. This is required for Java 9 support.
-
-### Upgrade of the default PMD version
-
-The PMD plugin has been updated to use PMD version 5.5.0 by default.
+- The OSGi plugin has been upgraded to use version 3.2.0 of the BND library.
+- The Jacoco plugin has been upgraded to use Jacoco version 0.7.7.201606060606 by default.
+- The PMD plugin has been upgraded to use PMD version 5.5.0 by default.
 
 ### Parallel task execution improvements
 
-The `Test` task type now honors the `max-workers` setting for the test processes that are started. This means that Gradle will now run at most `max-workers` tasks and test processes at the same time.
+Gradle 3.0 makes it easier to manage the resources that Gradle uses.  The `Test` task type now honors the `max-workers` setting for the test processes that are started. This means that Gradle will 
+now run at most `max-workers` tasks and test processes at the same time.
 
-### Better control of JVM memory
+### Better control over JVM memory usage
 
-The Gradle Daemon maintains a cache of objects to speed up performance.  By default, an amount of JVM memory is reserved for tasks
-and other Gradle internals, while the rest of the memory is made available for cache use.  If a build runs tasks that require more memory
-than this reserved space, the performance of those tasks can become worse as the memory available to the cache fills up.  With this 
+The Gradle Daemon maintains a cache of objects to speed up performance.  By default, much of JVM memory is available to be used by this cache, while a certain amount of memory
+is kept reserved for tasks and other Gradle internals.  However, if a build runs tasks that require more memory
+than will fit in this reserved space, the performance of those tasks can become worse over time as the rest of JVM memory is filled up by the cache.  With this 
 release, the `org.gradle.cache.reserved.mb` system property allows for increasing the amount of space reserved from cache use.  Set 
-this value to a number of MB to make available for tasks and other non-cache-related operations.
+this value to the number of additional MB to make available for tasks and other non-cache-related operations.
  
+<a id="all-improvements" name="all-improvements"></a>
 ### Improvements since Gradle 2.0
-<a id="all-improvements" name="all-improvements"/>
+
+The following is an overview of the many improvements to Gradle since the 2.0 release.
 
 - Performance improvements, faster builds and reduced memory usage
-    - Configuration time, incremental build, incremental native compilation, build script compilation, test execution
+    - Improvements to configuration time, incremental build, incremental native compilation, build script compilation, and test execution
 - Gradle plugin portal
-    - Publishing plugin
-    - Maven and Ivy plugin repositories
+    - Created the publishing plugin
+    - Support for Maven and Ivy plugin repositories
 - Dependency management
-    - Compile-only dependencies for Java projects
+    - Allow compile-only dependencies for Java projects
     - Improved component meta-data rules
-    - Component selection rules
-    - Component replacement rules
-    - Dependency substitution rules
+    - Support for component selection rules
+    - Support for component replacement rules
+    - Support for dependency substitution rules
     - Support for S3 repositories
     - Configurable HTTP authentication, including preemptive HTTP authentication
     - Artifact query API access to ivy.xml and pom.xml
-    - Depend on a particular Maven snapshot
+    - Allow a dependency on a specific Maven snapshot
 - Daemon
-    - Health and performance monitoring
-    - Proactive resource awareness and action
-    - List running Daemons
-- Continuous build
-- Incremental Java compile
+    - Added health and performance monitoring
+    - Added proactive resource awareness and action
+    - Support for viewing Daemon status
+- Continuous build support
+- Incremental Java compilation
 - Tooling API
-    - Composite builds
-    - Rich test, task and build progress events
-    - Run test classes or methods
-    - Cancellation
-    - Color output
-    - Eclipse builders and natures, Java source and runtime version, build JDK
+    - Preliminary support for composite builds
+    - Added rich test, task and build progress events
+    - Ability to run specific test classes or methods
+    - Support for build cancellation
+    - Support for color output
+    - Allow declaration of Eclipse builders and natures, Java source and runtime version, build JDK
 - IDE
     - Improved Eclipse WTP integration, Scala integration
-    - Java source and runtime version
-- TestKit
+    - Allow declaration of Java source and runtime version
+- Created [TestKit](userguide/test_kit.html)
 - publish plugins
-    - Publish to SFTP and S3 repositories
-    - Maven dependency exclusions, dependency classifiers
-    - Ivy extra attributes, dependency exclusions
+    - Support for publishing to SFTP and S3 repositories
+    - Support for Maven dependency exclusions, dependency classifiers
+    - Allow declaration of Ivy extra attributes and dependency exclusions
 - Groovy annotation processing
 - Build environment report
-- Code quality and application plugins
-    - Various improvements
+- Improved Code quality and application plugins
 - Native
-    - Parallel compilation
-    - Cross compilation
-    - Precompiled headers
-    - Google test support
+    - Support for parallel compilation
+    - Support for cross compilation
+    - Support for precompiled headers
+    - Allow declaration of Google Test test suites
+    - Improved DSL for declaring test suites
 - Community
     - More frequent releases
     - More pull requests
@@ -214,13 +215,13 @@ this value to a number of MB to make available for tasks and other non-cache-rel
 - Software model    
     - Dependency management for JVM libraries, target platform aware
         - inter-project, intra-project and external libraries
-    - JVM library API definition, compile avoidance
+    - Support for JVM library API definition, compile avoidance
     - JUnit support
-    - Components report, model report
-    - Validation and defaults rules, apply rules to all subjects with type
+    - Added components and model reports
+    - Allow support for validation and defaults rules, apply rules to all subjects with type
     - More managed model features
     - Better extension by plugins
-    - Model DSL
+    - Allow configuration of model through DSL
 
 ## Promoted features
 
@@ -248,7 +249,7 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Chaining `TaskInputs` and `TaskOutputs` methods
 
-In Gradle 2.x chaining the following methods was allowed, but is now deprecated:
+Chaining the following method calls is now deprecated:
 
 * `TaskInputs.dir()`
 * `TaskInputs.file()`
@@ -257,9 +258,9 @@ In Gradle 2.x chaining the following methods was allowed, but is now deprecated:
 * `TaskOutputs.file()`
 * `TaskOutputs.files()`
 
-Since 3.0 this code produces a deprecation warning:
+With Gradle 3.0, the following now produces a deprecation warning:
 
-```groovy
+```
 task myTask {
   inputs.file("input1.txt").file("input2.txt")
 }
@@ -269,30 +270,33 @@ task myTask {
 
 ## Potential breaking changes
 
-### Running Gradle on Java 6 is no longer supported.
+### Running Gradle on Java 6 is no longer supported
 
-Gradle itself now requires Java 7 or better to run, but compiling project sources and running tests with Java 6 remains supported.
-See [Compiling and testing for Java 6](userguide/java_plugin.html#sec:java_cross_compilation) in the Userguide. There are also
+Gradle itself now requires Java 7 or better to run, but compiling project sources and running tests with Java 6 is still supported.
+See [Compiling and testing for Java 6](userguide/java_plugin.html#sec:java_cross_compilation) in the Gradle Userguide. There are also
 instructions on how to compile and test [Groovy](userguide/groovy_plugin.html#sec:groovy_cross_compilation) and
 [Scala](userguide/scala_plugin.html#sec:scala_cross_compilation) for Java 6.
 
-Support for compiling and testing on Java 5 has been dropped.
+### Compiling and testing with Java 5 is no longer supported
+
+Support for compiling and testing on Java 5 has been removed.
 
 ### Sonar plugin has been removed
 
-The legacy Sonar plugin has been removed from the distribution. It is superceded by the official plugin from SonarQube (http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
+The legacy Sonar plugin has been removed from the Gradle distribution. It is superceded by [the official plugin from SonarQube](http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
 
-### eclipse-cdt plugin has been removed
+### The eclipse-cdt plugin has been removed
 
-The `eclipse-cdt` plugin was introduced before Gradle 2.0 but wasn't actively maintained.  It has now been removed.
+The `eclipse-cdt` plugin is no longer supported and has been removed.
 
-### Test result and report directory take task name into account
+### Unique default test result and report directories
 
-The defaults for the outputs of tasks of type Test have changed to take the task name into account when used with the `Java Plugin`.
-This allows having multiple tasks of type Test with non conflicting default report and result folders.
-When the Java Plugin is applied, the report directory for a task of type `Test` with name `test` is now `$buildDir/reports/tests/test`. The `test-result` folder for task `test` is now `$buildDir/test-results/tests`.
+The default location of reports produced by tasks of type Test have changed to incorporate the task name when used with the `Java Plugin`.
+This allows multiple tasks of type Test to produce non-conflicting default report and result directories without additional configuration.
+When the Java Plugin is applied, the report directory for a task of type `Test` with the name "test" is now `$buildDir/reports/tests/test`. The test results directory for 
+task "test" is now `$buildDir/test-results/tests`.
 
-To keep the previous behaviour, the reports output directory of Test tasks can be configured explicitly:
+To revert to the previous behaviour, the reports output directory of Test tasks can be configured explicitly:
 
     test.reports.html.destination = testReportDir // build/reports/tests
     test.reports.xml.destination = testResultDir // build/test-results
@@ -300,30 +304,32 @@ To keep the previous behaviour, the reports output directory of Test tasks can b
 ### Ant-Based Scala Compiler has been removed
 
 The deprecated Ant-Based Scala Compiler has been removed from Gradle
-3.0. The Zinc Scala Compiler is now used exclusively. The following
-properties have been removed from the ScalaCompile task:
+3.0 and the Zinc Scala Compiler is now used exclusively. The following
+properties related to the Ant-Based compiler have been removed from the ScalaCompile task:
 
-1. `daemonServer`
-1. `fork`
-1. `useAnt`
-1. `useCompileDaemon`
+- `daemonServer`
+- `fork`
+- `useAnt`
+- `useCompileDaemon`
 
 ### Support for TestNG javadoc annotations has been removed
 
-The support for declaring TestNG tests via javadoc annotations has been removed. The `Test.testSrcDirs` and the methods on `TestNGOptions` were removed, too,
-since they are not needed any more.
+The support for declaring TestNG tests via javadoc annotations has been removed. As such, the `Test.testSrcDirs` and the methods on `TestNGOptions` have also been removed.
 
 ### Task property annotations on implemented interfaces
 
-In previous versions, annotations on task properties like `@InputFile` and `@OutputDirectory` were only taken into account when they were declared on the task class itself, or one of its super-classes. Since Gradle 3.0 annotations declared on implemented interfaces are also taken into account.
+In previous versions, annotations on task properties such as `@InputFile` and `@OutputDirectory` were only taken into account when they were declared on the task class itself (or one 
+of its super-classes). With Gradle 3.0, annotations declared on implemented interfaces are also taken into account.
 
 ### `eclipse-wtp` handling of external dependencies changed
 
-For Java projects, the `eclipse-wtp` plugin no longer adds external dependencies to the WTP component file, but to the classpath instead. Any customizations related to external dependencies that were made in the `eclipse.wtp.component.file` hooks now need to be done in the `eclipse.classpath.file` hooks instead.
+For Java projects, the `eclipse-wtp` plugin adds external dependencies to the classpath instead of the WTP component file. Any customizations related to external dependencies 
+that were made in the `eclipse.wtp.component.file` hooks now need to be moved to the `eclipse.classpath.file` hooks instead.
 
-### `eclipse-wtp` is automatically applied when the `war` or `ear` plugins are applied
+### `eclipse-wtp` is automatically applied to `war` or `ear` projects
 
-User who are building `war` projects with Eclipse, but for any reason do not want to have WTP enabled can deactivate WTP like this:
+Projects that have the `war` or `ear` plugins applied in conjunction with the `eclipse` plugin will now have the `eclipse-wtp` plugin applied automatically.
+If desired, this support can be removed using the following configuration:
 
     eclipse.project {
         natures.removeAll { it.startsWith('org.eclipse.wst') }
@@ -331,17 +337,25 @@ User who are building `war` projects with Eclipse, but for any reason do not wan
             it.name.startsWith('org.eclipse.wst')
         }
     }
+
+### Eclipse model contains classpath attributes for project and external dependencies
+
+The `EclipseProjectDependency` and `EclipseExternalDependency` models now contain `ClasspathAttribute` objects. By default, the JavaDoc location attribute and WTP deployment attributes are also 
+populated.
+
+Any customizations made via `eclipse.classpath.file.beforeMerged` and `eclipse.classpath.file.whenMerged` are also reflected.
+
 ### NamedDomainObjectContainers no longer create objects when using explicit parameter syntax
 
-The following snippet used to create a new source set called `foo`:
+In previous versions of Gradle, the following would create a new `SourceSet` named `foo`:
 
     sourceSets {
         it.foo {}
     }
     
-This behavior was unintended and has been removed. The above code will now result in an exception if `foo` is not already defined. 
+This behavior was unintended and has been removed. The above code will now cause an exception if `foo` has not already been defined. 
 
-Creation now only happens when using the implicit syntax
+Creation must now use the implicit syntax:
 
     sourceSets {
         foo {}
@@ -393,15 +407,9 @@ Creation now only happens when using the implicit syntax
 * Removed old wrapper properties `urlRoot`, `distributionName`, `distributionVersion` and `distributionClassifier`
 * Removed deprecated `has()`, `get()` and `set()` dynamic methods exposed by `ExtraPropertiesDynamicObjectAdapter`
 
-### Types no longer extend `GroovyObject`
+### Types that no longer extend `GroovyObject`
 
 * org.gradle.api.tasks.bundling.Jar
-
-#### Eclipse model contains classpath attributes for project and external dependencies
-
-The `EclipseProjectDependency` and `EclipseExternalDependency` models now contain `ClasspathAttribute`s. By default the JavaDoc location attribute and WTP deployment attributes are populated.
-
-Any customizations done via `eclipse.classpath.file.beforeMerged` and `eclipse.classpath.file.whenMerged` are also reflected in these tooling models.
 
 ## External contributions
 
