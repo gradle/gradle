@@ -1,7 +1,7 @@
 The Gradle team is pleased to announce Gradle 3.0.
 
 Performance continues to be a focus for the Gradle team and the third major release reflects this.  The [Gradle Daemon](userguide/gradle_daemon.html) is a key performance enhancer, 
-making builds _up to 75% faster_, but it needed to be explicitly enabled in previous version of Gradle.  This is no longer necessary as the Daemon is now **enabled by default** in 3.0.  We've 
+making builds _up to 75% faster_, but it needed to be explicitly enabled in previous version of Gradle.  This is no longer necessary as the Daemon is now _enabled by default_ in 3.0.  We've 
 put a lot of effort into addressing some of the issues with the Gradle Daemon in previous versions, especially on Windows platforms, so relax and enjoy the fact that all of your 
 builds will now be faster without any additional configuration necessary.
 
@@ -10,7 +10,7 @@ dramatically improve your build performance in the time it takes to eat lunch. C
 [GitHub Issues](https://github.com/gradle/performance-guide/issues).
 
 Ever wished for better IDE support when writing Gradle build scripts?  This release provides the first support for [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), 
-which is a Kotlin-based build language for Gradle scripts.  It's deep integration with both IDEA and Eclipse provides many of the things you would expect from an IDE such as auto-completion, 
+which is a Kotlin-based build language for Gradle scripts.  Its deep integration with both IDEA and Eclipse provides many of the things you would expect from an IDE such as auto-completion, 
 refactoring, navigation to source, and more.  Don't worry, Groovy is still the primary build language for Gradle scripts, but we'll continue to evolve Gradle Script Kotlin in order to provide 
 the best possible development experience to Gradle users.  See Chris Beam's [blog post](https://gradle.org/blog/kotlin-meets-gradle/) for more information about this exciting new feature.
 
@@ -194,7 +194,7 @@ The following is an overview of the many improvements to Gradle since the 2.0 re
     - Improved Eclipse WTP integration, Scala integration
     - Allow declaration of Java source and runtime version
 - Created [TestKit](userguide/test_kit.html)
-- publish plugins
+- Publishing plugins
     - Support for publishing to SFTP and S3 repositories
     - Support for Maven dependency exclusions, dependency classifiers
     - Allow declaration of Ivy extra attributes and dependency exclusions
@@ -283,7 +283,7 @@ Support for compiling and testing on Java 5 has been removed.
 
 ### Sonar plugin has been removed
 
-The legacy Sonar plugin has been removed from the Gradle distribution. It is superceded by [the official plugin from SonarQube](http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
+The legacy Sonar plugin has been removed from the Gradle distribution. It is superseded by [the official plugin from SonarQube](http://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner+for+Gradle).
 
 ### The eclipse-cdt plugin has been removed
 
