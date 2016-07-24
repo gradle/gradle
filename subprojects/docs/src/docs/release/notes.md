@@ -1,8 +1,8 @@
 The Gradle team is pleased to announce Gradle 3.0.
 
 Performance continues to be a focus for the Gradle team and the third major release reflects this.  The [Gradle Daemon](userguide/gradle_daemon.html) is a key performance enhancer, 
-making builds _up to 75% faster_, but it needed to be explicitly enabled in previous version of Gradle.  This is no longer necessary as the Daemon is now _enabled by default_ in 3.0.  We've 
-put a lot of effort into addressing some of the issues with the Gradle Daemon in previous versions, especially on Windows platforms, so relax and enjoy the fact that all of your 
+making builds _up to 75% faster_, but it needed to be explicitly enabled in previous versions of Gradle.  This is no longer necessary as the Daemon is now _enabled by default_ in 3.0.  We've 
+put a lot of effort into fixing many of the issues with the Gradle Daemon, especially on Windows platforms, so relax and enjoy the fact that all of your 
 builds will now be faster without any additional configuration necessary.
 
 We're also pleased to make available a draft of our [new Performance Guide](https://gradle.github.io/performance-guide). This is intended to be a short (13-page) guide that shows you how to 
