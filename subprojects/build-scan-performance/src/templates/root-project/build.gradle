@@ -1,0 +1,29 @@
+<% if (buildScanPluginVersion || binding.hasVariable("springDmPluginVersion")) {%>
+
+buildscript {
+    repositories {
+<% if(binding.hasVariable("springDmPluginVersion")) { %>
+        mavenLocal()
+        jcenter()
+<% } %>
+<% if (buildScanPluginVersion) { %>
+        maven {
+            url 'https://repo.gradle.org/gradle/gradlecom-libs-snapshots-local'
+        }
+<% } %>
+    }
+
+    dependencies {
+<% if (buildScanPluginVersion) { %>
+        classpath "com.gradle:build-scan-plugin:${buildScanPluginVersion}"
+<% }%>
+<% if(binding.hasVariable("springDmPluginVersion")) { %>
+        classpath "io.spring.gradle:dependency-management-plugin:$springDmPluginVersion"
+<% }%>
+    }
+}
+<% if (buildScanPluginVersion) { %>
+apply plugin: 'com.gradle.build-scan'
+buildScan { licenseAgreementUrl = 'https://gradle.com/terms-of-service'; licenseAgree = 'yes' }
+<% }%>
+<% } %>
