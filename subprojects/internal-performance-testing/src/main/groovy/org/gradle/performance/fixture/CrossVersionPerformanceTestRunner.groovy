@@ -25,6 +25,7 @@ import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.util.GradleVersion
+import org.junit.Assume
 
 public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     GradleDistribution current
@@ -67,6 +68,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             throw new IllegalStateException("Target versions have not been specified")
         }
 
+        Assume.assumeTrue(shouldExecute())
+
         def results = new CrossVersionPerformanceResults(
             testId: testId,
             previousTestIds: previousTestIds.collect { it.toString() }, // Convert GString instances
@@ -104,6 +107,10 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         results.assertCurrentVersionHasNotRegressed()
 
         return results
+    }
+
+    private boolean shouldExecute() {
+        false
     }
 
     static LinkedHashSet<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, boolean adhocRun) {

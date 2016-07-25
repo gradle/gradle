@@ -38,6 +38,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
+import org.junit.Assume
 import spock.lang.Specification
 
 abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specification {
@@ -106,6 +107,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     private class Measurement implements ToolingApiClasspathProvider {
 
         private CrossVersionPerformanceResults run() {
+            Assume.assumeTrue(shouldRun())
             def testProjectLocator = new TestProjectLocator()
             def projectDir = testProjectLocator.findProjectDir(experimentSpec.projectName)
             IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
@@ -153,12 +155,13 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 resolver.stop()
             }
 
-            results.assertEveryBuildSucceeds()
             resultStore.report(results)
 
-            results.assertCurrentVersionHasNotRegressed()
-
             results
+        }
+
+        private boolean shouldRun() {
+            false
         }
 
         private TestDirectoryProvider copyTemplateToDir(File templateDir) {

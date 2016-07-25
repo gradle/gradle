@@ -34,7 +34,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         def results = runner.run()
 
         then:
-        noExceptionThrown()
+        results.assertEveryBuildSucceeds()
         results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
 
         where:
@@ -54,7 +54,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         def results = runner.run()
 
         then:
-        noExceptionThrown()
+        results.assertEveryBuildSucceeds()
         results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
 
         where:
@@ -75,7 +75,7 @@ class JavaTestGradleVsMavenPerformanceTest extends AbstractGradleVsMavenPerforma
         def results = runner.run()
 
         then:
-        noExceptionThrown()
+        results.assertEveryBuildSucceeds()
         results.assertComparesWithMaven(maxDiffMillis, maxDiffMB)
 
         where:

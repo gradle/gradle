@@ -58,10 +58,10 @@ class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuil
 
 
         when:
-        runner.run()
+        def result = runner.run()
 
         then:
-        noExceptionThrown()
+        result.assertEveryBuildSucceeds()
 
         where:
         size << ['small', 'large']

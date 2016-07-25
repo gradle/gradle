@@ -82,7 +82,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         def results = performMeasurements()
 
         then:
-        noExceptionThrown()
+        results.assertEveryBuildSucceeds()
+        results.assertCurrentVersionHasNotRegressed()
 
         where:
         template                 | maxRegressionTime
@@ -139,7 +140,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         def results = performMeasurements()
 
         then:
-        noExceptionThrown()
+        results.assertEveryBuildSucceeds()
+        results.assertCurrentVersionHasNotRegressed()
 
         where:
         template                 | maxRegressionTime

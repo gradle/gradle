@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.junit.Assume
 
 abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTestResult> {
     final GradleDistribution gradleDistribution = new UnderDevelopmentGradleDistribution()
@@ -75,6 +76,8 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         assert !specs.empty
         assert testId
 
+        Assume.assumeTrue(shouldExecute())
+
         def results = newResult()
 
         runAllSpecifications(results)
@@ -83,6 +86,10 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         reporter.report(results)
 
         return results
+    }
+
+    private boolean shouldExecute() {
+        false
     }
 
     void runAllSpecifications(R results) {
