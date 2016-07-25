@@ -107,12 +107,15 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     private class Measurement implements ToolingApiClasspathProvider {
 
         private CrossVersionPerformanceResults run() {
-            Assume.assumeTrue(shouldRun())
+            def testId = experimentSpec.displayName
+            def scenarioSelector = new TestScenarioSelector()
+            Assume.assumeTrue(scenarioSelector.shouldRun(testId))
+
             def testProjectLocator = new TestProjectLocator()
             def projectDir = testProjectLocator.findProjectDir(experimentSpec.projectName)
             IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
             def results = new CrossVersionPerformanceResults(
-                testId: experimentSpec.displayName,
+                testId: testId,
                 previousTestIds: [],
                 testProject: experimentSpec.projectName,
                 jvm: Jvm.current().toString(),
@@ -155,13 +158,10 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 resolver.stop()
             }
 
+            results.assertEveryBuildSucceeds()
             resultStore.report(results)
 
             results
-        }
-
-        private boolean shouldRun() {
-            false
         }
 
         private TestDirectoryProvider copyTemplateToDir(File templateDir) {

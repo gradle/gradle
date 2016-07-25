@@ -185,6 +185,7 @@ class PerformanceReport extends DefaultTask {
             generator.generate(store, reportDir)
         } finally {
             store.close()
+            cl.close()
         }
     }
 }

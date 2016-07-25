@@ -68,7 +68,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             throw new IllegalStateException("Target versions have not been specified")
         }
 
-        Assume.assumeTrue(shouldExecute())
+        def scenarioSelector = new TestScenarioSelector()
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId))
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
@@ -107,10 +108,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         results.assertCurrentVersionHasNotRegressed()
 
         return results
-    }
-
-    private boolean shouldExecute() {
-        false
     }
 
     static LinkedHashSet<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, boolean adhocRun) {

@@ -76,7 +76,8 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         assert !specs.empty
         assert testId
 
-        Assume.assumeTrue(shouldExecute())
+        def scenarioSelector = new TestScenarioSelector()
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId))
 
         def results = newResult()
 
@@ -86,10 +87,6 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         reporter.report(results)
 
         return results
-    }
-
-    private boolean shouldExecute() {
-        false
     }
 
     void runAllSpecifications(R results) {

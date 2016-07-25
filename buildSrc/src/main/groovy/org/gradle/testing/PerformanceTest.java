@@ -16,8 +16,15 @@
 
 package org.gradle.testing;
 
+import org.gradle.api.internal.tasks.options.Option;
+
 /**
  * A test that checks execution time and memory consumption.
  */
 public class PerformanceTest extends DistributionTest {
+
+    @Option(option = "scenarios", description = "A comma-separated list of performance test scenario ids to run.")
+    public void setScenarios(String scenarios) {
+        systemProperty("org.gradle.performance.scenarios", scenarios);
+    }
 }

@@ -82,7 +82,6 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         def results = performMeasurements()
 
         then:
-        results.assertEveryBuildSucceeds()
         results.assertCurrentVersionHasNotRegressed()
 
         where:
@@ -140,7 +139,6 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         def results = performMeasurements()
 
         then:
-        results.assertEveryBuildSucceeds()
         results.assertCurrentVersionHasNotRegressed()
 
         where:
