@@ -55,6 +55,43 @@ can now check the status of running and recently stopped daemons using the `--st
 
 Note that the status command currently does not list Gradle Daemons with version < 3.0. More details are available in the [User Guide](userguide/gradle_daemon.html#status).
 
+### Better IDE support for writing build scripts
+
+The Gradle team and JetBrains have been collaborating to provide the best possible IDE support for writing Gradle build scripts. Gradle 3.0 provides the first support for 
+[Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), a statically typed build language based on [Kotlin](http://kotlinlang.org/).  
+
+So what does a Gradle Script Kotlin build look like?  Here's an example:
+
+    import org.gradle.api.tasks.*
+    
+    apply<ApplicationPlugin>()
+    
+    configure<ApplicationPluginConvention> {
+        mainClassName = "org.gradle.samples.HelloWorld"
+    }
+    
+    repositories {
+        jcenter()
+    }
+    
+    dependencies {
+        compile("commons-lang:commons-lang:2.4")
+        testCompile("junit:junit:4.12")
+    }
+    
+    task<Copy>("copyConfig") {
+        from("src/main/conf")
+        into("build/conf")
+        exclude("**/*.old")
+        includeEmptyDirs = false
+    }
+
+This looks very similar to a Groovy build script, but when you load it in either IDEA and Eclipse, suddenly development is a much better experience because you now have code auto-completion, 
+refactoring, and other features you would expect from an IDE.  You can still use all of your plugins written in Java or Groovy but also take advantage of the power of first-class development 
+support.  Take a look and [give it a try](https://github.com/gradle/gradle-script-kotlin/tree/master/samples)!
+
+We'll continue to enhance this support in future versions of Gradle, so if you discover any issues, please let us know via the project's [GitHub Issues](https://github.com/gradle/gradle-script-kotlin/issues).
+
 <a id="java9-support" name="java9-support"></a>
 ### Initial Java 9 support
 
@@ -160,68 +197,35 @@ this value to the number of additional MB to make available for tasks and other 
 <a id="all-improvements" name="all-improvements"></a>
 ### Improvements since Gradle 2.0
 
-The following is an overview of the many improvements to Gradle since the 2.0 release.
+A lot has changed since Gradle 2.0 was released in July of 2014.  First of all, performance has been improved dramatically in all phases of the build, including configuration time, build
+script compilation, incremental builds and native compilation, as well as test execution and report generation to name a few.  We've improved the Daemon significantly, adding performance 
+monitoring and resource awareness, fixing known issues, and ultimately enabling it by default so that all builds experience the performance gains it brings to the table.  Gradle 3.0 
+represents a significantly faster and more efficient Gradle than it was two years ago.
 
-- Performance improvements, faster builds and reduced memory usage
-    - Improvements to configuration time, incremental build, incremental native compilation, build script compilation, and test execution
-- Gradle plugin portal
-    - Created the publishing plugin
-    - Support for Maven and Ivy plugin repositories
-- Dependency management
-    - Allow compile-only dependencies for Java projects
-    - Improved component meta-data rules
-    - Support for component selection rules
-    - Support for component replacement rules
-    - Support for dependency substitution rules
-    - Support for S3 repositories
-    - Configurable HTTP authentication, including preemptive HTTP authentication
-    - Artifact query API access to ivy.xml and pom.xml
-    - Allow a dependency on a specific Maven snapshot
-- Daemon
-    - Added health and performance monitoring
-    - Added proactive resource awareness and action
-    - Support for viewing Daemon status
-- Continuous build support
-- Incremental Java compilation
-- Tooling API
-    - Preliminary support for composite builds
-    - Added rich test, task and build progress events
-    - Ability to run specific test classes or methods
-    - Support for build cancellation
-    - Support for color output
-    - Allow declaration of Eclipse builders and natures, Java source and runtime version, build JDK
-- IDE
-    - Improved Eclipse WTP integration, Scala integration
-    - Allow declaration of Java source and runtime version
-- Created [TestKit](userguide/test_kit.html)
-- Publishing plugins
-    - Support for publishing to SFTP and S3 repositories
-    - Support for Maven dependency exclusions, dependency classifiers
-    - Allow declaration of Ivy extra attributes and dependency exclusions
-- Groovy annotation processing
-- Build environment report
-- Improved Code quality and application plugins
-- Native
-    - Support for parallel compilation
-    - Support for cross compilation
-    - Support for precompiled headers
-    - Allow declaration of Google Test test suites
-    - Improved DSL for declaring test suites
-- Community
-    - More frequent releases
-    - More pull requests
-- Play support
-- Text resources
-- Software model    
-    - Dependency management for JVM libraries, target platform aware
-        - inter-project, intra-project and external libraries
-    - Support for JVM library API definition, compile avoidance
-    - JUnit support
-    - Added components and model reports
-    - Allow support for validation and defaults rules, apply rules to all subjects with type
-    - More managed model features
-    - Better extension by plugins
-    - Allow configuration of model through DSL
+We've also made good strides in improving the experience of plugin development.  The [Gradle TestKit](userguide/test_kit.html) is an out-of-the-box toolkit for functionally testing your Gradle plugins.
+The [Plugin Development Plugin](userguide/javaGradle_plugin.html) helps you set up your plugin project by adding common dependencies to the classpath and providing validation of the plugin metadata
+when building the archive.  Finally, the [Plugin Publishing Plugin](https://plugins.gradle.org/docs/publish-plugin) helps you to publish your plugins to the [Gradle Plugin Portal](https://plugins.gradle.org/) 
+and share them with the rest of the community.
+
+Dependency Management has gotten some love, too.  We've add [component selection rules](userguide/dependency_management.html#component_selection_rules), 
+[module replacement rules](userguide/dependency_management.html#sec:module_replacement), and [dependency substitution rules](userguide/dependency_management.html#dependency_substitution_rules).  We've 
+provided support for S3 repositories as well as configurable HTTP authentication, including preemptive authentication.  We've even added support for compile-only dependencies.  Publishing dependencies 
+is also more powerful and you can now publish to S3 and SFTP repositories, implement Maven or Ivy dependency exclusions, as well as publish Ivy extra attributes in 
+the artifact metadata.  You can even publish your plugins to a private repository and then [resolve them using the plugins DSL](userguide/plugins.html#sec:custom_plugin_repositories).
+
+On the developer experience side of the house, you can now run [continuous builds](userguide/continuous_build.html), where Gradle actively detects changes to the inputs of your
+tasks and proactively re-executes the build when changes occur.  Our Tooling API is now considerably better with support for build cancellation, build progress events, and the ability to run specific test classes or methods.  These improvements
+have all contributed to the release of [Eclipse Buildship](https://projects.eclipse.org/projects/tools.buildship) which provides first-class support for building, testing and running 
+Gradle projects in Eclipse.
+
+There's been substantial work on the plugins delivered with the Gradle distribution, too.  We've added the ability to build, test and run applications using the [Play Framework](userguide/play_plugin.html).
+Support for [Native builds](userguide/native_software.html) continues to improve with support for parallel compilation, cross compilation and pre-compiled headers.  We've also introduced a DSL for 
+declaring test suites and added support for testing native components with Google Test.  We've also continued to evolve [the Software Model](userguide/software_model_concepts.html) and 
+[rule based model configuration](userguide/software_model.html) that these plugins are built on.  It is now possible to configure the model through DSL and view component and model reports as well as
+create new types of rules such as validation and defaults rules.  
+
+Gradle 3.0 represents a significant improvement over Gradle 2.0 in terms of functionality, performance and experience.  Looking forward, we'll continue to work on making Gradle the best build system on the 
+planet, but for now, we hope you enjoy using 3.0 as much as we've enjoyed working on it!
 
 ## Promoted features
 
