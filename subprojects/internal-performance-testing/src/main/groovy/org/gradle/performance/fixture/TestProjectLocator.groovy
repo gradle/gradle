@@ -19,17 +19,10 @@ package org.gradle.performance.fixture
 class TestProjectLocator {
 
     File findProjectDir(String name) {
-        def base = "subprojects/performance/build"
-        def locations = ["$base/$name", "../../$base/$name"]
-        def dirs = locations.collect { new File(it).absoluteFile }
-        for (File dir: dirs) {
-            if (dir.isDirectory()) {
-                return dir.canonicalFile
-            }
+        def dir = new File("build/$name").absoluteFile
+        if (!dir.directory) {
+            throw new IllegalArgumentException("Did not find test project at: $dir.absolutePath")
         }
-        def message = "Looks like the test project '$name' was not generated.\nI've tried to find it at:\n"
-        dirs.each { message += "  $it\n" }
-        message +="Please run 'gradlew performance:$name' to generate the test project."
-        throw new IllegalArgumentException(message)
+        dir
     }
 }
