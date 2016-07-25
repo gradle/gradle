@@ -384,6 +384,9 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
 
         when:
+        waitForDaemonExpiration()
+
+        then:
         startBuild()
         waitForBuildToWait()
 
