@@ -22,7 +22,7 @@ package org.gradle.api.tasks;
  * @deprecated The interface is only here to allow plugins built against Gradle 2.x to run and it will be removed in Gradle 4.0.
  */
 @Deprecated
-public interface TaskInputsVersion2 {
+public interface CompatibilityAdapterForTaskInputs {
     /**
      * Registers some input files for this task.
      *
