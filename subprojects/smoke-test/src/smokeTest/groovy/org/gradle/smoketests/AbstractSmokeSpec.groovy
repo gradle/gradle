@@ -40,8 +40,8 @@ abstract class AbstractSmokeSpec extends Specification {
 
     GradleRunner runner(String... tasks) {
         GradleRunner.create()
-            .withGradleInstallation(fileFromSystemProperty('smokeTest.gradleHomeDir'))
-            .withTestKitDir(fileFromSystemProperty('smokeTest.gradleUserHomeDir'))
+            .withGradleInstallation(fileFromSystemProperty('integTest.gradleHomeDir'))
+            .withTestKitDir(fileFromSystemProperty('integTest.gradleUserHomeDir'))
             .withProjectDir(testProjectDir.root)
             .withArguments(tasks.toList() + ['-s'])
     }
