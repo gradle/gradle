@@ -27,6 +27,7 @@ dependencies {
 useClassycle()
 
 tasks.withType(org.gradle.testing.PerformanceTest) {
+    dependsOn tasks.largeJavaProjectWithBuildScanPlugin
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
 }
 

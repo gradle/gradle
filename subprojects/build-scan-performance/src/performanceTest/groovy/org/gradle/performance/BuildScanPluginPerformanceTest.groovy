@@ -65,7 +65,7 @@ class BuildScanPluginPerformanceTest extends Specification {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
         def tasks = ['clean', 'build']
-        def gradleOpts = ['-Xms4g', '-Xmx4g', '-XX:MaxPermSize=512m']
+        def opts = ['-Xms4g', '-Xmx4g', '-XX:MaxPermSize=512m'] as String[]
 
         runner.testGroup = "build scan plugin"
         runner.testId = "large java project with and without build scan"
@@ -73,10 +73,8 @@ class BuildScanPluginPerformanceTest extends Specification {
         runner.baseline {
             projectName(sourceProject).displayName(WITHOUT_PLUGIN_LABEL).invocation {
                 tasksToRun(*tasks)
-                invocation {
-                    gradleOptions = gradleOpts
-                    expectFailure()
-                }
+                gradleOpts(opts)
+                expectFailure()
             }
         }
 
@@ -84,10 +82,8 @@ class BuildScanPluginPerformanceTest extends Specification {
             projectName(sourceProject).displayName(WITH_PLUGIN_LABEL).invocation {
                 args("-Dscan", "-Dscan.dump")
                 tasksToRun(*tasks)
-                invocation {
-                    gradleOptions = gradleOpts
-                    expectFailure()
-                }
+                gradleOpts(opts)
+                expectFailure()
             }
         }
 
