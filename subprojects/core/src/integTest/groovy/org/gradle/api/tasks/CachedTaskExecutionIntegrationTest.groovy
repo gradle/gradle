@@ -34,7 +34,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-    def cacheDir = testDirectoryProvider.createDir("task-cache")
 
     def setup() {
         buildFile << """
