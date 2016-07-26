@@ -83,9 +83,9 @@ task prepareSamples {
 
 task report(type: PerformanceReport) {
     classpath = sourceSets.performanceTest.runtimeClasspath
+    database = file("${System.getProperty("user.home")}/.gradle-performance-test-data")
     resultStoreClass = "org.gradle.performance.results.AllResultsStore"
     reportDir = new File(buildDir, "performance-tests/report")
-    outputs.upToDateWhen { false }
 }
 
 ext.performanceTestTasks = tasks.withType(PerformanceTest)
@@ -95,11 +95,6 @@ performanceTestTasks.all { PerformanceTest task ->
     classpath = sourceSets.performanceTest.runtimeClasspath
     dependsOn prepareSamples
     finalizedBy report
-
-    def localFileDb = "jdbc:h2:" + System.getProperty("user.home") + "/.gradle-performance-test-data)"
-    systemProperty "org.gradle.performance.db.url", project.findProperty("org.gradle.performance.db.url") ?: localFileDb
-    systemProperty "org.gradle.performance.db.username", project.findProperty("org.gradle.performance.db.username") ?: "sa"
-    systemProperty "org.gradle.performance.db.password", project.findProperty("org.gradle.performance.db.password") ?: ""
 }
 
 task performanceTest(type: PerformanceTest) {
@@ -174,6 +169,8 @@ plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) {
 class PerformanceReport extends DefaultTask {
     @InputFiles
     def classpath
+    @InputDirectory
+    def database
     @Input
     def resultStoreClass
     @OutputDirectory

@@ -28,21 +28,12 @@ import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GradleVersion;
 
 import java.io.Closeable;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Timestamp;
+import java.io.File;
+import java.sql.*;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.TreeSet;
+import java.util.*;
 
 import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 
@@ -50,15 +41,17 @@ import static org.gradle.performance.results.ResultsStoreHelper.toArray;
  * A {@link org.gradle.performance.fixture.DataReporter} implementation that stores results in an H2 relational database.
  */
 public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore, Closeable {
+    private final File dbFile;
     private final long ignoreV17Before;
-    private final PerformanceDatabase db;
+    private final H2FileDb db;
 
     public CrossVersionResultsStore() {
-        this("results");
+        this(new File(System.getProperty("user.home"), ".gradle-performance-test-data/results"));
     }
 
-    public CrossVersionResultsStore(String databaseName) {
-        db = new PerformanceDatabase(databaseName, new CrossVersionResultsSchemaInitializer());
+    public CrossVersionResultsStore(File dbFile) {
+        this.dbFile = dbFile;
+        db = new H2FileDb(dbFile, new CrossVersionResultsSchemaInitializer());
 
         // Ignore some broken samples before the given date
         DateFormat timeStampFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -124,7 +117,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 }
             });
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not open results datastore '%s'.", db.getUrl()), e);
+            throw new RuntimeException(String.format("Could not open results datastore '%s'.", dbFile), e);
         }
     }
 
@@ -168,7 +161,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 }
             });
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load test history from datastore '%s'.", db.getUrl()), e);
+            throw new RuntimeException(String.format("Could not load test history from datastore '%s'.", dbFile), e);
         }
     }
 
@@ -255,7 +248,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 }
             });
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load results from datastore '%s'.", db.getUrl()), e);
+            throw new RuntimeException(String.format("Could not load results from datastore '%s'.", dbFile), e);
         }
     }
 

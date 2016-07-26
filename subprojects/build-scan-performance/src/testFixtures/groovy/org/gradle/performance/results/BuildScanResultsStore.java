@@ -18,10 +18,12 @@ package org.gradle.performance.results;
 
 import org.gradle.performance.fixture.CrossBuildPerformanceResults;
 
+import java.io.File;
+
 public class BuildScanResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
 
     public BuildScanResultsStore() {
-        super("build-receipt-results");
+        super(new File(System.getProperty("user.home"), ".gradle-performance-test-data/build-receipt-results"));
     }
 
 }
