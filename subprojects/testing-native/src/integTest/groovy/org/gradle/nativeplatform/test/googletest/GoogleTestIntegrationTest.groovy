@@ -457,6 +457,27 @@ model {
         executedAndNotSkipped ":runHelloTestGoogleTestExe"
     }
 
+    def "google test run task is properly wired to binaries check tasks and lifecycle check task"() {
+        given:
+        useStandardConfig()
+        useConventionalSourceLocations()
+
+        when:
+        succeeds 'check'
+        then:
+        executed ':checkHelloSharedLibrary', ':checkHelloStaticLibrary', ':checkHelloTestGoogleTestExe', ':runHelloTestGoogleTestExe'
+
+        when:
+        succeeds 'checkHelloTestGoogleTestExe'
+        then:
+        executed ':runHelloTestGoogleTestExe'
+
+        when:
+        succeeds 'checkHelloStaticLibrary'
+        then:
+        executed ':runHelloTestGoogleTestExe'
+    }
+
     private useConventionalSourceLocations() {
         app.library.writeSources(file("src/hello"))
         app.googleTestTests.writeSources(file("src/helloTest"))

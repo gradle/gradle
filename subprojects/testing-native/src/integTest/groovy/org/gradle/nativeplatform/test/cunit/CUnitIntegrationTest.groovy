@@ -508,6 +508,27 @@ model {
         executedAndNotSkipped ":runHelloTestCUnitExe"
     }
 
+    def "cunit run task is properly wired to binaries check tasks and lifecycle check task"() {
+        given:
+        useStandardConfig()
+        useConventionalSourceLocations()
+
+        when:
+        succeeds 'check'
+        then:
+        executed ':checkHelloSharedLibrary', ':checkHelloStaticLibrary', ':checkHelloTestCUnitExe', ':runHelloTestCUnitExe'
+
+        when:
+        succeeds 'checkHelloTestCUnitExe'
+        then:
+        executed ':runHelloTestCUnitExe'
+
+        when:
+        succeeds 'checkHelloStaticLibrary'
+        then:
+        executed ':runHelloTestCUnitExe'
+    }
+
     private useConventionalSourceLocations() {
         app.library.writeSources(file("src/hello"))
         app.cunitTests.writeSources(file("src/helloTest"))
