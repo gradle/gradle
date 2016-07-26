@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -39,16 +38,12 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
 
     @Override
     public DependentBinariesResolutionResult resolve(BinarySpecInternal target) {
-        DependentBinariesResolvedResult root = null;
+        List<DependentBinariesResolvedResult> roots = Lists.newArrayList();
         for (DependentBinariesResolutionStrategy strategy : strategies) {
             DependentBinariesResolutionResult result = strategy.resolve(target);
-            if (root == null) {
-                root = result.getRoot();
-            } else {
-                root = mergeResults(Arrays.asList(root, result.getRoot()));
-            }
+            roots.add(result.getRoot());
         }
-        return new DefaultDependentBinariesResolutionResult(root);
+        return new DefaultDependentBinariesResolutionResult(mergeResults(roots));
     }
 
     private DependentBinariesResolvedResult mergeResults(Iterable<DependentBinariesResolvedResult> results) {
