@@ -28,7 +28,7 @@ public class MapBasedTaskOutputCache implements TaskOutputCache {
     private final String description;
     private final ConcurrentMap<String, byte[]> delegate;
 
-    protected MapBasedTaskOutputCache(String description, ConcurrentMap<String, byte[]> delegate) {
+    public MapBasedTaskOutputCache(String description, ConcurrentMap<String, byte[]> delegate) {
         this.description = description;
         this.delegate = delegate;
     }
