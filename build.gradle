@@ -47,7 +47,7 @@ buildTypes {
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
     quickTest {
-        tasks "runtimeTests", "runtimeIntegTests", "performance:test"
+        tasks "runtimeTests", "runtimeIntegTests"
     }
 
     // Used for builds to run all tests, but not necessarily on all platforms
@@ -58,7 +58,7 @@ buildTypes {
 
     // Used for builds to test the code on certain platforms
     platformTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests", "performance:test"
+        tasks "runtimeTests", "runtimeForkingIntegTests"
         projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
     }
 
@@ -147,7 +147,7 @@ ext {
         }
     }
 
-    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance"] }
+    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance", "buildScanPerformance"] }
     groovyProjects = subprojects
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [

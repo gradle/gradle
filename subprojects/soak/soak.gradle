@@ -12,7 +12,7 @@ tasks.matching { it.name in [ 'integTest', 'java9IntegTest'] }.all {
     }
 }
 
-task('soakTest', type: Test) {
+task('soakTest', type: org.gradle.testing.IntegrationTest) {
     systemProperties['org.gradle.soaktest'] = 'true'
     options {
         includeCategories 'org.gradle.soak.categories.SoakTest'

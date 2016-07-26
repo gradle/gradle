@@ -6,7 +6,7 @@ dependencies {
     testCompile libraries.groovy
 }
 
-task testKitVersionCompatibilityIntegTest(type: Test) {
+task testKitVersionCompatibilityIntegTest(type: org.gradle.testing.IntegrationTest) {
     description "Runs the TestKit version compatibility tests"
     systemProperties['org.gradle.integtest.testkit.compatibility'] = 'all'
     systemProperties['org.gradle.integtest.executer'] = 'forking'

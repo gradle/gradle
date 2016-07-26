@@ -306,6 +306,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return javaExecHandleBuilder.getClasspath();

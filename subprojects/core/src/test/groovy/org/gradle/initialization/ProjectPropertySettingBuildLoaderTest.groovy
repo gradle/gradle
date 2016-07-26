@@ -19,8 +19,8 @@ import org.gradle.api.Project
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
@@ -39,9 +39,9 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
     final File rootProjectDir = tmpDir.createDir('root')
     final File childProjectDir = tmpDir.createDir('child')
     final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(propertiesLoader, target)
-    final ExtensionContainerInternal rootExtension = Mock()
+    final ExtensionContainer rootExtension = Mock()
     final ExtraPropertiesExtension rootProperties = Mock()
-    final ExtensionContainerInternal childExtension = Mock()
+    final ExtensionContainer childExtension = Mock()
     final ExtraPropertiesExtension childProperties = Mock()
     def classLoaderScope = Mock(ClassLoaderScope)
 

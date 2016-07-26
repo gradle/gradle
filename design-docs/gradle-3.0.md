@@ -7,7 +7,7 @@ Note: for the change listed below, the old behaviour or feature to be removed sh
 
 # Stories
 
-## Remove deprecated elements
+## Remove deprecated elements (DONE)
 
 - Remove deprecated methods from:
     - Specs (Done)
@@ -116,11 +116,11 @@ TestNG dropped support for this in 5.12, in early 2010. Supporting these old sty
 - Remove reflective code from `TestNGTestClassProcessor` and properties from `TestNGSpec`
 - Remove test coverage and samples
 
-## Fix the delegate and parameter for named container configuration closure
+## Fix the delegate and parameter for named container configuration closure (DONE)
 
 Currently, a `ConfigureDelegate` instances is made visible to the closure as its parameter (eg `it`) and its delegate. This is not the case for other configuration closures.
 
-## Test output directories
+## Test output directories (DONE)
 
 The current defaults for the outputs of tasks of type `Test` conflict with each other:
 

@@ -192,6 +192,10 @@ public class IvyDescriptorFileGenerator {
                     .attribute("rev", dependency.getRevision())
                     .attribute("conf", dependency.getConfMapping());
 
+            if (!dependency.isTransitive()) {
+                xmlWriter.attribute("transitive", "false");
+            }
+
             for (DependencyArtifact dependencyArtifact : dependency.getArtifacts()) {
                 printDependencyArtifact(dependencyArtifact, xmlWriter);
             }

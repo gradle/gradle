@@ -25,6 +25,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -52,6 +53,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getPluginClasspath() {
         return pluginClasspath;

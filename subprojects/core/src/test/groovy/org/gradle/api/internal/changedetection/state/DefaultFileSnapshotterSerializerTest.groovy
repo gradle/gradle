@@ -22,6 +22,8 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.internal.MapBackedInMemoryStore
 import org.gradle.internal.serialize.SerializerSpec
 
+import static TaskFilePropertyCompareType.UNORDERED
+
 class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
     def treeSnapshotRepository = new TreeSnapshotRepository(new InMemoryCache(), stringInterner)
@@ -33,7 +35,7 @@ class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
         FileCollectionSnapshotImpl out = serialize(new FileCollectionSnapshotImpl([
             "1": DirSnapshot.getInstance(),
             "2": MissingFileSnapshot.getInstance(),
-            "3": new FileHashSnapshot(hash)]), serializer)
+            "3": new FileHashSnapshot(hash)], UNORDERED), serializer)
 
         then:
         out.snapshots.size() == 3

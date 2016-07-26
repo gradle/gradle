@@ -1,0 +1,191 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import org.gradle.testing.PerformanceTest
+import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
+
+
+apply plugin: 'java'
+
+sourceSets {
+    performanceTest {
+        compileClasspath += main.output + test.output
+        runtimeClasspath += main.output + test.output
+    }
+}
+
+configurations {
+    performanceTestCompile.extendsFrom testCompile
+    performanceTestRuntime.extendsFrom testRuntime
+    junit
+}
+
+dependencies {
+    performanceTestCompile project(":internalPerformanceTesting")
+
+    //so that implicit help tasks are available:
+    performanceTestRuntime project(':diagnostics')
+
+    //So that the wrapper and init task are added when performanceTests are run via commandline
+    //above can be removed when we implement the auto-apply plugins
+    performanceTestRuntime project(':buildInit')
+
+    junit 'junit:junit:4.12'
+}
+
+task checkNoIdenticalBuildFiles {
+    doLast {
+        def files = [:].withDefault { [] }
+        buildDir.eachFileRecurse {
+            if (it.name.endsWith('.gradle')) {
+                def hash = HashUtil.createHash(it, 'sha1').asHexString()
+                files[hash] << it
+            }
+        }
+        files.each { hash, candidates ->
+            if (candidates.size()>1) {
+                println "Duplicate build files found for hash '$hash' : $candidates"
+            }
+        }
+    }
+}
+
+tasks.withType(ProjectGeneratorTask) {
+    group = 'Project setup'
+    if(project.hasProperty("maxProjects")) {
+        projects = maxProjects as Integer
+    }
+}
+
+tasks.withType(JvmProjectGeneratorTask) {
+    testDependencies = configurations.junit
+}
+
+task prepareSamples {
+    dependsOn tasks.withType(ProjectGeneratorTask)
+    group = "Project Setup"
+    description = "Generates all sample projects for automated performance tests"
+}
+
+task report(type: PerformanceReport) {
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    database = file("${System.getProperty("user.home")}/.gradle-performance-test-data")
+    resultStoreClass = "org.gradle.performance.results.AllResultsStore"
+    reportDir = new File(buildDir, "performance-tests/report")
+}
+
+ext.performanceTestTasks = tasks.withType(PerformanceTest)
+
+performanceTestTasks.all { PerformanceTest task ->
+    testClassesDir = sourceSets.performanceTest.output.classesDir
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    dependsOn prepareSamples
+    finalizedBy report
+}
+
+task performanceTest(type: PerformanceTest) {
+    options {
+        includeCategories 'org.gradle.performance.categories.GradleCorePerformanceTest'
+    }
+}
+
+task performanceExperiments(type: PerformanceTest) {
+    options {
+        includeCategories 'org.gradle.performance.categories.Experiment'
+    }
+}
+
+task performanceAdhocTest(type: PerformanceTest) {
+    systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
+    maxParallelForks = 1
+}
+
+tasks.withType(PerformanceTest) {
+    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+    maxParallelForks = 1
+
+    doFirst {
+        // Some performance builds generate a lot of output,
+        // that is buffered until the test finishes via GradleExecuter.
+        if (System.getProperty('sun.arch.data.model').contains("64")) {
+            jvmArgs '-Xmx2g'
+        } else {
+            println "not increasing JVM heap size due to use of 32bit JVM"
+        }
+    }
+}
+
+configure([performanceTest, performanceExperiments]) {
+    if (project.hasProperty('org.gradle.performance.use_yourkit')) {
+        testLogging.showStandardStreams = true
+        systemProperties['org.gradle.performance.use_yourkit'] = '1'
+        outputs.upToDateWhen { false }
+    }
+    if (project.hasProperty('org.gradle.performance.heapdump')) {
+        systemProperties['org.gradle.performance.heapdump'] = '1'
+    }
+    if (project.hasProperty('org.gradle.performance.hotspotlog')) {
+        systemProperties['org.gradle.performance.hotspotlog'] = '1'
+    }
+    if (project.hasProperty('performanceTest.verbose')) {
+        testLogging.showStandardStreams = true
+    }
+}
+
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
+    idea {
+        module {
+            testSourceDirs += sourceSets.performanceTest.groovy.srcDirs
+            testSourceDirs += sourceSets.performanceTest.resources.srcDirs
+            scopes.TEST.plus.add(configurations.performanceTestCompile)
+            scopes.TEST.plus.add(configurations.performanceTestRuntime)
+        }
+    }
+}
+
+plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) {
+    eclipse {
+        classpath {
+            plusConfigurations.add(configurations.performanceTestCompile)
+            plusConfigurations.add(configurations.performanceTestRuntime)
+        }
+    }
+}
+
+class PerformanceReport extends DefaultTask {
+    @InputFiles
+    def classpath
+    @InputDirectory
+    def database
+    @Input
+    def resultStoreClass
+    @OutputDirectory
+    def reportDir
+
+    @TaskAction
+    def report() {
+        def cl = new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
+        def store = cl.loadClass(resultStoreClass).newInstance()
+        try {
+            def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
+            generator.generate(store, reportDir)
+        } finally {
+            store.close()
+            cl.close()
+        }
+    }
+}

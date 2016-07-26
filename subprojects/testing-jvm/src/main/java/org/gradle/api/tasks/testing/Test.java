@@ -70,6 +70,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.TaskAction;
@@ -1037,6 +1038,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Returns the classpath to use to execute the tests.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;

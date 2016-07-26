@@ -41,6 +41,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -310,6 +311,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Compile class path for the classes to be analyzed. The classes on this class path are used during analysis but aren't analyzed themselves.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
@@ -322,6 +324,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Class path holding the FindBugs library.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getFindbugsClasspath() {
         return findbugsClasspath;
@@ -334,6 +337,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Class path holding any additional FindBugs plugins.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getPluginClasspath() {
         return pluginClasspath;

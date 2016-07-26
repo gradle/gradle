@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
@@ -61,8 +62,8 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse) {
-        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, allowReuse));
+    public FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse, TaskFilePropertyCompareType compareType) {
+        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, allowReuse, compareType));
     }
 
     private Map<String, Boolean> getRoots(FileCollection files) {
@@ -95,11 +96,11 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             if (newEntries.size() == afterExecution.getSnapshots().size()) {
                 filesSnapshot = afterExecution;
             } else {
-                Map<String, IncrementalFileSnapshot> newSnapshots = new HashMap<String, IncrementalFileSnapshot>(newEntries.size());
+                ImmutableMap.Builder<String, IncrementalFileSnapshot> newSnapshots = ImmutableMap.builder();
                 for (Map.Entry<String, IncrementalFileSnapshot> entry : newEntries) {
                     newSnapshots.put(entry.getKey(), entry.getValue());
                 }
-                filesSnapshot = new FileCollectionSnapshotImpl(newSnapshots);
+                filesSnapshot = new FileCollectionSnapshotImpl(newSnapshots.build(), TaskFilePropertyCompareType.OUTPUT);
             }
         } else {
             filesSnapshot = afterExecution;
@@ -143,10 +144,10 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         @Override
-        public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType, Set<ChangeFilter> filters) {
+        public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType) {
             final OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
             final Iterator<TaskStateChange> rootFileIdIterator = iterateRootFileIdChanges(other, fileType);
-            final Iterator<TaskStateChange> fileIterator = filesSnapshot.iterateContentChangesSince(other.filesSnapshot, fileType, filters);
+            final Iterator<TaskStateChange> fileIterator = filesSnapshot.iterateContentChangesSince(other.filesSnapshot, fileType);
             return Iterators.concat(rootFileIdIterator, fileIterator);
         }
 

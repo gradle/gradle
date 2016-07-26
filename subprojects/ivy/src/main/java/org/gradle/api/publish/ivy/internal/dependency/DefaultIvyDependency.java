@@ -28,23 +28,25 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     private final String module;
     private final String revision;
     private final String confMapping;
+    private final boolean transitive;
     private final List<DependencyArtifact> artifacts = new ArrayList<DependencyArtifact>();
     private final List<ExcludeRule> excludeRules = new ArrayList<ExcludeRule>();
 
-    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping) {
+    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive) {
         this.organisation = organisation;
         this.module = module;
         this.revision = revision;
         this.confMapping = confMapping;
+        this.transitive = transitive;
     }
 
-    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, Collection<DependencyArtifact> artifacts) {
-        this(organisation, module, revision, confMapping);
+    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive, Collection<DependencyArtifact> artifacts) {
+        this(organisation, module, revision, confMapping, transitive);
         this.artifacts.addAll(artifacts);
     }
 
-    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, Collection<DependencyArtifact> artifacts, Collection<ExcludeRule> excludeRules) {
-        this(organisation, module, revision, confMapping, artifacts);
+    public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive, Collection<DependencyArtifact> artifacts, Collection<ExcludeRule> excludeRules) {
+        this(organisation, module, revision, confMapping, transitive, artifacts);
         this.excludeRules.addAll(excludeRules);
     }
 
@@ -62,6 +64,10 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
 
     public String getConfMapping() {
         return confMapping;
+    }
+
+    public boolean isTransitive() {
+        return transitive;
     }
 
     public Iterable<DependencyArtifact> getArtifacts() {

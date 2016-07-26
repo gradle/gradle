@@ -16,8 +16,10 @@
 
 package org.gradle.api.internal.tasks;
 
+import com.google.common.base.Function;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Callables;
 import groovy.lang.Closure;
@@ -26,6 +28,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -45,6 +48,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.OUTPUT;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -153,31 +157,19 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public SortedSet<TaskOutputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
             TaskPropertyUtils.ensurePropertiesHaveNames(filePropertiesInternal);
-            final Iterator<BasePropertySpec> rootIterator = filePropertiesInternal.iterator();
-            fileProperties = TaskPropertyUtils.collectFileProperties("output", new AbstractIterator<TaskOutputFilePropertySpec>() {
-                private Iterator<TaskOutputFilePropertySpec> childIterator;
-
-                @Override
-                protected TaskOutputFilePropertySpec computeNext() {
-                    while (true) {
-                        if (childIterator != null) {
-                            if (childIterator.hasNext()) {
-                                return childIterator.next();
-                            }
-                            childIterator = null;
-                        }
-                        if (!rootIterator.hasNext()) {
-                            return endOfData();
-                        }
-                        BasePropertySpec propertySpec = rootIterator.next();
+            Iterable<TaskOutputFilePropertySpec> flattenedProperties = Iterables.concat(
+                Iterables.transform(filePropertiesInternal, new Function<BasePropertySpec, Iterable<TaskOutputFilePropertySpec>>() {
+                    @Override
+                    public Iterable<TaskOutputFilePropertySpec> apply(BasePropertySpec propertySpec) {
                         if (propertySpec instanceof CompositePropertySpec) {
-                            childIterator = ((CompositePropertySpec) propertySpec).iterator();
+                            return (CompositePropertySpec) propertySpec;
                         } else {
-                            return (TaskOutputFilePropertySpec) propertySpec;
+                            return Collections.singleton((TaskOutputFilePropertySpec) propertySpec);
                         }
                     }
-                }
-            });
+                })
+            );
+            fileProperties = TaskPropertyUtils.collectFileProperties("output", flattenedProperties);
         }
         return fileProperties;
     }
@@ -225,7 +217,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     @Override
     public TaskOutputFilePropertyBuilder files(final Object... paths) {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("TaskOutputs.files(Object...)", "Please use the TaskOutputs.file(Object) or the TaskOutputs.dir(Object) method instead.");
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
             public TaskOutputFilePropertyBuilder call() throws Exception {
@@ -319,20 +310,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         @Override
         @Deprecated
-        public TaskOutputs files(Object... paths) {
+        public TaskOutputFilePropertyBuilder files(Object... paths) {
             return getTaskOutputs("files(Object...)").files(paths);
-        }
-
-        @Override
-        @Deprecated
-        public TaskOutputFilePropertyBuilder namedFiles(Callable<Map<?, ?>> paths) {
-            return getTaskOutputs("namedFiles(Callable)").namedFiles(paths);
-        }
-
-        @Override
-        @Deprecated
-        public TaskOutputFilePropertyBuilder namedFiles(Map<?, ?> paths) {
-            return getTaskOutputs("namedFiles(Map)").namedFiles(paths);
         }
 
         @Override
@@ -377,6 +356,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         @Override
         public OutputType getOutputType() {
             return outputType;
+        }
+
+        @Override
+        public TaskFilePropertyCompareType getCompareType() {
+            return OUTPUT;
         }
     }
 
@@ -469,6 +453,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         @Override
         public OutputType getOutputType() {
             return parentProperty.getOutputType();
+        }
+
+        @Override
+        public TaskFilePropertyCompareType getCompareType() {
+            return OUTPUT;
         }
 
         @Override

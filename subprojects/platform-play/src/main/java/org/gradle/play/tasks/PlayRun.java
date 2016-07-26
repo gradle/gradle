@@ -24,6 +24,7 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.deployment.internal.DeploymentRegistry;
@@ -61,9 +62,11 @@ public class PlayRun extends ConventionTask {
     @InputFiles
     private Set<File> assetsDirs;
 
+    @OrderSensitive
     @InputFiles
     private FileCollection runtimeClasspath;
 
+    @OrderSensitive
     @InputFiles
     private FileCollection changingClasspath;
 

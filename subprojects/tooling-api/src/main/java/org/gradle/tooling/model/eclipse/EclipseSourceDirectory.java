@@ -57,7 +57,7 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
     List<String> getExcludes() throws UnsupportedMethodException;
 
     /**
-     * Returns the output location of this source directory. If {@code null}, then the compiled classses are placed in the project's default output location.
+     * Returns the output location of this source directory. If {@code null}, then the compiled classes are placed in the project's default output location.
      *
      * @return The output location of this source directory.
      * @throws UnsupportedMethodException For Gradle versions older than 3.0, where this method is not supported.
@@ -75,5 +75,6 @@ public interface EclipseSourceDirectory extends SourceDirectory, EclipseClasspat
      *
      * @since 3.0
      */
+    @Incubating
     DomainObjectSet<? extends ClasspathAttribute> getClasspathAttributes() throws UnsupportedMethodException;
 }
