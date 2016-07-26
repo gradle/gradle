@@ -40,6 +40,11 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             apply plugin: "java"
         """
+        file("init.gradle") << """
+            taskCaching {
+                useLocalCache()
+            }
+        """
 
         file("src/main/java/Hello.java") << ORIGINAL_HELLO_WORLD
         file("src/main/resources/resource.properties") << """
@@ -207,6 +212,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private GradleExecuter enableCache() {
-        executer.withArguments "-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.directory=" + cacheDir
+        executer.withArgument "-Dorg.gradle.cache.tasks=true"
+        executer.withArgument "--init-script" withArgument "init.gradle"
     }
 }

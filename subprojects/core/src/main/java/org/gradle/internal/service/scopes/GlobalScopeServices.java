@@ -48,6 +48,8 @@ import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
+import org.gradle.api.internal.tasks.cache.config.DefaultTaskCaching;
+import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
@@ -360,6 +362,10 @@ public class GlobalScopeServices {
 
     DependencyInjectingInstantiator.ConstructorCache createConstructorCache() {
         return new DependencyInjectingInstantiator.ConstructorCache();
+    }
+
+    TaskCachingInternal createTaskCaching() {
+        return new DefaultTaskCaching();
     }
 
 }
