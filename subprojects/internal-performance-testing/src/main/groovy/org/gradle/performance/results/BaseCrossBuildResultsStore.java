@@ -29,8 +29,12 @@ import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.Closeable;
-import java.io.File;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -40,12 +44,10 @@ import static org.gradle.performance.results.ResultsStoreHelper.splitVcsCommits;
 
 public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> implements ResultsStore, DataReporter<R>, Closeable {
 
-    private final File dbFile;
-    private final H2FileDb db;
+    private final PerformanceDatabase db;
 
-    public BaseCrossBuildResultsStore(File dbFile) {
-        this.dbFile = dbFile;
-        this.db = new H2FileDb(dbFile, new CrossBuildResultsSchemaInitializer());
+    public BaseCrossBuildResultsStore(String databaseName) {
+        this.db = new PerformanceDatabase(databaseName, new CrossBuildResultsSchemaInitializer());
     }
 
     public void report(final R results) {
@@ -82,7 +84,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 }
             });
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not open results datastore '%s'.", dbFile), e);
+            throw new RuntimeException(String.format("Could not open results datastore '%s'.", db.getUrl()), e);
         }
     }
 
@@ -136,7 +138,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 }
             });
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load test history from datastore '%s'.", dbFile), e);
+            throw new RuntimeException(String.format("Could not load test history from datastore '%s'.", db.getUrl()), e);
         }
     }
 
@@ -214,7 +216,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 }
             });
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load results from datastore '%s'.", dbFile), e);
+            throw new RuntimeException(String.format("Could not load results from datastore '%s'.", db.getUrl()), e);
         }
     }
 

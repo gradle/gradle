@@ -16,18 +16,17 @@
 
 package org.gradle.performance.results;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class H2FileDb {
-    private final File dbFile;
+public class PerformanceDatabase {
+    private final String databaseName;
     private final ConnectionAction<Void> schemaInitializer;
     private Connection connection;
 
-    public H2FileDb(File dbFile, ConnectionAction<Void> schemaInitializer) {
-        this.dbFile = dbFile;
+    public PerformanceDatabase(String databaseName, ConnectionAction<Void> schemaInitializer) {
+        this.databaseName = databaseName;
         this.schemaInitializer = schemaInitializer;
     }
 
@@ -36,7 +35,7 @@ public class H2FileDb {
             try {
                 connection.close();
             } catch (SQLException e) {
-                throw new RuntimeException(String.format("Could not close datastore '%s'.", dbFile), e);
+                throw new RuntimeException(String.format("Could not close datastore '%s'.", getUrl()), e);
             } finally {
                 connection = null;
             }
@@ -45,9 +44,8 @@ public class H2FileDb {
 
     public <T> T withConnection(ConnectionAction<T> action) throws Exception {
         if (connection == null) {
-            dbFile.getParentFile().mkdirs();
             Class.forName("org.h2.Driver");
-            connection = DriverManager.getConnection(String.format("jdbc:h2:%s", dbFile.getAbsolutePath()), "sa", "");
+            connection = DriverManager.getConnection(getUrl(), getUserName(), getPassword());
             try {
                 schemaInitializer.execute(connection);
             } catch (Exception e) {
@@ -57,5 +55,19 @@ public class H2FileDb {
             }
         }
         return action.execute(connection);
+    }
+
+    public String getUrl() {
+        String defaultUrl = "jdbc:h2:" + System.getProperty("user.home") + "/.gradle-performance-test-data";
+        String baseUrl = System.getProperty("org.gradle.performance.db.url", defaultUrl);
+        return baseUrl + "/" + databaseName;
+    }
+
+    public String getUserName() {
+        return System.getProperty("org.gradle.performance.db.username", "sa");
+    }
+
+    public String getPassword() {
+        return System.getProperty("org.gradle.performance.db.password", "");
     }
 }
