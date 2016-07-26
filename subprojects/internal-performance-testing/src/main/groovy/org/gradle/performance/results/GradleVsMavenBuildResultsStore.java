@@ -18,12 +18,10 @@ package org.gradle.performance.results;
 
 import org.gradle.performance.fixture.GradleVsMavenBuildPerformanceResults;
 
-import java.io.File;
-
 public class GradleVsMavenBuildResultsStore extends BaseCrossBuildResultsStore<GradleVsMavenBuildPerformanceResults> {
 
     public GradleVsMavenBuildResultsStore() {
-        super(new File(System.getProperty("user.home"), ".gradle-performance-test-data/gvsm-build-results"));
+        super("gvsm-build-results");
     }
 
 }

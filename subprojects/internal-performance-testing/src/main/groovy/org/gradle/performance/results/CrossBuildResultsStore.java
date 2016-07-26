@@ -18,12 +18,10 @@ package org.gradle.performance.results;
 
 import org.gradle.performance.fixture.CrossBuildPerformanceResults;
 
-import java.io.File;
-
 public class CrossBuildResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
 
     public CrossBuildResultsStore() {
-        super(new File(System.getProperty("user.home"), ".gradle-performance-test-data/cross-build-results"));
+        super("cross-build-results");
     }
 
     protected boolean ignore(CrossBuildPerformanceResults performanceResults) {
