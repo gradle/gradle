@@ -86,7 +86,7 @@ So what does a Gradle Script Kotlin build look like?  Here's an example:
         includeEmptyDirs = false
     }
 
-This looks very similar to a Groovy build script, but when you load it in either IDEA and Eclipse, suddenly development is a much better experience because you now have code auto-completion, 
+This looks very similar to a Groovy build script, but when you load it in either IDEA or Eclipse, suddenly development is a much better experience.  You now have code auto-completion, 
 refactoring, and other features you would expect from an IDE in your `build.gradle.kts`.  You can still use all of your plugins written in Java or Groovy but also take advantage of the power of first-class development 
 support.  Take a look and [give it a try](https://github.com/gradle/gradle-script-kotlin/tree/master/samples)!
 
@@ -245,7 +245,7 @@ The [Plugin Development Plugin](userguide/javaGradle_plugin.html) helps you set 
 when building the archive.  Finally, the [Plugin Publishing Plugin](https://plugins.gradle.org/docs/publish-plugin) helps you to publish your plugins to the [Gradle Plugin Portal](https://plugins.gradle.org/) 
 and share them with the rest of the community.
 
-Dependency Management has gotten some love, too.  We've add [component selection rules](userguide/dependency_management.html#component_selection_rules), 
+Dependency Management has gotten some love, too.  We've added [component selection rules](userguide/dependency_management.html#component_selection_rules), 
 [module replacement rules](userguide/dependency_management.html#sec:module_replacement), and [dependency substitution rules](userguide/dependency_management.html#dependency_substitution_rules).  We've 
 provided support for S3 repositories as well as configurable HTTP authentication, including preemptive authentication.  We've even added support for compile-only dependencies.  Publishing dependencies 
 is also more powerful and you can now publish to S3 and SFTP repositories, implement Maven or Ivy dependency exclusions, as well as publish Ivy extra attributes in 
