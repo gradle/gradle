@@ -14,15 +14,16 @@ of projects to work on, but here is a simple case:
 
 We have 3 projects: `common`, `moduleA`, `moduleB`
 
-* `moduleA` has a dependency on `common`
+* `moduleA` has a dependency on `common 1.1`
 * `moduleB` depends on both `common` and `moduleA`
 * `settings.gradle` only includes `common` and `moduleB`. `moduleA` is being pulled from a repository.
+* The local version of `common` is `1.0`
 
-What happens:
+What happens by default:
+* For `moduleB` external dependency `common 1.1` replaces the direct project dependency.
 
-1. `moduleB` depends on `common` directly and also transitively through `moduleA`.
-2. The version of `common` referenced by `moduleA` happens to be higher.
-3. The higher version of `common` replaces the direct project dependency.
+What would happen with `preferProjectModules = true`:
+* Project dependency will be picked over the external dependency.
 
 ## Use case 2 (project priority should be off)
 
@@ -43,7 +44,7 @@ and is chained in front of `LatestModuleConflictResolver` by `DefaultArtifactDep
 There is also a new method `ResolutionStrategy.preferProjectModules`, which allows toggling between project priority and version-only
 conflict resolution.
 
-# Unit tests
+# Test cases
 
 `ProjectDependencyPreferenceIntegrationTest`, is added in order to test the various permutations of
 versions, forced dependencies and `preferProjectModules` settings.
