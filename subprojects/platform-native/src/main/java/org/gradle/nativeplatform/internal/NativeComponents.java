@@ -150,27 +150,28 @@ public class NativeComponents {
             assembleDependents.dependsOn(new Callable<Iterable<Task>>() {
                 @Override
                 public Iterable<Task> call() {
-                    return getDependentTaskDependencies("assembleDependents", binary, tasks, dependentsResolver, projectModelResolver);
+                    return getDependentTaskDependencies("assembleDependents", binary, dependentsResolver, projectModelResolver);
                 }
             });
             buildDependents.dependsOn(new Callable<Iterable<Task>>() {
                 @Override
                 public Iterable<Task> call() {
-                    return getDependentTaskDependencies("buildDependents", binary, tasks, dependentsResolver, projectModelResolver);
+                    return getDependentTaskDependencies("buildDependents", binary, dependentsResolver, projectModelResolver);
                 }
             });
         }
     }
 
-    private static List<Task> getDependentTaskDependencies(String dependedOnBinaryTaskName, BinarySpecInternal binary, ModelMap<Task> tasks, DependentBinariesResolver dependentsResolver, ProjectModelResolver projectModelResolver) {
+    private static List<Task> getDependentTaskDependencies(String dependedOnBinaryTaskName, BinarySpecInternal binary, DependentBinariesResolver dependentsResolver, ProjectModelResolver projectModelResolver) {
         List<Task> dependencies = Lists.newArrayList();
         DependentBinariesResolvedResult result = dependentsResolver.resolve(binary).getRoot();
         for (DependentBinariesResolvedResult dependent : result.getChildren()) {
             if (dependent.isBuildable()) {
                 ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(dependent.getId().getProjectPath());
                 ModelMap<NativeBinarySpecInternal> projectBinaries = modelRegistry.realize("binaries", ModelTypes.modelMap(NativeBinarySpecInternal.class));
+                ModelMap<Task> projectTasks = modelRegistry.realize("tasks", ModelTypes.modelMap(Task.class));
                 NativeBinarySpecInternal dependentBinary = projectBinaries.get(dependent.getProjectScopedName());
-                dependencies.add(tasks.get(dependentBinary.getNamingScheme().getTaskName(dependedOnBinaryTaskName)));
+                dependencies.add(projectTasks.get(dependentBinary.getNamingScheme().getTaskName(dependedOnBinaryTaskName)));
             }
         }
         return dependencies;
