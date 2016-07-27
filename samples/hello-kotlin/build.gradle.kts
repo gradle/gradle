@@ -1,14 +1,11 @@
 buildscript {
 
-    extra["kotlinVersion"] = "1.1.0-dev-1159"
-    extra["repo"] = "https://repo.gradle.org/gradle/repo"
-
     repositories {
-        maven { setUrl(extra["repo"]) }
+        gradleScriptKotlin()
     }
 
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${extra["kotlinVersion"]}")
+        classpath(kotlinModule("gradle-plugin"))
     }
 }
 
@@ -22,9 +19,9 @@ configure<ApplicationPluginConvention> {
 }
 
 repositories {
-    maven { setUrl(extra["repo"]) }
+    gradleScriptKotlin()
 }
 
 dependencies {
-    compile("org.jetbrains.kotlin:kotlin-stdlib:${extra["kotlinVersion"]}")
+    compile(kotlinModule("stdlib"))
 }
