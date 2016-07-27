@@ -124,7 +124,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     }
 
     private void addModuleDependency(ModuleDependency dependency, String confMapping) {
-        ivyDependencies.add(new DefaultIvyDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), confMapping, dependency.isTransitive(), dependency.getArtifacts(), dependency.getExcludeRules()));
+        ivyDependencies.add(new DefaultIvyDependency(dependency, confMapping));
     }
 
     public void configurations(Action<? super IvyConfigurationContainer> config) {

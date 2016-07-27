@@ -18,6 +18,7 @@ package org.gradle.api.publish.ivy.internal.dependency;
 
 import org.gradle.api.artifacts.DependencyArtifact;
 import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ModuleDependency;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,6 +49,10 @@ public class DefaultIvyDependency implements IvyDependencyInternal {
     public DefaultIvyDependency(String organisation, String module, String revision, String confMapping, boolean transitive, Collection<DependencyArtifact> artifacts, Collection<ExcludeRule> excludeRules) {
         this(organisation, module, revision, confMapping, transitive, artifacts);
         this.excludeRules.addAll(excludeRules);
+    }
+
+    public DefaultIvyDependency(ModuleDependency dependency, String confMapping) {
+        this(dependency.getGroup(), dependency.getName(), dependency.getVersion(), confMapping, dependency.isTransitive(), dependency.getArtifacts(), dependency.getExcludeRules());
     }
 
     public String getOrganisation() {
