@@ -188,11 +188,23 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         greeterLibrary()
         myTestSuiteSpec('greeter')
         greeterTestCase()
+        buildFile << '''
+            task customGreeterCheck()
+            model {
+                components {
+                    greeter {
+                        binaries.all {
+                            checkedBy($.tasks.customGreeterCheck)
+                        }
+                    }
+                }
+            }
+        '''.stripIndent()
 
         when:
         succeeds 'check'
         then:
-        executed ':checkGreeterJar', ':checkMyTestGreeterJarBinary', ':myTestGreeterJarBinaryTest'
+        executed ':customGreeterCheck', ':checkGreeterJar', ':checkMyTestGreeterJarBinary', ':myTestGreeterJarBinaryTest'
 
         when:
         run 'checkMyTestGreeterJarBinary'
@@ -202,7 +214,7 @@ class JUnitComponentUnderTestIntegrationTest extends AbstractJUnitTestExecutionI
         when:
         run 'checkGreeterJar'
         then:
-        executed ':myTestGreeterJarBinaryTest'
+        executed ':customGreeterCheck', ':myTestGreeterJarBinaryTest'
     }
 
     private void greeterLibrary() {

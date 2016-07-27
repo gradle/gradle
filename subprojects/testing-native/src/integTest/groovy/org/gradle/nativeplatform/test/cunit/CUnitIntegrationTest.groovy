@@ -512,11 +512,23 @@ model {
         given:
         useStandardConfig()
         useConventionalSourceLocations()
+        buildFile << '''
+            task customHelloCheck()
+            model {
+                components {
+                    hello {
+                        binaries.all {
+                            checkedBy($.tasks.customHelloCheck)
+                        }
+                    }
+                }
+            }
+        '''.stripIndent()
 
         when:
         succeeds 'check'
         then:
-        executed ':checkHelloSharedLibrary', ':checkHelloStaticLibrary', ':checkHelloTestCUnitExe', ':runHelloTestCUnitExe'
+        executed ':customHelloCheck', ':checkHelloSharedLibrary', ':checkHelloStaticLibrary', ':checkHelloTestCUnitExe', ':runHelloTestCUnitExe'
 
         when:
         succeeds 'checkHelloTestCUnitExe'
@@ -526,7 +538,7 @@ model {
         when:
         succeeds 'checkHelloStaticLibrary'
         then:
-        executed ':runHelloTestCUnitExe'
+        executed ':customHelloCheck', ':runHelloTestCUnitExe'
     }
 
     private useConventionalSourceLocations() {
