@@ -22,8 +22,8 @@ buildscript {
         maven { setUrl(extra["repo"]) }
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:2.2.0-alpha4")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${extra["kotlinVersion"]}")
+        classpath("com.android.tools.build:gradle:2.2.0-alpha6")
     }
 }
 
