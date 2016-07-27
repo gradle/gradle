@@ -58,6 +58,7 @@ import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
+import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
@@ -1050,8 +1051,8 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
         return instantiator.newInstance(FactoryNamedDomainObjectContainer.class, type, instantiator, new DynamicPropertyNamer(), factoryClosure);
     }
 
-    public ExtensionContainer getExtensions() {
-        return getConvention();
+    public ExtensionContainerInternal getExtensions() {
+        return (ExtensionContainerInternal) getConvention();
     }
 
     // Not part of the public API
