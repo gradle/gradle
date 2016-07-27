@@ -18,50 +18,27 @@ package org.gradle.api.internal.tasks.cache.config;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.tasks.cache.LocalDirectoryTaskOutputCache;
-import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.internal.tasks.cache.TaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory;
-import org.gradle.api.internal.tasks.cache.TaskOutputReader;
-import org.gradle.api.internal.tasks.cache.TaskOutputWriter;
 
 import java.io.File;
-import java.io.IOException;
 
 public class DefaultTaskCaching implements TaskCachingInternal {
-    private static final TaskOutputCacheFactory NO_OP_TASK_CACHE_FACTORY = new TaskOutputCacheFactory() {
+    private static final TaskOutputCacheFactory DEFAULT_LOCAL_TASK_CACHE_FACTORY = new TaskOutputCacheFactory() {
         @Override
         public TaskOutputCache createCache(StartParameter startParameter) {
-            return new TaskOutputCache() {
-                @Override
-                public TaskOutputReader get(TaskCacheKey key) throws IOException {
-                    return null;
-                }
-
-                @Override
-                public void put(TaskCacheKey key, TaskOutputWriter output) throws IOException {
-                }
-
-                @Override
-                public String getDescription() {
-                    return "no task output cache";
-                }
-            };
+            String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
+            File cacheDirectory = cacheDirectoryPath != null
+                ? new File(cacheDirectoryPath)
+                : new File(startParameter.getGradleUserHomeDir(), "task-cache");
+            return new LocalDirectoryTaskOutputCache(cacheDirectory);
         }
     };
-    private TaskOutputCacheFactory factory = NO_OP_TASK_CACHE_FACTORY;
+    private TaskOutputCacheFactory factory = DEFAULT_LOCAL_TASK_CACHE_FACTORY;
 
     @Override
     public void useLocalCache() {
-        this.factory = new TaskOutputCacheFactory() {
-            @Override
-            public TaskOutputCache createCache(StartParameter startParameter) {
-                String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
-                File cacheDirectory = cacheDirectoryPath != null
-                    ? new File(cacheDirectoryPath)
-                    : new File(startParameter.getGradleUserHomeDir(), "task-cache");
-                return new LocalDirectoryTaskOutputCache(cacheDirectory);
-            }
-        };
+        this.factory = DEFAULT_LOCAL_TASK_CACHE_FACTORY;
     }
 
     @Override
