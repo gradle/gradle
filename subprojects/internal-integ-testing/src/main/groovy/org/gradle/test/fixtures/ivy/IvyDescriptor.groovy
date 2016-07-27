@@ -70,11 +70,12 @@ class IvyDescriptor {
                     org: dep.@org,
                     module: dep.@name,
                     revision: dep.@rev,
-                    conf: dep.@conf
+                    conf: dep.@conf,
+                    transitive: dep.@transitive
             )
 
             dep.exclude.each { exclude ->
-                ivyDependency.exclusions << new IvyDescriptorDependencyExclusion(org: exclude.@org, module: exclude.@module)
+                ivyDependency.exclusions << new IvyDescriptorDependencyExclusion(org: exclude.@org, module: exclude.@module, name: exclude.@name, type: exclude.@type, ext: exclude.@ext, conf: exclude.@conf, matcher: exclude.@matcher)
             }
 
             def key = "${ivyDependency.org}:${ivyDependency.module}:${ivyDependency.revision}"

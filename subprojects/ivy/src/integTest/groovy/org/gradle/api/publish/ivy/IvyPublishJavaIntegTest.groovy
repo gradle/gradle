@@ -17,6 +17,8 @@
 
 package org.gradle.api.publish.ivy
 
+import spock.lang.Issue
+
 class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
 
@@ -116,12 +118,22 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         resolveArtifacts(ivyModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]
     }
 
+    @Issue("GRADLE-3514")
     public void "generated ivy descriptor includes dependency exclusions"() {
         given:
         createBuildScripts("""
             dependencies {
                 compile 'org.springframework:spring-core:2.5.6', {
                     exclude group: 'commons-logging', module: 'commons-logging'
+                }
+                compile "commons-beanutils:commons-beanutils:1.8.3", {
+                    exclude group: 'commons-logging'
+                }
+                compile "commons-dbcp:commons-dbcp:1.4", {
+                    transitive = false
+                }
+                compile "org.apache.camel:camel-jackson:2.15.3", {
+                    exclude module: 'camel-core'
                 }
             }
 
@@ -145,8 +157,26 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         dependency.exclusions[0].org == 'commons-logging'
         dependency.exclusions[0].module == 'commons-logging'
 
+        ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasConf("runtime->default")
+        ivyModule.parsedIvy.dependencies["commons-beanutils:commons-beanutils:1.8.3"].exclusions[0].org == 'commons-logging'
+        !ivyModule.parsedIvy.dependencies["commons-dbcp:commons-dbcp:1.4"].transitiveEnabled()
+        ivyModule.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].hasConf("runtime->default")
+        ivyModule.parsedIvy.dependencies["org.apache.camel:camel-jackson:2.15.3"].exclusions[0].module == 'camel-core'
+
         and:
-        resolveArtifacts(ivyModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9.jar", "spring-core-2.5.6.jar"]
+        resolveArtifacts(ivyModule) == [
+            "camel-jackson-2.15.3.jar",
+            "commons-beanutils-1.8.3.jar",
+            "commons-collections-3.2.2.jar",
+            "commons-dbcp-1.4.jar",
+            "commons-io-1.4.jar",
+            "jackson-annotations-2.4.0.jar",
+            "jackson-core-2.4.3.jar",
+            "jackson-databind-2.4.3.jar",
+            "jackson-module-jaxb-annotations-2.4.3.jar",
+            "publishTest-1.9.jar",
+            "spring-core-2.5.6.jar"
+        ]
     }
 
     def createBuildScripts(def append) {
@@ -178,6 +208,5 @@ $append
                 testCompile "junit:junit:4.12"
             }
 """
-
     }
 }

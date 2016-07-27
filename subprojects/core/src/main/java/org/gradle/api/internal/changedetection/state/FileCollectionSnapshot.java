@@ -23,24 +23,17 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * An immutable snapshot of the contents and meta-data of a collection of files or directories.
  */
 public interface FileCollectionSnapshot {
-    enum ChangeFilter {
-        IgnoreAddedFiles
-    }
-
     boolean isEmpty();
 
     /**
      * Returns an iterator over the changes to file contents since the given snapshot, subject to the given filters.
-     *
-     * <p>Note: Ignores changes to file meta-data, such as last modified time. This should be made a {@link ChangeFilter} at some point.
      */
-    Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String title, Set<ChangeFilter> filters);
+    Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String title);
 
     Collection<File> getFiles();
 

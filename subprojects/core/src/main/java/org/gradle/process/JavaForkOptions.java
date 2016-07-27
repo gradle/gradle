@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OrderSensitive;
 
 import java.util.List;
 import java.util.Map;
@@ -149,6 +150,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The bootstrap classpath. Never returns null.
      */
+    @OrderSensitive
     @InputFiles
     FileCollection getBootstrapClasspath();
 

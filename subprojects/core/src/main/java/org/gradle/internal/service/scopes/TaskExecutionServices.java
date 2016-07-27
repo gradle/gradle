@@ -18,6 +18,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskArtifactStateRepository;
@@ -42,10 +43,9 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.cache.LocalDirectoryTaskOutputCache;
-import org.gradle.api.internal.tasks.cache.TaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.ZipTaskOutputPacker;
+import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.execution.PostExecutionAnalysisTaskExecuter;
@@ -74,12 +74,11 @@ import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
-
-import java.io.File;
+import org.gradle.internal.util.SystemPropertiesUtil;
 
 public class TaskExecutionServices {
 
-    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, TaskOutputCache cache, TaskOutputPacker packer, StartParameter startParameter, ListenerManager listenerManager, Gradle gradle) {
+    TaskExecuter createTaskExecuter(TaskArtifactStateRepository repository, TaskOutputPacker packer, StartParameter startParameter, ListenerManager listenerManager, GradleInternal gradle) {
         // TODO - need a more comprehensible way to only collect inputs for the outer build
         //      - we are trying to ignore buildSrc here, but also avoid weirdness with use of GradleBuild tasks
         boolean isOuterBuild = gradle.getParent() == null;
@@ -98,7 +97,7 @@ public class TaskExecutionServices {
                                 createSkipCachedExecuterIfNecessary(
                                     startParameter,
                                     repository,
-                                    cache,
+                                    gradle.getTaskCaching(),
                                     packer,
                                     new PostExecutionAnalysisTaskExecuter(
                                         new ExecuteActionsTaskExecuter(
@@ -114,9 +113,9 @@ public class TaskExecutionServices {
         );
     }
 
-    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskArtifactStateRepository repository, TaskOutputCache cache, TaskOutputPacker packer, TaskExecuter delegate) {
-        if ("true".equals(startParameter.getSystemPropertiesArgs().get("org.gradle.cache.tasks"))) {
-            return new SkipCachedTaskExecuter(repository, cache, packer, delegate);
+    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskArtifactStateRepository repository, TaskCachingInternal taskCaching, TaskOutputPacker packer, TaskExecuter delegate) {
+        if (SystemPropertiesUtil.isEnabled("org.gradle.cache.tasks")) {
+            return new SkipCachedTaskExecuter(repository, taskCaching, packer, startParameter, delegate);
         } else {
             return delegate;
         }
@@ -186,17 +185,6 @@ public class TaskExecutionServices {
 
     BuildOperationWorkerRegistry createBuildOperationWorkerRegistry(StartParameter startParameter) {
         return new DefaultBuildOperationWorkerRegistry(startParameter.getMaxWorkerCount());
-    }
-
-    TaskOutputCache createTaskResultCache(StartParameter startParameter) {
-        String cacheDirPath = startParameter.getSystemPropertiesArgs().get("org.gradle.cache.tasks.directory");
-        File cacheDir;
-        if (cacheDirPath != null) {
-            cacheDir = new File(cacheDirPath);
-        } else {
-            cacheDir = new File(startParameter.getGradleUserHomeDir(), "task-cache");
-        }
-        return new LocalDirectoryTaskOutputCache(cacheDir);
     }
 
     TaskOutputPacker createTaskResultPacker() {

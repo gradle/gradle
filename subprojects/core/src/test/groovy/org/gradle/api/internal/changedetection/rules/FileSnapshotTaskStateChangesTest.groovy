@@ -41,7 +41,7 @@ public class FileSnapshotTaskStateChangesTest extends Specification {
         def messages = createStateChanges().iterator().collect {it.message}
 
         then:
-        1 * inputSnapshot.iterateContentChangesSince(previousInputSnapshot, _, _) >> [
+        1 * inputSnapshot.iterateContentChangesSince(previousInputSnapshot, _) >> [
             new FileChange("one", ChangeType.ADDED, "TYPE"),
             new FileChange("two", ChangeType.REMOVED, "TYPE"),
             new FileChange("three", ChangeType.MODIFIED, "TYPE")

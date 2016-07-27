@@ -82,18 +82,12 @@ public class DefaultGradleDistribution implements GradleDistribution {
             return javaVersion.compareTo(JavaVersion.VERSION_1_5) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
         }
 
-        // 2.x works on Java 6 - 8
-        if (isSameOrOlder("2.14")) {
+        // 2.x and 3.0-milestone-1 work on Java 6 - 8
+        if (isSameOrOlder("3.0-milestone-1")) {
             return javaVersion.compareTo(JavaVersion.VERSION_1_6) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_8) <= 0;
         }
 
         // 3.x works on Java 7 - 9
-
-        // 3.0-milestone-1 treated Java9 more like Java8, so it's not fully supported yet.
-        if (isVersion("3.0-milestone-1") && javaVersion == JavaVersion.VERSION_1_9) {
-            return false;
-        }
-
         return javaVersion.compareTo(JavaVersion.VERSION_1_7) >= 0 && javaVersion.compareTo(JavaVersion.VERSION_1_9) <= 0;
     }
 

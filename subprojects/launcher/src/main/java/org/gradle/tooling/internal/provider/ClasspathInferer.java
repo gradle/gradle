@@ -69,7 +69,8 @@ public class ClasspathInferer {
      */
     private void find(Class<?> target, Collection<Class<?>> visited, Collection<URL> dest) {
         ClassLoader targetClassLoader = target.getClassLoader();
-        if (targetClassLoader == null) {
+        if (targetClassLoader == null
+            || targetClassLoader.getClass().getName().equals("jdk.internal.loader.ClassLoaders$PlatformClassLoader")) { // At some point we probably want to build the modulepath using this information
             // A system class, skip it
             return;
         }

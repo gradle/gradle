@@ -122,10 +122,6 @@ public class JavaPluginConvention {
      * Returns the source compatibility used for compiling Java sources.
      */
     public JavaVersion getSourceCompatibility() {
-        return srcCompat != null ? srcCompat : resolveDefaultSourceCompatibility();
-    }
-
-    private JavaVersion resolveDefaultSourceCompatibility() {
         return srcCompat != null ? srcCompat : JavaVersion.current();
     }
 

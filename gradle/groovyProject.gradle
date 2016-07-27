@@ -51,7 +51,7 @@ jarTasks.all { jar ->
 }
 
 // Configures the project to use the test fixtures from another project, which by default is core.
-// Note this is not used to provide test fixtures, see gradle/testFixtures.gradle for that
+// Note this is not used to create test fixtures in this project, see gradle/testFixtures.gradle for that
 ext.useTestFixtures = { params = [:] ->
     def projectPath = params.project ?: ":core"
     def sourceSet = params.sourceSet ?: "test"
@@ -70,6 +70,15 @@ if (file("src/testFixtures").exists()) {
 }
 
 apply from: "$rootDir/gradle/integTest.gradle"
+
+
+if (file("src/performanceTest").exists()) {
+    apply from: "$rootDir/gradle/performanceTest.gradle"
+}
+
+if (file("src/jmh").exists()) {
+    apply from: "$rootDir/gradle/jmh.gradle"
+}
 
 class ClasspathManifest extends DefaultTask {
 

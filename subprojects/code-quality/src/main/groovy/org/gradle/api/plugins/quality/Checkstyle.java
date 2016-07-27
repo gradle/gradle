@@ -32,6 +32,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
@@ -142,6 +143,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * The class path containing the Checkstyle library to be used.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getCheckstyleClasspath() {
         return checkstyleClasspath;
@@ -154,6 +156,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * The class path containing the compiled classes for the source files to be analyzed.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;

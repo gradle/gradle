@@ -650,7 +650,13 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     /**
      * Returns the maximum number of concurrent workers used for underlying build operations.
      *
-     * Workers can be threads, processes or whatever Gradle considers a "worker".
+     * Workers can be threads, processes or whatever Gradle considers a "worker". Some examples:
+     *
+     * <ul>
+     *     <li>A thread running a task</li>
+     *     <li>A test process</li>
+     *     <li>A language compiler in a forked process</li>
+     * </ul>
      *
      * Defaults to the number of processors available to the Java virtual machine.
      *

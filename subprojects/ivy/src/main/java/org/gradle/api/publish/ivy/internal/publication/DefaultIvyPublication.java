@@ -120,11 +120,11 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
     private void addProjectDependency(ProjectDependency dependency, String confMapping) {
         ModuleVersionIdentifier identifier = projectDependencyResolver.resolve(dependency);
         ivyDependencies.add(new DefaultIvyDependency(
-                identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules()));
+                identifier.getGroup(), identifier.getName(), identifier.getVersion(), confMapping, dependency.isTransitive(), Collections.<DependencyArtifact>emptyList(), dependency.getExcludeRules()));
     }
 
     private void addModuleDependency(ModuleDependency dependency, String confMapping) {
-        ivyDependencies.add(new DefaultIvyDependency(dependency.getGroup(), dependency.getName(), dependency.getVersion(), confMapping, dependency.getArtifacts(), dependency.getExcludeRules()));
+        ivyDependencies.add(new DefaultIvyDependency(dependency, confMapping));
     }
 
     public void configurations(Action<? super IvyConfigurationContainer> config) {

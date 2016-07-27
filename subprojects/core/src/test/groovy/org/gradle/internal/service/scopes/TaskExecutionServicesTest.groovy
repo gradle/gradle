@@ -16,6 +16,7 @@
 package org.gradle.internal.service.scopes
 
 import org.gradle.StartParameter
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.CachingTreeVisitor
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
@@ -41,8 +42,8 @@ import org.gradle.internal.service.ServiceRegistry
 import spock.lang.Specification
 
 class TaskExecutionServicesTest extends Specification {
-    final ServiceRegistry parent = Mock()
-    final Gradle gradle = Mock()
+    final def parent = Mock(ServiceRegistry)
+    final def gradle = Mock(GradleInternal)
     final def services = new DefaultServiceRegistry(parent).addProvider(new TaskExecutionServices())
 
     def "makes a TaskExecutor available"() {
@@ -50,6 +51,7 @@ class TaskExecutionServicesTest extends Specification {
         CacheRepository cacheRepository = Mock()
         CacheBuilder cacheBuilder = Mock()
         _ * parent.get(Gradle) >> gradle
+        _ * parent.get(GradleInternal) >> gradle
         gradle.getTaskGraph() >> Mock(TaskGraphExecuter)
         _ * parent.get(ListenerManager) >> Mock(ListenerManager)
         _ * parent.get(StartParameter) >> Mock(StartParameter) {

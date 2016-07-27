@@ -16,47 +16,47 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.Nullable;
-import org.gradle.api.internal.changedetection.rules.ChangeType;
-import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapshotSet {
     final Map<String, IncrementalFileSnapshot> snapshots;
     final List<TreeSnapshot> treeSnapshots;
+    final TaskFilePropertyCompareType compareType;
 
-    public FileCollectionSnapshotImpl(List<TreeSnapshot> treeSnapshots) {
-        this.treeSnapshots = ImmutableList.copyOf(treeSnapshots);
-        this.snapshots = new HashMap<String, IncrementalFileSnapshot>();
-        for(TreeSnapshot treeSnapshot : treeSnapshots) {
-            addSnapshots(treeSnapshot.getFileSnapshots());
-        }
+    public FileCollectionSnapshotImpl(List<TreeSnapshot> treeSnapshots, TaskFilePropertyCompareType compareType) {
+        this(convertTreeSnapshots(treeSnapshots), ImmutableList.copyOf(treeSnapshots), compareType);
     }
 
-    public FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots) {
+    public FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots, TaskFilePropertyCompareType compareType) {
+        this(snapshots, null, compareType);
+    }
+
+    private FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots, List<TreeSnapshot> treeSnapshots, TaskFilePropertyCompareType compareType) {
         this.snapshots = snapshots;
-        this.treeSnapshots = null;
+        this.treeSnapshots = treeSnapshots;
+        this.compareType = compareType;
     }
 
-
-    private void addSnapshots(Collection<FileSnapshotWithKey> fileSnapshots) {
-        for(FileSnapshotWithKey fileSnapshotWithKey : fileSnapshots) {
-            snapshots.put(fileSnapshotWithKey.getKey(), fileSnapshotWithKey.getIncrementalFileSnapshot());
+    private static Map<String, IncrementalFileSnapshot> convertTreeSnapshots(List<TreeSnapshot> treeSnapshots) {
+        Map<String, IncrementalFileSnapshot> snapshots = Maps.newLinkedHashMap();
+        for (TreeSnapshot treeSnapshot : treeSnapshots) {
+            for(FileSnapshotWithKey fileSnapshotWithKey : treeSnapshot.getFileSnapshots()) {
+                snapshots.put(fileSnapshotWithKey.getKey(), fileSnapshotWithKey.getIncrementalFileSnapshot());
+            }
         }
+        return snapshots;
     }
 
     public List<File> getFiles() {
@@ -94,7 +94,7 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapsho
         List<Long> snapshotIds = new ArrayList<Long>();
         if (treeSnapshots != null) {
             for (TreeSnapshot treeSnapshot : treeSnapshots) {
-                if (treeSnapshot.isShareable() && treeSnapshot.getAssignedId() != null && treeSnapshot.getAssignedId().longValue() != -1) {
+                if (treeSnapshot.isShareable() && treeSnapshot.getAssignedId() != null && treeSnapshot.getAssignedId() != -1L) {
                     snapshotIds.add(treeSnapshot.getAssignedId());
                 }
             }
@@ -107,51 +107,13 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot, FilesSnapsho
         return snapshots.isEmpty();
     }
 
-
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, final String fileType, final Set<ChangeFilter> filters) {
-        final Map<String, IncrementalFileSnapshot> otherSnapshots = new HashMap<String, IncrementalFileSnapshot>(oldSnapshot.getSnapshots());
-        final Iterator<String> currentFiles = snapshots.keySet().iterator();
-        final boolean includeAdded = !filters.contains(ChangeFilter.IgnoreAddedFiles);
-        return new AbstractIterator<TaskStateChange>() {
-            private Iterator<String> removedFiles;
-
-            @Override
-            protected TaskStateChange computeNext() {
-                while (currentFiles.hasNext()) {
-                    String currentFile = currentFiles.next();
-                    IncrementalFileSnapshot otherFile = otherSnapshots.remove(currentFile);
-                    if (otherFile == null) {
-                        if (includeAdded) {
-                            return new FileChange(currentFile, ChangeType.ADDED, fileType);
-                        }
-                    } else if (!snapshots.get(currentFile).isContentUpToDate(otherFile)) {
-                        return new FileChange(currentFile, ChangeType.MODIFIED, fileType);
-                    }
-                }
-
-                // Create a single iterator to use for all of the removed files
-                if (removedFiles == null) {
-                    removedFiles = otherSnapshots.keySet().iterator();
-                }
-
-                if (removedFiles.hasNext()) {
-                    return new FileChange(removedFiles.next(), ChangeType.REMOVED, fileType);
-                }
-
-                return endOfData();
-            }
-        };
+    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType) {
+        return compareType.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType);
     }
 
     @Override
     public void appendToCacheKey(TaskCacheKeyBuilder builder) {
-        List<String> keys = Lists.newArrayList(snapshots.keySet());
-        Collections.sort(keys);
-        for (String key : keys) {
-            builder.putString(key);
-            IncrementalFileSnapshot snapshot = snapshots.get(key);
-            builder.putHashCode(snapshot.getHash());
-        }
+        compareType.appendToCacheKey(builder, snapshots);
     }
 }

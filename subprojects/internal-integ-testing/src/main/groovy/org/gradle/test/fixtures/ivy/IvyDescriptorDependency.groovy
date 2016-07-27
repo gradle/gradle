@@ -21,10 +21,22 @@ class IvyDescriptorDependency {
     String module
     String revision
     String conf
+    String transitive
     Collection<IvyDescriptorDependencyExclusion> exclusions = []
 
-    IvyDescriptorDependency hasConf(def conf) {
-        assert this.conf == conf
-        return this
+    boolean hasConf(String conf) {
+        this.conf == conf
+    }
+
+    boolean transitiveEnabled() {
+        transitive != 'false'
+    }
+
+    boolean hasExcludes() {
+        exclusions
+    }
+
+    boolean hasExclude(IvyDescriptorDependencyExclusion exclusion) {
+        exclusions.contains(exclusion)
     }
 }

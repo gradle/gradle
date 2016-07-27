@@ -51,11 +51,17 @@ public class BlockingHttpServer extends ExternalResource {
         server.setHandler(handlers)
     }
 
+    /**
+     * Expects the given calls to be made concurrently. Blocks each call until they have all been received.
+     */
     void expectConcurrentExecution(String expectedCall, String... additionalExpectedCalls) {
         def handler = new CyclicBarrierRequestHandler((additionalExpectedCalls.toList() + expectedCall) as Set, {})
         collection.addHandler(handler)
     }
 
+    /**
+     * Expects the given call to be made.
+     */
     void expectSerialExecution(String expectedCall) {
         def handler = new CyclicBarrierRequestHandler(expectedCall, {})
         collection.addHandler(handler)

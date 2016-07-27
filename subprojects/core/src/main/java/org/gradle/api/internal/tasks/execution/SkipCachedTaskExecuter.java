@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.tasks.cache.TaskOutputCache;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
 import org.gradle.api.internal.tasks.cache.TaskOutputReader;
 import org.gradle.api.internal.tasks.cache.TaskOutputWriter;
+import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.util.Clock;
 import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
@@ -40,17 +42,19 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipCachedTaskExecuter.class);
 
     private final TaskArtifactStateRepository repository;
-    private final TaskOutputCache cache;
+    private final TaskCachingInternal taskCaching;
+    private final StartParameter startParameter;
     private final TaskOutputPacker packer;
     private final TaskExecuter delegate;
+    private TaskOutputCache cache;
 
-    public SkipCachedTaskExecuter(TaskArtifactStateRepository repository, TaskOutputCache cache, TaskOutputPacker packer, TaskExecuter delegate) {
+    public SkipCachedTaskExecuter(TaskArtifactStateRepository repository, TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskExecuter delegate) {
         this.repository = repository;
-        this.cache = cache;
+        this.taskCaching = taskCaching;
+        this.startParameter = startParameter;
         this.packer = packer;
         this.delegate = delegate;
         SingleMessageLogger.incubatingFeatureUsed("Task output caching");
-        LOGGER.info("Using {}", cache.getDescription());
     }
 
     @Override
@@ -89,7 +93,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         if (cacheKey != null) {
             try {
-                TaskOutputReader cachedOutput = cache.get(cacheKey);
+                TaskOutputReader cachedOutput = getCache().get(cacheKey);
                 if (cachedOutput != null) {
                     packer.unpack(taskOutputs, cachedOutput);
                     LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getTime());
@@ -106,10 +110,18 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         if (cacheKey != null && state.getFailure() == null) {
             try {
                 TaskOutputWriter cachedOutput = packer.createWriter(taskOutputs);
-                cache.put(cacheKey, cachedOutput);
+                getCache().put(cacheKey, cachedOutput);
             } catch (IOException e) {
                 LOGGER.info(String.format("Could not cache results for %s for cache key %s", task, cacheKey), e);
             }
         }
+    }
+
+    private TaskOutputCache getCache() {
+        if (cache == null) {
+            cache = taskCaching.getCacheFactory().createCache(startParameter);
+            LOGGER.info("Using {}", cache.getDescription());
+        }
+        return cache;
     }
 }

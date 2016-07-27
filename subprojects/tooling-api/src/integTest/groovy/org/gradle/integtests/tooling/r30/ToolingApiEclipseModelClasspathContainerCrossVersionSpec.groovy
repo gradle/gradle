@@ -20,10 +20,11 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
+import org.gradle.tooling.model.eclipse.EclipseClasspathContainer
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 @ToolingApiVersion('>=3.0')
-@TargetGradleVersion(">=3.0")
+@TargetGradleVersion('>=3.0')
 class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingApiSpecification {
 
     def setup() {
@@ -108,9 +109,37 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
 
         when:
         EclipseProject project = loadToolingModel(EclipseProject)
+        EclipseClasspathContainer container = project.classpathContainers.find { it.path == 'whenMergedContainerPath' }
 
         then:
-        project.classpathContainers.find { it.path == 'whenMergedContainerPath' }
+        container != null
+        container.exported == false
+    }
+
+    def "Classpath container can be configured"() {
+        buildFile <<
+        """apply plugin: 'java'
+           apply plugin: 'eclipse'
+           eclipse {
+               classpath {
+                   file {
+                      whenMerged { classpath ->
+                          def container = new org.gradle.plugins.ide.eclipse.model.Container('whenMergedContainerPath')
+                          container.exported = true
+                          classpath.entries.add(container)
+                      }
+                   }
+               }
+           }
+        """
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject)
+        EclipseClasspathContainer container = project.classpathContainers.find { it.path == 'whenMergedContainerPath' }
+
+        then:
+        container != null
+        container.exported == true
     }
 
     def "Respects targetCompatibility customization"() {

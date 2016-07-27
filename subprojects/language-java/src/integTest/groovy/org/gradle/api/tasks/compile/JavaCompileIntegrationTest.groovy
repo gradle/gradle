@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -93,7 +92,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         file("b/build/classes/main/Foo.class").exists()
     }
 
-    @NotYetImplemented
+    @Issue("https://issues.gradle.org/browse/GRADLE-3508")
     def "detects change in classpath order"() {
         file("lib1.jar") << jarWithContents("data.txt": "data1")
         file("lib2.jar") << jarWithContents("data.txt": "data2")
@@ -110,6 +109,9 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         run "compile"
         then:
         skippedTasks.contains ":compile"
+
+        // Need to wait for build script cache to be able to recognize change
+        sleep(1000L)
 
         buildFile.delete()
         buildFile << buildScriptWithClasspath("lib2.jar", "lib1.jar")

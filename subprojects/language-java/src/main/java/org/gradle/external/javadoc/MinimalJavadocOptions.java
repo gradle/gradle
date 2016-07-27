@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
@@ -60,6 +61,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions doclet(String docletClass);
 
+    @OrderSensitive
     @InputFiles
     List<File> getDocletpath();
 
@@ -83,6 +85,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions classpath(File ... classpath);
 
+    @OrderSensitive
     @InputFiles
     List<File> getBootClasspath();
 

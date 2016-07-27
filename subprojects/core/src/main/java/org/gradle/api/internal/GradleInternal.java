@@ -19,6 +19,7 @@ import org.gradle.BuildListener;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.service.ServiceRegistry;
@@ -26,7 +27,7 @@ import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 /**
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
- * consumption.  
+ * consumption.
  */
 public interface GradleInternal extends Gradle {
     /**
@@ -74,4 +75,6 @@ public interface GradleInternal extends Gradle {
 
     ClassLoaderScope getClassLoaderScope();
 
+    @Override
+    TaskCachingInternal getTaskCaching();
 }

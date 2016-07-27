@@ -19,11 +19,13 @@ import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.tasks.TaskCaching;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
 
@@ -259,6 +261,18 @@ public interface Gradle extends PluginAware {
      * @param logger The logger to use.
      */
     public void useLogger(Object logger);
+
+    /**
+     * Configures task output caching.
+     */
+    @Incubating
+    void taskCaching(Action<TaskCaching> action);
+
+    /**
+     * Returns the task output caching configuration.
+     */
+    @Incubating
+    TaskCaching getTaskCaching();
 
     /**
      * Returns this {@code Gradle} instance.

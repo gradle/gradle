@@ -18,6 +18,7 @@ package org.gradle.plugins.signing.signatory.pgp;
 import org.bouncycastle.openpgp.PGPSecretKey;
 import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection;
+import org.bouncycastle.openpgp.bc.BcPGPSecretKeyRingCollection;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
@@ -121,7 +122,7 @@ public class PgpSignatoryFactory {
     protected PGPSecretKey readSecretKey(InputStream input, String keyId, String sourceDescription) {
         Object keyRingCollection;
         try {
-            keyRingCollection = new PGPSecretKeyRingCollection(input);
+            keyRingCollection = new BcPGPSecretKeyRingCollection(input);
         } catch (Exception e) {
             throw new InvalidUserDataException("Unable to read secret key from " + sourceDescription + " (it may not be a PGP secret key ring)", e);
         }
