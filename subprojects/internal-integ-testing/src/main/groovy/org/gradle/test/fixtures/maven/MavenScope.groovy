@@ -37,15 +37,9 @@ class MavenScope {
         }
     }
 
-    boolean hasDependencyExclusion(String dependency, String excludeGroupId, String excludeArtifactId) {
+    boolean hasDependencyExclusion(String dependency, MavenDependencyExclusion exclusion) {
         def dep = expectDependency(dependency)
-        for (MavenDependencyExclusion exclusion : dep.exclusions) {
-            assert exclusion.artifactId.equals(excludeArtifactId) && exclusion.groupId.equals(excludeGroupId)
-            if (exclusion.artifactId.equals(excludeArtifactId) && exclusion.groupId.equals(excludeGroupId)) {
-                return true
-            }
-        }
-        return false
+        dep.exclusions.contains(exclusion)
     }
 
     MavenDependency expectDependency(String key) {

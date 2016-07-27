@@ -16,6 +16,9 @@
 
 package org.gradle.test.fixtures.maven
 
+import groovy.transform.Canonical
+
+@Canonical
 class MavenDependencyExclusion {
     String groupId
     String artifactId

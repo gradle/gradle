@@ -16,6 +16,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.maven.MavenDependencyExclusion
 import spock.lang.Issue
 
 class MavenJavaProjectPublishIntegrationTest extends AbstractIntegrationSpec {
@@ -74,10 +75,10 @@ uploadArchives {
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.jar")
         mavenModule.parsedPom.scopes.compile.assertDependsOn("commons-collections:commons-collections:3.2.2", "org.springframework:spring-core:2.5.6",  "commons-dbcp:commons-dbcp:1.4", "org.apache.camel:camel-jackson:2.15.3", "commons-beanutils:commons-beanutils:1.8.3")
         mavenModule.parsedPom.scopes.runtime.assertDependsOn("commons-io:commons-io:1.4")
-        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("org.springframework:spring-core:2.5.6","commons-logging", "commons-logging")
-        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("commons-dbcp:commons-dbcp:1.4","*", "*")
-        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("org.apache.camel:camel-jackson:2.15.3", "org.apache.camel", "*")
-        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("commons-beanutils:commons-beanutils:1.8.3", "*", "commons-logging")
+        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("org.springframework:spring-core:2.5.6", new MavenDependencyExclusion("commons-logging", "commons-logging"))
+        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("commons-dbcp:commons-dbcp:1.4", new MavenDependencyExclusion("*", "*"))
+        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("org.apache.camel:camel-jackson:2.15.3", new MavenDependencyExclusion("org.apache.camel", "*"))
+        assert mavenModule.parsedPom.scopes.compile.hasDependencyExclusion("commons-beanutils:commons-beanutils:1.8.3", new MavenDependencyExclusion("*", "commons-logging"))
     }
 
     def "compile only dependencies are not included in published pom"() {
