@@ -111,14 +111,18 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             }
 
             public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
-                boolean outOfDate;
+                boolean outOfDate = false;
                 synchronized (lock) {
                     FileLock.State previousState = states.get(cacheId);
-                    outOfDate = previousState == null || currentCacheState.hasBeenUpdatedSince(previousState);
+                    if (previousState == null) {
+                        outOfDate = true;
+                    } else if (currentCacheState.hasBeenUpdatedSince(previousState)) {
+                        LOG.info("Invalidating in-memory cache of {}", cacheId);
+                        outOfDate = true;
+                    }
                 }
 
                 if (outOfDate) {
-                    LOG.info("Invalidating in-memory cache of {}", cacheId);
                     data.invalidateAll();
                 }
             }
@@ -140,7 +144,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             } else {
                 Integer maxSize = CACHE_CAPS.get(cacheName);
                 assert maxSize != null : "Unknown cache.";
-                LOG.info("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
+                LOG.debug("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
                 LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
                 theData = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener).build();
                 evictionListener.setCache(theData);
