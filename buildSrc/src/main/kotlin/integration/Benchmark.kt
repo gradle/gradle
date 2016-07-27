@@ -50,7 +50,7 @@ open class Benchmark : DefaultTask() {
     @TaskAction
     fun run() {
         val config = BenchmarkConfig(warmUpRuns, observationRuns)
-        val quotients = project.sampleDirs().map {
+        val quotients = project.sampleDirs().filter { !it.name.contains("android") }.map {
             benchmark(it, config)
         }
         val result = QuotientResult(quotients)
