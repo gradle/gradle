@@ -42,6 +42,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsC
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CacheLockReleasingProjectArtifactBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
@@ -266,7 +267,8 @@ class DependencyManagementBuildScopeServices {
     }
 
     ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ProjectArtifactBuilder projectArtifactBuilder, CacheLockingManager cacheLockingManager) {
-        return new ProjectDependencyResolver(localComponentRegistry, projectArtifactBuilder);
+        ProjectArtifactBuilder artifactBuilder = new CacheLockReleasingProjectArtifactBuilder(projectArtifactBuilder, cacheLockingManager);
+        return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder);
     }
 
     ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {
