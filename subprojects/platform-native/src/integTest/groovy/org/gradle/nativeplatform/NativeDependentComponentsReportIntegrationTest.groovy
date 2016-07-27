@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -113,7 +114,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         run 'dependentComponents'
 
         then:
-        output.contains('Some non-buildable components were not shown, use --non-buildables or --all to show them.')
+        output.contains('Some non-buildable components were not shown, use --non-buildable or --all to show them.')
         nonBuildables.each {
             assert !output.contains("$it:")
         }
@@ -169,7 +170,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         where:
         option             | _
         '--all'            | _
-        '--non-buildables' | _
+        '--non-buildable' | _
     }
 
     def "consider components with no buildable binaries as non-buildables"() {
@@ -192,7 +193,42 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
 
         then:
         !output.contains('main')
-        output.contains('Some non-buildable components were not shown, use --non-buildables or --all to show them.')
+        output.contains('Some non-buildable components were not shown, use --non-buildable or --all to show them.')
+    }
+    
+    @NotYetImplemented
+    def "always show component if requested even with no buildable binaries"() {
+        given:
+        buildScript simpleCppBuild()
+        buildFile << '''
+            model {
+                components {
+                    main {
+                        binaries.all {
+                            buildable = false
+                        }
+                    }
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'dependentComponents', '--component', 'main'
+
+        then:
+        output.contains '''
+            ------------------------------------------------------------
+            Project :libraries
+            ------------------------------------------------------------
+
+            foo - Components that depend on native library 'foo'
+            +--- :libraries:foo:sharedLibrary
+            |    +--- :bootstrap:main:executable
+            |    +--- :extensions:bazar:sharedLibrary
+            |    |    \\--- :bootstrap:main:executable
+            |    \\--- :extensions:bazar:staticLibrary
+            \\--- :libraries:foo:staticLibrary
+        '''.stripIndent()
     }
 
     def "displays dependents across projects in a build"() {
@@ -458,7 +494,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         where:
         option             | _
         "--test-suites"    | _
-        "--non-buildables" | _
+        "--non-buildable" | _
         "--all"            | _
     }
 

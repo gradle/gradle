@@ -114,7 +114,7 @@ public class DependentComponentsRenderer extends ReportRenderer<ComponentSpec, T
                 output.withStyle(Info).println("Some test suites were not shown, use --test-suites or --all to show them.");
             }
             if (hiddenNonBuildable) {
-                output.withStyle(Info).println("Some non-buildable components were not shown, use --non-buildables or --all to show them.");
+                output.withStyle(Info).println("Some non-buildable components were not shown, use --non-buildable or --all to show them.");
             }
         }
     }

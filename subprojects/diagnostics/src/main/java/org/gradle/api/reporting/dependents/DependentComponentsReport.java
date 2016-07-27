@@ -55,7 +55,7 @@ public class DependentComponentsReport extends DefaultTask {
         return showNonBuildable;
     }
 
-    @Option(option = "non-buildables", description = "Show non-buildable components.")
+    @Option(option = "non-buildable", description = "Show non-buildable components.")
     public void setShowNonBuildable(boolean showNonBuildable) {
         this.showNonBuildable = showNonBuildable;
     }
@@ -70,7 +70,7 @@ public class DependentComponentsReport extends DefaultTask {
         this.showTestSuites = showTestSuites;
     }
 
-    @Option(option = "all", description = "Show all components.")
+    @Option(option = "all", description = "Show all components (non-buildable and test suites).")
     public void setShowAll(boolean showAll) {
         this.showNonBuildable = showAll;
         this.showTestSuites = showAll;
