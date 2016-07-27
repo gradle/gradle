@@ -12,7 +12,7 @@ dramatically improve your build performance in the time it takes to eat lunch. C
 Ever wished for better IDE support when writing Gradle build scripts?  This release provides the first support for [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), 
 which is a Kotlin-based build language for Gradle scripts.  Its deep integration with both IDEA and Eclipse provides many of the things you would expect from an IDE such as auto-completion, 
 refactoring, navigation to source, and more.  Don't worry, Groovy is still the primary build language for Gradle scripts, but we'll continue to evolve Gradle Script Kotlin in order to provide 
-the best possible development experience to Gradle users.  See Chris Beam's [blog post](https://gradle.org/blog/kotlin-meets-gradle/) for more information about this exciting new feature.
+the best possible development experience to Gradle users.  See [Chris Beams's blog post](https://gradle.org/blog/kotlin-meets-gradle/) for more information about this exciting new feature.
 
 Additionally, Gradle 3.0 provides support for running on the latest Java 9 EAP builds.  Users can also build and run tests using these early versions of JDK 9, but there are some limitations.
 Check out the section on [Java 9 support](#java9-support) below for more details.
@@ -273,7 +273,7 @@ task myTask {
 
 > The chaining of the `file(Object)` method has been deprecated and is scheduled to be removed in Gradle 4.0. Please use the `file(Object)` method on `TaskInputs` directly instead.
 
-## Potential breaking changes
+## Potentially breaking changes
 
 ### Running Gradle on Java 6 is no longer supported
 
