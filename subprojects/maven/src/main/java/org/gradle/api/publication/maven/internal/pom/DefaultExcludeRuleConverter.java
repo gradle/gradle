@@ -22,14 +22,18 @@ class DefaultExcludeRuleConverter implements ExcludeRuleConverter {
     public Exclusion convert(ExcludeRule excludeRule) {
         if (isConvertable(excludeRule)) {
             Exclusion exclusion = new Exclusion();
-            exclusion.setGroupId(excludeRule.getGroup());
-            exclusion.setArtifactId(excludeRule.getModule());
+            exclusion.setGroupId(determineExclusionExpression(excludeRule.getGroup()));
+            exclusion.setArtifactId(determineExclusionExpression(excludeRule.getModule()));
             return exclusion;
         }
         return null;
     }
 
     private boolean isConvertable(ExcludeRule excludeRule) {
-        return excludeRule.getGroup()!=null && excludeRule.getModule()!=null;
+        return excludeRule.getGroup()!= null || excludeRule.getModule()!= null;
+    }
+
+    private String determineExclusionExpression(String attribute) {
+        return attribute != null ? attribute : "*";
     }
 }
