@@ -437,23 +437,22 @@ One instance of this is when you use `+=` in a statically compiled Groovy class.
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
+ - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Correct some typos in depMngmt.xml and README.md
+ - [Vladislav Bauer](https://github.com/vbauer) - ShadeJar: Use ClassRemapper instead of deprecated RemappingClassAdapter
+ - [Emmanuel Bourg](https://github.com/ebourg) - Use the JCIP ThreadSafe annotation instead of the one from httpcomponents
+ - [Andreas Dangel](https://github.com/adangel) - Add sourceSet.output to PMD classpath (GRADLE-3488)
  - [Tatsiana Drabovich](https://github.com/blestka) - Fixed TestNG Listener adapters equality (GRADLE-3189)
- - [Michael Ottati](https://github.com/mottati) - Allow Jetty daemon instances to be shut down. (GRADLE-2263)
+ - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.7
+ - [Ethan Hall](https://github.com/ethankhall) - Fixing documentation from candidate.name to candidate.module
+ - [Matias Hernandez](https://github.com/matiash) - Removed 4NT-specific code in bat files (GRADLE-3476)
  - [Gregorios Leach](https://github.com/simtel12) - Include directories when using a S3Client to list objects in a prefix. (GRADLE-3453)
  - [Mahmoud  Khater](https://github.com/mahmoud-k) - Fix a problem with determining the version of Findbugs on the classpath (GRADLE-3457)
- - [Ryan Ernst](https://github.com/rjernst) - Upgrade to Groovy 2.4.7
+ - [Michael Ottati](https://github.com/mottati) - Allow Jetty daemon instances to be shut down. (GRADLE-2263)
+ - [Sebastian Schuberth](https://github.com/sschuberth) - Minor style fixes
+ - [Alexander Shorin](https://github.com/kxepal) - Allow local connections for daemon and messaging services from all network devices (GRADLE-3121)
+ - [Rob	Upcraft](https://github.com/upcrob) - Fix spelling in documentation
  - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
  - [Ramon Wirsch](https://github.com/ramonwirsch) - Fix NullPointerException when processing annotations in the new Java software model
- - [Vladislav Bauer](https://github.com/vbauer) - ShadeJar: Use ClassRemapper instead of deprecated RemappingClassAdapter
- - [Matias Hernandez](https://github.com/matiash) - Removed 4NT-specific code in bat files (GRADLE-3476)
- - [Andreas Dangel](https://github.com/adangel) - Add sourceSet.output to PMD classpath (GRADLE-3488)
- - [Alexander Shorin](https://github.com/kxepal) - Allow local connections for daemon and messaging services from all network devices (GRADLE-3121)
- - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Correct some typos in depMngmt.xml and README.md
- - [Ethan Hall](https://github.com/ethankhall) - Fixing documentation from candidate.name to candidate.module
- - [Sebastian Schuberth](https://github.com/sschuberth) - Minor style fixes
- - [Rob	Upcraft](https://github.com/upcrob) - Fix spelling in documentation
- - [Emmanuel Bourg](https://github.com/ebourg) - Use the JCIP ThreadSafe annotation instead of the one from httpcomponents
-
 <!--
  - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
 -->
