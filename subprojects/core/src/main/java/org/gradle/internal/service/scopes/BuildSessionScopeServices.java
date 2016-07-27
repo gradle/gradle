@@ -23,6 +23,8 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
+import org.gradle.api.internal.tasks.cache.config.DefaultTaskCaching;
+import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
@@ -84,5 +86,9 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository) {
         return new WorkerProcessClassPathProvider(cacheRepository);
+    }
+
+    TaskCachingInternal createTaskCaching() {
+        return new DefaultTaskCaching();
     }
 }
