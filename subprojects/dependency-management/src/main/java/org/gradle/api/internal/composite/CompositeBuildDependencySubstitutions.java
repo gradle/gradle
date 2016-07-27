@@ -54,6 +54,7 @@ public class CompositeBuildDependencySubstitutions implements DependencySubstitu
 
     @Override
     public Action<DependencySubstitution> getDependencySubstitutionRule() {
+        // TODO:DAZ All of this work is done per-project in a multi-project build
         final ReplacementProjects replacementProjects = new ReplacementProjects(projectComponentRegistry);
         if (replacementProjects.isEmpty()) {
             return DependencySubstitutionRuleProvider.NO_OP;

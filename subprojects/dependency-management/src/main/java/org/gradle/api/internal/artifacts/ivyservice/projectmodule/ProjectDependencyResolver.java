@@ -39,16 +39,15 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver {
     private final LocalComponentRegistry localComponentRegistry;
-    private final List<ProjectArtifactBuilder> artifactBuilders;
+    private final ProjectArtifactBuilder artifactBuilder;
 
-    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, List<ProjectArtifactBuilder> artifactBuilders) {
+    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ProjectArtifactBuilder artifactBuilder) {
         this.localComponentRegistry = localComponentRegistry;
-        this.artifactBuilders = artifactBuilders;
+        this.artifactBuilder = artifactBuilder;
     }
 
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
@@ -94,9 +93,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         if (isProjectModule(artifact.getComponentId())) {
 
             // Run any registered actions to build this artifact
-            for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
-                artifactBuilder.build(artifact);
-            }
+            artifactBuilder.build(artifact);
 
             LocalComponentArtifactIdentifier id = (LocalComponentArtifactIdentifier) artifact.getId();
             File localArtifactFile = id.getFile();

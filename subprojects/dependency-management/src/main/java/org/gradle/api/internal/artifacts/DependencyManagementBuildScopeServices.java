@@ -265,8 +265,8 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalComponentRegistry(providers);
     }
 
-    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ServiceRegistry serviceRegistry) {
-        return new ProjectDependencyResolver(localComponentRegistry, serviceRegistry.getAll(ProjectArtifactBuilder.class));
+    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ProjectArtifactBuilder projectArtifactBuilder, CacheLockingManager cacheLockingManager) {
+        return new ProjectDependencyResolver(localComponentRegistry, projectArtifactBuilder);
     }
 
     ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {
