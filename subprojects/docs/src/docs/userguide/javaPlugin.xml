@@ -1562,7 +1562,7 @@
         <title>Compiling and testing for Java 6</title>
         <para>Gradle can only run on Java version 7 or higher. Gradle 3.x still
             supports compiling, testing, generating Javadoc and executing applications for Java 6.
-            Java 5 is not supported
+            Java 5 is not supported.
         </para>
         <para>To use Java 6 the following tasks need to be configured:
             <itemizedlist>
@@ -1571,7 +1571,7 @@
                 <listitem><literal>Test</literal> and the <literal>JavaExec</literal> task to use the correct <literal>java</literal> executable.</listitem>
             </itemizedlist>
             The following sample shows how the <literal>build.gradle</literal> needs to be adjusted. In order to be able to make the build machine-independent,
-            the location of the Java 6 home should be configured in <literal>$HOME/gradle/gradle.properties</literal>
+            the location of the Java 6 home should be configured in <literal>GRADLE_USER_HOME/gradle.properties</literal>
             <footnote>
                 <para>
                     For more details on <literal>gradle.properties</literal> see <xref linkend="sec:gradle_configuration_properties"/>

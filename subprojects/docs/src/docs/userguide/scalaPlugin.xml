@@ -366,9 +366,10 @@
     <section id='sec:scala_cross_compilation'>
         <title>Compiling and testing for Java 6</title>
         <para>
-            Since Scala 2.11 compiles Scala files to Bytecode for Java 6 regardless of the compatibility setting and Scala 2.12 compiles them to
-            Bytecode for Java 8 there is nothing you can do for Scala.
-            If you also have Java sources follow the same steps as for the <link linkend="sec:java_cross_compilation">Java plugin</link>.
+            The Scala compiler ignores Gradle's <literal>targetCompatibility</literal> and <literal>sourceCompatibility</literal> settings.
+            In Scala 2.11, the Scala compiler always compiles to Java 6 compatible bytecode.
+            In Scala 2.12, the Scala compiler always compiles to Java 8 compatible bytecode.
+            If you also have Java sources, you can follow the same steps as for the <link linkend="sec:java_cross_compilation">Java plugin</link> to ensure the correct Java compiler is used.
             <sample id="scalaCrossCompilation" dir="scala/crossCompilation" title="Configure Java 6 build for Scala">
                 <sourcefile file="gradle.properties" />
                 <sourcefile file="build.gradle" snippet="scala-cross-compilation" />
