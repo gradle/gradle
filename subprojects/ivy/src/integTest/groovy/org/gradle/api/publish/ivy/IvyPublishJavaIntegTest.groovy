@@ -17,6 +17,8 @@
 
 package org.gradle.api.publish.ivy
 
+import spock.lang.Issue
+
 class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
     def ivyModule = ivyRepo.module("org.gradle.test", "publishTest", "1.9")
 
@@ -116,6 +118,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
         resolveArtifacts(ivyModule) == ["commons-collections-3.2.2.jar", "commons-io-1.4.jar", "publishTest-1.9-source.jar", "publishTest-1.9.jar"]
     }
 
+    @Issue("GRADLE-3514")
     public void "generated ivy descriptor includes dependency exclusions"() {
         given:
         createBuildScripts("""
@@ -123,13 +126,13 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                 compile 'org.springframework:spring-core:2.5.6', {
                     exclude group: 'commons-logging', module: 'commons-logging'
                 }
-                compile ("commons-beanutils:commons-beanutils:1.8.3") {
+                compile "commons-beanutils:commons-beanutils:1.8.3", {
                     exclude group: 'commons-logging'
                 }
-                compile ("commons-dbcp:commons-dbcp:1.4") {
+                compile "commons-dbcp:commons-dbcp:1.4", {
                     transitive = false
                 }
-                compile ("org.apache.camel:camel-jackson:2.15.3") {
+                compile "org.apache.camel:camel-jackson:2.15.3", {
                     exclude module: 'camel-core'
                 }
             }
