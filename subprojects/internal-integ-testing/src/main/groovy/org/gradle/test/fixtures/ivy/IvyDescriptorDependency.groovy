@@ -24,9 +24,8 @@ class IvyDescriptorDependency {
     String transitive
     Collection<IvyDescriptorDependencyExclusion> exclusions = []
 
-    IvyDescriptorDependency hasConf(def conf) {
-        assert this.conf == conf
-        return this
+    boolean hasConf(String conf) {
+        this.conf == conf
     }
 
     boolean transitiveEnabled() {
@@ -34,18 +33,10 @@ class IvyDescriptorDependency {
     }
 
     boolean hasExcludes() {
-        exclusions && !exclusions.isEmpty()
+        exclusions
     }
 
-    boolean hasExclude(String org, String module, String name, String type, String ext, String conf, String matcher) {
-        if (hasExcludes()) {
-            for (IvyDescriptorDependencyExclusion exclude : exclusions) {
-                if (exclude.org == org && exclude.module == module && exclude.name == name && exclude.type == type
-                    && exclude.ext == ext && exclude.conf == conf && exclude.matcher == matcher) {
-                    return true
-                }
-           }
-        }
-        return false
+    boolean hasExclude(IvyDescriptorDependencyExclusion exclusion) {
+        exclusions.contains(exclusion)
     }
 }
