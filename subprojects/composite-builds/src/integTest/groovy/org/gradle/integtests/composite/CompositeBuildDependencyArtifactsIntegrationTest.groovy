@@ -26,7 +26,7 @@ import spock.lang.Unroll
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
-class CompositeBuildDependencyArtifactsCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildA
     BuildTestFile buildB
     MavenModule publishedModuleB

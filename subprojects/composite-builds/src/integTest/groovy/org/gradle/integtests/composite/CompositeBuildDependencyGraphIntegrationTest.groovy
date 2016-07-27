@@ -24,7 +24,7 @@ import spock.lang.Unroll
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
-class CompositeBuildDependencyGraphCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildA
     BuildTestFile buildB
     MavenFileRepository mavenRepo

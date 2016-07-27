@@ -24,7 +24,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 /**
  * Tests for generating IDEA metadata for projects within a composite build.
  */
-class CompositeBuildIdeaProjectCrossVersionSpec extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildA
     BuildTestFile buildB
     MavenFileRepository mavenRepo
