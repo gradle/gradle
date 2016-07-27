@@ -9,6 +9,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`project-properties`](project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
  - [`modularity`](modularity): demonstrates the use of `applyFrom` to modularize build scripts
  - [`hello-kotlin`](hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
+ - [`hello-android`](hello-android): demonstrates a Kotlin-based Gradle build script for a Kotlin-based Android project
 
 
 Set up dev environment
