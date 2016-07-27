@@ -42,9 +42,8 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
 
     public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, ClassPath injectedClasspath) {
         this.injectedClasspath = injectedClasspath;
-        ClassLoaderScope injectedScope = parentScope.createChild("injected-plugin");
         this.pluginRegistry = new DefaultPluginRegistry(pluginInspector,
-            injectedScope
+            parentScope.createChild("injected-plugin")
                 .local(injectedClasspath)
                 .lock()
         );

@@ -40,7 +40,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
@@ -108,8 +107,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         } else {
             parentRegistry = project.getParent().getServices().get(PluginRegistry.class);
         }
-        ClassLoaderScope pluginScope = project.getClassLoaderScope().createChild("plugins");
-        return parentRegistry.createChild(pluginScope.lock());
+        return parentRegistry.createChild(project.getClassLoaderScope().createChild("plugins").lock());
     }
 
     protected DeferredProjectConfiguration createDeferredProjectConfiguration() {

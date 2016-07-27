@@ -33,11 +33,6 @@ public class DummyClassLoaderCache implements ClassLoaderCache {
     }
 
     @Override
-    public void clear() {
-
-    }
-
-    @Override
     public int size() {
         return 0;
     }

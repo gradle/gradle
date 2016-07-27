@@ -19,6 +19,8 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.internal.classpath.ClassPath;
 
+import java.io.IOException;
+
 public class RootClassLoaderScope implements ClassLoaderScope {
 
     private final ClassLoader localClassLoader;
@@ -69,11 +71,6 @@ public class RootClassLoaderScope implements ClassLoaderScope {
     }
 
     @Override
-    public ClassPath getExportClassPath() {
-        return ClassPath.EMPTY;
-    }
-
-    @Override
     public ClassLoaderScope createChild(String name) {
         if (name == null) {
             throw new IllegalArgumentException("'name' cannot be null");
@@ -93,6 +90,6 @@ public class RootClassLoaderScope implements ClassLoaderScope {
 
     @Override
     public void close() {
-        // Do nothing, these classloaders are shared and should be closed manually.
+        // Do nothing.
     }
 }

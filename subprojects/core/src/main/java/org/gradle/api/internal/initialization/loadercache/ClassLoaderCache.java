@@ -28,5 +28,4 @@ public interface ClassLoaderCache {
 
     void remove(ClassLoaderId id);
 
-    void clear();
 }
