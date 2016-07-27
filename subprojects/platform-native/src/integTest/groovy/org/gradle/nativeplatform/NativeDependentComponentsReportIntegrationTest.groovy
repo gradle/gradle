@@ -218,16 +218,11 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         then:
         output.contains '''
             ------------------------------------------------------------
-            Project :libraries
+            Root project
             ------------------------------------------------------------
 
-            foo - Components that depend on native library 'foo'
-            +--- :libraries:foo:sharedLibrary
-            |    +--- :bootstrap:main:executable
-            |    +--- :extensions:bazar:sharedLibrary
-            |    |    \\--- :bootstrap:main:executable
-            |    \\--- :extensions:bazar:staticLibrary
-            \\--- :libraries:foo:staticLibrary
+            main - Components that depend on native executable 'main'
+            \\--- main:executable
         '''.stripIndent()
     }
 
