@@ -16,17 +16,44 @@
 
 package org.gradle.performance.fixture;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import com.google.common.io.Files;
+import junit.framework.AssertionFailedError;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 /**
- * Determines whether a specific scenario within a performance test should run.
+ * Determines whether a specific scenario within a performance test should run and whether it should run locally
+ * or be added to the list of scenarios to run in distributed mode.
  */
 public class TestScenarioSelector {
-    public boolean shouldRun(String testId) {
+    public boolean shouldRun(String testId, List<String> templates) {
         String scenarioProperty = System.getProperty("org.gradle.performance.scenarios", "");
         List<String> scenarios = Splitter.on(",").omitEmptyStrings().splitToList(scenarioProperty);
-        return scenarios.isEmpty() || scenarios.contains(testId);
+        boolean shouldRun = scenarios.isEmpty() || scenarios.contains(testId);
+        String scenarioList = System.getProperty("org.gradle.performance.scenario.list");
+        if (shouldRun && scenarioList != null) {
+            addToScenarioList(testId, templates, new File(scenarioList));
+            return false;
+        } else {
+            return shouldRun;
+        }
+    }
+
+    private void addToScenarioList(String testId, List<String> templates, File scenarioList) {
+        try {
+            List<String> args = Lists.newArrayList();
+            args.add(testId);
+            args.addAll(templates);
+            Files.touch(scenarioList);
+            Files.append(Joiner.on(',').join(args) + '\n', scenarioList, Charsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not write to scenario list at " + scenarioList, e);
+        }
     }
 }

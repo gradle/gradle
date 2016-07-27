@@ -15,6 +15,7 @@
  */
 
 import org.gradle.testing.PerformanceTest
+import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 
@@ -128,6 +129,14 @@ task performanceExperiments(type: PerformanceTest) {
 task performanceAdhocTest(type: PerformanceTest) {
     systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
     maxParallelForks = 1
+}
+
+task distributedPerformanceTest(type: DistributedPerformanceTest) {
+    scenarioList = file("$buildDir/performance-tests/scenario-list.csv")
+    buildyTypeId = "Gradle_Master_Performance_DistributedPerformanceScenariosLinux"
+    teamCityUrl = "https://builds.gradle.org/"
+    teamCityUsername = project.findProperty("teamCityUsername")
+    teamCityPassword = project.findProperty("teamCityPassword")
 }
 
 tasks.withType(PerformanceTest) {

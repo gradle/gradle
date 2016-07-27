@@ -20,9 +20,9 @@ class TestProjectLocator {
 
     File findProjectDir(String name) {
         def dir = new File("build/$name").absoluteFile
-        if (!dir.directory) {
-            throw new IllegalArgumentException("Did not find test project at: '$dir.absolutePath'. Please run 'gradlew $name' to generate the test project.")
-        }
+//        if (!dir.directory) {
+//            throw new IllegalArgumentException("Did not find test project at: '$dir.absolutePath'. Please run 'gradlew $name' to generate the test project.")
+//        }
         dir
     }
 }

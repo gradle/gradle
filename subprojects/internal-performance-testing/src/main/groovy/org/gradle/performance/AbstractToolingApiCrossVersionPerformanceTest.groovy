@@ -109,7 +109,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         private CrossVersionPerformanceResults run() {
             def testId = experimentSpec.displayName
             def scenarioSelector = new TestScenarioSelector()
-            Assume.assumeTrue(scenarioSelector.shouldRun(testId))
+            Assume.assumeTrue(scenarioSelector.shouldRun(testId, [experimentSpec.projectName]))
 
             def testProjectLocator = new TestProjectLocator()
             def projectDir = testProjectLocator.findProjectDir(experimentSpec.projectName)
