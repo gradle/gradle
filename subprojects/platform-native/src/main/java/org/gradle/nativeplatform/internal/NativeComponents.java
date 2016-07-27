@@ -99,14 +99,14 @@ public class NativeComponents {
                 @Override
                 public void execute(DefaultTask assembleDependents) {
                     assembleDependents.setGroup("Build Dependents");
-                    assembleDependents.setDescription("Assemble dependents of " + component.getDisplayName());
+                    assembleDependents.setDescription("Assemble dependents of " + component.getDisplayName() + ".");
                 }
             });
             tasks.create(getBuildDependentComponentsTaskName(component), DefaultTask.class, new Action<DefaultTask>() {
                 @Override
                 public void execute(DefaultTask buildDependents) {
                     buildDependents.setGroup("Build Dependents");
-                    buildDependents.setDescription("Build dependents of " + component.getDisplayName());
+                    buildDependents.setDescription("Build dependents of " + component.getDisplayName() + ".");
                 }
             });
         }
@@ -117,7 +117,7 @@ public class NativeComponents {
             @Override
             public void execute(DefaultTask buildDependentsTask) {
                 buildDependentsTask.setGroup("Build Dependents");
-                buildDependentsTask.setDescription("Assemble dependents of " + binary.getDisplayName());
+                buildDependentsTask.setDescription("Assemble dependents of " + binary.getDisplayName() + ".");
                 buildDependentsTask.dependsOn(binary);
             }
         });
@@ -125,7 +125,7 @@ public class NativeComponents {
             @Override
             public void execute(DefaultTask buildDependentsTask) {
                 buildDependentsTask.setGroup("Build Dependents");
-                buildDependentsTask.setDescription("Build dependents of " + binary.getDisplayName());
+                buildDependentsTask.setDescription("Build dependents of " + binary.getDisplayName() + ".");
                 buildDependentsTask.dependsOn(binary);
             }
         });
