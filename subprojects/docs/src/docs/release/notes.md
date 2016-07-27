@@ -109,6 +109,7 @@ The following plugins have known issues with Java 9:
 - [Scala plugin](userguide/scala_plugin.html): The [Zinc compiler](https://github.com/typesafehub/zinc) does not currently support Java 9
 - [FindBugs plugin](userguide/findbugs_plugin.html): The latest release of [FindBugs](http://findbugs.sourceforge.net/) (3.0.1) does not support Java 9
 - [OSGi plugin](userguide/osgi_plugin.html): The latest version of [BND](http://bnd.bndtools.org/) does not work with Java 9
+- [Jacoco](userguide/jacoco_plugin.html): Starting from JDK 9u127 [Jacoco](http://www.eclemma.org/jacoco/) stopped working with Java 9
 
 When using [continuous build](userguide/continuous_build.html) on Java 9, the following constraints apply due to class access restrictions related to Jigsaw:
 
