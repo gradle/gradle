@@ -3,33 +3,32 @@ import com.android.build.gradle.AppPlugin
 import com.android.build.gradle.internal.dsl.BuildType
 import com.android.builder.core.DefaultApiVersion
 import com.android.builder.core.DefaultProductFlavor
+import com.android.builder.model.ApiVersion
+
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Project
+
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+
 import java.lang.System
 
 buildscript {
     //Temporary hack until Android plugin has proper support
     System.setProperty("com.android.build.gradle.overrideVersionCheck",  "true")
 
-    //Set Kotlin for use in runtime application
-    val extra = project.extensions.extraProperties
-    extra["kotlinVersion"] = "1.1.0-dev-998"
-    extra["repo"] = "https://repo.gradle.org/gradle/repo"
-
     repositories {
         jcenter()
-        maven { setUrl(extra["repo"]) }
+        gradleScriptKotlin()
     }
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:${extra["kotlinVersion"]}")
         classpath("com.android.tools.build:gradle:2.2.0-alpha6")
+        classpath(kotlinModule("gradle-plugin"))
     }
 }
 
 repositories {
     jcenter()
-    maven { setUrl(extra["repo"]) }
+    gradleScriptKotlin()
 }
 
 
@@ -62,7 +61,7 @@ android {
 dependencies {
     compile("com.android.support:appcompat-v7:23.4.0")
     compile("com.android.support.constraint:constraint-layout:1.0.0-alpha3")
-    compile("org.jetbrains.kotlin:kotlin-stdlib:${extra["kotlinVersion"]}")
+    compile(kotlinModule("stdlib"))
 }
 
 //Extension functions to allow comfortable references
