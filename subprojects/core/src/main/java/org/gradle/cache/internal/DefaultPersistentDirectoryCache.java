@@ -69,7 +69,9 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
             }
 
             if (!lock.getUnlockedCleanly()) {
-                LOGGER.debug("Invalidating {} as it was not closed cleanly.", DefaultPersistentDirectoryCache.this);
+                if (!lock.getState().isInInitialState()) {
+                    LOGGER.warn("Invalidating {} as it was not closed cleanly.", DefaultPersistentDirectoryCache.this);
+                }
                 return true;
             }
 
