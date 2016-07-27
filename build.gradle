@@ -104,7 +104,9 @@ tasks.addRule('Pattern: check-<SAMPLE>') { taskName ->
 task checkSamples {
     description 'Checks all samples'
     file('samples').eachDir {
-        dependsOn "check-${it.name}"
+        if (!it.name.contains('android')) {
+            dependsOn "check-${it.name}"
+        }
     }
 }
 check.dependsOn checkSamples
