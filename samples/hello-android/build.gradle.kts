@@ -66,14 +66,16 @@ dependencies {
 }
 
 //Extension functions to allow comfortable references
-fun Project.android(func: AppExtension.() -> Unit) = the<AppExtension>().func()
+fun Project.android(setup: AppExtension.() -> Unit) = the<AppExtension>().setup()
 
-fun NamedDomainObjectContainer<BuildType>.release(func: BuildType.() -> Unit) = findByName("release").apply(func)
+fun NamedDomainObjectContainer<BuildType>.release(setup: BuildType.() -> Unit) = findByName("release").setup()
 
-fun AppExtension.defaultConfigExtension(func: DefaultProductFlavor.() -> Unit) = defaultConfig.apply(func)
+fun AppExtension.defaultConfigExtension(setup: DefaultProductFlavor.() -> Unit) = defaultConfig.setup()
 
-fun AppExtension.buildTypesExtension(func: NamedDomainObjectContainer<BuildType>.() -> Unit) = buildTypes { func.invoke(it) }
+fun AppExtension.buildTypesExtension(setup: NamedDomainObjectContainer<BuildType>.() -> Unit) = buildTypes { it.setup() }
 
-fun DefaultProductFlavor.setMinSdkVersion(value: Int) = setMinSdkVersion(DefaultApiVersion.create(value))
+fun DefaultProductFlavor.setMinSdkVersion(value: Int) = setMinSdkVersion(value.asApiVersion())
 
-fun DefaultProductFlavor.setTargetSdkVersion(value: Int) = setTargetSdkVersion(DefaultApiVersion.create(value))
+fun DefaultProductFlavor.setTargetSdkVersion(value: Int) = setTargetSdkVersion(value.asApiVersion())
+
+fun Int.asApiVersion(): ApiVersion = DefaultApiVersion.create(this)
