@@ -87,7 +87,7 @@ So what does a Gradle Script Kotlin build look like?  Here's an example:
     }
 
 This looks very similar to a Groovy build script, but when you load it in either IDEA and Eclipse, suddenly development is a much better experience because you now have code auto-completion, 
-refactoring, and other features you would expect from an IDE.  You can still use all of your plugins written in Java or Groovy but also take advantage of the power of first-class development 
+refactoring, and other features you would expect from an IDE in your `build.gradle.kts`.  You can still use all of your plugins written in Java or Groovy but also take advantage of the power of first-class development 
 support.  Take a look and [give it a try](https://github.com/gradle/gradle-script-kotlin/tree/master/samples)!
 
 We'll continue to enhance this support in future versions of Gradle, so if you discover any issues, please let us know via the project's [GitHub Issues](https://github.com/gradle/gradle-script-kotlin/issues).
@@ -106,10 +106,10 @@ The following plugins have known issues with Java 9:
 
 - [PMD plugin](userguide/pmd_plugin.html): The latest version of [PMD](https://pmd.github.io/pmd-5.4.1/pmd-java/) (5.5.1) can run on Java 9 but does not yet support analysis of Java 9 Bytecode.  
 - [Jetty plugin](userguide/jetty_plugin.html): The version of [Jetty](http://www.eclipse.org/jetty/) used with this plugin does not support Java 9.
-- [Scala plugin](userguide/scala_plugin.html): The [Zinc compiler](https://github.com/typesafehub/zinc) does not currently support Java 9
-- [FindBugs plugin](userguide/findbugs_plugin.html): The latest release of [FindBugs](http://findbugs.sourceforge.net/) (3.0.1) does not support Java 9
-- [OSGi plugin](userguide/osgi_plugin.html): The latest version of [BND](http://bnd.bndtools.org/) does not work with Java 9
-- [Jacoco](userguide/jacoco_plugin.html): Starting from JDK 9u127 [Jacoco](http://www.eclemma.org/jacoco/) stopped working with Java 9
+- [Scala plugin](userguide/scala_plugin.html): The [Zinc compiler](https://github.com/typesafehub/zinc) does not currently support Java 9.
+- [FindBugs plugin](userguide/findbugs_plugin.html): The latest release of [FindBugs](http://findbugs.sourceforge.net/) (3.0.1) does not support Java 9.
+- [OSGi plugin](userguide/osgi_plugin.html): The latest version of [BND](http://bnd.bndtools.org/) does not work with Java 9.
+- [Jacoco](userguide/jacoco_plugin.html): Starting from JDK 9u127 [Jacoco](http://www.eclemma.org/jacoco/) stopped working with Java 9.
 
 When using [continuous build](userguide/continuous_build.html) on Java 9, the following constraints apply due to class access restrictions related to Jigsaw:
 
@@ -181,18 +181,27 @@ Several libraries that are used by Gradle plugins have been upgraded:
 - The OSGi plugin has been upgraded to use version 3.2.0 of the BND library.
 - The Jacoco plugin has been upgraded to use Jacoco version 0.7.7.201606060606 by default.
 - The PMD plugin has been upgraded to use PMD version 5.5.1 by default.
+- The Groovy version has been updated to 2.4.7. 
 
 ### Parallel task execution improvements
 
 Gradle 3.0 makes it easier to manage the resources that Gradle uses.  The `Test` task type now honors the `max-workers` setting for the test processes that are started. This means that Gradle will 
 now run at most `max-workers` tasks and test processes at the same time.
 
+If you need to return to the old behavior, you can limit the number of forked processes:
+
+```
+tasks.withType(Test) {
+    maxParallelForks = 1   
+}
+```
+
 ### Better control over JVM memory usage
 
 The Gradle Daemon maintains a cache of objects to speed up performance.  By default, much of JVM memory is available to be used by this cache, while a certain amount of memory
 is kept reserved for tasks and other Gradle internals.  However, if a build runs tasks that require more memory
 than will fit in this reserved space, the performance of those tasks can become worse over time as the rest of JVM memory is filled up by the cache.  With this 
-release, the `org.gradle.cache.reserved.mb` system property allows for increasing the amount of space reserved from cache use.  Set 
+    release, the `org.gradle.cache.reserved.mb` system property allows for increasing the amount of space reserved from cache use.  Set 
 this value to the number of additional MB to make available for tasks and other non-cache-related operations.
  
 <a id="all-improvements" name="all-improvements"></a>
@@ -294,34 +303,32 @@ The legacy Sonar plugin has been removed from the Gradle distribution. It is sup
 
 The `eclipse-cdt` plugin is no longer supported and has been removed.
 
-### Unique default test result and report directories
+### Unique default test result and report directories for `Test` tasks
 
-The default location of reports produced by tasks of type Test have changed to incorporate the task name when used with the `Java Plugin`.
-This allows multiple tasks of type Test to produce non-conflicting default report and result directories without additional configuration.
-When the Java Plugin is applied, the report directory for a task of type `Test` with the name "test" is now `$buildDir/reports/tests/test`. The test results directory for 
-task "test" is now `$buildDir/test-results/tests`.
+The default location of reports produced by tasks of type [Test](dsl/org.gradle.api.tasks.testing.Test.html) have changed to incorporate the task name when used with the `Java Plugin`.
+This allows multiple tasks of type `Test` to produce non-conflicting default report and result directories without additional configuration.
 
-To revert to the previous behaviour, the reports output directory of Test tasks can be configured explicitly:
+When the Java, Groovy or Scala plugin is applied, the report directory for a task of type `Test` with the name **integrationTest** is now `$buildDir/reports/tests/integrationTest` and the test results directory is `$buildDir/test-results/integrationTest`.
+
+This means the built-in `test` task reports are in a different location. To revert to the previous behaviour, the reports output directory of `Test` tasks can be configured explicitly:
 
     test.reports.html.destination = testReportDir // build/reports/tests
     test.reports.xml.destination = testResultDir // build/test-results
 
 ### Ant-Based Scala Compiler has been removed
 
-The deprecated Ant-Based Scala Compiler has been removed from Gradle
-3.0 and the Zinc Scala Compiler is now used exclusively. The following
-properties related to the Ant-Based compiler have been removed from the ScalaCompile task:
+The deprecated Ant-Based Scala Compiler has been removed from Gradle 3.0 and the Zinc Scala Compiler is now used exclusively. The following properties related to the Ant-Based compiler have been removed from the `ScalaCompile` task:
 
 - `daemonServer`
 - `fork`
 - `useAnt`
 - `useCompileDaemon`
 
-### Support for TestNG javadoc annotations has been removed
+### Support for TestNG JavaDoc annotations has been removed
 
-The support for declaring TestNG tests via javadoc annotations has been removed. As such, the `Test.testSrcDirs` and the methods on `TestNGOptions` have also been removed.
+The support for declaring TestNG tests via JavaDoc annotations has been removed. As such, the `Test.testSrcDirs` and the methods on `TestNGOptions` have also been removed.
 
-### Task property annotations on implemented interfaces
+### Task property annotations (e.g., @Input) on interfaces
 
 In previous versions, annotations on task properties such as `@InputFile` and `@OutputDirectory` were only taken into account when they were declared on the task class itself (or one 
 of its super-classes). With Gradle 3.0, annotations declared on implemented interfaces are also taken into account.
@@ -331,7 +338,7 @@ of its super-classes). With Gradle 3.0, annotations declared on implemented inte
 For Java projects, the `eclipse-wtp` plugin adds external dependencies to the classpath instead of the WTP component file. Any customizations related to external dependencies 
 that were made in the `eclipse.wtp.component.file` hooks now need to be moved to the `eclipse.classpath.file` hooks instead.
 
-### `eclipse-wtp` is automatically applied to `war` or `ear` projects
+### `eclipse-wtp` is automatically applied to `war` or `ear` projects with `eclipse`
 
 Projects that have the `war` or `ear` plugins applied in conjunction with the `eclipse` plugin will now have the `eclipse-wtp` plugin applied automatically.
 If desired, this support can be removed using the following configuration:
@@ -414,20 +421,17 @@ Creation must now use the implicit syntax:
 
 ### Groovy to Java conversions
 
-For performance reasons all classes in the public API (and nearly all other classes) have been converted from Groovy to Java.
-As a consequence, these do not extend `GroovyObject` any more. In order to retain
-binary compatibility all public API classes which have been converted
-are decorated with `GroovyObject` at runtime - this means all plugins should continue working.
+For performance reasons, all classes in Gradle's public API have been converted from Groovy to Java.
 
-We are planning to drop this runtime decoration with Gradle 4.0. This means that plugins compiled
-against Gradle 2.x will break on 4.0. If a plugin has been recompiled against Gradle 3.x,
-the references to `GroovyObject` will be removed from its Bytecode, since
-the Java classes do not implement GroovyObject. As soon as this happens it will work
-with Gradle 4.0.
+As a consequence, these classes no longer extend `GroovyObject`. In order to retain binary compatibility, public API classes that have been 
+converted are decorated with `GroovyObject` at runtime. This means plugins written for Gradle 2.x should continue working with Gradle 3.x. 
 
-When compiling your plugin against Gradle 3.0 note that it is possible that you need to do some manual work to make it
-compile. One instance of this is when you are using `+=` in a statically compiled Groovy
-class - see [GROOVY-7888](https://issues.apache.org/jira/browse/GROOVY-7888).
+We are planning to drop the runtime `GroovyObject` decoration with Gradle 4.0. This means that plugins compiled against Gradle 2.x will no longer work with Gradle 4.0. 
+Plugins that are compiled with Gradle 3.0 will not have references to `GroovyObject` and will remain compatible with Gradle 4.0.
+
+When recompiling your plugin with Gradle 3.0, you may need to make some changes to make it compile with Gradle 3.0.
+
+One instance of this is when you use `+=` in a statically compiled Groovy class. See [GROOVY-7888](https://issues.apache.org/jira/browse/GROOVY-7888).
 
 ## External contributions
 
