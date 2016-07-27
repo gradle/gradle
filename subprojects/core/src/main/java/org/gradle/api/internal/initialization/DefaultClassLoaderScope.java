@@ -18,18 +18,14 @@ package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId;
-import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.CachingClassLoader;
-import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.MultiParentClassLoader;
-import org.gradle.internal.classloader.ReusableClassLoader;
 import org.gradle.internal.classpath.ClassPath;
 
-import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DefaultClassLoaderScope implements ClassLoaderScope, Closeable {
+public class DefaultClassLoaderScope implements ClassLoaderScope {
 
     public static final String STRICT_MODE_PROPERTY = "org.gradle.classloaderscope.strict";
 
@@ -129,12 +125,7 @@ public class DefaultClassLoaderScope implements ClassLoaderScope, Closeable {
                 }
 
                 exportingClassLoader = buildMultiLoader(id.exportId(), export, exportLoaders);
-                effectiveExportClassLoader = new ReusableClassLoader(new Factory<ClassLoader>() {
-                    @Override
-                    public ClassLoader create() {
-                        return new CachingClassLoader(exportingClassLoader);
-                    }
-                });
+                effectiveExportClassLoader = new CachingClassLoader(exportingClassLoader);
 
                 localClassLoader = new MultiParentClassLoader(effectiveExportClassLoader, loader(id.localId(), local));
                 effectiveLocalClassLoader = new CachingClassLoader(localClassLoader);
@@ -255,10 +246,5 @@ public class DefaultClassLoaderScope implements ClassLoaderScope, Closeable {
     @Override
     public boolean isLocked() {
         return locked;
-    }
-
-    @Override
-    public void close() {
-        ClassLoaderUtils.tryClose(effectiveExportClassLoader);
     }
 }
