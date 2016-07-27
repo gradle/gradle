@@ -127,15 +127,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public void cacheIf(final Closure closure) {
-        taskMutator.mutate("TaskOutputs.cacheIf(Closure)", new Runnable() {
-            public void run() {
-                cacheIfSpec = cacheIfSpec.and(closure);
-            }
-        });
-    }
-
-    @Override
     public void cacheIf(final Spec<? super Task> spec) {
         taskMutator.mutate("TaskOutputs.cacheIf(Spec)", new Runnable() {
             public void run() {
@@ -286,11 +277,6 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         @Override
         public void upToDateWhen(Spec<? super Task> upToDateSpec) {
             getTaskOutputs("upToDateWhen(Spec)").upToDateWhen(upToDateSpec);
-        }
-
-        @Override
-        public void cacheIf(Closure closure) {
-            getTaskOutputs("cacheIf(Closure)").cacheIf(closure);
         }
 
         @Override
