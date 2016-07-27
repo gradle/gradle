@@ -9,7 +9,7 @@ Other use cases depend on no priority being given to project dependencies.
 
 ## Use case 1 (project priority required)
 
-The actual use case involved a a multi-repo system, where developers could choose a subset
+The actual use case involves a multi-repo system, where developers could choose a subset
 of projects to work on, but here is a simple case:
 
 We have 3 projects: `common`, `moduleA`, `moduleB`
