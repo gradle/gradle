@@ -55,7 +55,7 @@ public class DefaultTaskCaching implements TaskCachingInternal {
         this.factory = new TaskOutputCacheFactory() {
             @Override
             public TaskOutputCache createCache(StartParameter startParameter) {
-                String cacheDirectoryPath = startParameter.getSystemPropertiesArgs().get("org.gradle.cache.tasks.directory");
+                String cacheDirectoryPath = System.getProperty("org.gradle.cache.tasks.directory");
                 File cacheDirectory = cacheDirectoryPath != null
                     ? new File(cacheDirectoryPath)
                     : new File(startParameter.getGradleUserHomeDir(), "task-cache");

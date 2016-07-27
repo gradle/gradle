@@ -74,6 +74,7 @@ import org.gradle.internal.operations.DefaultBuildOperationWorkerRegistry;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.internal.util.SystemPropertiesUtil;
 
 public class TaskExecutionServices {
 
@@ -113,7 +114,7 @@ public class TaskExecutionServices {
     }
 
     private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskArtifactStateRepository repository, TaskCachingInternal taskCaching, TaskOutputPacker packer, TaskExecuter delegate) {
-        if ("true".equals(startParameter.getSystemPropertiesArgs().get("org.gradle.cache.tasks"))) {
+        if (SystemPropertiesUtil.isEnabled("org.gradle.cache.tasks")) {
             return new SkipCachedTaskExecuter(repository, taskCaching, packer, startParameter, delegate);
         } else {
             return delegate;
