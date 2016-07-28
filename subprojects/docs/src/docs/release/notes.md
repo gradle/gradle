@@ -429,7 +429,7 @@ converted are decorated with `GroovyObject` at runtime. This means plugins writt
 We are planning to drop the runtime `GroovyObject` decoration with Gradle 4.0. This means that plugins compiled against Gradle 2.x will no longer work with Gradle 4.0. 
 Plugins that are compiled with Gradle 3.0 will not have references to `GroovyObject` and will remain compatible with Gradle 4.0.
 
-When recompiling your plugin with Gradle 3.0, you may need to make some changes to make it compile with Gradle 3.0.
+When recompiling your plugin with Gradle 3.0, you may need to make some changes to make it compile.
 
 One instance of this is when you use `+=` in a statically compiled Groovy class. See [GROOVY-7888](https://issues.apache.org/jira/browse/GROOVY-7888).
 
