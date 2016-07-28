@@ -158,7 +158,6 @@
                 <sourcefile file="build.gradle" snippet="custom-source-locations"/>
             </sample>
         </section>
-
     </section>
 
     <section id="sec:scala_dependency_management">
@@ -207,6 +206,43 @@
                 </listitem>
             </itemizedlist>
         </para>
+    </section>
+
+    <section id="sec:configure_zinc_compiler">
+        <title>Configuring the Zinc compiler</title>
+        <para>
+            The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies.
+            Gradle will have a default version of the Zinc library, but if you want to override the
+            Zinc version that Gradle uses, add an explicit dependency like <literal>“com.typesafe.zinc:zinc:0.3.6”</literal>.  Gradle will support
+            version 0.3.0 of Zinc and above, although due to a regression in the Zinc library, versions 0.3.2 through 0.3.5.2 cannot be used.
+        </para>
+        <sample id="declareZincDependency" dir="userguide/scala/zincDependency" title="Declaring a version of the Zinc compiler to use">
+            <sourcefile file="build.gradle" snippet="zinc-dependency"/>
+        </sample>
+        <note>
+            <para>
+                It is important to take care when declaring a <literal>scala-library</literal> dependency.  The zinc compiler itself needs a compatible
+                version of <literal>scala-library</literal> in the <literal>zinc</literal> configuration and this version may be different than the version
+                required to compile your scala sources.  Gradle takes care of adding a compatible version of <literal>scala-library</literal> for you, but over-eager
+                dependency resolution rules can have the potential to force an incompatible version onto this configuration instead.  For example, declaring a
+                <literal>configurations.all</literal> rule would also override the version used by the <literal>zinc</literal> configuration:
+            </para>
+
+            <sample id="allScalaLibraryDependency" dir="userguide/scala/zincOverride" title="Forcing a scala-library dependency for all configurations">
+                <sourcefile file="build.gradle" snippet="all-dependency"/>
+            </sample>
+
+            <para>
+                The best way to avoid this is to be more selective in configuring the <literal>scala-library</literal> dependency (such as not using a
+                <literal>configuration.all</literal> rule or using a conditional to prevent the rule from being applied to the <literal>zinc</literal>
+                configuration) but sometimes this rule may come from a plugin or other code that you do not have control over.  In such a case, you can
+                force a correct version of the library on the <literal>zinc</literal> configuration only:
+            </para>
+
+            <sample id="zincScalaLibraryDependency" dir="userguide/scala/zincOverride" title="Forcing a scala-library dependency for the zinc configuration">
+                <sourcefile file="build.gradle" snippet="zinc-dependency"/>
+            </sample>
+        </note>
     </section>
 
     <section id="sec:scala_convention_properties">
@@ -331,14 +367,6 @@
             </sample>
             <emphasis>Note:</emphasis> This will only cause all classes to be recompiled if at least one input source file has changed. If there are
             no changes to the source files, the <literal>compileScala</literal> task will still be considered <literal>UP-TO-DATE</literal> as usual.
-        </para>
-
-        <para>
-            The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies.
-            Gradle will have a default version of the Zinc library, but if you want to override the
-            Zinc version that Gradle uses, add an explicit dependency like <literal>“com.typesafe.zinc:zinc:0.3.6”</literal>.  Gradle will support
-            version 0.3.0 of Zinc and above, although due to a regression in the Zinc library, versions 0.3.2 through 0.3.5.2 cannot be used.
-            Regardless of which Zinc version is used, Zinc will always use the Scala compiler found on the <literal>scalaTools</literal> configuration.
         </para>
 
         <para>

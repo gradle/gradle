@@ -1,0 +1,11 @@
+apply plugin: "scala"
+
+repositories {
+    mavenCentral()
+}
+
+// START SNIPPET zinc-dependency
+dependencies {
+    zinc 'com.typesafe.zinc:zinc:0.3.9'
+}
+// END SNIPPET zinc-dependency
