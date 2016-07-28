@@ -17,11 +17,9 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 
-@LeaksFileHandles
 class SamplesCodeQualityIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder, 'codeQuality')
 

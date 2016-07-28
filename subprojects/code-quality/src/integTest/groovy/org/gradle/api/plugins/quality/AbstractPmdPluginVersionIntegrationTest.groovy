@@ -30,4 +30,9 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
         }
         return "net.sourceforge.pmd:pmd-java:$version"
     }
+
+    static boolean fileLockingIssuesSolved() {
+        return VersionNumber.parse("5.5.1") < versionNumber
+    }
+
 }

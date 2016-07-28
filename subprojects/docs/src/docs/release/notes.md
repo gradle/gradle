@@ -104,7 +104,7 @@ Preliminary support for the JDK 9 `-release` compiler flag has been added as wel
 
 The following plugins have known issues with Java 9:
 
-- [PMD plugin](userguide/pmd_plugin.html): The latest version of [PMD](https://pmd.github.io/pmd-5.4.1/pmd-java/) (5.5.0) can run on Java 9 but does not yet support analysis of Java 9 Bytecode.  
+- [PMD plugin](userguide/pmd_plugin.html): The latest version of [PMD](https://pmd.github.io/pmd-5.4.1/pmd-java/) (5.5.1) can run on Java 9 but does not yet support analysis of Java 9 Bytecode.  
 - [Jetty plugin](userguide/jetty_plugin.html): The version of [Jetty](http://www.eclipse.org/jetty/) used with this plugin does not support Java 9.
 - [Scala plugin](userguide/scala_plugin.html): The [Zinc compiler](https://github.com/typesafehub/zinc) does not currently support Java 9
 - [FindBugs plugin](userguide/findbugs_plugin.html): The latest release of [FindBugs](http://findbugs.sourceforge.net/) (3.0.1) does not support Java 9
@@ -180,7 +180,7 @@ Several libraries that are used by Gradle plugins have been upgraded:
 
 - The OSGi plugin has been upgraded to use version 3.2.0 of the BND library.
 - The Jacoco plugin has been upgraded to use Jacoco version 0.7.7.201606060606 by default.
-- The PMD plugin has been upgraded to use PMD version 5.5.0 by default.
+- The PMD plugin has been upgraded to use PMD version 5.5.1 by default.
 
 ### Parallel task execution improvements
 
