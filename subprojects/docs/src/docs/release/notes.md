@@ -419,11 +419,14 @@ As a consequence, these do not extend `GroovyObject` any more. In order to retai
 binary compatibility all public API classes which have been converted
 are decorated with `GroovyObject` at runtime - this means all plugins should continue working.
 
-As soon as a plugin is recompiled, the references to `GroovyObject` will be removed from its Bytecode, since
-the Java classes do not implement GroovyObject. We are planning to drop the runtime decoration with Gradle 4.0.
+We are planning to drop this runtime decoration with Gradle 4.0. This means that plugins compiled
+against Gradle 2.x will break on 4.0. If a plugin has been recompiled against Gradle 3.x,
+the references to `GroovyObject` will be removed from its Bytecode, since
+the Java classes do not implement GroovyObject. As soon as this happens it will work
+with Gradle 4.0.
 
-When recompiling your plugin note that it is possible that you need to do some manual work to make it
-compile with Gradle 3.0. One instance of this is when you are using `+=` in a statically compiled Groovy
+When compiling your plugin against Gradle 3.0 note that it is possible that you need to do some manual work to make it
+compile. One instance of this is when you are using `+=` in a statically compiled Groovy
 class - see [GROOVY-7888](https://issues.apache.org/jira/browse/GROOVY-7888).
 
 ## External contributions
