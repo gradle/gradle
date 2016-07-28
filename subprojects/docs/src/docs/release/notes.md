@@ -56,6 +56,10 @@ can now check the status of running and recently stopped daemons using the `--st
 
 Note that the status command currently does not list Gradle Daemons with version < 3.0. More details are available in the [User Guide](userguide/gradle_daemon.html#status).
 
+### See Daemon information in Gradle Cloud Services
+
+Information about the Gradle Daemon is now being captured in your Build Scans and can be viewed in [Gradle Cloud Services](https://gradle.com/).  You can see information such as the number of builds that have been run in the Daemon, the number of Daemons that were running on the system when the build occurred, as well as reasons for why a Daemon may have been stopped.  This captures a snapshot of the state of the Daemon at the time of a build and gives you insight into factors that might have affected that build's performance.  If you haven't created a [Build Scan](https://scans.gradle.com/s/pqmetew4bnofi) yet, [give it a try](https://scans.gradle.com/setup/step-1)!
+ 
 ### Better IDE support for writing build scripts
 
 The Gradle team and JetBrains have been collaborating to provide the best possible IDE support for writing Gradle build scripts. Gradle 3.0 supports version 0.3.0 of  
