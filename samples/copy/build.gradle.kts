@@ -1,3 +1,4 @@
+import org.gradle.api.file.*
 import org.gradle.api.tasks.*
 import org.apache.tools.ant.filters.*
 
@@ -9,15 +10,15 @@ val dataContent = copySpec {
 
 task<Copy>("initConfig") {
 
-    from("src/main/config") {
-        it.include("**/*.properties")
-        it.include("**/*.xml")
-        it.filter<ReplaceTokens>(
+    from("src/main/config").let { it as CopySpec }.apply {
+        include("**/*.properties")
+        include("**/*.xml")
+        filter<ReplaceTokens>(
             "tokens" to mapOf("version" to "2.3.1"))
     }
 
-    from("src/main/languages") {
-        it.rename("EN_US_(.*)", "$1")
+    from("src/main/languages").let { it as CopySpec }.apply {
+        rename("EN_US_(.*)", "$1")
     }
 
     into("build/target/config")
