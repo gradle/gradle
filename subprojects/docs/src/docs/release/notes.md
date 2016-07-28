@@ -5,7 +5,7 @@ making builds _up to 75% faster_, but it needed to be explicitly enabled in prev
 put a lot of effort into fixing many of the issues with the Gradle Daemon, especially on Windows platforms, so relax and enjoy the fact that all of your 
 builds will now be faster without any additional configuration necessary.
 
-We're also pleased to make available a draft of our [new Performance Guide](https://gradle.github.io/performance-guide). This is intended to be a short (13-page) guide that shows you how to 
+We're also pleased to make available a draft of our [new Performance Guide](https://gradle.github.io/performance-guide). This is intended to be a short guide that shows you how to 
 dramatically improve your build performance in the time it takes to eat lunch. Check it out and please provide any feedback via the guide's 
 [GitHub Issues](https://github.com/gradle/performance-guide/issues).
 
