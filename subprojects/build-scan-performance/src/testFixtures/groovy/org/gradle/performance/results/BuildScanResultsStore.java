@@ -21,7 +21,7 @@ import org.gradle.performance.fixture.CrossBuildPerformanceResults;
 public class BuildScanResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
 
     public BuildScanResultsStore() {
-        super("build-receipt-results");
+        super("build-scan-results");
     }
 
 }
