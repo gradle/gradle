@@ -145,8 +145,17 @@ Note the `apply false` at the end of the plugin declaration.  This instructs Gra
 
 ### Incremental builds are more robust
 
-Previous versions of Gradle would consider a task up-to-date as long as its inputs and outputs remained unchanged.  Gradle now recognizes when _the code_ of a task or its dependencies changes 
-between executions and properly marks the task as out-of-date.
+Previous versions of Gradle would consider a task up-to-date as long as its inputs and outputs remained unchanged. Gradle now also recognizes when _the code_ of a task or its dependencies changes between executions and properly marks the task as out-of-date.
+
+Gradle now recognizes changes in the order of files for classpath properties as a reason to mark a task like `JavaCompile` out-of-date. The new `@OrderSensitive` annotation can be used on task input properties to turn this feature on in custom tasks.
+
+From now on Gradle tracks which property each input and output file belongs to, and thus can recognize when files are moved between properties. Registering the property name works automatically for task input and output properties annotated with `@InputFiles`, `@OutputFile` etc. Input and output files registered via `TaskInputs.files()`, `TaskOutputs.dir()` and similar methods have a new mechanism to register the property name:
+ 
+ ```groovy
+ task example {
+   inputs.file "input.txt" withPropertyName "inputFile"
+ }
+```
 
 ### Improvements to the `eclipse-wtp` plugin
 
