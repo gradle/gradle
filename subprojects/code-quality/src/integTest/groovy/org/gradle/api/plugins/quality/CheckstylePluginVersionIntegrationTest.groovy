@@ -183,7 +183,6 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
     }
 
     @Issue("GRADLE-3490")
-    @NotYetImplemented
     def "do not output XML report when only HTML report is enabled"() {
         given:
         goodCode()

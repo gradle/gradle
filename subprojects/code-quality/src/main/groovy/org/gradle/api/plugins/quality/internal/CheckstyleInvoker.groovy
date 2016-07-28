@@ -36,6 +36,11 @@ abstract class CheckstyleInvoker {
         def logger = checkstyleTask.logger
         def config = checkstyleTask.config
 
+        def xmlDestination = reports.xml.destination
+        if (!reports.xml.enabled && reports.html.enabled) {
+            xmlDestination = new File(checkstyleTask.temporaryDir, reports.xml.destination.name)
+        }
+
         antBuilder.withClasspath(checkstyleClasspath).execute {
             try {
                 ant.taskdef(name: 'checkstyle', classname: 'com.puppycrawl.tools.checkstyle.CheckStyleTask')
@@ -52,7 +57,7 @@ abstract class CheckstyleInvoker {
                 }
 
                 if (reports.xml.enabled || reports.html.enabled) {
-                    formatter(type: 'xml', toFile: reports.xml.destination)
+                    formatter(type: 'xml', toFile: xmlDestination)
                 }
 
                 configProperties.each { key, value ->
@@ -63,11 +68,15 @@ abstract class CheckstyleInvoker {
             if (reports.html.enabled) {
                 def stylesheet = reports.html.stylesheet ? reports.html.stylesheet.asString() :
                     Checkstyle.getClassLoader().getResourceAsStream('checkstyle-noframes-sorted.xsl').text
-                ant.xslt(in: reports.xml.destination, out: reports.html.destination) {
+                ant.xslt(in: xmlDestination, out: reports.html.destination) {
                     style {
                         string(value: stylesheet)
                     }
                 }
+            }
+
+            if (!reports.xml.enabled && reports.html.enabled) {
+                xmlDestination.delete()
             }
 
             if (ant.project.properties[FAILURE_PROPERTY_NAME]) {
