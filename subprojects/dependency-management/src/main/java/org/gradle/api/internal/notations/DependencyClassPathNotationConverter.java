@@ -34,6 +34,7 @@ import org.gradle.internal.typeconversion.NotationConverter;
 import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -109,9 +110,24 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         List<File> installationBeacon = classPathRegistry.getClassPath("GRADLE_INSTALLATION_BEACON").getAsFiles();
         apiClasspath.removeAll(groovyImpl);
         apiClasspath.removeAll(installationBeacon);
+        removeGradleScriptKotlin(apiClasspath);
 
         return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "gradleApi()", RuntimeShadedJarType.API)
             .plus(fileResolver.resolveFiles(groovyImpl, installationBeacon));
+    }
+
+    /**
+     * Gradle script kotlin should not be part of the public Gradle API
+     * We remove this in a very hacky way for 3.0. Going forward, there
+     * will be a cleaner solution
+     */
+    private void removeGradleScriptKotlin(Collection<File> apiClasspath) {
+        for (File file : new ArrayList<File>(apiClasspath)) {
+            // TODO: replace by something cleaner
+            if (file.getName().contains("kotlin")) {
+                apiClasspath.remove(file);
+            }
+        }
     }
 
     private FileCollectionInternal gradleTestKitFileCollection(Collection<File> testKitClasspath) {
