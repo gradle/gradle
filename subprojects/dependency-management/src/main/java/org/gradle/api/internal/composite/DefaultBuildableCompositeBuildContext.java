@@ -22,6 +22,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
@@ -29,6 +31,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildableCompositeBuildContext.class);
+
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
 
     @Override
@@ -58,6 +62,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
             String failureMessage = String.format("Project path '%s' is not unique in composite.", project.getProjectPath());
             throw new GradleException(failureMessage);
         }
+        LOGGER.info("Registering project '" + project + "' in composite build. Will substitute for module '" + localComponentMetadata.getId().getModule() + "'.");
         projectMetadata.put(project, new RegisteredProject(localComponentMetadata, projectDirectory));
     }
 
