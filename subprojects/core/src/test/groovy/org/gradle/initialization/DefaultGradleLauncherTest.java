@@ -137,7 +137,7 @@ public class DefaultGradleLauncherTest {
         return new DefaultGradleLauncher(gradleMock, initScriptHandlerMock, settingsLoaderMock,
             buildConfigurerMock, exceptionAnalyserMock, loggingManagerMock, buildBroadcaster,
             modelListenerMock, buildCompletionListener, buildOperationExecutor, buildConfigurationActionExecuter, buildExecuter,
-            buildServices, false);
+            buildServices);
     }
 
     @Test

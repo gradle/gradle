@@ -15,31 +15,19 @@
  */
 package org.gradle.initialization;
 
-import com.google.common.collect.Sets;
 import org.gradle.BuildListener;
 import org.gradle.BuildResult;
-import org.gradle.StartParameter;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
-import org.gradle.internal.composite.CompositeContextBuilder;
-import org.gradle.internal.composite.DefaultIncludedBuild;
-import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.util.CollectionUtils;
-
-import java.io.File;
-import java.util.Collection;
-import java.util.Set;
 
 public class DefaultGradleLauncher extends GradleLauncher {
 
@@ -60,7 +48,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
-    private final boolean createCompositeContext;
 
     /**
      * Creates a new instance.
@@ -70,8 +57,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
                                  LoggingManagerInternal loggingManager, BuildListener buildListener,
                                  ModelConfigurationListener modelConfigurationListener,
                                  BuildCompletionListener buildCompletionListener, BuildOperationExecutor operationExecutor,
-                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, BuildScopeServices buildServices,
-                                 boolean createCompositeContext) {
+                                 BuildConfigurationActionExecuter buildConfigurationActionExecuter, BuildExecuter buildExecuter, BuildScopeServices buildServices) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsLoader = settingsLoader;
@@ -85,7 +71,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.buildExecuter = buildExecuter;
         this.buildCompletionListener = buildCompletionListener;
         this.buildServices = buildServices;
-        this.createCompositeContext = createCompositeContext;
         loggingManager.start();
     }
 
@@ -131,7 +116,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         initScriptHandler.executeScripts(gradle);
 
         // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-        loadSettings();
+        settingsLoader.findAndLoadSettings(gradle);
 
         // Configure build
         buildOperationExecutor.run("Configure build", new Runnable() {
@@ -171,32 +156,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         });
 
         assert upTo == Stage.Build;
-    }
-
-    private void loadSettings() {
-        SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
-
-        // TODO:DAZ Extract this logic into a loader, rather than having a boolean flag
-        if (createCompositeContext) {
-            Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
-            if (!includedBuilds.isEmpty()) {
-                CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
-                compositeContextBuilder.addToCompositeContext(includedBuilds, true);
-            }
-        }
-    }
-
-    private Collection<IncludedBuild> getIncludedBuilds(StartParameter startParameter, SettingsInternal settings) {
-        Set<File> buildRoots = Sets.newTreeSet();
-        buildRoots.addAll(startParameter.getIncludedBuilds());
-        buildRoots.addAll(settings.getIncludedBuilds());
-
-        return CollectionUtils.collect(buildRoots, new Transformer<IncludedBuild, File>() {
-            @Override
-            public IncludedBuild transform(File buildRoot) {
-                return new DefaultIncludedBuild(buildRoot, null, null, null);
-            }
-        });
     }
 
     /**

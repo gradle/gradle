@@ -27,6 +27,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.internal.composite.CompositeBuildSettingsLoader;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -147,11 +148,16 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(usageLocationReporter);
         DeprecationLogger.useLocationReporter(usageLocationReporter);
 
+        SettingsLoader settingsLoader = serviceRegistry.get(SettingsLoader.class);
+        if (processComposite) {
+            settingsLoader = new CompositeBuildSettingsLoader(settingsLoader, serviceRegistry);
+        }
+
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
         return new DefaultGradleLauncher(
             gradle,
             serviceRegistry.get(InitScriptHandler.class),
-            serviceRegistry.get(SettingsLoader.class),
+            settingsLoader,
             serviceRegistry.get(BuildConfigurer.class),
             serviceRegistry.get(ExceptionAnalyser.class),
             loggingManager,
@@ -161,7 +167,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             serviceRegistry.get(BuildOperationExecutor.class),
             gradle.getServices().get(BuildConfigurationActionExecuter.class),
             gradle.getServices().get(BuildExecuter.class),
-            serviceRegistry, processComposite
+            serviceRegistry
         );
     }
 }
