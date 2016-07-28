@@ -65,24 +65,28 @@ class BuildScanPluginPerformanceTest extends Specification {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
         def tasks = ['clean', 'build']
-        def opts = ['-Xms2g', '-Xmx2g'] as String[]
+        def opts = ['-Xms2g', '-Xmx2g']
 
         runner.testGroup = "build scan plugin"
         runner.testId = "large java project with and without build scan"
 
         runner.baseline {
-            projectName(sourceProject).displayName(WITHOUT_PLUGIN_LABEL).invocation {
+            projectName(sourceProject)
+            displayName(WITHOUT_PLUGIN_LABEL)
+            invocation {
                 tasksToRun(*tasks)
-                gradleOpts(opts)
+                gradleOpts(*opts)
                 expectFailure()
             }
         }
 
         runner.buildSpec {
-            projectName(sourceProject).displayName(WITH_PLUGIN_LABEL).invocation {
+            projectName(sourceProject)
+            displayName(WITH_PLUGIN_LABEL)
+            invocation {
                 args("-Dscan", "-Dscan.dump")
                 tasksToRun(*tasks)
-                gradleOpts(opts)
+                gradleOpts(*opts)
                 expectFailure()
             }
         }
