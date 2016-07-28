@@ -8,7 +8,7 @@ public class ${testClassName} {
 
     @org.junit.Test
     public void testOne() {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 500; i++) {
             System.out.println("Some test output from ${testClassName}.testOne - " + i);
             System.err.println("Some test error  from ${testClassName}.testOne - " + i);
         }
@@ -17,7 +17,7 @@ public class ${testClassName} {
 
     @org.junit.Test
     public void testTwo() {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 500; i++) {
             System.out.println("Some test output from ${testClassName}.testTwo - " + i);
             System.err.println("Some test error  from ${testClassName}.testTwo - " + i);
         }
