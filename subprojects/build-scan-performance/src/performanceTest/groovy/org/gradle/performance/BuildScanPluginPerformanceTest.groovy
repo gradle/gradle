@@ -17,6 +17,7 @@
 package org.gradle.performance
 
 import groovy.json.JsonSlurper
+import org.apache.commons.io.output.NullOutputStream
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
@@ -48,6 +49,9 @@ class BuildScanPluginPerformanceTest extends Specification {
 
     CrossBuildPerformanceTestRunner runner
 
+    PrintStream originalSystemErr
+    PrintStream originalSystemOut
+
     void setup() {
         def incomingDir = System.getProperty('incomingArtifactDir')
         assert incomingDir: "'incomingArtifactDir' system property is not set"
@@ -61,20 +65,38 @@ class BuildScanPluginPerformanceTest extends Specification {
         runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId)
     }
 
+    void cleanup() {
+        if (originalSystemErr) {
+            System.err = originalSystemErr
+        }
+        if (originalSystemOut) {
+            System.out = originalSystemOut
+        }
+    }
+
     def "build scan plugin comparison"() {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
         def tasks = ['clean', 'build']
-        def args = ['--parallel', '--max-workers=2']
+        def jobArgs = ['--parallel', '--max-workers=2']
         def opts = ['-Xms2g', '-Xmx2g']
 
         runner.testGroup = "build scan plugin"
         runner.testId = "large java project with and without build scan"
 
+        // The Gradle test fixtures implicitly forward the output from executed builds (see ForkingGradleHandle)
+        // The builds have a lot of output, and this freaks TeamCity out.
+        // Null these out to stop this happening
+        originalSystemOut = System.out
+        originalSystemErr = System.err
+        System.out == new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM)
+        System.err == new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM)
+
         runner.baseline {
             projectName(sourceProject)
             displayName(WITHOUT_PLUGIN_LABEL)
             invocation {
+                args(*jobArgs)
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
                 expectFailure()
@@ -85,6 +107,7 @@ class BuildScanPluginPerformanceTest extends Specification {
             projectName(sourceProject)
             displayName(WITH_PLUGIN_LABEL)
             invocation {
+                args(*jobArgs)
                 args("-Dscan", "-Dscan.dump")
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
