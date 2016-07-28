@@ -480,9 +480,6 @@ We would like to thank the following community members for making contributions 
  - [Rob	Upcraft](https://github.com/upcrob) - Fix spelling in documentation
  - [James Ward](https://github.com/jamesward) - Fixed launching Gradle from Finder on Mac OS
  - [Ramon Wirsch](https://github.com/ramonwirsch) - Fix NullPointerException when processing annotations in the new Java software model
-<!--
- - [Some person](https://github.com/some-person) - fixed some issue (GRADLE-1234)
--->
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](http://gradle.org/contribute).
 
