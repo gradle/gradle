@@ -42,13 +42,13 @@ The option can be repeated to get a report for several components.
 ### (Story) Hide non-buildable components by default
 
 By default, non-buildables components are not shown in the report.
-A `--non-buildables` option on `dependentComponents` task allows to show them all, annotated, so one can distinguish them from buildable ones.
+A `--non-buildable` option on `dependentComponents` task allows to show them all, annotated, so one can distinguish them from buildable ones.
 The `--all` option on `dependentComponents` task also allows to show them.
 
 #### Test coverage
 
 - [x] Non-buildable components are hidden from the report by default
-- [x] When `--non-buildables` or `--all` task option is provided, non-buildable components are shown in the report
+- [x] When `--non-buildable` or `--all` task option is provided, non-buildable components are shown in the report
 - [x] Reported non-buildable components are annotated to distinguish them from buildable components 
 - [x] Make sure we handle `util (non-buildable) <- lib <- exe`, `util <- lib (non-buildable) <- exe` and `util <- lib <- exe (non-buildable)`
 - [x] `gradle help --task dependentComponents` describes the `--all` task option 

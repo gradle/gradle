@@ -12,9 +12,9 @@ This task should assemble both the binary itself and all its dependent component
 
 ### Test coverage
 
-- [ ] Assemble dependents in a single project build
+- [x] Assemble dependents in a single project build
 - [ ] Assemble dependents in a multi project build
-- [ ] Assemble dependents test suites
+- [x] Assemble dependents test suites
 - [ ] Assemble dependents skip non-buildable components
 
 ### Implementation notes
@@ -31,7 +31,7 @@ This task should assemble all the component's binaries and all their dependent c
 
 ### Test coverage
 
-- [ ] Assemble dependents of all buildable binaries of the targeted component
+- [x] Assemble dependents of all buildable binaries of the targeted component
 
 ### Implementation notes
 
@@ -57,10 +57,10 @@ For components, see the next story.
 
 ### Test coverage
 
-- [ ] Executing the `check` task of a test suite binary runs the test suite
-- [ ] Executing the `check` task of a tested binary runs the associated test suite(s)
-- [ ] Custom *check* tasks bound to a binary's `check` task are run when executing the binary's `check` task
-- [ ] Executing the lifecycle `check` task runs all binaries `check` tasks
+- [x] Executing the `check` task of a test suite binary runs the test suite
+- [x] Executing the `check` task of a tested binary runs the associated test suite(s)
+- [x] Custom *check* tasks bound to a binary's `check` task are run when executing the binary's `check` task
+- [x] Executing the lifecycle `check` task runs all binaries `check` tasks
 - [ ] Tests cover Native, Jvm and Play ecosystems
 
 ### Implementation notes
@@ -113,7 +113,7 @@ This task should assemble and check both the binary or component itself and all 
 
 ### Test coverage
 
-- [ ] Build dependents assemble all dependent components and run all dependent test suites
+- [x] Build dependents assemble all dependent components and run all dependent test suites
 - [ ] Build dependents run *check* tasks associated with the component and all its dependents
 
 ### Implementation notes
