@@ -863,9 +863,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * Executes a Java main class. The closure configures a {@link org.gradle.process.JavaExecSpec}.
      *
+     * @deprecated Use {@link #javaexec(Action)}
+     *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
+    @Deprecated
     ExecResult javaexec(Closure closure);
 
     /**
@@ -882,9 +885,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     /**
      * Executes an external command. The closure configures a {@link org.gradle.process.ExecSpec}.
      *
+     * @deprecated Use {@link #exec(Action)}
+     *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
      */
+    @Deprecated
     ExecResult exec(Closure closure);
 
     /**
@@ -1087,8 +1093,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>This method executes the given closure against each of the sub-projects of this project. The target {@link
      * Project} is passed to the closure as the closure's delegate.</p>
      *
+     * @deprecated Use {@link #subprojects(Action)}
+     *
      * @param configureClosure The closure to execute.
      */
+    @Deprecated
     void subprojects(Closure configureClosure);
 
     /**
@@ -1106,8 +1115,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>This method executes the given closure against this project and its sub-projects. The target {@link Project}
      * is passed to the closure as the closure's delegate.</p>
      *
+     * @deprecated Use {@link #allprojects(Action)}
+     *
      * @param configureClosure The closure to execute.
      */
+    @Deprecated
     void allprojects(Closure configureClosure);
 
     /**
@@ -1128,8 +1140,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * <p>Adds a closure to be called immediately before this project is evaluated. The project is passed to the closure
      * as a parameter.</p>
      *
+     * @deprecated Use {@link #beforeEvaluate(Action)}
+     *
      * @param closure The closure to call.
      */
+    @Deprecated
     void beforeEvaluate(Closure closure);
 
     /**
@@ -1139,8 +1154,11 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * configure those child projects based on the state of the child projects after their build files have been
      * run.</p>
      *
+     * @deprecated Use {@link #afterEvaluate(Action)}
+     *
      * @param closure The closure to call.
      */
+    @Deprecated
     void afterEvaluate(Closure closure);
 
     /**
@@ -1276,10 +1294,13 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * Configures a collection of objects via a closure. This is equivalent to calling {@link #configure(Object,
      * groovy.lang.Closure)} for each of the given objects.
      *
+     * @deprecated Use {@link #configure(Iterable, Action)}
+     *
      * @param objects The objects to configure
      * @param configureClosure The closure with configure statements
      * @return The configured objects.
      */
+    @Deprecated
     Iterable<?> configure(Iterable<?> objects, Closure configureClosure);
 
     /**
@@ -1376,9 +1397,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * }
      * </pre>
      *
+     * @deprecated Use {@link #copy(Action)}
+     *
      * @param closure Closure to configure the CopySpec
      * @return {@link WorkResult} that can be used to check if the copy did any work.
      */
+    @Deprecated
     WorkResult copy(Closure closure);
 
     /**
@@ -1397,9 +1421,12 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * }
      * </pre>
      *
+     * @deprecated Use {@link #copySpec(Action)}
+     *
      * @param closure Closure to configure the CopySpec
      * @return The CopySpec
      */
+    @Deprecated
     CopySpec copySpec(Closure closure);
 
     /**

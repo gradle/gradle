@@ -17,7 +17,11 @@
 package org.gradle.platform.base.internal;
 
 import groovy.lang.Closure;
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Task;
+import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.specs.Spec;
 import org.gradle.platform.base.BinaryTasksCollection;
 
@@ -73,7 +77,7 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
         return delegate.matching(spec);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "deprecation"})
     @Override
     public DomainObjectSet<Task> matching(Closure spec) {
         return delegate.matching(spec);
@@ -90,7 +94,7 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
         return delegate.withType(type, configureAction);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "deprecation"})
     @Override
     public <S extends Task> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
         return delegate.withType(type, configureClosure);
@@ -101,7 +105,7 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
         return delegate.whenObjectAdded(action);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "deprecation"})
     @Override
     public void whenObjectAdded(Closure action) {
         delegate.whenObjectAdded(action);
@@ -112,7 +116,7 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
         return delegate.whenObjectRemoved(action);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "deprecation"})
     @Override
     public void whenObjectRemoved(Closure action) {
         delegate.whenObjectRemoved(action);
@@ -123,7 +127,7 @@ public class BinaryTasksCollectionWrapper implements BinaryTasksCollection {
         delegate.all(action);
     }
 
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({"rawtypes", "deprecation"})
     @Override
     public void all(Closure action) {
         delegate.all(action);
