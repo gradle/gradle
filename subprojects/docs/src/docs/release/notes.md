@@ -143,13 +143,32 @@ Previously, this could only be done with the `buildscript` DSL syntax, but this 
 
 Note the `apply false` at the end of the plugin declaration.  This instructs Gradle to resolve the plugin and make it available on the classpath, but not to apply it.
 
-### Incremental builds are more robust
+### Incremental build improvements
 
-Previous versions of Gradle would consider a task up-to-date as long as its inputs and outputs remained unchanged. Gradle now also recognizes when _the code_ of a task or its dependencies changes between executions and properly marks the task as out-of-date.
+#### Tracking changes in the task's code
+
+A task is up-to-date as long as its inputs and outputs remain unchanged. Previous versions of Gradle however did not consider _the code_ of the task as part of the inputs. Gradle now also recognizes when task, its actions, or its dependencies changes between executions and properly marks the task as out-of-date.
+
+#### Tracking changes in the order of input files
 
 Gradle now recognizes changes in the order of files for classpath properties as a reason to mark a task like `JavaCompile` out-of-date. The new `@OrderSensitive` annotation can be used on task input properties to turn this feature on in custom tasks.
 
-From now on Gradle tracks which property each input and output file belongs to, and thus can recognize when files are moved between properties. Registering the property name works automatically for task input and output properties annotated with `@InputFiles`, `@OutputFile` etc. Input and output files registered via `TaskInputs.files()`, `TaskOutputs.dir()` and similar methods have a new mechanism to register the property name:
+#### New task property annotations
+
+Since 3.0, every task property should specify its role via one of the task property annotations:
+
+* an input or output of the task (`@Input`, `@Nested`, `@InputDirectory`, `@OutputFile` etc.)
+* an injected service (`@Inject`)
+* a property that influences only the console output of the task (the new `@Console` annotation)
+* an internal property that should not be considered for up-to-date checks (the new `@Internal` annotation)
+
+When using the [`java-gradle-plugin`](https://docs.gradle.org/current/userguide/javaGradle_plugin.html), a warning is printed during validation for any task property that is not annotated.
+
+#### Tracking properties for input and output files
+
+From now on Gradle tracks which property each input and output file belongs to. With this improvement it can now recognize when files are moved between properties. Registering the property name works automatically for task input and output properties annotated with `@InputFiles`, `@OutputFile` etc.
+
+Input and output files registered via `TaskInputs.files()`, `TaskOutputs.dir()` and similar methods have a new mechanism to register the property name:
  
  ```groovy
  task example {
