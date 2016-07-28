@@ -201,6 +201,7 @@ class CheckstylePluginVersionIntegrationTest extends MultiVersionIntegrationSpec
         then:
         file("build/reports/checkstyle/main.html").exists()
         !file("build/reports/checkstyle/main.xml").exists()
+        !file("build/tmp/checkstyleMain/main.xml").exists()
     }
 
     private goodCode() {

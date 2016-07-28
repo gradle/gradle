@@ -19,7 +19,9 @@ package org.gradle.api.plugins.quality.internal
 import org.gradle.api.GradleException
 import org.gradle.api.file.FileCollection
 import org.gradle.api.plugins.quality.Checkstyle
+import org.gradle.api.plugins.quality.CheckstyleReports
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.util.GFileUtils
 
 abstract class CheckstyleInvoker {
     private final static String FAILURE_PROPERTY_NAME = 'org.gradle.checkstyle.violations'
@@ -35,9 +37,9 @@ abstract class CheckstyleInvoker {
         def ignoreFailures = checkstyleTask.ignoreFailures
         def logger = checkstyleTask.logger
         def config = checkstyleTask.config
-
         def xmlDestination = reports.xml.destination
-        if (!reports.xml.enabled && reports.html.enabled) {
+
+        if (isHtmlReportEnabledOnly(reports)) {
             xmlDestination = new File(checkstyleTask.temporaryDir, reports.xml.destination.name)
         }
 
@@ -75,8 +77,8 @@ abstract class CheckstyleInvoker {
                 }
             }
 
-            if (!reports.xml.enabled && reports.html.enabled) {
-                xmlDestination.delete()
+            if (isHtmlReportEnabledOnly(reports)) {
+                GFileUtils.deleteQuietly(xmlDestination)
             }
 
             if (ant.project.properties[FAILURE_PROPERTY_NAME]) {
@@ -93,5 +95,9 @@ abstract class CheckstyleInvoker {
                 }
             }
         }
+    }
+
+    private static boolean isHtmlReportEnabledOnly(CheckstyleReports reports) {
+        return !reports.xml.enabled && reports.html.enabled;
     }
 }
