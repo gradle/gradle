@@ -23,33 +23,35 @@ import org.gradle.tooling.ProjectConnection
 import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
 import org.jetbrains.kotlin.script.ScriptContents
 import org.jetbrains.kotlin.script.ScriptDependenciesResolverEx
+import org.jetbrains.kotlin.script.asFuture
 import java.io.File
+import java.util.concurrent.Future
 
 class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
 
-    override fun resolve(script: ScriptContents, environment: Map<String, Any?>?, previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? {
+    override fun resolve(script: ScriptContents, environment: Map<String, Any?>?, report: (ScriptDependenciesResolverEx.ReportSeverity, String, ScriptContents.Position?) -> Unit, previousDependencies: KotlinScriptExternalDependencies?): Future<KotlinScriptExternalDependencies?> {
         if (environment == null)
-            return previousDependencies
+            return previousDependencies.asFuture()
 
         // Gradle compilation path
         val classPath = environment["classPath"] as? ClassPath
         if (classPath != null)
-            return makeDependencies(classPath.asFiles)
+            return makeDependencies(classPath.asFiles).asFuture()
 
         // IDEA content assist path
         val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let { File(it) }
         val gradleJvmOptions = environment["gradleJvmOptions"] as? List<String>
         val gradleWithConnection = environment["gradleWithConnection"] as? ((ProjectConnection) -> Unit) -> Unit
         val gradleHome = environment["gradleHome"] as? File
-        if (gradleWithConnection != null && gradleHome != null) {
-            return retrieveKotlinBuildScriptModelFrom(gradleWithConnection, gradleJavaHome, gradleJvmOptions)?.getDependencies(gradleHome) ?: previousDependencies
-        }
-
         val projectRoot = environment["projectRoot"] as? File
-        if (projectRoot != null && gradleHome != null && gradleJavaHome != null)
-            return retrieveKotlinBuildScriptModelFrom(projectRoot, gradleHome, gradleJavaHome)?.getDependencies(gradleHome) ?: previousDependencies
 
-        return previousDependencies
+        return when {
+            projectRoot != null && gradleHome != null && gradleJavaHome != null ->
+                retrieveKotlinBuildScriptModelFrom(projectRoot, gradleHome, gradleJavaHome)?.getDependencies(gradleHome)?.asFuture()
+            gradleWithConnection != null && gradleHome != null ->
+                retrieveKotlinBuildScriptModelFrom(gradleWithConnection, gradleJavaHome, gradleJvmOptions)?.getDependencies(gradleHome)?.asFuture()
+            else -> null
+        } ?: previousDependencies.asFuture()
     }
 
     private fun KotlinBuildScriptModel.getDependencies(gradleInstallation: File): KotlinScriptExternalDependencies {
@@ -105,17 +107,12 @@ fun retrieveKotlinBuildScriptModelFrom(projectActionExecutor: ((ProjectConnectio
     return model
 }
 
-private val pluginFactoryJvmOption = "-D${KotlinScriptPluginFactory.modeSystemPropertyName}=${KotlinScriptPluginFactory.classPathMode}"
+private val modelSpecificJvmOptions = listOf("-D${KotlinScriptPluginFactory.modeSystemPropertyName}=${KotlinScriptPluginFactory.classPathMode}")
 
 private fun ProjectConnection.kotlinBuildScriptModel(javaHome: File?, jvmOptions: List<String>?): KotlinBuildScriptModel? =
         model(KotlinBuildScriptModel::class.java)?.run {
             javaHome?.let { setJavaHome(it) }
-            if (jvmOptions != null) {
-                setJvmArguments(jvmOptions + pluginFactoryJvmOption)
-            }
-            else {
-                setJvmArguments(pluginFactoryJvmOption)
-            }
+            setJvmArguments((jvmOptions ?: emptyList()) + modelSpecificJvmOptions)
             get()
         }
 
