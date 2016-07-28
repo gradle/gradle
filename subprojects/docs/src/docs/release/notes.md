@@ -2,23 +2,24 @@ The Gradle team is pleased to announce Gradle 3.0.
 
 Performance continues to be a focus for the Gradle team and the third major release reflects this.  The [Gradle Daemon](userguide/gradle_daemon.html) is a key performance enhancer, 
 making builds _up to 75% faster_, but it needed to be explicitly enabled in previous versions of Gradle.  This is no longer necessary as the Daemon is now _enabled by default_ in 3.0.  We've 
-put a lot of effort into fixing many of the issues with the Gradle Daemon, especially on Windows platforms, so relax and enjoy the fact that all of your 
-builds will now be faster without any additional configuration necessary.
-
-We're also pleased to make available a draft of our [new Performance Guide](https://gradle.github.io/performance-guide). This is intended to be a short guide that shows you how to 
-dramatically improve your build performance in the time it takes to eat lunch. Check it out and please provide any feedback via the guide's 
-[GitHub Issues](https://github.com/gradle/performance-guide/issues).
+put a lot of effort into fixing all open issues with the Gradle Daemon, especially on Windows platforms. We have also been working hard to make the Gradle Daemon aware of its health and impact 
+to the system it's running on.  We now use this information for self-healing actions as well as better daemon status reporting.  The Gradle Daemon is the foundation for a great Gradle experience.
 
 Ever wished for better IDE support when writing Gradle build scripts?  This release provides the first support for [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), 
 which is a Kotlin-based build language for Gradle scripts.  Its deep integration with both IDEA and Eclipse provides many of the things you would expect from an IDE such as auto-completion, 
-refactoring, navigation to source, and more.  Don't worry, Groovy is still the primary build language for Gradle scripts, but we'll continue to evolve Gradle Script Kotlin in order to provide 
+refactoring, navigation to source, and more.  Groovy is still the primary build language for Gradle scripts and will always be supported, but we'll be working with high velocity to make Gradle Script 
+Kotlin fully production ready by the end of the year in order to provide 
 the best possible development experience to Gradle users.  See [Chris Beams's blog post](https://gradle.org/blog/kotlin-meets-gradle/) for more information about this exciting new feature.
 
 Additionally, Gradle 3.0 provides support for running on the latest Java 9 EAP builds.  Users can also build and run tests using these early versions of JDK 9, but there are some limitations.
 Check out the section on [Java 9 support](#java9-support) below for more details.
 
-Lastly, with the release of Gradle 3.0, it's a good time to reflect on the progress we've made over the last 2 years. Check out some of [the improvements](#all-improvements) since Gradle 2.0. 
+With the release of Gradle 3.0, it's a good time to reflect on the progress we've made over the last 2 years. Check out some of [the improvements](#all-improvements) since Gradle 2.0. 
 Lots of reasons to upgrade!
+
+We're also pleased to make available a draft of our [new Performance Guide](https://gradle.github.io/performance-guide). This is intended to be a short guide that shows you how to 
+dramatically improve your build performance in the time it takes to eat lunch. Check it out and please provide any feedback via the guide's 
+[GitHub Issues](https://github.com/gradle/performance-guide/issues).
 
 ## New and noteworthy
 
@@ -57,7 +58,7 @@ Note that the status command currently does not list Gradle Daemons with version
 
 ### Better IDE support for writing build scripts
 
-The Gradle team and JetBrains have been collaborating to provide the best possible IDE support for writing Gradle build scripts. Gradle 3.0 provides the first support for 
+The Gradle team and JetBrains have been collaborating to provide the best possible IDE support for writing Gradle build scripts. Gradle 3.0 supports version 0.3.0 of  
 [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), a statically typed build language based on [Kotlin](http://kotlinlang.org/).  
 
 So what does a Gradle Script Kotlin build look like?  Here's an example:
@@ -91,6 +92,20 @@ refactoring, and other features you would expect from an IDE in your `build.grad
 support.  Take a look and [give it a try](https://github.com/gradle/gradle-script-kotlin/tree/master/samples)!
 
 We'll continue to enhance this support in future versions of Gradle, so if you discover any issues, please let us know via the project's [GitHub Issues](https://github.com/gradle/gradle-script-kotlin/issues).
+
+
+### Parallel task execution improvements
+
+Gradle 3.0 makes it easier to manage the resources that Gradle uses.  The `Test` task type now honors the `max-workers` setting for the test processes that are started. This means that Gradle will 
+now run at most `max-workers` tasks and test processes at the same time.
+
+If you need to return to the old behavior, you can limit the number of forked processes:
+
+```
+tasks.withType(Test) {
+    maxParallelForks = 1   
+}
+```
 
 <a id="java9-support" name="java9-support"></a>
 ### Initial Java 9 support
@@ -147,7 +162,7 @@ Note the `apply false` at the end of the plugin declaration.  This instructs Gra
 
 #### Tracking changes in the task's code
 
-A task is up-to-date as long as its inputs and outputs remain unchanged. Previous versions of Gradle however did not consider _the code_ of the task as part of the inputs. Gradle now also recognizes when task, its actions, or its dependencies changes between executions and properly marks the task as out-of-date.
+A task is up-to-date as long as its inputs and outputs remain unchanged. Previous versions of Gradle did not consider _the code_ of the task as part of the inputs. This could lead to incorrect behavior where the functionality of a task could change but the task might still be marked as `UP-TO-DATE` even though it would actually create different outputs.  Gradle now recognizes when a task, its actions, or its dependencies change between executions and properly marks the task as out-of-date.
 
 #### Tracking changes in the order of input files
 
@@ -210,27 +225,6 @@ Several libraries that are used by Gradle plugins have been upgraded:
 - The Jacoco plugin has been upgraded to use Jacoco version 0.7.7.201606060606 by default.
 - The PMD plugin has been upgraded to use PMD version 5.5.1 by default.
 - The Groovy version has been updated to 2.4.7. 
-
-### Parallel task execution improvements
-
-Gradle 3.0 makes it easier to manage the resources that Gradle uses.  The `Test` task type now honors the `max-workers` setting for the test processes that are started. This means that Gradle will 
-now run at most `max-workers` tasks and test processes at the same time.
-
-If you need to return to the old behavior, you can limit the number of forked processes:
-
-```
-tasks.withType(Test) {
-    maxParallelForks = 1   
-}
-```
-
-### Better control over JVM memory usage
-
-The Gradle Daemon maintains a cache of objects to speed up performance.  By default, much of JVM memory is available to be used by this cache, while a certain amount of memory
-is kept reserved for tasks and other Gradle internals.  However, if a build runs tasks that require more memory
-than will fit in this reserved space, the performance of those tasks can become worse over time as the rest of JVM memory is filled up by the cache.  With this 
-    release, the `org.gradle.cache.reserved.mb` system property allows for increasing the amount of space reserved from cache use.  Set 
-this value to the number of additional MB to make available for tasks and other non-cache-related operations.
  
 <a id="all-improvements" name="all-improvements"></a>
 ### Improvements since Gradle 2.0
