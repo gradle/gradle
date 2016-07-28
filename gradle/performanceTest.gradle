@@ -96,7 +96,7 @@ performanceTestTasks.all { PerformanceTest task ->
     dependsOn prepareSamples
     finalizedBy report
 
-    def localFileDb = "jdbc:h2:" + System.getProperty("user.home") + "/.gradle-performance-test-data)"
+    def localFileDb = "jdbc:h2:" + System.getProperty("user.home") + "/.gradle-performance-test-data"
     systemProperty "org.gradle.performance.db.url", project.findProperty("org.gradle.performance.db.url") ?: localFileDb
     systemProperty "org.gradle.performance.db.username", project.findProperty("org.gradle.performance.db.username") ?: "sa"
     systemProperty "org.gradle.performance.db.password", project.findProperty("org.gradle.performance.db.password") ?: ""
