@@ -51,6 +51,7 @@ test {
             events "started", "skipped", "failed", "passed", "standard_out", "standard_error"
         }
     <% } %>
+    maxParallelForks 2
 }
 
 <% if (groovyProject) { %>
