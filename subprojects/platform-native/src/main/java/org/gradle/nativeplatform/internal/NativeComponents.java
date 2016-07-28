@@ -47,6 +47,10 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 public class NativeComponents {
+
+    private static final String ASSEMBLE_DEPENDENTS_TASK_NAME = "assembleDependents";
+    private static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
+
     public static void createExecutableTask(final NativeBinarySpecInternal binary, final File executableFile) {
         String taskName = binary.getNamingScheme().getTaskName("link");
         binary.getTasks().create(taskName, LinkExecutable.class, new Action<LinkExecutable>() {
@@ -113,7 +117,7 @@ public class NativeComponents {
     }
 
     public static void createBuildDependentBinariesTasks(final NativeBinarySpecInternal binary, BinaryNamingScheme namingScheme) {
-        binary.getTasks().create(namingScheme.getTaskName("assembleDependents"), DefaultTask.class, new Action<DefaultTask>() {
+        binary.getTasks().create(namingScheme.getTaskName(ASSEMBLE_DEPENDENTS_TASK_NAME), DefaultTask.class, new Action<DefaultTask>() {
             @Override
             public void execute(DefaultTask buildDependentsTask) {
                 buildDependentsTask.setGroup("Build Dependents");
@@ -121,7 +125,7 @@ public class NativeComponents {
                 buildDependentsTask.dependsOn(binary);
             }
         });
-        binary.getTasks().create(namingScheme.getTaskName("buildDependents"), DefaultTask.class, new Action<DefaultTask>() {
+        binary.getTasks().create(namingScheme.getTaskName(BUILD_DEPENDENTS_TASK_NAME), DefaultTask.class, new Action<DefaultTask>() {
             @Override
             public void execute(DefaultTask buildDependentsTask) {
                 buildDependentsTask.setGroup("Build Dependents");
@@ -134,8 +138,8 @@ public class NativeComponents {
     public static void wireBuildDependentTasks(final ModelMap<Task> tasks, BinaryContainer binaries, final DependentBinariesResolver dependentsResolver, final ProjectModelResolver projectModelResolver) {
         final ModelMap<NativeBinarySpecInternal> nativeBinaries = binaries.withType(NativeBinarySpecInternal.class);
         for (final BinarySpecInternal binary : nativeBinaries) {
-            Task assembleDependents = tasks.get(binary.getNamingScheme().getTaskName("assembleDependents"));
-            Task buildDependents = tasks.get(binary.getNamingScheme().getTaskName("buildDependents"));
+            Task assembleDependents = tasks.get(binary.getNamingScheme().getTaskName(ASSEMBLE_DEPENDENTS_TASK_NAME));
+            Task buildDependents = tasks.get(binary.getNamingScheme().getTaskName(BUILD_DEPENDENTS_TASK_NAME));
             // Wire build dependent components tasks dependencies
             Task assembleDependentComponents = tasks.get(getAssembleDependentComponentsTaskName(binary.getComponent()));
             if (assembleDependentComponents != null) {
@@ -150,13 +154,13 @@ public class NativeComponents {
             assembleDependents.dependsOn(new Callable<Iterable<Task>>() {
                 @Override
                 public Iterable<Task> call() {
-                    return getDependentTaskDependencies("assembleDependents", binary, dependentsResolver, projectModelResolver);
+                    return getDependentTaskDependencies(ASSEMBLE_DEPENDENTS_TASK_NAME, binary, dependentsResolver, projectModelResolver);
                 }
             });
             buildDependents.dependsOn(new Callable<Iterable<Task>>() {
                 @Override
                 public Iterable<Task> call() {
-                    return getDependentTaskDependencies("buildDependents", binary, dependentsResolver, projectModelResolver);
+                    return getDependentTaskDependencies(BUILD_DEPENDENTS_TASK_NAME, binary, dependentsResolver, projectModelResolver);
                 }
             });
         }
@@ -178,11 +182,11 @@ public class NativeComponents {
     }
 
     private static String getAssembleDependentComponentsTaskName(ComponentSpec component) {
-        return "assembleDependents" + StringUtils.capitalize(component.getName());
+        return ASSEMBLE_DEPENDENTS_TASK_NAME + StringUtils.capitalize(component.getName());
     }
 
     private static String getBuildDependentComponentsTaskName(ComponentSpec component) {
-        return "buildDependents" + StringUtils.capitalize(component.getName());
+        return BUILD_DEPENDENTS_TASK_NAME + StringUtils.capitalize(component.getName());
     }
 
     public abstract static class BinaryLibs implements Callable<List<FileCollection>> {
