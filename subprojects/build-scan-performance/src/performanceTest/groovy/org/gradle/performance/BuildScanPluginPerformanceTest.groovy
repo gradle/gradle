@@ -18,6 +18,7 @@ package org.gradle.performance
 
 import groovy.json.JsonSlurper
 import org.apache.commons.io.output.NullOutputStream
+import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
@@ -53,7 +54,7 @@ class BuildScanPluginPerformanceTest extends Specification {
     PrintStream originalSystemOut
 
     void setup() {
-        def incomingDir = System.getProperty('incomingArtifactDir')
+        def incomingDir = "../../incoming" // System.getProperty('incomingArtifactDir')
         assert incomingDir: "'incomingArtifactDir' system property is not set"
         def versionJsonFile = new File(incomingDir, "version.json")
         assert versionJsonFile.exists()
@@ -63,6 +64,19 @@ class BuildScanPluginPerformanceTest extends Specification {
         def pluginCommitId = versionJsonData.commitId as String
 
         runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId)
+
+        // Loading this classes messes with the standard streams.
+        // Do it now so that we can replace them
+        //noinspection GroovyUnusedAssignment
+        InProcessGradleExecuter.COMMON_TMP
+
+        // The Gradle test fixtures implicitly forward the output from executed builds (see ForkingGradleHandle)
+        // The builds have a lot of output, and this freaks TeamCity out.
+        // Null these out to stop this happening
+        originalSystemOut = System.out
+        originalSystemErr = System.err
+        System.out = new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM)
+        System.err = new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM)
     }
 
     void cleanup() {
@@ -84,13 +98,6 @@ class BuildScanPluginPerformanceTest extends Specification {
         runner.testGroup = "build scan plugin"
         runner.testId = "large java project with and without build scan"
 
-        // The Gradle test fixtures implicitly forward the output from executed builds (see ForkingGradleHandle)
-        // The builds have a lot of output, and this freaks TeamCity out.
-        // Null these out to stop this happening
-        originalSystemOut = System.out
-        originalSystemErr = System.err
-        System.out == new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM)
-        System.err == new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM)
 
         runner.baseline {
             projectName(sourceProject)

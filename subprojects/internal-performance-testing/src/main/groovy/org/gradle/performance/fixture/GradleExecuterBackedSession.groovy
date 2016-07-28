@@ -53,7 +53,6 @@ class GradleExecuterBackedSession implements GradleSession {
     void cleanup() {
         createExecuter(null, false).withTasks().withArgument("--stop").run()
     }
-
     private GradleExecuter createExecuter(GradleInvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
 
