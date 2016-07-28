@@ -29,8 +29,8 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.composite.CompositeContextBuilder;
-import org.gradle.internal.composite.DefaultGradleParticipantBuild;
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.DefaultIncludedBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -178,23 +178,23 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
         // TODO:DAZ Extract this logic into a loader, rather than having a boolean flag
         if (createCompositeContext) {
-            Collection<GradleParticipantBuild> participantBuilds = getBuildRoots(gradle.getStartParameter(), settings);
-            if (!participantBuilds.isEmpty()) {
+            Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
+            if (!includedBuilds.isEmpty()) {
                 CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
-                compositeContextBuilder.addToCompositeContext(participantBuilds, true);
+                compositeContextBuilder.addToCompositeContext(includedBuilds, true);
             }
         }
     }
 
-    private Collection<GradleParticipantBuild> getBuildRoots(StartParameter startParameter, SettingsInternal settings) {
+    private Collection<IncludedBuild> getIncludedBuilds(StartParameter startParameter, SettingsInternal settings) {
         Set<File> buildRoots = Sets.newTreeSet();
         buildRoots.addAll(startParameter.getIncludedBuilds());
         buildRoots.addAll(settings.getIncludedBuilds());
 
-        return CollectionUtils.collect(buildRoots, new Transformer<GradleParticipantBuild, File>() {
+        return CollectionUtils.collect(buildRoots, new Transformer<IncludedBuild, File>() {
             @Override
-            public GradleParticipantBuild transform(File buildRoot) {
-                return new DefaultGradleParticipantBuild(buildRoot, null, null, null);
+            public IncludedBuild transform(File buildRoot) {
+                return new DefaultIncludedBuild(buildRoot, null, null, null);
             }
         });
     }

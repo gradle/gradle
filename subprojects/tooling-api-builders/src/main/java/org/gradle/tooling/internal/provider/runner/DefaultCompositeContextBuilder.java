@@ -24,7 +24,7 @@ import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.GradleBuildController;
 
@@ -42,27 +42,27 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     }
 
     @Override
-    public void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, boolean propagateFailures) {
-        doAddToCompositeContext(participantBuilds, null, propagateFailures);
+    public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds, boolean propagateFailures) {
+        doAddToCompositeContext(includedBuilds, null, propagateFailures);
     }
 
     @Override
-    public void addToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
-        doAddToCompositeContext(participantBuilds, requestContext, propagateFailures);
+    public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
+        doAddToCompositeContext(includedBuilds, requestContext, propagateFailures);
     }
 
-    private void doAddToCompositeContext(Iterable<GradleParticipantBuild> participantBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
+    private void doAddToCompositeContext(Iterable<IncludedBuild> includedBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeBuildContext context = sharedServices.get(CompositeBuildContext.class);
         CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context, propagateFailures);
 
-        for (GradleParticipantBuild participant : participantBuilds) {
+        for (IncludedBuild build : includedBuilds) {
             StartParameter participantStartParam = buildStartParam.newInstance();
-            participantStartParam.setProjectDir(participant.getProjectDir());
+            participantStartParam.setProjectDir(build.getProjectDir());
             participantStartParam.setIncludedBuilds(Collections.<File>emptyList());
 
             participantStartParam.setConfigureOnDemand(false);
-            LOGGER.lifecycle("[composite-build] Configuring participant: " + participant.getProjectDir());
+            LOGGER.lifecycle("[composite-build] Configuring build: " + build.getProjectDir());
 
             GradleLauncher gradleLauncher = createGradleLauncher(participantStartParam, requestContext, gradleLauncherFactory);
 

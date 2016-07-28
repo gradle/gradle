@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.IncludedBuild;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DefaultCompositeConnectionParameters extends AbstractConnectionParameters implements CompositeConnectionParameters {
-    private final List<GradleParticipantBuild> builds;
+    private final List<IncludedBuild> builds;
 
     public static Builder builder() {
         return new Builder();
@@ -40,12 +40,12 @@ public class DefaultCompositeConnectionParameters extends AbstractConnectionPara
     }
 
     @Override
-    public List<GradleParticipantBuild> getBuilds() {
+    public List<IncludedBuild> getBuilds() {
         return builds;
     }
 
     public static class Builder extends AbstractConnectionParameters.Builder {
-        private final List<GradleParticipantBuild> builds = new ArrayList<GradleParticipantBuild>();
+        private final List<IncludedBuild> builds = new ArrayList<IncludedBuild>();
 
         private Builder() {
             super();
@@ -56,7 +56,7 @@ public class DefaultCompositeConnectionParameters extends AbstractConnectionPara
                 daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging, builds);
         }
 
-        public void setBuilds(Collection<GradleParticipantBuild> builds) {
+        public void setBuilds(Collection<IncludedBuild> builds) {
             this.builds.clear();
             this.builds.addAll(builds);
         }
@@ -64,7 +64,7 @@ public class DefaultCompositeConnectionParameters extends AbstractConnectionPara
 
     private DefaultCompositeConnectionParameters(File gradleUserHomeDir, Boolean embedded,
                                                  Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits, File daemonBaseDir,
-                                                 boolean verboseLogging, List<GradleParticipantBuild> builds) {
+                                                 boolean verboseLogging, List<IncludedBuild> builds) {
         super(gradleUserHomeDir, embedded, daemonMaxIdleTimeValue, daemonMaxIdleTimeUnits, daemonBaseDir, verboseLogging);
         this.builds = Collections.unmodifiableList(builds);
     }

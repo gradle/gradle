@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.connection;
 
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.tooling.ConfigurableLauncher;
 import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -32,7 +32,7 @@ public class ToolingClientCompositeUtil {
         ((AbstractLongRunningOperation) request).copyFrom(operationParameters);
     }
 
-    ParticipantConnector createParticipantConnector(GradleParticipantBuild participant) {
-        return new ParticipantConnector(participant, operationParameters.getGradleUserHomeDir(), operationParameters.getDaemonBaseDir(), operationParameters.getDaemonMaxIdleTimeValue(), operationParameters.getDaemonMaxIdleTimeUnits());
+    ParticipantConnector createParticipantConnector(IncludedBuild build) {
+        return new ParticipantConnector(build, operationParameters.getGradleUserHomeDir(), operationParameters.getDaemonBaseDir(), operationParameters.getDaemonMaxIdleTimeValue(), operationParameters.getDaemonMaxIdleTimeUnits());
     }
 }

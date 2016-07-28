@@ -31,7 +31,7 @@ import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.composite.CompositeBuildController;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.composite.CompositeParameters;
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
@@ -91,11 +91,11 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         // TODO Need to consider how to handle builds in parallel when sharing event consumers/output streams
 
         final List<Object> results = Lists.newArrayList();
-        for (GradleParticipantBuild participant : compositeParameters.getBuilds()) {
-            DefaultBuildActionParameters actionParameters = new DefaultBuildActionParameters(Collections.EMPTY_MAP, Collections.<String, String>emptyMap(), participant.getProjectDir(), LogLevel.INFO, false, false, true, ClassPath.EMPTY);
+        for (IncludedBuild build : compositeParameters.getBuilds()) {
+            DefaultBuildActionParameters actionParameters = new DefaultBuildActionParameters(Collections.EMPTY_MAP, Collections.<String, String>emptyMap(), build.getProjectDir(), LogLevel.INFO, false, false, true, ClassPath.EMPTY);
 
             StartParameter startParameter = modelAction.getStartParameter().newInstance();
-            startParameter.setProjectDir(participant.getProjectDir());
+            startParameter.setProjectDir(build.getProjectDir());
 
             BuildModelAction participantAction = new BuildModelAction(startParameter, modelAction.getModelName(), false, modelAction.getClientSubscriptions());
             try {
@@ -103,15 +103,15 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
                 for (Map.Entry<String, Object> e : result.entrySet()) {
                     String projectPath = e.getKey();
                     Object modelValue = e.getValue();
-                    results.add(compositeModelResult(participant, projectPath, modelValue));
+                    results.add(compositeModelResult(build, projectPath, modelValue));
                 }
             } catch (BuildCancelledException e) {
                 InternalBuildCancelledException buildCancelledException = new InternalBuildCancelledException(e.getCause());
-                results.add(compositeModelResult(participant, null, buildCancelledException));
+                results.add(compositeModelResult(build, null, buildCancelledException));
             } catch (ReportedException e) {
-                results.add(compositeModelResult(participant, null, unwrap(e)));
+                results.add(compositeModelResult(build, null, unwrap(e)));
             } catch (Exception e) {
-                results.add(compositeModelResult(participant, null, e));
+                results.add(compositeModelResult(build, null, e));
             }
         }
         return results;
@@ -128,19 +128,19 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         return new BuildExceptionVersion1(e.getCause());
     }
 
-    private Object compositeModelResult(GradleParticipantBuild participant, String projectPath, Object modelValue) {
-        return new Object[]{participant.getProjectDir(), projectPath, modelValue};
+    private Object compositeModelResult(IncludedBuild build, String projectPath, Object modelValue) {
+        return new Object[]{build.getProjectDir(), projectPath, modelValue};
     }
 
     private void executeTasksInProcess(BuildModelAction compositeAction, CompositeParameters compositeParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
         registerParticipantsInContext(compositeParameters, true, buildRequestContext, sharedServices);
 
         StartParameter startParameter = compositeAction.getStartParameter().newInstance();
-        GradleParticipantBuild targetParticipant = compositeParameters.getTargetBuild();
-        startParameter.setProjectDir(targetParticipant.getProjectDir());
+        IncludedBuild targetBuild = compositeParameters.getTargetBuild();
+        startParameter.setProjectDir(targetBuild.getProjectDir());
         startParameter.setSearchUpwards(false);
 
-        LOGGER.lifecycle("[composite-build] Executing tasks " + startParameter.getTaskNames() + " for participant: " + targetParticipant.getProjectDir());
+        LOGGER.lifecycle("[composite-build] Executing tasks " + startParameter.getTaskNames() + " for participant: " + targetBuild.getProjectDir());
 
         // Use a ModelActionRunner to ensure that model events are emitted
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelActionRunner());

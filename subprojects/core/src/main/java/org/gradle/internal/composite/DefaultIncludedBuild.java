@@ -20,17 +20,17 @@ import java.io.File;
 import java.io.Serializable;
 import java.net.URI;
 
-public class DefaultGradleParticipantBuild implements GradleParticipantBuild, Serializable {
+public class DefaultIncludedBuild implements IncludedBuild, Serializable {
     private final File projectDir;
     private final File gradleHome;
     private final URI gradleDistribution;
     private final String gradleVersion;
 
-    public DefaultGradleParticipantBuild(GradleParticipantBuild build) {
+    public DefaultIncludedBuild(IncludedBuild build) {
         this(build.getProjectDir() != null ? new File(build.getProjectDir().getAbsolutePath()) : null, build.getGradleHome() != null ? new File(build.getGradleHome().getAbsolutePath()) : null, build.getGradleDistribution(), build.getGradleVersion());
     }
 
-    public DefaultGradleParticipantBuild(File projectDir, File gradleHome, URI gradleDistribution, String gradleVersion) {
+    public DefaultIncludedBuild(File projectDir, File gradleHome, URI gradleDistribution, String gradleVersion) {
         this.projectDir = projectDir;
         this.gradleHome = gradleHome;
         this.gradleDistribution = gradleDistribution;
