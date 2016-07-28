@@ -308,7 +308,7 @@ class GradleScriptKotlinIntegrationTest {
 
     private fun kotlinBuildScriptModel(): KotlinBuildScriptModel =
         withDaemonRegistry(customDaemonRegistry()) {
-            retrieveKotlinBuildScriptModelFrom(projectDir.root, customInstallation())
+            retrieveKotlinBuildScriptModelFrom(projectDir.root, customInstallation())!!
         }
 
     private fun customDaemonRegistry() =
