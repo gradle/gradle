@@ -65,7 +65,6 @@ public class CompositeContextBuildActionRunner {
 
     private void maybeRethrow(RuntimeException e) {
         // Ignore exceptions creating composite context for a model request
-        // TODO:DAZ Retain this configuration failure for subsequent model requests for this build
         if (propagateFailures) {
             throw e;
         }

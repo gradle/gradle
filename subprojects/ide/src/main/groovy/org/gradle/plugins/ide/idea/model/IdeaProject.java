@@ -303,7 +303,7 @@ public class IdeaProject {
 
     // TODO:DAZ Make this a `whenMerged` hook registered by composite build?
     private void includeModulesFromComposite(Project xmlProject) {
-        // TODO:DAZ This is yet another crappy conversion to qualified project id
+        // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
         ProjectComponentIdentifier thisProjectId = DefaultProjectComponentIdentifier.newId(project.getRootProject().getName() + ":" + project.getPath());
         PathFactory pathFactory = getPathFactory();
         Set<ProjectComponentIdentifier> projectsInComposite = moduleToProjectMapper.getProjectsInComposite();

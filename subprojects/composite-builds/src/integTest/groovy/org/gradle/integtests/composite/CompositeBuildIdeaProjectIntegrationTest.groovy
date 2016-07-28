@@ -299,7 +299,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml"
-        // TODO:DAZ This is invalid: no `buildC.iml` file exists in the project. Should not substitute?
+        // This is actually invalid: no `buildC.iml` file exists in the project. Should not substitute?
         imlHasDependencies "buildB", "buildC"
     }
 
@@ -330,7 +330,7 @@ class CompositeBuildIdeaProjectIntegrationTest extends AbstractCompositeBuildInt
 
         then:
         iprHasModules "buildA.iml", "../buildB/buildB.iml", "../buildB/b1/b1.iml", "../buildB/b2/b2.iml", "../buildC/c2/c2.iml"
-        // TODO:DAZ This is invalid: no `buildC.iml` file exists in the project. Should not substitute?
+        // This is actually invalid: no `buildC.iml` file exists in the project. Should not substitute?
         imlHasDependencies "b1", "buildC", "c2"
     }
 
