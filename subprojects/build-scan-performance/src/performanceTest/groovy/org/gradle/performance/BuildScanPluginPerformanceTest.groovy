@@ -20,10 +20,14 @@ import groovy.json.JsonSlurper
 import org.apache.commons.io.output.NullOutputStream
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.performance.categories.GradleCorePerformanceTest
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BuildScanResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -107,6 +111,7 @@ class BuildScanPluginPerformanceTest extends Specification {
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
                 expectFailure()
+                listener(new Listener())
             }
         }
 
@@ -119,6 +124,7 @@ class BuildScanPluginPerformanceTest extends Specification {
                 tasksToRun(*tasks)
                 gradleOpts(*opts)
                 expectFailure()
+                listener(new Listener())
             }
         }
 
@@ -135,4 +141,15 @@ class BuildScanPluginPerformanceTest extends Specification {
         with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(40)
     }
 
+    class Listener extends BuildExperimentListenerAdapter {
+        @Override
+        void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+            originalSystemOut.println("$invocationInfo.buildExperimentSpec.displayName - $invocationInfo.phase: beginning $invocationInfo.iterationNumber of $invocationInfo.iterationMax")
+        }
+
+        @Override
+        void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+            originalSystemOut.println("$invocationInfo.buildExperimentSpec.displayName - $invocationInfo.phase: finished $invocationInfo.iterationNumber of $invocationInfo.iterationMax")
+        }
+    }
 }
