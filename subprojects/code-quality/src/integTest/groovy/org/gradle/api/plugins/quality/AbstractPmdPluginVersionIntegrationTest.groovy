@@ -18,6 +18,7 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
+import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 
 @TargetVersions(['4.3', '5.0.5', '5.1.1', '5.3.3', PmdPlugin.DEFAULT_PMD_VERSION])
@@ -32,7 +33,7 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
     }
 
     static boolean fileLockingIssuesSolved() {
-        return VersionNumber.parse("5.5.1") < versionNumber
+        return !TestPrecondition.WINDOWS.fulfilled || VersionNumber.parse("5.5.1") <= versionNumber
     }
 
 }
