@@ -25,9 +25,18 @@ import org.jetbrains.kotlin.script.ScriptContents
 import org.jetbrains.kotlin.script.ScriptDependenciesResolverEx
 import org.jetbrains.kotlin.script.asFuture
 import java.io.File
+import java.security.MessageDigest
+import java.util.*
 import java.util.concurrent.Future
 
 class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
+
+    class DepsWithBuldscriptSectionHash(
+            override val classpath: Iterable<File>,
+            override val imports: Iterable<String>,
+            override val sources: Iterable<File>,
+            val hash: ByteArray)
+    : KotlinScriptExternalDependencies
 
     override fun resolve(script: ScriptContents, environment: Map<String, Any?>?, report: (ScriptDependenciesResolverEx.ReportSeverity, String, ScriptContents.Position?) -> Unit, previousDependencies: KotlinScriptExternalDependencies?): Future<KotlinScriptExternalDependencies?> {
         if (environment == null)
@@ -38,6 +47,20 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
         if (classPath != null)
             return makeDependencies(classPath.asFiles).asFuture()
 
+        val hash = with (MessageDigest.getInstance("MD5")) {
+            val text = script.text ?: script.file?.readText()
+            text?.let { text ->
+                val getScriptSectionTokens = environment["getScriptSectionTokens"] as? (CharSequence, String) -> Sequence<CharSequence>
+
+                getScriptSectionTokens?.let {
+                    it(text, "buildscript").forEach {
+                        update(it.toString().toByteArray())
+                    }
+                }
+            }
+            digest()
+        }
+
         // IDEA content assist path
         val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let { File(it) }
         val gradleJvmOptions = environment["gradleJvmOptions"] as? List<String>
@@ -45,20 +68,30 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
         val gradleHome = environment["gradleHome"] as? File
         val projectRoot = environment["projectRoot"] as? File
 
-        return when {
+        val res = when {
+            (previousDependencies as? DepsWithBuldscriptSectionHash)?.hash?.let { Arrays.equals(it, hash) } ?: false ->
+                null
             projectRoot != null && gradleHome != null && gradleJavaHome != null ->
-                retrieveKotlinBuildScriptModelFrom(projectRoot, gradleHome, gradleJavaHome)?.getDependencies(gradleHome)?.asFuture()
+                retrieveKotlinBuildScriptModelFrom(projectRoot, gradleHome, gradleJavaHome)
+                        ?.getDependencies(gradleHome, hash)
+                        ?.asFuture()
             gradleWithConnection != null && gradleHome != null ->
-                retrieveKotlinBuildScriptModelFrom(gradleWithConnection, gradleJavaHome, gradleJvmOptions)?.getDependencies(gradleHome)?.asFuture()
-            else -> null
+                retrieveKotlinBuildScriptModelFrom(gradleWithConnection, gradleJavaHome, gradleJvmOptions)
+                        ?.getDependencies(gradleHome, hash)
+                        ?.asFuture()
+            else ->
+                null
         } ?: previousDependencies.asFuture()
+
+        return res
     }
 
-    private fun KotlinBuildScriptModel.getDependencies(gradleInstallation: File): KotlinScriptExternalDependencies {
+    private fun KotlinBuildScriptModel.getDependencies(gradleInstallation: File, hash: ByteArray): KotlinScriptExternalDependencies {
         val gradleScriptKotlinJar = classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
         return makeDependencies(
                 classPath = classPath,
-                sources = gradleScriptKotlinJar + sourceRootsOf(gradleInstallation))
+                sources = gradleScriptKotlinJar + sourceRootsOf(gradleInstallation),
+                hash = hash)
     }
 
     /**
@@ -80,12 +113,8 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
         else
             emptyList()
 
-    private fun makeDependencies(classPath: Iterable<File>, sources: Iterable<File> = emptyList()): KotlinScriptExternalDependencies =
-        object : KotlinScriptExternalDependencies {
-            override val classpath = classPath
-            override val imports = implicitImports
-            override val sources = sources
-        }
+    private fun makeDependencies(classPath: Iterable<File>, sources: Iterable<File> = emptyList(), hash: ByteArray = ByteArray(0)) =
+            DepsWithBuldscriptSectionHash(classPath, implicitImports, sources, hash)
 
     companion object {
         val implicitImports = listOf(
