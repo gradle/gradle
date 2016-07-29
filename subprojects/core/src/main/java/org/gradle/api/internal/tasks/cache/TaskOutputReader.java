@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-import com.google.common.io.ByteSource;
-
 import java.io.IOException;
+import java.io.InputStream;
 
 public interface TaskOutputReader {
-    ByteSource read() throws IOException;
+    InputStream read() throws IOException;
 }

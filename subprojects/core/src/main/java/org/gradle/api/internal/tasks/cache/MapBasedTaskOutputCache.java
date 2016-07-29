@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-import com.google.common.io.ByteSink;
-import com.google.common.io.ByteSource;
-
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 import java.util.concurrent.ConcurrentMap;
 
 public class MapBasedTaskOutputCache implements TaskOutputCache {
@@ -46,21 +44,16 @@ public class MapBasedTaskOutputCache implements TaskOutputCache {
         }
         return new TaskOutputReader() {
             @Override
-            public ByteSource read() throws IOException {
-                return ByteSource.wrap(bytes);
+            public InputStream read() throws IOException {
+                return new ByteArrayInputStream(bytes);
             }
         };
     }
 
     @Override
     public void put(TaskCacheKey key, TaskOutputWriter output) throws IOException {
-        final ByteArrayOutputStream data = new ByteArrayOutputStream();
-        output.writeTo(new ByteSink() {
-            @Override
-            public OutputStream openStream() throws IOException {
-                return data;
-            }
-        });
+        ByteArrayOutputStream data = new ByteArrayOutputStream();
+        output.writeTo(data);
         delegate.put(key.getHashCode().toString(), data.toByteArray());
     }
 }
