@@ -23,6 +23,7 @@ import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
 import groovyx.net.http.ContentType
 import groovyx.net.http.RESTClient
+import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -51,6 +52,8 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     List<String> scheduledJobs = Lists.newArrayList()
 
+    List<String> failedJobs = Lists.newArrayList()
+
     @TaskAction
     void executeTests() {
         scenarioList.delete()
@@ -70,6 +73,14 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         scheduledJobs.each {
             join(it)
+        }
+
+        if (failedJobs) {
+            throw new GradleException("Distributed performance tests failed. See individual jobs for details:\n" +
+                    failedJobs.collect {String jobId ->
+                        "$teamCityUrl/viewLog.html?buildId=$jobId&tab=buildResultsDiv&buildTypeId=&$buildTypeId\n"
+                    }.join("\n")
+            )
         }
     }
 
@@ -100,12 +111,16 @@ class DistributedPerformanceTest extends PerformanceTest {
     @TypeChecked(TypeCheckingMode.SKIP)
     private void join(String jobId) {
         def finished = false
+        def response
         while (!finished) {
-            def response = client.get(path: "builds/id:$jobId/state")
-            finished = response.data.text == "finished"
+            response = client.get(path: "builds/id:$jobId")
+            finished = response.data.@state == "finished"
             if (!finished) {
                 sleep(TimeUnit.MINUTES.toMillis(1))
             }
+        }
+        if (response.data.@status != "SUCCESS") {
+            failedJobs += jobId
         }
     }
 
