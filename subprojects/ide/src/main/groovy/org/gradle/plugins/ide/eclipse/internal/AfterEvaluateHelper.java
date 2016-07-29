@@ -18,7 +18,6 @@ package org.gradle.plugins.ide.eclipse.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.internal.project.ProjectInternal;
 
 /**
  * Helper class for actions registered for {@code afterEvaluate}.
@@ -26,13 +25,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 public class AfterEvaluateHelper {
 
     /**
-     * Registers the target action in {@code project.afterEvaluate} or calls it directly if the target project has been already evaluated. .
+     * Registers the target action in {@code project.afterEvaluate} or calls it directly if the target project has been already evaluated.
      *
      * @param project The target project.
      * @param action The target action.
      */
     public static void afterEvaluateOrExecute(Project project, Action<Project> action) {
-        if (((ProjectInternal) project).getState().getExecuted()) {
+        if (project.getState().getExecuted()) {
             action.execute(project);
         } else {
             project.afterEvaluate(action);
