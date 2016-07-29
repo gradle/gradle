@@ -382,3 +382,7 @@ which are not loaded by Gradle, such as the classes under test.
 
 * A Gradle best pattern is to name the gradle file to be the same name as the subproject.
 * Let's support this out of the box, possibly as a preference to `build.gradle`, and maybe drop support for `build.gradle` in subprojects.
+
+## Miscellaneous cleanups
+
+* Remove `ExtensionContainerInternal`

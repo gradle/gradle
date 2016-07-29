@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
-import org.gradle.api.file.CopySourceSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
@@ -82,10 +81,10 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     public CopySpec from(Object sourcePath, final Closure c) {
-        return getDelegateCopySpec().from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
+        return getDelegateCopySpec().from(sourcePath, new ClosureBackedAction<CopySpec>(c));
     }
 
-    public CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
+    public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
         return getDelegateCopySpec().from(sourcePath, configureAction);
     }
 

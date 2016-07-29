@@ -43,7 +43,7 @@ public interface CompatibilityAdapterForTaskInputs {
      * Registers an input directory hierarchy. All files found under the given directory are treated as input files for
      * this task.
      *
-     * @param dirPath The directory. The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     * @param path The directory. The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return this
      */
     TaskInputs dir(Object path);

@@ -43,11 +43,11 @@ public interface CopySourceSpec {
     CopySourceSpec from(Object sourcePath, Closure configureClosure);
 
     /**
-     * Specifies the source files or directories for a copy and creates a child {@code CopySourceSpec}. The given source
+     * Specifies the source files or directories for a copy and creates a child {@code CopySpec}. The given source
      * path is evaluated as per {@link org.gradle.api.Project#files(Object...)} .
      *
      * @param sourcePath Path to source for the copy
-     * @param configureAction action for configuring the child CopySourceSpec
+     * @param configureAction action for configuring the child CopySpec
      */
-    CopySourceSpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction);
+    CopySourceSpec from(Object sourcePath, Action<? super CopySpec> configureAction);
 }

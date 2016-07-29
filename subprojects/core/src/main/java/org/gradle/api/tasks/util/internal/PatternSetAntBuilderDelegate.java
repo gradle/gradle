@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
 import org.gradle.api.tasks.AntBuilderAware;
+import org.gradle.util.AntUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -67,7 +68,7 @@ public class PatternSetAntBuilderDelegate implements AntBuilderAware {
         Map<String, Object> props = new HashMap<String, Object>(2);
         props.put("casesensitive", caseSensitive);
         for (String filename : filenames) {
-            props.put("name", filename);
+            props.put("name", AntUtil.maskFilename(filename));
             groovyObject.invokeMethod("filename", props);
         }
         return node;
