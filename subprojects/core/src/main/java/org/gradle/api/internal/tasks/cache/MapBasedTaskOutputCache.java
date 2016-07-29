@@ -38,7 +38,7 @@ public class MapBasedTaskOutputCache implements TaskOutputCache {
 
     @Override
     public TaskOutputReader get(TaskCacheKey key) throws IOException {
-        final byte[] bytes = delegate.get(key.getHashCode().toString());
+        final byte[] bytes = delegate.get(key.getHashCode());
         if (bytes == null) {
             return null;
         }
@@ -54,6 +54,6 @@ public class MapBasedTaskOutputCache implements TaskOutputCache {
     public void put(TaskCacheKey key, TaskOutputWriter output) throws IOException {
         ByteArrayOutputStream data = new ByteArrayOutputStream();
         output.writeTo(data);
-        delegate.put(key.getHashCode().toString(), data.toByteArray());
+        delegate.put(key.getHashCode(), data.toByteArray());
     }
 }

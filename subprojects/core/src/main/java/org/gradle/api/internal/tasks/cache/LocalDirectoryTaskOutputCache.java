@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-import com.google.common.hash.HashCode;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
@@ -73,8 +72,8 @@ public class LocalDirectoryTaskOutputCache implements TaskOutputCache {
         }
     }
 
-    private File getFile(HashCode key) {
-        return new File(directory, key.toString());
+    private File getFile(String key) {
+        return new File(directory, key);
     }
 
     @Override
