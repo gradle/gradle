@@ -21,6 +21,8 @@ import org.gradle.api.Project;
 
 /**
  * Helper class for actions registered for {@code afterEvaluate}.
+ *
+ * See https://issues.gradle.org/browse/GRADLE-3231
  */
 public class AfterEvaluateHelper {
 
