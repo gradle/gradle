@@ -195,4 +195,23 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
         then:
         project.classpathContainers.find { it.path.startsWith('org.eclipse.jdt.launching.JRE_CONTAINER') && it.path.contains('customJavaRuntime') }
     }
+
+    def "Whether or not the eclipse plugin is explicitly applied, the same model is retrieved "() {
+        setup:
+        settingsFile << 'rootProject.name = "root"'
+        buildFile << """
+            apply plugin: 'java'
+            ${eclipsePluginApplied ? "apply plugin: 'eclipse'" : ""}
+        """
+
+        when:
+        EclipseProject project = loadToolingModel(EclipseProject)
+
+        then:
+        // EclipsePlugin.configureEclipseClasspath() registers the JRE container in an afterEvaluate block
+        !project.classpathContainers.isEmpty()
+
+        where:
+        eclipsePluginApplied << [false, true]
+    }
 }
