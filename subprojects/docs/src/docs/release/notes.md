@@ -224,6 +224,7 @@ Several libraries that are used by Gradle plugins have been upgraded:
 - The OSGi plugin has been upgraded to use version 3.2.0 of the BND library.
 - The Jacoco plugin has been upgraded to use Jacoco version 0.7.7.201606060606 by default.
 - The PMD plugin has been upgraded to use PMD version 5.5.1 by default.
+- The CodeNarc plugin has been upgraded to use CodeNarc version 0.25.2 by default.
 - The Groovy version has been updated to 2.4.7. 
  
 <a id="all-improvements" name="all-improvements"></a>
