@@ -19,6 +19,7 @@ package org.gradle.api.plugins.jetty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.util.GradleVersion
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import spock.lang.Timeout
@@ -53,7 +54,7 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
         """.stripIndent())
 
         when:
-        def handle = executer.withTasks('jettyRun', 'block').start()
+        def handle = executer.withTasks('jettyRun', 'block').expectDeprecationWarning().start()
         server.waitFor()
 
         then:
@@ -79,7 +80,7 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
         """.stripIndent())
 
         when:
-        def handle = executer.withTasks('jettyRun').start()
+        def handle = executer.withTasks('jettyRun').expectDeprecationWarning().start()
         server.sync()
 
         then:
@@ -95,6 +96,17 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
         pollingConditions.eventually {
             assertJettyIsDown()
         }
+    }
+
+    def "emits deprecation warning"() {
+        given:
+        buildFile << "apply plugin: 'jetty'"
+
+        when:
+        def result = executer.withTasks('help').expectDeprecationWarning().run()
+
+        then:
+        result.assertOutputContains("The Jetty plugin has been deprecated and is scheduled to be removed in Gradle ${GradleVersion.current().nextMajor.version}. Please use the Gretty (https://github.com/akhikhl/gretty) plugin instead.")
     }
 
     private void stopJettyViaMonitor() {

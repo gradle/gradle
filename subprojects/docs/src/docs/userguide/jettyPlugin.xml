@@ -16,6 +16,13 @@
 <chapter id="jetty_plugin">
     <title>The Jetty Plugin</title>
 
+    <note>
+        <para>
+            This plugin is deprecated. You may wish to use the more feature-rich <ulink url="https://github.com/akhikhl/gretty">Gretty Plugin</ulink>
+            instead of this plugin.
+        </para>
+    </note>
+
     <para>The Jetty plugin extends the War plugin to add tasks which allow you to deploy your web application to a
         Jetty web container embedded in the build.
     </para>
