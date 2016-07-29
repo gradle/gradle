@@ -57,16 +57,26 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
                 val gradleScriptKotlinJar = it.filter { it.name.startsWith("gradle-script-kotlin-") }
                 makeDependencies(
                     classPath = it,
-                    sources = gradleScriptKotlinJar + sourceRootsOf(gradleInstallation))
+                    sources = gradleScriptKotlinJar + buildSrcRootsOf(projectRoot) + sourceRootsOf(gradleInstallation))
             }
 
+    /**
+     * Returns all conventional source directories under buildSrc if any.
+     *
+     * This won't work for buildSrc projects with a custom source directory layout
+     * but should account for the majority of cases and it's cheap.
+     */
+    private fun buildSrcRootsOf(projectRoot: File): Collection<File> =
+        subDirsOf(File(projectRoot, "buildSrc/src/main"))
+
     private fun sourceRootsOf(gradleInstallation: File): Collection<File> =
-        File(gradleInstallation, "src").let { srcDir ->
-            if (srcDir.exists())
-                srcDir.listFiles().filter { it.isDirectory }
-            else
-                emptyList()
-        }
+        subDirsOf(File(gradleInstallation, "src"))
+
+    private fun subDirsOf(dir: File): Collection<File> =
+        if (dir.isDirectory)
+            dir.listFiles().filter { it.isDirectory }
+        else
+            emptyList()
 
     private fun makeDependencies(classPath: Iterable<File>, sources: Iterable<File> = emptyList()): KotlinScriptExternalDependencies =
         object : KotlinScriptExternalDependencies {
