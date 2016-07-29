@@ -1,13 +1,10 @@
 The Gradle team is pleased to announce Gradle 3.0.
 
-Performance continues to be a focus for the Gradle team and the third major release reflects this.  The [Gradle Daemon](userguide/gradle_daemon.html) is a key performance enhancer, 
-making builds _up to 75% faster_, but it needed to be explicitly enabled in previous versions of Gradle.  This is no longer necessary as the Daemon is now _enabled by default_ in 3.0.  We've 
-put a lot of effort into fixing the most significant issues with the Gradle Daemon, especially on Windows platforms. We have also been working hard to make the Gradle Daemon aware of its health and impact 
-to the system it's running on.  We now use this information for self-healing actions as well as better daemon status reporting.  The Gradle Daemon is the foundation for a great Gradle experience.
+Performance continues to be a focus for the Gradle team and the third major release reflects this.  The [Gradle Daemon](userguide/gradle_daemon.html) is a key performance enhancer, making builds _up to 75% faster_, but it needed to be explicitly enabled in previous versions of Gradle.  This is no longer necessary as the Daemon is now _enabled by default_ in 3.0.  We've put a lot of effort into fixing the most significant issues with the Gradle Daemon, especially on Windows platforms. We have also been working hard to make the Gradle Daemon aware of its health and impact to the system it's running on and use this information for self-healing actions as well as better daemon status reporting.  The Gradle Daemon is the foundation for a great Gradle experience.
 
 Ever wished for better IDE support when writing Gradle build scripts?  This release provides the first support for [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), 
 which is a Kotlin-based build language for Gradle scripts.  Its deep integration with both IDEA and Eclipse provides many of the things you would expect from an IDE such as auto-completion, 
-refactoring, navigation to source, and more.  Groovy is still the primary build language for Gradle scripts and will always be supported, but we'll be working with high velocity to make Gradle Script 
+refactoring, navigation to source, and more.  Groovy is still the primary build language for Gradle scripts and will always be supported, but we'll be working intensely to make Gradle Script 
 Kotlin fully production ready by the end of the year in order to provide 
 the best possible development experience to Gradle users.  See [Chris Beams's blog post](https://gradle.org/blog/kotlin-meets-gradle/) for more information about this exciting new feature.
 
