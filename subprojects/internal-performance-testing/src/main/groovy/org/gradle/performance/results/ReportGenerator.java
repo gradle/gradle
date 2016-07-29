@@ -23,6 +23,18 @@ import java.io.File;
 import java.net.URL;
 
 public class ReportGenerator {
+
+    public static void main(String... args) throws Exception {
+        Class<?> resultStoreClass = Class.forName(args[0]);
+        File outputDirectory = new File(args[1]);
+        ResultsStore resultStore = (ResultsStore) resultStoreClass.newInstance();
+        try {
+            new ReportGenerator().generate(resultStore, outputDirectory);
+        } finally {
+            resultStore.close();
+        }
+    }
+
     void generate(final ResultsStore store, File outputDirectory) {
         try {
             FileRenderer fileRenderer = new FileRenderer();

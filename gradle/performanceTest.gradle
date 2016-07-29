@@ -99,22 +99,6 @@ performanceTestTasks.all { PerformanceTest task ->
             println "not increasing JVM heap size due to use of 32bit JVM"
         }
     }
-
-    def urlProperty = "org.gradle.performance.db.url"
-    def url = project.findProperty(urlProperty)
-    if (url) {
-        systemProperty urlProperty, url
-    }
-    def usernameProperty = "org.gradle.performance.db.username"
-    def username = project.findProperty(usernameProperty)
-    if (username) {
-        systemProperty usernameProperty, username
-    }
-    def passwordProperty = "org.gradle.performance.db.password"
-    def password = project.findProperty(passwordProperty)
-    if (password) {
-        systemProperty passwordProperty, password
-    }
 }
 
 task performanceTest(type: PerformanceTest) {
@@ -162,12 +146,35 @@ configure([performanceTest, performanceExperiments]) {
     }
 }
 
+ext.performanceReportTasks = tasks.withType(PerformanceTest)
+
 task performanceReport(type: PerformanceReport) {
     classpath = sourceSets.performanceTest.runtimeClasspath
     resultStoreClass = "org.gradle.performance.results.AllResultsStore"
     reportDir = new File(buildDir, "performance-tests/report")
     outputs.upToDateWhen { false }
 }
+
+def withPerformanceDb = {
+    def urlProperty = "org.gradle.performance.db.url"
+    def url = project.findProperty(urlProperty)
+    if (url) {
+        systemProperty urlProperty, url
+    }
+    def usernameProperty = "org.gradle.performance.db.username"
+    def username = project.findProperty(usernameProperty)
+    if (username) {
+        systemProperty usernameProperty, username
+    }
+    def passwordProperty = "org.gradle.performance.db.password"
+    def password = project.findProperty(passwordProperty)
+    if (password) {
+        systemProperty passwordProperty, password
+    }
+}
+
+performanceTestTasks.all(withPerformanceDb)
+performanceReportTasks.all(withPerformanceDb)
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
     idea {
@@ -189,24 +196,16 @@ plugins.withType(org.gradle.plugins.ide.eclipse.EclipsePlugin) {
     }
 }
 
-class PerformanceReport extends DefaultTask {
-    @InputFiles
-    def classpath
+class PerformanceReport extends JavaExec {
     @Input
-    def resultStoreClass
+    String resultStoreClass
     @OutputDirectory
-    def reportDir
+    File reportDir
 
     @TaskAction
-    def report() {
-        def cl = new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
-        def store = cl.loadClass(resultStoreClass).newInstance()
-        try {
-            def generator = cl.loadClass("org.gradle.performance.results.ReportGenerator").newInstance()
-            generator.generate(store, reportDir)
-        } finally {
-            store.close()
-            cl.close()
-        }
+    public void exec() {
+        main = "org.gradle.performance.results.ReportGenerator"
+        args = [resultStoreClass, reportDir.path]
+        super.exec();
     }
 }
