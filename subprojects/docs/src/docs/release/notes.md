@@ -300,11 +300,9 @@ Chaining the following method calls is now deprecated:
 
 With Gradle 3.0, the following now produces a deprecation warning:
 
-```
-task myTask {
-  inputs.file("input1.txt").file("input2.txt")
-}
-```
+    task myTask {
+        inputs.file("input1.txt").file("input2.txt")
+    }
 
 > The chaining of the `file(Object)` method has been deprecated and is scheduled to be removed in Gradle 4.0. Please use the `file(Object)` method on `TaskInputs` directly instead.
 
