@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
@@ -142,7 +141,8 @@ public class ProtocolToModelAdapter implements Serializable {
             return adaptToEnum(targetType, sourceObject);
         }
 
-        Object view = graphDetails.adaptedObjects.get(sourceObject);
+        ViewKey viewKey = new ViewKey(viewType, sourceObject);
+        Object view = graphDetails.adaptedObjects.get(viewKey);
         if (view != null) {
             return targetType.cast(view);
         }
@@ -158,7 +158,7 @@ public class ProtocolToModelAdapter implements Serializable {
             mixInMethodInvoker.setProxy(proxy);
         }
 
-        graphDetails.adaptedObjects.put(sourceObject, proxy);
+        graphDetails.adaptedObjects.put(viewKey, proxy);
 
         return viewType.cast(proxy);
     }
@@ -261,11 +261,32 @@ public class ProtocolToModelAdapter implements Serializable {
     }
 
     private static class AdaptedGraphDetails implements Serializable {
-        private final Map<Object, Object> adaptedObjects = new IdentityHashMap<Object, Object>();
+        private final Map<ViewKey, Object> adaptedObjects = new HashMap<ViewKey, Object>();
         private final Action<? super SourceObjectMapping> mapper;
 
         public AdaptedGraphDetails(Action<? super SourceObjectMapping> mapper) {
             this.mapper = mapper;
+        }
+    }
+
+    private static class ViewKey implements Serializable {
+        private final Class<?> type;
+        private final Object source;
+
+        public ViewKey(Class<?> type, Object source) {
+            this.type = type;
+            this.source = source;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            ViewKey other = (ViewKey) obj;
+            return other.type.equals(type) && other.source == source;
+        }
+
+        @Override
+        public int hashCode() {
+            return type.hashCode() ^ source.hashCode();
         }
     }
 

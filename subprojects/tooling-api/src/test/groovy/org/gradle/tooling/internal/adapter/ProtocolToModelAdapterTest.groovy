@@ -168,17 +168,45 @@ class ProtocolToModelAdapterTest extends Specification {
         model.children.is(model.children)
     }
 
-    def retainsObjectIdentityAcrossPropertyValues() {
+    def retainsObjectIdentityFromBackingGraph() {
         TestProtocolModel protocolModel = Mock()
         TestProtocolProject protocolProject = Mock()
         _ * protocolModel.getProject() >> protocolProject
         _ * protocolModel.getChildren() >> [protocolProject]
-        _ * protocolProject.getName() >> 'name'
+        _ * protocolModel.find("name") >> protocolProject
+
+        expect:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+        def project = model.project
+        model.project.is(project)
+        model.children[0].is(project)
+        model.find("name").is(project)
+    }
+
+    def doesNotReuseViewsForObjectsThatAreEqual() {
+        TestProtocolModel protocolModel = Mock()
+        TestProtocolProject project1 = new TestProtocolProjectWithEquality()
+        TestProtocolProject project2 = new TestProtocolProjectWithEquality()
+        _ * protocolModel.getProject() >> project1
+        _ * protocolModel.getChildList() >> [project2, project1]
+        assert project1 == project2
+
+        expect:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+        !model.childList[0].is(model.project)
+        model.childList[1].is(model.project)
+    }
+
+    def backingObjectCanBeViewedAsVariousTypes() {
+        TestProtocolModel protocolModel = Mock()
+        TestProtocolProject protocolProject = Mock()
+        _ * protocolModel.getProject() >> protocolProject
+        _ * protocolModel.getExtendedProject() >> protocolProject
 
         expect:
         def model = adapter.adapt(TestModel.class, protocolModel)
         model.project.is(model.project)
-        model.children[0].is(model.project)
+        model.extendedProject
     }
 
     def reportsMethodWhichDoesNotExistOnProtocolObject() {
@@ -490,11 +518,15 @@ interface TestModel {
 
     TestProject getProject()
 
+    TestExtendedProject getExtendedProject()
+
     boolean isConfigSupported()
 
     String getConfig(String defaultValue)
 
     Boolean isThing(Boolean defaultValue)
+
+    TestProject find(String name)
 
     DomainObjectSet<? extends TestProject> getChildren()
 
@@ -516,6 +548,10 @@ interface TestProtocolModel {
     String getName()
 
     TestProtocolProject getProject()
+
+    TestProtocolProject getExtendedProject()
+
+    TestProtocolProject find(String name)
 
     Iterable<? extends TestProtocolProject> getChildren()
 
@@ -542,6 +578,20 @@ enum TestEnum {
 
 class TestProtocolProjectImpl implements Serializable {
     String name = "name"
+}
+
+class TestProtocolProjectWithEquality implements TestProtocolProject, Serializable {
+    String name = "name"
+
+    @Override
+    boolean equals(Object obj) {
+        return obj.name == name
+    }
+
+    @Override
+    int hashCode() {
+        return name.hashCode()
+    }
 }
 
 class ConfigMixin {
