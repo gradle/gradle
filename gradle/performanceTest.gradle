@@ -82,20 +82,12 @@ task prepareSamples {
     description = "Generates all sample projects for automated performance tests"
 }
 
-task report(type: PerformanceReport) {
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    resultStoreClass = "org.gradle.performance.results.AllResultsStore"
-    reportDir = new File(buildDir, "performance-tests/report")
-    outputs.upToDateWhen { false }
-}
-
 ext.performanceTestTasks = tasks.withType(PerformanceTest)
 
 performanceTestTasks.all { PerformanceTest task ->
     testClassesDir = sourceSets.performanceTest.output.classesDir
     classpath = sourceSets.performanceTest.runtimeClasspath
     dependsOn prepareSamples
-    finalizedBy report
 
     def urlProperty = "org.gradle.performance.db.url"
     def url = project.findProperty(urlProperty)
@@ -169,6 +161,13 @@ configure([performanceTest, performanceExperiments]) {
     if (project.hasProperty('performanceTest.verbose')) {
         testLogging.showStandardStreams = true
     }
+}
+
+task performanceReport(type: PerformanceReport) {
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    resultStoreClass = "org.gradle.performance.results.AllResultsStore"
+    reportDir = new File(buildDir, "performance-tests/report")
+    outputs.upToDateWhen { false }
 }
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
