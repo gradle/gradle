@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.file.CopySourceSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
@@ -193,14 +192,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      */
     @Deprecated
     public AbstractCopyTask from(Object sourcePath, final Closure c) {
-        getMainSpec().from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
+        getMainSpec().from(sourcePath, new ClosureBackedAction<CopySpec>(c));
         return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
+    public AbstractCopyTask from(Object sourcePath, Action<? super CopySpec> configureAction) {
         getMainSpec().from(sourcePath, configureAction);
         return this;
     }

@@ -22,7 +22,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
-import org.gradle.api.file.CopySourceSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
@@ -104,10 +103,10 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec from(Object sourcePath, final Closure c) {
-        return from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
+        return from(sourcePath, new ClosureBackedAction<CopySpec>(c));
     }
 
-    public CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
+    public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
         if (configureAction == null) {
             from(sourcePath);
             return this;
