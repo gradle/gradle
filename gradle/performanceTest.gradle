@@ -125,7 +125,7 @@ task performanceAdhocTest(type: PerformanceTest) {
 
 task distributedPerformanceTest(type: DistributedPerformanceTest) {
     scenarioList = file("$buildDir/performance-tests/scenario-list.csv")
-    buildyTypeId = "Gradle_Master_Performance_DistributedPerformanceScenariosLinux"
+    buildTypeId = project.findProperty("org.gradle.performance.buildTypeId")
     teamCityUrl = "https://builds.gradle.org/"
     teamCityUsername = project.findProperty("teamCityUsername")
     teamCityPassword = project.findProperty("teamCityPassword")

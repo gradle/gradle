@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit
 class DistributedPerformanceTest extends PerformanceTest {
 
     @Input
-    String buildyTypeId
+    String buildTypeId
 
     @Input
     String teamCityUrl
@@ -85,7 +85,7 @@ class DistributedPerformanceTest extends PerformanceTest {
             requestContentType: ContentType.XML,
             body: """
                 <build>
-                    <buildType id="${buildyTypeId}"/>
+                    <buildType id="${buildTypeId}"/>
                     <properties>
                         <property name="scenario" value="${scenario.id}"/>
                         <property name="templates" value="${scenario.templates.join(' ')}"/>
