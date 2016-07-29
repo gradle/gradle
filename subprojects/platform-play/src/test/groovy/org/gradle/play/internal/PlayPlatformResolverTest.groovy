@@ -50,22 +50,32 @@ class PlayPlatformResolverTest extends Specification {
         requirement << ["play-2.1.0", [play: '2.1.0']]
     }
 
-    def "resolves platform for Play"() {
+    def "resolves platform for play"() {
         when:
-        def playPlatform = resolve(requirement)
+        def playPlatform = resolve("play-${playVersion}")
 
         then:
-        playPlatform.name == requirement
-        playPlatform.playVersion == playVersion
-        playPlatform.javaPlatform.targetCompatibility == JavaVersion.current()
-        playPlatform.scalaPlatform.scalaVersion == scalaPlatform
+        assertPlayPlatform(playPlatform, play: playVersion, scala: scalaVersion)
+
+        when:
+        playPlatform = resolve play: playVersion
+
+        then:
+        assertPlayPlatform(playPlatform, play: playVersion, scala: scalaVersion)
 
         where:
-        requirement       | playVersion | scalaPlatform
-        "play-2.2.3"      | "2.2.3"     | "2.10.4"
-        "play-2.3.4"      | "2.3.4"     | "2.11.4"
-        "play-2.4.6"      | "2.4.6"     | "2.11.4"
-        "play-2.5.4"      | "2.5.4"     | "2.11.4"
+        playVersion | scalaVersion
+        "2.2.3"     | "2.10.4"
+        "2.3.4"     | "2.11.4"
+        "2.4.6"     | "2.11.4"
+        "2.5.4"     | "2.11.4"
+    }
+
+    private void assertPlayPlatform(Map versions, PlayPlatform platform) {
+        assert platform.name == "play-${versions.play}".toString()
+        assert platform.playVersion == versions.play
+        assert platform.javaPlatform.targetCompatibility == JavaVersion.current()
+        assert platform.scalaPlatform.scalaVersion == versions.scala
     }
 
     def "resolves platform with specified scala version"() {
