@@ -30,8 +30,21 @@ import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.SoftReference;
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Proxy;
+import java.lang.reflect.Type;
+import java.lang.reflect.WildcardType;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -49,11 +62,11 @@ public class ProtocolToModelAdapter implements Serializable {
     };
     private static final Object[] EMPTY = new Object[0];
     private static final Pattern IS_SUPPORT_METHOD = Pattern.compile("is(\\w+)Supported");
-    private final TargetTypeProvider targetTypeProvider;
-    private final CollectionMapper collectionMapper = new CollectionMapper();
-
     private static final Method EQUALS_METHOD;
     private static final Method HASHCODE_METHOD;
+
+    private final TargetTypeProvider targetTypeProvider;
+    private final CollectionMapper collectionMapper = new CollectionMapper();
 
     static {
         Method equalsMethod;
@@ -79,7 +92,7 @@ public class ProtocolToModelAdapter implements Serializable {
     /**
      * Adapts the source object to a view object.
      */
-    public <T, S> T adapt(Class<T> targetType, S sourceObject) {
+    public <T> T adapt(Class<T> targetType, Object sourceObject) {
         return adapt(targetType, sourceObject, NO_OP_MAPPER);
     }
 
@@ -88,7 +101,7 @@ public class ProtocolToModelAdapter implements Serializable {
      *
      * @param mixInClass A bean that provides implementations for methods of the target type. If this bean implements the given method, it is preferred over the source object's implementation.
      */
-    public <T, S> T adapt(Class<T> targetType, final S sourceObject, final Class<?> mixInClass) {
+    public <T> T adapt(Class<T> targetType, final Object sourceObject, final Class<?> mixInClass) {
         return adapt(targetType, sourceObject, new Action<SourceObjectMapping>() {
             public void execute(SourceObjectMapping mapping) {
                 if (mapping.getSourceObject() == sourceObject) {
@@ -108,27 +121,46 @@ public class ProtocolToModelAdapter implements Serializable {
         if (sourceObject == null) {
             return null;
         }
-        Class<? extends T> wrapperType = targetTypeProvider.getTargetType(targetType, sourceObject);
-        DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType, wrapperType);
-        mapper.execute(mapping);
-        wrapperType = mapping.wrapperType.asSubclass(targetType);
-        if (wrapperType.isInstance(sourceObject)) {
-            return wrapperType.cast(sourceObject);
+        return createView(targetType, sourceObject, new AdaptedGraphDetails(mapper));
+    }
+
+    private <T> T createView(Class<T> targetType, Object sourceObject, AdaptedGraphDetails graphDetails) {
+        if (sourceObject == null) {
+            return null;
+        }
+
+        // Calculate the actual type
+        Class<? extends T> viewType = targetTypeProvider.getTargetType(targetType, sourceObject);
+        DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType, viewType);
+        graphDetails.mapper.execute(mapping);
+        viewType = mapping.wrapperType.asSubclass(targetType);
+
+        if (viewType.isInstance(sourceObject)) {
+            return viewType.cast(sourceObject);
         }
         if (targetType.isEnum()) {
             return adaptToEnum(targetType, sourceObject);
         }
 
+        Object view = graphDetails.adaptedObjects.get(sourceObject);
+        if (view != null) {
+            return targetType.cast(view);
+        }
+
+        // Create a proxy
         MixInMethodInvoker mixInMethodInvoker = null;
         if (mapping.mixInType != null) {
-            mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(mapper, new ReflectionMethodInvoker()));
+            mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(graphDetails, new ReflectionMethodInvoker()));
         }
         MethodInvoker overrideInvoker = chainInvokers(mixInMethodInvoker, mapping.overrideInvoker);
-        Object proxy = Proxy.newProxyInstance(wrapperType.getClassLoader(), new Class<?>[]{wrapperType}, new InvocationHandlerImpl(sourceObject, overrideInvoker, mapper));
+        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, new InvocationHandlerImpl(sourceObject, overrideInvoker, graphDetails));
         if (mixInMethodInvoker != null) {
             mixInMethodInvoker.setProxy(proxy);
         }
-        return wrapperType.cast(proxy);
+
+        graphDetails.adaptedObjects.put(sourceObject, proxy);
+
+        return viewType.cast(proxy);
     }
 
     private MethodInvoker chainInvokers(MixInMethodInvoker mixInMethodInvoker, MethodInvoker overrideInvoker) {
@@ -159,19 +191,19 @@ public class ProtocolToModelAdapter implements Serializable {
         }
     }
 
-    private Object convert(Type targetType, Object sourceObject, Action<? super SourceObjectMapping> mapping) {
+    private Object convert(Type targetType, Object sourceObject, AdaptedGraphDetails graphDetails) {
         if (targetType instanceof ParameterizedType) {
             ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
             if (parameterizedTargetType.getRawType() instanceof Class) {
                 Class<?> rawClass = (Class<?>) parameterizedTargetType.getRawType();
                 if (Iterable.class.isAssignableFrom(rawClass)) {
                     Type targetElementType = getElementType(parameterizedTargetType, 0);
-                    return convertCollectionInternal(rawClass, targetElementType, (Iterable<?>) sourceObject, mapping);
+                    return convertCollectionInternal(rawClass, targetElementType, (Iterable<?>) sourceObject, graphDetails);
                 }
                 if (Map.class.isAssignableFrom(rawClass)) {
                     Type targetKeyType = getElementType(parameterizedTargetType, 0);
                     Type targetValueType = getElementType(parameterizedTargetType, 1);
-                    return convertMap(rawClass, targetKeyType, targetValueType, (Map<?, ?>) sourceObject, mapping);
+                    return convertMap(rawClass, targetKeyType, targetValueType, (Map<?, ?>) sourceObject, graphDetails);
                 }
             }
         }
@@ -179,22 +211,22 @@ public class ProtocolToModelAdapter implements Serializable {
             if (((Class) targetType).isPrimitive()) {
                 return sourceObject;
             }
-            return adapt((Class) targetType, sourceObject, mapping);
+            return createView((Class) targetType, sourceObject, graphDetails);
         }
         throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", sourceObject.getClass(), targetType));
     }
 
-    private Map<Object, Object> convertMap(Class<?> mapClass, Type targetKeyType, Type targetValueType, Map<?, ?> sourceObject, Action<? super SourceObjectMapping> mapping) {
+    private Map<Object, Object> convertMap(Class<?> mapClass, Type targetKeyType, Type targetValueType, Map<?, ?> sourceObject, AdaptedGraphDetails graphDetails) {
         Map<Object, Object> convertedElements = collectionMapper.createEmptyMap(mapClass);
         for (Map.Entry<?, ?> entry : sourceObject.entrySet()) {
-            convertedElements.put(convert(targetKeyType, entry.getKey(), mapping), convert(targetValueType, entry.getValue(), mapping));
+            convertedElements.put(convert(targetKeyType, entry.getKey(), graphDetails), convert(targetValueType, entry.getValue(), graphDetails));
         }
         return convertedElements;
     }
 
-    private Object convertCollectionInternal(Class<?> collectionClass, Type targetElementType, Iterable<?> sourceObject, Action<? super SourceObjectMapping> mapping) {
+    private Object convertCollectionInternal(Class<?> collectionClass, Type targetElementType, Iterable<?> sourceObject, AdaptedGraphDetails graphDetails) {
         Collection<Object> convertedElements = collectionMapper.createEmptyCollection(collectionClass);
-        convertCollectionInternal(convertedElements, targetElementType, sourceObject, mapping);
+        convertCollectionInternal(convertedElements, targetElementType, sourceObject, graphDetails);
         if (collectionClass.equals(DomainObjectSet.class)) {
             return new ImmutableDomainObjectSet(convertedElements);
         } else {
@@ -202,9 +234,9 @@ public class ProtocolToModelAdapter implements Serializable {
         }
     }
 
-    private void convertCollectionInternal(Collection<Object> targetCollection, Type targetElementType, Iterable<?> sourceObject, Action<? super SourceObjectMapping> mapping) {
+    private void convertCollectionInternal(Collection<Object> targetCollection, Type targetElementType, Iterable<?> sourceObject, AdaptedGraphDetails graphDetails) {
         for (Object element : sourceObject) {
-            targetCollection.add(convert(targetElementType, element, mapping));
+            targetCollection.add(convert(targetElementType, element, graphDetails));
         }
     }
 
@@ -228,6 +260,15 @@ public class ProtocolToModelAdapter implements Serializable {
         return handler.delegate;
     }
 
+    private static class AdaptedGraphDetails implements Serializable {
+        private final Map<Object, Object> adaptedObjects = new IdentityHashMap<Object, Object>();
+        private final Action<? super SourceObjectMapping> mapper;
+
+        public AdaptedGraphDetails(Action<? super SourceObjectMapping> mapper) {
+            this.mapper = mapper;
+        }
+    }
+
     private static class DefaultSourceObjectMapping implements SourceObjectMapping {
         private final Object protocolObject;
         private final Class<?> targetType;
@@ -235,7 +276,7 @@ public class ProtocolToModelAdapter implements Serializable {
         private Class<?> mixInType;
         private MethodInvoker overrideInvoker = NO_OP_HANDLER;
 
-        public DefaultSourceObjectMapping(Object protocolObject, Class<?> targetType, Class<?> wrapperType) {
+        DefaultSourceObjectMapping(Object protocolObject, Class<?> targetType, Class<?> wrapperType) {
             this.protocolObject = protocolObject;
             this.targetType = targetType;
             this.wrapperType = wrapperType;
@@ -279,13 +320,13 @@ public class ProtocolToModelAdapter implements Serializable {
     private class InvocationHandlerImpl implements InvocationHandler, Serializable {
         private final Object delegate;
         private final MethodInvoker overrideMethodInvoker;
-        private final Action<? super SourceObjectMapping> mapper;
+        private final AdaptedGraphDetails graphDetails;
         private transient MethodInvoker invoker;
 
-        public InvocationHandlerImpl(Object delegate, MethodInvoker overrideMethodInvoker, Action<? super SourceObjectMapping> mapper) {
+        public InvocationHandlerImpl(Object delegate, MethodInvoker overrideMethodInvoker, AdaptedGraphDetails graphDetails) {
             this.delegate = delegate;
             this.overrideMethodInvoker = overrideMethodInvoker;
-            this.mapper = mapper;
+            this.graphDetails = graphDetails;
             setup();
         }
 
@@ -299,7 +340,7 @@ public class ProtocolToModelAdapter implements Serializable {
             invoker = new SupportedPropertyInvoker(
                 new SafeMethodInvoker(
                     new PropertyCachingMethodInvoker(
-                        new AdaptingMethodInvoker(mapper,
+                        new AdaptingMethodInvoker(graphDetails,
                             new ChainedMethodInvoker(
                                 overrideMethodInvoker,
                                 new ReflectionMethodInvoker())))));
@@ -361,18 +402,18 @@ public class ProtocolToModelAdapter implements Serializable {
     }
 
     private class AdaptingMethodInvoker implements MethodInvoker {
-        private final Action<? super SourceObjectMapping> mapping;
+        private final AdaptedGraphDetails graphDetails;
         private final MethodInvoker next;
 
-        private AdaptingMethodInvoker(Action<? super SourceObjectMapping> mapping, MethodInvoker next) {
-            this.mapping = mapping;
+        private AdaptingMethodInvoker(AdaptedGraphDetails graphDetails, MethodInvoker next) {
+            this.graphDetails = graphDetails;
             this.next = next;
         }
 
         public void invoke(MethodInvocation invocation) throws Throwable {
             next.invoke(invocation);
             if (invocation.found() && invocation.getResult() != null) {
-                invocation.setResult(convert(invocation.getGenericReturnType(), invocation.getResult(), mapping));
+                invocation.setResult(convert(invocation.getGenericReturnType(), invocation.getResult(), graphDetails));
             }
         }
     }
@@ -577,7 +618,6 @@ public class ProtocolToModelAdapter implements Serializable {
         private static Method locateMethod(MethodInvocation invocation) {
             return LOOKUP_CACHE.get(invocation);
         }
-
     }
 
     private static class PropertyCachingMethodInvoker implements MethodInvoker {

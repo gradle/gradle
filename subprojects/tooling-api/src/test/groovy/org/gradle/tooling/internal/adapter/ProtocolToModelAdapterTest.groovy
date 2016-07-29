@@ -168,6 +168,19 @@ class ProtocolToModelAdapterTest extends Specification {
         model.children.is(model.children)
     }
 
+    def retainsObjectIdentityAcrossPropertyValues() {
+        TestProtocolModel protocolModel = Mock()
+        TestProtocolProject protocolProject = Mock()
+        _ * protocolModel.getProject() >> protocolProject
+        _ * protocolModel.getChildren() >> [protocolProject]
+        _ * protocolProject.getName() >> 'name'
+
+        expect:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+        model.project.is(model.project)
+        model.children[0].is(model.project)
+    }
+
     def reportsMethodWhichDoesNotExistOnProtocolObject() {
         PartialTestProtocolModel protocolModel = Mock()
 
