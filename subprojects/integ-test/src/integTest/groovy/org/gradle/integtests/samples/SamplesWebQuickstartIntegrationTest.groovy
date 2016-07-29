@@ -106,8 +106,4 @@ task sayHearthyGoodbye << {
         runJetty.waitForFinish()
         assert runJetty.standardOutput.contains("Jetty will miss you!")
     }
-
-    private void runWithExpectedDeprecationWarning(String... tasks) {
-        result = executer.withTasks(tasks).expectDeprecationWarning().run()
-    }
 }
