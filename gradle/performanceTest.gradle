@@ -87,7 +87,18 @@ ext.performanceTestTasks = tasks.withType(PerformanceTest)
 performanceTestTasks.all { PerformanceTest task ->
     testClassesDir = sourceSets.performanceTest.output.classesDir
     classpath = sourceSets.performanceTest.runtimeClasspath
-    dependsOn prepareSamples
+    dependsOn( prepareSamples, { rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+    maxParallelForks = 1
+
+    doFirst {
+        // Some performance builds generate a lot of output,
+        // that is buffered until the test finishes via GradleExecuter.
+        if (System.getProperty('sun.arch.data.model').contains("64")) {
+            jvmArgs '-Xmx2g'
+        } else {
+            println "not increasing JVM heap size due to use of 32bit JVM"
+        }
+    }
 
     def urlProperty = "org.gradle.performance.db.url"
     def url = project.findProperty(urlProperty)
@@ -112,6 +123,17 @@ task performanceTest(type: PerformanceTest) {
     }
 }
 
+task distributedPerformanceTest(type: DistributedPerformanceTest) {
+    options {
+        includeCategories 'org.gradle.performance.categories.GradleCorePerformanceTest'
+    }
+    scenarioList = file("$buildDir/performance-tests/scenario-list.csv")
+    buildTypeId = project.findProperty("org.gradle.performance.buildTypeId")
+    teamCityUrl = "https://builds.gradle.org/"
+    teamCityUsername = project.findProperty("teamCityUsername")
+    teamCityPassword = project.findProperty("teamCityPassword")
+}
+
 task performanceExperiments(type: PerformanceTest) {
     options {
         includeCategories 'org.gradle.performance.categories.Experiment'
@@ -120,30 +142,6 @@ task performanceExperiments(type: PerformanceTest) {
 
 task performanceAdhocTest(type: PerformanceTest) {
     systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
-    maxParallelForks = 1
-}
-
-task distributedPerformanceTest(type: DistributedPerformanceTest) {
-    scenarioList = file("$buildDir/performance-tests/scenario-list.csv")
-    buildTypeId = project.findProperty("org.gradle.performance.buildTypeId")
-    teamCityUrl = "https://builds.gradle.org/"
-    teamCityUsername = project.findProperty("teamCityUsername")
-    teamCityPassword = project.findProperty("teamCityPassword")
-}
-
-tasks.withType(PerformanceTest) {
-    dependsOn({ rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
-    maxParallelForks = 1
-
-    doFirst {
-        // Some performance builds generate a lot of output,
-        // that is buffered until the test finishes via GradleExecuter.
-        if (System.getProperty('sun.arch.data.model').contains("64")) {
-            jvmArgs '-Xmx2g'
-        } else {
-            println "not increasing JVM heap size due to use of 32bit JVM"
-        }
-    }
 }
 
 configure([performanceTest, performanceExperiments]) {
