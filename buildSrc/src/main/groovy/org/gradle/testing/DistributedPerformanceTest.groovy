@@ -150,9 +150,17 @@ class DistributedPerformanceTest extends PerformanceTest {
         client
     }
 
+
     private static class Scenario {
         private static final Closure LONG_RUNNING_FIRST = { Scenario scenario ->
-            def longRunning = ["big", "large", "lot"].any { scenario.id.contains(it) }
+            /*
+             * TODO this is a workaround since we "just know" these are the slowest.
+             * Instead, we should query the build history and find out how long
+             * each scenario usually runs, then schedule accordingly.
+             */
+            def longRunning = ["nativeMonolithic", "largeJavaSwModel"].any { longRunningTemplate ->
+                scenario.templates.any { template -> template.contains(longRunningTemplate) }
+            }
             longRunning ? 0 : 1
         }
 
