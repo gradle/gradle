@@ -22,6 +22,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.UnsupportedMethodException
 import org.gradle.tooling.model.eclipse.EclipseClasspathContainer
 import org.gradle.tooling.model.eclipse.EclipseProject
+import spock.lang.Issue
 
 @ToolingApiVersion('>=3.0')
 @TargetGradleVersion('>=3.0')
@@ -196,6 +197,7 @@ class ToolingApiEclipseModelClasspathContainerCrossVersionSpec extends ToolingAp
         project.classpathContainers.find { it.path.startsWith('org.eclipse.jdt.launching.JRE_CONTAINER') && it.path.contains('customJavaRuntime') }
     }
 
+    @Issue('https://issues.gradle.org/browse/GRADLE-3231')
     def "Whether or not the eclipse plugin is explicitly applied, the same model is retrieved "() {
         setup:
         settingsFile << 'rootProject.name = "root"'
