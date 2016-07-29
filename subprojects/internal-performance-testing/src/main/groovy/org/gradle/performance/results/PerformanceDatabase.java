@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results;
 
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -60,7 +61,12 @@ public class PerformanceDatabase {
     public String getUrl() {
         String defaultUrl = "jdbc:h2:" + System.getProperty("user.home") + "/.gradle-performance-test-data";
         String baseUrl = System.getProperty("org.gradle.performance.db.url", defaultUrl);
-        return baseUrl + "/" + databaseName;
+        StringBuilder url = new StringBuilder(baseUrl);
+        if (!baseUrl.endsWith("/")) {
+            url.append('/');
+        }
+        url.append(databaseName);
+        return url.toString();
     }
 
     public String getUserName() {
