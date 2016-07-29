@@ -44,7 +44,7 @@ useTestFixtures(project: ":messaging")
 
 verifyTestFilesCleanup.errorWhenNotEmpty = false
 
-def runtimeShadedPath = "$buildDir/generated-resources/main/org/gradle/api/internal/runtimeshaded"
+ext.runtimeShadedPath = "$buildDir/generated-resources/main/org/gradle/api/internal/runtimeshaded"
 
 task generateGradleApiPackageList(type: org.gradle.api.internal.runtimeshaded.PackageListGenerator) {
     outputFile = file("$runtimeShadedPath/api-relocated.txt")
