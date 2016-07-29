@@ -45,7 +45,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     String buildTypeId
 
     @Input
-    String changeId
+    String revision
 
     @Input
     String teamCityUrl
@@ -116,9 +116,9 @@ class DistributedPerformanceTest extends PerformanceTest {
                         <property name="scenario" value="${scenario.id}"/>
                         <property name="templates" value="${scenario.templates.join(' ')}"/>
                     </properties>
-                    <lastChanges>
-                        <change id="$changeId"/>
-                    </lastChanges>
+                    <revisions>
+                        <revision version="$revision"/>
+                    </revisions>
                 </build>
             """
         )
