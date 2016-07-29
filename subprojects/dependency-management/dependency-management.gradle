@@ -54,7 +54,7 @@ task generateGradleApiPackageList(type: org.gradle.api.internal.runtimeshaded.Pa
         classpath = files(
             rootProject.configurations.externalModules,
             [':core', ':dependencyManagement', ':pluginUse', ":toolingApi"].collect() {
-                project(it).configurations.compile
+                project(it).configurations.runtime
             }, project(':').configurations.gradlePlugins)
     }
 }
