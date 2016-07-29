@@ -76,10 +76,12 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         fillScenarioList()
 
-        def scenarios = scenarioList.readLines().collect { line ->
-            def parts = Splitter.on(';').split(line)
-            new Scenario(id : parts.head(), templates: parts.tail().toList())
-        }
+        def scenarios = scenarioList.readLines()
+            .collect { line ->
+                def parts = Splitter.on(';').split(line)
+                new Scenario(id : parts.head(), templates: parts.tail().toList())
+            }
+            .sort(Scenario.LONG_RUNNING_FIRST)
 
         createClient()
 
@@ -149,7 +151,13 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     private static class Scenario {
+        private static final Closure LONG_RUNNING_FIRST = { Scenario scenario ->
+            def longRunning = ["big", "large", "lot"].any { scenario.id.contains(it) }
+            longRunning ? 0 : 1
+        }
+
         String id
         List<String> templates
     }
+
 }
