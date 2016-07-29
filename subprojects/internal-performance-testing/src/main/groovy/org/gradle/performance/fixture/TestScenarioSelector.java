@@ -33,8 +33,11 @@ import java.util.List;
  */
 public class TestScenarioSelector {
     public boolean shouldRun(String testId, List<String> templates) {
+        if (testId.contains(";")) {
+            throw new IllegalArgumentException("Test ID cannot contain ';', but was '" + testId + "'");
+        }
         String scenarioProperty = System.getProperty("org.gradle.performance.scenarios", "");
-        List<String> scenarios = Splitter.on(",").omitEmptyStrings().splitToList(scenarioProperty);
+        List<String> scenarios = Splitter.on(";").omitEmptyStrings().splitToList(scenarioProperty);
         boolean shouldRun = scenarios.isEmpty() || scenarios.contains(testId);
         String scenarioList = System.getProperty("org.gradle.performance.scenario.list");
         if (shouldRun && scenarioList != null) {
@@ -51,7 +54,7 @@ public class TestScenarioSelector {
             args.add(testId);
             args.addAll(templates);
             Files.touch(scenarioList);
-            Files.append(Joiner.on(',').join(args) + '\n', scenarioList, Charsets.UTF_8);
+            Files.append(Joiner.on(';').join(args) + '\n', scenarioList, Charsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Could not write to scenario list at " + scenarioList, e);
         }

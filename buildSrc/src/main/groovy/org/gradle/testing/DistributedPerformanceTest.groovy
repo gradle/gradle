@@ -77,7 +77,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         fillScenarioList()
 
         def scenarios = scenarioList.readLines().collect { line ->
-            def parts = Splitter.on(',').split(line)
+            def parts = Splitter.on(';').split(line)
             new Scenario(id : parts.head(), templates: parts.tail().toList())
         }
 
