@@ -2,7 +2,7 @@ The Gradle team is pleased to announce Gradle 3.0.
 
 Performance continues to be a focus for the Gradle team and the third major release reflects this.  The [Gradle Daemon](userguide/gradle_daemon.html) is a key performance enhancer, 
 making builds _up to 75% faster_, but it needed to be explicitly enabled in previous versions of Gradle.  This is no longer necessary as the Daemon is now _enabled by default_ in 3.0.  We've 
-put a lot of effort into fixing all open issues with the Gradle Daemon, especially on Windows platforms. We have also been working hard to make the Gradle Daemon aware of its health and impact 
+put a lot of effort into fixing the most significant issues with the Gradle Daemon, especially on Windows platforms. We have also been working hard to make the Gradle Daemon aware of its health and impact 
 to the system it's running on.  We now use this information for self-healing actions as well as better daemon status reporting.  The Gradle Daemon is the foundation for a great Gradle experience.
 
 Ever wished for better IDE support when writing Gradle build scripts?  This release provides the first support for [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), 
@@ -35,12 +35,7 @@ Add-->
 
 ### Improved Gradle Daemon, now enabled by default
 
-The performance improvements gained by using the Daemon are staggering: our performance tests [show that builds could be up to 75% faster](http://gradle.org/blog/gradle-3-0-m1-unleash-the-daemon/), 
-just by enabling the Gradle Daemon.
-
-We have been working hard to make the Gradle Daemon aware of its health and impact on the system it's running on; and we believe that it is now robust enough to be enabled by default.
-
-We encourage you to give the improved Daemon a try. If for some reason you encounter problems, it can always [be disabled](userguide/gradle_daemon.html#daemon_faq) if necessary. 
+As mentioned above, the Gradle Daemon is now more robust, efficient and self-aware.  It has now been _enabled by default_ to make your builds [faster than ever](http://gradle.org/blog/gradle-3-0-m1-unleash-the-daemon/).  If for some reason you encounter problems, it can always [be disabled](userguide/gradle_daemon.html#daemon_faq) if necessary. 
 
 ### View the status of Gradle Daemons
 
@@ -56,9 +51,9 @@ can now check the status of running and recently stopped daemons using the `--st
 
 Note that the status command currently does not list Gradle Daemons with version < 3.0. More details are available in the [User Guide](userguide/gradle_daemon.html#status).
 
-### See Daemon information in Gradle Cloud Services
+### View Daemon information in Gradle Cloud Services
 
-Information about the Gradle Daemon is now being captured in your Build Scans and can be viewed in [Gradle Cloud Services](https://gradle.com/).  You can see information such as the number of builds that have been run in the Daemon, the number of Daemons that were running on the system when the build occurred, as well as reasons for why a Daemon may have been stopped.  This captures a snapshot of the state of the Daemon at the time of a build and gives you insight into factors that might have affected that build's performance.  If you haven't created a [Build Scan](https://scans.gradle.com/s/pqmetew4bnofi) yet, [give it a try](https://scans.gradle.com/setup/step-1)!
+Information about the Gradle Daemon is now being captured in your Build Scans and can be viewed in [Gradle Cloud Services](https://gradle.com/).  You can see information such as the number of builds that have been run in the Daemon, the number of Daemons that were running on the system when the build occurred, as well as reasons for why a Daemon may have been stopped.  Along with all of the other great information in a Build Scan, this captures the state of the Daemon at the time a build executes and gives you insight into factors that might have affected that build's performance.  If you haven't created a [Build Scan](https://scans.gradle.com/s/pqmetew4bnofi) yet, [give it a try](https://scans.gradle.com/setup/step-1)!
  
 ### Better IDE support for writing build scripts
 
@@ -164,7 +159,7 @@ Note the `apply false` at the end of the plugin declaration.  This instructs Gra
 
 #### Tracking changes in the task's code
 
-A task is up-to-date as long as its inputs and outputs remain unchanged. Previous versions of Gradle did not consider _the code_ of the task as part of the inputs. This could lead to incorrect behavior where the functionality of a task could change but the task might still be marked as `UP-TO-DATE` even though it would actually create different outputs.  Gradle now recognizes when a task, its actions, or its dependencies change between executions and properly marks the task as out-of-date.
+A task is up-to-date as long as its inputs and outputs remain unchanged. Previous versions of Gradle did not consider _the code_ of the task as part of the inputs. This could lead to incorrect behavior where the implementation of a task could change but the task might still be marked as `UP-TO-DATE` even though it would actually create different outputs.  Gradle now recognizes when a task, its actions, or its dependencies change between executions and properly marks the task as out-of-date.
 
 #### Tracking changes in the order of input files
 
