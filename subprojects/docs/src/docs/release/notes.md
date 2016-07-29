@@ -105,11 +105,9 @@ now run at most `max-workers` tasks and test processes at the same time.
 
 If you need to return to the old behavior, you can limit the number of forked processes:
 
-```
-tasks.withType(Test) {
-    maxParallelForks = 1   
-}
-```
+    tasks.withType(Test) {
+         maxParallelForks = 1
+    }
 
 <a id="java9-support" name="java9-support"></a>
 ### Initial Java 9 support
@@ -189,11 +187,9 @@ From now on Gradle tracks which property each input and output file belongs to. 
 
 Input and output files registered via `TaskInputs.files()`, `TaskOutputs.dir()` and similar methods have a new mechanism to register the property name:
  
- ```groovy
- task example {
-   inputs.file "input.txt" withPropertyName "inputFile"
- }
-```
+    task example {
+        inputs.file "input.txt" withPropertyName "inputFile"
+    }
 
 ### Improvements to the `eclipse-wtp` plugin
 
