@@ -146,7 +146,7 @@ configure([performanceTest, performanceExperiments]) {
     }
 }
 
-ext.performanceReportTasks = tasks.withType(PerformanceTest)
+ext.performanceReportTasks = tasks.withType(PerformanceReport)
 
 task performanceReport(type: PerformanceReport) {
     classpath = sourceSets.performanceTest.runtimeClasspath
