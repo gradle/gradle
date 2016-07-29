@@ -30,11 +30,22 @@ import org.gradle.api.tasks.TaskAction
 
 import java.util.concurrent.TimeUnit
 
+/**
+ * Runs each performance test scenario in a dedicated TeamCity job.
+ *
+ * The test runner is instructed to just write out the list of scenarios
+ * to run instead of actually running the tests. Then this list is used
+ * to schedule TeamCity jobs for each individual scenario. This task
+ * blocks until all the jobs have finished and aggregates their status.
+ */
 @CompileStatic
 class DistributedPerformanceTest extends PerformanceTest {
 
     @Input
     String buildTypeId
+
+    @Input
+    String changeId
 
     @Input
     String teamCityUrl
@@ -54,11 +65,16 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     List<String> failedJobs = Lists.newArrayList()
 
+    void setScenarioList(File scenarioList) {
+        systemProperty "org.gradle.performance.scenario.list", scenarioList
+        this.scenarioList = scenarioList
+    }
+
     @TaskAction
     void executeTests() {
         scenarioList.delete()
 
-        super.executeTests()
+        fillScenarioList()
 
         def scenarios = scenarioList.readLines().collect { line ->
             def parts = Splitter.on(',').split(line)
@@ -67,8 +83,8 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         createClient()
 
-        scenarios.each { Scenario scenario ->
-            schedule(scenario)
+        scenarios.each {
+            schedule(it)
         }
 
         scheduledJobs.each {
@@ -84,9 +100,8 @@ class DistributedPerformanceTest extends PerformanceTest {
         }
     }
 
-    void setScenarioList(File scenarioList) {
-        systemProperty "org.gradle.performance.scenario.list", scenarioList
-        this.scenarioList = scenarioList
+    private void fillScenarioList() {
+        super.executeTests()
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -101,6 +116,9 @@ class DistributedPerformanceTest extends PerformanceTest {
                         <property name="scenario" value="${scenario.id}"/>
                         <property name="templates" value="${scenario.templates.join(' ')}"/>
                     </properties>
+                    <lastChanges>
+                        <change id="$changeId"/>
+                    </lastChanges>
                 </build>
             """
         )
