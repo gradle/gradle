@@ -22,12 +22,17 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
+import org.gradle.performance.measure.Amount;
+import org.gradle.performance.measure.Duration;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.List;
 
 /**
@@ -53,10 +58,10 @@ public class TestScenarioSelector {
 
     private void addToScenarioList(String testId, List<String> templates, File scenarioList, ResultsStore resultsStore) {
         try {
-            long estimatedRuntime = getEstimatedRuntime(testId, resultsStore);
+            BigDecimal estimatedRuntime = getEstimatedRuntime(testId, resultsStore);
             List<String> args = Lists.newArrayList();
             args.add(testId);
-            args.add(String.valueOf(estimatedRuntime));
+            args.add(estimatedRuntime.toString());
             args.addAll(templates);
             Files.touch(scenarioList);
             Files.append(Joiner.on(';').join(args) + '\n', scenarioList, Charsets.UTF_8);
@@ -65,13 +70,19 @@ public class TestScenarioSelector {
         }
     }
 
-    private long getEstimatedRuntime(String testId, ResultsStore resultsStore) {
+    private BigDecimal getEstimatedRuntime(String testId, ResultsStore resultsStore) {
         PerformanceTestHistory history = resultsStore.getTestResults(testId, 1);
         PerformanceTestExecution lastRun = Iterables.getFirst(history.getExecutions(), null);
         if (lastRun == null) {
-            return 0;
+            return BigDecimal.ZERO;
         } else {
-            return lastRun.getTestTime();
+            BigDecimal sum = BigDecimal.ZERO;
+            for (MeasuredOperationList operation : lastRun.getScenarios()) {
+                for (Amount<Duration> duration : operation.getTotalTime()) {
+                    sum = sum.add(duration.getValue());
+                }
+            }
+            return sum;
         }
     }
 }

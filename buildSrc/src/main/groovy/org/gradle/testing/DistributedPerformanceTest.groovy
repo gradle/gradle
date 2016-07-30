@@ -79,7 +79,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         def scenarios = scenarioList.readLines()
             .collect { line ->
                 def parts = Splitter.on(';').split(line).toList()
-                new Scenario(id : parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
+                new Scenario(id : parts[0], estimatedRuntime: new BigDecimal(parts[1]), templates: parts.subList(2, parts.size()))
             }
             .sort{ -it.estimatedRuntime }
 
@@ -108,7 +108,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void schedule(Scenario scenario) {
-        logger.info("Scheduling $scenario.id, estimated runtime: ${TimeUnit.MILLISECONDS.toMinutes(scenario.estimatedRuntime)}")
+        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime")
         def response = client.post(
             path: "buildQueue",
             requestContentType: ContentType.XML,
