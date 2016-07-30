@@ -53,10 +53,10 @@ public class ResultsStoreHelper {
         return result;
     }
 
-    public static <T> DataReporter<T> maybeUseResultStore(Factory<DataReporter<T>> factory) {
+    public static <T, S extends DataReporter<T> & ResultsStore> S maybeUseResultStore(Factory<S> factory) {
         if (ADHOC_RUN) {
             LOGGER.info("Detected ad-hoc experiment : using no-op results store");
-            return new NoResultsStore<T>();
+            return (S) new NoResultsStore<T>();
         }
         return factory.create();
     }

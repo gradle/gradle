@@ -19,9 +19,12 @@ package org.gradle.performance.fixture;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import junit.framework.AssertionFailedError;
+import org.gradle.performance.results.PerformanceTestExecution;
+import org.gradle.performance.results.PerformanceTestHistory;
+import org.gradle.performance.results.ResultsStore;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,7 +35,7 @@ import java.util.List;
  * or be added to the list of scenarios to run in distributed mode.
  */
 public class TestScenarioSelector {
-    public boolean shouldRun(String testId, List<String> templates) {
+    public boolean shouldRun(String testId, List<String> templates, ResultsStore resultsStore) {
         if (testId.contains(";")) {
             throw new IllegalArgumentException("Test ID cannot contain ';', but was '" + testId + "'");
         }
@@ -41,22 +44,34 @@ public class TestScenarioSelector {
         boolean shouldRun = scenarios.isEmpty() || scenarios.contains(testId);
         String scenarioList = System.getProperty("org.gradle.performance.scenario.list");
         if (shouldRun && scenarioList != null) {
-            addToScenarioList(testId, templates, new File(scenarioList));
+            addToScenarioList(testId, templates, new File(scenarioList), resultsStore);
             return false;
         } else {
             return shouldRun;
         }
     }
 
-    private void addToScenarioList(String testId, List<String> templates, File scenarioList) {
+    private void addToScenarioList(String testId, List<String> templates, File scenarioList, ResultsStore resultsStore) {
         try {
+            long estimatedRuntime = getEstimatedRuntime(testId, resultsStore);
             List<String> args = Lists.newArrayList();
             args.add(testId);
+            args.add(String.valueOf(estimatedRuntime));
             args.addAll(templates);
             Files.touch(scenarioList);
             Files.append(Joiner.on(';').join(args) + '\n', scenarioList, Charsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException("Could not write to scenario list at " + scenarioList, e);
+        }
+    }
+
+    private long getEstimatedRuntime(String testId, ResultsStore resultsStore) {
+        PerformanceTestHistory history = resultsStore.getTestResults(testId, 1);
+        PerformanceTestExecution lastRun = Iterables.getFirst(history.getExecutions(), null);
+        if (lastRun == null) {
+            return 0;
+        } else {
+            return lastRun.getTestTime();
         }
     }
 }

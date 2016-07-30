@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.performance.results.ResultsStore
 import org.junit.Assume
 
 abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTestResult> {
@@ -77,7 +78,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         assert testId
 
         def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, specs.projectName))
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId, specs.projectName, (ResultsStore) reporter))
 
         def results = newResult()
 

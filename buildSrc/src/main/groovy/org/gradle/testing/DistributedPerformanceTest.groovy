@@ -78,10 +78,10 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         def scenarios = scenarioList.readLines()
             .collect { line ->
-                def parts = Splitter.on(';').split(line)
-                new Scenario(id : parts.head(), templates: parts.tail().toList())
+                def parts = Splitter.on(';').split(line).toList()
+                new Scenario(id : parts[0], estimatedRuntime: Long.parseLong(parts[1]), templates: parts.subList(2, parts.size()))
             }
-            .sort(Scenario.LONG_RUNNING_FIRST)
+            .sort{ -it.estimatedRuntime }
 
         createClient()
 
@@ -152,19 +152,8 @@ class DistributedPerformanceTest extends PerformanceTest {
 
 
     private static class Scenario {
-        private static final Closure LONG_RUNNING_FIRST = { Scenario scenario ->
-            /*
-             * TODO this is a workaround since we "just know" these are the slowest.
-             * Instead, we should query the build history and find out how long
-             * each scenario usually runs, then schedule accordingly.
-             */
-            def longRunning = ["nativeMonolithic", "largeJavaSwModel"].any { longRunningTemplate ->
-                scenario.templates.any { template -> template.contains(longRunningTemplate) }
-            }
-            longRunning ? 0 : 1
-        }
-
         String id
+        long estimatedRuntime
         List<String> templates
     }
 
