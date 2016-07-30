@@ -108,6 +108,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void schedule(Scenario scenario) {
+        logger.info("Scheduling $scenario.id, estimated runtime: ${TimeUnit.MILLISECONDS.toMinutes(scenario.estimatedRuntime)}")
         def response = client.post(
             path: "buildQueue",
             requestContentType: ContentType.XML,
