@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.UnknownModelException
+import org.gradle.tooling.internal.adapter.ObjectGraphAdapter
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.*
@@ -26,7 +27,10 @@ import spock.lang.Specification
 
 class BuildControllerAdapterTest extends Specification {
     def internalController = Mock(InternalBuildController)
-    def adapter = Mock(ProtocolToModelAdapter)
+    def graphAdapter = Mock(ObjectGraphAdapter)
+    def adapter = Mock(ProtocolToModelAdapter) {
+        newGraph() >> graphAdapter
+    }
     def mapping = Stub(ModelMapping) {
         getModelIdentifierFromModelType(_) >> { Class type ->
             return Stub(ModelIdentifier) {
@@ -71,7 +75,7 @@ class BuildControllerAdapterTest extends Specification {
                 getModel() >> model
             }
         }
-        1 * adapter.adapt(GradleBuild, model) >> modelView
+        1 * graphAdapter.adapt(GradleBuild, model) >> modelView
     }
 
     def "fetches missing model for target object"() {
@@ -106,7 +110,7 @@ class BuildControllerAdapterTest extends Specification {
                 getModel() >> model
             }
         }
-        1 * adapter.adapt(GradleBuild, model) >> modelView
+        1 * graphAdapter.adapt(GradleBuild, model) >> modelView
     }
 
     def "fetches missing model"() {
