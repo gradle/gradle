@@ -168,7 +168,7 @@ class ProtocolToModelAdapterTest extends Specification {
         model.children.is(model.children)
     }
 
-    def retainsObjectIdentityFromBackingGraph() {
+    def "reuses views for each object in backing graph"() {
         TestProtocolModel protocolModel = Mock()
         TestProtocolProject protocolProject = Mock()
         _ * protocolModel.getProject() >> protocolProject
@@ -183,7 +183,7 @@ class ProtocolToModelAdapterTest extends Specification {
         model.find("name").is(project)
     }
 
-    def doesNotReuseViewsForObjectsThatAreEqual() {
+    def "does not reuse views for different objects that are equal"() {
         TestProtocolModel protocolModel = Mock()
         TestProtocolProject project1 = new TestProtocolProjectWithEquality()
         TestProtocolProject project2 = new TestProtocolProjectWithEquality()
@@ -197,7 +197,39 @@ class ProtocolToModelAdapterTest extends Specification {
         model.childList[1].is(model.project)
     }
 
-    def backingObjectCanBeViewedAsVariousTypes() {
+    def "does not reuse views from different graphs"() {
+        TestProtocolModel protocolModel1 = Mock()
+        TestProtocolModel protocolModel2 = Mock()
+        TestProtocolProject protocolProject = Mock()
+        _ * protocolModel1.getProject() >> protocolProject
+        _ * protocolModel2.getProject() >> protocolProject
+
+        expect:
+        def model1 = adapter.adapt(TestModel.class, protocolModel1)
+        def model2 = adapter.adapt(TestModel.class, protocolModel2)
+        !model1.is(model2)
+        !model1.project.is(model2.project)
+    }
+
+    def "can create converter that reuses views for multiple converted objects"() {
+        TestProtocolModel protocolModel1 = Mock()
+        TestProtocolModel protocolModel2 = Mock()
+        TestProtocolProject protocolProject = Mock()
+        _ * protocolModel1.getProject() >> protocolProject
+        _ * protocolModel2.getProject() >> protocolProject
+
+        expect:
+        def converter = adapter.newGraph()
+        def model1 = converter.adapt(TestModel.class, protocolModel1)
+        def model2 = converter.adapt(TestModel.class, protocolModel2)
+        !model1.is(model2)
+        model1.project.is(model2.project)
+
+        def model3 = converter.adapt(TestModel.class, protocolModel1)
+        model1.is(model3)
+    }
+
+    def "backing object can be viewed as various types"() {
         TestProtocolModel protocolModel = Mock()
         TestProtocolProject protocolProject = Mock()
         _ * protocolModel.getProject() >> protocolProject

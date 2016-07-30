@@ -51,7 +51,7 @@ import java.util.regex.Pattern;
 /**
  * Adapts some source object to some target view type.
  */
-public class ProtocolToModelAdapter {
+public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static final MethodInvoker NO_OP_HANDLER = new NoOpMethodInvoker();
     private static final Action<SourceObjectMapping> NO_OP_MAPPER = new NoOpMapping();
     private static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
@@ -90,8 +90,22 @@ public class ProtocolToModelAdapter {
     }
 
     /**
+     * Creates an adapter for a single object graph. Each object adapted by the returned adapter is treated as part of the same object graph, for the purposes of caching etc.
+     */
+    public ObjectGraphAdapter newGraph() {
+        final AdaptedGraphDetails graphDetails = new AdaptedGraphDetails(NO_OP_MAPPER, targetTypeProvider);
+        return new ObjectGraphAdapter() {
+            @Override
+            public <T> T adapt(Class<T> targetType, Object sourceObject) {
+                return createView(targetType, sourceObject, graphDetails);
+            }
+        };
+    }
+
+    /**
      * Adapts the source object to a view object.
      */
+    @Override
     public <T> T adapt(Class<T> targetType, Object sourceObject) {
         return adapt(targetType, sourceObject, NO_OP_MAPPER);
     }
@@ -102,13 +116,7 @@ public class ProtocolToModelAdapter {
      * @param mixInClass A bean that provides implementations for methods of the target type. If this bean implements the given method, it is preferred over the source object's implementation.
      */
     public <T> T adapt(Class<T> targetType, final Object sourceObject, final Class<?> mixInClass) {
-        return adapt(targetType, sourceObject, new Action<SourceObjectMapping>() {
-            public void execute(SourceObjectMapping mapping) {
-                if (mapping.getSourceObject() == sourceObject) {
-                    mapping.mixIn(mixInClass);
-                }
-            }
-        });
+        return adapt(targetType, sourceObject, new MixInObjectMappingAction(sourceObject, mixInClass));
     }
 
     /**
@@ -117,7 +125,7 @@ public class ProtocolToModelAdapter {
      * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided {@link
      * SourceObjectMapping}.
      */
-    public <T, S> T adapt(Class<T> targetType, S sourceObject, Action<? super SourceObjectMapping> mapper) {
+    public <T> T adapt(Class<T> targetType, Object sourceObject, Action<? super SourceObjectMapping> mapper) {
         if (sourceObject == null) {
             return null;
         }
@@ -272,7 +280,7 @@ public class ProtocolToModelAdapter {
         private final Class<?> type;
         private final Object source;
 
-        public ViewKey(Class<?> type, Object source) {
+        ViewKey(Class<?> type, Object source) {
             this.type = type;
             this.source = source;
         }
@@ -343,15 +351,14 @@ public class ProtocolToModelAdapter {
         private final AdaptedGraphDetails graphDetails;
         private transient MethodInvoker invoker;
 
-        public InvocationHandlerImpl(Object delegate, MethodInvoker overrideMethodInvoker, AdaptedGraphDetails graphDetails) {
+        InvocationHandlerImpl(Object delegate, MethodInvoker overrideMethodInvoker, AdaptedGraphDetails graphDetails) {
             this.delegate = delegate;
             this.overrideMethodInvoker = overrideMethodInvoker;
             this.graphDetails = graphDetails;
             setup();
         }
 
-        private void readObject(java.io.ObjectInputStream in)
-            throws IOException, ClassNotFoundException {
+        private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             setup();
         }
@@ -729,7 +736,7 @@ public class ProtocolToModelAdapter {
         private final MethodInvoker next;
         private final ThreadLocal<MethodInvocation> current = new ThreadLocal<MethodInvocation>();
 
-        public MixInMethodInvoker(Class<?> mixInClass, MethodInvoker next) {
+        MixInMethodInvoker(Class<?> mixInClass, MethodInvoker next) {
             this.mixInClass = mixInClass;
             this.next = next;
         }
@@ -752,6 +759,22 @@ public class ProtocolToModelAdapter {
             }
             if (beanInvocation.found()) {
                 invocation.setResult(beanInvocation.getResult());
+            }
+        }
+    }
+
+    private static class MixInObjectMappingAction implements Action<SourceObjectMapping> {
+        private final Object sourceObject;
+        private final Class<?> mixInClass;
+
+        MixInObjectMappingAction(Object sourceObject, Class<?> mixInClass) {
+            this.sourceObject = sourceObject;
+            this.mixInClass = mixInClass;
+        }
+
+        public void execute(SourceObjectMapping mapping) {
+            if (mapping.getSourceObject() == sourceObject) {
+                mapping.mixIn(mixInClass);
             }
         }
     }

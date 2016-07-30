@@ -16,30 +16,34 @@
 
 package org.gradle.integtests.tooling.r30
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 
 class CustomToolingModelCrossVersionSpec extends ToolingApiSpecification {
-    @ToolingApiVersion(">=3.0")
-    def "retains underlying graph in model returned to client"() {
+    def setup() {
         file('build.gradle') << """
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import javax.inject.Inject
 
-apply plugin: CustomPlugin
+allprojects {
+    apply plugin: CustomPlugin
+}
 
 class CustomModel implements Serializable {
-    final child1 = new CustomThing()
+    static final INSTANCE = new CustomThing()
     String getValue() { 'greetings' }
-    CustomThing getThing() { return child1 }
-    Set<CustomThing> getThings() { return [child1] }
-    Map<String, CustomThing> getThingsByName() { return [child: child1] }
-    CustomThing findThing(String name) { return child1 }
+    CustomThing getThing() { return INSTANCE }
+    Set<CustomThing> getThings() { return [INSTANCE] }
+    Map<String, CustomThing> getThingsByName() { return [child: INSTANCE] }
+    CustomThing findThing(String name) { return INSTANCE }
 }
+
 class CustomThing implements Serializable {
 }
+
 class CustomBuilder implements ToolingModelBuilder {
     boolean canBuild(String modelName) {
         return modelName == '${CustomModel.name}'
@@ -48,6 +52,7 @@ class CustomBuilder implements ToolingModelBuilder {
         return new CustomModel()
     }
 }
+
 class CustomPlugin implements Plugin<Project> {
     @Inject
     CustomPlugin(ToolingModelBuilderRegistry registry) {
@@ -58,7 +63,10 @@ class CustomPlugin implements Plugin<Project> {
     }
 }
 """
+    }
 
+    @ToolingApiVersion(">=3.0")
+    def "retains underlying object identity in model returned to client"() {
         when:
         def model = withConnection { connection ->
             connection.model(CustomModel).get()
@@ -69,5 +77,32 @@ class CustomPlugin implements Plugin<Project> {
         model.things[0].is(model.thing)
         model.thingsByName.child.is(model.thing)
         model.findThing("child").is(model.thing)
+    }
+
+    @ToolingApiVersion(">=3.0")
+    def "retains underlying object identity in model returned to client via build action"() {
+        settingsFile << "include 'a', 'b'"
+
+        when:
+        CustomModel model = withConnection { connection ->
+            connection.action(new CustomModelBuildingAction()).run()
+        }
+
+        then:
+        model.thing.is(model.thing)
+        model.things[0].is(model.thing)
+    }
+
+    @NotYetImplemented
+    def "retains underlying object identity in complex model returned to client via build action"() {
+        settingsFile << "include 'a', 'b'"
+
+        when:
+        Map<String, CustomModel> model = withConnection { connection ->
+            connection.action(new ComplexCustomModelBuildingAction()).run()
+        }
+
+        then:
+        model[':a'].thing.is(model[':b'].thing)
     }
 }
