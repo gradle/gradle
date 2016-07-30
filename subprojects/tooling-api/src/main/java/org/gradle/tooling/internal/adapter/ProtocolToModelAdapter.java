@@ -51,7 +51,7 @@ import java.util.regex.Pattern;
 /**
  * Adapts some source object to some target view type.
  */
-public class ProtocolToModelAdapter implements Serializable {
+public class ProtocolToModelAdapter {
     private static final MethodInvoker NO_OP_HANDLER = new NoOpMethodInvoker();
     private static final Action<SourceObjectMapping> NO_OP_MAPPER = new NoOpMapping();
     private static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
@@ -59,13 +59,14 @@ public class ProtocolToModelAdapter implements Serializable {
             return initialTargetType;
         }
     };
+    private static final ReflectionMethodInvoker REFLECTION_METHOD_INVOKER = new ReflectionMethodInvoker();
+    private static final CollectionMapper COLLECTION_MAPPER = new CollectionMapper();
     private static final Object[] EMPTY = new Object[0];
     private static final Pattern IS_SUPPORT_METHOD = Pattern.compile("is(\\w+)Supported");
     private static final Method EQUALS_METHOD;
     private static final Method HASHCODE_METHOD;
 
     private final TargetTypeProvider targetTypeProvider;
-    private final CollectionMapper collectionMapper = new CollectionMapper();
 
     static {
         Method equalsMethod;
@@ -120,16 +121,16 @@ public class ProtocolToModelAdapter implements Serializable {
         if (sourceObject == null) {
             return null;
         }
-        return createView(targetType, sourceObject, new AdaptedGraphDetails(mapper));
+        return createView(targetType, sourceObject, new AdaptedGraphDetails(mapper, targetTypeProvider));
     }
 
-    private <T> T createView(Class<T> targetType, Object sourceObject, AdaptedGraphDetails graphDetails) {
+    private static <T> T createView(Class<T> targetType, Object sourceObject, AdaptedGraphDetails graphDetails) {
         if (sourceObject == null) {
             return null;
         }
 
         // Calculate the actual type
-        Class<? extends T> viewType = targetTypeProvider.getTargetType(targetType, sourceObject);
+        Class<? extends T> viewType = graphDetails.typeProvider.getTargetType(targetType, sourceObject);
         DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType, viewType);
         graphDetails.mapper.execute(mapping);
         viewType = mapping.wrapperType.asSubclass(targetType);
@@ -148,23 +149,19 @@ public class ProtocolToModelAdapter implements Serializable {
         }
 
         // Create a proxy
-        MixInMethodInvoker mixInMethodInvoker = null;
+        MethodInvoker mixInMethodInvoker = NO_OP_HANDLER;
         if (mapping.mixInType != null) {
-            mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(graphDetails, new ReflectionMethodInvoker()));
+            mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
         }
         MethodInvoker overrideInvoker = chainInvokers(mixInMethodInvoker, mapping.overrideInvoker);
         Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, new InvocationHandlerImpl(sourceObject, overrideInvoker, graphDetails));
-        if (mixInMethodInvoker != null) {
-            mixInMethodInvoker.setProxy(proxy);
-        }
-
         graphDetails.adaptedObjects.put(viewKey, proxy);
 
         return viewType.cast(proxy);
     }
 
-    private MethodInvoker chainInvokers(MixInMethodInvoker mixInMethodInvoker, MethodInvoker overrideInvoker) {
-        if (mixInMethodInvoker == null) {
+    private static MethodInvoker chainInvokers(MethodInvoker mixInMethodInvoker, MethodInvoker overrideInvoker) {
+        if (mixInMethodInvoker == NO_OP_HANDLER) {
             return overrideInvoker;
         }
         if (overrideInvoker == NO_OP_HANDLER) {
@@ -191,7 +188,7 @@ public class ProtocolToModelAdapter implements Serializable {
         }
     }
 
-    private Object convert(Type targetType, Object sourceObject, AdaptedGraphDetails graphDetails) {
+    private static Object convert(Type targetType, Object sourceObject, AdaptedGraphDetails graphDetails) {
         if (targetType instanceof ParameterizedType) {
             ParameterizedType parameterizedTargetType = (ParameterizedType) targetType;
             if (parameterizedTargetType.getRawType() instanceof Class) {
@@ -216,16 +213,16 @@ public class ProtocolToModelAdapter implements Serializable {
         throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", sourceObject.getClass(), targetType));
     }
 
-    private Map<Object, Object> convertMap(Class<?> mapClass, Type targetKeyType, Type targetValueType, Map<?, ?> sourceObject, AdaptedGraphDetails graphDetails) {
-        Map<Object, Object> convertedElements = collectionMapper.createEmptyMap(mapClass);
+    private static Map<Object, Object> convertMap(Class<?> mapClass, Type targetKeyType, Type targetValueType, Map<?, ?> sourceObject, AdaptedGraphDetails graphDetails) {
+        Map<Object, Object> convertedElements = COLLECTION_MAPPER.createEmptyMap(mapClass);
         for (Map.Entry<?, ?> entry : sourceObject.entrySet()) {
             convertedElements.put(convert(targetKeyType, entry.getKey(), graphDetails), convert(targetValueType, entry.getValue(), graphDetails));
         }
         return convertedElements;
     }
 
-    private Object convertCollectionInternal(Class<?> collectionClass, Type targetElementType, Iterable<?> sourceObject, AdaptedGraphDetails graphDetails) {
-        Collection<Object> convertedElements = collectionMapper.createEmptyCollection(collectionClass);
+    private static Object convertCollectionInternal(Class<?> collectionClass, Type targetElementType, Iterable<?> sourceObject, AdaptedGraphDetails graphDetails) {
+        Collection<Object> convertedElements = COLLECTION_MAPPER.createEmptyCollection(collectionClass);
         convertCollectionInternal(convertedElements, targetElementType, sourceObject, graphDetails);
         if (collectionClass.equals(DomainObjectSet.class)) {
             return new ImmutableDomainObjectSet(convertedElements);
@@ -234,13 +231,13 @@ public class ProtocolToModelAdapter implements Serializable {
         }
     }
 
-    private void convertCollectionInternal(Collection<Object> targetCollection, Type targetElementType, Iterable<?> sourceObject, AdaptedGraphDetails graphDetails) {
+    private static void convertCollectionInternal(Collection<Object> targetCollection, Type targetElementType, Iterable<?> sourceObject, AdaptedGraphDetails graphDetails) {
         for (Object element : sourceObject) {
             targetCollection.add(convert(targetElementType, element, graphDetails));
         }
     }
 
-    private Type getElementType(ParameterizedType type, int index) {
+    private static Type getElementType(ParameterizedType type, int index) {
         Type elementType = type.getActualTypeArguments()[index];
         if (elementType instanceof WildcardType) {
             WildcardType wildcardType = (WildcardType) elementType;
@@ -263,9 +260,11 @@ public class ProtocolToModelAdapter implements Serializable {
     private static class AdaptedGraphDetails implements Serializable {
         private final Map<ViewKey, Object> adaptedObjects = new HashMap<ViewKey, Object>();
         private final Action<? super SourceObjectMapping> mapper;
+        private final TargetTypeProvider typeProvider;
 
-        public AdaptedGraphDetails(Action<? super SourceObjectMapping> mapper) {
+        AdaptedGraphDetails(Action<? super SourceObjectMapping> mapper, TargetTypeProvider typeProvider) {
             this.mapper = mapper;
+            this.typeProvider = typeProvider;
         }
     }
 
@@ -338,7 +337,7 @@ public class ProtocolToModelAdapter implements Serializable {
         }
     }
 
-    private class InvocationHandlerImpl implements InvocationHandler, Serializable {
+    private static class InvocationHandlerImpl implements InvocationHandler, Serializable {
         private final Object delegate;
         private final MethodInvoker overrideMethodInvoker;
         private final AdaptedGraphDetails graphDetails;
@@ -364,7 +363,7 @@ public class ProtocolToModelAdapter implements Serializable {
                         new AdaptingMethodInvoker(graphDetails,
                             new ChainedMethodInvoker(
                                 overrideMethodInvoker,
-                                new ReflectionMethodInvoker())))));
+                                REFLECTION_METHOD_INVOKER)))));
         }
 
         @Override
@@ -397,7 +396,7 @@ public class ProtocolToModelAdapter implements Serializable {
                 return hashCode();
             }
 
-            MethodInvocation invocation = new MethodInvocation(method.getName(), method.getReturnType(), method.getGenericReturnType(), method.getParameterTypes(), delegate, params);
+            MethodInvocation invocation = new MethodInvocation(method.getName(), method.getReturnType(), method.getGenericReturnType(), method.getParameterTypes(), target, delegate, params);
             invoker.invoke(invocation);
             if (!invocation.found()) {
                 String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
@@ -422,7 +421,7 @@ public class ProtocolToModelAdapter implements Serializable {
         }
     }
 
-    private class AdaptingMethodInvoker implements MethodInvoker {
+    private static class AdaptingMethodInvoker implements MethodInvoker {
         private final AdaptedGraphDetails graphDetails;
         private final MethodInvoker next;
 
@@ -618,7 +617,7 @@ public class ProtocolToModelAdapter implements Serializable {
     }
 
     private static class ReflectionMethodInvoker implements MethodInvoker {
-        private final static MethodInvocationCache LOOKUP_CACHE = new MethodInvocationCache();
+        private final MethodInvocationCache lookupCache = new MethodInvocationCache();
 
         public void invoke(MethodInvocation invocation) throws Throwable {
             Method targetMethod = locateMethod(invocation);
@@ -636,8 +635,8 @@ public class ProtocolToModelAdapter implements Serializable {
             invocation.setResult(returnValue);
         }
 
-        private static Method locateMethod(MethodInvocation invocation) {
-            return LOOKUP_CACHE.get(invocation);
+        private Method locateMethod(MethodInvocation invocation) {
+            return lookupCache.get(invocation);
         }
     }
 
@@ -693,7 +692,7 @@ public class ProtocolToModelAdapter implements Serializable {
                 return;
             }
 
-            MethodInvocation getterInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), EMPTY_CLASS_ARRAY, invocation.getDelegate(), EMPTY);
+            MethodInvocation getterInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), EMPTY_CLASS_ARRAY, invocation.getTarget(), invocation.getDelegate(), EMPTY);
             next.invoke(getterInvocation);
             if (getterInvocation.found() && getterInvocation.getResult() != null) {
                 invocation.setResult(getterInvocation.getResult());
@@ -718,14 +717,13 @@ public class ProtocolToModelAdapter implements Serializable {
             }
 
             String getterName = "get" + matcher.group(1);
-            MethodInvocation getterInvocation = new MethodInvocation(getterName, invocation.getReturnType(), invocation.getGenericReturnType(), new Class[0], invocation.getDelegate(), EMPTY);
+            MethodInvocation getterInvocation = new MethodInvocation(getterName, invocation.getReturnType(), invocation.getGenericReturnType(), new Class[0], invocation.getTarget(), invocation.getDelegate(), EMPTY);
             next.invoke(getterInvocation);
             invocation.setResult(getterInvocation.found());
         }
     }
 
     private static class MixInMethodInvoker implements MethodInvoker {
-        private Object proxy;
         private Object instance;
         private final Class<?> mixInClass;
         private final MethodInvoker next;
@@ -743,9 +741,9 @@ public class ProtocolToModelAdapter implements Serializable {
             }
 
             if (instance == null) {
-                instance = DirectInstantiator.INSTANCE.newInstance(mixInClass, proxy);
+                instance = DirectInstantiator.INSTANCE.newInstance(mixInClass, invocation.getTarget());
             }
-            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), instance, invocation.getParameters());
+            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), instance, instance, invocation.getParameters());
             current.set(beanInvocation);
             try {
                 next.invoke(beanInvocation);
@@ -755,14 +753,6 @@ public class ProtocolToModelAdapter implements Serializable {
             if (beanInvocation.found()) {
                 invocation.setResult(beanInvocation.getResult());
             }
-        }
-
-        public void setProxy(Object proxy) {
-            this.proxy = proxy;
-        }
-
-        public Object getProxy() {
-            return proxy;
         }
     }
 }
