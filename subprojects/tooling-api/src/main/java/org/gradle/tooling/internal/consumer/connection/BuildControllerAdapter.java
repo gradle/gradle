@@ -90,9 +90,9 @@ class BuildControllerAdapter implements BuildController {
         }
 
         if (rootDir != null) {
-            DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(rootDir, getProjectPath(target));
+            FixedBuildIdentifierProvider identifierProvider = new FixedBuildIdentifierProvider(new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
             // TODO - this should use `resultAdapter` as well
-            return adapter.adapt(modelType, result.getModel(), new FixedBuildIdentifierProvider(projectIdentifier));
+            return identifierProvider.applyTo(adapter.builder(modelType)).build(result.getModel());
         }
         return resultAdapter.adapt(modelType, result.getModel());
     }

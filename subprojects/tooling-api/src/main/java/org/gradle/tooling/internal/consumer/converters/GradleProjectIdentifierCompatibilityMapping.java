@@ -17,21 +17,14 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 
-import java.io.Serializable;
-
-public class GradleProjectIdentifierCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
-
+public class GradleProjectIdentifierCompatibilityMapping implements Action<ViewBuilder<?>> {
     @Override
-    public void execute(SourceObjectMapping mapping) {
-        Class<?> targetType = mapping.getTargetType();
-        if (GradleProject.class.isAssignableFrom(targetType)) {
-            mapping.mixIn(GradleProjectIdentifierMixin.class);
-        } else if (BasicGradleProject.class.isAssignableFrom(targetType)) {
-            mapping.mixIn(BasicGradleProjectIdentifierMixin.class);
-        }
+    public void execute(ViewBuilder<?> viewBuilder) {
+        viewBuilder.mixInTo(GradleProject.class, GradleProjectIdentifierMixin.class);
+        viewBuilder.mixInTo(BasicGradleProject.class, BasicGradleProjectIdentifierMixin.class);
     }
 }

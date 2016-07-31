@@ -100,7 +100,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
             Class<?> protocolType = modelMapping.getProtocolType(type);
             Object model = buildActionRunner.run(protocolType, operationParameters).getModel();
 
-            return adapter.adapt(type, model, mapperProvider.getCompatibilityMapping(operationParameters));
+            return mapperProvider.applyCompatibilityMapping(adapter.builder(type), operationParameters).build(model);
         }
     }
 }

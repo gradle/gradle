@@ -20,6 +20,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
+import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.*
@@ -79,6 +80,7 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         then:
         1 * modelMapping.getModelIdentifierFromModelType(GradleProject) >> modelIdentifier
         1 * target.getModel(modelIdentifier, parameters) >> Stub(BuildResult)
+        _ * adapter.builder(_) >> Stub(ViewBuilder)
     }
 
     def "maps internal unknown model exception to API exception"() {
@@ -100,6 +102,8 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         def modelIdentifier = Stub(ModelIdentifier)
         def model = Stub(GradleBuild.class)
         def gradleProject = Stub(GradleProject.class)
+        def viewBuilder1 = Mock(ViewBuilder.class)
+        def viewBuilder2 = Mock(ViewBuilder.class)
 
         given:
         _ * modelMapping.getModelIdentifierFromModelType(GradleProject) >> modelIdentifier
@@ -112,8 +116,10 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
 
         and:
         1 * target.getModel(modelIdentifier, parameters) >> Stub(BuildResult) { getModel() >> gradleProject }
-        1 * adapter.adapt(GradleProject.class, gradleProject, _) >> gradleProject
-        1 * adapter.adapt(GradleBuild.class, _, _) >> model
+        1 * adapter.builder(GradleProject.class) >> viewBuilder1
+        1 * viewBuilder1.build(gradleProject) >> gradleProject
+        1 * adapter.builder(GradleBuild.class) >> viewBuilder2
+        1 * viewBuilder2.build(_) >> model
         0 * target._
     }
 

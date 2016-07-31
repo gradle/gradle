@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.adapter
 
-import org.gradle.api.Action
 import org.gradle.internal.serialize.Message
 import org.gradle.tooling.model.DomainObjectSet
 import org.gradle.tooling.model.UnsupportedMethodException
@@ -373,26 +372,6 @@ class ProtocolToModelAdapterTest extends Specification {
 
         then:
         model.project != null
-    }
-
-    def "mapper can mix in methods from another bean class"() {
-        def mapper = Mock(Action)
-        def protocolModel = Mock(PartialTestProtocolModel)
-
-        given:
-        protocolModel.name >> 'name'
-
-        when:
-        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
-
-        then:
-        1 * mapper.execute({it.sourceObject == protocolModel}) >> { SourceObjectMapping mapping ->
-            mapping.mixIn(ConfigMixin)
-        }
-
-        and:
-        model.name == "[name]"
-        model.getConfig('default') == "[default]"
     }
 
     def "delegates to type provider to determine type to wrap an object in"() {

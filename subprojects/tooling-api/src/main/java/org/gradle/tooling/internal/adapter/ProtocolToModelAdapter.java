@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.adapter;
 import com.google.common.base.Optional;
 import org.gradle.api.Action;
 import org.gradle.api.Nullable;
-import org.gradle.internal.Actions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
@@ -111,20 +110,10 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
      */
     @Override
     public <T> T adapt(Class<T> targetType, Object sourceObject) {
-        return adapt(targetType, sourceObject, NO_OP_MAPPER);
-    }
-
-    /**
-     * Adapts the source object to a view object.
-     *
-     * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided {@link
-     * SourceObjectMapping}.
-     */
-    public <T> T adapt(Class<T> targetType, Object sourceObject, Action<? super SourceObjectMapping> mapper) {
         if (sourceObject == null) {
             return null;
         }
-        return createView(targetType, sourceObject, new AdaptedGraphDetails(mapper, targetTypeProvider));
+        return createView(targetType, sourceObject, new AdaptedGraphDetails(NO_OP_MAPPER, targetTypeProvider));
     }
 
     /**
@@ -143,32 +132,18 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
             @Override
             public ViewBuilder<T> mixInTo(final Class<?> targetType, final Object mixIn) {
-                mappers.add(new Action<SourceObjectMapping>() {
-                    @Override
-                    public void execute(SourceObjectMapping sourceObjectMapping) {
-                        if (targetType.isAssignableFrom(sourceObjectMapping.getTargetType())) {
-                            sourceObjectMapping.mixIn(mixIn);
-                        }
-                    }
-                });
+                mappers.add(new MixInBeanMappingAction(targetType, mixIn));
                 return this;
             }
 
             @Override
             public ViewBuilder<T> mixInTo(final Class<?> targetType, final Class<?> mixInType) {
-                mappers.add(new Action<SourceObjectMapping>() {
-                    @Override
-                    public void execute(SourceObjectMapping sourceObjectMapping) {
-                        if (targetType.isAssignableFrom(sourceObjectMapping.getTargetType())) {
-                            sourceObjectMapping.mixIn(mixInType);
-                        }
-                    }
-                });
+                mappers.add(new MixInTypeMappingAction(targetType, mixInType));
                 return this;
             }
 
             @Override
-            public T build(@Nullable Object sourceObject) {
+            public T build(@Nullable final Object sourceObject) {
                 if (sourceObject == null) {
                     return null;
                 }
@@ -177,11 +152,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 if (mappers.isEmpty() && mixInClasses.isEmpty()) {
                     mapper = NO_OP_MAPPER;
                 } else {
-                    List<Action<SourceObjectMapping>> mappers = new ArrayList<Action<SourceObjectMapping>>(this.mappers);
-                    for (Class<?> mixInClass : mixInClasses) {
-                        mappers.add(new MixInObjectMappingAction(sourceObject, mixInClass));
-                    }
-                    mapper = Actions.composite(mappers);
+                    mapper = new MixInMappingAction(sourceObject, mixInClasses, mappers);
                 }
                 return createView(viewType, sourceObject, new AdaptedGraphDetails(mapper, targetTypeProvider));
             }
@@ -210,17 +181,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         // Create a proxy
-
-        DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType);
-        graphDetails.mapper.execute(mapping);
-
-        MethodInvoker mixInMethodInvoker = NO_OP_HANDLER;
-        if (mapping.mixInType != null) {
-            mixInMethodInvoker = new ClassMixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
-        } else if (mapping.mixInBean != null) {
-            mixInMethodInvoker = new BeanMixInMethodInvoker(mapping.mixInBean, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
-        }
-        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, new InvocationHandlerImpl(sourceObject, mixInMethodInvoker, graphDetails));
+        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, new InvocationHandlerImpl(targetType, sourceObject, graphDetails));
         graphDetails.adaptedObjects.put(viewKey, proxy);
 
         return viewType.cast(proxy);
@@ -310,7 +271,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             throw new IllegalArgumentException("The given object is not a view object");
         }
         InvocationHandlerImpl handler = (InvocationHandlerImpl) Proxy.getInvocationHandler(viewObject);
-        return handler.delegate;
+        return handler.sourceObject;
     }
 
     private static class AdaptedGraphDetails implements Serializable {
@@ -386,14 +347,14 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class InvocationHandlerImpl implements InvocationHandler, Serializable {
-        private final Object delegate;
-        private final MethodInvoker overrideMethodInvoker;
+        private final Class<?> targetType;
+        private final Object sourceObject;
         private final AdaptedGraphDetails graphDetails;
         private transient MethodInvoker invoker;
 
-        InvocationHandlerImpl(Object delegate, MethodInvoker overrideMethodInvoker, AdaptedGraphDetails graphDetails) {
-            this.delegate = delegate;
-            this.overrideMethodInvoker = overrideMethodInvoker;
+        InvocationHandlerImpl(Class<?> targetType, Object sourceObject, AdaptedGraphDetails graphDetails) {
+            this.targetType = targetType;
+            this.sourceObject = sourceObject;
             this.graphDetails = graphDetails;
             setup();
         }
@@ -404,12 +365,22 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         private void setup() {
+            DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType);
+            graphDetails.mapper.execute(mapping);
+
+            MethodInvoker mixInMethodInvoker = NO_OP_HANDLER;
+            if (mapping.mixInType != null) {
+                mixInMethodInvoker = new ClassMixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
+            } else if (mapping.mixInBean != null) {
+                mixInMethodInvoker = new BeanMixInMethodInvoker(mapping.mixInBean, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
+            }
+
             invoker = new SupportedPropertyInvoker(
                 new SafeMethodInvoker(
                     new PropertyCachingMethodInvoker(
                         new AdaptingMethodInvoker(graphDetails,
                             new ChainedMethodInvoker(
-                                overrideMethodInvoker,
+                                mixInMethodInvoker,
                                 REFLECTION_METHOD_INVOKER)))));
         }
 
@@ -423,12 +394,12 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
 
             InvocationHandlerImpl other = (InvocationHandlerImpl) o;
-            return delegate.equals(other.delegate);
+            return sourceObject.equals(other.sourceObject);
         }
 
         @Override
         public int hashCode() {
-            return delegate.hashCode();
+            return sourceObject.hashCode();
         }
 
         public Object invoke(Object target, Method method, Object[] params) throws Throwable {
@@ -443,7 +414,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return hashCode();
             }
 
-            MethodInvocation invocation = new MethodInvocation(method.getName(), method.getReturnType(), method.getGenericReturnType(), method.getParameterTypes(), target, delegate, params);
+            MethodInvocation invocation = new MethodInvocation(method.getName(), method.getReturnType(), method.getGenericReturnType(), method.getParameterTypes(), target, sourceObject, params);
             invoker.invoke(invocation);
             if (!invocation.found()) {
                 String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
@@ -822,18 +793,60 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
     }
 
-    private static class MixInObjectMappingAction implements Action<SourceObjectMapping> {
+    private static class MixInMappingAction implements Action<SourceObjectMapping>, Serializable {
         private final Object sourceObject;
-        private final Class<?> mixInClass;
+        private final List<Class<?>> mixInClasses;
+        private final List<Action<SourceObjectMapping>> mappers;
 
-        MixInObjectMappingAction(Object sourceObject, Class<?> mixInClass) {
+        MixInMappingAction(Object sourceObject, List<Class<?>> mixInClasses, List<Action<SourceObjectMapping>> mappers) {
             this.sourceObject = sourceObject;
-            this.mixInClass = mixInClass;
+            this.mixInClasses = mixInClasses;
+            this.mappers = mappers;
         }
 
-        public void execute(SourceObjectMapping mapping) {
-            if (mapping.getSourceObject() == sourceObject) {
-                mapping.mixIn(mixInClass);
+        @Override
+        public void execute(SourceObjectMapping sourceObjectMapping) {
+            if (sourceObjectMapping.getSourceObject() == sourceObject) {
+                for (Class<?> mixInClass : mixInClasses) {
+                    sourceObjectMapping.mixIn(mixInClass);
+                }
+            }
+            for (Action<SourceObjectMapping> action : mappers) {
+                action.execute(sourceObjectMapping);
+            }
+        }
+    }
+
+    private static class MixInBeanMappingAction implements Action<SourceObjectMapping> , Serializable{
+        private final Class<?> targetType;
+        private final Object mixIn;
+
+        MixInBeanMappingAction(Class<?> targetType, Object mixIn) {
+            this.targetType = targetType;
+            this.mixIn = mixIn;
+        }
+
+        @Override
+        public void execute(SourceObjectMapping sourceObjectMapping) {
+            if (targetType.isAssignableFrom(sourceObjectMapping.getTargetType())) {
+                sourceObjectMapping.mixIn(mixIn);
+            }
+        }
+    }
+
+    private static class MixInTypeMappingAction implements Action<SourceObjectMapping>, Serializable {
+        private final Class<?> targetType;
+        private final Class<?> mixInType;
+
+        MixInTypeMappingAction(Class<?> targetType, Class<?> mixInType) {
+            this.targetType = targetType;
+            this.mixInType = mixInType;
+        }
+
+        @Override
+        public void execute(SourceObjectMapping sourceObjectMapping) {
+            if (targetType.isAssignableFrom(sourceObjectMapping.getTargetType())) {
+                sourceObjectMapping.mixIn(mixInType);
             }
         }
     }

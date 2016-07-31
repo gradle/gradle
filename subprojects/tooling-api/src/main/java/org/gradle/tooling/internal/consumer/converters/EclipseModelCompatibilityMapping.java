@@ -17,16 +17,13 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.util.GradleVersion;
 
-import java.io.Serializable;
-
-public class EclipseModelCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
-
+public class EclipseModelCompatibilityMapping implements Action<ViewBuilder<?>> {
     private final boolean versionSupportsEclipseProjectIdentifier;
 
     public EclipseModelCompatibilityMapping(VersionDetails versionDetails) {
@@ -35,14 +32,10 @@ public class EclipseModelCompatibilityMapping implements Action<SourceObjectMapp
     }
 
     @Override
-    public void execute(SourceObjectMapping mapping) {
-        Class<?> targetType = mapping.getTargetType();
+    public void execute(ViewBuilder<?> viewBuilder) {
         if (!versionSupportsEclipseProjectIdentifier) {
-            if (EclipseProjectDependency.class.isAssignableFrom(targetType)) {
-                mapping.mixIn(EclipseProjectDependencyTargetMixin.class);
-            } else if (HierarchicalEclipseProject.class.isAssignableFrom(targetType)) {
-                mapping.mixIn(EclipseProjectIdentifierMixin.class);
-            }
+            viewBuilder.mixInTo(EclipseProjectDependency.class, EclipseProjectDependencyTargetMixin.class);
+            viewBuilder.mixInTo(HierarchicalEclipseProject.class, EclipseProjectIdentifierMixin.class);
         }
     }
 

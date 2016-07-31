@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.ProjectIdentifier;
@@ -52,5 +53,11 @@ public class FixedBuildIdentifierProvider implements Serializable, Action<Source
         if (ProjectModel.class.isAssignableFrom(sourceObjectMapping.getTargetType())) {
             sourceObjectMapping.mixIn(this);
         }
+    }
+
+    public <T> ViewBuilder<T> applyTo(ViewBuilder<T> builder) {
+        builder.mixInTo(BuildModel.class, this);
+        builder.mixInTo(ProjectModel.class, this);
+        return builder;
     }
 }

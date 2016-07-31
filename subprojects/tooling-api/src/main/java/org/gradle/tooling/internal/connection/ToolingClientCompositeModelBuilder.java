@@ -232,7 +232,7 @@ public class ToolingClientCompositeModelBuilder<T> {
         }
 
         private T transform(ProjectIdentifier projectIdentifier, Object sourceObject) {
-            return protocolToModelAdapter.adapt(modelType, sourceObject, new FixedBuildIdentifierProvider(projectIdentifier));
+            return new FixedBuildIdentifierProvider(projectIdentifier).applyTo(protocolToModelAdapter.builder(modelType)).build(sourceObject);
         }
     }
 
