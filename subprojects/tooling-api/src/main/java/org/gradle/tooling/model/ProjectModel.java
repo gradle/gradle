@@ -14,32 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.model.gradle;
+package org.gradle.tooling.model;
 
 import org.gradle.api.Incubating;
-import org.gradle.tooling.model.ProjectIdentifier;
-import org.gradle.tooling.model.DomainObjectSet;
-import org.gradle.tooling.model.Model;
-import org.gradle.tooling.model.ProjectModel;
 
 /**
- * A model providing information about the publications of a Gradle project.
+ * Represents a model that is associated with some Gradle project.
  *
- * @since 1.12
+ * @since 3.0
  */
 @Incubating
-public interface ProjectPublications extends Model, ProjectModel {
-
+public interface ProjectModel {
     /**
-     * Returns the identifier for the Gradle project that these invocations originate from.
-     *
-     * @since 2.13
+     * Returns the identifier for the project that this model is associated with.
      */
-    @Incubating
     ProjectIdentifier getProjectIdentifier();
-
-    /**
-     * Returns the publications for this project.
-     */
-    DomainObjectSet<? extends GradlePublication> getPublications();
 }

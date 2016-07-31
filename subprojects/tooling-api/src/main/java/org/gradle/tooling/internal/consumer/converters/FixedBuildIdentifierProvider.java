@@ -17,11 +17,13 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.model.BuildIdentifier;
-import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.internal.adapter.MethodInvocation;
 import org.gradle.tooling.internal.adapter.MethodInvoker;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.BuildModel;
+import org.gradle.tooling.model.ProjectIdentifier;
+import org.gradle.tooling.model.ProjectModel;
 
 import java.io.Serializable;
 
@@ -45,6 +47,11 @@ public class FixedBuildIdentifierProvider implements MethodInvoker, Serializable
 
     @Override
     public void execute(SourceObjectMapping sourceObjectMapping) {
-        sourceObjectMapping.mixIn(this);
+        if (BuildModel.class.isAssignableFrom(sourceObjectMapping.getTargetType())) {
+            sourceObjectMapping.mixIn(this);
+        }
+        if (ProjectModel.class.isAssignableFrom(sourceObjectMapping.getTargetType())) {
+            sourceObjectMapping.mixIn(this);
+        }
     }
 }
