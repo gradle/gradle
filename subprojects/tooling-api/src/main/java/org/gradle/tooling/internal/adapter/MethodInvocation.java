@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.adapter;
 
 import java.lang.reflect.Type;
 
-public class MethodInvocation {
+class MethodInvocation {
     private final Object[] parameters;
     private final Class returnType;
     private final Type genericReturnType;

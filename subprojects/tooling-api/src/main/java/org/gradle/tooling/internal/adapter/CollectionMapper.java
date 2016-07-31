@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-public class CollectionMapper {
+class CollectionMapper {
     Collection<Object> createEmptyCollection(Class<?> collectionType) {
         if (collectionType.equals(DomainObjectSet.class)) {
             return new ArrayList<Object>();
