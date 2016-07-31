@@ -18,13 +18,11 @@ package org.gradle.integtests.tooling.r30
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.tooling.model.eclipse.EclipseExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-@ToolingApiVersion('current')
-@TargetGradleVersion('current')
+@TargetGradleVersion('>=3.0')
 class ToolingApiEclipseModelCustomLibrarySourceAndJavadocCrossVersionSpec extends ToolingApiSpecification {
 
     def "Custom source and javadoc location"() {
