@@ -20,8 +20,6 @@ public interface SourceObjectMapping {
 
     Class<?> getTargetType();
 
-    void mapToType(Class<?> type);
-
     void mixIn(Class<?> mixInBeanType);
 
     void mixIn(MethodInvoker invoker);

@@ -17,6 +17,8 @@ package org.gradle.tooling.internal.adapter;
 
 import com.google.common.base.Optional;
 import org.gradle.api.Action;
+import org.gradle.api.Nullable;
+import org.gradle.internal.Actions;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.typeconversion.EnumFromCharSequenceNotationParser;
@@ -37,11 +39,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -113,15 +117,6 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     /**
      * Adapts the source object to a view object.
      *
-     * @param mixInClass A bean that provides implementations for methods of the target type. If this bean implements the given method, it is preferred over the source object's implementation.
-     */
-    public <T> T adapt(Class<T> targetType, final Object sourceObject, final Class<?> mixInClass) {
-        return adapt(targetType, sourceObject, new MixInObjectMappingAction(sourceObject, mixInClass));
-    }
-
-    /**
-     * Adapts the source object to a view object.
-     *
      * @param mapper An action that is invoked for each source object in the graph that is to be adapted. The action can influence how the source object is adapted via the provided {@link
      * SourceObjectMapping}.
      */
@@ -132,6 +127,59 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         return createView(targetType, sourceObject, new AdaptedGraphDetails(mapper, targetTypeProvider));
     }
 
+    /**
+     * Creates a builder for views of the given type.
+     */
+    public <T> ViewBuilder<T> builder(final Class<T> viewType) {
+        return new ViewBuilder<T>() {
+            List<Class<?>> mixInClasses = new ArrayList<Class<?>>();
+            List<Action<SourceObjectMapping>> mappers = new ArrayList<Action<SourceObjectMapping>>();
+
+            @Override
+            public ViewBuilder<T> mixIn(Class<?> mixInType) {
+                mixInClasses.add(mixInType);
+                return this;
+            }
+
+            @Override
+            public ViewBuilder<T> mixInTo(Class<?> targetType, Object mixIn) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public ViewBuilder<T> mixInTo(final Class<?> targetType, final Class<?> mixInType) {
+                mappers.add(new Action<SourceObjectMapping>() {
+                    @Override
+                    public void execute(SourceObjectMapping sourceObjectMapping) {
+                        if (targetType.isAssignableFrom(sourceObjectMapping.getTargetType())) {
+                            sourceObjectMapping.mixIn(mixInType);
+                        }
+                    }
+                });
+                return this;
+            }
+
+            @Override
+            public T build(@Nullable Object sourceObject) {
+                if (sourceObject == null) {
+                    return null;
+                }
+
+                Action<SourceObjectMapping> mapper;
+                if (mappers.isEmpty() && mixInClasses.isEmpty()) {
+                    mapper = NO_OP_MAPPER;
+                } else {
+                    List<Action<SourceObjectMapping>> mappers = new ArrayList<Action<SourceObjectMapping>>(this.mappers);
+                    for (Class<?> mixInClass : mixInClasses) {
+                        mappers.add(new MixInObjectMappingAction(sourceObject, mixInClass));
+                    }
+                    mapper = Actions.composite(mappers);
+                }
+                return createView(viewType, sourceObject, new AdaptedGraphDetails(mapper, targetTypeProvider));
+            }
+        };
+    }
+
     private static <T> T createView(Class<T> targetType, Object sourceObject, AdaptedGraphDetails graphDetails) {
         if (sourceObject == null) {
             return null;
@@ -139,9 +187,6 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         // Calculate the actual type
         Class<? extends T> viewType = graphDetails.typeProvider.getTargetType(targetType, sourceObject);
-        DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType, viewType);
-        graphDetails.mapper.execute(mapping);
-        viewType = mapping.wrapperType.asSubclass(targetType);
 
         if (viewType.isInstance(sourceObject)) {
             return viewType.cast(sourceObject);
@@ -157,6 +202,10 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         // Create a proxy
+
+        DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType, viewType);
+        graphDetails.mapper.execute(mapping);
+
         MethodInvoker mixInMethodInvoker = NO_OP_HANDLER;
         if (mapping.mixInType != null) {
             mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
@@ -300,14 +349,12 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static class DefaultSourceObjectMapping implements SourceObjectMapping {
         private final Object protocolObject;
         private final Class<?> targetType;
-        private Class<?> wrapperType;
         private Class<?> mixInType;
         private MethodInvoker overrideInvoker = NO_OP_HANDLER;
 
         DefaultSourceObjectMapping(Object protocolObject, Class<?> targetType, Class<?> wrapperType) {
             this.protocolObject = protocolObject;
             this.targetType = targetType;
-            this.wrapperType = wrapperType;
         }
 
         public Object getSourceObject() {
@@ -316,13 +363,6 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         public Class<?> getTargetType() {
             return targetType;
-        }
-
-        public void mapToType(Class<?> type) {
-            if (!targetType.isAssignableFrom(type)) {
-                throw new IllegalArgumentException(String.format("requested wrapper type '%s' is not assignable to target type '%s'.", type.getSimpleName(), targetType.getSimpleName()));
-            }
-            wrapperType = type;
         }
 
         public void mixIn(Class<?> mixInBeanType) {

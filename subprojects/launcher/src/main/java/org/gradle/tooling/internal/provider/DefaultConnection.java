@@ -249,6 +249,6 @@ public class DefaultConnection implements ConnectionVersion4, InternalConnection
         if (!supportedConsumerVersion) {
             throw unsupportedConnectionException();
         }
-        return adapter.adapt(ProviderOperationParameters.class, buildParameters, BuildLogLevelMixIn.class);
+        return adapter.builder(ProviderOperationParameters.class).mixIn(BuildLogLevelMixIn.class).build(buildParameters);
     }
 }

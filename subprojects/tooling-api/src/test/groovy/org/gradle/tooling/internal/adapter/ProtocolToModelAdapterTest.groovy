@@ -423,7 +423,7 @@ class ProtocolToModelAdapterTest extends Specification {
         protocolModel.name >> 'name'
 
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel, ConfigMixin)
+        def model = adapter.builder(TestModel.class).mixIn(ConfigMixin.class).build(protocolModel)
 
         then:
         model.name == "[name]"
@@ -437,7 +437,7 @@ class ProtocolToModelAdapterTest extends Specification {
         protocolModel.name >> 'name'
 
         when:
-        def model = adapter.adapt(TestModel.class, protocolModel, ConfigMixin)
+        def model = adapter.builder(TestModel.class).mixIn(ConfigMixin.class).build(protocolModel)
 
         then:
         model.project != null
@@ -476,33 +476,6 @@ class ProtocolToModelAdapterTest extends Specification {
 
         then:
         result instanceof ByteChannel
-    }
-
-    def "mapper can specify the type to wrap an object in"() {
-        def mapper = Mock(Action)
-        def sourceObject = Mock(TestProtocolModel)
-        def sourceProject = Mock(TestProtocolProject)
-        def adapter = new ProtocolToModelAdapter()
-
-        given:
-        sourceObject.project >> sourceProject
-
-        when:
-        def result = adapter.adapt(TestModel.class, sourceObject, mapper)
-
-        then:
-        1 * mapper.execute({it.sourceObject == sourceObject})
-
-        when:
-        def project = result.project
-
-        then:
-        project instanceof TestExtendedProject
-
-        and:
-        1 * mapper.execute({it.sourceObject == sourceProject}) >> { SourceObjectMapping mapping ->
-            mapping.mapToType(TestExtendedProject)
-        }
     }
 
     def "view objects can be serialized"() {
