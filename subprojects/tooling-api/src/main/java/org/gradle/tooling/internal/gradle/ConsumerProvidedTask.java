@@ -69,7 +69,7 @@ public class ConsumerProvidedTask implements TaskListingLaunchable {
 
     public SortedSet<String> getTaskNames() {
         // TODO use comparator
-        SortedSet result = Sets.newTreeSet(new TaskNameComparator());
+        SortedSet<String> result = Sets.newTreeSet(new TaskNameComparator());
         result.add(getPath());
         return result;
     }
