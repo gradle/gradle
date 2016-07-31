@@ -47,8 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Adapts some source object to some target view type.
@@ -65,7 +63,6 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static final CollectionMapper COLLECTION_MAPPER = new CollectionMapper();
     private static final Object[] EMPTY = new Object[0];
     private static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
-    private static final Pattern IS_SUPPORT_METHOD = Pattern.compile("is(\\w+)Supported");
     private static final Method EQUALS_METHOD;
     private static final Method HASHCODE_METHOD;
 
@@ -282,7 +279,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         @Override
         public int hashCode() {
-            return type.hashCode() ^ source.hashCode() ^ viewDecoration.hashCode();
+            return type.hashCode() ^ System.identityHashCode(source) ^ viewDecoration.hashCode();
         }
     }
 
@@ -669,13 +666,18 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         public void invoke(MethodInvocation invocation) throws Throwable {
-            Matcher matcher = IS_SUPPORT_METHOD.matcher(invocation.getName());
-            if (!matcher.matches()) {
-                next.invoke(invocation);
+            next.invoke(invocation);
+            if (invocation.found()) {
                 return;
             }
 
-            String getterName = "get" + matcher.group(1);
+            String methodName = invocation.getName();
+            boolean isSupportMethod = methodName.length() > 11 && methodName.startsWith("is") && methodName.endsWith("Supported");
+            if (!isSupportMethod) {
+                return;
+            }
+
+            String getterName = "get" + methodName.substring(2, methodName.length() - 9);
             MethodInvocation getterInvocation = new MethodInvocation(getterName, invocation.getReturnType(), invocation.getGenericReturnType(), EMPTY_CLASS_ARRAY, invocation.getView(), invocation.getViewType(), invocation.getDelegate(), EMPTY);
             next.invoke(getterInvocation);
             invocation.setResult(getterInvocation.found());

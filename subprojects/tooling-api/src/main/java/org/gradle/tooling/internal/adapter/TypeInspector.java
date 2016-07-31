@@ -25,6 +25,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.lang.reflect.WildcardType;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ import java.util.Set;
 @ThreadSafe
 class TypeInspector {
     private final Set<Class<?>> stopAt = new HashSet<Class<?>>();
+    private final Map<Class<?>, Set<Class<?>>> inspected = new HashMap<Class<?>, Set<Class<?>>>();
 
     public TypeInspector() {
         stopAt.add(List.class);
@@ -45,15 +47,25 @@ class TypeInspector {
      * Returns all interfaces reachable from the given interface, including the interface itself.
      */
     public Set<Class<?>> getReachableTypes(Class<?> type) {
-        Set<Class<?>> types = new HashSet<Class<?>>();
-        visit(type, types);
+        Set<Class<?>> types = inspected.get(type);
+        if (types == null) {
+            types = new HashSet<Class<?>>();
+            visit(type, types);
+            inspected.put(type, types);
+        }
         return types;
     }
 
     private void visit(Class<?> type, Set<Class<?>> types) {
+        if (type.isArray()) {
+            visit(type.getComponentType(), types);
+            return;
+        }
+
         if (!type.isInterface() || !types.add(type) || stopAt.contains(type)) {
             return;
         }
+
         for (Type superType : type.getGenericInterfaces()) {
             visit(superType, types);
         }
