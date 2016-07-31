@@ -181,8 +181,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         // Create a proxy
-        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, new InvocationHandlerImpl(targetType, sourceObject, graphDetails));
-        graphDetails.adaptedObjects.put(viewKey, proxy);
+        InvocationHandlerImpl handler = new InvocationHandlerImpl(targetType, sourceObject, graphDetails);
+        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, handler);
+        handler.attachProxy(proxy);
 
         return viewType.cast(proxy);
     }
@@ -275,13 +276,19 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class AdaptedGraphDetails implements Serializable {
-        private final Map<ViewKey, Object> adaptedObjects = new HashMap<ViewKey, Object>();
+        // Transient, don't serialize all the views that happen to have been visited, recreate them when visited via the deserialized view
+        private transient Map<ViewKey, Object> adaptedObjects = new HashMap<ViewKey, Object>();
         private final Action<? super SourceObjectMapping> mapper;
         private final TargetTypeProvider typeProvider;
 
         AdaptedGraphDetails(Action<? super SourceObjectMapping> mapper, TargetTypeProvider typeProvider) {
             this.mapper = mapper;
             this.typeProvider = typeProvider;
+        }
+
+        private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+            adaptedObjects = new HashMap<ViewKey, Object>();
         }
     }
 
@@ -350,6 +357,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private final Class<?> targetType;
         private final Object sourceObject;
         private final AdaptedGraphDetails graphDetails;
+        private Object proxy;
+        // Recreate the invoker when deserialized, rather than serialize all its state
         private transient MethodInvoker invoker;
 
         InvocationHandlerImpl(Class<?> targetType, Object sourceObject, AdaptedGraphDetails graphDetails) {
@@ -362,6 +371,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private void readObject(java.io.ObjectInputStream in) throws IOException, ClassNotFoundException {
             in.defaultReadObject();
             setup();
+            graphDetails.adaptedObjects.put(new ViewKey(targetType, sourceObject), proxy);
         }
 
         private void setup() {
@@ -421,6 +431,11 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 throw Exceptions.unsupportedMethod(methodName);
             }
             return invocation.getResult();
+        }
+
+        void attachProxy(Object proxy) {
+            this.proxy = proxy;
+            graphDetails.adaptedObjects.put(new ViewKey(targetType, sourceObject), proxy);
         }
     }
 

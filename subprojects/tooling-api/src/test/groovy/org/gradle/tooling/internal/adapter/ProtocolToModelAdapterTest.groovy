@@ -389,19 +389,66 @@ class ProtocolToModelAdapterTest extends Specification {
         result instanceof ByteChannel
     }
 
-    def "view objects can be serialized"() {
-        def protocolModel = new TestProtocolProjectImpl()
+    def "view object can be serialized"() {
+        def protocolModel = new TestModelImpl()
 
         given:
-        def model = adapter.adapt(TestProject.class, protocolModel)
+        def model = adapter.adapt(TestModel.class, protocolModel)
+        def copiedModel = serialize(model)
 
         expect:
+        copiedModel instanceof TestModel
+        copiedModel != model
+        copiedModel.name == "model"
+        copiedModel.project.name == "name"
+    }
+
+    def "view identity is retained when serialized"() {
+        def protocolModel = new TestModelImpl()
+
+        given:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+        def copy = serialize([model, model.project, model.childList])
+
+        expect:
+        def copiedModel = copy[0]
+        def copiedProject = copy[1]
+        def projectList = copy[2]
+        copiedProject.is(copiedModel.project)
+        projectList[0].is(copiedModel.project)
+    }
+
+    def "view object with mix-in class can be serialized"() {
+        def protocolModel = new TestModelImpl()
+
+        given:
+        def model = adapter.builder(TestModel.class).mixIn(ConfigMixin).build(protocolModel)
+        def copiedModel = serialize(model)
+
+        expect:
+        copiedModel instanceof TestModel
+        copiedModel != model
+        copiedModel.name == "[model]"
+    }
+
+    def "view object with mix-in can be serialized"() {
+        def protocolModel = new TestModelImpl()
+
+        given:
+        def model = adapter.builder(TestModel.class).mixInTo(TestModel, new FixedMixin(project: new TestProjectImpl(name: "project"))).build(protocolModel)
+        def copiedModel = serialize(model)
+
+        expect:
+        copiedModel instanceof TestModel
+        copiedModel != model
+        copiedModel.name == "model"
+        copiedModel.project.name == "project"
+    }
+
+    def serialize(Object model) {
         def serialized = new ByteArrayOutputStream()
         Message.send(model, serialized)
-        def copiedModel = Message.receive(new ByteArrayInputStream(serialized.toByteArray()), getClass().classLoader)
-        copiedModel instanceof TestProject
-        copiedModel != model
-        copiedModel.name == "name"
+        return Message.receive(new ByteArrayInputStream(serialized.toByteArray()), getClass().classLoader)
     }
 
     def "unpacks source object from view"() {
@@ -492,6 +539,16 @@ enum TestEnum {
     FIRST, SECOND
 }
 
+class TestModelImpl implements Serializable {
+    String name = "model"
+    TestProtocolProjectImpl project = new TestProtocolProjectImpl()
+    List<TestProtocolProjectImpl> childList = [project]
+}
+
+class TestProjectImpl implements Serializable, TestProject {
+    String name = "name"
+}
+
 class TestProtocolProjectImpl implements Serializable {
     String name = "name"
 }
@@ -530,7 +587,7 @@ class ConfigMixin {
     }
 }
 
-class FixedMixin {
+class FixedMixin implements Serializable {
     TestProject project
 
     String getConfig(String config) {
