@@ -31,6 +31,12 @@ public class ComplexCustomModelBuildingAction implements BuildAction<Map<String,
         for (BasicGradleProject project : controller.getBuildModel().getProjects()) {
             result.put(project.getPath(), controller.getModel(project, CustomModel.class));
         }
+
+        CustomModel rootProjectModel = controller.getModel(controller.getBuildModel().getRootProject(), CustomModel.class);
+        for (CustomModel customModel : result.values()) {
+            assert customModel.getThing() == rootProjectModel.getThing();
+        }
+
         return result;
     }
 }

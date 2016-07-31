@@ -23,6 +23,9 @@ import org.gradle.tooling.BuildController;
 public class CustomModelBuildingAction implements BuildAction<CustomModel> {
     @Override
     public CustomModel execute(BuildController controller) {
-        return controller.getModel(CustomModel.class);
+        CustomModel model1 = controller.getModel(CustomModel.class);
+        CustomModel model2 = controller.getModel(CustomModel.class);
+        assert model1.getThing() == model2.getThing();
+        return model1;
     }
 }

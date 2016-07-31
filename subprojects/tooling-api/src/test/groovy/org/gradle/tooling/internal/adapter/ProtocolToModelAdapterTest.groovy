@@ -182,6 +182,17 @@ class ProtocolToModelAdapterTest extends Specification {
         model.find("name").is(project)
     }
 
+    def "can have path to root view"() {
+        TestProtocolProjectTree parent = Mock()
+        TestProtocolProjectTree child = Mock()
+        parent.child >> child
+        child.parent >> parent
+
+        expect:
+        def model = adapter.adapt(TestProjectTree.class, parent)
+        model.child.parent.is(model)
+    }
+
     def "does not reuse views for different objects that are equal"() {
         TestProtocolModel protocolModel = Mock()
         TestProtocolProject project1 = new TestProtocolProjectWithEquality()
@@ -224,8 +235,99 @@ class ProtocolToModelAdapterTest extends Specification {
         !model1.is(model2)
         model1.project.is(model2.project)
 
-        def model3 = converter.adapt(TestModel.class, protocolModel1)
-        model1.is(model3)
+        def otherModel1 = converter.adapt(TestModel.class, protocolModel1)
+        model1.is(otherModel1)
+    }
+
+    def "does not reuse views with different mix ins"() {
+        TestProtocolModel protocolModel = Mock()
+        TestProtocolProject protocolProject = Mock()
+        _ * protocolModel.getProject() >> protocolProject
+
+        expect:
+        def converter = adapter.newGraph()
+        def model1 = converter.builder(TestModel.class).mixInTo(TestModel, ConfigMixin).build(protocolModel)
+
+        def model2 = converter.adapt(TestModel.class, protocolModel)
+        !model1.is(model2)
+
+        def model3 = converter.builder(TestModel.class).build(protocolModel)
+        model3.is(model2)
+
+        def model4 = converter.builder(TestModel.class).mixInTo(TestModel, ConfigMixin).build(protocolModel)
+        model4.is(model1)
+
+        def model5 = converter.builder(TestModel.class).mixInTo(TestProject, "instance").build(protocolModel)
+        !model5.is(model1)
+        !model5.is(model2)
+
+        def model6 = converter.builder(TestModel.class).mixInTo(TestProject, "instance").build(protocolModel)
+        model6.is(model5)
+    }
+
+    def "does not reuse views when some view reachable has different mix ins"() {
+        TestProtocolModel protocolModel = Mock()
+        TestProtocolProject protocolProject = Mock()
+        _ * protocolModel.getProject() >> protocolProject
+
+        expect:
+        def converter = adapter.newGraph()
+        def model1 = converter.builder(TestModel.class).mixInTo(TestProject, ProjectMixin).build(protocolModel)
+
+        def model2 = converter.adapt(TestModel.class, protocolModel)
+        !model2.is(model1)
+        !model1.project.is(model2.project)
+
+        def model3 = converter.builder(TestModel.class).build(protocolModel)
+        model3.is(model2)
+
+        def model4 = converter.builder(TestModel.class).mixInTo(TestProject, ProjectMixin).build(protocolModel)
+        model4.is(model1)
+
+        def model5 = converter.builder(TestModel.class).mixInTo(TestProject, "instance").build(protocolModel)
+        !model5.is(model1)
+        !model5.project.is(model1.project)
+        !model5.is(model2)
+        !model5.project.is(model2.project)
+
+        def model6 = converter.builder(TestModel.class).mixInTo(TestProject, "instance").build(protocolModel)
+        model6.is(model5)
+    }
+
+    def "reuses reachable views when they have the same mix ins"() {
+        TestProtocolModel protocolModel = Mock()
+        TestProtocolModel protocolModel2 = Mock()
+        TestProtocolProject protocolProject = Mock()
+        _ * protocolModel.getProject() >> protocolProject
+        _ * protocolModel2.getProject() >> protocolProject
+
+        expect:
+        def converter = adapter.newGraph()
+        def model1 = converter.builder(TestModel.class).mixInTo(TestModel, ConfigMixin).build(protocolModel)
+
+        def model2 = converter.adapt(TestModel.class, protocolModel)
+        !model2.is(model1)
+        model2.project.is(model1.project)
+
+        def model3 = converter.builder(TestModel.class).mixInTo(TestModel, "thing").build(protocolModel2)
+        !model3.is(model1)
+        model3.project.is(model1.project)
+    }
+
+    def "ignores mix ins that are not relevant for view type"() {
+        TestProtocolModel protocolModel = Mock()
+        TestProtocolProject protocolProject = Mock()
+        _ * protocolModel.getProject() >> protocolProject
+
+        expect:
+        def converter = adapter.newGraph()
+        def model1 = converter.builder(TestModel.class).mixInTo(Long, ConfigMixin).mixInTo(Runnable, "instance").build(protocolModel)
+
+        def model2 = converter.builder(TestModel.class).mixInTo(Runnable, "instance").build(protocolModel)
+        model2.is(model1)
+
+        def model3 = converter.builder(TestModel.class).build(protocolModel)
+        model3.is(model1)
     }
 
     def "backing object can be viewed as various types"() {
@@ -339,7 +441,7 @@ class ProtocolToModelAdapterTest extends Specification {
         protocolModel.name >> 'name'
 
         when:
-        def model = adapter.builder(TestModel.class).mixIn(ConfigMixin.class).build(protocolModel)
+        def model = adapter.builder(TestModel.class).mixInTo(TestModel, ConfigMixin).build(protocolModel)
 
         then:
         model.name == "name"
@@ -385,7 +487,7 @@ class ProtocolToModelAdapterTest extends Specification {
         protocolModel.name >> 'name'
 
         when:
-        def model = adapter.builder(TestModel.class).mixIn(ConfigMixin.class).build(protocolModel)
+        def model = adapter.builder(TestModel.class).mixInTo(TestModel, ConfigMixin).build(protocolModel)
 
         then:
         model.project != null
@@ -439,7 +541,7 @@ class ProtocolToModelAdapterTest extends Specification {
         def protocolModel = new TestModelImpl()
 
         given:
-        def model = adapter.builder(TestModel.class).mixIn(ConfigMixin).build(protocolModel)
+        def model = adapter.builder(TestModel.class).mixInTo(TestModel, ConfigMixin).build(protocolModel)
         def copiedModel = serialize(model)
 
         expect:
@@ -527,6 +629,11 @@ interface TestProject {
 interface TestExtendedProject extends TestProject {
 }
 
+interface TestProjectTree extends TestProject {
+    TestProjectTree getParent()
+    TestProjectTree getChild()
+}
+
 interface TestProtocolModel {
     String getName()
 
@@ -555,6 +662,12 @@ interface TestProtocolProject {
     String getName()
 }
 
+interface TestProtocolProjectTree {
+    String getName()
+    TestProtocolProjectTree getParent()
+    TestProtocolProjectTree getChild()
+}
+
 enum TestEnum {
     FIRST, SECOND
 }
@@ -563,10 +676,6 @@ class TestModelImpl implements Serializable {
     String name = "model"
     TestProtocolProjectImpl project = new TestProtocolProjectImpl()
     List<TestProtocolProjectImpl> childList = [project]
-}
-
-class TestProjectImpl implements Serializable, TestProject {
-    String name = "name"
 }
 
 class TestProtocolProjectImpl implements Serializable {
@@ -605,6 +714,9 @@ class ConfigMixin {
     String getName() {
         return "[${model.name}]"
     }
+}
+
+class ProjectMixin {
 }
 
 class FixedMixin implements Serializable {

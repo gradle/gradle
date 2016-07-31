@@ -19,15 +19,6 @@ package org.gradle.tooling.internal.adapter;
 import org.gradle.api.Nullable;
 
 public interface ViewBuilder<T> {
-    /**
-     * Mixes the given type into the views created using {@link #build(Object)}. Only applied to the source object itself.
-     *
-     * An instance of the class is created for each view that is created. The class should have a constructor that accepts the view as a parameter.
-     * When a given method cannot be found on the source object for a view, the mix-in object is searched for a compatible method.
-     *
-     * @return this
-     */
-    ViewBuilder<T> mixIn(Class<?> mixInType);
 
     /**
      * Mixes the given object into all views of the given type created using {@link #build(Object)}.

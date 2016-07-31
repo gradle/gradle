@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r30
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -96,7 +95,7 @@ class CustomPlugin implements Plugin<Project> {
         model.things[0].is(model.thing)
     }
 
-    @NotYetImplemented
+    @ToolingApiVersion(">=3.0")
     @TargetGradleVersion(">=1.8")
     def "retains underlying object identity in complex model returned to client via build action"() {
         settingsFile << "include 'a', 'b'"

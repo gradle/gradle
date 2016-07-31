@@ -21,4 +21,6 @@ package org.gradle.tooling.internal.adapter;
  */
 public interface ObjectGraphAdapter {
     <T> T adapt(Class<T> targetType, Object sourceObject);
+
+    <T> ViewBuilder<T> builder(Class<T> viewType);
 }
