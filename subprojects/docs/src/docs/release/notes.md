@@ -4,7 +4,7 @@ Performance continues to be a focus for the Gradle team and the third major rele
 
 Ever wished for better IDE support when writing Gradle build scripts?  This release provides the first support for [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), 
 which is a Kotlin-based build language for Gradle scripts.  Its deep integration with both IDEA and Eclipse provides many of the things you would expect from an IDE such as auto-completion, 
-refactoring, navigation to source, and more.  Groovy is still the primary build language for Gradle scripts and will always be supported, but we'll be working intensely to make Gradle Script 
+refactoring, navigation to source, and more.  Groovy is still the primary build language for Gradle scripts and will always be supported, but we are working intensely to make Gradle Script 
 Kotlin fully production ready by the end of the year in order to provide 
 the best possible development experience to Gradle users.  See [Chris Beams's blog post](https://gradle.org/blog/kotlin-meets-gradle/) for more information about this exciting new feature.
 
