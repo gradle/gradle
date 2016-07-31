@@ -16,8 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
-import org.gradle.api.Action;
-import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
@@ -26,7 +24,7 @@ import org.gradle.tooling.model.ProjectModel;
 
 import java.io.Serializable;
 
-public class FixedBuildIdentifierProvider implements Serializable, Action<SourceObjectMapping>, BuildModel, ProjectModel {
+public class FixedBuildIdentifierProvider implements Serializable, BuildModel, ProjectModel {
     private final BuildIdentifier buildIdentifier;
     private final ProjectIdentifier projectIdentifier;
 
@@ -43,16 +41,6 @@ public class FixedBuildIdentifierProvider implements Serializable, Action<Source
     @Override
     public ProjectIdentifier getProjectIdentifier() {
         return projectIdentifier;
-    }
-
-    @Override
-    public void execute(SourceObjectMapping sourceObjectMapping) {
-        if (BuildModel.class.isAssignableFrom(sourceObjectMapping.getTargetType())) {
-            sourceObjectMapping.mixIn(this);
-        }
-        if (ProjectModel.class.isAssignableFrom(sourceObjectMapping.getTargetType())) {
-            sourceObjectMapping.mixIn(this);
-        }
     }
 
     public <T> ViewBuilder<T> applyTo(ViewBuilder<T> builder) {

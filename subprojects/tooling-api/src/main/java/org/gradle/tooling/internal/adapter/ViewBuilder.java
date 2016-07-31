@@ -22,6 +22,9 @@ public interface ViewBuilder<T> {
     /**
      * Mixes the given type into the views created using {@link #build(Object)}. Only applied to the source object itself.
      *
+     * An instance of the class is created for each view that is created. The class should have a constructor that accepts the view as a parameter.
+     * When a given method cannot be found on the source object for a view, the mix-in object is searched for a compatible method.
+     *
      * @return this
      */
     ViewBuilder<T> mixIn(Class<?> mixInType);
@@ -30,6 +33,9 @@ public interface ViewBuilder<T> {
      * Mixes the given object into all views of the given type created using {@link #build(Object)}.
      * Applied to all views reachable from created views. The mix-in object should be serializable.
      *
+     * When a given method cannot be found on the source object for a view, the mix-in object is searched for a compatible method.
+     * For a getter method, the mix-in may also provide a method that takes the view as a parameter.
+     *
      * @return this
      */
     ViewBuilder<T> mixInTo(Class<?> targetType, Object mixIn);
@@ -37,6 +43,9 @@ public interface ViewBuilder<T> {
     /**
      * Mixes the given type into all views of the given type created using {@link #build(Object)}.
      * Applied to all views reachable from created views.
+     *
+     * An instance of the class is created for each view of the given type that is created. The class should have a constructor that accepts the view as a parameter.
+     * When a given method cannot be found on the source object for a view, the mix-in object is searched for a compatible method.
      *
      * @return this
      */

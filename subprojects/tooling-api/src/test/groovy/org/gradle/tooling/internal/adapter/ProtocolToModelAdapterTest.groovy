@@ -342,7 +342,8 @@ class ProtocolToModelAdapterTest extends Specification {
         def model = adapter.builder(TestModel.class).mixIn(ConfigMixin.class).build(protocolModel)
 
         then:
-        model.name == "[name]"
+        model.name == "name"
+        model.project
         model.getConfig('default') == "[default]"
     }
 
@@ -359,6 +360,22 @@ class ProtocolToModelAdapterTest extends Specification {
         then:
         model.project == project
         model.getConfig('default') == "[default]"
+    }
+
+    def "getter on mix in can accept the view as a parameter"() {
+        PartialTestProtocolModel protocolModel = Mock()
+        TestProject project = Mock()
+
+        given:
+        protocolModel.name >> 'name'
+        project.name >> 'name'
+
+        when:
+        def model = adapter.builder(TestModel.class).mixInTo(TestModel.class, new FixedMixin(project: project)).build(protocolModel)
+
+        then:
+        model.project.name == "name"
+        model.projectName == "[name]"
     }
 
     def "adapts values returned from mix in beans"() {
@@ -428,21 +445,22 @@ class ProtocolToModelAdapterTest extends Specification {
         expect:
         copiedModel instanceof TestModel
         copiedModel != model
-        copiedModel.name == "[model]"
+        copiedModel.name == "model"
+        copiedModel.getConfig("thing") == "[thing]"
     }
 
     def "view object with mix-in can be serialized"() {
         def protocolModel = new TestModelImpl()
 
         given:
-        def model = adapter.builder(TestModel.class).mixInTo(TestModel, new FixedMixin(project: new TestProjectImpl(name: "project"))).build(protocolModel)
+        def model = adapter.builder(TestModel.class).mixInTo(TestModel, new FixedMixin()).build(protocolModel)
         def copiedModel = serialize(model)
 
         expect:
         copiedModel instanceof TestModel
         copiedModel != model
         copiedModel.name == "model"
-        copiedModel.project.name == "project"
+        copiedModel.getConfig("thing") == "[thing]"
     }
 
     def serialize(Object model) {
@@ -480,6 +498,8 @@ interface TestModel {
     String getName()
 
     TestProject getProject()
+
+    String getProjectName()
 
     TestExtendedProject getExtendedProject()
 
@@ -592,5 +612,9 @@ class FixedMixin implements Serializable {
 
     String getConfig(String config) {
         return "[$config]"
+    }
+
+    String getProjectName(TestModel model) {
+        return "[$model.project.name]"
     }
 }

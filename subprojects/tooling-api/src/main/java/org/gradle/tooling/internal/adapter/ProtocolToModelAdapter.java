@@ -55,7 +55,6 @@ import java.util.regex.Pattern;
  * Adapts some source object to some target view type.
  */
 public class ProtocolToModelAdapter implements ObjectGraphAdapter {
-    private static final MethodInvoker NO_OP_HANDLER = new NoOpMethodInvoker();
     private static final Action<SourceObjectMapping> NO_OP_MAPPER = new NoOpMapping();
     private static final TargetTypeProvider IDENTITY_TYPE_PROVIDER = new TargetTypeProvider() {
         public <T> Class<? extends T> getTargetType(Class<T> initialTargetType, Object protocolObject) {
@@ -65,6 +64,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static final ReflectionMethodInvoker REFLECTION_METHOD_INVOKER = new ReflectionMethodInvoker();
     private static final CollectionMapper COLLECTION_MAPPER = new CollectionMapper();
     private static final Object[] EMPTY = new Object[0];
+    private static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
     private static final Pattern IS_SUPPORT_METHOD = Pattern.compile("is(\\w+)Supported");
     private static final Method EQUALS_METHOD;
     private static final Method HASHCODE_METHOD;
@@ -316,8 +316,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static class DefaultSourceObjectMapping implements SourceObjectMapping {
         private final Object protocolObject;
         private final Class<?> targetType;
-        private Class<?> mixInType;
-        private Object mixInBean;
+        private final List<MethodInvoker> invokers = new ArrayList<MethodInvoker>();
 
         DefaultSourceObjectMapping(Object protocolObject, Class<?> targetType) {
             this.protocolObject = protocolObject;
@@ -333,18 +332,12 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
 
         public void mixIn(Class<?> mixInBeanType) {
-            if (mixInType != null) {
-                throw new UnsupportedOperationException("Mixing in multiple beans is currently not supported.");
-            }
-            mixInType = mixInBeanType;
+            invokers.add(new ClassMixInMethodInvoker(mixInBeanType, REFLECTION_METHOD_INVOKER));
         }
 
         @Override
         public void mixIn(Object mixInBean) {
-            if (this.mixInBean != null) {
-                throw new UnsupportedOperationException("Mixing in multiple invokers is currently not supported.");
-            }
-            this.mixInBean = mixInBean;
+            invokers.add(new BeanMixInMethodInvoker(mixInBean, REFLECTION_METHOD_INVOKER));
         }
     }
 
@@ -376,22 +369,16 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         private void setup() {
             DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType);
+            mapping.invokers.add(REFLECTION_METHOD_INVOKER);
             graphDetails.mapper.execute(mapping);
 
-            MethodInvoker mixInMethodInvoker = NO_OP_HANDLER;
-            if (mapping.mixInType != null) {
-                mixInMethodInvoker = new ClassMixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
-            } else if (mapping.mixInBean != null) {
-                mixInMethodInvoker = new BeanMixInMethodInvoker(mapping.mixInBean, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
-            }
+            MethodInvoker mixInMethodInvoker = mapping.invokers.size() == 1 ? mapping.invokers.get(0) : new ChainedMethodInvoker(mapping.invokers);
 
             invoker = new SupportedPropertyInvoker(
                 new SafeMethodInvoker(
                     new PropertyCachingMethodInvoker(
                         new AdaptingMethodInvoker(graphDetails,
-                            new ChainedMethodInvoker(
-                                mixInMethodInvoker,
-                                REFLECTION_METHOD_INVOKER)))));
+                            mixInMethodInvoker))));
         }
 
         @Override
@@ -424,7 +411,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
                 return hashCode();
             }
 
-            MethodInvocation invocation = new MethodInvocation(method.getName(), method.getReturnType(), method.getGenericReturnType(), method.getParameterTypes(), target, sourceObject, params);
+            MethodInvocation invocation = new MethodInvocation(method.getName(), method.getReturnType(), method.getGenericReturnType(), method.getParameterTypes(), target, targetType, sourceObject, params);
             invoker.invoke(invocation);
             if (!invocation.found()) {
                 String methodName = method.getDeclaringClass().getSimpleName() + "." + method.getName() + "()";
@@ -442,8 +429,8 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     private static class ChainedMethodInvoker implements MethodInvoker {
         private final MethodInvoker[] invokers;
 
-        private ChainedMethodInvoker(MethodInvoker... invokers) {
-            this.invokers = invokers;
+        private ChainedMethodInvoker(List<MethodInvoker> invokers) {
+            this.invokers = invokers.toArray(new MethodInvoker[0]);
         }
 
         public void invoke(MethodInvocation method) throws Throwable {
@@ -708,7 +695,6 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
     }
 
     private static class SafeMethodInvoker implements MethodInvoker {
-        private static final Class[] EMPTY_CLASS_ARRAY = new Class[0];
         private final MethodInvoker next;
 
         private SafeMethodInvoker(MethodInvoker next) {
@@ -717,15 +703,11 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         public void invoke(MethodInvocation invocation) throws Throwable {
             next.invoke(invocation);
-            if (invocation.found() || invocation.getParameterTypes().length != 1) {
+            if (invocation.found() || invocation.getParameterTypes().length != 1 || !invocation.isIsOrGet()) {
                 return;
             }
 
-            if (!invocation.isIsOrGet()) {
-                return;
-            }
-
-            MethodInvocation getterInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), EMPTY_CLASS_ARRAY, invocation.getTarget(), invocation.getDelegate(), EMPTY);
+            MethodInvocation getterInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), EMPTY_CLASS_ARRAY, invocation.getView(), invocation.getViewType(), invocation.getDelegate(), EMPTY);
             next.invoke(getterInvocation);
             if (getterInvocation.found() && getterInvocation.getResult() != null) {
                 invocation.setResult(getterInvocation.getResult());
@@ -750,7 +732,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
 
             String getterName = "get" + matcher.group(1);
-            MethodInvocation getterInvocation = new MethodInvocation(getterName, invocation.getReturnType(), invocation.getGenericReturnType(), new Class[0], invocation.getTarget(), invocation.getDelegate(), EMPTY);
+            MethodInvocation getterInvocation = new MethodInvocation(getterName, invocation.getReturnType(), invocation.getGenericReturnType(), EMPTY_CLASS_ARRAY, invocation.getView(), invocation.getViewType(), invocation.getDelegate(), EMPTY);
             next.invoke(getterInvocation);
             invocation.setResult(getterInvocation.found());
         }
@@ -767,7 +749,17 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         @Override
         public void invoke(MethodInvocation invocation) throws Throwable {
-            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), instance, instance, invocation.getParameters());
+            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), invocation.getView(), invocation.getViewType(), instance, invocation.getParameters());
+            next.invoke(beanInvocation);
+            if (beanInvocation.found()) {
+                invocation.setResult(beanInvocation.getResult());
+                return;
+            }
+            if (!invocation.isGetter()) {
+                return;
+            }
+
+            beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), new Class<?>[]{invocation.getViewType()}, invocation.getView(), invocation.getViewType(), instance, new Object[]{invocation.getView()});
             next.invoke(beanInvocation);
             if (beanInvocation.found()) {
                 invocation.setResult(beanInvocation.getResult());
@@ -793,9 +785,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
 
             if (instance == null) {
-                instance = DirectInstantiator.INSTANCE.newInstance(mixInClass, invocation.getTarget());
+                instance = DirectInstantiator.INSTANCE.newInstance(mixInClass, invocation.getView());
             }
-            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), instance, instance, invocation.getParameters());
+            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), invocation.getView(), invocation.getViewType(), instance, invocation.getParameters());
             current.set(beanInvocation);
             try {
                 next.invoke(beanInvocation);

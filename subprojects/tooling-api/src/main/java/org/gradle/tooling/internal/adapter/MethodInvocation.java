@@ -24,18 +24,20 @@ public class MethodInvocation {
     private final Type genericReturnType;
     private final String name;
     private final Class<?>[] parameterTypes;
-    private final Object target;
+    private final Object view;
+    private final Class<?> viewType;
     private final Object delegate;
 
     private Object result;
     private boolean found;
 
-    MethodInvocation(String name, Class returnType, Type genericReturnType, Class<?>[] parameterTypes, Object target, Object delegate, Object[] parameters) {
+    MethodInvocation(String name, Class returnType, Type genericReturnType, Class<?>[] parameterTypes, Object view, Class<?> viewType, Object delegate, Object[] parameters) {
         this.name = name;
         this.returnType = returnType;
         this.genericReturnType = genericReturnType;
         this.parameterTypes = parameterTypes;
-        this.target = target;
+        this.view = view;
+        this.viewType = viewType;
         this.delegate = delegate;
         this.parameters = parameters;
     }
@@ -84,8 +86,12 @@ public class MethodInvocation {
         return found;
     }
 
-    public Object getTarget() {
-        return target;
+    public Class<?> getViewType() {
+        return viewType;
+    }
+
+    public Object getView() {
+        return view;
     }
 
     public Object getDelegate() {
