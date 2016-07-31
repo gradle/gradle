@@ -17,8 +17,6 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.internal.adapter.MethodInvocation;
-import org.gradle.tooling.internal.adapter.MethodInvoker;
 import org.gradle.tooling.internal.adapter.SourceObjectMapping;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.BuildModel;
@@ -27,7 +25,7 @@ import org.gradle.tooling.model.ProjectModel;
 
 import java.io.Serializable;
 
-public class FixedBuildIdentifierProvider implements MethodInvoker, Serializable, Action<SourceObjectMapping> {
+public class FixedBuildIdentifierProvider implements Serializable, Action<SourceObjectMapping>, BuildModel, ProjectModel {
     private final BuildIdentifier buildIdentifier;
     private final ProjectIdentifier projectIdentifier;
 
@@ -36,13 +34,14 @@ public class FixedBuildIdentifierProvider implements MethodInvoker, Serializable
         this.projectIdentifier = projectIdentifier;
     }
 
-    public void invoke(MethodInvocation invocation) throws Throwable {
-        if (BuildIdentifier.class.isAssignableFrom(invocation.getReturnType())) {
-            invocation.setResult(buildIdentifier);
-        }
-        if (ProjectIdentifier.class.isAssignableFrom(invocation.getReturnType())) {
-            invocation.setResult(projectIdentifier);
-        }
+    @Override
+    public BuildIdentifier getBuildIdentifier() {
+        return buildIdentifier;
+    }
+
+    @Override
+    public ProjectIdentifier getProjectIdentifier() {
+        return projectIdentifier;
     }
 
     @Override

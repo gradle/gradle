@@ -142,8 +142,16 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
 
             @Override
-            public ViewBuilder<T> mixInTo(Class<?> targetType, Object mixIn) {
-                throw new UnsupportedOperationException();
+            public ViewBuilder<T> mixInTo(final Class<?> targetType, final Object mixIn) {
+                mappers.add(new Action<SourceObjectMapping>() {
+                    @Override
+                    public void execute(SourceObjectMapping sourceObjectMapping) {
+                        if (targetType.isAssignableFrom(sourceObjectMapping.getTargetType())) {
+                            sourceObjectMapping.mixIn(mixIn);
+                        }
+                    }
+                });
+                return this;
             }
 
             @Override
@@ -203,28 +211,19 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
 
         // Create a proxy
 
-        DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType, viewType);
+        DefaultSourceObjectMapping mapping = new DefaultSourceObjectMapping(sourceObject, targetType);
         graphDetails.mapper.execute(mapping);
 
         MethodInvoker mixInMethodInvoker = NO_OP_HANDLER;
         if (mapping.mixInType != null) {
-            mixInMethodInvoker = new MixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
+            mixInMethodInvoker = new ClassMixInMethodInvoker(mapping.mixInType, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
+        } else if (mapping.mixInBean != null) {
+            mixInMethodInvoker = new BeanMixInMethodInvoker(mapping.mixInBean, new AdaptingMethodInvoker(graphDetails, REFLECTION_METHOD_INVOKER));
         }
-        MethodInvoker overrideInvoker = chainInvokers(mixInMethodInvoker, mapping.overrideInvoker);
-        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, new InvocationHandlerImpl(sourceObject, overrideInvoker, graphDetails));
+        Object proxy = Proxy.newProxyInstance(viewType.getClassLoader(), new Class<?>[]{viewType}, new InvocationHandlerImpl(sourceObject, mixInMethodInvoker, graphDetails));
         graphDetails.adaptedObjects.put(viewKey, proxy);
 
         return viewType.cast(proxy);
-    }
-
-    private static MethodInvoker chainInvokers(MethodInvoker mixInMethodInvoker, MethodInvoker overrideInvoker) {
-        if (mixInMethodInvoker == NO_OP_HANDLER) {
-            return overrideInvoker;
-        }
-        if (overrideInvoker == NO_OP_HANDLER) {
-            return mixInMethodInvoker;
-        }
-        return new ChainedMethodInvoker(mixInMethodInvoker, overrideInvoker);
     }
 
     private static <T, S> T adaptToEnum(Class<T> targetType, S sourceObject) {
@@ -350,9 +349,9 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         private final Object protocolObject;
         private final Class<?> targetType;
         private Class<?> mixInType;
-        private MethodInvoker overrideInvoker = NO_OP_HANDLER;
+        private Object mixInBean;
 
-        DefaultSourceObjectMapping(Object protocolObject, Class<?> targetType, Class<?> wrapperType) {
+        DefaultSourceObjectMapping(Object protocolObject, Class<?> targetType) {
             this.protocolObject = protocolObject;
             this.targetType = targetType;
         }
@@ -372,11 +371,12 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             mixInType = mixInBeanType;
         }
 
-        public void mixIn(MethodInvoker invoker) {
-            if (overrideInvoker != NO_OP_HANDLER) {
+        @Override
+        public void mixIn(Object mixInBean) {
+            if (this.mixInBean != null) {
                 throw new UnsupportedOperationException("Mixing in multiple invokers is currently not supported.");
             }
-            overrideInvoker = invoker;
+            this.mixInBean = mixInBean;
         }
     }
 
@@ -770,13 +770,32 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         }
     }
 
-    private static class MixInMethodInvoker implements MethodInvoker {
+    private static class BeanMixInMethodInvoker implements MethodInvoker {
+        private final Object instance;
+        private final MethodInvoker next;
+
+        public BeanMixInMethodInvoker(Object instance, MethodInvoker next) {
+            this.instance = instance;
+            this.next = next;
+        }
+
+        @Override
+        public void invoke(MethodInvocation invocation) throws Throwable {
+            MethodInvocation beanInvocation = new MethodInvocation(invocation.getName(), invocation.getReturnType(), invocation.getGenericReturnType(), invocation.getParameterTypes(), instance, instance, invocation.getParameters());
+            next.invoke(beanInvocation);
+            if (beanInvocation.found()) {
+                invocation.setResult(beanInvocation.getResult());
+            }
+        }
+    }
+
+    private static class ClassMixInMethodInvoker implements MethodInvoker {
         private Object instance;
         private final Class<?> mixInClass;
         private final MethodInvoker next;
         private final ThreadLocal<MethodInvocation> current = new ThreadLocal<MethodInvocation>();
 
-        MixInMethodInvoker(Class<?> mixInClass, MethodInvoker next) {
+        ClassMixInMethodInvoker(Class<?> mixInClass, MethodInvoker next) {
             this.mixInClass = mixInClass;
             this.next = next;
         }

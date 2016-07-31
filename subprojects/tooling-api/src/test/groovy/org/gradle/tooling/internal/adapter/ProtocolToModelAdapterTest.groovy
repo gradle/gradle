@@ -333,90 +333,7 @@ class ProtocolToModelAdapterTest extends Specification {
         model.isThing(true)
     }
 
-    def "mapper can register method invoker to override getter method"() {
-        MethodInvoker methodInvoker = Mock()
-        Action mapper = Mock()
-        TestProtocolModel protocolModel = Mock()
-        TestProject project = Mock()
-
-        given:
-        mapper.execute(_) >> { SourceObjectMapping mapping ->
-            mapping.mixIn(methodInvoker)
-        }
-        methodInvoker.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
-
-        when:
-        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
-
-        then:
-        model.project == project
-
-        and:
-        0 * protocolModel._
-    }
-
-    def "mapper can register method invoker to provide getter method implementation"() {
-        MethodInvoker methodInvoker = Mock()
-        Action mapper = Mock()
-        PartialTestProtocolModel protocolModel = Mock()
-        TestProject project = Mock()
-
-        given:
-        mapper.execute(_) >> { SourceObjectMapping mapping ->
-            mapping.mixIn(methodInvoker)
-        }
-        methodInvoker.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = project }
-
-        when:
-        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
-
-        then:
-        model.project == project
-
-        and:
-        0 * protocolModel._
-    }
-
-    def "adapts values returned by method invoker"() {
-        MethodInvoker methodInvoker = Mock()
-        Action mapper = Mock()
-
-        given:
-        mapper.execute(_) >> { SourceObjectMapping mapping ->
-            mapping.mixIn(methodInvoker)
-        }
-        methodInvoker.invoke({ it.name == 'getProject' }) >> { MethodInvocation method -> method.result = new Object() }
-
-        when:
-        def model = adapter.adapt(TestModel.class, new Object(), mapper)
-
-        then:
-        model.project
-    }
-
-    def "method invoker properties are cached"() {
-        MethodInvoker methodInvoker = Mock()
-        Action mapper = Mock()
-        PartialTestProtocolModel protocolModel = Mock()
-        TestProject project = Mock()
-
-        given:
-        mapper.execute(_) >> { SourceObjectMapping mapping ->
-            mapping.mixIn(methodInvoker)
-        }
-
-        when:
-        def model = adapter.adapt(TestModel.class, protocolModel, mapper)
-        model.project
-        model.project
-
-        then:
-        1 * methodInvoker.invoke(!null) >> { MethodInvocation method -> method.result = project }
-        0 * methodInvoker._
-        0 * protocolModel._
-    }
-
-    def canMixInMethodsFromAnotherBean() {
+    def "can mix in methods from another bean class"() {
         PartialTestProtocolModel protocolModel = Mock()
 
         given:
@@ -427,6 +344,21 @@ class ProtocolToModelAdapterTest extends Specification {
 
         then:
         model.name == "[name]"
+        model.getConfig('default') == "[default]"
+    }
+
+    def "can mix in methods from another bean instance"() {
+        PartialTestProtocolModel protocolModel = Mock()
+        TestProject project = Mock()
+
+        given:
+        protocolModel.name >> 'name'
+
+        when:
+        def model = adapter.builder(TestModel.class).mixInTo(TestModel.class, new FixedMixin(project: project)).build(protocolModel)
+
+        then:
+        model.project == project
         model.getConfig('default') == "[default]"
     }
 
@@ -443,7 +375,7 @@ class ProtocolToModelAdapterTest extends Specification {
         model.project != null
     }
 
-    def "mapper can mix in methods from another bean"() {
+    def "mapper can mix in methods from another bean class"() {
         def mapper = Mock(Action)
         def protocolModel = Mock(PartialTestProtocolModel)
 
@@ -616,5 +548,13 @@ class ConfigMixin {
 
     String getName() {
         return "[${model.name}]"
+    }
+}
+
+class FixedMixin {
+    TestProject project
+
+    String getConfig(String config) {
+        return "[$config]"
     }
 }

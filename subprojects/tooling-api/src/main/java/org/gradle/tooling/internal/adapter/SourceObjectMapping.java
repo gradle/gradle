@@ -22,5 +22,5 @@ public interface SourceObjectMapping {
 
     void mixIn(Class<?> mixInBeanType);
 
-    void mixIn(MethodInvoker invoker);
+    void mixIn(Object mixInBean);
 }
