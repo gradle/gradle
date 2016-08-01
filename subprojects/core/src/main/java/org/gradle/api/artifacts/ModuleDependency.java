@@ -108,7 +108,7 @@ public interface ModuleDependency extends Dependency {
 
     /**
      * Sets whether this dependency should be resolved including or excluding its transitive dependencies. The artifacts
-     * belonging to this dependency might themselve have dependencies on other artifacts. The latter are called
+     * belonging to this dependency might themselves have dependencies on other artifacts. The latter are called
      * transitive dependencies.
      *
      * @param transitive Whether transitive dependencies should be resolved.
