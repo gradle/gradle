@@ -94,7 +94,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 if (cachedOutput != null) {
                     packer.unpack(taskOutputs, cachedOutput);
                     LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getTime());
-                    state.upToDate("CACHED");
+                    state.upToDate("FROM-CACHE");
                     return;
                 }
             } catch (IOException e) {

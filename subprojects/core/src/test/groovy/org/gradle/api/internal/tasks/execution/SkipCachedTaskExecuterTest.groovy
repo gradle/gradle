@@ -70,7 +70,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskOutputCache.getDescription() >> "test"
         1 * taskOutputCache.get(cacheKey) >> cachedResult
         1 * taskOutputPacker.unpack(outputs, cachedResult)
-        1 * taskState.upToDate("CACHED")
+        1 * taskState.upToDate("FROM-CACHE")
         0 * _
     }
 
