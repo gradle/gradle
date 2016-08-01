@@ -27,7 +27,7 @@ import java.io.File;
  *
  * @since 1.0-milestone-5
  */
-public interface GradleProject extends HierarchicalElement, BuildableElement {
+public interface GradleProject extends HierarchicalElement, BuildableElement, ProjectModel {
     /**
      * Returns the identifier for this Gradle project.
      *

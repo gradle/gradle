@@ -22,9 +22,13 @@ import java.util.Set;
 public interface CustomModel {
     String getValue();
 
+    Thing getThing();
+
     Set<Thing> getThings();
 
     Map<String, Thing> getThingsByName();
+
+    Thing findThing(String name);
 
     interface Thing {
     }

@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
-import org.gradle.api.Action
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
+import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.ModelBuilder
@@ -38,16 +38,23 @@ class GradleBuildAdapterProducerTest extends Specification {
     def "requests GradleProject on delegate when unsupported GradleBuild requested"() {
         setup:
         def gradleProject = gradleProject()
+        def gradleBuild = Mock(GradleBuild)
         def operationParameters = Mock(ConsumerOperationParameters)
-        def mappingAction = Mock(Action)
-        adapter.adapt(GradleProject, gradleProject) >> gradleProject
-        mappingProvider.getCompatibilityMapping(operationParameters) >> mappingAction
-        adapter.adapt(GradleBuild, _, mappingAction) >> Mock(GradleBuild)
+        def viewBuilder1 = Mock(ViewBuilder)
+        def viewBuilder2 = Mock(ViewBuilder)
+
+        adapter.builder(GradleProject) >> viewBuilder1
+        viewBuilder1.build(gradleProject) >> gradleProject
+        adapter.builder(GradleBuild) >> viewBuilder2
+        mappingProvider.applyCompatibilityMapping(viewBuilder2, operationParameters) >> viewBuilder2
+        viewBuilder2.build(_) >> gradleBuild
+
         when:
         def model = modelProducer.produceModel(GradleBuild, operationParameters)
+
         then:
         1 * delegate.produceModel(GradleProject, operationParameters) >> gradleProject
-        model instanceof GradleBuild
+        model == gradleBuild
     }
 
     def "non GradleBuild model requests passed to delegate"() {

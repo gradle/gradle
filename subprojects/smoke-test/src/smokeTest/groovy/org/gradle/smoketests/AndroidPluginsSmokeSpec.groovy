@@ -170,7 +170,7 @@ class AndroidPluginsSmokeSpec extends AbstractSmokeSpec {
 
 
                 dependencies {
-                    classpath 'com.android.tools.build:gradle:2.2.0-alpha4'
+                    classpath 'com.android.tools.build:gradle:2.2.0-alpha6'
                 }
             }
 

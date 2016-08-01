@@ -21,6 +21,7 @@ import org.gradle.api.Nullable;
 import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.Model;
+import org.gradle.tooling.model.ProjectModel;
 
 import java.io.File;
 
@@ -30,7 +31,7 @@ import java.io.File;
  * @since 1.8
  */
 @Incubating
-public interface BasicGradleProject extends Model {
+public interface BasicGradleProject extends Model, ProjectModel {
     /**
      * Returns the identifier for this Gradle project.
      *

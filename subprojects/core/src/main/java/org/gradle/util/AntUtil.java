@@ -42,4 +42,15 @@ public class AntUtil {
         task.setProject(createProject());
         task.execute();
     }
+
+    /**
+     * Masks a string against Ant property expansion.
+     * This needs to be used when adding a File as String property
+     * via {@link groovy.util.AntBuilder}.
+     * @param string to mask
+     * @return The masked String
+     */
+    public static String maskFilename(String string) {
+            return string.replaceAll("\\$", "\\$\\$");
+    }
 }

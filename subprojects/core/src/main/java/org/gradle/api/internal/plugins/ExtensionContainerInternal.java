@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.adapter;
 
-public interface SourceObjectMapping {
-    Object getSourceObject();
+package org.gradle.api.internal.plugins;
 
-    Class<?> getTargetType();
+import org.gradle.api.plugins.ExtensionContainer;
 
-    void mapToType(Class<?> type);
+import java.util.Map;
 
-    void mixIn(Class<?> mixInBeanType);
-
-    void mixIn(MethodInvoker invoker);
+public interface ExtensionContainerInternal extends ExtensionContainer {
+    /**
+     * Provides access to all known extensions.
+     * @return A map of extensions, keyed by name.
+     */
+    Map<String, Object> getAsMap();
 }

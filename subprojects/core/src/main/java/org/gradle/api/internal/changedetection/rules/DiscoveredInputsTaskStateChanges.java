@@ -46,13 +46,17 @@ public class DiscoveredInputsTaskStateChanges extends AbstractFileSnapshotTaskSt
 
     @Override
     public FileCollectionSnapshot getPrevious() {
-        return previous.getDiscoveredInputFilesSnapshot();
+        return previous != null ? previous.getDiscoveredInputFilesSnapshot() : null;
     }
 
     @Override
     public FileCollectionSnapshot getCurrent() {
-        // Get the current state of the files from the previous execution
-        return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getFiles()), TaskFilePropertyCompareType.UNORDERED);
+        if (getPrevious() != null) {
+            // Get the current state of the files from the previous execution
+            return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getFiles()), TaskFilePropertyCompareType.UNORDERED);
+        } else {
+            return null;
+        }
     }
 
     @Override

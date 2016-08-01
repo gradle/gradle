@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-import com.google.common.hash.HashCode;
-
 public interface TaskCacheKey {
-    HashCode getHashCode();
+    String getHashCode();
 }

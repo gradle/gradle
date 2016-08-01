@@ -15,11 +15,10 @@
  */
 
 package org.gradle.api.plugins.quality
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TestPrecondition
 
-@LeaksFileHandles
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -29,6 +28,11 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
             repositories {
                 mavenCentral()
+            }
+
+            tasks.withType(Pmd) {
+                // clear the classpath to avoid file locking issues on PMD version < 5.5.1
+                classpath = files()
             }
         """
         badCode()

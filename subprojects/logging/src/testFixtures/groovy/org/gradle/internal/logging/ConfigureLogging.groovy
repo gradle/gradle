@@ -30,6 +30,7 @@ class ConfigureLogging extends ExternalResource {
     private final OutputEventListener listener
     private final OutputEventListenerBackedLoggerContext context
     private final OutputEventListenerBackedLogger logger
+    private OutputEventListener originalListener
 
     ConfigureLogging(OutputEventListener listener) {
         this.listener = listener
@@ -43,6 +44,9 @@ class ConfigureLogging extends ExternalResource {
     }
 
     public void attachListener() {
+        // Retain the previously configured listener
+        originalListener = context.outputEventListener
+
         context.outputEventListener = listener
         context.level = LogLevel.DEBUG
     }
@@ -55,6 +59,11 @@ class ConfigureLogging extends ExternalResource {
     public void resetLogging() {
         context.reset()
         LogManager.getLogManager().reset()
+
+        // Reinstate the previously configured listener, if any
+        if (originalListener != null) {
+            context.outputEventListener = originalListener
+        }
     }
 
     public void setLevel(LogLevel level) {

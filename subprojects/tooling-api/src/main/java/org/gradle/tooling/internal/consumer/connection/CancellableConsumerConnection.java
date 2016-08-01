@@ -24,7 +24,11 @@ import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAda
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
+import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
+import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 
 import java.io.File;
 
@@ -42,7 +46,7 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
         Transformer<RuntimeException, RuntimeException> exceptionTransformer = new ExceptionTransformer();
         InternalCancellableConnection connection = (InternalCancellableConnection) delegate;
         modelProducer = createModelProducer(connection, modelMapping, adapter, exceptionTransformer);
-        actionRunner = new CancellableActionRunner(connection, adapter, exceptionTransformer);
+        actionRunner = new CancellableActionRunner(connection, exceptionTransformer);
     }
 
     protected ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
@@ -97,12 +101,10 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
 
     private static class CancellableActionRunner implements ActionRunner {
         private final InternalCancellableConnection executor;
-        private final ProtocolToModelAdapter adapter;
         private final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
 
-        private CancellableActionRunner(InternalCancellableConnection executor, ProtocolToModelAdapter adapter, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
+        private CancellableActionRunner(InternalCancellableConnection executor, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
             this.executor = executor;
-            this.adapter = adapter;
             this.exceptionTransformer = exceptionTransformer;
         }
 
@@ -113,7 +115,7 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
             BuildResult<T> result;
             try {
                 try {
-                    result = executor.run(new InternalBuildActionAdapter<T>(action, adapter, rootDir), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+                    result = executor.run(new InternalBuildActionAdapter<T>(action, rootDir), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
                 } catch (RuntimeException e) {
                     throw exceptionTransformer.transform(e);
                 }

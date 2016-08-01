@@ -99,8 +99,8 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
         }
 
         @Override
-        public HashCode getHashCode() {
-            return hashCode;
+        public String getHashCode() {
+            return hashCode.toString();
         }
     }
 

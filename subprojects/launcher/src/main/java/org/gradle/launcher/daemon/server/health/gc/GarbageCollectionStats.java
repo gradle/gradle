@@ -112,7 +112,7 @@ public class GarbageCollectionStats {
     }
 
     public int getUsage() {
-        if (used > 0) {
+        if (used > 0 && max > 0) {
             return NumberUtil.percentOf(used, max);
         } else {
             return -1;

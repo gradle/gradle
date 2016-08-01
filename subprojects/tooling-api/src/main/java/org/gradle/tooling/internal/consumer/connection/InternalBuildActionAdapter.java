@@ -31,16 +31,14 @@ import java.io.File;
  */
 public class InternalBuildActionAdapter<T> implements InternalBuildAction<T> {
     private final BuildAction<T> action;
-    private final ProtocolToModelAdapter adapter;
     private final File rootDir;
 
-    public InternalBuildActionAdapter(BuildAction<T> action, ProtocolToModelAdapter adapter, File rootDir) {
+    public InternalBuildActionAdapter(BuildAction<T> action, File rootDir) {
         this.action = action;
-        this.adapter = adapter;
         this.rootDir = rootDir;
     }
 
     public T execute(final InternalBuildController buildController) {
-        return action.execute(new BuildControllerAdapter(adapter, buildController, new ModelMapping(), rootDir));
+        return action.execute(new BuildControllerAdapter(new ProtocolToModelAdapter(), buildController, new ModelMapping(), rootDir));
     }
 }

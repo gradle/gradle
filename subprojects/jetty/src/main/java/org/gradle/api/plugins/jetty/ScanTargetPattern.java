@@ -22,7 +22,10 @@ import java.util.List;
 
 /**
  * Patterns for scanning for file changes.
+ *
+ * @deprecated The Jetty plugin has been deprecated
  */
+@Deprecated
 public class ScanTargetPattern {
     private File directory;
     private List<String> includes = Collections.emptyList();

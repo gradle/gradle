@@ -96,7 +96,6 @@ public class TaskExecutionServices {
                                 repository,
                                 createSkipCachedExecuterIfNecessary(
                                     startParameter,
-                                    repository,
                                     gradle.getTaskCaching(),
                                     packer,
                                     new PostExecutionAnalysisTaskExecuter(
@@ -113,9 +112,9 @@ public class TaskExecutionServices {
         );
     }
 
-    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskArtifactStateRepository repository, TaskCachingInternal taskCaching, TaskOutputPacker packer, TaskExecuter delegate) {
+    private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, TaskExecuter delegate) {
         if (SystemPropertiesUtil.isEnabled("org.gradle.cache.tasks")) {
-            return new SkipCachedTaskExecuter(repository, taskCaching, packer, startParameter, delegate);
+            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, delegate);
         } else {
             return delegate;
         }

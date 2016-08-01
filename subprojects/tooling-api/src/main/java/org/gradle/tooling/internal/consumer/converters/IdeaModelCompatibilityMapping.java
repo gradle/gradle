@@ -17,17 +17,14 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.util.GradleVersion;
 
-import java.io.Serializable;
-
-public class IdeaModelCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
-
+public class IdeaModelCompatibilityMapping implements Action<ViewBuilder<?>> {
     private final boolean versionSupportsIdeaJavaSourceSettings;
     private final boolean versionSupportsIdeaModuleIdentifier;
 
@@ -38,17 +35,13 @@ public class IdeaModelCompatibilityMapping implements Action<SourceObjectMapping
     }
 
     @Override
-    public void execute(SourceObjectMapping mapping) {
-        Class<?> targetType = mapping.getTargetType();
-        if (IdeaProject.class.isAssignableFrom(targetType) && !versionSupportsIdeaJavaSourceSettings) {
-            mapping.mixIn(IdeaProjectJavaLanguageSettingsMixin.class);
+    public void execute(ViewBuilder<?> viewBuilder) {
+        if (!versionSupportsIdeaJavaSourceSettings) {
+            viewBuilder.mixInTo(IdeaProject.class, IdeaProjectJavaLanguageSettingsMixin.class);
         }
         if (!versionSupportsIdeaModuleIdentifier) {
-            if (IdeaDependency.class.isAssignableFrom(targetType)) {
-                mapping.mixIn(IdeaModuleDependencyTargetMixin.class);
-            } else if (IdeaModule.class.isAssignableFrom(targetType)) {
-                mapping.mixIn(IdeaModuleIdentifierMixin.class);
-            }
+            viewBuilder.mixInTo(IdeaDependency.class, IdeaModuleDependencyTargetMixin.class);
+            viewBuilder.mixInTo(IdeaModule.class, IdeaModuleIdentifierMixin.class);
         }
     }
 

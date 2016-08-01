@@ -16,6 +16,7 @@
 
 package org.gradle.smoketests
 
+import org.apache.commons.io.FileUtils
 import org.gradle.testkit.runner.GradleRunner
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -52,5 +53,18 @@ abstract class AbstractSmokeSpec extends Specification {
             throw new RuntimeException(String.format("You must set the '%s' property to run the smoke tests.", propertyName))
         }
         new File(path)
+    }
+
+    public void useSample(String sampleDirectory) {
+        def smokeTestDirectory = new File(this.getClass().getResource(sampleDirectory).toURI())
+        FileUtils.copyDirectory(smokeTestDirectory, testProjectDir.root)
+    }
+
+    public void replaceVariablesInBuildFile(Map binding) {
+        String text = buildFile.text
+        binding.each { String var, String value ->
+            text = text.replaceAll("\\\$${var}".toString(), value)
+        }
+        buildFile.text = text
     }
 }

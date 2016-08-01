@@ -60,56 +60,6 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         result.task(':shadowJar').outcome == SUCCESS
     }
 
-    def 'kotlin plugin'() {
-        given:
-        def kotlinVersion = '1.0.2'
-        buildFile << """
-            buildscript {
-                ext.kotlin_version = '$kotlinVersion'
-
-                repositories {
-                    mavenCentral()
-                }
-
-                dependencies {
-                    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-                }
-            }
-
-            apply plugin: 'kotlin'
-
-            repositories {
-                mavenCentral()
-            }
-
-            dependencies {
-                compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-            }
-        """.stripIndent()
-
-        file('src/main/kotlin/pkg/HelloWorld.kt') << """
-        package pkg
-
-        fun getGreeting(): String {
-            val words = mutableListOf<String>()
-            words.add("Hello,")
-            words.add("world!")
-
-            return words.joinToString(separator = " ")
-        }
-
-        fun main(args: Array<String>) {
-            println(getGreeting())
-        }
-        """.stripIndent()
-
-        when:
-        def result = runner('build').build()
-
-        then:
-        result.task(':compileKotlin').outcome == SUCCESS
-    }
-
     def 'asciidoctor plugin'() {
         given:
         buildFile << """

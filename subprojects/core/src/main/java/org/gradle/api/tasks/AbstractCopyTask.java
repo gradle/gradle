@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.api.file.CopySourceSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
@@ -191,15 +190,16 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public AbstractCopyTask from(Object sourcePath, final Closure c) {
-        getMainSpec().from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
+        getMainSpec().from(sourcePath, new ClosureBackedAction<CopySpec>(c));
         return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
+    public AbstractCopyTask from(Object sourcePath, Action<? super CopySpec> configureAction) {
         getMainSpec().from(sourcePath, configureAction);
         return this;
     }
@@ -223,6 +223,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public AbstractCopyTask into(Object destPath, Closure configureClosure) {
         getMainSpec().into(destPath, configureClosure);
         return this;
@@ -263,6 +264,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public AbstractCopyTask include(Closure includeSpec) {
         getMainSpec().include(includeSpec);
         return this;
@@ -295,6 +297,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public AbstractCopyTask exclude(Closure excludeSpec) {
         getMainSpec().exclude(excludeSpec);
         return this;
@@ -335,6 +338,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public AbstractCopyTask rename(final Closure closure) {
         return rename(new ClosureBackedTransformer(closure));
     }
@@ -383,6 +387,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public AbstractCopyTask filter(Closure closure) {
         getMainSpec().filter(closure);
         return this;
@@ -448,6 +453,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    @Deprecated
     public AbstractCopyTask eachFile(Closure closure) {
         getMainSpec().eachFile(closure);
         return this;

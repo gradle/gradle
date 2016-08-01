@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
@@ -23,8 +22,8 @@ import org.hamcrest.Matcher
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
+import static org.junit.Assume.assumeTrue
 
-@LeaksFileHandles
 class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
 
     def setup() {
@@ -39,6 +38,12 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
             pmd {
                 toolVersion = '$version'
             }
+
+            ${fileLockingIssuesSolved() ? "" : """
+            tasks.withType(Pmd) {
+                // clear the classpath to avoid file locking issues on PMD version < 5.5.1
+                classpath = files()
+            }"""}
 
             ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}
         """.stripIndent()
@@ -138,6 +143,8 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
     }
 
     def "use custom rule set files"() {
+        assumeTrue(fileLockingIssuesSolved())
+
         customCode()
         customRuleSet()
 

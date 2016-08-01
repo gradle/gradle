@@ -17,7 +17,10 @@ package org.gradle.api.plugins.jetty;
 
 /**
  * Convention properties and methods added by the {@link org.gradle.api.plugins.jetty.JettyPlugin}.
+ *
+ * @deprecated The Jetty plugin has been deprecated
  */
+@Deprecated
 public class JettyPluginConvention {
     private Integer stopPort;
     private String stopKey;

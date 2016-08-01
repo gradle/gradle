@@ -16,18 +16,19 @@
 
 package org.gradle.tooling.internal.consumer.converters;
 
-import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 
 public class BasicGradleProjectIdentifierMixin {
-    private final BasicGradleProject gradleProject;
+    private final BuildIdentifier buildIdentifier;
 
-    public BasicGradleProjectIdentifierMixin(BasicGradleProject gradleProject) {
-        this.gradleProject = gradleProject;
+    public BasicGradleProjectIdentifierMixin(BuildIdentifier buildIdentifier) {
+        this.buildIdentifier = buildIdentifier;
     }
 
-    public ProjectIdentifier getProjectIdentifier() {
-        return new DefaultProjectIdentifier(gradleProject.getProjectIdentifier().getBuildIdentifier(), gradleProject.getPath());
+    public ProjectIdentifier getProjectIdentifier(BasicGradleProject gradleProject) {
+        return new DefaultProjectIdentifier(buildIdentifier, gradleProject.getPath());
     }
 }

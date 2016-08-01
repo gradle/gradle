@@ -37,7 +37,7 @@ import java.util.concurrent.Callable;
  */
 public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
 
-    public static final String DEFAULT_CODENARC_VERSION = "0.24.1";
+    public static final String DEFAULT_CODENARC_VERSION = "0.25.2";
     private CodeNarcExtension extension;
 
     @Override

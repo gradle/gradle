@@ -363,9 +363,9 @@
     <section id='sec:groovy_cross_compilation'>
         <title>Compiling and testing for Java 6</title>
         <para>
-            Since the Groovy compiler will always be executed with the same Java version which was used to start Gradle
-            all that can be done is setting <literal>sourceCompatibility</literal> and <literal>targetCompatibility</literal>.
-            If you also have Java sources follow the same steps as for the <link linkend="sec:java_cross_compilation">Java plugin</link>.
+            The Groovy compiler will always be executed with the same version of Java that was used to start Gradle.
+            You should set <literal>sourceCompatibility</literal> and <literal>targetCompatibility</literal> to <literal>1.6</literal>.
+            If you also have Java sources, you can follow the same steps as for the <link linkend="sec:java_cross_compilation">Java plugin</link> to ensure the correct Java compiler is used.
             <sample id="groovyCrossCompilation" dir="groovy/crossCompilation" title="Configure Java 6 build for Groovy">
                 <sourcefile file="gradle.properties" />
                 <sourcefile file="build.gradle" snippet="groovy-cross-compilation" />
