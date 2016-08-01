@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph
 
+import groovy.transform.NotYetImplemented
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.CircularReferenceException
 import org.gradle.api.Task
@@ -221,6 +222,32 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
         then:
         executes(b, a, c, d)
+    }
+
+    @NotYetImplemented
+    def "Cycle in shouldRunAfter with multiple projects should be broken"() {
+        given:
+
+        Task e = createTask("e")
+        e.getDidWork() >> true
+        e.getOutputs() >> emptyTaskOutputs()
+
+        Task x = task("x", dependsOn: [e])
+        Task f = task("f", dependsOn: [x])
+        Task a = task("a", shouldRunAfter: [x])
+        Task b = task("b", shouldRunAfter: [a])
+        Task c = task("c", shouldRunAfter: [b])
+        Task d = task("d", dependsOn: [f], shouldRunAfter: [c])
+        relationships(e, shouldRunAfter: [d])
+        Task build = task("build", dependsOn: [x, a, b, c, d, e])
+
+        when:
+        addToGraphAndPopulate([build])
+
+        then:
+        executes(a, b, c, d, f, x, e)
+
+
     }
 
     @Unroll
