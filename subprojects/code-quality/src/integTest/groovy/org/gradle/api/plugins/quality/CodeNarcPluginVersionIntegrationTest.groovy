@@ -19,6 +19,7 @@ package org.gradle.api.plugins.quality
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.file.TestFile
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
@@ -28,27 +29,23 @@ import static org.hamcrest.Matchers.startsWith
 class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
-apply plugin: "groovy"
-apply plugin: "codenarc"
+            apply plugin: "groovy"
+            apply plugin: "codenarc"
 
-repositories {
-    mavenCentral()
-}
+            repositories {
+                mavenCentral()
+            }
 
-dependencies {
-    compile localGroovy()
-                codenarc "org.codenarc:CodeNarc:${version}"
-}
-        """
+            codenarc {
+                toolVersion = '${version}'
+            }
 
-        file("config/codenarc/codenarc.xml") << """
-<ruleset xmlns="http://codenarc.org/ruleset/1.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
-        xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
-    <ruleset-ref path="rulesets/naming.xml"/>
-</ruleset>
-        """
+            dependencies {
+                compile localGroovy()
+            }
+        """.stripIndent()
+
+        writeRuleFile()
     }
 
     def "analyze good code"() {
@@ -56,8 +53,8 @@ dependencies {
 
         expect:
         succeeds("check")
-        file("build/reports/codenarc/main.html").exists()
-        file("build/reports/codenarc/test.html").exists()
+        report("main").exists()
+        report("test").exists()
     }
 
     @IgnoreIf({ GradleContextualExecuter.parallel })
@@ -70,7 +67,7 @@ dependencies {
         succeeds(":codenarcMain") && ":codenarcMain" in skippedTasks
 
         when:
-        file("build/reports/codenarc/main.html").delete()
+        report("main").delete()
 
         then:
         succeeds("codenarcMain") && ":codenarcMain" in nonSkippedTasks
@@ -92,9 +89,9 @@ dependencies {
         expect:
         succeeds("check")
         ":codenarcMain" in nonSkippedTasks
-        file("build/reports/codenarc/main.html").exists()
-        file("build/reports/codenarc/main.xml").exists()
-        file("build/reports/codenarc/main.txt").exists()
+        ["html", "xml", "txt"].each {
+            assert report("main", it).exists()
+        }
     }
 
     def "analyze bad code"() {
@@ -104,8 +101,8 @@ dependencies {
         fails("check")
         failure.assertHasDescription("Execution failed for task ':codenarcTest'.")
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
-        !file("build/reports/codenarc/main.html").text.contains("Class2")
-        file("build/reports/codenarc/test.html").text.contains("testclass2")
+        !report("main").text.contains("Class2")
+        report("test").text.contains("testclass2")
     }
 
     def "can ignore failures"() {
@@ -119,8 +116,8 @@ dependencies {
         expect:
         succeeds("check")
         output.contains("CodeNarc rule violations were found. See the report at:")
-        !file("build/reports/codenarc/main.html").text.contains("Class2")
-        file("build/reports/codenarc/test.html").text.contains("testclass2")
+        !report("main").text.contains("Class2")
+        report("test").text.contains("testclass2")
 
     }
 
@@ -135,7 +132,7 @@ dependencies {
         expect:
         succeeds("check")
         !output.contains("CodeNarc rule violations were found. See the report at:")
-        file("build/reports/codenarc/test.html").text.contains("testclass2")
+        report("test").text.contains("testclass2")
     }
 
     @Issue("GRADLE-3492")
@@ -168,5 +165,20 @@ dependencies {
         file("src/main/groovy/org/gradle/Class2.groovy") << "package org.gradle; class Class2 { }"
         file("src/test/groovy/org/gradle/TestClass1.java") << "package org.gradle; class TestClass1 { }"
         file("src/test/groovy/org/gradle/testclass2.groovy") << "package org.gradle; class testclass2 { }"
+    }
+
+    private TestFile report(String sourceSet, String ext = 'html') {
+        file("build/reports/codenarc/${sourceSet}.${ext}")
+    }
+
+    private TestFile writeRuleFile() {
+        file("config/codenarc/codenarc.xml") << """
+            <ruleset xmlns="http://codenarc.org/ruleset/1.0"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
+                    xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
+                <ruleset-ref path="rulesets/naming.xml"/>
+            </ruleset>
+        """
     }
 }
