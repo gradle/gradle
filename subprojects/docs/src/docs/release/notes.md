@@ -80,7 +80,7 @@ We would like to thank the following community members for making contributions 
 - [Greg Bowyer](https://github.com/GregBowyer) - Initial support for play 2.5.x
 - [Mohan Kornipati](https://github.com/mkornipati) - Publishing with the legacy Ivy support doesn't add excludes to generated metadata (GRADLE-3440)
 - [Thomas Broyer](https://github.com/tbroyer) - Updating spec about annotation processing.
-- [Sebastian Schuberth](https://github.com/sschuberth) - Add a story about specifying the distribution type for the Wrapper task.
+- [Sebastian Schuberth](https://github.com/sschuberth) - Add a story about specifying the distribution type for the `Wrapper` task.
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
