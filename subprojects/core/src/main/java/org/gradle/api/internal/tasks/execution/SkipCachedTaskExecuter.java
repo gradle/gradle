@@ -21,7 +21,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -41,15 +40,13 @@ import java.io.IOException;
 public class SkipCachedTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipCachedTaskExecuter.class);
 
-    private final TaskArtifactStateRepository repository;
     private final TaskCachingInternal taskCaching;
     private final StartParameter startParameter;
     private final TaskOutputPacker packer;
     private final TaskExecuter delegate;
     private TaskOutputCache cache;
 
-    public SkipCachedTaskExecuter(TaskArtifactStateRepository repository, TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskExecuter delegate) {
-        this.repository = repository;
+    public SkipCachedTaskExecuter(TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskExecuter delegate) {
         this.taskCaching = taskCaching;
         this.startParameter = startParameter;
         this.packer = packer;
@@ -76,7 +73,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         TaskCacheKey cacheKey = null;
         if (shouldCache) {
-            TaskArtifactState taskState = repository.getStateFor(task);
+            TaskArtifactState taskState = context.getTaskArtifactState();
             try {
                 cacheKey = taskState.calculateCacheKey();
                 LOGGER.debug("Cache key for {} is {}", task, cacheKey);
