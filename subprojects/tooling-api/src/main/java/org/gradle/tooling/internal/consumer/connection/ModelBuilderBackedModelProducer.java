@@ -51,6 +51,6 @@ public class ModelBuilderBackedModelProducer extends HasCompatibilityMapping imp
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         }
-        return adapter.adapt(type, result.getModel(), getCompatibilityMapping(operationParameters));
+        return applyCompatibilityMapping(adapter.builder(type), operationParameters).build(result.getModel());
     }
 }

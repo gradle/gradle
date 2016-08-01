@@ -178,7 +178,8 @@
             <listitem>
                 <para>
                     Build projects in parallel. Gradle will attempt to determine the optimal number of executor threads to use.
-                    This option should only be used with decoupled projects (see <xref linkend="sec:decoupled_projects"/>).
+                    This option should only be used with decoupled projects (see <xref linkend="sec:decoupled_projects"/>). For limitations
+                    of this option please see <xref linkend="sec:parallel_execution"/>.
                 </para>
             </listitem>
         </varlistentry>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.adapter;
+package org.gradle.tooling.model;
 
-import java.io.Serializable;
+import org.gradle.api.Incubating;
 
-public class NoOpMethodInvoker implements MethodInvoker, Serializable {
-    public void invoke(MethodInvocation invocation) throws Throwable {
-    }
+/**
+ * Represents a model that is associated with or represents some Gradle build.
+ *
+ * @since 3.0
+ */
+@Incubating
+public interface BuildModel {
+    /**
+     * Returns the identifier for the build that this model is associated with.
+     */
+    BuildIdentifier getBuildIdentifier();
 }

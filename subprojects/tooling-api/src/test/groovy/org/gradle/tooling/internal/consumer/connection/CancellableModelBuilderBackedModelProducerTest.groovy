@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer.connection
 import org.gradle.internal.Transformers
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
+import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails
@@ -55,18 +56,23 @@ class CancellableModelBuilderBackedModelProducerTest extends Specification {
 
     def "builder triggered for supported Models"() {
         setup:
-        SomeModel returnValue = new SomeModel()
+        SomeModel original = new SomeModel()
+        SomeModel adapted = new SomeModel()
         1 * versionDetails.maySupportModel(SomeModel.class) >> true
         ModelIdentifier someModelIdentifier = Mock(ModelIdentifier)
         1 * mapping.getModelIdentifierFromModelType(SomeModel.class) >> someModelIdentifier
         BuildResult buildResult = Mock(BuildResult)
+        ViewBuilder<SomeModel> viewBuilder = Mock()
         ConsumerOperationParameters operationParameters = Mock(ConsumerOperationParameters)
+
         when:
         SomeModel model = modelProducer.produceModel(SomeModel.class, operationParameters)
+
         then:
         1 * builder.getModel(someModelIdentifier, {!null}, operationParameters) >> buildResult
-        1 * buildResult.model >> returnValue
-        1 * adapter.adapt(SomeModel.class, returnValue, _) >> returnValue
+        1 * buildResult.model >> original
+        1 * adapter.builder(SomeModel.class) >> viewBuilder
+        1 * viewBuilder.build(original) >> adapted
         model != null
     }
 

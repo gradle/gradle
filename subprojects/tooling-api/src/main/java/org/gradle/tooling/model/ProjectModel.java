@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2014 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,16 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.adapter;
 
-public interface SourceObjectMapping {
-    Object getSourceObject();
+package org.gradle.tooling.model;
 
-    Class<?> getTargetType();
+import org.gradle.api.Incubating;
 
-    void mapToType(Class<?> type);
-
-    void mixIn(Class<?> mixInBeanType);
-
-    void mixIn(MethodInvoker invoker);
+/**
+ * Represents a model that is associated with some Gradle project.
+ *
+ * @since 3.0
+ */
+@Incubating
+public interface ProjectModel {
+    /**
+     * Returns the identifier for the project that this model is associated with.
+     */
+    ProjectIdentifier getProjectIdentifier();
 }
