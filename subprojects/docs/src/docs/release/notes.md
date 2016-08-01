@@ -295,6 +295,11 @@ With Gradle 3.0, the following now produces a deprecation warning:
 
 > The chaining of the `file(Object)` method has been deprecated and is scheduled to be removed in Gradle 4.0. Please use the `file(Object)` method on `TaskInputs` directly instead.
 
+### Jetty Plugin
+
+The [Jetty plugin](userguide/jetty_plugin.html) has been deprecated and will be removed in Gradle 4.0.
+You may wish to use the more feature-rich [Gretty plugin](https://github.com/akhikhl/gretty) instead of the Jetty plugin.
+
 ## Potentially breaking changes
 
 ### Running Gradle on Java 6 is no longer supported
