@@ -19,7 +19,6 @@ package org.gradle.api.plugins.jetty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
-import org.gradle.util.GradleVersion
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
 import spock.lang.Timeout
@@ -106,7 +105,7 @@ class JettyIntegrationSpec extends AbstractIntegrationSpec {
         def result = executer.withTasks('help').expectDeprecationWarning().run()
 
         then:
-        result.assertOutputContains("The Jetty plugin has been deprecated and is scheduled to be removed in Gradle ${GradleVersion.current().nextMajor.version}. Please use the Gretty (https://github.com/akhikhl/gretty) plugin instead.")
+        result.assertOutputContains("The Jetty plugin has been deprecated and is scheduled to be removed in Gradle 4.0. Consider using the Gretty (https://github.com/akhikhl/gretty) plugin instead.")
     }
 
     private void stopJettyViaMonitor() {

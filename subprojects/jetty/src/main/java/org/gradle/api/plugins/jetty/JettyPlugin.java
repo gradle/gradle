@@ -42,7 +42,7 @@ public class JettyPlugin implements Plugin<Project> {
     public static final String RELOAD_MANUAL = "manual";
 
     public void apply(Project project) {
-        DeprecationLogger.nagUserOfReplacedPlugin("Jetty", "Gretty (https://github.com/akhikhl/gretty)");
+        DeprecationLogger.nagUserOfPluginReplacedWithExternalOne("Jetty", "Gretty (https://github.com/akhikhl/gretty)");
         project.getPluginManager().apply(WarPlugin.class);
         JettyPluginConvention jettyConvention = new JettyPluginConvention();
         Convention convention = project.getConvention();

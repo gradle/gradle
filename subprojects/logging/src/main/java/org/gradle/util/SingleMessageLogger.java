@@ -91,6 +91,12 @@ public class SingleMessageLogger {
                 pluginName, getDeprecationMessage(), replacement));
     }
 
+    public static void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement) {
+        nagUserWith(String.format(
+                "The %s plugin %s. Consider using the %s plugin instead.",
+                pluginName, getDeprecationMessage(), replacement));
+    }
+
     public static void nagUserOfReplacedTask(String taskName, String replacement) {
         nagUserWith(String.format(
                 "The %s task %s. Please use the %s task instead.",
