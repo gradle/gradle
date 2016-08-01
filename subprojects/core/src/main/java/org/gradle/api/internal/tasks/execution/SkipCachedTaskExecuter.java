@@ -63,7 +63,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         boolean shouldCache;
         try {
             shouldCache = cacheAllowed && taskOutputs.isCacheEnabled();
-        } catch (Throwable t) {
+        } catch (Exception t) {
             state.executed(new GradleException(String.format("Could not evaluate TaskOutputs.isCacheEnabled() for %s.", task), t));
             return;
         }
