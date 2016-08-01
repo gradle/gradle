@@ -301,7 +301,6 @@ public class IdeaProject {
         ipr.getWhenMerged().execute(xmlProject);
     }
 
-    // TODO:DAZ Make this a `whenMerged` hook registered by composite build?
     private void includeModulesFromComposite(Project xmlProject) {
         // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
         ProjectComponentIdentifier thisProjectId = DefaultProjectComponentIdentifier.newId(project.getRootProject().getName() + ":" + project.getPath());
