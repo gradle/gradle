@@ -114,7 +114,7 @@ Preliminary support for the JDK 9 `-release` compiler flag has been added as wel
 The following plugins have known issues with Java 9:
 
 - [PMD plugin](userguide/pmd_plugin.html): The latest version of [PMD](https://pmd.github.io/pmd-5.4.1/pmd-java/) (5.5.1) can run on Java 9 but does not yet support analysis of Java 9 Bytecode.  
-- [Jetty plugin](userguide/jetty_plugin.html): The version of [Jetty](http://www.eclipse.org/jetty/) used with this plugin does not support Java 9.
+- [Jetty plugin](userguide/jetty_plugin.html): The version of [Jetty](http://www.eclipse.org/jetty/) used with this deprecated plugin does not support Java 9.
 - [Scala plugin](userguide/scala_plugin.html): The [Zinc compiler](https://github.com/typesafehub/zinc) does not currently support Java 9.
 - [FindBugs plugin](userguide/findbugs_plugin.html): The latest release of [FindBugs](http://findbugs.sourceforge.net/) (3.0.1) does not support Java 9.
 - [OSGi plugin](userguide/osgi_plugin.html): The latest version of [BND](http://bnd.bndtools.org/) does not work with Java 9.
@@ -298,7 +298,7 @@ With Gradle 3.0, the following now produces a deprecation warning:
 ### Jetty Plugin
 
 The [Jetty plugin](userguide/jetty_plugin.html) has been deprecated and will be removed in Gradle 4.0.
-You may wish to use the more feature-rich [Gretty plugin](https://github.com/akhikhl/gretty) instead of the Jetty plugin.
+Consider using the more feature-rich [Gretty plugin](https://github.com/akhikhl/gretty) instead.
 
 ## Potentially breaking changes
 

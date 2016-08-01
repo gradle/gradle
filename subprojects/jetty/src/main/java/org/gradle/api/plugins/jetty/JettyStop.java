@@ -32,7 +32,10 @@ import java.net.Socket;
 
 /**
  * Stops the embedded Jetty web container, if it is running.
+ *
+ * @deprecated The Jetty plugin has been deprecated
  */
+@Deprecated
 public class JettyStop extends ConventionTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(JettyStop.class);
 

@@ -19,7 +19,7 @@
     <note>
         <para>
             This plugin is deprecated and will be removed in Gradle 4.0.
-            You may wish to use the more feature-rich <ulink url="https://github.com/akhikhl/gretty">Gretty Plugin</ulink> instead of this plugin.
+            Consider using the more feature-rich <ulink url="https://github.com/akhikhl/gretty">Gretty Plugin</ulink> instead.
         </para>
     </note>
 
