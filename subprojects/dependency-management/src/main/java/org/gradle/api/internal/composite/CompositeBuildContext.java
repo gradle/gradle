@@ -18,8 +18,8 @@ package org.gradle.api.internal.composite;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 import java.io.File;
 import java.util.Set;
@@ -29,5 +29,5 @@ public interface CompositeBuildContext extends LocalComponentProvider {
     Set<ProjectComponentIdentifier> getAllProjects();
 
     void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory);
-    void registerAdditionalArtifact(ProjectComponentIdentifier componentIdentifier, ComponentArtifactMetadata compositeCopy);
+    void registerAdditionalArtifact(ProjectComponentIdentifier componentIdentifier, LocalComponentArtifactMetadata compositeCopy);
 }

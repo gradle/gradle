@@ -29,7 +29,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
-import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -79,7 +79,7 @@ public class CompositeContextBuildActionRunner {
         LocalComponentMetadata compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent);
 
         context.register(componentIdentifier, compositeComponent, project.getProjectDir());
-        for (ComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
+        for (LocalComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
             context.registerAdditionalArtifact(componentIdentifier, createCompositeCopy(componentIdentifier, artifactMetaData));
         }
     }
@@ -97,7 +97,7 @@ public class CompositeContextBuildActionRunner {
 
             Set<ComponentArtifactMetadata> artifacts = originalConfiguration.getArtifacts();
             for (ComponentArtifactMetadata originalArtifact : artifacts) {
-                File artifactFile = ((LocalComponentArtifactIdentifier) originalArtifact).getFile();
+                File artifactFile = ((LocalComponentArtifactMetadata) originalArtifact).getFile();
                 CompositeProjectComponentArtifactMetadata artifact = new CompositeProjectComponentArtifactMetadata(componentIdentifier, originalArtifact.getName(), artifactFile, targetTasks);
                 compositeComponentMetadata.addArtifact(configurationName, artifact);
             }
@@ -123,8 +123,8 @@ public class CompositeContextBuildActionRunner {
         return buildName + ":" + projectPath;
     }
 
-    private ComponentArtifactMetadata createCompositeCopy(ProjectComponentIdentifier project, ComponentArtifactMetadata artifactMetaData) {
-        File artifactFile = ((LocalComponentArtifactIdentifier) artifactMetaData).getFile();
+    private LocalComponentArtifactMetadata createCompositeCopy(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifactMetaData) {
+        File artifactFile = artifactMetaData.getFile();
         return new CompositeProjectComponentArtifactMetadata(project, artifactMetaData.getName(), artifactFile, getArtifactTasks(artifactMetaData));
     }
 

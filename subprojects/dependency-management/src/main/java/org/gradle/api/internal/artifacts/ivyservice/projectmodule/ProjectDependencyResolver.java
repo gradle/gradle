@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
-import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -91,16 +91,16 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
 
     public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         if (isProjectModule(artifact.getComponentId())) {
+            LocalComponentArtifactMetadata projectArtifact = (LocalComponentArtifactMetadata) artifact;
 
             // Run any registered actions to build this artifact
-            artifactBuilder.build(artifact);
+            artifactBuilder.build(projectArtifact);
 
-            LocalComponentArtifactIdentifier id = (LocalComponentArtifactIdentifier) artifact.getId();
-            File localArtifactFile = id.getFile();
+            File localArtifactFile = projectArtifact.getFile();
             if (localArtifactFile != null) {
                 result.resolved(localArtifactFile);
             } else {
-                result.notFound(artifact.getId());
+                result.notFound(projectArtifact.getId());
             }
         }
     }

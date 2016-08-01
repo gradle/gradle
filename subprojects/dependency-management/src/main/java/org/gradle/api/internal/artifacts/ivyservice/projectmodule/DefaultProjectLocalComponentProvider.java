@@ -27,13 +27,13 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 public class DefaultProjectLocalComponentProvider implements ProjectLocalComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ConfigurationComponentMetaDataBuilder metaDataBuilder;
-    private final ListMultimap<ProjectComponentIdentifier, ComponentArtifactMetadata> registeredArtifacts = ArrayListMultimap.create();
+    private final ListMultimap<ProjectComponentIdentifier, LocalComponentArtifactMetadata> registeredArtifacts = ArrayListMultimap.create();
 
     public DefaultProjectLocalComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
         this.projectRegistry = projectRegistry;
@@ -58,12 +58,12 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
     }
 
     @Override
-    public void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetadata artifact) {
+    public void registerAdditionalArtifact(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifact) {
         registeredArtifacts.put(project, artifact);
     }
 
     @Override
-    public Iterable<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
+    public Iterable<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
         if (registeredArtifacts.containsKey(projectIdentifier)) {
             return registeredArtifacts.get(projectIdentifier);
         }

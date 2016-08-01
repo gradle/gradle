@@ -45,8 +45,8 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -134,7 +134,7 @@ public class EclipsePlugin extends IdePlugin {
         projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("classpath", projectId, projectName, project));
     }
 
-    private static ComponentArtifactMetadata createArtifact(String extension, ProjectComponentIdentifier projectId, String projectName, Project project) {
+    private static LocalComponentArtifactMetadata createArtifact(String extension, ProjectComponentIdentifier projectId, String projectName, Project project) {
         File projectFile = new File(project.getProjectDir(), "." + extension);
         String taskName = project.getPath().equals(":") ? ":eclipseProject" : project.getPath() + ":eclipseProject";
         Task byName = project.getTasks().getByPath(taskName);

@@ -16,10 +16,10 @@
 
 package org.gradle.internal.component.local.model;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 import java.io.File;
 
-public interface LocalComponentArtifactIdentifier extends ComponentArtifactIdentifier {
+public interface LocalComponentArtifactMetadata extends ComponentArtifactMetadata {
     File getFile();
 }

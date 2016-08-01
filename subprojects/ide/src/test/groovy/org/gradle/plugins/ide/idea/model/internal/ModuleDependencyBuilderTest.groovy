@@ -15,10 +15,11 @@
  */
 
 package org.gradle.plugins.ide.idea.model.internal
-import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver
+
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry
+import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
-import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
@@ -46,7 +47,7 @@ class ModuleDependencyBuilderTest extends Specification {
 
     def "builds dependency for project"() {
         given:
-        def imlArtifact = Stub(ComponentArtifactMetadata) {
+        def imlArtifact = Stub(LocalComponentArtifactMetadata) {
             getName() >> new DefaultIvyArtifactName("foo", "iml", "iml", null)
         }
 

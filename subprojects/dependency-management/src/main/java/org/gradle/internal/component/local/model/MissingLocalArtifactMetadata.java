@@ -16,13 +16,13 @@
 
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
-public class MissingLocalArtifactMetadata implements LocalComponentArtifactIdentifier, ComponentArtifactMetadata {
+public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
     private final ComponentIdentifier componentIdentifier;
     private final String componentDisplayName;
     private final IvyArtifactName name;
@@ -51,7 +51,7 @@ public class MissingLocalArtifactMetadata implements LocalComponentArtifactIdent
     }
 
     @Override
-    public LocalComponentArtifactIdentifier getId() {
+    public ComponentArtifactIdentifier getId() {
         return this;
     }
 

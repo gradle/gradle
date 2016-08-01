@@ -20,8 +20,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +52,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         return projectMetadata.keySet();
     }
 
-    public Collection<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
+    public Collection<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
         RegisteredProject registeredProject = projectMetadata.get(project);
         return registeredProject == null ? null : registeredProject.artifacts;
      }
@@ -66,7 +66,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         projectMetadata.put(project, new RegisteredProject(localComponentMetadata, projectDirectory));
     }
 
-    public void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetadata artifact) {
+    public void registerAdditionalArtifact(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifact) {
         getRegisteredProject(project).artifacts.add(artifact);
     }
 
@@ -81,7 +81,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     private static class RegisteredProject {
         LocalComponentMetadata metaData;
         File projectDirectory;
-        Collection<ComponentArtifactMetadata> artifacts = Lists.newArrayList();
+        Collection<LocalComponentArtifactMetadata> artifacts = Lists.newArrayList();
 
         public RegisteredProject(LocalComponentMetadata metaData, File projectDirectory) {
             this.metaData = metaData;

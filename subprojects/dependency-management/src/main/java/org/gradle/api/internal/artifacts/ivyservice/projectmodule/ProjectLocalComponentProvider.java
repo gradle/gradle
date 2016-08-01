@@ -17,12 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 
 /**
  * Provides dependency resolution metadata for project components: these are components represented by a project
  * within the current multi-project build.
  */
 public interface ProjectLocalComponentProvider extends LocalComponentProvider {
-    void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetadata artifact);
+    void registerAdditionalArtifact(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifact);
 }
