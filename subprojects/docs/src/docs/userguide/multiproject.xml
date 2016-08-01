@@ -642,9 +642,10 @@
             You need to make sure the task dependencies are declared correctly to avoid ordering issues.
         </para>
         <para>
-            <emphasis>Warning:</emphasis> Be aware that the use of the <literal>clean</literal> task provided by the <literal>base</literal> plugin in combination with any
-            other task that produces an output can lead to unexpected results for a multi-project build if executed in parallel. For example lets assume a multi-project build with project A and
-            project B where B depends on A. Running <literal>gradle clean build --parallel</literal> could lead to the following situation:
+            <emphasis>Warning:</emphasis> Be aware that task ordering is not strictly enforced when using parallel execution and can lead to unexpected results. A common case that surfaces this
+            limitation is the use of the <literal>clean</literal> task provided by the <literal>base</literal> plugin in combination with any other task producing an output for a multi-project build
+            if executed in parallel. For example lets assume a multi-project build with project A and project B where B depends on A. Running <literal>gradle clean build --parallel</literal>
+            could lead to the following situation:
             <itemizedlist>
                 <listitem><literal>A:clean</literal> is executed after <literal>A:jar</literal>.</listitem>
                 <listitem>B depends on A and needs the JAR file of A. However, <literal>B:classes</literal> fails as it was executed after <literal>A:clean</literal> which deleted the JAR
