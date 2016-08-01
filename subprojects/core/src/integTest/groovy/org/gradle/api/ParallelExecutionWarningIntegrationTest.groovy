@@ -22,8 +22,10 @@ import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
 import spock.lang.IgnoreIf
 
-@IgnoreIf({ GradleContextualExecuter.isParallel() })
+@IgnoreIf({ GradleContextualExecuter.parallel })
 class ParallelExecutionWarningIntegrationTest extends AbstractIntegrationSpec {
+
+    private static final String WARNING_MESSAGE = "Using the 'clean' task in combination with parallel execution may lead to unexpected runtime behavior."
 
     @Rule
     ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
@@ -33,11 +35,11 @@ class ParallelExecutionWarningIntegrationTest extends AbstractIntegrationSpec {
         buildFile << basePluginAndBasicTask()
 
         when:
-        run(tasks as String[])
+        run(*tasks)
 
         then:
         fixture.assertProjectsConfigured(":")
-        output.count("Using the 'clean' task in combination with parallel execution may lead to unexpected runtime behavior.") == 0
+        output.count(WARNING_MESSAGE) == 0
 
         where:
         tasks << [
@@ -61,14 +63,14 @@ class ParallelExecutionWarningIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run(tasks as String[])
+        run(*tasks)
 
         then:
         fixture.assertProjectsConfigured(":", ":a", ":b")
-        (output.count("Using the 'clean' task in combination with parallel execution may lead to unexpected runtime behavior.") == 1) == emitsMessage
+        (output.count(WARNING_MESSAGE) == 1) == warningEmittedOnce
 
         where:
-        tasks                                                   | emitsMessage
+        tasks                                                   | warningEmittedOnce
         ['foo']                                                 | false
         ['clean', 'foo']                                        | false
         ['foo', '--parallel']                                   | false
