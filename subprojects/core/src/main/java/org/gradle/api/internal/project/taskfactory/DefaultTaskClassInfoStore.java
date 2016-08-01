@@ -27,7 +27,6 @@ import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
@@ -43,11 +42,6 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
 
     @Override
     public TaskClassInfo getTaskClassInfo(Class<? extends Task> type) {
-        // Ignore decoration
-        // TODO:LPTR There should be a better way to do this
-        if (type.getName().endsWith("_Decorated")) {
-            type = Cast.uncheckedCast(type.getSuperclass());
-        }
         TaskClassInfo taskClassInfo = classInfos.get(type);
         if (taskClassInfo == null) {
             taskClassInfo = new TaskClassInfo();
