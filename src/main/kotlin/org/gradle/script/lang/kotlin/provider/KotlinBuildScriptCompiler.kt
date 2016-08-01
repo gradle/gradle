@@ -182,7 +182,7 @@ class KotlinBuildScriptCompiler(
             classLoader, logger)
 
     private fun scriptDefinitionFromTemplate(template: KClass<out Any>, classPath: ClassPath) =
-        KotlinScriptDefinitionFromTemplate(template, null, mapOf("classPath" to classPath))
+        KotlinScriptDefinitionFromTemplate(template, null, null, mapOf("classPath" to classPath))
 
     private fun executeScriptWithContextClassLoader(classLoader: ClassLoader, scriptClass: Class<*>, target: Any) {
         withContextClassLoader(classLoader) {

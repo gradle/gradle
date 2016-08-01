@@ -20,46 +20,45 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.script.lang.kotlin.provider.KotlinScriptPluginFactory
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
-import org.jetbrains.kotlin.script.ScriptContents
-import org.jetbrains.kotlin.script.ScriptDependenciesResolverEx
-import org.jetbrains.kotlin.script.asFuture
+import org.jetbrains.kotlin.script.*
 import java.io.File
 import java.security.MessageDigest
 import java.util.*
 import java.util.concurrent.Future
 
-class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
+class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, ScriptDependenciesResolver {
 
     class DepsWithBuldscriptSectionHash(
-            override val classpath: Iterable<File>,
-            override val imports: Iterable<String>,
-            override val sources: Iterable<File>,
-            val hash: ByteArray)
+        override val classpath: Iterable<File>,
+        override val imports: Iterable<String>,
+        override val sources: Iterable<File>,
+        val hash: ByteArray)
     : KotlinScriptExternalDependencies
 
-    override fun resolve(script: ScriptContents, environment: Map<String, Any?>?, report: (ScriptDependenciesResolverEx.ReportSeverity, String, ScriptContents.Position?) -> Unit, previousDependencies: KotlinScriptExternalDependencies?): Future<KotlinScriptExternalDependencies?> {
+    @Deprecated("drop it as soon as compatibility with kotlin 1.1-M01 is no longer needed")
+    override fun resolve(script: ScriptContents, environment: Map<String, Any?>?, previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? =
+        resolveImpl(script, environment, { s,m,p -> }, previousDependencies)
+
+    override fun resolve(script: ScriptContents,
+                         environment: Map<String, Any?>?,
+                         report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
+                         previousDependencies: KotlinScriptExternalDependencies?
+    ): Future<KotlinScriptExternalDependencies?> =
+        resolveImpl(script, environment, report, previousDependencies).asFuture()
+
+    private fun resolveImpl(script: ScriptContents,
+                            environment: Map<String, Any?>?,
+                            report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
+                            previousDependencies: KotlinScriptExternalDependencies?
+    ): KotlinScriptExternalDependencies?
+    {
         if (environment == null)
-            return previousDependencies.asFuture()
+            return previousDependencies
 
         // Gradle compilation path
         val classPath = environment["classPath"] as? ClassPath
         if (classPath != null)
-            return makeDependencies(classPath.asFiles).asFuture()
-
-        val hash = with (MessageDigest.getInstance("MD5")) {
-            val text = script.text ?: script.file?.readText()
-            text?.let { text ->
-                val getScriptSectionTokens = environment["getScriptSectionTokens"] as? (CharSequence, String) -> Sequence<CharSequence>
-
-                getScriptSectionTokens?.let {
-                    it(text, "buildscript").forEach {
-                        update(it.toString().toByteArray())
-                    }
-                }
-            }
-            digest()
-        }
+            return makeDependencies(classPath.asFiles)
 
         // IDEA content assist path
         val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let { File(it) }
@@ -68,20 +67,20 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
         val gradleHome = environment["gradleHome"] as? File
         val projectRoot = environment["projectRoot"] as? File
 
+        val hash = getBuildscriptSectionHash(script, environment)
+
         val res = when {
             (previousDependencies as? DepsWithBuldscriptSectionHash)?.hash?.let { Arrays.equals(it, hash) } ?: false ->
                 null
             projectRoot != null && gradleHome != null && gradleJavaHome != null ->
                 retrieveKotlinBuildScriptModelFrom(projectRoot, gradleHome, gradleJavaHome)
                         ?.getDependencies(gradleHome, hash)
-                        ?.asFuture()
             gradleWithConnection != null && gradleHome != null ->
                 retrieveKotlinBuildScriptModelFrom(gradleWithConnection, gradleJavaHome, gradleJvmOptions)
                         ?.getDependencies(gradleHome, hash)
-                        ?.asFuture()
             else ->
                 null
-        } ?: previousDependencies.asFuture()
+        } ?: previousDependencies
 
         return res
     }
@@ -115,6 +114,23 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx {
 
     private fun makeDependencies(classPath: Iterable<File>, sources: Iterable<File> = emptyList(), hash: ByteArray = ByteArray(0)) =
             DepsWithBuldscriptSectionHash(classPath, implicitImports, sources, hash)
+
+    private fun getBuildscriptSectionHash(script: ScriptContents, environment: Map<String, Any?>): ByteArray {
+        val hash = with(MessageDigest.getInstance("MD5")) {
+            val text = script.text ?: script.file?.readText()
+            text?.let { text ->
+                val getScriptSectionTokens = environment["getScriptSectionTokens"] as? (CharSequence, String) -> Sequence<CharSequence>
+
+                getScriptSectionTokens?.let {
+                    it(text, "buildscript").forEach {
+                        update(it.toString().toByteArray())
+                    }
+                }
+            }
+            digest()
+        }
+        return hash
+    }
 
     companion object {
         val implicitImports = listOf(
