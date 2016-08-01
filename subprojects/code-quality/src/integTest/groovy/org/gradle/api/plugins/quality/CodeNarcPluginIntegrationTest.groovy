@@ -195,11 +195,12 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         then:
         succeeds("dependencies", "--configuration", "codenarc")
         output.contains "org.codenarc:CodeNarc:0.17"
+        !output.contains("FAILED")
 
         where:
-        method        || buildScriptSnippet
-        'dependencies' | """dependencies { codenarc "org.codenarc:CodeNarc:0.17" }"""
-        'toolVersion'  | """codenarc { toolVersion "0.17" } """
+        method         | buildScriptSnippet
+        'dependencies' | "dependencies { codenarc 'org.codenarc:CodeNarc:0.17' }"
+        'toolVersion'  | "codenarc { toolVersion '0.17' } "
     }
 
 
