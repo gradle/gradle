@@ -178,5 +178,6 @@ Being able to set the distibution type to `all` instead of the default of `bin` 
 ## Test coverage
 
 * Running `gradle wrapper --gradle-version 2.13 --dist-type all` generates valid `wrapper.properties` with the expected URL.
+* Running `gradle wrapper --gradle-version 2.13 --dist-type bin` generates valid `wrapper.properties` with the expected URL.
 * Running `gradle wrapper --gradle-version 2.13` defaults to `bin` as the distribution type.
 * Running `gradle wrapper --gradle-version 2.13 --dist-type invalid_distribution_name` generates an error.
