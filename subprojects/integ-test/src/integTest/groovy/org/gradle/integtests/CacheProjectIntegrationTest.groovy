@@ -34,7 +34,7 @@ import static org.junit.Assert.assertEquals
 public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
-    static final Hasher fileHasher = new DefaultHasher()
+    final Hasher fileHasher = new DefaultHasher()
 
     @Rule public final HttpServer server = new HttpServer()
 
