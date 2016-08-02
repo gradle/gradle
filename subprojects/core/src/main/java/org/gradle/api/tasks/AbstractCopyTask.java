@@ -190,7 +190,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Deprecated
     public AbstractCopyTask from(Object sourcePath, final Closure c) {
         getMainSpec().from(sourcePath, new ClosureBackedAction<CopySpec>(c));
         return this;
@@ -223,7 +222,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Deprecated
     public AbstractCopyTask into(Object destPath, Closure configureClosure) {
         getMainSpec().into(destPath, configureClosure);
         return this;
@@ -264,7 +262,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Deprecated
     public AbstractCopyTask include(Closure includeSpec) {
         getMainSpec().include(includeSpec);
         return this;
@@ -297,7 +294,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Deprecated
     public AbstractCopyTask exclude(Closure excludeSpec) {
         getMainSpec().exclude(excludeSpec);
         return this;
@@ -338,7 +334,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Deprecated
     public AbstractCopyTask rename(final Closure closure) {
         return rename(new ClosureBackedTransformer(closure));
     }
@@ -387,7 +382,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Deprecated
     public AbstractCopyTask filter(Closure closure) {
         getMainSpec().filter(closure);
         return this;
@@ -453,7 +447,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Deprecated
     public AbstractCopyTask eachFile(Closure closure) {
         getMainSpec().eachFile(closure);
         return this;
