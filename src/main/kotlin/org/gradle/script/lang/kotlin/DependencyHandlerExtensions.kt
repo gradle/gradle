@@ -25,6 +25,9 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.gradle.internal.Cast.uncheckedCast
 
+import org.gradle.script.lang.kotlin.support.excludeMapFor
+import org.gradle.script.lang.kotlin.support.mapOfNonNullValuesOf
+
 /**
  * Creates a dependency on a module without adding it to a configuration.
  *
@@ -121,25 +124,13 @@ inline fun <T : ModuleDependency> DependencyHandler.add(
  * because you don't like the version it pulls in to the configuration
  * then consider using the forced versions feature: [ResolutionStrategy.force].
  *
- * @param group the optional group of dependencies to be excluded.
- * @param module the optional module name of dependencies to be excluded.
+ * @param group the optional group identifying the dependencies to be excluded.
+ * @param module the optional module name identifying the dependencies to be excluded.
  * @return this
  *
  * @see ModuleDependency.exclude
  */
 fun <T : ModuleDependency> T.exclude(group: String? = null, module: String? = null): T =
-    uncheckedCast(
-        exclude(
-            mapOfNonNullValuesOf(
-                "group" to group,
-                "module" to module)))
+    uncheckedCast(exclude(excludeMapFor(group, module)))
 
 
-private fun mapOfNonNullValuesOf(vararg entries: Pair<String, String?>): Map<String, String> =
-    mutableMapOf<String, String>().apply {
-        for ((k, v) in entries) {
-            if (v != null) {
-                put(k, v)
-            }
-        }
-    }

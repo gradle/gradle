@@ -17,7 +17,7 @@ apply from: 'build.gradle.kts'
 // --- Enable automatic generation of API extensions -------------------
 File apiExtensionsOutputDir = file("src/generated/kotlin")
 task generateConfigurationExtensions(type: codegen.GenerateConfigurationExtensions) {
-    outputFile = new File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/ConfigurationExtensions.kt")
+    outputFile = new File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/ConfigurationsExtensions.kt")
 }
 task generateKotlinDependencyExtensions(type: codegen.GenerateKotlinDependencyExtensions) {
     outputFile = new File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/KotlinDependencyExtensions.kt")
