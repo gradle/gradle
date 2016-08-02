@@ -94,8 +94,9 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
             return;
         }
 
-        StartParameter param = requestedStartParameter.newInstance();
+        StartParameter param = requestedStartParameter.newBuild();
         param.setProjectDir(buildDirectory);
+        param.setSearchUpwards(false);
         param.setTaskNames(tasksToExecute);
 
         GradleLauncher launcher = gradleLauncherFactory.nestedInstance(param, serviceRegistry);

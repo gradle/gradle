@@ -16,11 +16,9 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
-
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
@@ -117,23 +115,40 @@ includeBuild '${buildB.toURI()}'
         executed ":buildB:jar"
     }
 
-    @NotYetImplemented // This breaks because we are too aggressive in passing `StartParameter` to the participants
-    def "does not pass settings-file or build-file arguments when building participant artifact"() {
+    def "does not pass build-file argument when configuring included build"() {
         given:
         dependency 'org.test:buildB:1.0'
 
-        buildA.buildFile.copyTo(buildA.file("build-copy.gradle"))
-        buildA.settingsFile.copyTo(buildA.file("settings-copy.gradle"))
+        buildA.settingsFile << """
+rootProject.buildFileName='build-copy.gradle'
+"""
+
+        buildA.file("build-copy.gradle").copyFrom(buildA.buildFile)
 
         when:
-        execute(buildA, ":resolve", ["--build-file", "build-copy.gradle", "--settings-file", "settings-copy.gradle"])
+        execute(buildA, ":resolve", ["--build-file", "build-copy.gradle"])
 
         then:
         executed ":buildB:jar"
     }
 
-    @NotYetImplemented // This breaks because we are too aggressive in passing `StartParameter` to the participants
-    def "does not exclude tasks when building participant artifact"() {
+    def "does not pass settings-file argument when configuring included build"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+
+        buildA.file("settings-copy.gradle") << """
+rootProject.name = 'buildA'
+includeBuild '../buildB'
+"""
+
+        when:
+        execute(buildA, ":resolve", ["--settings-file", "settings-copy.gradle"])
+
+        then:
+        executed ":buildB:jar"
+    }
+
+    def "does not exclude tasks when building artifact for included build"() {
         given:
         dependency 'org.test:buildB:1.0'
 

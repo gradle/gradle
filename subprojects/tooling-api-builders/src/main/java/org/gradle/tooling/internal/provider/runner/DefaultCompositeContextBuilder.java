@@ -28,9 +28,6 @@ import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.GradleBuildController;
 
-import java.io.File;
-import java.util.Collections;
-
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DefaultCompositeContextBuilder.class);
     private final StartParameter buildStartParam;
@@ -57,14 +54,14 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
         CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context, propagateFailures);
 
         for (IncludedBuild build : includedBuilds) {
-            StartParameter participantStartParam = buildStartParam.newInstance();
-            participantStartParam.setProjectDir(build.getProjectDir());
-            participantStartParam.setIncludedBuilds(Collections.<File>emptyList());
+            StartParameter includedBuildStartParam = buildStartParam.newBuild();
+            includedBuildStartParam.setProjectDir(build.getProjectDir());
+            includedBuildStartParam.setSearchUpwards(false);
+            includedBuildStartParam.setConfigureOnDemand(false);
 
-            participantStartParam.setConfigureOnDemand(false);
             LOGGER.lifecycle("[composite-build] Configuring build: " + build.getProjectDir());
 
-            GradleLauncher gradleLauncher = createGradleLauncher(participantStartParam, requestContext, gradleLauncherFactory);
+            GradleLauncher gradleLauncher = createGradleLauncher(includedBuildStartParam, requestContext, gradleLauncherFactory);
 
             contextBuilder.run(new GradleBuildController(gradleLauncher));
         }
