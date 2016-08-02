@@ -39,8 +39,6 @@ public interface FileCollectionSnapshot {
 
     Map<String, IncrementalFileSnapshot> getSnapshots();
 
-    FilesSnapshotSet getSnapshot();
-
     Collection<Long> getTreeSnapshotIds();
 
     void appendToCacheKey(TaskCacheKeyBuilder builder);

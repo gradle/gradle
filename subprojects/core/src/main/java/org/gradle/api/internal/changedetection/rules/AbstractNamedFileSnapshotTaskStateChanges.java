@@ -21,25 +21,21 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import org.gradle.api.Nullable;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
-import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 
-abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges, FilesSnapshotSet {
+abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
     private Map<String, FileCollectionSnapshot> fileSnapshotsBeforeExecution;
     private final String taskName;
     private final boolean allowSnapshotReuse;
@@ -146,19 +142,4 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         saveCurrent();
     }
 
-    public FilesSnapshotSet getUnifiedSnapshot() {
-        return this;
-    }
-
-    @Nullable
-    @Override
-    public FileSnapshot findSnapshot(File file) {
-        for (FileCollectionSnapshot propertySnapshot : getCurrent().values()) {
-            FileSnapshot snapshot = propertySnapshot.getSnapshot().findSnapshot(file);
-            if (snapshot != null) {
-                return snapshot;
-            }
-        }
-        return null;
-    }
 }

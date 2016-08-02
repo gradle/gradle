@@ -23,7 +23,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.FilesSnapshotSet
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
@@ -61,9 +60,7 @@ class TaskUpToDateStateTest extends Specification {
 
     def "constructor invokes snapshots" () {
         setup:
-        FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot) {
-            _ * getSnapshot() >> Stub(FilesSnapshotSet)
-        }
+        FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot)
         OutputFilesCollectionSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         FileCollectionSnapshotter mockDiscoveredInputFileSnapshotter = Mock(FileCollectionSnapshotter)

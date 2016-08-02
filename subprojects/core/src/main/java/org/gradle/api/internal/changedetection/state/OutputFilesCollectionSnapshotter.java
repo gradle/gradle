@@ -126,10 +126,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             return filesSnapshot.getSnapshots();
         }
 
-        public FilesSnapshotSet getSnapshot() {
-            return filesSnapshot.getSnapshot();
-        }
-
         @Override
         public Collection<Long> getTreeSnapshotIds() {
             return filesSnapshot.getTreeSnapshotIds();

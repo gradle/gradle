@@ -17,8 +17,6 @@
 package org.gradle.api.internal.tasks.compile.incremental.jar;
 
 import com.google.common.hash.HashCode;
-import org.gradle.api.internal.changedetection.state.FileSnapshot;
-import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.internal.hash.Hasher;
 import org.gradle.api.internal.tasks.compile.incremental.analyzer.ClassDependenciesAnalyzer;
 import org.gradle.internal.Factory;
@@ -28,10 +26,8 @@ public class CachingJarSnapshotter implements JarSnapshotter {
     private final DefaultJarSnapshotter snapshotter;
     private final Hasher hasher;
     private final JarSnapshotCache cache;
-    private final FilesSnapshotSet inputFilesSnapshot;
 
-    public CachingJarSnapshotter(Hasher hasher, ClassDependenciesAnalyzer analyzer, JarSnapshotCache cache, FilesSnapshotSet inputFilesSnapshot) {
-        this.inputFilesSnapshot = inputFilesSnapshot;
+    public CachingJarSnapshotter(Hasher hasher, ClassDependenciesAnalyzer analyzer, JarSnapshotCache cache) {
         this.snapshotter = new DefaultJarSnapshotter(hasher, analyzer);
         this.hasher = hasher;
         this.cache = cache;
@@ -48,10 +44,6 @@ public class CachingJarSnapshotter implements JarSnapshotter {
     }
 
     private HashCode getHash(JarArchive jarArchive) {
-        FileSnapshot s = inputFilesSnapshot.findSnapshot(jarArchive.file);
-        if (s != null) {
-            return s.getHash();
-        }
         return hasher.hash(jarArchive.file);
     }
 }
