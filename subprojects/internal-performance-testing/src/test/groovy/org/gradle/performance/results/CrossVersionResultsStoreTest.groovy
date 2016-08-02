@@ -19,11 +19,13 @@ package org.gradle.performance.results
 import org.gradle.performance.ResultSpecification
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
+import org.junit.Ignore
 import org.junit.Rule
 
 import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.minutes
 
+@Ignore("Temporarily ignored")
 class CrossVersionResultsStoreTest extends ResultSpecification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)

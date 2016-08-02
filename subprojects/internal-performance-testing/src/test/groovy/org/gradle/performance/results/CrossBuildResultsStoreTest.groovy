@@ -19,11 +19,13 @@ package org.gradle.performance.results
 import org.gradle.performance.ResultSpecification
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
+import org.junit.Ignore
 import org.junit.Rule
 
 import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.minutes
 
+@Ignore("Temporarily ignored")
 class CrossBuildResultsStoreTest extends ResultSpecification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -34,7 +36,6 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
     def "persists results"() {
         given:
-        println System.getProperty("org.gradle.performance.db.url")
         def results1 = crossBuildResults(testId: "test1", testGroup: "group1")
         def buildResults1 = results1.buildResult(
                 new BuildDisplayInfo(
