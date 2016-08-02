@@ -80,7 +80,6 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     }
 
     @Override
-    @Deprecated
     public DependencyReportContainer reports(Closure closure) {
         return reports(new ClosureBackedAction<DependencyReportContainer>(closure));
     }

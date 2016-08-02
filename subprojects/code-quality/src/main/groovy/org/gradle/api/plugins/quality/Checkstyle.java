@@ -101,11 +101,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * }
      * </pre>
      *
-     * @deprecated Use {@link Checkstyle#reports(Action)} instead
      * @param closure The configuration
      * @return The reports container
      */
-    @Deprecated
     public CheckstyleReports reports(@DelegatesTo(value=CheckstyleReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
         return reports(new ClosureBackedAction<CheckstyleReports>(closure));
     }
