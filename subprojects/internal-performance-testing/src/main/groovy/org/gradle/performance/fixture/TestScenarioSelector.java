@@ -31,8 +31,6 @@ import org.gradle.performance.results.ResultsStore;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.List;
 
 /**

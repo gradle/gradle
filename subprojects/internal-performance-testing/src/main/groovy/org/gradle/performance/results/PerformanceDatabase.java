@@ -16,7 +16,6 @@
 
 package org.gradle.performance.results;
 
-import java.net.URI;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
