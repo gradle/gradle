@@ -134,12 +134,18 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         }
     }
 
-    def "substitutes external dependency with project dependency using --include-build"() {
+    def "substitutes external dependencies with project dependencies using --include-build"() {
         given:
-        withArgs(["--include-build", '../buildB'])
+        singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
+        withArgs(["--include-build", '../buildB', "--include-build", '../buildC'])
         buildA.buildFile << """
             dependencies {
                 compile "org.test:buildB:1.0"
+                compile "org.test:buildC:1.0"
             }
 """
         builds = []
@@ -150,6 +156,9 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         then:
         checkGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
+            edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
                 compositeSubstitute()
             }
         }

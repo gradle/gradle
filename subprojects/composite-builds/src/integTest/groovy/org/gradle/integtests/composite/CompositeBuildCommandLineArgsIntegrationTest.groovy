@@ -90,6 +90,25 @@ class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuil
         executed ":buildB:jar"
     }
 
+    def "can include same build multiple times using --include-build and settings.gradle"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+
+        // Include 'buildB' twice via settings.gradle
+        buildA.settingsFile << """
+includeBuild '${buildB.toURI()}'
+includeBuild '${buildB.toURI()}'
+"""
+        // Include 'buildB' twice via command-line arg
+        def args = ["--include-build", '../buildB', "--include-build", '../buildB']
+
+        when:
+        execute(buildA, ":resolve", args)
+
+        then:
+        executed ":buildB:jar"
+    }
+
     @NotYetImplemented // This breaks because we are too aggressive in passing `StartParameter` to the participants
     def "does not pass settings-file or build-file arguments when building participant artifact"() {
         given:
