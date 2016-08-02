@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import spock.lang.Unroll
 
 class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
@@ -182,48 +183,50 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         succeeds 'assertCodeNarcConfiguration'
     }
 
-    def "allows configuring tool dependencies explicitly"() {
+    @Unroll
+    def "allows configuring tool dependencies explicitly via #method"(String method, String buildScriptSnippet) {
         expect: //defaults exist and can be inspected
         succeeds("dependencies", "--configuration", "codenarc")
-        output.contains "org.codenarc:CodeNarc:"
+        output.contains "org.codenarc:CodeNarc:${CodeNarcPlugin.DEFAULT_CODENARC_VERSION}"
 
         when:
-        buildFile << """
-            dependencies {
-                //downgrade version:
-                codenarc "org.codenarc:CodeNarc:0.17"
-            }
-        """
+        buildFile << buildScriptSnippet
 
         then:
         succeeds("dependencies", "--configuration", "codenarc")
         output.contains "org.codenarc:CodeNarc:0.17"
+        !output.contains("FAILED")
+
+        where:
+        method         | buildScriptSnippet
+        'dependencies' | "dependencies { codenarc 'org.codenarc:CodeNarc:0.17' }"
+        'toolVersion'  | "codenarc { toolVersion '0.17' } "
     }
 
 
     private void writeBuildFile() {
         file("build.gradle") << """
-apply plugin: "groovy"
-apply plugin: "codenarc"
+            apply plugin: "groovy"
+            apply plugin: "codenarc"
 
-repositories {
-    mavenCentral()
-}
+            repositories {
+                mavenCentral()
+            }
 
-dependencies {
-    compile localGroovy()
-}
-        """
+            dependencies {
+                compile localGroovy()
+            }
+        """.stripIndent()
     }
 
     private void writeConfigFile() {
         file("config/codenarc/codenarc.xml") << """
-<ruleset xmlns="http://codenarc.org/ruleset/1.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
-        xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
-    <ruleset-ref path="rulesets/naming.xml"/>
-</ruleset>
-        """
+            <ruleset xmlns="http://codenarc.org/ruleset/1.0"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
+                    xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
+                <ruleset-ref path="rulesets/naming.xml"/>
+            </ruleset>
+        """.stripIndent()
     }
 }
