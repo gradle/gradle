@@ -16,11 +16,13 @@
 package org.gradle.api.internal;
 
 import org.gradle.BuildListener;
+import org.gradle.api.Action;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.tasks.TaskCaching;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
@@ -75,6 +77,13 @@ public interface GradleInternal extends Gradle {
 
     ClassLoaderScope getClassLoaderScope();
 
-    @Override
+    /**
+     * Configures task output caching.
+     */
+    void taskCaching(Action<TaskCaching> action);
+
+    /**
+     * Returns the task output caching configuration.
+     */
     TaskCachingInternal getTaskCaching();
 }
