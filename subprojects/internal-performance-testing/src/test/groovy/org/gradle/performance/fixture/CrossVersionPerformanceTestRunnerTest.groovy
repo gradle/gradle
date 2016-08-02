@@ -24,12 +24,15 @@ import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
+import org.gradle.performance.results.ResultsStore
 import org.gradle.util.GradleVersion
 
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
+    private static interface ReporterAndStore extends DataReporter, ResultsStore {}
+
     final buildContext = new IntegrationTestBuildContext();
     final experimentRunner = Mock(BuildExperimentRunner)
-    final reporter = Mock(DataReporter)
+    final reporter = Mock(ReporterAndStore)
     final testProjectLocator = Stub(TestProjectLocator)
     final currentGradle = Stub(GradleDistribution)
     final releases = Stub(ReleasedVersionDistributions)
