@@ -74,6 +74,10 @@ public class HashUtil {
         return createHash(scriptText, "MD5").asCompactString();
     }
 
+    public static String createCompactMD5FromHash(byte[] digest) {
+        return new HashValue(digest).asCompactString();
+    }
+
     public static HashValue sha1(byte[] bytes) {
         return createHash(new ByteArrayInputStream(bytes), "SHA1");
     }
