@@ -207,7 +207,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
-    public void taskCaching(Action<TaskCaching> action) {
+    public void taskCaching(Action<? super TaskCaching> action) {
         action.execute(getTaskCaching());
     }
 

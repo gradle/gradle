@@ -80,7 +80,7 @@ public interface GradleInternal extends Gradle {
     /**
      * Configures task output caching.
      */
-    void taskCaching(Action<TaskCaching> action);
+    void taskCaching(Action<? super TaskCaching> action);
 
     /**
      * Returns the task output caching configuration.
