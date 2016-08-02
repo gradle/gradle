@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.composite.CompositeBuildActionParameters;
-import org.gradle.internal.composite.CompositeBuildActionRunner;
+import org.gradle.launcher.composite.CompositeBuildActionParameters;
+import org.gradle.launcher.composite.CompositeBuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
@@ -28,12 +28,11 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
+import org.gradle.launcher.composite.CompositeBuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.launcher.exec.ChainingBuildActionRunner;
-import org.gradle.launcher.exec.ChainingCompositeBuildActionRunner;
-import org.gradle.launcher.exec.CompositeBuildActionExecuter;
 import org.gradle.launcher.exec.ContinuousBuildActionExecuter;
 import org.gradle.launcher.exec.InProcessBuildActionExecuter;
 
@@ -66,7 +65,7 @@ public class LauncherServices implements PluginServiceRegistry {
             BuildActionExecuter<CompositeBuildActionParameters> compositeDelegate;
             List<CompositeBuildActionRunner> compositeBuildActionRunners = globalServices.getAll(CompositeBuildActionRunner.class);
             if (compositeBuildActionRunners.size() > 0) {
-                compositeDelegate = new CompositeBuildActionExecuter(new ChainingCompositeBuildActionRunner(compositeBuildActionRunners));
+                compositeDelegate = new CompositeBuildActionExecuter(compositeBuildActionRunners);
             } else {
                 compositeDelegate = null;
             }

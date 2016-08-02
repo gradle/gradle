@@ -14,12 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec
+package org.gradle.launcher.composite
 
 import org.gradle.initialization.BuildRequestContext
-import org.gradle.internal.composite.CompositeBuildActionParameters
-import org.gradle.internal.composite.CompositeBuildActionRunner
-import org.gradle.internal.composite.CompositeBuildController
 import org.gradle.internal.invocation.BuildAction
 import spock.lang.Specification
 

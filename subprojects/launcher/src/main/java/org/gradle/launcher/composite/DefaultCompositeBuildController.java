@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.launcher.composite;
 
-import org.gradle.internal.composite.CompositeBuildController;
 import org.gradle.internal.service.ServiceRegistry;
 
-public class DefaultCompositeBuildController implements CompositeBuildController {
+class DefaultCompositeBuildController implements CompositeBuildController {
     private final ServiceRegistry buildScopeServices;
     private Object result;
     private boolean hasResult;

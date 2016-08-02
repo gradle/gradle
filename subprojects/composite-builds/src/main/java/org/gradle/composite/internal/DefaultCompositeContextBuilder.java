@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.runner;
+package org.gradle.composite.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.composite.CompositeBuildContext;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.provider.runner;
+package org.gradle.composite.internal;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRuleProvider;
@@ -24,37 +24,26 @@ import org.gradle.api.internal.composite.CompositeBuildDependencySubstitutions;
 import org.gradle.api.internal.composite.CompositeProjectArtifactBuilder;
 import org.gradle.api.internal.composite.DefaultBuildableCompositeBuildContext;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 
 public class CompositeBuildServices implements PluginServiceRegistry {
-    @Override
     public void registerGlobalServices(ServiceRegistration registration) {
-        registration.addProvider(new CompositeBuildGlobalScopeServices());
     }
 
     public void registerBuildSessionServices(ServiceRegistration registration) {
         registration.addProvider(new CompositeBuildSessionScopeServices());
     }
 
-    @Override
     public void registerBuildServices(ServiceRegistration registration) {
     }
 
     public void registerGradleServices(ServiceRegistration registration) {
     }
 
-    @Override
     public void registerProjectServices(ServiceRegistration registration) {
-    }
-
-    public static class CompositeBuildGlobalScopeServices {
-        public CompositeBuildActionRunner createCompositeBuildActionRunner() {
-            return new CompositeBuildModelActionRunner();
-        }
     }
 
     public static class CompositeBuildSessionScopeServices {

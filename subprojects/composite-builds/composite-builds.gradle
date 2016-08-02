@@ -1,4 +1,8 @@
 dependencies {
+    compile project(':core')
+    compile project(':dependencyManagement')
+    compile project(':launcher')
+
     integTestRuntime project(":toolingApiBuilders")
 }
 

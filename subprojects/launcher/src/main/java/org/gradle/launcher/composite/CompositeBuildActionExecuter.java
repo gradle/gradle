@@ -14,19 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec;
+package org.gradle.launcher.composite;
 
 import org.gradle.initialization.BuildRequestContext;
-import org.gradle.internal.composite.CompositeBuildActionParameters;
-import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.launcher.exec.BuildActionExecuter;
+
+import java.util.List;
 
 public class CompositeBuildActionExecuter implements BuildActionExecuter<CompositeBuildActionParameters> {
     private final CompositeBuildActionRunner compositeBuildActionRunner;
 
-    public CompositeBuildActionExecuter(CompositeBuildActionRunner compositeBuildActionRunner) {
-        this.compositeBuildActionRunner = compositeBuildActionRunner;
+    public CompositeBuildActionExecuter(List<CompositeBuildActionRunner> runners) {
+        this.compositeBuildActionRunner = new ChainingCompositeBuildActionRunner(runners);
     }
 
     @Override
