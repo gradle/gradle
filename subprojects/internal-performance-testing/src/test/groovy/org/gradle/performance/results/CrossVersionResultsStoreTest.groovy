@@ -25,7 +25,7 @@ import org.junit.Rule
 import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.minutes
 
-@Ignore("Temporarily ignored")
+
 class CrossVersionResultsStoreTest extends ResultSpecification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)
@@ -72,7 +72,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         writeStore.close()
 
         then:
-        tmpDir.file("results.h2.db").exists()
+        tmpDir.file("results.mv.db").exists()
 
         when:
         def readStore = new CrossVersionResultsStore(dbFile.name)
@@ -163,7 +163,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         writeStore.close()
 
         then:
-        tmpDir.file("results.h2.db").exists()
+        tmpDir.file("results.mv.db").exists()
 
         when:
         def readStore = new CrossVersionResultsStore(dbFile.name)

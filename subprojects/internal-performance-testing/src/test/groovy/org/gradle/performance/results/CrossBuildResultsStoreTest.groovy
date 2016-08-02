@@ -19,13 +19,11 @@ package org.gradle.performance.results
 import org.gradle.performance.ResultSpecification
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
-import org.junit.Ignore
 import org.junit.Rule
 
 import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.minutes
 
-@Ignore("Temporarily ignored")
 class CrossBuildResultsStoreTest extends ResultSpecification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -71,7 +69,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         writeStore.close()
 
         then:
-        tmpDir.file("results.h2.db").exists()
+        tmpDir.file("results.mv.db").exists()
 
         when:
         def readStore = new BaseCrossBuildResultsStore(dbFile.name)
@@ -157,7 +155,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         writeStore.close()
 
         then:
-        tmpDir.file("results.h2.db").exists()
+        tmpDir.file("results.mv.db").exists()
 
         when:
         def readStore = new BaseCrossBuildResultsStore(dbFile.name)
@@ -259,7 +257,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         writeStore.close()
 
         then:
-        tmpDir.file("results.h2.db").exists()
+        tmpDir.file("results.mv.db").exists()
 
         when:
         def readStore = new BaseCrossBuildResultsStore(dbFile.name)
@@ -367,7 +365,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         writeStore.close()
 
         then:
-        tmpDir.file("results.h2.db").exists()
+        tmpDir.file("results.mv.db").exists()
 
         when:
         def readStore = new BaseCrossBuildResultsStore(dbFile.name)
