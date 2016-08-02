@@ -58,33 +58,41 @@ class CompositeBuildCommandLineArgsIntegrationTest extends AbstractCompositeBuil
         builds = [buildA, buildB]
     }
 
-    def "passes project properties to participant build"() {
+    def "passes project properties to included build"() {
         given:
         dependency 'org.test:buildB:1.0'
         and:
 
-        [buildA, buildB]*.buildFile << """
-    assert project.hasProperty("passedProperty")
+        [buildA, buildB].each {
+            it.buildFile << """
+    if (project.getProperty("passedProperty") != "foo") {
+        throw new RuntimeException("property not passed to build")
+    }
 """
+        }
 
         when:
-        execute(buildA, ":resolve", ["-PpassedProperty"])
+        execute(buildA, ":resolve", ["-PpassedProperty=foo"])
 
         then:
         executed ":buildB:jar"
     }
 
-    def "passes system property arguments to participant build"() {
+    def "passes system property arguments to included build"() {
         given:
         dependency 'org.test:buildB:1.0'
         and:
 
-        [buildA, buildB]*.buildFile << """
-    assert System.properties['foo'] == 'bar'
+        [buildA, buildB].each {
+            it.buildFile << """
+    if (System.properties['passedProperty'] != "foo") {
+        throw new RuntimeException("property not passed to build")
+    }
 """
+        }
 
         when:
-        execute(buildA, ":resolve", ["-Dfoo=bar"])
+        execute(buildA, ":resolve", ["-DpassedProperty=foo"])
 
         then:
         executed ":buildB:jar"
