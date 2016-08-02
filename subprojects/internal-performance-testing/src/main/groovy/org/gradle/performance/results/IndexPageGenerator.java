@@ -17,14 +17,17 @@
 package org.gradle.performance.results;
 
 import org.gradle.api.Transformer;
-import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
     @Override

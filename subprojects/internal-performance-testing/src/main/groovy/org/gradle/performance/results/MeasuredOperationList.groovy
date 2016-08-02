@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture
+package org.gradle.performance.results
 
-import org.gradle.performance.measure.*
+import org.gradle.performance.measure.DataAmount
+import org.gradle.performance.measure.DataSeries
+import org.gradle.performance.measure.Duration
+import org.gradle.performance.measure.MeasuredOperation
 
 public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
     String name

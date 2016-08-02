@@ -16,6 +16,9 @@
 
 package org.gradle.performance.fixture;
 
+import org.gradle.performance.results.CrossVersionPerformanceResults;
+import org.gradle.performance.results.DataReporter;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

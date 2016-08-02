@@ -16,8 +16,6 @@
 
 package org.gradle.performance.results
 
-import org.gradle.performance.fixture.DataReporter
-
 public class NoResultsStore<T> implements DataReporter<T>, ResultsStore, Closeable {
 
     @Override

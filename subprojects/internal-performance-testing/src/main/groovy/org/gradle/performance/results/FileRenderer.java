@@ -19,7 +19,12 @@ package org.gradle.performance.results;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GFileUtils;
 
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 
 public class FileRenderer {
     public <T> void render(T model, ReportRenderer<T, Writer> renderer, File outputFile) throws IOException {

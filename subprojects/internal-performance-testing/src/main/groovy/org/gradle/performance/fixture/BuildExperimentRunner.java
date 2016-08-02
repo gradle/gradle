@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.MeasuredOperation;
+import org.gradle.performance.results.MeasuredOperationList;
 
 import java.io.File;
 import java.util.ArrayList;

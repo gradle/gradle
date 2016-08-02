@@ -16,8 +16,6 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.performance.fixture.CrossBuildPerformanceResults;
-
 public class CrossBuildResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
 
     public CrossBuildResultsStore() {

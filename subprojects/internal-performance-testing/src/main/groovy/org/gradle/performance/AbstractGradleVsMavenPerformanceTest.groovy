@@ -19,6 +19,8 @@ import groovy.transform.CompileStatic
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.*
+import org.gradle.performance.results.DataReporter
+import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.GradleVsMavenBuildResultsStore
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider

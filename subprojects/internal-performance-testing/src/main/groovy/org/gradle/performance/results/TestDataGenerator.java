@@ -18,7 +18,6 @@ package org.gradle.performance.results;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
-import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.IOException;

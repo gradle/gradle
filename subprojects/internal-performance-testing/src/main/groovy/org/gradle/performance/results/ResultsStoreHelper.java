@@ -18,7 +18,6 @@ package org.gradle.performance.results;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Factory;
-import org.gradle.performance.fixture.DataReporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

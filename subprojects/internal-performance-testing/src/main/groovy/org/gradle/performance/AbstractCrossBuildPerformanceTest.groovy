@@ -19,7 +19,9 @@ package org.gradle.performance
 import groovy.transform.CompileStatic
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.*
+import org.gradle.performance.results.CrossBuildPerformanceResults
 import org.gradle.performance.results.CrossBuildResultsStore
+import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule

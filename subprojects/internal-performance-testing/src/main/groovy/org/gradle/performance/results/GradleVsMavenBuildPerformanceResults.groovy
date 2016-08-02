@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.performance.fixture
+package org.gradle.performance.results
 
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration

@@ -16,8 +16,6 @@
 
 package org.gradle.performance.results;
 
-import org.gradle.performance.fixture.GradleVsMavenBuildPerformanceResults;
-
 public class GradleVsMavenBuildResultsStore extends BaseCrossBuildResultsStore<GradleVsMavenBuildPerformanceResults> {
 
     public GradleVsMavenBuildResultsStore() {

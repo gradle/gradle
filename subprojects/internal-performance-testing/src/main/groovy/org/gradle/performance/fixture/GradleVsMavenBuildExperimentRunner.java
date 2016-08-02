@@ -19,6 +19,7 @@ package org.gradle.performance.fixture;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import org.gradle.internal.Cast;
+import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecActionFactory;
 

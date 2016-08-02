@@ -24,6 +24,9 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
+import org.gradle.performance.results.CrossVersionPerformanceResults
+import org.gradle.performance.results.DataReporter
+import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.util.GradleVersion
 import org.junit.Assume

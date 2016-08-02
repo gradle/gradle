@@ -18,10 +18,6 @@ package org.gradle.performance.results;
 
 import com.google.common.base.Joiner;
 import org.gradle.internal.UncheckedException;
-import org.gradle.performance.fixture.BaselineVersion;
-import org.gradle.performance.fixture.CrossVersionPerformanceResults;
-import org.gradle.performance.fixture.DataReporter;
-import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
@@ -47,7 +43,7 @@ import java.util.TreeSet;
 import static org.gradle.performance.results.ResultsStoreHelper.toArray;
 
 /**
- * A {@link org.gradle.performance.fixture.DataReporter} implementation that stores results in an H2 relational database.
+ * A {@link DataReporter} implementation that stores results in an H2 relational database.
  */
 public class CrossVersionResultsStore implements DataReporter<CrossVersionPerformanceResults>, ResultsStore, Closeable {
     private final long ignoreV17Before;

@@ -16,6 +16,8 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.performance.results.BuildDisplayInfo
+
 class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final GradleInvocationSpec invocation
 

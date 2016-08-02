@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
+import org.gradle.performance.results.DataReporter
+import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.util.GradleVersion
 
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {

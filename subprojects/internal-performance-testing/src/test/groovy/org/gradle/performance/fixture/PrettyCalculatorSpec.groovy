@@ -20,7 +20,7 @@ import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.Duration
 import spock.lang.Specification
 
-import static org.gradle.performance.fixture.PrettyCalculator.percentChange
+import static org.gradle.performance.results.PrettyCalculator.percentChange
 
 class PrettyCalculatorSpec extends Specification {
 

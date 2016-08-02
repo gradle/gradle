@@ -17,7 +17,6 @@
 package org.gradle.performance.results
 
 import org.gradle.performance.ResultSpecification
-import org.gradle.performance.fixture.BuildDisplayInfo
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule

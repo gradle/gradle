@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import org.gradle.performance.measure.Amount;
 import org.gradle.performance.measure.Duration;
+import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;

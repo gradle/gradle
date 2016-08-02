@@ -17,7 +17,6 @@
 package org.gradle.performance.results;
 
 import org.gradle.api.Nullable;
-import org.gradle.performance.fixture.MeasuredOperationList;
 
 import java.util.List;
 

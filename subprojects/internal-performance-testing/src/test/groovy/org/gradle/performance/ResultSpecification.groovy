@@ -16,9 +16,9 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.fixture.CrossBuildPerformanceResults
-import org.gradle.performance.fixture.CrossVersionPerformanceResults
-import org.gradle.performance.fixture.GradleVsMavenBuildPerformanceResults
+import org.gradle.performance.results.CrossBuildPerformanceResults
+import org.gradle.performance.results.CrossVersionPerformanceResults
+import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
