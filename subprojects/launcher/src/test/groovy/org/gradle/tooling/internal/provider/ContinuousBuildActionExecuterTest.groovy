@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.exec
+package org.gradle.tooling.internal.provider
 
 import org.gradle.StartParameter
 import org.gradle.api.execution.internal.TaskInputsListener
@@ -36,6 +36,8 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.PluginServiceRegistry
+import org.gradle.launcher.exec.BuildActionExecuter
+import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.util.Clock
 import org.gradle.util.RedirectStdIn
 import org.junit.Rule
