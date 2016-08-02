@@ -33,6 +33,7 @@ dependencies {
     compile localGroovy()
     compile('org.codehaus.groovy.modules.http-builder:http-builder:0.7.2') {
         exclude(module: 'groovy')
+        exclude(module: 'xercesImpl')
     }
     testCompile 'junit:junit:4.12@jar'
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4@jar', 'cglib:cglib-nodep:2.2', 'org.objenesis:objenesis:1.2'
