@@ -16,6 +16,7 @@
 
 package org.gradle.script.lang.kotlin
 
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
 
 /**
@@ -30,7 +31,7 @@ class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyH
      * @return The dependency.
      * @see DependencyHandler.add
      */
-    operator fun String.invoke(dependencyNotation: Any) =
+    operator fun String.invoke(dependencyNotation: Any): Dependency =
         dependencies.add(this, dependencyNotation)
 
     inline operator fun invoke(configuration: KotlinDependencyHandler.() -> Unit) =
