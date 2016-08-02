@@ -30,7 +30,35 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    @UsesSample('compositeBuild')
+    @UsesSample('compositeBuilds/basic')
+    def "can build with substituted dependencies in command-line composite"() {
+        when:
+        executer.inDirectory(sample.dir.file("projectA"))
+        succeeds(':assemble')
+
+        then:
+        result.assertOutputContains("""
+:compileJava
+:projectB:b1:compileJava
+:projectB:b1:processResources UP-TO-DATE
+:projectB:b1:classes
+:projectB:b1:jar
+:projectB:b2:compileJava
+:projectC:compileJava
+:projectC:processResources UP-TO-DATE
+:projectC:classes
+:projectC:jar
+:projectB:b2:processResources UP-TO-DATE
+:projectB:b2:classes
+:projectB:b2:jar
+:processResources UP-TO-DATE
+:classes
+:jar
+:assemble
+""")
+    }
+
+    @UsesSample('compositeBuilds/tooling-api')
     def "can publish participants and resolve dependencies in non-integrated composite"() {
         given:
         tweakProject()
@@ -59,7 +87,7 @@ compile - Dependencies for source set 'main'.
 """)
     }
 
-    @UsesSample('compositeBuild')
+    @UsesSample('compositeBuilds/tooling-api')
     def "can resolve participant dependencies in integrated composite"() {
         given:
         tweakProject()
@@ -74,37 +102,6 @@ compile - Dependencies for source set 'main'.
 +--- org.sample:b1:1.0 -> project projectB::b1
 \\--- org.sample:b2:1.0 -> project projectB::b2
      \\--- org.sample:projectC:1.0 -> project projectC::
-""")
-    }
-
-    @UsesSample('compositeBuild')
-    def "can build with dependencies in integrated composite"() {
-        given:
-        tweakProject()
-
-        when:
-        executer.inDirectory(sample.dir)
-        succeeds('build')
-
-        then:
-        result.assertOutputContains("""
-:compileJava
-:projectB:b1:compileJava
-:projectB:b1:processResources UP-TO-DATE
-:projectB:b1:classes
-:projectB:b1:jar
-:projectB:b2:compileJava
-:projectC:compileJava
-:projectC:processResources UP-TO-DATE
-:projectC:classes
-:projectC:jar
-:projectB:b2:processResources UP-TO-DATE
-:projectB:b2:classes
-:projectB:b2:jar
-:processResources UP-TO-DATE
-:classes
-:jar
-:assemble
 """)
     }
 
