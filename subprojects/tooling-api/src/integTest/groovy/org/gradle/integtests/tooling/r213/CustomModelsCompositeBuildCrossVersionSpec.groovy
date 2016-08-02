@@ -21,6 +21,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleConnection
+import org.gradle.util.GradleVersion
 
 /**
  * Tooling client requests custom model type for every project in a composite
@@ -60,10 +61,11 @@ class CustomModelsCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         }.asList()
 
         then:
+        def expectedMessage = toolingApiVersion < GradleVersion.version("2.14") ? "Could not fetch models of type 'CustomModel' using client-side composite connection." : 'No model of type \'CustomModel\' is available in this build.'
         modelResults.size() == 2
         modelResults.each {
             def e = it.failure
-            assert e.message.contains('No model of type \'CustomModel\' is available in this build.')
+            assert e.message.contains(expectedMessage)
         }
     }
 
