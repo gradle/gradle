@@ -185,13 +185,10 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
      * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * Don't mix it up with {@link #getDestinationDir()} which specifies the output directory for the archive.
      *
-     * @deprecated Use {@link #into(Object, Action)} instead
-     *
      * @param destPath destination directory *inside* the archive for the files
      * @param configureClosure The closure to use to configure the child {@code CopySpec}.
      * @return this
      */
-    @Deprecated
     public AbstractArchiveTask into(Object destPath, Closure configureClosure) {
         super.into(destPath, configureClosure);
         return this;
