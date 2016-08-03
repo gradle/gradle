@@ -17,7 +17,6 @@
 package org.gradle.smoketests
 
 import org.gradle.util.ports.ReleasingPortAllocator
-import org.junit.Assume
 import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -115,7 +114,7 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
         buildFile << """
             plugins {
                 id 'java'
-                id 'io.spring.dependency-management' version '0.5.7.RELEASE'
+                id 'io.spring.dependency-management' version '0.6.0.RELEASE'
             }
 
             repositories {
@@ -134,14 +133,11 @@ class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
             }
             """.stripIndent()
 
-        expect:
-        def result = runner("dependencies", "--configuration", "compile").buildAndFail()
+        when:
+        def result = runner("dependencies", "--configuration", "compile").build()
 
-        result.output.contains('''Caused by: org.gradle.internal.service.UnknownServiceException: No service of type StyledTextOutputFactory available in ProjectScopeServices.
-\tat org.gradle.internal.service.DefaultServiceRegistry.getServiceProvider(DefaultServiceRegistry.java:436)''')
-
-        Assume.assumeTrue("The Spring dependency management plugin is broken, it depends on internal StyledTextOutputFactory", false)
-
+        then:
+        result.output.contains('org.springframework:spring-core: -> 4.0.3.RELEASE')
     }
 
     def 'tomcat plugin'() {
