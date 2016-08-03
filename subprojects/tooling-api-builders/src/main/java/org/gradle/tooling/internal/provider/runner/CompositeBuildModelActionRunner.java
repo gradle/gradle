@@ -26,11 +26,11 @@ import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.launcher.composite.CompositeBuildActionParameters;
-import org.gradle.launcher.composite.CompositeBuildActionRunner;
-import org.gradle.launcher.composite.CompositeBuildController;
+import org.gradle.internal.composite.CompositeBuildActionParameters;
+import org.gradle.internal.composite.CompositeBuildActionRunner;
+import org.gradle.internal.composite.CompositeBuildController;
 import org.gradle.internal.composite.CompositeContextBuilder;
-import org.gradle.launcher.composite.CompositeParameters;
+import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -50,6 +50,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+// TODO:DAZ It's not good that composite build does not share the execution pipeline with other requests
+// There's a lot of logic duplication that should be removed.
 public class CompositeBuildModelActionRunner implements CompositeBuildActionRunner {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(CompositeBuildModelActionRunner.class);
 

@@ -18,6 +18,8 @@ package org.gradle.launcher.composite;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.composite.CompositeBuildActionParameters;
+import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.launcher.exec.BuildActionParameters;
 
 import java.io.File;

@@ -21,7 +21,7 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.launcher.composite.CompositeParameters;
+import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.internal.composite.DefaultIncludedBuild;
 import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.internal.invocation.BuildAction;

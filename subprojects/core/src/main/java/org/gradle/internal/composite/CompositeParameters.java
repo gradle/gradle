@@ -14,9 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.composite;
-
-import org.gradle.internal.composite.IncludedBuild;
+package org.gradle.internal.composite;
 
 import java.io.Serializable;
 import java.util.List;

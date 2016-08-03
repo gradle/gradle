@@ -14,8 +14,27 @@
  * limitations under the License.
  */
 
-package org.gradle.launcher.composite;
+package org.gradle.internal.composite;
 
-public interface CompositeBuildActionParameters {
-    CompositeParameters getCompositeParameters();
+import org.gradle.api.Nullable;
+import org.gradle.internal.service.ServiceRegistry;
+
+public interface CompositeBuildController {
+    ServiceRegistry getBuildScopeServices();
+
+    /**
+     * Returns true if a result (possibly null) has been specified.
+     */
+    boolean hasResult();
+
+    /**
+     * Returns the result for the build action.
+     */
+    @Nullable
+    Object getResult();
+
+    /**
+     * Sets the result for the build action.
+     */
+    void setResult(@Nullable Object result);
 }
