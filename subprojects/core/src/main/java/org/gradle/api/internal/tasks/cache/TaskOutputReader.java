@@ -20,5 +20,5 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public interface TaskOutputReader {
-    InputStream read() throws IOException;
+    void readFrom(InputStream input) throws IOException;
 }

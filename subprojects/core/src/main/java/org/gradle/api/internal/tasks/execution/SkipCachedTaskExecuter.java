@@ -35,6 +35,10 @@ import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public class SkipCachedTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipCachedTaskExecuter.class);
 
@@ -53,10 +57,10 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     }
 
     @Override
-    public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        Clock clock = new Clock();
+    public void execute(final TaskInternal task, final TaskStateInternal state, TaskExecutionContext context) {
+        final Clock clock = new Clock();
 
-        TaskOutputsInternal taskOutputs = task.getOutputs();
+        final TaskOutputsInternal taskOutputs = task.getOutputs();
         boolean cacheAllowed = taskOutputs.isCacheAllowed();
 
         boolean shouldCache;
@@ -87,10 +91,14 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         if (cacheKey != null) {
             try {
-                TaskOutputReader cachedOutput = getCache().get(cacheKey);
-                if (cachedOutput != null) {
-                    packer.unpack(taskOutputs, cachedOutput);
-                    LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getTime());
+                boolean found = getCache().load(cacheKey, new TaskOutputReader() {
+                    @Override
+                    public void readFrom(InputStream input) throws IOException {
+                        packer.unpack(taskOutputs, input);
+                        LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getTime());
+                    }
+                });
+                if (found) {
                     state.upToDate("FROM-CACHE");
                     return;
                 }
@@ -103,8 +111,12 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
 
         if (cacheKey != null && state.getFailure() == null) {
             try {
-                TaskOutputWriter cachedOutput = packer.createWriter(taskOutputs);
-                getCache().put(cacheKey, cachedOutput);
+                getCache().store(cacheKey, new TaskOutputWriter() {
+                    @Override
+                    public void writeTo(OutputStream output) throws IOException {
+                        packer.pack(taskOutputs, output);
+                    }
+                });
             } catch (Exception e) {
                 LOGGER.warn("Could not cache results for {} for cache key {}", task, cacheKey, e);
             }

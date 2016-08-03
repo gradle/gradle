@@ -29,8 +29,6 @@ import org.gradle.api.internal.tasks.cache.TaskCacheKey
 import org.gradle.api.internal.tasks.cache.TaskOutputCache
 import org.gradle.api.internal.tasks.cache.TaskOutputCacheFactory
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker
-import org.gradle.api.internal.tasks.cache.TaskOutputReader
-import org.gradle.api.internal.tasks.cache.TaskOutputWriter
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal
 import spock.lang.Specification
 
@@ -53,8 +51,6 @@ public class SkipCachedTaskExecuterTest extends Specification {
     def executer = new SkipCachedTaskExecuter(taskCaching, taskOutputPacker, startParameter, delegate)
 
     def "skip task when cached results exist"() {
-        def cachedResult = Mock(TaskOutputReader)
-
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -69,15 +65,12 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
         1 * taskOutputCache.getDescription() >> "test"
-        1 * taskOutputCache.get(cacheKey) >> cachedResult
-        1 * taskOutputPacker.unpack(outputs, cachedResult)
+        1 * taskOutputCache.load(cacheKey, _) >> true
         1 * taskState.upToDate("FROM-CACHE")
         0 * _
     }
 
     def "executes task when no cached result is available"() {
-        def cachedResult = Mock(TaskOutputWriter)
-
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -92,15 +85,14 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
         1 * taskOutputCache.getDescription() >> "test"
-        1 * taskOutputCache.get(cacheKey) >> null
+        1 * taskOutputCache.load(cacheKey, _) >> false
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
 
         then:
-        1 * taskOutputPacker.createWriter(outputs) >> cachedResult
-        1 * taskOutputCache.put(cacheKey, cachedResult)
+        1 * taskOutputCache.store(cacheKey, _)
         0 * _
     }
 
@@ -119,7 +111,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
         1 * taskOutputCache.getDescription() >> "test"
-        1 * taskOutputCache.get(cacheKey) >> null
+        1 * taskOutputCache.load(cacheKey, _) >> false
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
@@ -188,7 +180,6 @@ public class SkipCachedTaskExecuterTest extends Specification {
     }
 
     def "falls back to executing task when cache backend throws error while finding result"() {
-        def cachedResult = Mock(TaskOutputWriter)
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -203,52 +194,18 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
         1 * taskOutputCache.getDescription() >> "test"
-        1 * taskOutputCache.get(cacheKey) >> { throw new RuntimeException("Bad cache") }
+        1 * taskOutputCache.load(cacheKey, _) >> { throw new RuntimeException("Bad cache") }
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
 
         then:
-        1 * taskOutputPacker.createWriter(outputs) >> cachedResult
-        1 * taskOutputCache.put(cacheKey, cachedResult)
-        0 * _
-    }
-
-    def "falls back to executing task when cache backend throws error while loading result"() {
-        def foundResult = Mock(TaskOutputReader)
-        def cachedResult = Mock(TaskOutputWriter)
-
-        when:
-        executer.execute(task, taskState, taskContext)
-
-        then:
-        1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheAllowed() >> true
-        1 * outputs.isCacheEnabled() >> true
-
-        1 * taskContext.getTaskArtifactState() >> taskArtifactState
-        1 * taskArtifactState.calculateCacheKey() >> cacheKey
-
-        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
-        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
-        1 * taskOutputCache.getDescription() >> "test"
-        1 * taskOutputCache.get(cacheKey) >> foundResult
-        1 * taskOutputPacker.unpack(outputs, foundResult) >> { throw new RuntimeException("Bad result") }
-
-        then:
-        1 * delegate.execute(task, taskState, taskContext)
-        1 * taskState.getFailure() >> null
-
-        then:
-        1 * taskOutputPacker.createWriter(outputs) >> cachedResult
-        1 * taskOutputCache.put(cacheKey, cachedResult)
+        1 * taskOutputCache.store(cacheKey, _)
         0 * _
     }
 
     def "ignores error when storing cached result"() {
-        def cachedResult = Mock(TaskOutputWriter)
-
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -263,15 +220,14 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
         1 * taskOutputCache.getDescription() >> "test"
-        1 * taskOutputCache.get(cacheKey) >> null
+        1 * taskOutputCache.load(cacheKey, _) >> false
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
 
         then:
-        1 * taskOutputPacker.createWriter(outputs) >> cachedResult
-        1 * taskOutputCache.put(cacheKey, cachedResult) >> { throw new RuntimeException("Bad result") }
+        1 * taskOutputCache.store(cacheKey, _) >> { throw new RuntimeException("Bad result") }
         0 * _
     }
 }

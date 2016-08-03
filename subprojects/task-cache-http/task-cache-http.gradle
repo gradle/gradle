@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache;
+dependencies {
+    compile project(':resources')
+    compile project(':baseServices')
+    compile project(':core')
+    compile libraries.commons_httpclient
 
-import org.gradle.api.internal.TaskOutputsInternal;
+    testCompile libraries.groovy
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
-public interface TaskOutputPacker {
-    void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException;
-
-    void unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException;
+    integTestCompile libraries.jetty
 }
+
+useTestFixtures()
+useClassycle()
+strictCompile()

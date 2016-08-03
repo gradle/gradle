@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 public class LocalDirectoryTaskOutputCache implements TaskOutputCache {
@@ -48,21 +47,22 @@ public class LocalDirectoryTaskOutputCache implements TaskOutputCache {
     }
 
     @Override
-    public TaskOutputReader get(TaskCacheKey key) throws IOException {
+    public boolean load(TaskCacheKey key, TaskOutputReader reader) throws IOException {
         final File file = getFile(key.getHashCode());
         if (file.isFile()) {
-            return new TaskOutputReader() {
-                @Override
-                public InputStream read() throws IOException {
-                    return new FileInputStream(file);
-                }
-            };
+            FileInputStream stream = new FileInputStream(file);
+            try {
+                reader.readFrom(stream);
+                return true;
+            } finally {
+                stream.close();
+            }
         }
-        return null;
+        return false;
     }
 
     @Override
-    public void put(TaskCacheKey key, TaskOutputWriter result) throws IOException {
+    public void store(TaskCacheKey key, TaskOutputWriter result) throws IOException {
         File file = getFile(key.getHashCode());
         OutputStream output = new FileOutputStream(file);
         try {

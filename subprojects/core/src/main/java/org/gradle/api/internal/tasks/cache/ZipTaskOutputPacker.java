@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
-import com.google.common.io.Closer;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.api.file.FileVisitDetails;
@@ -44,108 +43,94 @@ import java.util.zip.ZipOutputStream;
 
 public class ZipTaskOutputPacker implements TaskOutputPacker {
     @Override
-    public TaskOutputWriter createWriter(final TaskOutputsInternal taskOutputs) throws IOException {
-        return new TaskOutputWriter() {
-            @Override
-            public void writeTo(OutputStream outputStream) throws IOException {
-                final ZipOutputStream zipOutput = new ZipOutputStream(outputStream);
-                for (TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
-                    final String propertyName = propertySpec.getPropertyName();
-                    switch (propertySpec.getOutputType()) {
-                        case DIRECTORY:
-                            final String propertyRoot = "property-" + propertyName + "/";
-                            zipOutput.putNextEntry(new ZipEntry(propertyRoot));
-                            new DirectoryFileTree(propertySpec.getOutputFile()).visit(new FileVisitor() {
-                                @Override
-                                public void visitDir(FileVisitDetails dirDetails) {
-                                    String path = dirDetails.getRelativePath().getPathString();
-                                    try {
-                                        zipOutput.putNextEntry(new ZipEntry(propertyRoot + path + "/"));
-                                    } catch (IOException e) {
-                                        throw Throwables.propagate(e);
-                                    }
-                                }
-
-                                @Override
-                                public void visitFile(FileVisitDetails fileDetails) {
-                                    String path = fileDetails.getRelativePath().getPathString();
-                                    try {
-                                        zipOutput.putNextEntry(new ZipEntry(propertyRoot + path));
-                                        fileDetails.copyTo(zipOutput);
-                                    } catch (IOException e) {
-                                        throw Throwables.propagate(e);
-                                    }
-                                }
-                            });
-                            break;
-                        case FILE:
+    public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
+        final ZipOutputStream zipOutput = new ZipOutputStream(output);
+        for (TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
+            final String propertyName = propertySpec.getPropertyName();
+            switch (propertySpec.getOutputType()) {
+                case DIRECTORY:
+                    final String propertyRoot = "property-" + propertyName + "/";
+                    zipOutput.putNextEntry(new ZipEntry(propertyRoot));
+                    new DirectoryFileTree(propertySpec.getOutputFile()).visit(new FileVisitor() {
+                        @Override
+                        public void visitDir(FileVisitDetails dirDetails) {
+                            String path = dirDetails.getRelativePath().getPathString();
                             try {
-                                zipOutput.putNextEntry(new ZipEntry("property-" + propertyName));
-                                Files.copy(propertySpec.getOutputFile(), zipOutput);
+                                zipOutput.putNextEntry(new ZipEntry(propertyRoot + path + "/"));
                             } catch (IOException e) {
                                 throw Throwables.propagate(e);
                             }
-                            break;
-                        default:
-                            throw new AssertionError();
+                        }
+
+                        @Override
+                        public void visitFile(FileVisitDetails fileDetails) {
+                            String path = fileDetails.getRelativePath().getPathString();
+                            try {
+                                zipOutput.putNextEntry(new ZipEntry(propertyRoot + path));
+                                fileDetails.copyTo(zipOutput);
+                            } catch (IOException e) {
+                                throw Throwables.propagate(e);
+                            }
+                        }
+                    });
+                    break;
+                case FILE:
+                    try {
+                        zipOutput.putNextEntry(new ZipEntry("property-" + propertyName));
+                        Files.copy(propertySpec.getOutputFile(), zipOutput);
+                    } catch (IOException e) {
+                        throw Throwables.propagate(e);
                     }
-                }
-                zipOutput.finish();
+                    break;
+                default:
+                    throw new AssertionError();
             }
-        };
+        }
+        zipOutput.finish();
     }
 
     private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");
 
     @Override
-    public void unpack(TaskOutputsInternal taskOutputs, TaskOutputReader result) throws IOException {
-        Closer closer = Closer.create();
-        InputStream input = closer.register(result.read());
-        final Map<String, TaskOutputFilePropertySpec> propertySpecs = Maps.uniqueIndex(taskOutputs.getFileProperties(), new Function<TaskFilePropertySpec, String>() {
+    public void unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException {
+        Map<String, TaskOutputFilePropertySpec> propertySpecs = Maps.uniqueIndex(taskOutputs.getFileProperties(), new Function<TaskFilePropertySpec, String>() {
             @Override
             public String apply(TaskFilePropertySpec propertySpec) {
                 return propertySpec.getPropertyName();
             }
         });
-        try {
-            ZipInputStream zipInput = new ZipInputStream(input);
-            ZipEntry entry;
-            while ((entry = zipInput.getNextEntry()) != null) {
-                String name = entry.getName();
-                Matcher matcher = PROPERTY_PATH.matcher(name);
-                if (!matcher.matches()) {
-                    // TODO:LPTR What to do here?
-                    continue;
-                }
-                String propertyName = matcher.group(1);
-                TaskOutputFilePropertySpec propertySpec = propertySpecs.get(propertyName);
-                if (propertySpec == null) {
-                    throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
-                }
-
-                String path = matcher.group(2);
-                File outputFile;
-                if (Strings.isNullOrEmpty(path)) {
-                    outputFile = propertySpec.getOutputFile();
-                } else {
-                    outputFile = new File(propertySpec.getOutputFile(), path);
-                }
-                if (entry.isDirectory()) {
-                    if (propertySpec.getOutputType() != OutputType.DIRECTORY) {
-                        throw new IllegalStateException("Property should be an output directory property: " + propertyName);
-                    }
-                    FileUtils.forceMkdir(outputFile);
-                } else {
-                    // TODO:LPTR Can we save on doing this?
-                    Files.createParentDirs(outputFile);
-                    Files.asByteSink(outputFile).writeFrom(zipInput);
-                }
+        ZipInputStream zipInput = new ZipInputStream(input);
+        ZipEntry entry;
+        while ((entry = zipInput.getNextEntry()) != null) {
+            String name = entry.getName();
+            Matcher matcher = PROPERTY_PATH.matcher(name);
+            if (!matcher.matches()) {
+                // TODO:LPTR What to do here?
+                continue;
             }
-        } catch (Exception e) {
-            throw closer.rethrow(e);
-        } finally {
-            //noinspection ThrowFromFinallyBlock
-            closer.close();
+            String propertyName = matcher.group(1);
+            TaskOutputFilePropertySpec propertySpec = propertySpecs.get(propertyName);
+            if (propertySpec == null) {
+                throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
+            }
+
+            String path = matcher.group(2);
+            File outputFile;
+            if (Strings.isNullOrEmpty(path)) {
+                outputFile = propertySpec.getOutputFile();
+            } else {
+                outputFile = new File(propertySpec.getOutputFile(), path);
+            }
+            if (entry.isDirectory()) {
+                if (propertySpec.getOutputType() != OutputType.DIRECTORY) {
+                    throw new IllegalStateException("Property should be an output directory property: " + propertyName);
+                }
+                FileUtils.forceMkdir(outputFile);
+            } else {
+                // TODO:LPTR Can we save on doing this?
+                Files.createParentDirs(outputFile);
+                Files.asByteSink(outputFile).writeFrom(zipInput);
+            }
         }
     }
 }

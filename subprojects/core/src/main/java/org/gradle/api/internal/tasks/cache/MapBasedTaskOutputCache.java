@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.cache;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.concurrent.ConcurrentMap;
 
 public class MapBasedTaskOutputCache implements TaskOutputCache {
@@ -37,21 +36,17 @@ public class MapBasedTaskOutputCache implements TaskOutputCache {
     }
 
     @Override
-    public TaskOutputReader get(TaskCacheKey key) throws IOException {
+    public boolean load(TaskCacheKey key, TaskOutputReader reader) throws IOException {
         final byte[] bytes = delegate.get(key.getHashCode());
         if (bytes == null) {
-            return null;
+            return false;
         }
-        return new TaskOutputReader() {
-            @Override
-            public InputStream read() throws IOException {
-                return new ByteArrayInputStream(bytes);
-            }
-        };
+        reader.readFrom(new ByteArrayInputStream(bytes));
+        return true;
     }
 
     @Override
-    public void put(TaskCacheKey key, TaskOutputWriter output) throws IOException {
+    public void store(TaskCacheKey key, TaskOutputWriter output) throws IOException {
         ByteArrayOutputStream data = new ByteArrayOutputStream();
         output.writeTo(data);
         delegate.put(key.getHashCode(), data.toByteArray());
