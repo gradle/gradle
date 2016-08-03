@@ -33,6 +33,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final Factory<GradleLauncher> gradleLauncherFactory;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
     private DefaultDependencySubstitutions dependencySubstitutions;
+    private String name;
 
     public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> gradleLauncherFactory) {
         this.projectDir = projectDir;
@@ -41,6 +42,14 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     public File getProjectDir() {
         return projectDir;
+    }
+
+    @Override
+    public synchronized String getName() {
+        if (name == null) {
+            name = loadBuildToDetermineRootProjectName();
+        }
+        return name;
     }
 
     @Override
@@ -53,8 +62,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     public DependencySubstitutionsInternal resolveDependencySubstitutions() {
         if (dependencySubstitutions == null) {
-            String buildName = loadBuildToDetermineRootProjectName();
-            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(buildName);
+            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(getName());
 
             for (Action<? super DependencySubstitutions> action : dependencySubstitutionActions) {
                 action.execute(dependencySubstitutions);

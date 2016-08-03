@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.initialization.GradleLauncher;
 
 public interface IncludedBuildInternal extends IncludedBuild {
+    String getName();
     DependencySubstitutionsInternal resolveDependencySubstitutions();
     GradleLauncher createGradleLauncher();
 }

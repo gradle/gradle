@@ -18,6 +18,7 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.composite.CompositeBuildContext;
@@ -33,13 +34,16 @@ public class CompositeSubstitutionsActionRunner {
         this.context = context;
     }
 
-    public void run(BuildController buildController) {
+    public void run(IncludedBuild build, BuildController buildController) {
         GradleInternal gradle = buildController.configure();
         ProjectInternal rootProject = gradle.getRootProject();
 
-        String participantName = rootProject.getName();
+        // TODO:DAZ Once we have a re-usable GradleLauncher instance, we can move this up to DefaultCompositeContextBuilder
+        String buildName = rootProject.getName();
+        context.registerBuild(buildName, build);
+
         for (Project project : rootProject.getAllprojects()) {
-            registerProject(participantName, (ProjectInternal) project);
+            registerProject(buildName, (ProjectInternal) project);
         }
     }
 

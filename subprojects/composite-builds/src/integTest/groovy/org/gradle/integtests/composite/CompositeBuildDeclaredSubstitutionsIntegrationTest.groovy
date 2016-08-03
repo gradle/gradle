@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -158,7 +157,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    @NotYetImplemented // Currently we are eagerly configuring all included builds
     def "does not configure build with declared substitutions that is not required for dependency substitution"() {
         given:
         dependency "org.test:buildB:1.0"
@@ -180,6 +178,30 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
                 compositeSubstitute()
             }
         }
+    }
+
+    def "build with discovered substitutions that is not required for dependency substitution is configured only once"() {
+        given:
+        dependency "org.test:buildB:1.0"
+
+        includeBuild buildB
+        includeBuild buildC
+
+        when:
+        buildC.buildFile << """
+            println 'Configured buildC'
+"""
+
+
+        then:
+        resolvedGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
+        }
+
+        and:
+        output.count('Configured buildC') == 1
     }
 
     def dependency(String notation) {

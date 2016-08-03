@@ -24,7 +24,9 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.composite.CompositeBuildContext;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
@@ -41,12 +43,16 @@ import java.util.Set;
 public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildableCompositeBuildContext.class);
 
+    private final Map<String, IncludedBuildInternal> builds = Maps.newHashMap();
+    private final Set<File> configuredBuilds = Sets.newHashSet();
+    private final Set<ProjectComponentIdentifier> projects = Sets.newHashSet();
     private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> provided = Sets.newHashSet();
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
     private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
 
     @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier project) {
+        ensureRegistered(project);
         RegisteredProject registeredProject = projectMetadata.get(project);
         return registeredProject == null ? null : registeredProject.metaData;
     }
@@ -59,6 +65,9 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     @Override
     public Set<ProjectComponentIdentifier> getAllProjects() {
+        for (IncludedBuildInternal build : builds.values()) {
+            ensureRegistered(build);
+        }
         return projectMetadata.keySet();
     }
 
@@ -68,8 +77,18 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
      }
 
     @Override
+    public void registerBuild(String name, IncludedBuild build) {
+        builds.put(name, (IncludedBuildInternal) build);
+    }
+
+    @Override
     public void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project) {
+        if (projects.contains(project)) {
+            String failureMessage = String.format("Project path '%s' is not unique in composite.", project.getProjectPath());
+            throw new GradleException(failureMessage);
+        }
         LOGGER.info("Registering project '" + project + "' in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
+        projects.add(project);
         provided.add(Pair.of(moduleId, project));
     }
 
@@ -91,6 +110,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     }
 
     private RegisteredProject getRegisteredProject(ProjectComponentIdentifier project) {
+        ensureRegistered(project);
         RegisteredProject registeredProject = projectMetadata.get(project);
         if (registeredProject == null) {
             throw new IllegalStateException(String.format("Requested %s which was never registered", project));
@@ -120,5 +140,45 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     @Override
     public boolean hasRules() {
         return !(provided.isEmpty() && substitutionRules.isEmpty());
+    }
+
+    private void ensureRegistered(ProjectComponentIdentifier projectComponentIdentifier) {
+        if (projectMetadata.containsKey(projectComponentIdentifier)) {
+            return;
+        }
+
+        IncludedBuildInternal build = getBuild(projectComponentIdentifier);
+        if (build == null) {
+            return;
+        }
+        ensureRegistered(build);
+    }
+
+    private IncludedBuildInternal getBuild(ProjectComponentIdentifier projectComponentIdentifier) {
+        String[] split = projectComponentIdentifier.getProjectPath().split("::", 2);
+        if (split.length == 1) {
+            return null;
+        }
+        return builds.get(split[0]);
+    }
+
+    private void ensureRegistered(IncludedBuildInternal build) {
+        File buildDir = build.getProjectDir();
+        if (configuredBuilds.contains(buildDir)) {
+            return;
+        }
+        configureBuildToRegisterDependencyMetadata(build, this);
+        configuredBuilds.add(buildDir);
+    }
+
+
+    private void configureBuildToRegisterDependencyMetadata(IncludedBuildInternal build, CompositeBuildContext context) {
+        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context);
+        GradleLauncher gradleLauncher = build.createGradleLauncher();
+        try {
+            contextBuilder.run(gradleLauncher);
+        } finally {
+            gradleLauncher.stop();
+        }
     }
 }

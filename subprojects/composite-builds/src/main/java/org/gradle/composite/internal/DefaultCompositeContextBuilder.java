@@ -55,10 +55,9 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
             if (!substitutions.hasRules()) {
                 configureBuildToDetermineSubstitutions(buildInternal, context, includedBuildStartParam);
             } else {
+                context.registerBuild(((IncludedBuildInternal) build).getName(), build);
                 context.registerSubstitution(substitutions.getRuleAction());
             }
-
-            configureBuildToRegisterDependencyMetadata(buildInternal, context, includedBuildStartParam);
         }
     }
 
@@ -67,17 +66,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
         CompositeSubstitutionsActionRunner contextBuilder = new CompositeSubstitutionsActionRunner(context);
         GradleLauncher gradleLauncher = build.createGradleLauncher();
         try {
-            contextBuilder.run(new GradleBuildController(gradleLauncher));
-        } finally {
-            gradleLauncher.stop();
-        }
-    }
-
-    private void configureBuildToRegisterDependencyMetadata(IncludedBuildInternal build, CompositeBuildContext context, StartParameter includedBuildStartParam) {
-        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context);
-        GradleLauncher gradleLauncher = build.createGradleLauncher();
-        try {
-            contextBuilder.run(new GradleBuildController(gradleLauncher));
+            contextBuilder.run(build, new GradleBuildController(gradleLauncher));
         } finally {
             gradleLauncher.stop();
         }

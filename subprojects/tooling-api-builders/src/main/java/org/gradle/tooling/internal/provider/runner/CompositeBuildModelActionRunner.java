@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Transformer;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
@@ -173,5 +174,8 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             }
         });
         contextBuilder.addToCompositeContext(includedBuilds);
+
+        // HACK: Ensure that all builds are configured to register metadata
+        sharedServices.get(CompositeBuildContext.class).getAllProjects();
     }
 }

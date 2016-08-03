@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -36,7 +37,6 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
-import org.gradle.internal.invocation.BuildController;
 
 import java.io.File;
 import java.util.Set;
@@ -48,8 +48,8 @@ public class CompositeContextBuildActionRunner {
         this.context = context;
     }
 
-    public void run(BuildController buildController) {
-        GradleInternal gradle = buildController.configure();
+    public void run(GradleLauncher launcher) {
+        GradleInternal gradle = (GradleInternal) launcher.getBuildAnalysis().getGradle();
         ProjectInternal rootProject = gradle.getRootProject();
 
         String participantName = rootProject.getName();
