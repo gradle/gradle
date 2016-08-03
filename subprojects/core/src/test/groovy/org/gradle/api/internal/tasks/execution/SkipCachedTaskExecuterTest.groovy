@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.execution
 
 import org.gradle.StartParameter
+import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
@@ -59,8 +60,8 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> true
         1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
@@ -82,8 +83,8 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> true
         1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
@@ -109,8 +110,8 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * task.getOutputs() >> outputs
-        1 * outputs.isCacheEnabled() >> true
         1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
@@ -150,6 +151,127 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
+        0 * _
+    }
+
+    def "fails when cacheIf() clause cannot be evaluated"() {
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        def ex = thrown GradleException
+        ex.message == "Could not evaluate TaskOutputs.cacheIf for ${task}." as String
+        ex.cause instanceof RuntimeException
+        ex.cause.message == "Bad cacheIf() clause"
+
+        1 * task.getOutputs() >> outputs
+        1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> { throw new RuntimeException("Bad cacheIf() clause") }
+    }
+
+    def "fails if cache key cannot be calculated"() {
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        def ex = thrown GradleException
+        ex.message == "Could not build cache key for ${task}." as String
+        ex.cause instanceof RuntimeException
+        ex.cause.message == "Bad cache key"
+
+        1 * task.getOutputs() >> outputs
+        1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
+
+        1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * taskArtifactState.calculateCacheKey() >> { throw new RuntimeException("Bad cache key") }
+    }
+
+    def "falls back to executing task when cache backend throws error while finding result"() {
+        def cachedResult = Mock(TaskOutputWriter)
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
+
+        1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * taskArtifactState.calculateCacheKey() >> cacheKey
+
+        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
+        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
+        1 * taskOutputCache.getDescription() >> "test"
+        1 * taskOutputCache.get(cacheKey) >> { throw new RuntimeException("Bad cache") }
+
+        then:
+        1 * delegate.execute(task, taskState, taskContext)
+        1 * taskState.getFailure() >> null
+
+        then:
+        1 * taskOutputPacker.createWriter(outputs) >> cachedResult
+        1 * taskOutputCache.put(cacheKey, cachedResult)
+        0 * _
+    }
+
+    def "falls back to executing task when cache backend throws error while loading result"() {
+        def foundResult = Mock(TaskOutputReader)
+        def cachedResult = Mock(TaskOutputWriter)
+
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
+
+        1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * taskArtifactState.calculateCacheKey() >> cacheKey
+
+        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
+        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
+        1 * taskOutputCache.getDescription() >> "test"
+        1 * taskOutputCache.get(cacheKey) >> foundResult
+        1 * taskOutputPacker.unpack(outputs, foundResult) >> { throw new RuntimeException("Bad result") }
+
+        then:
+        1 * delegate.execute(task, taskState, taskContext)
+        1 * taskState.getFailure() >> null
+
+        then:
+        1 * taskOutputPacker.createWriter(outputs) >> cachedResult
+        1 * taskOutputCache.put(cacheKey, cachedResult)
+        0 * _
+    }
+
+    def "ignores error when storing cached result"() {
+        def cachedResult = Mock(TaskOutputWriter)
+
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
+
+        1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * taskArtifactState.calculateCacheKey() >> cacheKey
+
+        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
+        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
+        1 * taskOutputCache.getDescription() >> "test"
+        1 * taskOutputCache.get(cacheKey) >> null
+
+        then:
+        1 * delegate.execute(task, taskState, taskContext)
+        1 * taskState.getFailure() >> null
+
+        then:
+        1 * taskOutputPacker.createWriter(outputs) >> cachedResult
+        1 * taskOutputCache.put(cacheKey, cachedResult) >> { throw new RuntimeException("Bad result") }
         0 * _
     }
 }

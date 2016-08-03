@@ -35,8 +35,6 @@ import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 public class SkipCachedTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipCachedTaskExecuter.class);
 
@@ -65,8 +63,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         try {
             shouldCache = cacheAllowed && taskOutputs.isCacheEnabled();
         } catch (Exception t) {
-            state.executed(new GradleException(String.format("Could not evaluate TaskOutputs.isCacheEnabled() for %s.", task), t));
-            return;
+            throw new GradleException(String.format("Could not evaluate TaskOutputs.cacheIf for %s.", task), t);
         }
 
         LOGGER.debug("Determining if {} is cached already", task);
@@ -78,7 +75,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                 cacheKey = taskState.calculateCacheKey();
                 LOGGER.debug("Cache key for {} is {}", task, cacheKey);
             } catch (Exception e) {
-                LOGGER.info(String.format("Could not build cache key for task %s", task), e);
+                throw new GradleException(String.format("Could not build cache key for %s.", task), e);
             }
         } else {
             if (!cacheAllowed) {
@@ -97,8 +94,8 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                     state.upToDate("FROM-CACHE");
                     return;
                 }
-            } catch (IOException e) {
-                LOGGER.info(String.format("Could not load cached output for %s with cache key %s", task, cacheKey), e);
+            } catch (Exception e) {
+                LOGGER.warn("Could not load cached output for {} with cache key {}", task, cacheKey, e);
             }
         }
 
@@ -108,8 +105,8 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
             try {
                 TaskOutputWriter cachedOutput = packer.createWriter(taskOutputs);
                 getCache().put(cacheKey, cachedOutput);
-            } catch (IOException e) {
-                LOGGER.info(String.format("Could not cache results for %s for cache key %s", task, cacheKey), e);
+            } catch (Exception e) {
+                LOGGER.warn("Could not cache results for {} for cache key {}", task, cacheKey, e);
             }
         }
     }
