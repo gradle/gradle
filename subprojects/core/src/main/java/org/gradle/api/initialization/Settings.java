@@ -17,9 +17,11 @@
 package org.gradle.api.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.internal.composite.IncludedBuild;
 
 import java.io.File;
 
@@ -168,11 +170,13 @@ public interface Settings extends PluginAware {
 
     /**
      * Returns the {@link Gradle} instance for the current build.
-     * 
+     *
      * @return The Gradle instance. Never returns null.
      */
     Gradle getGradle();
 
-    void includeBuild(Object projectPath);
+    IncludedBuild includeBuild(Object projectPath);
+
+    IncludedBuild includeBuild(Object projectPath, Action<IncludedBuild> configuration);
 
 }

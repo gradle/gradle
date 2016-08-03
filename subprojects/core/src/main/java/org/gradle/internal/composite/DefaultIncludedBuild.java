@@ -16,10 +16,14 @@
 
 package org.gradle.internal.composite;
 
+import com.google.common.collect.Maps;
+
 import java.io.File;
+import java.util.Map;
 
 public class DefaultIncludedBuild implements IncludedBuild {
     private final File projectDir;
+    private final Map<String, String> provided = Maps.newHashMap();
 
     public DefaultIncludedBuild(File projectDir) {
         this.projectDir = projectDir;
@@ -27,6 +31,16 @@ public class DefaultIncludedBuild implements IncludedBuild {
 
     public File getProjectDir() {
         return projectDir;
+    }
+
+    @Override
+    public void provides(String moduleId, String projectPath) {
+        provided.put(moduleId, projectPath);
+    }
+
+    @Override
+    public Map<String, String> getProvided() {
+        return provided;
     }
 
     @Override

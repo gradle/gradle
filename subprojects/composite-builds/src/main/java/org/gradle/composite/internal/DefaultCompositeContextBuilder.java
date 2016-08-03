@@ -17,6 +17,9 @@
 package org.gradle.composite.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.composite.CompositeContextBuildActionRunner;
 import org.gradle.api.internal.composite.CompositeSubstitutionsActionRunner;
@@ -24,10 +27,13 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.GradleBuildController;
+
+import java.util.Map;
 
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DefaultCompositeContextBuilder.class);
@@ -59,7 +65,12 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
             includedBuildStartParam.setSearchUpwards(false);
             includedBuildStartParam.setConfigureOnDemand(false);
 
-            configureBuildToDetermineSubstitutions(requestContext, gradleLauncherFactory, context, includedBuildStartParam);
+            if (build.getProvided().isEmpty()) {
+                configureBuildToDetermineSubstitutions(requestContext, gradleLauncherFactory, context, includedBuildStartParam);
+            } else {
+                registerDefinedSubstitutions(context, build);
+            }
+
             configureBuildToRegisterDependencyMetadata(requestContext, gradleLauncherFactory, context, includedBuildStartParam);
         }
     }
@@ -75,6 +86,16 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
         GradleLauncher gradleLauncher = createGradleLauncher(includedBuildStartParam, requestContext, gradleLauncherFactory);
         CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context);
         contextBuilder.run(new GradleBuildController(gradleLauncher));
+    }
+
+    private void registerDefinedSubstitutions(CompositeBuildContext context, IncludedBuild build) {
+        // Register additional provided components
+        for (Map.Entry<String, String> entry : build.getProvided().entrySet()) {
+            String[] parts = entry.getKey().split(":");
+            ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(parts[0], parts[1], parts[2]);
+            ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newId(entry.getValue());
+            context.registerSubstitution(moduleVersionIdentifier, projectComponentIdentifier);
+        }
     }
 
     private GradleLauncher createGradleLauncher(StartParameter participantStartParam, BuildRequestContext requestContext, GradleLauncherFactory gradleLauncherFactory) {

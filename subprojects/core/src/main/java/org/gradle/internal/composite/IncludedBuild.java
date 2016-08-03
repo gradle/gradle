@@ -17,7 +17,12 @@
 package org.gradle.internal.composite;
 
 import java.io.File;
+import java.util.Map;
 
 public interface IncludedBuild {
     File getProjectDir();
+
+    void provides(String projectPath, String moduleId);
+
+    Map<String, String> getProvided();
 }

@@ -15,8 +15,9 @@
  */
 package org.gradle.initialization;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
@@ -31,12 +32,14 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.composite.DefaultIncludedBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
+import java.util.Map;
 
 public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
     public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
@@ -55,7 +58,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope rootClassLoaderScope;
     private final ServiceRegistry services;
-    private final List<File> includedBuilds = Lists.newArrayList();
+    private final Map<File, IncludedBuild> includedBuilds = Maps.newLinkedHashMap();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
@@ -233,12 +236,25 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     @Override
-    public void includeBuild(Object projectPath) {
-        includedBuilds.add(getFileResolver().resolve(projectPath));
+    public IncludedBuild includeBuild(Object projectPath) {
+        File projectDir = getFileResolver().resolve(projectPath);
+        IncludedBuild build = includedBuilds.get(projectDir);
+        if (build == null) {
+            build = new DefaultIncludedBuild(projectDir);
+            includedBuilds.put(projectDir, build);
+        }
+        return build;
     }
 
     @Override
-    public List<File> getIncludedBuilds() {
+    public IncludedBuild includeBuild(Object projectPath, Action<IncludedBuild> configuration) {
+        IncludedBuild build = includeBuild(projectPath);
+        configuration.execute(build);
+        return build;
+    }
+
+    @Override
+    public Map<File, IncludedBuild> getIncludedBuilds() {
         return includedBuilds;
     }
 }

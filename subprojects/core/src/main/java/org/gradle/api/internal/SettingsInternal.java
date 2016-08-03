@@ -23,9 +23,10 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.internal.composite.IncludedBuild;
 
 import java.io.File;
-import java.util.List;
+import java.util.Map;
 
 public interface SettingsInternal extends Settings {
     /**
@@ -48,5 +49,5 @@ public interface SettingsInternal extends Settings {
 
     void setDefaultProject(ProjectDescriptor defaultProject);
 
-    List<File> getIncludedBuilds();
+    Map<File, IncludedBuild> getIncludedBuilds();
 }

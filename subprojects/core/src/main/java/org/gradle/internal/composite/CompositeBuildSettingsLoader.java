@@ -16,18 +16,16 @@
 
 package org.gradle.internal.composite;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Set;
+import java.util.Map;
 
 public class CompositeBuildSettingsLoader implements SettingsLoader {
     private final SettingsLoader delegate;
@@ -52,16 +50,16 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
     }
 
     private Collection<IncludedBuild> getIncludedBuilds(StartParameter startParameter, SettingsInternal settings) {
-        Set<File> buildRoots = Sets.newTreeSet();
-        buildRoots.addAll(startParameter.getIncludedBuilds());
-        buildRoots.addAll(settings.getIncludedBuilds());
+        Map<File, IncludedBuild> includedBuildMap = Maps.newLinkedHashMap();
+        includedBuildMap.putAll(settings.getIncludedBuilds());
 
-        return CollectionUtils.collect(buildRoots, new Transformer<IncludedBuild, File>() {
-            @Override
-            public IncludedBuild transform(File buildRoot) {
-                return new DefaultIncludedBuild(buildRoot);
+        for (File file : startParameter.getIncludedBuilds()) {
+            if (!includedBuildMap.containsKey(file)) {
+                includedBuildMap.put(file, new DefaultIncludedBuild(file));
             }
-        });
+        }
+
+        return includedBuildMap.values();
     }
 
 }
