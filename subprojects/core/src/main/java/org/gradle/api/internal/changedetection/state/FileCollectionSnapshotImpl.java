@@ -16,46 +16,22 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 class FileCollectionSnapshotImpl implements FileCollectionSnapshot {
     final Map<String, IncrementalFileSnapshot> snapshots;
-    final List<TreeSnapshot> treeSnapshots;
     final TaskFilePropertyCompareType compareType;
 
-    public FileCollectionSnapshotImpl(List<TreeSnapshot> treeSnapshots, TaskFilePropertyCompareType compareType) {
-        this(convertTreeSnapshots(treeSnapshots), ImmutableList.copyOf(treeSnapshots), compareType);
-    }
-
     public FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots, TaskFilePropertyCompareType compareType) {
-        this(snapshots, null, compareType);
-    }
-
-    private FileCollectionSnapshotImpl(Map<String, IncrementalFileSnapshot> snapshots, List<TreeSnapshot> treeSnapshots, TaskFilePropertyCompareType compareType) {
         this.snapshots = snapshots;
-        this.treeSnapshots = treeSnapshots;
         this.compareType = compareType;
-    }
-
-    private static Map<String, IncrementalFileSnapshot> convertTreeSnapshots(List<TreeSnapshot> treeSnapshots) {
-        Map<String, IncrementalFileSnapshot> snapshots = Maps.newLinkedHashMap();
-        for (TreeSnapshot treeSnapshot : treeSnapshots) {
-            for(FileSnapshotWithKey fileSnapshotWithKey : treeSnapshot.getFileSnapshots()) {
-                snapshots.put(fileSnapshotWithKey.getKey(), fileSnapshotWithKey.getIncrementalFileSnapshot());
-            }
-        }
-        return snapshots;
     }
 
     public List<File> getFiles() {
@@ -71,19 +47,6 @@ class FileCollectionSnapshotImpl implements FileCollectionSnapshot {
     @Override
     public Map<String, IncrementalFileSnapshot> getSnapshots() {
         return snapshots;
-    }
-
-    @Override
-    public Collection<Long> getTreeSnapshotIds() {
-        List<Long> snapshotIds = new ArrayList<Long>();
-        if (treeSnapshots != null) {
-            for (TreeSnapshot treeSnapshot : treeSnapshots) {
-                if (treeSnapshot.isShareable() && treeSnapshot.getAssignedId() != null && treeSnapshot.getAssignedId() != -1L) {
-                    snapshotIds.add(treeSnapshot.getAssignedId());
-                }
-            }
-        }
-        return snapshotIds;
     }
 
     @Override

@@ -24,7 +24,6 @@ import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter
-import org.gradle.api.internal.changedetection.state.CachingTreeVisitor
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.DefaultTaskArtifactStateCacheAccess
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
@@ -34,7 +33,6 @@ import org.gradle.api.internal.changedetection.state.NoOpDecorator
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
-import org.gradle.api.internal.changedetection.state.TreeSnapshotRepository
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.hash.DefaultHasher
 import org.gradle.api.tasks.incremental.InputFileDetails
@@ -77,7 +75,6 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         }
     }
     DefaultTaskArtifactStateRepository repository
-    CachingTreeVisitor treeVisitor
 
     def setup() {
         gradle = project.getGradle()
@@ -86,9 +83,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
         def stringInterner = new StringInterner()
         def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner)
-        treeVisitor = new CachingTreeVisitor()
-        def treeSnapshotRepository = new TreeSnapshotRepository(cacheAccess, stringInterner)
-        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver(), treeVisitor, treeSnapshotRepository)
+        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver())
         FileCollectionSnapshotter discoveredFilesSnapshotter = new MinimalFileSetSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver(), TestFiles.fileSystem())
         FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter, stringInterner)
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) // new ConfigurableClassLoaderHierarchyHasher([:], Mock(ClassLoaderHasher))
@@ -96,7 +91,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         inputFilesSnapshotter.registerSerializers(serializerRegistry);
         outputFilesSnapshotter.registerSerializers(serializerRegistry);
         discoveredFilesSnapshotter.registerSerializers(serializerRegistry);
-        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator(), treeSnapshotRepository), stringInterner)
+        TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()), stringInterner)
         repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, inputFilesSnapshotter, discoveredFilesSnapshotter, TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher)
     }
 
@@ -261,7 +256,6 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
 
         when:
         def file = inputDir.file("other-file").createFile()
-        treeVisitor.clearCache()
 
         then:
         inputsOutOfDate(task).withAddedFile(file)
@@ -273,7 +267,6 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
 
         when:
         inputDirFile.delete()
-        treeVisitor.clearCache()
 
         then:
         inputsOutOfDate(task).withRemovedFile(inputDirFile)
@@ -285,7 +278,6 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
 
         when:
         inputDirFile.writelns("new content")
-        treeVisitor.clearCache()
 
         then:
         inputsOutOfDate(task).withModifiedFile(inputDirFile)
@@ -298,7 +290,6 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         when:
         inputDirFile.delete()
         inputDirFile.mkdir()
-        treeVisitor.clearCache()
 
         then:
         inputsOutOfDate(task).withModifiedFile(inputDirFile)

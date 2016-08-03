@@ -60,8 +60,8 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse, TaskFilePropertyCompareType compareType) {
-        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, allowReuse, compareType));
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType) {
+        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, compareType));
     }
 
     private Map<String, Boolean> getRoots(FileCollection files) {
@@ -124,11 +124,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
         @Override
         public Map<String, IncrementalFileSnapshot> getSnapshots() {
             return filesSnapshot.getSnapshots();
-        }
-
-        @Override
-        public Collection<Long> getTreeSnapshotIds() {
-            return filesSnapshot.getTreeSnapshotIds();
         }
 
         @Override

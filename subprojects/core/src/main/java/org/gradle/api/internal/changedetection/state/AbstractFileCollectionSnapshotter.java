@@ -18,15 +18,17 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheAccess;
+import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.UNORDERED;
 
@@ -48,37 +50,48 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
         return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap(), UNORDERED);
     }
 
+    public void registerSerializers(SerializerRegistry registry) {
+        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer(stringInterner));
+    }
+
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection input, boolean allowReuse, TaskFilePropertyCompareType compareType) {
-        final List<VisitedTree> fileTreeElements = Lists.newLinkedList();
+    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareType compareType) {
+        final List<FileTreeElement> fileTreeElements = Lists.newLinkedList();
         final List<File> missingFiles = Lists.newArrayList();
-        visitFiles(input, fileTreeElements, missingFiles, allowReuse);
+        visitFiles(input, fileTreeElements, missingFiles);
 
         if (fileTreeElements.isEmpty() && missingFiles.isEmpty()) {
             return emptySnapshot();
         }
 
-        final List<TreeSnapshot> treeSnapshots = new ArrayList<TreeSnapshot>();
+        final Map<String, IncrementalFileSnapshot> snapshots = new HashMap<String, IncrementalFileSnapshot>();
+
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {
-                final List<VisitedTree> nonShareableTrees = new ArrayList<VisitedTree>();
-                for (VisitedTree tree : fileTreeElements) {
-                    if (tree.isShareable()) {
-                        treeSnapshots.add(tree.maybeCreateSnapshot(snapshotter, stringInterner));
-                    } else {
-                        nonShareableTrees.add(tree);
+                for (FileTreeElement fileDetails : fileTreeElements) {
+                    String absolutePath = getInternedAbsolutePath(fileDetails.getFile());
+                    if (!snapshots.containsKey(absolutePath)) {
+                        if (fileDetails.isDirectory()) {
+                            snapshots.put(absolutePath, DirSnapshot.getInstance());
+                        } else {
+                            snapshots.put(absolutePath, new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(), fileDetails.getLastModified()));
+                        }
                     }
                 }
-                if (!nonShareableTrees.isEmpty() || !missingFiles.isEmpty()) {
-                    VisitedTree nonShareableTree = createJoinedTree(nonShareableTrees, missingFiles);
-                    treeSnapshots.add(nonShareableTree.maybeCreateSnapshot(snapshotter, stringInterner));
+                for (File missingFile : missingFiles) {
+                    String absolutePath = getInternedAbsolutePath(missingFile);
+                    if (!snapshots.containsKey(absolutePath)) {
+                        snapshots.put(absolutePath, MissingFileSnapshot.getInstance());
+                    }
                 }
             }
         });
-        return new FileCollectionSnapshotImpl(treeSnapshots, compareType);
+        return new FileCollectionSnapshotImpl(snapshots, compareType);
     }
 
-    abstract VisitedTree createJoinedTree(List<VisitedTree> nonShareableTrees, Collection<File> missingFiles);
+    private String getInternedAbsolutePath(File file) {
+        return stringInterner.intern(file.getAbsolutePath());
+    }
 
-    abstract protected void visitFiles(FileCollection input, List<VisitedTree> visitedTrees, List<File> missingFiles, boolean allowReuse);
+    abstract protected void visitFiles(FileCollection input, List<FileTreeElement> fileTreeElements, List<File> missingFiles);
 }

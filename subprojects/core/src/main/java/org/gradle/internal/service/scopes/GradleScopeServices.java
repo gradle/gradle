@@ -19,8 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.DependencyInjectingInstantiator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.changedetection.state.CachingTreeVisitor;
-import org.gradle.api.internal.changedetection.state.TreeVisitorCacheExpirationStrategy;
 import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.ImperativeOnlyPluginApplicator;
 import org.gradle.api.internal.plugins.PluginApplicator;
@@ -97,17 +95,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return new CommandLineTaskParser(new CommandLineTaskConfigurer(optionReader), taskSelector);
     }
 
-    CachingTreeVisitor createTreeVisitor() {
-        return new CachingTreeVisitor();
-    }
-
-    TreeVisitorCacheExpirationStrategy createTreeVisitorCacheExpirationStrategy(CachingTreeVisitor cachingTreeVisitor, ListenerManager listenerManager) {
-        return new TreeVisitorCacheExpirationStrategy(cachingTreeVisitor, listenerManager);
-    }
-
     BuildExecuter createBuildExecuter() {
-        // initialize TreeVisitorCacheExpirationStrategy so that listeners get registered
-        get(TreeVisitorCacheExpirationStrategy.class);
         return new DefaultBuildExecuter(
                 asList(new DryRunBuildExecutionAction(),
                         new SelectedTaskExecutionAction()));

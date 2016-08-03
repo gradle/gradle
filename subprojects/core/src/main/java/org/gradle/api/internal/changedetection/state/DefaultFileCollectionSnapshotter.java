@@ -16,46 +16,49 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
-import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
 public class DefaultFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter {
-    private final CachingTreeVisitor treeVisitor;
-    private final TreeSnapshotRepository treeSnapshotRepository;
-
-    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, CachingTreeVisitor treeVisitor, TreeSnapshotRepository treeSnapshotRepository) {
+    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver) {
         super(snapshotter, cacheAccess, stringInterner, fileResolver);
-        this.treeVisitor = treeVisitor;
-        this.treeSnapshotRepository = treeSnapshotRepository;
-    }
-
-    public void registerSerializers(SerializerRegistry registry) {
-        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer(stringInterner, treeSnapshotRepository));
     }
 
     @Override
-    VisitedTree createJoinedTree(List<VisitedTree> nonShareableTrees, Collection<File> missingFiles) {
-        return treeVisitor.createJoinedTree(nonShareableTrees, missingFiles);
-    }
-
-    @Override
-    protected void visitFiles(FileCollection input, final List<VisitedTree> visitedTrees, final List<File> missingFiles, boolean allowReuse) {
+    protected void visitFiles(FileCollection input, final List<FileTreeElement> fileTreeElements, final List<File> missingFiles) {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(fileResolver);
         context.add(input);
         List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();
 
         for (FileTreeInternal fileTree : fileTrees) {
-            visitedTrees.add(treeVisitor.visitTreeForSnapshotting(fileTree, allowReuse));
+            fileTreeElements.addAll(visitTreeForSnapshotting(fileTree));
         }
     }
 
+    private Collection<? extends FileTreeElement> visitTreeForSnapshotting(FileTreeInternal fileTree) {
+        final ImmutableList.Builder<FileTreeElement> fileTreeElements = ImmutableList.builder();
+        fileTree.visitTreeOrBackingFile(new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                fileTreeElements.add(dirDetails);
+            }
 
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                fileTreeElements.add(fileDetails);
+            }
+        });
+        return fileTreeElements.build();
+    }
 }

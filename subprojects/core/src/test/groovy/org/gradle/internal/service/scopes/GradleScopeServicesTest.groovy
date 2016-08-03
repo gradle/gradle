@@ -18,13 +18,17 @@ package org.gradle.internal.service.scopes
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.DependencyManagementServices
-import org.gradle.api.internal.changedetection.state.CachingTreeVisitor
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.plugins.PluginRegistry
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.options.OptionReader
 import org.gradle.cache.CacheRepository
-import org.gradle.execution.*
+import org.gradle.execution.BuildConfigurationActionExecuter
+import org.gradle.execution.BuildExecuter
+import org.gradle.execution.DefaultBuildExecuter
+import org.gradle.execution.ProjectConfigurer
+import org.gradle.execution.TaskGraphExecuter
+import org.gradle.execution.TaskSelector
 import org.gradle.execution.taskgraph.DefaultTaskGraphExecuter
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.TimeProvider
@@ -36,7 +40,6 @@ import org.gradle.internal.progress.BuildOperationExecutor
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector
-import org.gradle.util.Requires
 import spock.lang.Specification
 
 import static org.hamcrest.Matchers.sameInstance
@@ -163,30 +166,4 @@ public class GradleScopeServicesTest extends Specification {
         1 * plugin1.registerGradleServices(_)
         1 * plugin2.registerGradleServices(_)
     }
-
-    @Requires(adhoc = { CachingTreeVisitor.CACHING_TREE_VISITOR_FEATURE_ENABLED })
-    def "TreeVisitorCacheExpirationStrategy registers BuildListener, TaskExecutionGraphListener & TaskExecutionListener when BuildExecuter is requested"() {
-        given:
-        gradle = Mock()
-        registry = new GradleScopeServices(parent, gradle)
-        def listenerManager = Mock(ListenerManager)
-
-        when:
-        registry.get(BuildExecuter)
-
-        then:
-        1 * listenerManager.addListener({ isTreeVisitorCacheExpirationStrategy('BuildAdapter', it) })
-        1 * listenerManager.addListener({ isTreeVisitorCacheExpirationStrategy('TaskExecutionListener', it) })
-        1 * listenerManager.addListener({ isTreeVisitorCacheExpirationStrategy('TaskExecutionGraphListener', it) })
-        _ * parent.get(ListenerManager) >> listenerManager
-        _ * parent.get({ it instanceof Class }) >> { Class type ->
-            Stub(type)
-        }
-        0 * _._
-    }
-
-    private boolean isTreeVisitorCacheExpirationStrategy(subclassName, instance) {
-        instance.getClass().name.startsWith("org.gradle.api.internal.changedetection.state.TreeVisitorCacheExpirationStrategy\$TreeVisitorCache$subclassName")
-    }
-
 }

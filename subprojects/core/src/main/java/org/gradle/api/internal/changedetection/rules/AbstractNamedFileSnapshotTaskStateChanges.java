@@ -38,30 +38,24 @@ import java.util.SortedSet;
 abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateChanges {
     private Map<String, FileCollectionSnapshot> fileSnapshotsBeforeExecution;
     private final String taskName;
-    private final boolean allowSnapshotReuse;
     private final String title;
     protected final SortedSet<? extends TaskFilePropertySpec> fileProperties;
     private final FileCollectionSnapshotter snapshotter;
     protected final TaskExecution previous;
     protected final TaskExecution current;
 
-    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, boolean allowSnapshotReuse, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties) {
+    protected AbstractNamedFileSnapshotTaskStateChanges(String taskName, TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties) {
         this.taskName = taskName;
         this.previous = previous;
         this.current = current;
         this.snapshotter = snapshotter;
-        this.allowSnapshotReuse = allowSnapshotReuse;
         this.title = title;
         this.fileProperties = fileProperties;
-        this.fileSnapshotsBeforeExecution = buildSnapshots(taskName, snapshotter, title, fileProperties, allowSnapshotReuse);
+        this.fileSnapshotsBeforeExecution = buildSnapshots(taskName, snapshotter, title, fileProperties);
     }
 
     protected String getTaskName() {
         return taskName;
-    }
-
-    protected boolean isAllowSnapshotReuse() {
-        return allowSnapshotReuse;
     }
 
     protected String getTitle() {
@@ -84,13 +78,13 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         return fileSnapshotsBeforeExecution;
     }
 
-    protected static Map<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotter snapshotter, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties, boolean allowSnapshotReuse) {
+    protected static Map<String, FileCollectionSnapshot> buildSnapshots(String taskName, FileCollectionSnapshotter snapshotter, String title, SortedSet<? extends TaskFilePropertySpec> fileProperties) {
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {
             FileCollectionSnapshot result;
             TaskFilePropertyCompareType compareType = propertySpec.getCompareType();
             try {
-                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), allowSnapshotReuse, compareType);
+                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), compareType);
             } catch (UncheckedIOException e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertySpec.getPropertyName()), e);
             }

@@ -19,15 +19,11 @@ package org.gradle.api.internal.changedetection.state
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.cache.internal.MapBackedInMemoryStore
 import org.gradle.internal.serialize.SerializerSpec
-
-import static TaskFilePropertyCompareType.UNORDERED
 
 class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
-    def treeSnapshotRepository = new TreeSnapshotRepository(new InMemoryCache(), stringInterner)
-    def serializer = new DefaultFileSnapshotterSerializer(stringInterner, treeSnapshotRepository)
+    def serializer = new DefaultFileSnapshotterSerializer(stringInterner)
 
     def "reads and writes the snapshot"() {
         when:
@@ -35,16 +31,12 @@ class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
         FileCollectionSnapshotImpl out = serialize(new FileCollectionSnapshotImpl([
             "1": DirSnapshot.getInstance(),
             "2": MissingFileSnapshot.getInstance(),
-            "3": new FileHashSnapshot(hash)], UNORDERED), serializer)
+            "3": new FileHashSnapshot(hash)], TaskFilePropertyCompareType.UNORDERED), serializer)
 
         then:
         out.snapshots.size() == 3
         out.snapshots['1'] instanceof DirSnapshot
         out.snapshots['2'] instanceof MissingFileSnapshot
         ((FileHashSnapshot) out.snapshots['3']).hash == hash
-    }
-
-    private static class InMemoryCache extends MapBackedInMemoryStore implements TaskArtifactStateCacheAccess {
-
     }
 }

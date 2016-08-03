@@ -26,7 +26,6 @@ import org.gradle.api.internal.changedetection.changes.ShortCircuitTaskArtifactS
 import org.gradle.api.internal.changedetection.state.CacheBackedFileSnapshotRepository;
 import org.gradle.api.internal.changedetection.state.CacheBackedTaskHistoryRepository;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
-import org.gradle.api.internal.changedetection.state.CachingTreeVisitor;
 import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.DefaultTaskArtifactStateCacheAccess;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
@@ -38,7 +37,6 @@ import org.gradle.api.internal.changedetection.state.NoOpDecorator;
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
-import org.gradle.api.internal.changedetection.state.TreeSnapshotRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.hash.DefaultHasher;
@@ -134,14 +132,10 @@ public class TaskExecutionServices {
         return new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner);
     }
 
-    TreeSnapshotRepository createTreeSnapshotCache(TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner) {
-        return new TreeSnapshotRepository(cacheAccess, stringInterner);
-    }
-
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter, FileSnapshotter fileSnapshotter,
                                                                   StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem, FileCollectionFactory fileCollectionFactory,
-                                                                  CachingTreeVisitor treeVisitor, TreeSnapshotRepository treeSnapshotRepository, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, treeVisitor, treeSnapshotRepository);
+                                                                  ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+        FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver);
         FileCollectionSnapshotter discoveredFileCollectionSnapshotter = new MinimalFileSetSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileResolver, fileSystem);
 
         OutputFilesCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter, stringInterner);
@@ -154,8 +148,7 @@ public class TaskExecutionServices {
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess,
             new CacheBackedFileSnapshotRepository(cacheAccess,
                 serializerRegistry.build(FileCollectionSnapshot.class),
-                new RandomLongIdGenerator(),
-                treeSnapshotRepository),
+                new RandomLongIdGenerator()),
             stringInterner);
 
         return new ShortCircuitTaskArtifactStateRepository(
