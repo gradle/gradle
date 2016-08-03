@@ -17,8 +17,6 @@ apply plugin: 'javascript-base'
 
 configurations {
     reports
-    h2
-    runtime.extendsFrom(h2)
 }
 
 repositories {
@@ -36,7 +34,7 @@ dependencies {
     compile 'com.googlecode.jatl:jatl:0.2.2'
     compile 'org.eclipse.jgit:org.eclipse.jgit:3.0.0.201306101825-r'
 
-    h2 'com.h2database:h2:1.4.192'
+    runtime 'com.h2database:h2:1.4.192'
 }
 
 task reportResources(type: Copy) {
@@ -51,8 +49,3 @@ useTestFixtures(project: ':toolingApi', sourceSet: 'main')
 useClassycle()
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"
-
-task h2Console(type: JavaExec) {
-    classpath = configurations.h2
-    main = "org.h2.tools.Console"
-}
