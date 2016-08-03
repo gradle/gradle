@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
@@ -26,7 +27,6 @@ import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -64,7 +64,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
             return emptySnapshot();
         }
 
-        final Map<String, IncrementalFileSnapshot> snapshots = new HashMap<String, IncrementalFileSnapshot>();
+        final Map<String, IncrementalFileSnapshot> snapshots = Maps.newLinkedHashMap();
 
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {

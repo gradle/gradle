@@ -17,7 +17,6 @@
 package org.gradle.testkit.runner.enduser
 
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
-import spock.lang.Ignore
 
 class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
@@ -90,8 +89,6 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         executedAndNotSkipped ':test'
     }
 
-    // LH TODO Fix failing test
-    @Ignore
     def "can use custom source set"() {
         when:
         file("src/test/groovy/Test.groovy").moveToDirectory(file("src/functionalTest/groovy"))
