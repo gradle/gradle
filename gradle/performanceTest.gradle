@@ -94,7 +94,7 @@ performanceTestTasks.all { PerformanceTest task ->
         // Some performance builds generate a lot of output,
         // that is buffered until the test finishes via GradleExecuter.
         if (System.getProperty('sun.arch.data.model').contains("64")) {
-            jvmArgs '-Xmx2g'
+            jvmArgs '-Xmx4g'
         } else {
             println "not increasing JVM heap size due to use of 32bit JVM"
         }
