@@ -37,8 +37,8 @@ task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
         useSnapshotVersions = true
     }
 
-    projects = 50
-    sourceFiles = 50
+    projects = 25
+    sourceFiles = 25
     subProjectTemplates = ['project-with-source', 'with-verbose-junit']
     templateArgs = [fullTestLogging: true, halfTestsFail: true]
 }
