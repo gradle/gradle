@@ -183,6 +183,10 @@ Input and output files registered via `TaskInputs.files()`, `TaskOutputs.dir()` 
         inputs.file "input.txt" withPropertyName "inputFile"
     }
 
+### Faster Dependency Resolution
+
+In Gradle 3.0, resolving already-downloaded external dependencies is 5-10% faster than previous versions.
+
 ### Improvements to the `eclipse-wtp` plugin
 
 Before Gradle 3.0, the `eclipse-wtp` plugin defined external dependencies for a Java project in the WTP component descriptor. This lead to the issues detailed in 
