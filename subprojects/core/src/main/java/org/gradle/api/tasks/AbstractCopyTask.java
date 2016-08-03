@@ -23,7 +23,6 @@ import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
@@ -97,9 +96,12 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     /**
      * Returns the source files for this task.
+     *
      * @return The source files. Never returns null.
      */
-    @InputFiles @SkipWhenEmpty @Optional
+    @InputFiles
+    @SkipWhenEmpty
+    @Optional
     public FileCollection getSource() {
         return rootSpec.buildRootResolver().getAllSource();
     }
@@ -182,6 +184,22 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    public AbstractCopyTask filesMatching(String[] patterns, Action<? super FileCopyDetails> action) {
+        getMainSpec().filesMatching(patterns, action);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask filesMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        getMainSpec().filesMatching(patterns, action);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public AbstractCopyTask filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
         getMainSpec().filesNotMatching(pattern, action);
         return this;
@@ -190,9 +208,25 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    public AbstractCopyTask filesNotMatching(String[] patterns, Action<? super FileCopyDetails> action) {
+        getMainSpec().filesNotMatching(patterns, action);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask filesNotMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        getMainSpec().filesNotMatching(patterns, action);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Deprecated
-    public AbstractCopyTask from(Object sourcePath, final Closure c) {
-        getMainSpec().from(sourcePath, new ClosureBackedAction<CopySpec>(c));
+    public AbstractCopyTask from(Object sourcePath, Closure c) {
+        getMainSpec().from(sourcePath, c);
         return this;
     }
 
@@ -345,7 +379,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     /**
      * {@inheritDoc}
-     * @param renamer
      */
     public AbstractCopyTask rename(Transformer<String, String> renamer) {
         getMainSpec().rename(renamer);
@@ -395,7 +428,6 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
 
     /**
      * {@inheritDoc}
-     * @param transformer
      */
     public AbstractCopyTask filter(Transformer<String, String> transformer) {
         getMainSpec().filter(transformer);
@@ -413,7 +445,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Optional @Input
+    @Optional
+    @Input
     public Integer getDirMode() {
         return getMainSpec().getDirMode();
     }
@@ -421,7 +454,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Optional @Input
+    @Optional
+    @Input
     public Integer getFileMode() {
         return getMainSpec().getFileMode();
     }

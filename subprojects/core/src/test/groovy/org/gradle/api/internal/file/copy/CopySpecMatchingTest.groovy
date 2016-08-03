@@ -20,10 +20,11 @@ import org.gradle.api.Action
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
-import org.gradle.internal.Actions
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.Actions
 import org.gradle.internal.reflect.DirectInstantiator
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class CopySpecMatchingTest extends Specification {
 
@@ -37,7 +38,7 @@ class CopySpecMatchingTest extends Specification {
         FileCopyDetails details1 = Mock()
         FileCopyDetails details2 = Mock()
 
-        details1.relativeSourcePath >>  RelativePath.parse(true, 'path/abc.txt')
+        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
         details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
 
         Action matchingAction = Mock()
@@ -51,6 +52,41 @@ class CopySpecMatchingTest extends Specification {
 
         then:
         1 * matchingAction.execute(details1)
+        0 * matchingAction.execute(details2)
+    }
+
+    @Unroll
+    def "canMatchFilesWithMultiplePatterns as #patterns.class"() {
+        given:
+
+        FileCopyDetails details1 = Mock()
+        FileCopyDetails details2 = Mock()
+        FileCopyDetails details3 = Mock()
+
+        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
+        details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
+        details3.relativeSourcePath >> RelativePath.parse(true, 'path/cde.txt')
+
+        Action matchingAction = Mock()
+
+        when:
+        copySpec.filesMatching(patterns, matchingAction)
+        copySpec.copyActions.each { copyAction ->
+            copyAction.execute(details1)
+            copyAction.execute(details2)
+            copyAction.execute(details3)
+        }
+
+        then:
+        1 * matchingAction.execute(details1)
+        0 * matchingAction.execute(details2)
+        1 * matchingAction.execute(details3)
+
+        where:
+        patterns << [
+            ["**/a*", "**/c*"] as String[],
+            ["**/a*", "**/c*"] as Iterable<String>
+        ]
     }
 
 
@@ -60,7 +96,7 @@ class CopySpecMatchingTest extends Specification {
         FileCopyDetails details1 = Mock()
         FileCopyDetails details2 = Mock()
 
-        details1.relativeSourcePath >>  RelativePath.parse(true, 'path/abc.txt')
+        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
         details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
 
         Action matchingAction = Mock()
@@ -73,15 +109,52 @@ class CopySpecMatchingTest extends Specification {
         }
 
         then:
+        0 * matchingAction.execute(details1)
         1 * matchingAction.execute(details2)
+    }
+
+    @Unroll
+    def "canNotMatchFilesWithMultiplePatterns as #patterns.class"() {
+        given:
+
+        FileCopyDetails details1 = Mock()
+        FileCopyDetails details2 = Mock()
+        FileCopyDetails details3 = Mock()
+
+        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
+        details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
+        details3.relativeSourcePath >> RelativePath.parse(true, 'path/cde.txt')
+
+        Action matchingAction = Mock()
+
+        when:
+        copySpec.filesNotMatching(patterns, matchingAction)
+        copySpec.copyActions.each { copyAction ->
+            copyAction.execute(details1)
+            copyAction.execute(details2)
+            copyAction.execute(details3)
+        }
+
+        then:
+        0 * matchingAction.execute(details1)
+        1 * matchingAction.execute(details2)
+        0 * matchingAction.execute(details3)
+
+        where:
+        patterns << [
+            ["**/a*", "**/c*"] as String[],
+            ["**/a*", "**/c*"] as Iterable<String>
+        ]
     }
 
     def matchingSpecInherited() {
         given:
         DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.resolver(), DirectInstantiator.INSTANCE)
         CopySpecResolver childResolver = childSpec.buildResolverRelativeToParent(copySpec.buildRootResolver())
+
         when:
         copySpec.filesMatching("**/*.java", Actions.doNothing())
+
         then:
         1 == childResolver.allCopyActions.size()
         childResolver.allCopyActions[0] instanceof MatchingCopyAction
