@@ -51,7 +51,7 @@ public class ExecuteBuild extends BuildCommandOnly {
 
     protected void doBuild(final DaemonCommandExecution execution, Build build) {
         LOGGER.debug(DaemonMessages.STARTED_BUILD);
-        LOGGER.info("Executing build with daemon context: {}", execution.getDaemonContext());
+        LOGGER.debug("Executing build with daemon context: {}", execution.getDaemonContext());
         runningStats.buildStarted();
         try {
             BuildCancellationToken cancellationToken = execution.getDaemonStateControl().getCancellationToken();

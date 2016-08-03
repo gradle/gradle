@@ -137,7 +137,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         synchronized (lock) {
             theData = this.cache.getIfPresent(cacheId);
             if (theData != null) {
-                LOG.info("In-memory cache of {}: Size{{}}, {}", cacheId, theData.size() , theData.stats());
+                LOG.debug("In-memory cache of {}: Size{{}}, {}", cacheId, theData.size() , theData.stats());
             } else {
                 Integer maxSize = CACHE_CAPS.get(cacheName);
                 assert maxSize != null : "Unknown cache.";
@@ -174,7 +174,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         public void onRemoval(RemovalNotification<Object, Object> notification) {
             if (notification.getCause() == RemovalCause.SIZE) {
                 if (evictionCounter % logInterval == 0) {
-                    logger.log(LogLevel.INFO, "Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
+                    logger.log(LogLevel.DEBUG, "Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
                 }
                 evictionCounter++;
             }
