@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.events.ProgressListener;
@@ -411,20 +411,20 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return ((CancellationTokenInternal) cancellationToken).getToken();
     }
 
-    public List<GradleParticipantBuild> getBuilds() {
+    public List<IncludedBuild> getBuilds() {
         if (!(parameters instanceof CompositeConnectionParameters)) {
             return null;
         }
-        List<GradleParticipantBuild> unorderedBuilds = ((CompositeConnectionParameters) parameters).getBuilds();
+        List<IncludedBuild> unorderedBuilds = ((CompositeConnectionParameters) parameters).getBuilds();
         if (buildIdentifier == null) {
             return unorderedBuilds;
         }
 
-        GradleParticipantBuild targetBuild = null;
-        List<GradleParticipantBuild> builds = new LinkedList<GradleParticipantBuild>();
-        for (GradleParticipantBuild build : unorderedBuilds) {
-            BuildIdentifier participantIdentifier = new DefaultBuildIdentifier(build.getProjectDir());
-            if (participantIdentifier.equals(buildIdentifier)) {
+        IncludedBuild targetBuild = null;
+        List<IncludedBuild> builds = new LinkedList<IncludedBuild>();
+        for (IncludedBuild build : unorderedBuilds) {
+            BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getProjectDir());
+            if (buildIdentifier.equals(this.buildIdentifier)) {
                 targetBuild = build;
             } else {
                 builds.add(build);

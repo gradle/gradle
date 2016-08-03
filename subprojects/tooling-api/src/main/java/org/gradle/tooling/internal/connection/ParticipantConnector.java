@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.connection;
 
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.BuildIdentifier;
@@ -27,13 +27,13 @@ import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 class ParticipantConnector {
-    private final GradleParticipantBuild build;
+    private final IncludedBuild build;
     private final File gradleUserHome;
     private final File daemonBaseDir;
     private final Integer daemonMaxIdleTimeValue;
     private final TimeUnit daemonMaxIdleTimeUnits;
 
-    public ParticipantConnector(GradleParticipantBuild build, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
+    public ParticipantConnector(IncludedBuild build, File gradleUserHome, File daemonBaseDir, Integer daemonMaxIdleTimeValue, TimeUnit daemonMaxIdleTimeUnits) {
         this.build = build;
         this.gradleUserHome = gradleUserHome;
         this.daemonBaseDir = daemonBaseDir;

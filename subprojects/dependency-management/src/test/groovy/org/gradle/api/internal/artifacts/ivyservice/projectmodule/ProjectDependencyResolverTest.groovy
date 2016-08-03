@@ -29,7 +29,8 @@ import spock.lang.Specification
 
 class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, [])
+    final ProjectArtifactBuilder artifactBuilder = Mock()
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, artifactBuilder)
 
     def "resolves project dependency"() {
         setup:

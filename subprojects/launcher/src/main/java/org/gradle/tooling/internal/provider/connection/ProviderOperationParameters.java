@@ -17,7 +17,7 @@ package org.gradle.tooling.internal.provider.connection;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalLaunchable;
 import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
@@ -168,5 +168,5 @@ public interface ProviderOperationParameters {
      * @since 2.14-rc-1
      */
     @Nullable
-    List<GradleParticipantBuild> getBuilds(List<GradleParticipantBuild> defaultBuilds);
+    List<IncludedBuild> getBuilds(List<IncludedBuild> defaultBuilds);
 }

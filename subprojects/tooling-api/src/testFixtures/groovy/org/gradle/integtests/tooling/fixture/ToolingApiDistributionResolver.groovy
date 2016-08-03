@@ -20,6 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -89,6 +90,8 @@ class ToolingApiDistributionResolver {
         stopLater.add(topLevelRegistry)
         stopLater.add(globalRegistry)
 
+        // Need to load this early, since listener is registered in construction: otherwise it will be loaded in the middle of resolve
+        projectRegistry.get(GradleLauncherFactory)
         return projectRegistry.get(DependencyResolutionServices)
     }
 

@@ -40,6 +40,7 @@ public class CommandLineConverterTestSupport {
     protected Map<String, String> expectedSystemProperties = new HashMap<String, String>();
     protected Map<String, String> expectedProjectProperties = new HashMap<String, String>();
     protected List<File> expectedInitScripts = new ArrayList<File>();
+    protected List<File> expectedParticipants = new ArrayList<File>();
     protected boolean expectedSearchUpwards = true;
     protected boolean expectedDryRun;
     protected ShowStacktrace expectedShowStackTrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
@@ -95,5 +96,6 @@ public class CommandLineConverterTestSupport {
         assertEquals(expectedConfigureOnDemand, startParameter.isConfigureOnDemand());
         assertEquals(expectedMaxWorkersCount, startParameter.getMaxWorkerCount());
         assertEquals(expectedContinuous, startParameter.isContinuous());
+        assertEquals(expectedParticipants, startParameter.getIncludedBuilds());
     }
 }

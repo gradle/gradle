@@ -26,11 +26,12 @@ import org.gradle.tooling.model.HasGradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 import org.gradle.tooling.model.gradle.GradleBuild
+import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 
 class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecification {
     static projectScopedModels = [GradleProject, EclipseProject, HierarchicalEclipseProject]
-    static buildScopedModels = [GradleBuild, IdeaProject]
+    static buildScopedModels = [GradleBuild, IdeaProject, BasicIdeaProject]
     TestFile rootSingle
     TestFile rootMulti
 

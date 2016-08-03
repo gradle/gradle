@@ -20,16 +20,19 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.initialization.ReportedException;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
+public class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildableCompositeBuildContext.class);
+
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
 
     @Override
@@ -49,7 +52,7 @@ class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
         return projectMetadata.keySet();
     }
 
-    public Collection<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
+    public Collection<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
         RegisteredProject registeredProject = projectMetadata.get(project);
         return registeredProject == null ? null : registeredProject.artifacts;
      }
@@ -57,12 +60,13 @@ class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     public void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory) {
         if (projectMetadata.containsKey(project)) {
             String failureMessage = String.format("Project path '%s' is not unique in composite.", project.getProjectPath());
-            throw new ReportedException(new GradleException(failureMessage));
+            throw new GradleException(failureMessage);
         }
+        LOGGER.info("Registering project '" + project + "' in composite build. Will substitute for module '" + localComponentMetadata.getId().getModule() + "'.");
         projectMetadata.put(project, new RegisteredProject(localComponentMetadata, projectDirectory));
     }
 
-    public void registerAdditionalArtifact(ProjectComponentIdentifier project, ComponentArtifactMetadata artifact) {
+    public void registerAdditionalArtifact(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifact) {
         getRegisteredProject(project).artifacts.add(artifact);
     }
 
@@ -77,7 +81,7 @@ class DefaultBuildableCompositeBuildContext implements CompositeBuildContext {
     private static class RegisteredProject {
         LocalComponentMetadata metaData;
         File projectDirectory;
-        Collection<ComponentArtifactMetadata> artifacts = Lists.newArrayList();
+        Collection<LocalComponentArtifactMetadata> artifacts = Lists.newArrayList();
 
         public RegisteredProject(LocalComponentMetadata metaData, File projectDirectory) {
             this.metaData = metaData;

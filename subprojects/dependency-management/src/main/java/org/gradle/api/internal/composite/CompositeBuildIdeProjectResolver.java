@@ -20,8 +20,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
@@ -65,25 +64,24 @@ public class CompositeBuildIdeProjectResolver {
         return discovered;
     }
 
-    public ComponentArtifactMetadata resolveArtifact(ProjectComponentIdentifier project, String type) {
+    public LocalComponentArtifactMetadata resolveArtifact(ProjectComponentIdentifier project, String type) {
         return findArtifact(project, type);
     }
 
     // TODO:DAZ Push this into dependency resolution, getting artifact by type
     public File resolveArtifactFile(ProjectComponentIdentifier project, String type) {
-        ComponentArtifactMetadata artifactMetaData = resolveArtifact(project, type);
+        LocalComponentArtifactMetadata artifactMetaData = resolveArtifact(project, type);
         if (artifactMetaData == null) {
             return null;
         }
         for (ProjectArtifactBuilder artifactBuilder : artifactBuilders) {
             artifactBuilder.build(artifactMetaData);
         }
-        // TODO:DAZ Introduce a `LocalComponentArtifactMetaData` interface.
-        return ((LocalComponentArtifactIdentifier) artifactMetaData).getFile();
+        return artifactMetaData.getFile();
     }
 
-    private ComponentArtifactMetadata findArtifact(ProjectComponentIdentifier project, String type) {
-        for (ComponentArtifactMetadata artifactMetaData : registry.getAdditionalArtifacts(project)) {
+    private LocalComponentArtifactMetadata findArtifact(ProjectComponentIdentifier project, String type) {
+        for (LocalComponentArtifactMetadata artifactMetaData : registry.getAdditionalArtifacts(project)) {
             if (artifactMetaData.getName().getType().equals(type)) {
                 return artifactMetaData;
             }

@@ -45,7 +45,8 @@ public class IdeProjectDependency extends IdeDependency {
     }
 
     private static String determineNameFromPath(String projectPath) {
-        // TODO:DAZ This is less than ideal (currently only used for composite build dependencies)
+        // This is less than ideal (currently only used for composite build dependencies)
+        // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
         if (projectPath.endsWith("::")) {
             return projectPath.substring(0, projectPath.length() - 2);
         }

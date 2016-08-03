@@ -43,7 +43,7 @@ import java.util.SortedSet;
  * Provides a dependency substitution rule for composite build,
  * that substitutes a project within the composite with any dependency with a matching ModuleIdentifier.
  */
-class CompositeBuildDependencySubstitutions implements DependencySubstitutionRuleProvider {
+public class CompositeBuildDependencySubstitutions implements DependencySubstitutionRuleProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeBuildDependencySubstitutions.class);
 
     private final CompositeBuildContext projectComponentRegistry;
@@ -55,6 +55,9 @@ class CompositeBuildDependencySubstitutions implements DependencySubstitutionRul
     @Override
     public Action<DependencySubstitution> getDependencySubstitutionRule() {
         final ReplacementProjects replacementProjects = new ReplacementProjects(projectComponentRegistry);
+        if (replacementProjects.isEmpty()) {
+            return DependencySubstitutionRuleProvider.NO_OP;
+        }
 
         return new Action<DependencySubstitution>() {
             @Override
@@ -81,9 +84,12 @@ class CompositeBuildDependencySubstitutions implements DependencySubstitutionRul
         public ReplacementProjects(CompositeBuildContext context) {
             for (ProjectComponentIdentifier projectId : context.getAllProjects()) {
                 ModuleIdentifier module = context.getComponent(projectId).getId().getModule();
-                LOGGER.info("Registering project '" + projectId + "' in composite build. Will substitute for module '" + module + "'.");
                 replacements.put(module, projectId);
             }
+        }
+
+        public boolean isEmpty() {
+            return replacements.isEmpty();
         }
 
         public ProjectComponentIdentifier getReplacementFor(ModuleComponentSelector selector) {

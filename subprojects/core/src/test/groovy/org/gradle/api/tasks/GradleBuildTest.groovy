@@ -52,7 +52,7 @@ public class GradleBuildTest extends Specification {
         task.build()
 
         then:
-        1 * launcherFactory.newInstance(task.startParameter) >> launcher
+        1 * launcherFactory.nestedInstance(task.startParameter) >> launcher
         1 * launcher.run() >> resultMock
         1 * launcher.stop()
         0 * _._
@@ -68,7 +68,7 @@ public class GradleBuildTest extends Specification {
         then:
         RuntimeException e = thrown()
         e == failure
-        1 * launcherFactory.newInstance(task.startParameter) >> launcher
+        1 * launcherFactory.nestedInstance(task.startParameter) >> launcher
         1 * launcher.run() >> { throw failure }
         1 * launcher.stop()
         0 * _._

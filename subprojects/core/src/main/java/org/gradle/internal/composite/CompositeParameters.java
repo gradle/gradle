@@ -20,18 +20,18 @@ import java.io.Serializable;
 import java.util.List;
 
 public class CompositeParameters implements Serializable {
-    private final List<GradleParticipantBuild> builds;
+    private final List<IncludedBuild> builds;
 
-    public CompositeParameters(List<GradleParticipantBuild> builds) {
+    public CompositeParameters(List<IncludedBuild> builds) {
         this.builds = builds;
     }
 
-    public GradleParticipantBuild getTargetBuild() {
+    public IncludedBuild getTargetBuild() {
         // TODO:DAZ This is not a great contract: should be explicit
         return builds.get(0);
     }
 
-    public List<GradleParticipantBuild> getBuilds() {
+    public List<IncludedBuild> getBuilds() {
         return builds;
     }
 }

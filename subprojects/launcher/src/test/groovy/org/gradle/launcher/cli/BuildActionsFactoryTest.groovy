@@ -36,7 +36,7 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
-import org.gradle.launcher.exec.ContinuousBuildActionExecuter
+import org.gradle.tooling.internal.provider.ContinuousBuildActionExecuter
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
