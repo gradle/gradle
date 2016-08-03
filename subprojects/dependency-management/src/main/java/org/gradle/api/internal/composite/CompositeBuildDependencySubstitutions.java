@@ -23,6 +23,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -30,6 +31,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRuleProvider;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.util.CollectionUtils;
@@ -82,9 +84,8 @@ public class CompositeBuildDependencySubstitutions implements DependencySubstitu
         private final Multimap<ModuleIdentifier, ProjectComponentIdentifier> replacements = ArrayListMultimap.create();
 
         public ReplacementProjects(CompositeBuildContext context) {
-            for (ProjectComponentIdentifier projectId : context.getAllProjects()) {
-                ModuleIdentifier module = context.getComponent(projectId).getId().getModule();
-                replacements.put(module, projectId);
+            for (Pair<ModuleVersionIdentifier, ProjectComponentIdentifier> pair : context.getProvidedComponents()) {
+                replacements.put(pair.getLeft().getModule(), pair.getRight());
             }
         }
 

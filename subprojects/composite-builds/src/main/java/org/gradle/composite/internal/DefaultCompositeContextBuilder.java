@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.composite.CompositeContextBuildActionRunner;
+import org.gradle.api.internal.composite.CompositeSubstitutionsActionRunner;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
@@ -51,7 +52,6 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private void doAddToCompositeContext(Iterable<IncludedBuild> includedBuilds, BuildRequestContext requestContext) {
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeBuildContext context = sharedServices.get(CompositeBuildContext.class);
-        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context);
 
         for (IncludedBuild build : includedBuilds) {
             StartParameter includedBuildStartParam = buildStartParam.newBuild();
@@ -59,12 +59,22 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
             includedBuildStartParam.setSearchUpwards(false);
             includedBuildStartParam.setConfigureOnDemand(false);
 
-            LOGGER.lifecycle("[composite-build] Configuring build: " + build.getProjectDir());
-
-            GradleLauncher gradleLauncher = createGradleLauncher(includedBuildStartParam, requestContext, gradleLauncherFactory);
-
-            contextBuilder.run(new GradleBuildController(gradleLauncher));
+            configureBuildToDetermineSubstitutions(requestContext, gradleLauncherFactory, context, includedBuildStartParam);
+            configureBuildToRegisterDependencyMetadata(requestContext, gradleLauncherFactory, context, includedBuildStartParam);
         }
+    }
+
+    private void configureBuildToDetermineSubstitutions(BuildRequestContext requestContext, GradleLauncherFactory gradleLauncherFactory, CompositeBuildContext context, StartParameter includedBuildStartParam) {
+        GradleLauncher gradleLauncher = createGradleLauncher(includedBuildStartParam, requestContext, gradleLauncherFactory);
+        LOGGER.lifecycle("[composite-build] Configuring build: " + includedBuildStartParam.getProjectDir());
+         CompositeSubstitutionsActionRunner contextBuilder = new CompositeSubstitutionsActionRunner(context);
+        contextBuilder.run(new GradleBuildController(gradleLauncher));
+    }
+
+    private void configureBuildToRegisterDependencyMetadata(BuildRequestContext requestContext, GradleLauncherFactory gradleLauncherFactory, CompositeBuildContext context, StartParameter includedBuildStartParam) {
+        GradleLauncher gradleLauncher = createGradleLauncher(includedBuildStartParam, requestContext, gradleLauncherFactory);
+        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context);
+        contextBuilder.run(new GradleBuildController(gradleLauncher));
     }
 
     private GradleLauncher createGradleLauncher(StartParameter participantStartParam, BuildRequestContext requestContext, GradleLauncherFactory gradleLauncherFactory) {

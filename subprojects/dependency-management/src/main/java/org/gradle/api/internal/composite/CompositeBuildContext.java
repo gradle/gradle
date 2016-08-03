@@ -16,18 +16,23 @@
 
 package org.gradle.api.internal.composite;
 
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentProvider;
+import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
 
 public interface CompositeBuildContext extends LocalComponentProvider {
     File getProjectDirectory(ProjectComponentIdentifier project);
     Set<ProjectComponentIdentifier> getAllProjects();
+    Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getProvidedComponents();
 
+    void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project);
     void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory);
     void registerAdditionalArtifact(ProjectComponentIdentifier componentIdentifier, LocalComponentArtifactMetadata compositeCopy);
 }
