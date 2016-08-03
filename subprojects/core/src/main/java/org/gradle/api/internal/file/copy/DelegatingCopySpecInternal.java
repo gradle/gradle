@@ -68,8 +68,16 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().filesMatching(pattern, action);
     }
 
+    public CopySpec filesMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        return getDelegateCopySpec().filesMatching(patterns, action);
+    }
+
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
         return getDelegateCopySpec().filesNotMatching(pattern, action);
+    }
+
+    public CopySpec filesNotMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        return getDelegateCopySpec().filesNotMatching(patterns, action);
     }
 
     public CopySpec with(CopySpec... sourceSpecs) {

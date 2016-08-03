@@ -265,6 +265,24 @@ public class DefaultCopySpecTest {
     }
 
     @Test
+    public void testMatchingWithMultiplePatternsCreatesAppropriateAction() {
+        spec.filesMatching(["root/**/a*", "special/*", "banner.txt"], Actions.doNothing())
+        assertEquals(1, spec.copyActions.size())
+        assertThat(spec.copyActions[0], instanceOf(MatchingCopyAction))
+
+        Spec<RelativePath> matchSpec = spec.copyActions[0].matchSpec
+        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/folder/abc')))
+        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/abc')))
+        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/special/foo')))
+        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'banner.txt')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/abc')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/not/root/abc')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/bbc')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/bbc')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/not/special/bar')))
+    }
+
+    @Test
     public void testNotMatchingCreatesAppropriateAction() {
         // no path component starting with an a
         spec.filesNotMatching("**/a*/**", Actions.doNothing())
@@ -277,6 +295,25 @@ public class DefaultCopySpecTest {
         assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'archives/folder/file')))
         assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/archives/file')))
         assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder/abc')))
+    }
+
+    @Test
+    public void testNotMatchingWithMultiplePatternsCreatesAppropriateAction() {
+        // no path component starting with an a or c
+        spec.filesNotMatching(["**/a*/**", "**/c*/**"], Actions.doNothing())
+        assertEquals(1, spec.copyActions.size())
+        assertThat(spec.copyActions[0], instanceOf(MatchingCopyAction))
+
+        Spec<RelativePath> matchSpec = spec.copyActions[0].matchSpec
+        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder1/folder2')))
+        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'modules/project1')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'archives/folder/file')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/archives/file')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder/abc')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'collections/folder/file')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/collections/file')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder/cde')))
+        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'archives/collections/file')))
     }
 
     @Test

@@ -33,7 +33,6 @@ class CopySpecMatchingTest extends Specification {
 
     def canMatchFiles() {
         given:
-
         FileCopyDetails details1 = Mock()
         FileCopyDetails details2 = Mock()
 
@@ -54,10 +53,34 @@ class CopySpecMatchingTest extends Specification {
         0 * matchingAction.execute(details2)
     }
 
+    def canMatchFilesWithMultiplePatterns() {
+        given:
+        FileCopyDetails details1 = Mock()
+        FileCopyDetails details2 = Mock()
+        FileCopyDetails details3 = Mock()
+
+        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
+        details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
+        details3.relativeSourcePath >> RelativePath.parse(true, 'path/cde.txt')
+
+        Action matchingAction = Mock()
+
+        when:
+        copySpec.filesMatching(["**/a*", "**/c*"], matchingAction)
+        copySpec.copyActions.each { copyAction ->
+            copyAction.execute(details1)
+            copyAction.execute(details2)
+            copyAction.execute(details3)
+        }
+
+        then:
+        1 * matchingAction.execute(details1)
+        0 * matchingAction.execute(details2)
+        1 * matchingAction.execute(details3)
+    }
 
     def canNotMatchFiles() {
         given:
-
         FileCopyDetails details1 = Mock()
         FileCopyDetails details2 = Mock()
 
@@ -76,6 +99,32 @@ class CopySpecMatchingTest extends Specification {
         then:
         0 * matchingAction.execute(details1)
         1 * matchingAction.execute(details2)
+    }
+
+    def canNotMatchFilesWithMultiplePatterns() {
+        given:
+        FileCopyDetails details1 = Mock()
+        FileCopyDetails details2 = Mock()
+        FileCopyDetails details3 = Mock()
+
+        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
+        details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
+        details3.relativeSourcePath >> RelativePath.parse(true, 'path/cde.txt')
+
+        Action matchingAction = Mock()
+
+        when:
+        copySpec.filesNotMatching(["**/a*", "**/c*"], matchingAction)
+        copySpec.copyActions.each { copyAction ->
+            copyAction.execute(details1)
+            copyAction.execute(details2)
+            copyAction.execute(details3)
+        }
+
+        then:
+        0 * matchingAction.execute(details1)
+        1 * matchingAction.execute(details2)
+        0 * matchingAction.execute(details3)
     }
 
     def matchingSpecInherited() {

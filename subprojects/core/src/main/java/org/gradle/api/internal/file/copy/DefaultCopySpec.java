@@ -196,9 +196,27 @@ public class DefaultCopySpec implements CopySpecInternal {
         return eachFile(new MatchingCopyAction(matcher, action));
     }
 
+    public CopySpec filesMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        List<Spec> matchers = new ArrayList<Spec>();
+        for (String pattern : patterns) {
+            matchers.add(PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern));
+        }
+        Spec unionMatcher = Specs.union(matchers.toArray(new Spec[matchers.size()]));
+        return eachFile(new MatchingCopyAction(unionMatcher, action));
+    }
+
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
         Spec<RelativePath> matcher = PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern);
         return eachFile(new MatchingCopyAction(Specs.<RelativePath>negate(matcher), action));
+    }
+
+    public CopySpec filesNotMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        List<Spec> matchers = new ArrayList<Spec>();
+        for (String pattern : patterns) {
+            matchers.add(PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern));
+        }
+        Spec unionMatcher = Specs.union(matchers.toArray(new Spec[matchers.size()]));
+        return eachFile(new MatchingCopyAction(Specs.<RelativePath>negate(unionMatcher), action));
     }
 
     public CopySpec include(String... includes) {
