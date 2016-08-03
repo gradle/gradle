@@ -82,12 +82,23 @@ task prepareSamples {
     description = "Generates all sample projects for automated performance tests"
 }
 
+ext.performanceReportTasks = tasks.withType(PerformanceReport)
+
+task performanceReport(type: PerformanceReport) {
+    classpath = sourceSets.performanceTest.runtimeClasspath
+    resultStoreClass = "org.gradle.performance.results.AllResultsStore"
+    reportDir = new File(buildDir, "performance-tests/report")
+    outputs.upToDateWhen { false }
+}
+
 ext.performanceTestTasks = tasks.withType(PerformanceTest)
 
 performanceTestTasks.all { PerformanceTest task ->
     testClassesDir = sourceSets.performanceTest.output.classesDir
     classpath = sourceSets.performanceTest.runtimeClasspath
     dependsOn( prepareSamples, { rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
+    finalizedBy performanceReport
+
     maxParallelForks = 1
 
     doFirst {
@@ -144,15 +155,6 @@ configure([performanceTest, performanceExperiments]) {
     if (project.hasProperty('performanceTest.verbose')) {
         testLogging.showStandardStreams = true
     }
-}
-
-ext.performanceReportTasks = tasks.withType(PerformanceReport)
-
-task performanceReport(type: PerformanceReport) {
-    classpath = sourceSets.performanceTest.runtimeClasspath
-    resultStoreClass = "org.gradle.performance.results.AllResultsStore"
-    reportDir = new File(buildDir, "performance-tests/report")
-    outputs.upToDateWhen { false }
 }
 
 def withPerformanceDb = {
