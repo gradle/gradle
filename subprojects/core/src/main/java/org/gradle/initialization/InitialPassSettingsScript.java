@@ -17,8 +17,11 @@ package org.gradle.initialization;
 
 import groovy.lang.Closure;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
+import org.gradle.internal.metaobject.CompositeDynamicObject;
+import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
@@ -30,9 +33,12 @@ import org.gradle.util.ConfigureUtil;
 /**
  * Endows a {@link SettingsScript} with methods which can only be used when
  * processing top-level blocks on the initial pass through a script. Restricts usage of
- * APIs that would yield confusing results at that stage.
+ * APIs that would yield confusing results at that stage. For backwards compatibility reasons,
+ * this restriciton was not added for the `initscript` block.
  */
 public abstract class InitialPassSettingsScript extends SettingsScript {
+    private boolean inPluginRepositoriesBlock;
+
     private PluginRepositoriesSpec getPluginRepositorySpec() {
         Instantiator instantiator = __scriptServices.get(Instantiator.class);
         PluginRepositoryFactory pluginRepositoryFactory = __scriptServices.get(PluginRepositoryFactory.class);
@@ -42,14 +48,20 @@ public abstract class InitialPassSettingsScript extends SettingsScript {
     }
 
     public void pluginRepositories(Closure config) {
-        ConfigureUtil.configure(config, getPluginRepositorySpec());
+        try {
+            inPluginRepositoriesBlock = true;
+            ConfigureUtil.configure(config, getPluginRepositorySpec());
+        } finally {
+            inPluginRepositoriesBlock = false;
+        }
     }
 
-    /*
-     * Only allow accessing properties, not the whole `Settings` API
-     */
     @Override
-    protected DynamicObject asDynamicObject(Object target) {
-        return new ExtraPropertiesDynamicObjectAdapter(Settings.class, ((ExtensibleDynamicObject) super.asDynamicObject(target)).getDynamicProperties());
+    protected DynamicObject getDynamicTarget() {
+        if (inPluginRepositoriesBlock) {
+            return new ExtraPropertiesDynamicObjectAdapter(Settings.class, ((ExtensibleDynamicObject) super.getDynamicTarget()).getDynamicProperties());
+        } else {
+            return super.getDynamicTarget();
+        }
     }
 }
