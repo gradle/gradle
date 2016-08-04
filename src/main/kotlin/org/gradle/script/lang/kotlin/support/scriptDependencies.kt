@@ -42,8 +42,7 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
         override val classpath: Iterable<File>,
         override val imports: Iterable<String>,
         override val sources: Iterable<File>,
-        val hash: ByteArray)
-    : KotlinScriptExternalDependencies
+        val hash: ByteArray) : KotlinScriptExternalDependencies
 
     @Deprecated("drop it as soon as compatibility with kotlin 1.1-M01 is no longer needed")
     override fun resolve(script: ScriptContents,
@@ -102,9 +101,9 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
     private fun KotlinBuildScriptModel.getDependencies(gradleInstallation: File, hash: ByteArray): KotlinScriptExternalDependencies {
         val gradleScriptKotlinJar = classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
         return makeDependencies(
-                classPath = classPath,
-                sources = gradleScriptKotlinJar + sourceRootsOf(gradleInstallation),
-                hash = hash)
+            classPath = classPath,
+            sources = gradleScriptKotlinJar + sourceRootsOf(gradleInstallation),
+            hash = hash)
     }
 
     /**
@@ -116,7 +115,6 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
     private fun buildSrcRootsOf(projectRoot: File): Collection<File> =
         subDirsOf(File(projectRoot, "buildSrc/src/main"))
 
-
     private fun sourceRootsOf(gradleInstallation: File): Collection<File> =
         subDirsOf(File(gradleInstallation, "src"))
 
@@ -127,7 +125,7 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
             emptyList()
 
     private fun makeDependencies(classPath: Iterable<File>, sources: Iterable<File> = emptyList(), hash: ByteArray = ByteArray(0)) =
-            DepsWithBuldscriptSectionHash(classPath, implicitImports, sources, hash)
+        DepsWithBuldscriptSectionHash(classPath, implicitImports, sources, hash)
 
     private fun getBuildscriptSectionHash(script: ScriptContents, environment: Map<String, Any?>): ByteArray {
         val hash = with(MessageDigest.getInstance("MD5")) {
@@ -169,11 +167,11 @@ fun retrieveKotlinBuildScriptModelFrom(projectActionExecutor: ((ProjectConnectio
 private val modelSpecificJvmOptions = listOf("-D${KotlinScriptPluginFactory.modeSystemPropertyName}=${KotlinScriptPluginFactory.classPathMode}")
 
 private fun ProjectConnection.kotlinBuildScriptModel(javaHome: File?, jvmOptions: List<String>?): KotlinBuildScriptModel? =
-        model(KotlinBuildScriptModel::class.java)?.run {
-            javaHome?.let { setJavaHome(it) }
-            setJvmArguments((jvmOptions ?: emptyList()) + modelSpecificJvmOptions)
-            get()
-        }
+    model(KotlinBuildScriptModel::class.java)?.run {
+        setJavaHome(javaHome)
+        setJvmArguments((jvmOptions ?: emptyList()) + modelSpecificJvmOptions)
+        get()
+    }
 
 fun connectorFor(projectDir: File, gradleInstallation: File): GradleConnector =
     GradleConnector.newConnector().forProjectDirectory(projectDir).useInstallation(gradleInstallation)
