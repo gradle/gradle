@@ -185,7 +185,7 @@ Input and output files registered via `TaskInputs.files()`, `TaskOutputs.dir()` 
 
 ### Faster Dependency Resolution
 
-In Gradle 3.0, resolving already-downloaded external dependencies is 5-10% faster than previous versions.
+In Gradle 3.0, resolving already-downloaded external dependencies is 5-10% faster than previous versions. Much of the time savings can be attributed to switching from caching the metadata about dependencies as XML to a binary format which is much quicker to serialize and deserialize.
 
 ### Improvements to the `eclipse-wtp` plugin
 
