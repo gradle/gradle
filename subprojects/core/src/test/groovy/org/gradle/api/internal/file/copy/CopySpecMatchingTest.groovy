@@ -33,11 +33,8 @@ class CopySpecMatchingTest extends Specification {
 
     def canMatchFiles() {
         given:
-        FileCopyDetails details1 = Mock()
-        FileCopyDetails details2 = Mock()
-
-        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
-        details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
+        FileCopyDetails details1 = details('path/abc.txt')
+        FileCopyDetails details2 = details('path/bcd.txt')
 
         Action matchingAction = Mock()
 
@@ -55,13 +52,9 @@ class CopySpecMatchingTest extends Specification {
 
     def canMatchFilesWithMultiplePatterns() {
         given:
-        FileCopyDetails details1 = Mock()
-        FileCopyDetails details2 = Mock()
-        FileCopyDetails details3 = Mock()
-
-        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
-        details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
-        details3.relativeSourcePath >> RelativePath.parse(true, 'path/cde.txt')
+        FileCopyDetails details1 = details('path/abc.txt')
+        FileCopyDetails details2 = details('path/bcd.txt')
+        FileCopyDetails details3 = details('path/cde.txt')
 
         Action matchingAction = Mock()
 
@@ -79,13 +72,26 @@ class CopySpecMatchingTest extends Specification {
         1 * matchingAction.execute(details3)
     }
 
+    def canMatchFilesWithNoPattern() {
+        given:
+        FileCopyDetails details = details('path/abc.txt');
+
+        Action matchingAction = Mock()
+
+        when:
+        copySpec.filesMatching([], matchingAction)
+        copySpec.copyActions.each { copyAction ->
+            copyAction.execute(details)
+        }
+
+        then:
+        1 * matchingAction.execute(details)
+    }
+
     def canNotMatchFiles() {
         given:
-        FileCopyDetails details1 = Mock()
-        FileCopyDetails details2 = Mock()
-
-        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
-        details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
+        FileCopyDetails details1 = details('path/abc.txt');
+        FileCopyDetails details2 = details('path/bcd.txt');
 
         Action matchingAction = Mock()
 
@@ -103,13 +109,9 @@ class CopySpecMatchingTest extends Specification {
 
     def canNotMatchFilesWithMultiplePatterns() {
         given:
-        FileCopyDetails details1 = Mock()
-        FileCopyDetails details2 = Mock()
-        FileCopyDetails details3 = Mock()
-
-        details1.relativeSourcePath >> RelativePath.parse(true, 'path/abc.txt')
-        details2.relativeSourcePath >> RelativePath.parse(true, 'path/bcd.txt')
-        details3.relativeSourcePath >> RelativePath.parse(true, 'path/cde.txt')
+        FileCopyDetails details1 = details('path/abc.txt');
+        FileCopyDetails details2 = details('path/bcd.txt');
+        FileCopyDetails details3 = details('path/cde.txt');
 
         Action matchingAction = Mock()
 
@@ -127,6 +129,22 @@ class CopySpecMatchingTest extends Specification {
         0 * matchingAction.execute(details3)
     }
 
+    def canNotMatchFilesWithNoPattern() {
+        given:
+        FileCopyDetails details = details('path/abc.txt');
+
+        Action matchingAction = Mock()
+
+        when:
+        copySpec.filesNotMatching([], matchingAction)
+        copySpec.copyActions.each { copyAction ->
+            copyAction.execute(details)
+        }
+
+        then:
+        0 * matchingAction.execute(details)
+    }
+
     def matchingSpecInherited() {
         given:
         DefaultCopySpec childSpec = new DefaultCopySpec(TestFiles.resolver(), DirectInstantiator.INSTANCE)
@@ -138,5 +156,11 @@ class CopySpecMatchingTest extends Specification {
         then:
         1 == childResolver.allCopyActions.size()
         childResolver.allCopyActions[0] instanceof MatchingCopyAction
+    }
+
+    private FileCopyDetails details(String file) {
+        FileCopyDetails details = Mock()
+        details.relativeSourcePath >> RelativePath.parse(true, file)
+        details
     }
 }
