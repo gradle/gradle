@@ -32,6 +32,7 @@ import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.Git
 import org.gradle.performance.fixture.InvocationSpec
 import org.gradle.performance.fixture.OperationTimer
+import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
 import org.gradle.performance.measure.Amount
@@ -56,7 +57,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     protected final static UnderDevelopmentGradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
 
     static def resultStore = ResultsStoreHelper.maybeUseResultStore { new CrossVersionResultsStore() }
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
 
     protected ToolingApiExperimentSpec experimentSpec

@@ -34,7 +34,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     private static final DataReporter<CrossBuildPerformanceResults> RESULT_STORE = ResultsStoreHelper.maybeUseResultStore { new CrossBuildResultsStore() }
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
 
     CrossBuildPerformanceTestRunner runner = new CrossBuildPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), RESULT_STORE) {
         @Override

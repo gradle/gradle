@@ -34,7 +34,7 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
     private static final DataReporter<GradleVsMavenBuildPerformanceResults> RESULT_STORE = ResultsStoreHelper.maybeUseResultStore { new GradleVsMavenBuildResultsStore() }
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
 
     GradleVsMavenPerformanceTestRunner runner = new GradleVsMavenPerformanceTestRunner(
         tmpDir, new GradleVsMavenBuildExperimentRunner(new GradleSessionProvider(tmpDir), TestFiles.execActionFactory()), RESULT_STORE) {

@@ -22,6 +22,7 @@ import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.CrossVersionResultsStore
@@ -35,7 +36,7 @@ import spock.lang.Specification
 class AbstractCrossVersionPerformanceTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
     static def resultStore = ResultsStoreHelper.maybeUseResultStore { new CrossVersionResultsStore() }
 
     final def runner = new CrossVersionPerformanceTestRunner(
