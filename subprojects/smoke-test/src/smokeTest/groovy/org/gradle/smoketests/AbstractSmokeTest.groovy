@@ -55,12 +55,12 @@ abstract class AbstractSmokeTest extends Specification {
         new File(path)
     }
 
-    public void useSample(String sampleDirectory) {
+    protected void useSample(String sampleDirectory) {
         def smokeTestDirectory = new File(this.getClass().getResource(sampleDirectory).toURI())
         FileUtils.copyDirectory(smokeTestDirectory, testProjectDir.root)
     }
 
-    public void replaceVariablesInBuildFile(Map binding) {
+    protected void replaceVariablesInBuildFile(Map binding) {
         String text = buildFile.text
         binding.each { String var, String value ->
             text = text.replaceAll("\\\$${var}".toString(), value)
