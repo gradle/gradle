@@ -44,6 +44,7 @@ import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.test.fixtures.file.TestDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GFileUtils
@@ -142,7 +143,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             try {
                 List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
                 [*baselines, 'current'].each { String version ->
-                    copyTemplateTo(projectDir, experimentSpec.workingDirectory)
+                    def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
                     if ('current' != version) {
@@ -157,7 +158,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     tapiClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {
                     }
                     def tapiClazz = tapiClassLoader.loadClass(ToolingApi.name)
-                    def toolingApi = tapiClazz.newInstance(dist, experimentSpec.workingDirectory)
+                    def toolingApi = tapiClazz.newInstance(dist, workingDirProvider)
                     assert toolingApi != ToolingApi
                     warmup(toolingApi)
                     println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
@@ -177,7 +178,17 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir) {
             GFileUtils.cleanDirectory(workingDir)
             GFileUtils.copyDirectory(templateDir, workingDir)
+            return new TestDirectoryProvider() {
+                @Override
+                TestFile getTestDirectory() {
+                    workingDir
+                }
 
+                @Override
+                void suppressCleanup() {
+
+                }
+            }
         }
 
         private void measure(CrossVersionPerformanceResults results, toolingApi, String version) {
