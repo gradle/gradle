@@ -23,7 +23,8 @@ import org.gradle.tooling.ProjectConnection
 import org.jetbrains.kotlin.script.*
 import java.io.File
 import java.security.MessageDigest
-import java.util.*
+
+import java.util.Arrays.equals
 import java.util.concurrent.Future
 
 class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, ScriptDependenciesResolver {
@@ -70,7 +71,7 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
         val hash = getBuildscriptSectionHash(script, environment)
 
         val res = when {
-            (previousDependencies as? DepsWithBuldscriptSectionHash)?.hash?.let { Arrays.equals(it, hash) } ?: false ->
+            sameBuildScriptSectionHashAs(previousDependencies, hash) ->
                 null
             projectRoot != null && gradleHome != null && gradleJavaHome != null ->
                 retrieveKotlinBuildScriptModelFrom(projectRoot, gradleHome, gradleJavaHome)
@@ -84,6 +85,12 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
 
         return res
     }
+
+    private fun sameBuildScriptSectionHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray) =
+        buildScriptSectionHashOf(previousDependencies)?.let { equals(it, hash) } ?: false
+
+    private fun buildScriptSectionHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
+        (previousDependencies as? DepsWithBuldscriptSectionHash)?.hash
 
     private fun KotlinBuildScriptModel.getDependencies(gradleInstallation: File, hash: ByteArray): KotlinScriptExternalDependencies {
         val gradleScriptKotlinJar = classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
