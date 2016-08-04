@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.Maps;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 
-import java.util.HashMap;
 import java.util.Map;
 
 class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnapshotImpl> {
@@ -35,7 +35,7 @@ class DefaultFileSnapshotterSerializer implements Serializer<FileCollectionSnaps
 
     public FileCollectionSnapshotImpl read(Decoder decoder) throws Exception {
         TaskFilePropertyCompareType compareType = TaskFilePropertyCompareType.values()[decoder.readSmallInt()];
-        Map<String, IncrementalFileSnapshot> snapshots = new HashMap<String, IncrementalFileSnapshot>();
+        Map<String, IncrementalFileSnapshot> snapshots = Maps.newLinkedHashMap();
         int snapshotsCount = decoder.readSmallInt();
         for (int i = 0; i < snapshotsCount; i++) {
             String key = stringInterner.intern(decoder.readString());
