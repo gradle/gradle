@@ -182,8 +182,24 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
+    public AbstractCopyTask filesMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        getMainSpec().filesMatching(patterns, action);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public AbstractCopyTask filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
         getMainSpec().filesNotMatching(pattern, action);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask filesNotMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        getMainSpec().filesNotMatching(patterns, action);
         return this;
     }
 
