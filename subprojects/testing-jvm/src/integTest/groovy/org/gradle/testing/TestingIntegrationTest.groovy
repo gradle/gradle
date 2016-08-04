@@ -358,4 +358,64 @@ class TestingIntegrationTest extends AbstractIntegrationSpec {
             assertTestCount(1, 0, 0)
         }
     }
+
+    def "tests are re-executed when set of candidate classes change"() {
+        given:
+        buildFile << """
+            apply plugin:'java'
+            repositories {
+                mavenCentral()
+            }
+            dependencies {
+                testCompile 'junit:junit:4.12'
+            }
+            test {
+                testLogging {
+                    events "passed", "skipped", "failed"
+                }
+            }
+        """
+
+        and:
+        file("src/test/java/FirstTest.java") << """
+            import org.junit.*;
+            public class FirstTest {
+                @Test public void test() {}
+            }
+        """
+
+        file("src/test/java/SecondTest.java") << """
+            import org.junit.*;
+            public class SecondTest {
+                @Test public void test() {}
+            }
+        """
+
+        when:
+        run "test"
+        then:
+        nonSkippedTasks.contains ":test"
+        output.contains("FirstTest > test PASSED")
+        output.contains("SecondTest > test PASSED")
+
+        when:
+        run "test"
+        then:
+        skippedTasks.contains ":test"
+
+        when:
+        buildFile << """
+        test {
+            filter {
+                includeTestsMatching "First*"
+            }
+        }
+        """
+        then:
+        run "test"
+        then:
+        nonSkippedTasks.contains ":test"
+        output.contains("FirstTest > test PASSED")
+        !output.contains("SecondTest > test PASSED")
+    }
 }
