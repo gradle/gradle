@@ -36,6 +36,8 @@ import java.security.MessageDigest
 import java.util.Arrays.equals
 import java.util.concurrent.Future
 
+typealias Environment = Map<String, Any?>
+
 class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, ScriptDependenciesResolver {
 
     class DepsWithBuldscriptSectionHash(
@@ -46,18 +48,18 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
 
     @Deprecated("drop it as soon as compatibility with kotlin 1.1-M01 is no longer needed")
     override fun resolve(script: ScriptContents,
-                         environment: Map<String, Any?>?,
+                         environment: Environment?,
                          previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? =
         resolveImpl(script, environment, previousDependencies)
 
     override fun resolve(script: ScriptContents,
-                         environment: Map<String, Any?>?,
+                         environment: Environment?,
                          report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
                          previousDependencies: KotlinScriptExternalDependencies?): Future<KotlinScriptExternalDependencies?> =
         resolveImpl(script, environment, previousDependencies).asFuture()
 
     private fun resolveImpl(script: ScriptContents,
-                            environment: Map<String, Any?>?,
+                            environment: Environment?,
                             previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? {
         if (environment == null)
             return previousDependencies
