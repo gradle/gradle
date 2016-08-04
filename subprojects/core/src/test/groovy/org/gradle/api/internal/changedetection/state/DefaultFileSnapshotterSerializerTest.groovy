@@ -39,4 +39,16 @@ class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
         out.snapshots['2'] instanceof MissingFileSnapshot
         ((FileHashSnapshot) out.snapshots['3']).hash == hash
     }
+
+    def "should retain order in serialization"() {
+        when:
+        def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
+        FileCollectionSnapshotImpl out = serialize(new FileCollectionSnapshotImpl([
+            "3": DirSnapshot.getInstance(),
+            "2": MissingFileSnapshot.getInstance(),
+            "1": new FileHashSnapshot(hash)], TaskFilePropertyCompareType.ORDERED), serializer)
+
+        then:
+        out.snapshots.keySet() as List == ['3', '2', '1']
+    }
 }
