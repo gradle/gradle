@@ -21,7 +21,7 @@ import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class GrettySmokeSpec extends AbstractSmokeSpec {
+class GrettySmokeTest extends AbstractSmokeTest {
     @Rule
     public ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 

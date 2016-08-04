@@ -21,7 +21,7 @@ import org.junit.Rule
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
-class ThirdPartyPluginsSmokeSpec extends AbstractSmokeSpec {
+class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Rule final ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 

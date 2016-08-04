@@ -18,7 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.testkit.runner.TaskOutcome
 
-class JavascriptPluginsSmokeSpec extends AbstractSmokeSpec {
+class JavascriptPluginsSmokeTest extends AbstractSmokeTest {
 
     def 'js plugin'() {
         given:

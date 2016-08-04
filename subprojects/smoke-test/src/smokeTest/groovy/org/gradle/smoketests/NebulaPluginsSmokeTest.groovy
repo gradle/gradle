@@ -18,7 +18,7 @@ package org.gradle.smoketests
 
 import org.junit.Assume
 
-class NebulaPluginsSmokeSpec extends AbstractSmokeSpec {
+class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
     def 'nebula recommender plugin'() {
         when:

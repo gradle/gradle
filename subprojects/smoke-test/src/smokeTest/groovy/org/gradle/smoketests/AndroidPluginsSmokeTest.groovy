@@ -21,7 +21,7 @@ import org.gradle.testkit.runner.TaskOutcome
 /**
  * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
  */
-class AndroidPluginsSmokeSpec extends AbstractSmokeSpec {
+class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
     def "android application plugin"() {
         given:
