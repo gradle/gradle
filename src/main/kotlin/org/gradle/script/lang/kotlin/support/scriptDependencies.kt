@@ -42,15 +42,23 @@ interface KotlinBuildScriptModelProvider {
     fun modelFor(environment: Environment): KotlinBuildScriptModel?
 }
 
+interface SourcePathProvider {
+    fun sourcePathFor(model: KotlinBuildScriptModel, environment: Environment): Collection<File>
+}
+
+typealias ScriptSectionTokensProvider = (CharSequence, String) -> Sequence<CharSequence>
+
 class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, ScriptDependenciesResolver {
 
     var modelProvider: KotlinBuildScriptModelProvider = DefaultKotlinBuildScriptModelProvider
 
-    class DepsWithBuldscriptSectionHash(
+    var sourcePathProvider: SourcePathProvider = DefaultSourcePathProvider
+
+    class DepsWithBuildscriptSectionHash(
         override val classpath: Iterable<File>,
         override val imports: Iterable<String>,
         override val sources: Iterable<File>,
-        val hash: ByteArray) : KotlinScriptExternalDependencies
+        val hash: ByteArray?) : KotlinScriptExternalDependencies
 
     @Deprecated("drop it as soon as compatibility with kotlin 1.1-M01 is no longer needed")
     override fun resolve(script: ScriptContents,
@@ -78,10 +86,10 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
         // IDEA content assist path
         val hash = getBuildscriptSectionHash(script, environment)
         return when {
-            sameBuildScriptSectionHashAs(previousDependencies, hash) ->
+            hash != null && sameBuildScriptSectionHashAs(previousDependencies, hash) ->
                 null
             else ->
-               modelFor(environment)?.getDependencies(environment, hash)
+                modelFor(environment)?.getDependencies(environment, hash)
         } ?: previousDependencies
     }
 
@@ -92,54 +100,36 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
         buildScriptSectionHashOf(previousDependencies)?.let { equals(it, hash) } ?: false
 
     private fun buildScriptSectionHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
-        (previousDependencies as? DepsWithBuldscriptSectionHash)?.hash
+        (previousDependencies as? DepsWithBuildscriptSectionHash)?.hash
 
-    private fun KotlinBuildScriptModel.getDependencies(environment: Environment, hash: ByteArray): KotlinScriptExternalDependencies {
-        val gradleScriptKotlinJar = classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
-        val projectBuildSrcRoots = buildSrcRootsOf(environment.projectRoot!!)
-        val gradleSourceRoots = sourceRootsOf(environment.gradleHome!!)
-        return makeDependencies(
+    private fun KotlinBuildScriptModel.getDependencies(environment: Environment, hash: ByteArray?): KotlinScriptExternalDependencies =
+        makeDependencies(
             classPath = classPath,
-            sources = gradleScriptKotlinJar + projectBuildSrcRoots + gradleSourceRoots,
+            sources = sourcePathFor(environment),
             hash = hash)
-    }
 
-    /**
-     * Returns all conventional source directories under buildSrc if any.
-     *
-     * This won't work for buildSrc projects with a custom source directory layout
-     * but should account for the majority of cases and it's cheap.
-     */
-    private fun buildSrcRootsOf(projectRoot: File): Collection<File> =
-        subDirsOf(File(projectRoot, "buildSrc/src/main"))
+    private fun KotlinBuildScriptModel.sourcePathFor(environment: Environment) =
+        sourcePathProvider.sourcePathFor(this, environment)
 
-    private fun sourceRootsOf(gradleInstallation: File): Collection<File> =
-        subDirsOf(File(gradleInstallation, "src"))
+    private fun makeDependencies(classPath: Iterable<File>, sources: Iterable<File> = emptyList(), hash: ByteArray? = null) =
+        DepsWithBuildscriptSectionHash(classPath, implicitImports, sources, hash)
 
-    private fun subDirsOf(dir: File): Collection<File> =
-        if (dir.isDirectory)
-            dir.listFiles().filter { it.isDirectory }
-        else
-            emptyList()
-
-    private fun makeDependencies(classPath: Iterable<File>, sources: Iterable<File> = emptyList(), hash: ByteArray = ByteArray(0)) =
-        DepsWithBuldscriptSectionHash(classPath, implicitImports, sources, hash)
-
-    private fun getBuildscriptSectionHash(script: ScriptContents, environment: Map<String, Any?>): ByteArray {
-        val hash = with(MessageDigest.getInstance("MD5")) {
-            val text = script.text ?: script.file?.readText()
-            text?.let { text ->
-                @Suppress("unchecked_cast")
-                val getScriptSectionTokens = environment["getScriptSectionTokens"] as? (CharSequence, String) -> Sequence<CharSequence>
-                getScriptSectionTokens?.let {
-                    it(text, "buildscript").forEach {
-                        update(it.toString().toByteArray())
+    private fun getBuildscriptSectionHash(script: ScriptContents, environment: Environment): ByteArray? {
+        @Suppress("unchecked_cast")
+        val getScriptSectionTokens = environment["getScriptSectionTokens"] as? ScriptSectionTokensProvider
+        return when {
+            getScriptSectionTokens != null ->
+                with(MessageDigest.getInstance("MD5")) {
+                    val text = script.text ?: script.file?.readText()
+                    text?.let { text ->
+                        getScriptSectionTokens(text, "buildscript").forEach {
+                            update(it.toString().toByteArray())
+                        }
                     }
+                    digest()
                 }
-            }
-            digest()
+            else -> null
         }
-        return hash
     }
 
     companion object {
@@ -170,6 +160,34 @@ object DefaultKotlinBuildScriptModelProvider : KotlinBuildScriptModelProvider {
                 null
         }
     }
+}
+
+object DefaultSourcePathProvider : SourcePathProvider {
+
+    override fun sourcePathFor(model: KotlinBuildScriptModel, environment: Environment): Collection<File> {
+        val gradleScriptKotlinJar = model.classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
+        val projectBuildSrcRoots = buildSrcRootsOf(environment.projectRoot!!)
+        val gradleSourceRoots = sourceRootsOf(environment.gradleHome!!)
+        return gradleScriptKotlinJar + projectBuildSrcRoots + gradleSourceRoots
+    }
+
+    /**
+     * Returns all conventional source directories under buildSrc if any.
+     *
+     * This won't work for buildSrc projects with a custom source directory layout
+     * but should account for the majority of cases and it's cheap.
+     */
+    private fun buildSrcRootsOf(projectRoot: File): Collection<File> =
+        subDirsOf(File(projectRoot, "buildSrc/src/main"))
+
+    private fun sourceRootsOf(gradleInstallation: File): Collection<File> =
+        subDirsOf(File(gradleInstallation, "src"))
+
+    private fun subDirsOf(dir: File): Collection<File> =
+        if (dir.isDirectory)
+            dir.listFiles().filter { it.isDirectory }
+        else
+            emptyList()
 }
 
 private val Environment.projectRoot: File?
