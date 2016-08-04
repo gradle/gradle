@@ -47,7 +47,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             text("$.ajax({ url:'" + testHistory.getId() + ".json\', dataType: 'json',");
             text("  success: function(data) {\n");
             text("    var labels = data.labels;\n");
-            text("    var options = { series: { points: { show: true }, lines: { show: true } }, legend: { noColumns: 0, margin: 1 }, grid: { hoverable: true, clickable: true }, xaxis: { tickFormatter: function(index, value) { return labels[index]; } }, selection: { mode: 'x' } };\n");
+            text("    var options = { series: { points: { show: true }, lines: { show: true } }, legend: { noColumns: 0, margin: 1 }, grid: { hoverable: true, clickable: true }, xaxis: { tickFormatter: function(index, value) { return labels[index]; } }, yaxis: { min: 0 }, selection: { mode: 'xy' } };\n");
             text("    var executionChart = $.plot('#executionTimeChart', data.totalTime, options);\n");
             text("    var heapChart = $.plot('#heapUsageChart', data.heapUsage, options);\n");
             text("    var zoomFunction = function(plot, reset) {\n");
@@ -57,6 +57,11 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             text("          var opts = axis.options;\n");
             text("          opts.min = reset ? null : ranges.xaxis.from;\n");
             text("          opts.max = reset ? null : ranges.xaxis.to;\n");
+            text("        });\n");
+            text("        $.each(plot.getYAxes(), function(_, axis) {\n");
+            text("          var opts = axis.options;\n");
+            text("          opts.min = reset ? 0 : ranges.yaxis.from;\n");
+            text("          opts.max = reset ? null : ranges.yaxis.to;\n");
             text("        });\n");
             text("        plot.setupGrid();\n");
             text("        plot.draw();\n");
