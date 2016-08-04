@@ -353,11 +353,6 @@
                 for the next time the task is executed.
             </para>
             <para>
-                Gradle understands if a file property (e.g. one holding a Java classpath) is order-sensitive. When comparing
-                the snapshot of such a property, even a change in the order of the files will result in the task becoming
-                out-of-date.
-            </para>
-            <para>
                 Gradle also considers the <emphasis>​code</emphasis> of the task as part of the inputs to the task. When a task,
                 its actions, or its dependencies change between executions, Gradle considers the task as out-of-date.
             </para>
