@@ -38,7 +38,13 @@ import java.util.concurrent.Future
 
 typealias Environment = Map<String, Any?>
 
+interface KotlinBuildScriptModelProvider {
+    fun modelFor(environment: Environment): KotlinBuildScriptModel?
+}
+
 class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, ScriptDependenciesResolver {
+
+    var modelProvider: KotlinBuildScriptModelProvider = DefaultKotlinBuildScriptModelProvider
 
     class DepsWithBuldscriptSectionHash(
         override val classpath: Iterable<File>,
@@ -70,29 +76,17 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
             return makeDependencies(classPath.asFiles)
 
         // IDEA content assist path
-        val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let(::File)
-        @Suppress("unchecked_cast")
-        val gradleJvmOptions = environment["gradleJvmOptions"] as? List<String>
-        @Suppress("unchecked_cast")
-        val gradleWithConnection = environment["gradleWithConnection"] as? ((ProjectConnection) -> Unit) -> Unit
-        val gradleHome = environment["gradleHome"] as? File
-        val projectRoot = environment["projectRoot"] as? File
-
         val hash = getBuildscriptSectionHash(script, environment)
-
         return when {
             sameBuildScriptSectionHashAs(previousDependencies, hash) ->
                 null
-            projectRoot != null && gradleHome != null && gradleJavaHome != null ->
-                retrieveKotlinBuildScriptModelFrom(projectRoot, gradleHome, gradleJavaHome)
-                    ?.getDependencies(gradleHome, hash)
-            gradleWithConnection != null && gradleHome != null ->
-                retrieveKotlinBuildScriptModelFrom(gradleWithConnection, gradleJavaHome, gradleJvmOptions)
-                    ?.getDependencies(gradleHome, hash)
             else ->
-                null
+               modelFor(environment)?.getDependencies(environment, hash)
         } ?: previousDependencies
     }
+
+    private fun modelFor(environment: Environment) =
+        modelProvider.modelFor(environment)
 
     private fun sameBuildScriptSectionHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray) =
         buildScriptSectionHashOf(previousDependencies)?.let { equals(it, hash) } ?: false
@@ -100,11 +94,13 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
     private fun buildScriptSectionHashOf(previousDependencies: KotlinScriptExternalDependencies?) =
         (previousDependencies as? DepsWithBuldscriptSectionHash)?.hash
 
-    private fun KotlinBuildScriptModel.getDependencies(gradleInstallation: File, hash: ByteArray): KotlinScriptExternalDependencies {
+    private fun KotlinBuildScriptModel.getDependencies(environment: Environment, hash: ByteArray): KotlinScriptExternalDependencies {
         val gradleScriptKotlinJar = classPath.filter { it.name.startsWith("gradle-script-kotlin-") }
+        val projectBuildSrcRoots = buildSrcRootsOf(environment.projectRoot!!)
+        val gradleSourceRoots = sourceRootsOf(environment.gradleHome!!)
         return makeDependencies(
             classPath = classPath,
-            sources = gradleScriptKotlinJar + sourceRootsOf(gradleInstallation),
+            sources = gradleScriptKotlinJar + projectBuildSrcRoots + gradleSourceRoots,
             hash = hash)
     }
 
@@ -152,6 +148,35 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
             "org.gradle.script.lang.kotlin.*")
     }
 }
+
+object DefaultKotlinBuildScriptModelProvider : KotlinBuildScriptModelProvider {
+
+    override fun modelFor(environment: Environment): KotlinBuildScriptModel? {
+
+        val projectRoot = environment.projectRoot
+        val gradleHome = environment.gradleHome
+        val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let(::File)
+        if (projectRoot != null && gradleHome != null && gradleJavaHome != null)
+            return retrieveKotlinBuildScriptModelFrom(projectRoot, gradleHome, gradleJavaHome)
+
+        @Suppress("unchecked_cast")
+        val gradleJvmOptions = environment["gradleJvmOptions"] as? List<String>
+        @Suppress("unchecked_cast")
+        val gradleWithConnection = environment["gradleWithConnection"] as? ((ProjectConnection) -> Unit) -> Unit
+        return when {
+            gradleWithConnection != null && gradleHome != null ->
+                retrieveKotlinBuildScriptModelFrom(gradleWithConnection, gradleJavaHome, gradleJvmOptions)
+            else ->
+                null
+        }
+    }
+}
+
+private val Environment.projectRoot: File?
+    get() = this["projectRoot"] as? File
+
+private val Environment.gradleHome: File?
+    get() = this["gradleHome"] as? File
 
 fun retrieveKotlinBuildScriptModelFrom(projectDir: File, gradleInstallation: File, javaHome: File? = null, jvmOptions: List<String>? = null): KotlinBuildScriptModel? =
     withConnectionFrom(connectorFor(projectDir, gradleInstallation)) {
