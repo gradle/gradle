@@ -29,6 +29,7 @@ dependencies {
 
     testCompile(gradleTestKit())
     testCompile("junit:junit:4.12")
+    testCompile("com.nhaarman:mockito-kotlin:0.5.2")
 }
 
 tasks.withType<Jar> {
