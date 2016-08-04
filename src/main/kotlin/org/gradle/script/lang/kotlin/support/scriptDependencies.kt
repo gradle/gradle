@@ -46,22 +46,20 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
     : KotlinScriptExternalDependencies
 
     @Deprecated("drop it as soon as compatibility with kotlin 1.1-M01 is no longer needed")
-    override fun resolve(script: ScriptContents, environment: Map<String, Any?>?, previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? =
-        resolveImpl(script, environment, { s,m,p -> }, previousDependencies)
+    override fun resolve(script: ScriptContents,
+                         environment: Map<String, Any?>?,
+                         previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? =
+        resolveImpl(script, environment, previousDependencies)
 
     override fun resolve(script: ScriptContents,
                          environment: Map<String, Any?>?,
                          report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
-                         previousDependencies: KotlinScriptExternalDependencies?
-    ): Future<KotlinScriptExternalDependencies?> =
-        resolveImpl(script, environment, report, previousDependencies).asFuture()
+                         previousDependencies: KotlinScriptExternalDependencies?): Future<KotlinScriptExternalDependencies?> =
+        resolveImpl(script, environment, previousDependencies).asFuture()
 
     private fun resolveImpl(script: ScriptContents,
                             environment: Map<String, Any?>?,
-                            report: (ScriptDependenciesResolver.ReportSeverity, String, ScriptContents.Position?) -> Unit,
-                            previousDependencies: KotlinScriptExternalDependencies?
-    ): KotlinScriptExternalDependencies?
-    {
+                            previousDependencies: KotlinScriptExternalDependencies?): KotlinScriptExternalDependencies? {
         if (environment == null)
             return previousDependencies
 
