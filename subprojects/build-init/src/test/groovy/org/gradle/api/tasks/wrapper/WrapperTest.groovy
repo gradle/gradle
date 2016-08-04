@@ -137,7 +137,7 @@ public class WrapperTest extends AbstractTaskTest {
     def "check inputs"() {
         expect:
         wrapper.getInputs().getProperties().keySet() == WrapUtil.toSet(
-            "distributionBase", "distributionPath", "distributionUrl", "archiveBase", "archivePath", "gradleVersion")
+            "distributionBase", "distributionPath", "distributionUrl", "distributionType", "archiveBase", "archivePath", "gradleVersion")
     }
 
     def "execute with extant wrapper jar parent directory and extant wraper jar"() {
