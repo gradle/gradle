@@ -353,6 +353,11 @@
                 for the next time the task is executed.
             </para>
             <para>
+                Gradle understands if a file property (e.g. one holding a Java classpath) is order-sensitive. When comparing
+                the snapshot of such a property, even a change in the order of the files will result in the task becoming
+                out-of-date.
+            </para>
+            <para>
                 Note that if a task has an output directory specified, any files added to that directory since the last time it was executed
                 are ignored and will NOT cause the task to be out of date. This is so unrelated tasks may share an output directory without interfering with each other.
                 If this is not the behaviour you want for some reason, consider using <apilink class="org.gradle.api.tasks.TaskOutputs" method="upToDateWhen(groovy.lang.Closure)" />
