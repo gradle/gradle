@@ -71,8 +71,10 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
             return makeDependencies(classPath.asFiles)
 
         // IDEA content assist path
-        val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let { File(it) }
+        val gradleJavaHome = (environment["gradleJavaHome"] as? String)?.let(::File)
+        @Suppress("unchecked_cast")
         val gradleJvmOptions = environment["gradleJvmOptions"] as? List<String>
+        @Suppress("unchecked_cast")
         val gradleWithConnection = environment["gradleWithConnection"] as? ((ProjectConnection) -> Unit) -> Unit
         val gradleHome = environment["gradleHome"] as? File
         val projectRoot = environment["projectRoot"] as? File
@@ -135,8 +137,8 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
         val hash = with(MessageDigest.getInstance("MD5")) {
             val text = script.text ?: script.file?.readText()
             text?.let { text ->
+                @Suppress("unchecked_cast")
                 val getScriptSectionTokens = environment["getScriptSectionTokens"] as? (CharSequence, String) -> Sequence<CharSequence>
-
                 getScriptSectionTokens?.let {
                     it(text, "buildscript").forEach {
                         update(it.toString().toByteArray())
