@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.file.copy
 
 import org.apache.tools.ant.filters.HeadFilter
@@ -29,28 +30,21 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.Actions
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
 import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Shared
+import spock.lang.Specification
+import spock.lang.Unroll
 
 import java.nio.charset.Charset
 
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-
-@RunWith(JMock)
-public class DefaultCopySpecTest {
-
+class DefaultCopySpecTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
-    private TestFile baseFile = testDir.testDirectory
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
-    private final FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
-    private final Instantiator instantiator = DirectInstantiator.INSTANCE
+    @Shared
+    private FileResolver fileResolver = [resolve: { it as File }, getPatternSetFactory: { TestFiles.getPatternSetFactory() }] as FileResolver
+    @Shared
+    private Instantiator instantiator = DirectInstantiator.INSTANCE
     private final DefaultCopySpec spec = new DefaultCopySpec(fileResolver, instantiator)
 
     private List<String> getTestSourceFileNames() {
@@ -58,358 +52,370 @@ public class DefaultCopySpecTest {
     }
 
     private List<File> getAbsoluteTestSources() {
-        testSourceFileNames.collect { new File(baseFile, it) }
+        testSourceFileNames.collect { new File(testDir.testDirectory, it) }
     }
 
-    @Test
-    public void testAbsoluteFromList() {
-        List<File> sources = getAbsoluteTestSources();
-        spec.from(sources);
-        assertEquals([sources], spec.sourcePaths as List);
+    def "from List"() {
+        when:
+        spec.from(absoluteTestSources)
+
+        then:
+        spec.sourcePaths as List == [absoluteTestSources]
     }
 
-    @Test
-    public void testFromArray() {
-        List<File> sources = getAbsoluteTestSources();
-        spec.from(sources as File[]);
-        assertEquals(sources, spec.sourcePaths as List);
+    def "from Array"() {
+        when:
+        spec.from(absoluteTestSources as File[])
+
+        then:
+        spec.sourcePaths as List == absoluteTestSources
     }
 
-    @Test
-    public void testSourceWithClosure() {
-        CopySpec child = spec.from('source') {
-        }
+    def "from with Closure"() {
+        when:
+        CopySpec child = spec.from(sources) {}
 
-        assertThat(child, not(sameInstance(spec as CopySpec)))
-        assertEquals(['source'], unpackWrapper(child).sourcePaths as List);
+        then:
+        !child.is(spec)
+        unpackWrapper(child).sourcePaths as List == [sources]
+
+        where:
+        sources << ['source', ['source1', 'source2']]
     }
 
-    @Test
-    public void testMultipleSourcesWithClosure() {
-        CopySpec child = spec.from(['source1', 'source2']) {
-        }
-
-        assertThat(child, not(sameInstance(spec as CopySpec)))
-        assertEquals(['source1', 'source2'], unpackWrapper(child).sourcePaths.flatten() as List);
+    def "default destination path for root spec"() {
+        expect:
+        spec.buildRootResolver().destPath == relativeDirectory()
     }
 
-    @Test
-    public void testDefaultDestinationPathForRootSpec() {
-        assertThat(spec.buildRootResolver().destPath, equalTo(new RelativePath(false)))
+    def "into"() {
+        when:
+        spec.into destDir
+
+        then:
+        spec.buildRootResolver().destPath == relativeDirectory(*destPath)
+
+        where:
+        destDir              | destPath
+        'spec'               | ['spec']
+        '/'                  | [];
+        { -> 'spec' }        | ['spec'];
+        { -> return 'spec' } | ['spec']
     }
 
-    @Test
-    public void testInto() {
-        spec.into 'spec'
-        assertThat(spec.buildRootResolver().destPath, equalTo(new RelativePath(false, 'spec')))
-        spec.into '/'
-        assertThat(spec.buildRootResolver().destPath, equalTo(new RelativePath(false)))
-    }
-
-    @Test
-    public void testIntoWithAClosure() {
-        spec.into { 'spec' }
-        assertThat(spec.buildRootResolver().destPath, equalTo(new RelativePath(false, 'spec')))
-        spec.into { return { 'spec' } }
-        assertThat(spec.buildRootResolver().destPath, equalTo(new RelativePath(false, 'spec')))
-    }
-
-    @Test
-    public void testWithSpec() {
+    def 'with Spec'() {
+        given:
         DefaultCopySpec other1 = new DefaultCopySpec(fileResolver, instantiator)
         DefaultCopySpec other2 = new DefaultCopySpec(fileResolver, instantiator)
 
+        when:
         spec.with other1, other2
-        assertTrue(spec.sourcePaths.empty)
-        assertThat(spec.childSpecs.size(), equalTo(2))
+
+        then:
+        spec.sourcePaths.empty
+        spec.childSpecs.size() == 2
     }
 
-    @Test
-    public void testDestinationWithClosure() {
-        CopySpec child = spec.into('target') {
-        }
+    def 'into with Closure'() {
+        when:
+        CopySpec child = spec.into('target') {}
 
-        assertThat(child, not(sameInstance(spec as CopySpec)))
-        assertThat(unpackWrapper(child).buildRootResolver().destPath, equalTo(new RelativePath(false, 'target')))
+        then:
+        !child.is(spec)
+        unpackWrapper(child).buildRootResolver().destPath == relativeDirectory('target')
     }
 
-    @Test
-    public void testDestinationWithAction() {
+    def 'into with Action'() {
+        when:
         CopySpec child = spec.into('target', new Action<CopySpec>() {
             @Override
-            void execute(CopySpec copySpec) {
-            }
+            void execute(CopySpec copySpec) {}
         })
-        assertThat(child, not(sameInstance(spec as CopySpec)))
-        assertThat(unpackWrapper(child).buildRootResolver().destPath, equalTo(new RelativePath(false, 'target')))
+
+        then:
+        !child.is(spec)
+        unpackWrapper(child).buildRootResolver().destPath == relativeDirectory('target')
     }
 
-
-    @Test
-    public void testFilterWithClosure() {
+    def 'filter with Closure'() {
+        when:
         spec.filter { it.length() > 10 ? null : it }
-        assert spec.copyActions.size() == 1
+
+        then:
+        spec.copyActions.size() == 1
     }
 
-    @Test
-    public void testFilterWithFunction() {
+    def 'filter with Transformer'() {
+        when:
         spec.filter(new Transformer<String, String>() {
             @Override
             String transform(String input) {
                 input.length() > 10 ? null : input
             }
         })
-        assert spec.copyActions.size() == 1
+
+        then:
+        spec.copyActions.size() == 1
     }
 
-    @Test
-    public void testNoArgFilter() {
+    def 'no arg filter'() {
+        when:
         spec.filter(StripJavaComments)
-        assertThat(spec.copyActions.size(), equalTo(1))
+
+        then:
+        spec.copyActions.size() == 1
     }
 
-    @Test
-    public void testArgFilter() {
+    def 'arg filter'() {
+        when:
         spec.filter(HeadFilter, lines: 15, skip: 2)
-        assertThat(spec.copyActions.size(), equalTo(1))
+
+        then:
+        spec.copyActions.size() == 1
     }
 
-    @Test
-    public void testExpand() {
+    def 'expand'() {
+        when:
         spec.expand(version: '1.2', skip: 2)
-        assertThat(spec.copyActions.size(), equalTo(1))
+
+        then:
+        spec.copyActions.size() == 1
     }
 
-    @Test
-    public void testTwoFilters() {
+    def 'two filters'() {
+        when:
         spec.filter(StripJavaComments)
         spec.filter(HeadFilter, lines: 15, skip: 2)
 
-        assertThat(spec.copyActions.size(), equalTo(2))
+        then:
+        spec.copyActions.size() == 2
     }
 
-    @Test
-    public void testAddsStringNameTransformerToActions() {
-        spec.rename("regexp", "replacement")
+    def 'adds rename to actions'() {
+        when:
+        spec.rename(regexp, "replacement")
 
-        assertThat(spec.copyActions.size(), equalTo(1))
-        assertThat(spec.copyActions[0], instanceOf(RenamingCopyAction))
-        assertThat(spec.copyActions[0].transformer, instanceOf(RegExpNameMapper))
+        then:
+        spec.copyActions.size() == 1
+        def (copyAction) = spec.copyActions
+        copyAction instanceof RenamingCopyAction
+        copyAction.transformer instanceof RegExpNameMapper
+
+        where:
+        regexp << ["regexp", /regexp/]
     }
 
-    @Test
-    public void testAddsPatternNameTransformerToActions() {
-        spec.rename(/regexp/, "replacement")
-
-        assertThat(spec.copyActions.size(), equalTo(1))
-        assertThat(spec.copyActions[0], instanceOf(RenamingCopyAction))
-        assertThat(spec.copyActions[0].transformer, instanceOf(RegExpNameMapper))
-    }
-
-    @Test
-    public void testAddsClosureToActions() {
+    def 'adds rename Closure to actions'() {
+        when:
         spec.rename {}
 
-        assertThat(spec.copyActions.size(), equalTo(1))
-        assertThat(spec.copyActions[0], instanceOf(RenamingCopyAction))
+        then:
+        spec.copyActions.size() == 1
+        spec.copyActions[0] instanceof RenamingCopyAction
     }
 
-    @Test
-    public void testAddAction() {
-        def action = context.mock(Action)
+    def 'add action'() {
+        given:
+        Action<CopySpec> action = Mock()
+
+        when:
         spec.eachFile(action)
 
-        assertThat(spec.copyActions, equalTo([action]))
+        then:
+        spec.copyActions == [action]
     }
 
-    @Test
-    public void testAddActionAsClosure() {
-        def action = {}
-        spec.eachFile(action)
+    def 'add Closure as action'() {
+        when:
+        spec.eachFile {}
 
-        assertThat(spec.copyActions.size(), equalTo(1))
+        then:
+        spec.copyActions.size() == 1
     }
 
-
-    @Test
-    public void testHasNoSourceByDefault() {
-        assertFalse(spec.hasSource())
+    def 'has no source by default'() {
+        expect:
+        !spec.hasSource()
     }
 
-    @Test
-    public void testHasSourceWhenSpecHasSource() {
+    def 'has source when Spec has source'() {
+        when:
         spec.from 'source'
-        assertTrue(spec.hasSource())
+
+        then:
+        spec.hasSource()
     }
 
-    @Test
-    public void testHasSourceWhenChildSpecHasSource() {
+    def 'has source when child Spec has source'() {
+        when:
         spec.from('source') {}
-        assertTrue(spec.hasSource())
+
+        then:
+        spec.hasSource()
     }
 
+    def 'matching creates appropriate action'() {
+        when:
+        spec.filesMatching 'root/**/a*', Actions.doNothing()
 
-    @Test
-    public void testMatchingCreatesAppropriateAction() {
-        spec.filesMatching "root/**/a*", Actions.doNothing()
-        assertEquals(1, spec.copyActions.size())
-        assertThat(spec.copyActions[0], instanceOf(MatchingCopyAction))
+        then:
+        spec.copyActions.size() == 1
+        def (copyAction) = spec.copyActions
+        copyAction instanceof MatchingCopyAction
+        Spec<RelativePath> matchSpec = copyAction.matchSpec
 
-        Spec<RelativePath> matchSpec = spec.copyActions[0].matchSpec
-        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/folder/abc')))
-        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/abc')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/abc')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/not/root/abc')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/bbc')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/bbc')))
+        ['/root/folder/abc', '/root/abc'].each {
+            assert matchSpec.isSatisfiedBy(relativeFile(it))
+        }
+
+        ['/notRoot/abc', '/not/root/abc', 'root/bbc', 'notRoot/bbc'].each {
+            assert !matchSpec.isSatisfiedBy(relativeFile(it))
+        }
     }
 
-    @Test
-    public void testMatchingWithMultiplePatternsCreatesAppropriateAction() {
-        spec.filesMatching(["root/**/a*", "special/*", "banner.txt"], Actions.doNothing())
-        assertEquals(1, spec.copyActions.size())
-        assertThat(spec.copyActions[0], instanceOf(MatchingCopyAction))
+    def 'matching with multiple patterns creates appropriate action'() {
+        when:
+        spec.filesMatching(['root/**/a*', 'special/*', 'banner.txt'], Actions.doNothing())
 
-        Spec<RelativePath> matchSpec = spec.copyActions[0].matchSpec
-        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/folder/abc')))
-        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/abc')))
-        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/special/foo')))
-        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'banner.txt')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/abc')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/not/root/abc')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/root/bbc')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/notRoot/bbc')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, '/not/special/bar')))
+        then:
+        spec.copyActions.size() == 1
+        def (copyAction) = spec.copyActions
+        copyAction instanceof MatchingCopyAction
+        Spec<RelativePath> matchSpec = copyAction.matchSpec
+
+        ['/root/folder/abc', '/root/abc', 'special/foo', 'banner.txt'].each {
+            assert matchSpec.isSatisfiedBy(relativeFile(it))
+        }
+
+        ['/notRoot/abc', '/not/root/abc', 'root/bbc', 'notRoot/bbc', 'not/special/bar'].each {
+            assert !matchSpec.isSatisfiedBy(relativeFile(it))
+        }
     }
 
-    @Test
-    public void testNotMatchingCreatesAppropriateAction() {
-        // no path component starting with an a
-        spec.filesNotMatching("**/a*/**", Actions.doNothing())
-        assertEquals(1, spec.copyActions.size())
-        assertThat(spec.copyActions[0], instanceOf(MatchingCopyAction))
+    def 'notMatching creates appropriate action'() {
+        when:
+        spec.filesNotMatching('**/a*/**', Actions.doNothing())
 
-        Spec<RelativePath> matchSpec = spec.copyActions[0].matchSpec
-        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder1/folder2')))
-        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'modules/project1')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'archives/folder/file')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/archives/file')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder/abc')))
+        then:
+        spec.copyActions.size() == 1
+        def (copyAction) = spec.copyActions
+        copyAction instanceof MatchingCopyAction
+        Spec<RelativePath> matchSpec = copyAction.matchSpec
+
+        ['root/folder1/folder2', 'modules/project1'].each {
+            assert matchSpec.isSatisfiedBy(relativeFile(it))
+        }
+
+        ['archive/folder/file', 'root/archives/file', 'root/folder/abc'].each {
+            assert !matchSpec.isSatisfiedBy(relativeFile(it))
+        }
     }
 
-    @Test
-    public void testNotMatchingWithMultiplePatternsCreatesAppropriateAction() {
-        // no path component starting with an a or c
-        spec.filesNotMatching(["**/a*/**", "**/c*/**"], Actions.doNothing())
-        assertEquals(1, spec.copyActions.size())
-        assertThat(spec.copyActions[0], instanceOf(MatchingCopyAction))
+    def 'notMatching multiple Patterns creates appropriate action'() {
+        when:
+        spec.filesNotMatching(['**/a*/**', '**/c*/**'], Actions.doNothing())
 
-        Spec<RelativePath> matchSpec = spec.copyActions[0].matchSpec
-        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder1/folder2')))
-        assertTrue(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'modules/project1')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'archives/folder/file')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/archives/file')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder/abc')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'collections/folder/file')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/collections/file')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'root/folder/cde')))
-        assertFalse(matchSpec.isSatisfiedBy(RelativePath.parse(true, 'archives/collections/file')))
+        then:
+        spec.copyActions.size() == 1
+        def (copyAction) = spec.copyActions
+        copyAction instanceof MatchingCopyAction
+        Spec<RelativePath> matchSpec = copyAction.matchSpec
+
+        ['root/folder1/folder2', 'modules/project1'].each {
+            assert matchSpec.isSatisfiedBy(relativeFile(it))
+        }
+
+        ['archive/folder/file', 'root/archives/file', 'root/folder/abc',
+         'collections/folder/file', 'root/collections/file', 'archives/collections/file',
+         'root/folder/cde'].each {
+            assert !matchSpec.isSatisfiedBy(relativeFile(it))
+        }
     }
 
-    @Test
-    void "Add spec as first child"() {
+    def 'add Spec as first child'() {
+        when:
         DefaultCopySpec child1 = spec.addFirst()
-        assert child1 != null
-        assert spec.childSpecs.size() == 1
-        assert spec.childSpecs[0] == child1
+
+        then:
+        child1
+        spec.childSpecs == [child1]
+
+        when:
         DefaultCopySpec child2 = spec.addFirst()
-        assert child2 != null
-        assert spec.childSpecs.size() == 2
-        assert spec.childSpecs[0] == child2
-        assert spec.childSpecs[1] == child1
+
+        then:
+        child2
+        spec.childSpecs == [child2, child1]
     }
 
-    @Test
-    void "Add spec in between two child specs if given child exists"() {
+    def 'add Spec in between two child Specs if given child exists'() {
+        when:
         DefaultCopySpec child1 = spec.addChild()
         DefaultCopySpec child2 = spec.addChild()
-        assert child1 != null
-        assert child2 != null
-        assert spec.childSpecs.size() == 2
-        assert spec.childSpecs[0] == child1
-        assert spec.childSpecs[1] == child2
+
+        then:
+        child1
+        child2
+        spec.childSpecs == [child1, child2]
+
+        when:
         DefaultCopySpec child3 = spec.addChildBeforeSpec(child2)
-        assert child3 != null
-        assert spec.childSpecs.size() == 3
-        assert spec.childSpecs[0] == child1
-        assert spec.childSpecs[1] == child3
-        assert spec.childSpecs[2] == child2
+
+        then:
+        child3
+        spec.childSpecs == [child1, child3, child2]
     }
 
-    @Test
-    void "Append spec after two child specs if given child does not exist"() {
+    def 'append Spec after two child Specs if given child does not exist or is null'() {
+        when:
         DefaultCopySpec child1 = spec.addChild()
         DefaultCopySpec child2 = spec.addChild()
-        assert child1 != null
-        assert child2 != null
-        assert spec.childSpecs.size() == 2
-        assert spec.childSpecs[0] == child1
-        assert spec.childSpecs[1] == child2
-        DefaultCopySpec unknownChild = new DefaultCopySpec(fileResolver, instantiator)
-        DefaultCopySpec child3 = spec.addChildBeforeSpec(unknownChild)
-        assert child3 != null
-        assert spec.childSpecs.size() == 3
-        assert spec.childSpecs[0] == child1
-        assert spec.childSpecs[1] == child2
-        assert spec.childSpecs[2] == child3
+
+        then:
+        child1
+        child2
+        spec.childSpecs == [child1, child2]
+
+        when:
+        DefaultCopySpec child3 = spec.addChildBeforeSpec(notContainedChild)
+
+        then:
+        child3
+        spec.childSpecs == [child1, child2, child3]
+
+        where:
+        notContainedChild << [null, new DefaultCopySpec(fileResolver, instantiator)]
     }
 
-    @Test
-    void "Append spec after two child specs if given child is null"() {
-        DefaultCopySpec child1 = spec.addChild()
-        DefaultCopySpec child2 = spec.addChild()
-        assert child1 != null
-        assert child2 != null
-        assert spec.childSpecs.size() == 2
-        assert spec.childSpecs[0] == child1
-        assert spec.childSpecs[1] == child2
-        DefaultCopySpec child3 = spec.addChildBeforeSpec(null)
-        assert child3 != null
-        assert spec.childSpecs.size() == 3
-        assert spec.childSpecs[0] == child1
-        assert spec.childSpecs[1] == child2
-        assert spec.childSpecs[2] == child3
-    }
+    def 'properties accessed directly have defaults'() {
+        expect:
+        spec.caseSensitive
+        spec.includeEmptyDirs
+        spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
+        spec.fileMode == null
+        spec.dirMode == null
+        spec.filteringCharset == Charset.defaultCharset().name()
 
-    @Test
-    void "properties accessed directly have defaults"() {
-
-        assert spec.caseSensitive == true;
-        assert spec.getIncludeEmptyDirs() == true;
-        assert spec.duplicatesStrategy == DuplicatesStrategy.INCLUDE
-        assert spec.fileMode == null
-        assert spec.dirMode == null
-        assert spec.filteringCharset == Charset.defaultCharset().name()
-
+        when:
         spec.caseSensitive = false
         spec.includeEmptyDirs = false
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         spec.fileMode = 1
         spec.dirMode = 2
-        spec.filteringCharset = "UTF8"
+        spec.filteringCharset = 'UTF8'
 
-        assert spec.caseSensitive == false;
-        assert spec.getIncludeEmptyDirs() == false;
-        assert spec.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
-        assert spec.fileMode == 1
-        assert spec.dirMode == 2
-        assert spec.filteringCharset == "UTF8"
+        then:
+        !spec.caseSensitive
+        !spec.includeEmptyDirs
+        spec.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        spec.fileMode == 1
+        spec.dirMode == 2
+        spec.filteringCharset == 'UTF8'
     }
 
-    @Test
-    void "properties accessed directly on specs created using from inherit from parents"() {
-
-        //set non defaults on root
+    @Unroll
+    def 'properties accessed directly on specs created using #method inherit from parents'() {
+        when: //set non defaults on root
         spec.caseSensitive = false
         spec.includeEmptyDirs = false
         spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
@@ -417,55 +423,41 @@ public class DefaultCopySpecTest {
         spec.dirMode = 2
         spec.filteringCharset = "ISO_8859_1"
 
-        DefaultCopySpec child = unpackWrapper(spec.from("child") {
+        DefaultCopySpec child = unpackWrapper(spec."${method}"("child") {})
 
-        })
+        then: //children still have these non defaults
+        !child.caseSensitive;
+        !child.includeEmptyDirs;
+        child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
+        child.fileMode == 1
+        child.dirMode == 2
+        child.filteringCharset == "ISO_8859_1"
 
-        //children still have these non defaults
-        assert child.caseSensitive == false;
-        assert child.getIncludeEmptyDirs() == false;
-        assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
-        assert child.fileMode == 1
-        assert child.dirMode == 2
-        assert child.filteringCharset == "ISO_8859_1"
+        where:
+        method << ['from', 'into']
     }
 
-    @Test
-    void "properties accessed directly on specs created using into inherit from parents"() {
-
-        //set non defaults on root
-        spec.caseSensitive = false
-        spec.includeEmptyDirs = false
-        spec.duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        spec.fileMode = 1
-        spec.dirMode = 2
-        spec.filteringCharset = "ISO_8859_1"
-
-        DefaultCopySpec child = unpackWrapper(spec.into("child") {
-
-        })
-
-        //children still have these non defaults
-        assert child.caseSensitive == false;
-        assert child.getIncludeEmptyDirs() == false;
-        assert child.duplicatesStrategy == DuplicatesStrategy.EXCLUDE
-        assert child.fileMode == 1
-        assert child.dirMode == 2
-        assert child.filteringCharset == "ISO_8859_1"
-    }
-
-    @Test(expected = InvalidUserDataException.class)
-    void "setting the filteringCharset to null throws an exception"() {
+    @Unroll
+    def 'setting the filteringCharset to #invalidFilteringCharset throws an exception'(invalidFilteringCharset) {
+        when:
         spec.filteringCharset = null
+
+        then:
+        thrown(InvalidUserDataException)
+
+        where:
+        invalidFilteringCharset << [null, "THAT_SURE_IS_AN_INVALID_CHARSET"]
     }
 
-    @Test(expected = InvalidUserDataException.class)
-    void "setting the filteringCharset to an unsupported charset throws an exception"() {
-        spec.filteringCharset = "THAT_SURE_IS_AN_INVALID_CHARSET"
-    }
-
-    DefaultCopySpec unpackWrapper(CopySpec copySpec) {
+    private DefaultCopySpec unpackWrapper(CopySpec copySpec) {
         (copySpec as CopySpecWrapper).delegate as DefaultCopySpec
     }
-}
 
+    private RelativePath relativeDirectory(String... segments) {
+        new RelativePath(false, segments)
+    }
+
+    private RelativePath relativeFile(String segments) {
+        RelativePath.parse(true, segments)
+    }
+}
