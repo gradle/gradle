@@ -79,20 +79,18 @@ class GradleKotlinScriptDependenciesResolver : ScriptDependenciesResolverEx, Scr
 
         val hash = getBuildscriptSectionHash(script, environment)
 
-        val res = when {
+        return when {
             sameBuildScriptSectionHashAs(previousDependencies, hash) ->
                 null
             projectRoot != null && gradleHome != null && gradleJavaHome != null ->
                 retrieveKotlinBuildScriptModelFrom(projectRoot, gradleHome, gradleJavaHome)
-                        ?.getDependencies(gradleHome, hash)
+                    ?.getDependencies(gradleHome, hash)
             gradleWithConnection != null && gradleHome != null ->
                 retrieveKotlinBuildScriptModelFrom(gradleWithConnection, gradleJavaHome, gradleJvmOptions)
-                        ?.getDependencies(gradleHome, hash)
+                    ?.getDependencies(gradleHome, hash)
             else ->
                 null
         } ?: previousDependencies
-
-        return res
     }
 
     private fun sameBuildScriptSectionHashAs(previousDependencies: KotlinScriptExternalDependencies?, hash: ByteArray) =
