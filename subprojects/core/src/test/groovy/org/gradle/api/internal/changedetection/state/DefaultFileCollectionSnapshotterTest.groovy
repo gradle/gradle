@@ -33,6 +33,7 @@ import spock.lang.Specification
 
 import static TaskFilePropertyCompareType.OUTPUT
 import static TaskFilePropertyCompareType.UNORDERED
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.ORDERED
 
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
@@ -253,6 +254,18 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         snapshot.files.empty
         1 * listener.added(file.path)
         0 * listener._
+    }
+
+    def "retains order of files in the snapshot"() {
+        given:
+        def testfiles = [*10..1].collect { tmpDir.createFile("file$it") }
+        def testfileNames = testfiles.collect { it.name }
+
+        when:
+        def snapshot = snapshotter.snapshot(files(testfiles as File[]), ORDERED)
+
+        then:
+        snapshot.files.collect { it.name } == testfileNames
     }
 
     private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
