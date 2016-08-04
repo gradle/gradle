@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.internal.tasks.options.OptionValues;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
@@ -33,6 +34,9 @@ import org.gradle.wrapper.WrapperExecutor;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -51,6 +55,13 @@ public class Wrapper extends DefaultTask {
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = Install.DEFAULT_DISTRIBUTION_PATH;
 
     /**
+     * Specifies the Gradle distribution type.
+     */
+    public enum DistributionType {
+        BIN, ALL
+    }
+
+    /**
      * Specifies how the wrapper path should be interpreted.
      */
     public enum PathBase {
@@ -63,6 +74,7 @@ public class Wrapper extends DefaultTask {
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
     private String distributionUrl;
     private GradleVersion gradleVersion;
+    private DistributionType distributionType = DistributionType.BIN;
     private String archivePath;
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
     private final DistributionLocator locator = new DistributionLocator();
@@ -207,6 +219,33 @@ public class Wrapper extends DefaultTask {
     }
 
     /**
+     * Returns the gradle distribution type to be used by the wrapper.
+     *
+     * @see #setDistributionType(DistributionType)
+     */
+    @Input
+    public DistributionType getDistributionType() {
+        return distributionType;
+    }
+
+    /**
+     * The type of the gradle distribution to be used by the wrapper. This is {@link DistributionType#BIN} by default,
+     * but can also be set to {@link DistributionType#ALL}.
+     */
+    @Option(option = "dist-type", description = "The type of the Gradle distribution to be used by the wrapper.")
+    public void setDistributionType(DistributionType distributionType) {
+        this.distributionType = distributionType;
+    }
+
+    /**
+     * The list of available gradle distribution types.
+     */
+    @OptionValues("dist-type")
+    public List<DistributionType> availableDistributionTypes() {
+        return Arrays.asList(DistributionType.values());
+    }
+
+    /**
      * The URL to download the gradle distribution from.
      *
      * <p>If not set, the download URL is the default for the specified {@link #getGradleVersion()}.
@@ -223,7 +262,7 @@ public class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         } else if (gradleVersion != null) {
-            return locator.getDistributionFor(gradleVersion).toString();
+            return locator.getDistributionFor(gradleVersion, distributionType.name().toLowerCase()).toString();
         } else {
             return null;
         }
@@ -241,7 +280,7 @@ public class Wrapper extends DefaultTask {
      * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
      * don't need to provide a download server then.
      */
-    @Option(option = "gradle-distribution-url", description = "The URL to download the gradle distribution from.")
+    @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
     public void setDistributionUrl(String url) {
         this.distributionUrl = url;
     }
