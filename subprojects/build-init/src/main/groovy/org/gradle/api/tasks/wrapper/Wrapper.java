@@ -34,7 +34,6 @@ import org.gradle.wrapper.WrapperExecutor;
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
