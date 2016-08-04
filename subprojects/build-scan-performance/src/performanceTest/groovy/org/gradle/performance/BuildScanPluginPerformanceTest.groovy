@@ -97,7 +97,7 @@ class BuildScanPluginPerformanceTest extends Specification {
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
         def tasks = ['clean', 'build']
         def jobArgs = ['--continue', '--parallel', '--max-workers=2']
-        def opts = ['-Xms1g', '-Xmx1g']
+        def opts = ['-Xms4g', '-Xmx4g']
 
         runner.testGroup = "build scan plugin"
         runner.testId = "large java project with and without build scan"
