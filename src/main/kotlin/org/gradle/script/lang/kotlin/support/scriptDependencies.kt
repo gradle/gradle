@@ -17,11 +17,20 @@
 package org.gradle.script.lang.kotlin.support
 
 import org.gradle.internal.classpath.ClassPath
+
 import org.gradle.script.lang.kotlin.provider.KotlinScriptPluginFactory
+
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.jetbrains.kotlin.script.*
+
+import org.jetbrains.kotlin.script.KotlinScriptExternalDependencies
+import org.jetbrains.kotlin.script.ScriptContents
+import org.jetbrains.kotlin.script.ScriptDependenciesResolver
+import org.jetbrains.kotlin.script.ScriptDependenciesResolverEx
+import org.jetbrains.kotlin.script.asFuture
+
 import java.io.File
+
 import java.security.MessageDigest
 
 import java.util.Arrays.equals
