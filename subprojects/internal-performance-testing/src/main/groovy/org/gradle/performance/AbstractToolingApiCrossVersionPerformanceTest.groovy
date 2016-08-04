@@ -27,7 +27,13 @@ import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.performance.fixture.*
+import org.gradle.performance.fixture.BuildExperimentSpec
+import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
+import org.gradle.performance.fixture.Git
+import org.gradle.performance.fixture.InvocationSpec
+import org.gradle.performance.fixture.OperationTimer
+import org.gradle.performance.fixture.TestProjectLocator
+import org.gradle.performance.fixture.TestScenarioSelector
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
@@ -37,9 +43,9 @@ import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.test.fixtures.file.TestDirectoryProvider
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 import spock.lang.Specification
@@ -65,7 +71,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
-        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, 3, 10, 5000L, 500L, null)
+        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 3, 10, 5000L, 500L, null)
         def clone = spec.rehydrate(experimentSpec, this, this)
         clone.resolveStrategy = Closure.DELEGATE_FIRST
         clone.call(experimentSpec)
@@ -132,10 +138,10 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 gradleOpts: [],
                 daemon: true)
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
-            def tplDir = copyTemplateToDir(projectDir)
             try {
                 List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
                 [*baselines, 'current'].each { String version ->
+                    copyTemplateTo(projectDir, experimentSpec.workingDirectory)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
                     if ('current' != version) {
@@ -150,7 +156,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     tapiClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {
                     }
                     def tapiClazz = tapiClassLoader.loadClass(ToolingApi.name)
-                    def toolingApi = tapiClazz.newInstance(dist, tplDir)
+                    def toolingApi = tapiClazz.newInstance(dist, experimentSpec.workingDirectory)
                     assert toolingApi != ToolingApi
                     warmup(toolingApi)
                     println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
@@ -167,20 +173,10 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             results
         }
 
-        private TestDirectoryProvider copyTemplateToDir(File templateDir) {
-            def directory = temporaryFolder.getTestDirectory()
-            directory.copyFrom(templateDir)
-            new TestDirectoryProvider() {
-                @Override
-                TestFile getTestDirectory() {
-                    directory
-                }
+        private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir) {
+            GFileUtils.cleanDirectory(workingDir)
+            GFileUtils.copyDirectory(templateDir, workingDir)
 
-                @Override
-                void suppressCleanup() {
-
-                }
-            }
         }
 
         private void measure(CrossVersionPerformanceResults results, toolingApi, String version) {

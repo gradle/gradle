@@ -64,6 +64,14 @@ public class GFileUtils {
         }
     }
 
+    public static void copyDirectory(File source, File destination) {
+        try {
+            FileUtils.copyDirectory(source, destination);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public static void moveDirectory(File source, File destination) {
         try {
             FileUtils.moveDirectory(source, destination);

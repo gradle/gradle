@@ -42,6 +42,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
         new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, new ReleasedVersionDistributions(), ResultsStoreHelper.ADHOC_RUN)
 
     def setup() {
+        runner.workingDir = tmpDir.testDirectory
         runner.current = new UnderDevelopmentGradleDistribution()
         runner.maxExecutionTimeRegression = Duration.millis(500)
         runner.maxMemoryRegression = DataAmount.mbytes(25)

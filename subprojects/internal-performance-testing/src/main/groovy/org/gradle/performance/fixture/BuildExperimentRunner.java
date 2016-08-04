@@ -21,6 +21,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -71,16 +72,22 @@ public class BuildExperimentRunner {
             }
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
-            File projectDir = buildSpec.getWorkingDirectory();
+            copyTemplateTo(experiment, workingDirectory);
             GradleSession session = executerProvider.session(buildSpec);
 
             session.prepare();
             try {
-                performMeasurements(session, experiment, results, projectDir);
+                performMeasurements(session, experiment, results, workingDirectory);
             } finally {
                 session.cleanup();
             }
         }
+    }
+
+    private void copyTemplateTo(BuildExperimentSpec experiment, File workingDir) {
+        File templateDir = new TestProjectLocator().findProjectDir(experiment.getProjectName());
+        GFileUtils.cleanDirectory(workingDir);
+        GFileUtils.copyDirectory(templateDir, workingDir);
     }
 
     protected <S extends InvocationSpec, T extends InvocationCustomizer<S>> void performMeasurements(final InvocationExecutorProvider<T> session, BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir) {

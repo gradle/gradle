@@ -59,7 +59,6 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
             }
         } else if (builder instanceof MavenBuildExperimentSpec.MavenBuilder) {
             def invocation = ((MavenBuildExperimentSpec.MavenBuilder) builder).invocation
-            invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
             if (!invocation.args.find { it.startsWith("-Dmaven.repo.local=") }) {
                 def localRepoPath = m2.mavenRepo().rootDir.absolutePath
                 if (OperatingSystem.current().isWindows()) {

@@ -40,6 +40,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     final ReleasedVersionDistributions releases
 
     String testProject
+    File workingDir
     boolean useDaemon
 
     List<String> tasksToRun = []
@@ -68,6 +69,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         if (testProject == null) {
             throw new IllegalStateException("Test project has not been specified")
         }
+        if (workingDir == null) {
+            throw new IllegalStateException("Working directory has not been specified")
+        }
         if (!targetVersions) {
             throw new IllegalStateException("Target versions have not been specified")
         }
@@ -92,17 +96,14 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions, adhocRun)
 
-        File projectDir = testProjectLocator.findProjectDir(testProject)
-
         baselineVersions.each { it ->
             def baselineVersion = results.baseline(it)
             baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
             baselineVersion.maxMemoryRegression = maxMemoryRegression
-
-            runVersion(buildContext.distribution(baselineVersion.version), projectDir, baselineVersion.results)
+            runVersion(buildContext.distribution(baselineVersion.version), workingDir, baselineVersion.results)
         }
 
-        runVersion(current, projectDir, results.current)
+        runVersion(current, workingDir, results.current)
 
         results.assertEveryBuildSucceeds()
 
@@ -158,15 +159,15 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         throw new RuntimeException("Cannot find Gradle release that matches version '" + requested + "'")
     }
 
-    private void runVersion(GradleDistribution dist, File projectDir, MeasuredOperationList results) {
+    private void runVersion(GradleDistribution dist, File workingDir, MeasuredOperationList results) {
         def builder = GradleBuildExperimentSpec.builder()
-            .projectName(testId)
+            .projectName(testProject)
             .displayName(dist.version.version)
             .warmUpCount(warmUpRuns)
             .invocationCount(runs)
             .listener(buildExperimentListener)
             .invocation {
-                workingDirectory(projectDir)
+                workingDirectory(workingDir)
                 distribution(dist)
                 tasksToRun(this.tasksToRun as String[])
                 args(this.args as String[])

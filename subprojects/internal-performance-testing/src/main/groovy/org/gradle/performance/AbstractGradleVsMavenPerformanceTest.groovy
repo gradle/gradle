@@ -41,6 +41,7 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
+            builder.workingDirectory = tmpDir.testDirectory
             AbstractGradleVsMavenPerformanceTest.this.defaultSpec(builder)
         }
 

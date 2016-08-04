@@ -25,10 +25,14 @@ import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
+import org.junit.Rule
 
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     private static interface ReporterAndStore extends DataReporter, ResultsStore {}
+
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     final buildContext = new IntegrationTestBuildContext();
     final experimentRunner = Mock(BuildExperimentRunner)
@@ -176,6 +180,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases, false)
         runner.testId = 'some-test'
         runner.testProject = 'some-project'
+        runner.workingDir = tmpDir.testDirectory
         runner.testProjectLocator = testProjectLocator
         runner.current = currentGradle
         runner.runs = 1

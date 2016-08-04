@@ -69,7 +69,8 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
         assert builder.projectName
-        builder.invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
+        assert builder.workingDirectory
+        builder.invocation.workingDirectory = builder.workingDirectory
     }
 
     abstract R newResult()

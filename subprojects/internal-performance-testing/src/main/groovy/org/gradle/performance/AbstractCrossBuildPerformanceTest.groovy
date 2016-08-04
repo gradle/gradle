@@ -40,6 +40,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
         @Override
         protected void defaultSpec(BuildExperimentSpec.Builder builder) {
             super.defaultSpec(builder)
+            builder.workingDirectory = tmpDir.testDirectory
             AbstractCrossBuildPerformanceTest.this.defaultSpec(builder)
         }
 

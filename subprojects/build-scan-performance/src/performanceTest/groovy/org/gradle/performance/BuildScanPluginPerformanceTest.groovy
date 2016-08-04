@@ -24,6 +24,7 @@ import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
+import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
@@ -67,7 +68,13 @@ class BuildScanPluginPerformanceTest extends Specification {
         assert versionJsonData.commitId
         def pluginCommitId = versionJsonData.commitId as String
 
-        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId)
+        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId) {
+            @Override
+            protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+                super.defaultSpec(builder)
+                builder.workingDirectory = tmpDir.testDirectory
+            }
+        }
 
         // Loading this classes messes with the standard streams.
         // Do it now so that we can replace them
