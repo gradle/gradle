@@ -25,7 +25,7 @@ class GrettySmokeSpec extends AbstractSmokeSpec {
     @Rule
     public ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
-    def 'Run with jetty'() {
+    def 'run with jetty'() {
         given:
         useSample('gretty-example')
         def httpPort = portAllocator.assignPort()
@@ -36,9 +36,11 @@ class GrettySmokeSpec extends AbstractSmokeSpec {
                 servletContainer = 'jetty9'
             }
 
-            task checkContainerUp doLast {
-                URL url = new URL("http://localhost:$httpPort/quickstart")
-                assert url.text.contains('hello Gradle')
+            task checkContainerUp {
+                doLast {
+                    URL url = new URL("http://localhost:$httpPort/quickstart")
+                    assert url.text.contains('hello Gradle')
+                }
             }
         """
 
