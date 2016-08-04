@@ -37,4 +37,9 @@ public class CacheLockReleasingProjectArtifactBuilder implements ProjectArtifact
             }
         });
     }
+
+    @Override
+    public void willBuild(ComponentArtifactMetadata artifact) {
+        delegate.willBuild(artifact);
+    }
 }

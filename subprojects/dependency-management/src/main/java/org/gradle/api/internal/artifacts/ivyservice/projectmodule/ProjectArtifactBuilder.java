@@ -20,4 +20,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 public interface ProjectArtifactBuilder {
     void build(ComponentArtifactMetadata artifact);
+
+    void willBuild(ComponentArtifactMetadata artifact);
 }

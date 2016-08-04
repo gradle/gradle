@@ -85,6 +85,9 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
         if (isProjectModule(component.getComponentId())) {
             String configurationName = usage.getConfigurationName();
             Set<ComponentArtifactMetadata> artifacts = component.getConfiguration(configurationName).getArtifacts();
+            for (ComponentArtifactMetadata artifact : artifacts) {
+                artifactBuilder.willBuild(artifact);
+            }
             result.resolved(artifacts);
         }
     }

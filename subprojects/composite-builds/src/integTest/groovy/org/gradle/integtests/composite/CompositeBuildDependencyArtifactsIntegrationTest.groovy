@@ -16,11 +16,11 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
+
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
@@ -132,6 +132,31 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
     def "builds substituted dependency with transitive external dependency that is substituted"() {
         given:
         dependency 'org.test:buildB:1.0'
+
+        buildB.buildFile << """
+            dependencies {
+                compile 'org.test:buildC:1.0'
+            }
+"""
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
+        builds << buildC
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executedInOrder ":buildC:jar", ":buildB:jar"
+        assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildC.file('build/libs/buildC-1.0.jar')
+    }
+
+    def "builds dependency once when included directly and as a transitive dependency"() {
+        given:
+        dependency 'org.test:buildB:1.0'
+        dependency 'org.test:buildC:1.0'
 
         buildB.buildFile << """
             dependencies {
@@ -320,7 +345,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar')
     }
 
-    @NotYetImplemented
     def "does not attempt to build dependency artifacts more than once"() {
         given:
         dependency 'org.test:b1:1.0'
@@ -466,7 +490,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 assert executedTasks.indexOf(beforeTask) < executedTasks.indexOf(task) : "task ${beforeTask} must be executed before ${task}"
             }
             beforeTask = task
-//            assert executedTasks.findAll({ it == task }).size() == 1
+            assert executedTasks.findAll({ it == task }).size() == 1
         }
     }
 }

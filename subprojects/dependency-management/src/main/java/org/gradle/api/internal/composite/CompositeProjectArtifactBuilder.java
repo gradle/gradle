@@ -31,17 +31,22 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.service.ServiceRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
 
 public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
+    private static final Logger LOGGER = LoggerFactory.getLogger(CompositeProjectArtifactBuilder.class);
+
     private final CompositeBuildContext compositeBuildContext;
     private final GradleLauncherFactory gradleLauncherFactory;
     private final StartParameter requestedStartParameter;
     private final ServiceRegistry serviceRegistry;
-    private final Set<ProjectComponentIdentifier> executingProjects = Sets.newHashSet();
+    private final Multimap<ProjectComponentIdentifier, String> tasksForBuild = LinkedHashMultimap.create();
+    private final Set<ProjectComponentIdentifier> executingBuilds = Sets.newHashSet();
     private final Multimap<ProjectComponentIdentifier, String> executedTasks = LinkedHashMultimap.create();
 
     public CompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext,
@@ -55,44 +60,56 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     }
 
     private synchronized void buildStarted(ProjectComponentIdentifier project) {
-        if (!executingProjects.add(project)) {
+        if (!executingBuilds.add(project)) {
             ProjectComponentSelector selector = new DefaultProjectComponentSelector(project.getProjectPath());
             throw new ModuleVersionResolveException(selector, "Dependency cycle including " + project);
         }
     }
 
     private synchronized void buildCompleted(ProjectComponentIdentifier project) {
-        executingProjects.remove(project);
+        executingBuilds.remove(project);
+    }
+
+    @Override
+    public void willBuild(ComponentArtifactMetadata artifact) {
+        if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
+            CompositeProjectComponentArtifactMetadata artifactMetaData = (CompositeProjectComponentArtifactMetadata) artifact;
+            ProjectComponentIdentifier buildId = getBuildIdentifier(artifactMetaData.getComponentId());
+            tasksForBuild.putAll(buildId, artifactMetaData.getTasks());
+        }
     }
 
     @Override
     public void build(ComponentArtifactMetadata artifact) {
+        willBuild(artifact);
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata artifactMetaData = (CompositeProjectComponentArtifactMetadata) artifact;
-            build(artifactMetaData.getComponentId(), artifactMetaData.getTasks());
+            ProjectComponentIdentifier buildId = getBuildIdentifier(artifactMetaData.getComponentId());
+            build(buildId, tasksForBuild.get(buildId));
         }
     }
 
-    private void build(ProjectComponentIdentifier project, Iterable<String> taskNames) {
-        buildStarted(project);
+    private void build(ProjectComponentIdentifier buildId, Iterable<String> taskNames) {
+        buildStarted(buildId);
         try {
-            doBuild(project, taskNames);
+            doBuild(buildId, taskNames);
         } finally {
-            buildCompleted(project);
+            buildCompleted(buildId);
         }
     }
 
-    private void doBuild(ProjectComponentIdentifier project, Iterable<String> taskPaths) {
-        File buildDirectory = determineBuildDirectory(project);
+    private void doBuild(ProjectComponentIdentifier buildId, Iterable<String> taskPaths) {
+        File buildDirectory = compositeBuildContext.getProjectDirectory(buildId);
         List<String> tasksToExecute = Lists.newArrayList();
         for (String taskPath : taskPaths) {
-            if (executedTasks.put(project, taskPath)) {
+            if (executedTasks.put(buildId, taskPath)) {
                 tasksToExecute.add(taskPath);
             }
         }
         if (tasksToExecute.isEmpty()) {
             return;
         }
+        LOGGER.info("Executing " + buildId + " tasks " + taskPaths);
 
         StartParameter param = requestedStartParameter.newBuild();
         param.setProjectDir(buildDirectory);
@@ -107,11 +124,9 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
         }
     }
 
-    private File determineBuildDirectory(ProjectComponentIdentifier project) {
+    private ProjectComponentIdentifier getBuildIdentifier(ProjectComponentIdentifier project) {
         // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
         String buildName = project.getProjectPath().split("::", 2)[0];
-        ProjectComponentIdentifier rootProjectIdentifier = DefaultProjectComponentIdentifier.newId(buildName + "::");
-
-        return compositeBuildContext.getProjectDirectory(rootProjectIdentifier);
+        return DefaultProjectComponentIdentifier.newId(buildName + "::");
     }
 }
