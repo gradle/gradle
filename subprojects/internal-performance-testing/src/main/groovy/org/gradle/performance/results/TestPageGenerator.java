@@ -16,7 +16,9 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
@@ -27,6 +29,7 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> {
     @Override
@@ -92,6 +95,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             body();
             div().id("content");
             h2().text(String.format("Test: %s", testHistory.getDisplayName())).end();
+            text(getReproductionInstructions(testHistory));
             h3().text("Average execution time").end();
             div().id("executionTimeChart").classAttr("chart");
             p().text("Loading...").end();
@@ -228,6 +232,21 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             footer(this);
             endAll();
         }};
+    }
+
+    private String getReproductionInstructions(PerformanceTestHistory history) {
+        Set<String> templates = Sets.newHashSet();
+        for (ScenarioDefinition scenario : history.getScenarios()) {
+            templates.add(scenario.getTestProject());
+        }
+
+        return "To reproduce, run ./gradlew clean " +
+            Joiner.on(' ').join(templates) +
+            " performanceTest --scenarios " +
+            "'" +
+            history.getDisplayName() +
+            "'" +
+            " -x prepareSamples";
     }
 
     private static class Link {
