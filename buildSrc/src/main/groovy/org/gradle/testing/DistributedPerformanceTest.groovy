@@ -21,6 +21,7 @@ import com.google.common.collect.Lists
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import groovy.util.slurpersupport.NodeChildren
 import groovyx.net.http.ContentType
 import groovyx.net.http.RESTClient
 import org.gradle.api.GradleException
@@ -63,7 +64,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     List<String> scheduledJobs = Lists.newArrayList()
 
-    List<String> failedJobs = Lists.newArrayList()
+    List<Object> failedJobs = Lists.newArrayList()
 
     void setScenarioList(File scenarioList) {
         systemProperty "org.gradle.performance.scenario.list", scenarioList
@@ -93,13 +94,7 @@ class DistributedPerformanceTest extends PerformanceTest {
             join(it)
         }
 
-        if (failedJobs) {
-            throw new GradleException("Distributed performance tests failed. See individual jobs for details:\n" +
-                    failedJobs.collect {String jobId ->
-                        "$teamCityUrl/viewLog.html?buildId=$jobId&tab=buildResultsDiv&buildTypeId=&$buildTypeId\n"
-                    }.join("\n")
-            )
-        }
+        reportErrors()
     }
 
     private void fillScenarioList() {
@@ -141,7 +136,21 @@ class DistributedPerformanceTest extends PerformanceTest {
             }
         }
         if (response.data.@status != "SUCCESS") {
-            failedJobs += jobId
+            failedJobs += response.data
+        }
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private void reportErrors() {
+        if (failedJobs) {
+            throw new GradleException("Distributed performance tests failed. See individual jobs for details:\n" +
+                    failedJobs.collect {job ->
+                        NodeChildren properties = job.properties.children()
+                        String scenario = properties.find { it.@name == 'scenario' }.@value
+                        String url = job.@webUrl
+                        "$scenario -> $url"
+                    }.join("\n")
+            )
         }
     }
 
