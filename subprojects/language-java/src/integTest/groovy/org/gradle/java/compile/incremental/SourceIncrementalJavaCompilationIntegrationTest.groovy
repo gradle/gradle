@@ -335,6 +335,30 @@ sourceSets {
         outputs.recompiledClasses("Other", "Main")
     }
 
+    def "recompilation does not process removed classes from dependent sourceSet"() {
+        buildFile << """
+compileTestJava.options.incremental = true
+"""
+
+        def unusedClass = java("public class Unused {}")
+        // Need another class or :compileJava will always be considered UP-TO-DATE
+        java("public class Other {}")
+
+        file("src/test/java/BazTest.java") << "public class BazTest {}"
+
+        outputs.snapshot { run "compileTestJava" }
+
+        when:
+        file("src/test/java/BazTest.java").text = "public class BazTest { String change; }"
+        unusedClass.delete()
+
+        run "compileTestJava"
+
+        then:
+        outputs.recompiledClasses("BazTest")
+        outputs.deletedClasses("Unused")
+    }
+
     def "detects changes to source in extra source directories"() {
         buildFile << "sourceSets.main.java.srcDir 'extra-java'"
 

@@ -34,6 +34,11 @@ public class ClassChangeProcessor {
     }
 
     public void processChange(final InputFileDetails input, final RecompilationSpec spec) {
+        // Do not process
+        if (input.isRemoved()) {
+            return;
+        }
+
         final ClassReader classReader;
         try {
             classReader = new Java9ClassReader(Files.toByteArray(input.getFile()));
