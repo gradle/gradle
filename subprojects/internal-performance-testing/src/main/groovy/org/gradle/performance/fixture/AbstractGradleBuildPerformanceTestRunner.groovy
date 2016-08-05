@@ -82,7 +82,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         assert testId
 
         def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, specs.projectName, (ResultsStore) reporter))
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId, specs.projectName.toSet(), (ResultsStore) reporter))
 
         def results = newResult()
 

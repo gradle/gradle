@@ -33,13 +33,14 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Determines whether a specific scenario within a performance test should run and whether it should run locally
  * or be added to the list of scenarios to run in distributed mode.
  */
 public class TestScenarioSelector {
-    public boolean shouldRun(String testId, List<String> templates, ResultsStore resultsStore) {
+    public boolean shouldRun(String testId, Set<String> templates, ResultsStore resultsStore) {
         if (testId.contains(";")) {
             throw new IllegalArgumentException("Test ID cannot contain ';', but was '" + testId + "'");
         }
@@ -55,7 +56,7 @@ public class TestScenarioSelector {
         }
     }
 
-    private void addToScenarioList(String testId, List<String> templates, File scenarioList, ResultsStore resultsStore) {
+    private void addToScenarioList(String testId, Set<String> templates, File scenarioList, ResultsStore resultsStore) {
         try {
             BigDecimal estimatedRuntime = getEstimatedRuntime(testId, resultsStore);
             List<String> args = Lists.newArrayList();

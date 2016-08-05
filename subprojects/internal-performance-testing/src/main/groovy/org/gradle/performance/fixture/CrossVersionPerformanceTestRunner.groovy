@@ -77,7 +77,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
 
         def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject], (ResultsStore) reporter))
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
 
         def results = new CrossVersionPerformanceResults(
             testId: testId,
