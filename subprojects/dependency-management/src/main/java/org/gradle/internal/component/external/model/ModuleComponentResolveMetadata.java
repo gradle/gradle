@@ -29,6 +29,9 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
 
     ModuleComponentResolveMetadata withSource(ModuleSource source);
 
+    /**
+     * Creates a potential artifact for this module. Does not mutate this metadata.
+     */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
     /**
