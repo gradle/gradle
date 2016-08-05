@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file.copy
 
 import org.gradle.api.Action
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.RelativePath
@@ -72,20 +73,16 @@ class CopySpecMatchingTest extends Specification {
         1 * matchingAction.execute(details3)
     }
 
-    def canMatchFilesWithNoPattern() {
+    def filesMatchingWithNoPatternsThrowsException() {
         given:
-        FileCopyDetails details = details('path/abc.txt');
-
         Action matchingAction = Mock()
 
         when:
         copySpec.filesMatching([], matchingAction)
-        copySpec.copyActions.each { copyAction ->
-            copyAction.execute(details)
-        }
 
         then:
-        1 * matchingAction.execute(details)
+        def exception = thrown(InvalidUserDataException)
+        exception.message == 'must provide at least one pattern to match'
     }
 
     def canNotMatchFiles() {
@@ -129,20 +126,16 @@ class CopySpecMatchingTest extends Specification {
         0 * matchingAction.execute(details3)
     }
 
-    def canNotMatchFilesWithNoPattern() {
+    def filesNotMatchingWithNoPatternsThrowsException() {
         given:
-        FileCopyDetails details = details('path/abc.txt');
-
         Action matchingAction = Mock()
 
         when:
         copySpec.filesNotMatching([], matchingAction)
-        copySpec.copyActions.each { copyAction ->
-            copyAction.execute(details)
-        }
 
         then:
-        0 * matchingAction.execute(details)
+        def exception = thrown(InvalidUserDataException)
+        exception.message == 'must provide at least one pattern to not match'
     }
 
     def matchingSpecInherited() {

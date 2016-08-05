@@ -197,6 +197,9 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec filesMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        if (!patterns.iterator().hasNext()) {
+            throw new InvalidUserDataException("must provide at least one pattern to match");
+        }
         List<Spec> matchers = new ArrayList<Spec>();
         for (String pattern : patterns) {
             matchers.add(PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern));
@@ -211,6 +214,9 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public CopySpec filesNotMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        if (!patterns.iterator().hasNext()) {
+            throw new InvalidUserDataException("must provide at least one pattern to not match");
+        }
         List<Spec> matchers = new ArrayList<Spec>();
         for (String pattern : patterns) {
             matchers.add(PatternMatcherFactory.getPatternMatcher(true, isCaseSensitive(), pattern));
