@@ -102,8 +102,9 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
         while (!workQueue.isEmpty()) {
             ResolvedDependency item = workQueue.removeFirst();
             if (resolvedElements.add(item)) {
-                if (item.getChildren() != null) {
-                    workQueue.addAll(item.getChildren());
+                final Set<ResolvedDependency> children = item.getChildren();
+                if (children != null) {
+                    workQueue.addAll(children);
                 }
             }
         }
