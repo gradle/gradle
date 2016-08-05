@@ -33,7 +33,7 @@ import org.gradle.api.PolymorphicDomainObjectContainer
  */
 inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(name: String,
                                                                            crossinline configuration: U.() -> Unit) =
-    this.create(name, U::class.java, { configuration(it) })
+    this.create(name, U::class.java, { configuration(it) })!!
 
 /**
  * Creates a domain object with the specified name and type, and adds it to the container.

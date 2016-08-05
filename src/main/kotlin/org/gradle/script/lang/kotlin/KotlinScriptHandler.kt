@@ -16,6 +16,7 @@
 
 package org.gradle.script.lang.kotlin
 
+import org.gradle.api.artifacts.Dependency
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.dsl.ScriptHandler.CLASSPATH_CONFIGURATION
 
@@ -34,6 +35,6 @@ class KotlinScriptHandler(scriptHandler: ScriptHandler) : ScriptHandler by scrip
     /**
      * Adds a dependency to the script classpath.
      */
-    fun KotlinDependencyHandler.classpath(dependencyNotation: Any) =
+    fun KotlinDependencyHandler.classpath(dependencyNotation: Any): Dependency =
         add(CLASSPATH_CONFIGURATION, dependencyNotation)
 }

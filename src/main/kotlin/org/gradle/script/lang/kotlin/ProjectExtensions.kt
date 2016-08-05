@@ -70,14 +70,14 @@ inline fun <reified T : Any> Project.the() =
 
 @Suppress("nothing_to_inline") // required to avoid a ClassLoader conflict on KClass
 inline fun <T : Any> Project.the(extensionType: KClass<T>) =
-    convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)
+    convention.findPlugin(extensionType.java) ?: convention.getByType(extensionType.java)!!
 
 inline fun <reified T : Any> Convention.getPlugin() =
     getPlugin(T::class)
 
 @Suppress("nothing_to_inline") // required to avoid a ClassLoader conflict on KClass
 inline fun <T : Any> Convention.getPlugin(conventionType: KClass<T>) =
-    getPlugin(conventionType.java)
+    getPlugin(conventionType.java)!!
 
 inline fun <reified T : Task> Project.task(name: String, noinline configuration: T.() -> Unit) =
     task(name, T::class, configuration)
@@ -92,7 +92,7 @@ fun Project.task(name: String, configuration: Task.() -> Unit) =
     createTask(name, DefaultTask::class, configuration)
 
 fun <T : Task> Project.createTask(name: String, type: KClass<T>, configuration: T.() -> Unit) =
-    tasks.create(name, type.java, configuration)
+    tasks.create(name, type.java, configuration)!!
 
 /**
  * Configures the repositories for this project.

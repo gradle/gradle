@@ -29,13 +29,13 @@ class KotlinRepositoryHandler(val repositoryHandler: RepositoryHandler) : Reposi
      * Adds and configures a Maven repository.
      */
     fun maven(configuration: MavenArtifactRepository.() -> Unit) =
-        repositoryHandler.maven({ it.configuration() })
+        repositoryHandler.maven({ it.configuration() })!!
 
     /**
      * Adds and configures an Ivy repository.
      */
     fun ivy(configuration: IvyArtifactRepository.() -> Unit) =
-        repositoryHandler.ivy({ it.configuration() })
+        repositoryHandler.ivy({ it.configuration() })!!
 
     inline operator fun invoke(configuration: KotlinRepositoryHandler.() -> Unit) =
         configuration()
