@@ -91,6 +91,8 @@ import org.gradle.internal.filewatch.DefaultFileWatcherFactory;
 import org.gradle.internal.filewatch.FileWatcherFactory;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
+import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector;
+import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -191,7 +193,7 @@ public class GlobalScopeServices {
     }
 
     JvmVersionDetector createJvmVersionDetector(ExecHandleFactory execHandleFactory) {
-        return new JvmVersionDetector(execHandleFactory);
+        return new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
     }
 
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager) {

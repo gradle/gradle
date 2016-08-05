@@ -21,8 +21,8 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.Jvm
 import spock.lang.Specification
 
-class JvmVersionDetectorTest extends Specification {
-    def detector = new JvmVersionDetector(TestFiles.execHandleFactory())
+class DefaultJvmVersionDetectorTest extends Specification {
+    def detector = new DefaultJvmVersionDetector(TestFiles.execHandleFactory())
 
     def "can determine version of current jvm"() {
         expect:
@@ -51,6 +51,15 @@ class JvmVersionDetectorTest extends Specification {
 Java(TM) SE Runtime Environment (build 1.9.0-ea-b53)
 Java HotSpot(TM) 64-Bit Server VM (build 1.9.0-ea-b53, mixed mode)
 """                             | "1.9"
+        """Picked up _JAVA_OPTIONS: -Dset_by_java_options=1
+java version "1.8.0_91"
+Java(TM) SE Runtime Environment (build 1.8.0_91-b14)
+Java HotSpot(TM) 64-Bit Server VM (build 25.91-b14, mixed mode)
+"""                             | "1.8"
+        """java version "1.8.0_91"
+        Java(TM) SE Runtime Environment (build 1.8.0_91-b14)
+        Java HotSpot(TM) 64-Bit Server VM (build 25.91-b14, mixed mode)
+        """                     | "1.8"
     }
 
     def "fails to parse version number"() {
