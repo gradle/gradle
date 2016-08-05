@@ -61,7 +61,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "generated wrapper scripts for valid distribution types from command-line"() {
         when:
-        run "wrapper", "--gradle-version", "2.13", "--dist-type", distributionType
+        run "wrapper", "--gradle-version", "2.13", "--distribution-type", distributionType
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.13-${distributionType}.zip")
@@ -72,7 +72,7 @@ class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
 
     def "no generated wrapper scripts for invalid distribution type from command-line"() {
         when:
-        fails "wrapper", "--gradle-version", "2.13", "--dist-type", "invalid-distribution-type"
+        fails "wrapper", "--gradle-version", "2.13", "--distribution-type", "invalid-distribution-type"
 
         then:
         failure.assertHasCause("Cannot convert string value 'invalid-distribution-type' to an enum value of type 'org.gradle.api.tasks.wrapper.Wrapper\$DistributionType' (valid case insensitive values: BIN, ALL)")

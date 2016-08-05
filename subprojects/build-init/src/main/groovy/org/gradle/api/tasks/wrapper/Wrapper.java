@@ -57,7 +57,14 @@ public class Wrapper extends DefaultTask {
      * Specifies the Gradle distribution type.
      */
     public enum DistributionType {
-        BIN, ALL
+        /**
+         * binary-only Gradle distribution without documentation and source code
+         */
+        BIN,
+        /**
+         * complete Gradle distribution with binaries, source and documentation
+         */
+        ALL
     }
 
     /**
@@ -218,7 +225,7 @@ public class Wrapper extends DefaultTask {
     }
 
     /**
-     * Returns the gradle distribution type to be used by the wrapper.
+     * Returns the type of the Gradle distribution to be used by the wrapper.
      *
      * @see #setDistributionType(DistributionType)
      */
@@ -228,10 +235,12 @@ public class Wrapper extends DefaultTask {
     }
 
     /**
-     * The type of the gradle distribution to be used by the wrapper. This is {@link DistributionType#BIN} by default,
-     * but can also be set to {@link DistributionType#ALL}.
+     * The type of the Gradle distribution to be used by the wrapper. By default, this is {@link DistributionType#BIN},
+     * which is the binary-only Gradle distribution without documentation.
+     *
+     * @see DistributionType
      */
-    @Option(option = "dist-type", description = "The type of the Gradle distribution to be used by the wrapper.")
+    @Option(option = "distribution-type", description = "The type of the Gradle distribution to be used by the wrapper.")
     public void setDistributionType(DistributionType distributionType) {
         this.distributionType = distributionType;
     }
@@ -239,8 +248,8 @@ public class Wrapper extends DefaultTask {
     /**
      * The list of available gradle distribution types.
      */
-    @OptionValues("dist-type")
-    public List<DistributionType> availableDistributionTypes() {
+    @OptionValues("distribution-type")
+    public List<DistributionType> getAvailableDistributionTypes() {
         return Arrays.asList(DistributionType.values());
     }
 
