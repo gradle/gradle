@@ -10,6 +10,12 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Incremental build improvements
+
+#### Tracking changes in the order of input files
+
+Gradle now recognizes changes in the order of files for classpath properties as a reason to mark a task like `JavaCompile` out-of-date. The new `@OrderSensitive` annotation can be used on task input properties to turn this feature on in custom tasks.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
