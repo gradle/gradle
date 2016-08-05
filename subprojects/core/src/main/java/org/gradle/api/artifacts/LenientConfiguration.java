@@ -35,7 +35,7 @@ public interface LenientConfiguration {
     public Set<ResolvedDependency> getFirstLevelModuleDependencies(Spec<? super Dependency> dependencySpec);
 
     /**
-     * Returns all successfully resolved dependencies.
+     * Returns all successfully resolved dependencies including transitive dependencies.
      *
      * @since 3.1
      * @return all resolved dependencies
