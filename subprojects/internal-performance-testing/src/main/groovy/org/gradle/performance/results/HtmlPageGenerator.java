@@ -58,6 +58,9 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
         html.script()
                 .src(rootDir + "js/report.js")
                 .end();
+        html.script()
+                .src(rootDir + "js/performanceGraph.js")
+                .end();
     }
 
     protected void footer(Html html) {

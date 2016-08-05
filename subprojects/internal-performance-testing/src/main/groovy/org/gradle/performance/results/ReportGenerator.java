@@ -42,6 +42,7 @@ public class ReportGenerator {
             TestDataGenerator testDataRenderer = new TestDataGenerator();
 
             fileRenderer.render(store, new IndexPageGenerator(), new File(outputDirectory, "index.html"));
+            fileRenderer.render(store, new GraphIndexPageGenerator(), new File(outputDirectory, "graph-index.html"));
 
             File testsDir = new File(outputDirectory, "tests");
             for (String testName : store.getTestNames()) {
@@ -55,6 +56,7 @@ public class ReportGenerator {
             copyResource("flot.selection.min.js", outputDirectory);
             copyResource("style.css", outputDirectory);
             copyResource("report.js", outputDirectory);
+            copyResource("performanceGraph.js", outputDirectory);
         } catch (Exception e) {
             throw new RuntimeException(String.format("Could not generate performance test report to '%s'.", outputDirectory), e);
         }
