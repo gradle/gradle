@@ -156,7 +156,10 @@ public class Amount<Q> implements Comparable<Amount<Q>> {
     }
 
     public Amount<Q> div(long other) {
-        return new Amount<Q>(value.divide(BigDecimal.valueOf(other), 6, RoundingMode.HALF_UP), units);
+        return div(BigDecimal.valueOf(other));
+    }
+    public Amount<Q> div(BigDecimal other) {
+        return new Amount<Q>(value.divide(other, 6, RoundingMode.HALF_UP), units);
     }
 
     public BigDecimal div(Amount<Q> other) {

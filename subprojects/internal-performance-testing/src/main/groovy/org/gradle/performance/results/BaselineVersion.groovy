@@ -16,6 +16,7 @@
 
 package org.gradle.performance.results
 
+import groovy.transform.CompileStatic
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
@@ -23,6 +24,7 @@ import org.gradle.performance.measure.Duration
 import static PrettyCalculator.toBytes
 import static PrettyCalculator.toMillis
 
+@CompileStatic
 class BaselineVersion implements VersionResults {
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
@@ -45,7 +47,7 @@ class BaselineVersion implements VersionResults {
         }
         def diff = currentVersionAverage - thisVersionAverage
         def desc = diff > Duration.millis(0) ? "slower" : "faster"
-        sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${maxExecutionTimeRegression.format()}\n")
+        sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxExecutionTimeRegression(current).format()}\n")
         sb.append(current.speedStats)
         sb.append(results.speedStats)
         sb.append("\n")
@@ -64,18 +66,38 @@ class BaselineVersion implements VersionResults {
         }
         def diff = currentVersionAverage - thisVersionAverage
         def desc = diff > DataAmount.bytes(0) ? "more" : "less"
-        sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${maxMemoryRegression.format()}\n")
+        sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxMemoryRegression(current).format()}\n")
         sb.append(current.memoryStats)
         sb.append(results.memoryStats)
         sb.append("\n")
         sb.toString()
     }
 
-    boolean usesLessMemoryThan(MeasuredOperationList current) {
-        current.totalMemoryUsed.average - results.totalMemoryUsed.average > maxMemoryRegression
+    boolean fasterThan(MeasuredOperationList current) {
+        current.totalTime.average - results.totalTime.average > getMaxExecutionTimeRegression(current)
     }
 
-    boolean fasterThan(MeasuredOperationList current) {
-        current.totalTime.average - results.totalTime.average > maxExecutionTimeRegression
+    boolean usesLessMemoryThan(MeasuredOperationList current) {
+        current.totalMemoryUsed.average - results.totalMemoryUsed.average > getMaxMemoryRegression(current)
+    }
+
+    Amount<Duration> getMaxExecutionTimeRegression(MeasuredOperationList current) {
+        if (strict) {
+            current.totalTime.sdom
+        } else {
+            maxExecutionTimeRegression
+        }
+    }
+
+    Amount<DataAmount> getMaxMemoryRegression(MeasuredOperationList current) {
+        if (strict) {
+            current.totalMemoryUsed.sdom
+        } else {
+            maxMemoryRegression
+        }
+    }
+
+    private boolean isStrict() {
+        return Boolean.valueOf(System.getProperty("org.gradle.performance.strict", "false"))
     }
 }
