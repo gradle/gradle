@@ -37,6 +37,7 @@ public interface LenientConfiguration {
     /**
      * Returns all successfully resolved dependencies.
      *
+     * @since 3.1
      * @return all resolved dependencies
      */
     public Set<ResolvedDependency> allDependencies();
