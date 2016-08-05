@@ -58,11 +58,11 @@ public class Wrapper extends DefaultTask {
      */
     public enum DistributionType {
         /**
-         * binary-only Gradle distribution without documentation and source code
+         * binary-only Gradle distribution without sources and documentation
          */
         BIN,
         /**
-         * complete Gradle distribution with binaries, source and documentation
+         * complete Gradle distribution with binaries, sources and documentation
          */
         ALL
     }

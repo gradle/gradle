@@ -86,7 +86,7 @@ We would like to thank the following community members for making contributions 
 - [Greg Bowyer](https://github.com/GregBowyer) - Initial support for play 2.5.x
 - [Mohan Kornipati](https://github.com/mkornipati) - Publishing with the legacy Ivy support doesn't add excludes to generated metadata (GRADLE-3440)
 - [Thomas Broyer](https://github.com/tbroyer) - Updating spec about annotation processing.
-- [Sebastian Schuberth](https://github.com/sschuberth) - Add on option to choose the distribution type for the `Wrapper` task.
+- [Sebastian Schuberth](https://github.com/sschuberth) - Add an option to choose the distribution type for the `Wrapper` task.
 - [Sebastian Schuberth](https://github.com/sschuberth) - Fix file path to be Windows 10-compatible for Gradle build
 - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Checkstyle should not output XML report when only the HTML report is enabled (GRADLE-3490)
 - [Stefan Neuhaus](https://github.com/stefanneuhaus) - Copy task: filesMatching and filesNotMatching should support multiple patterns
