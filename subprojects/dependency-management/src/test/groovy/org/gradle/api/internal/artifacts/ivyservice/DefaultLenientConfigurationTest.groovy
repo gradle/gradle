@@ -118,6 +118,7 @@ class DefaultLenientConfigurationTest extends Specification {
         Set<ResolvedArtifact> moduleArtifacts
         Set<ResolvedArtifact> allModuleArtifacts
 
+        @Override
         Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
             return null
         }
