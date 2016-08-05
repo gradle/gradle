@@ -35,10 +35,14 @@ public class RestartEveryNTestClassProcessorTest extends Specification {
         when:
         processor.startProcessing(resultProcessor)
         processor.processTestClass(test1)
+
         then:
         1 * factory.create() >> delegate
+        then:
         1 * delegate.startProcessing(resultProcessor)
+        then:
         1 * delegate.processTestClass(test1)
+        0 * _._
     }
 
     def 'ends processing on delegate processor on nth test'() {
@@ -49,9 +53,14 @@ public class RestartEveryNTestClassProcessorTest extends Specification {
 
         then:
         1 * factory.create() >> delegate
+        1 * delegate.startProcessing(resultProcessor)
+        then:
         1 * delegate.processTestClass(test1)
+        then:
         1 * delegate.processTestClass(test2)
+        then:
         1 * delegate.stop()
+        0 * _._
     }
 
     def 'creates new delegate processor on (n + 1)th test'() {
@@ -62,17 +71,28 @@ public class RestartEveryNTestClassProcessorTest extends Specification {
         processor.startProcessing(resultProcessor)
         processor.processTestClass(test1)
         processor.processTestClass(test2)
+
+        then:
+        1 * factory.create() >> delegate
+        1 * delegate.startProcessing(resultProcessor)
+        then:
+        1 * delegate.processTestClass(test1)
+        then:
+        1 * delegate.processTestClass(test2)
+        then:
+        1 * delegate.stop()
+        0 * _._
+
+        when:
         processor.processTestClass(test3)
 
         then:
-        2 * factory.create() >> delegate >> delegate2
-        1 * delegate.startProcessing(resultProcessor)
-        1 * delegate.processTestClass(test1)
-        1 * delegate.processTestClass(test2)
-        1 * delegate.stop()
-
+        1 * factory.create() >> delegate2
+        then:
         1 * delegate2.startProcessing(resultProcessor)
+        then:
         1 * delegate2.processTestClass(test3)
+        0 * _._
     }
 
     def 'processing on delegate processor ends on end of processing'() {
@@ -84,7 +104,11 @@ public class RestartEveryNTestClassProcessorTest extends Specification {
         then:
         1 * factory.create() >> delegate
         1 * delegate.startProcessing(resultProcessor)
+        then:
+        1 * delegate.processTestClass(test1)
+        then:
         1 * delegate.stop()
+        0 * _._
     }
 
     def 'does nothing on end of processing when no tests received'() {
@@ -101,9 +125,14 @@ public class RestartEveryNTestClassProcessorTest extends Specification {
 
         then:
         1 * factory.create() >> delegate
+        1 * delegate.startProcessing(resultProcessor)
+        then:
         1 * delegate.processTestClass(test1)
+        then:
         1 * delegate.processTestClass(test2)
+        then:
         1 * delegate.stop()
+        0 * _._
     }
 
     def 'uses single batch when n equals zero'() {
@@ -118,8 +147,13 @@ public class RestartEveryNTestClassProcessorTest extends Specification {
 
         then:
         1 * factory.create() >> delegate
+        1 * delegate.startProcessing(resultProcessor)
+        then:
         1 * delegate.processTestClass(test1)
+        then:
         1 * delegate.processTestClass(test2)
+        then:
         1 * delegate.stop()
+        0 * _._
     }
 }
