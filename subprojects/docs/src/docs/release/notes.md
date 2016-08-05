@@ -158,10 +158,6 @@ Note the `apply false` at the end of the plugin declaration.  This instructs Gra
 
 A task is up-to-date as long as its inputs and outputs remain unchanged. Previous versions of Gradle did not consider _the code_ of the task as part of the inputs. This could lead to incorrect behavior where the implementation of a task could change but the task might still be marked as `UP-TO-DATE` even though it would actually create different outputs.  Gradle now recognizes when a task, its actions, or its dependencies change between executions and properly marks the task as out-of-date.
 
-#### Tracking changes in the order of input files
-
-Gradle now recognizes changes in the order of files for classpath properties as a reason to mark a task like `JavaCompile` out-of-date. The new `@OrderSensitive` annotation can be used on task input properties to turn this feature on in custom tasks.
-
 #### New task property annotations
 
 Since 3.0, every task property should specify its role via one of the task property annotations:
