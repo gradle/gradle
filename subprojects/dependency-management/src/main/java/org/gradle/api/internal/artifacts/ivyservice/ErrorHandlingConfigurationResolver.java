@@ -99,7 +99,7 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         public Set<ResolvedDependency> allDependencies() {
             try {
                 return lenientConfiguration.allDependencies();
-            } catch (Throwable e){
+            } catch (Throwable e) {
                 throw wrapException(e, resolveContext);
             }
         }
