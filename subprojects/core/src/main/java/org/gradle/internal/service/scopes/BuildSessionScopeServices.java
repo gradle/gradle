@@ -31,6 +31,7 @@ import org.gradle.deployment.internal.DefaultDeploymentRegistry;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistration;
@@ -66,7 +67,7 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
     }
 
     WorkerProcessFactory createWorkerProcessFactory(StartParameter startParameter, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
-                                                    TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory) {
+                                                    TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector) {
         return new DefaultWorkerProcessFactory(
             startParameter.getLogLevel(),
             messagingServer,
@@ -74,7 +75,8 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
             new LongIdGenerator(),
             startParameter.getGradleUserHomeDir(),
             temporaryFileProvider,
-            execHandleFactory);
+            execHandleFactory,
+            jvmVersionDetector);
     }
 
     ClassPathRegistry createClassPathRegistry() {

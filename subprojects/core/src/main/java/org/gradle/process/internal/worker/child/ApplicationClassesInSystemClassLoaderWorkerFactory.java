@@ -23,6 +23,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
@@ -30,11 +31,8 @@ import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.internal.serialize.OutputStreamBackedEncoder;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.streams.EncodedStream;
-import org.gradle.process.internal.worker.CachedJavaExecutableVersionProber;
-import org.gradle.process.internal.worker.DefaultJavaExecutableVersionProber;
 import org.gradle.process.internal.worker.DefaultWorkerProcessBuilder;
 import org.gradle.process.internal.worker.GradleWorkerMain;
-import org.gradle.process.internal.worker.JavaExecutableVersionProber;
 import org.gradle.util.GUtil;
 
 import java.io.ByteArrayInputStream;
@@ -73,11 +71,12 @@ import java.util.Set;
 public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
     private final ClassPathRegistry classPathRegistry;
     private final TemporaryFileProvider temporaryFileProvider;
-    private final JavaExecutableVersionProber versionProber = new CachedJavaExecutableVersionProber(new DefaultJavaExecutableVersionProber());
+    private final JvmVersionDetector jvmVersionDetector;
 
-    public ApplicationClassesInSystemClassLoaderWorkerFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider) {
+    public ApplicationClassesInSystemClassLoaderWorkerFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider, JvmVersionDetector jvmVersionDetector) {
         this.classPathRegistry = classPathRegistry;
         this.temporaryFileProvider = temporaryFileProvider;
+        this.jvmVersionDetector = jvmVersionDetector;
     }
 
     @Override
@@ -148,7 +147,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerFactory implements Worke
     }
 
     private boolean shouldUseOptionsFile(JavaExecHandleBuilder execSpec) {
-        JavaVersion executableVersion = versionProber.probeVersion(execSpec);
+        JavaVersion executableVersion = jvmVersionDetector.getJavaVersion(execSpec.getExecutable());
         return executableVersion != null && executableVersion.isJava9Compatible();
     }
 
