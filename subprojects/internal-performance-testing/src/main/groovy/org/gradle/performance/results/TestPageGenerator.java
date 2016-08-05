@@ -240,13 +240,11 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             templates.add(scenario.getTestProject());
         }
 
-        return "To reproduce, run ./gradlew clean " +
-            Joiner.on(' ').join(templates) +
-            " performanceTest --scenarios " +
-            "'" +
-            history.getDisplayName() +
-            "'" +
-            " -x prepareSamples";
+        return "To reproduce, run ./gradlew clean "
+            + Joiner.on(' ').join(templates)
+            + " performanceTest --scenarios "
+            + "'" + history.getDisplayName() + "'"
+            + " -x prepareSamples";
     }
 
     private static class Link {
