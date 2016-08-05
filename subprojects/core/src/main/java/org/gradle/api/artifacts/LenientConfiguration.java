@@ -40,7 +40,7 @@ public interface LenientConfiguration {
      * @since 3.1
      * @return all resolved dependencies
      */
-    public Set<ResolvedDependency> allDependencies();
+    public Set<ResolvedDependency> getAllDependencies();
 
     /**
      * returns dependencies that were attempted to resolve but failed.

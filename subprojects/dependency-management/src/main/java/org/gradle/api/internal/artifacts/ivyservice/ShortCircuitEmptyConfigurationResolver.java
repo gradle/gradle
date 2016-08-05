@@ -84,7 +84,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
                     return Collections.emptySet();
                 }
 
-                public Set<ResolvedDependency> allDependencies() {
+                public Set<ResolvedDependency> getAllDependencies() {
                     return Collections.emptySet();
                 }
 
