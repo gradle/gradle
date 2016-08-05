@@ -76,7 +76,6 @@ class DefaultLenientConfigurationTest extends Specification {
         then:
         1 * transientConfigurationResults.getRoot() >> root
         result.size() == size
-        result.size() == expected.size()
         result == expected
 
         where:
