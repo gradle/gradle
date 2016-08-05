@@ -143,7 +143,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     @TypeChecked(TypeCheckingMode.SKIP)
     private void reportErrors() {
         if (failedJobs) {
-            throw new GradleException("Distributed performance tests failed. See individual jobs for details:\n" +
+            throw new GradleException("${failedJobs.size()} performance tests failed. See individual builds for details:\n" +
                     failedJobs.collect {job ->
                         NodeChildren properties = job.properties.children()
                         String scenario = properties.find { it.@name == 'scenario' }.@value
