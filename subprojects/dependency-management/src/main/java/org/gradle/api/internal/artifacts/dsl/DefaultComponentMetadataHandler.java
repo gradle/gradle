@@ -129,7 +129,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
-    public MutableModuleComponentResolveMetadata processMetadata(MutableModuleComponentResolveMetadata metadata) {
+    public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
         MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata);
         processAllRules(mutableMetadata, details);

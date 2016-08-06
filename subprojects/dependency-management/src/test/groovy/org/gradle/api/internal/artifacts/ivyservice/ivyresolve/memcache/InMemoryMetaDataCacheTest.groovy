@@ -84,7 +84,7 @@ class InMemoryMetaDataCacheTest extends Specification {
         def result = Mock(BuildableModuleComponentMetaDataResolveResult.class)
 
         given:
-        _ * originalMetaData.copy() >> cachedCopy
+        _ * originalMetaData.asMutable() >> cachedCopy
         cache.newDependencyResult(componentId("org", "foo", "1.0"), resolvedResult)
 
         when:
@@ -101,13 +101,14 @@ class InMemoryMetaDataCacheTest extends Specification {
         then:
         match
         stats.metadataServed == 1
-        _ * cachedCopy.copy() >> suppliedMetaData
+        _ * cachedCopy.asImmutable() >> suppliedMetaData
         1 * result.resolved(suppliedMetaData)
     }
 
     def "caches and supplies remote and local metadata"() {
         def moduleMetaData = Stub(MutableModuleComponentResolveMetadata)
-        _ * moduleMetaData.copy() >> moduleMetaData
+        _ * moduleMetaData.asMutable() >> moduleMetaData
+        _ * moduleMetaData.asImmutable() >> moduleMetaData
         def resolvedResult = Mock(BuildableModuleComponentMetaDataResolveResult.class) {
             getMetaData() >> moduleMetaData
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved

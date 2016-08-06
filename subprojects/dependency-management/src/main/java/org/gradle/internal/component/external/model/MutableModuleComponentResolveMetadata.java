@@ -28,11 +28,6 @@ public interface MutableModuleComponentResolveMetadata extends ModuleComponentRe
     ModuleComponentResolveMetadata asImmutable();
 
     /**
-     * Creates a deep copy of this meta-data.
-     */
-    MutableModuleComponentResolveMetadata copy();
-
-    /**
      * Also sets the {@link #getId()} based on the provided component id.
      */
     void setComponentId(ModuleComponentIdentifier componentId);

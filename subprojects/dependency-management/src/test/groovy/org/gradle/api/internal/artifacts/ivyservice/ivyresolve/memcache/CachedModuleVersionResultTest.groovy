@@ -87,13 +87,13 @@ class CachedModuleVersionResultTest extends Specification {
         def cached = new CachedModuleVersionResult(resolved)
 
         then:
-        1 * metaData.copy() >> cachedMetaData
+        1 * metaData.asMutable() >> cachedMetaData
 
         when:
         cached.supply(result)
 
         then:
-        1 * cachedMetaData.copy() >> suppliedMetaData
+        1 * cachedMetaData.asImmutable() >> suppliedMetaData
         1 * result.resolved(suppliedMetaData)
         1 * result.setAuthoritative(false)
         0 * result._

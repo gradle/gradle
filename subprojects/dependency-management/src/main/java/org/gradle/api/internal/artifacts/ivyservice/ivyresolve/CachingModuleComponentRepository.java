@@ -32,8 +32,13 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentUsage;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
@@ -170,7 +175,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 result.setAuthoritative(cachedMetaData.getAgeMillis() == 0);
                 return;
             }
-            MutableModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
+            ModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
             metaData = metadataProcessor.processMetadata(metaData);
             if (requestMetaData.isChanging() || metaData.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
@@ -186,7 +191,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             }
 
             LOGGER.debug("Using cached module metadata for module '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
-            metaData.setSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), metaData.getSource()));
+            metaData = metaData.withSource(new CachingModuleSource(cachedMetaData.getDescriptorHash(), metaData.isChanging(), metaData.getSource()));
             result.resolved(metaData);
             // When age == 0, verified since the start of this build, assume the meta-data hasn't changed
             result.setAuthoritative(cachedMetaData.getAgeMillis() == 0);
@@ -300,12 +305,12 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     moduleMetaDataCache.cacheMissing(delegate, moduleComponentIdentifier);
                     break;
                 case Resolved:
-                    MutableModuleComponentResolveMetadata metaData = result.getMetaData();
+                    ModuleComponentResolveMetadata metaData = result.getMetaData();
                     ModuleSource moduleSource = metaData.getSource();
                     ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData);
                     metaData = metadataProcessor.processMetadata(metaData);
                     moduleSource = new CachingModuleSource(cachedMetaData.getDescriptorHash(), requestMetaData.isChanging() || metaData.isChanging(), moduleSource);
-                    metaData.setSource(moduleSource);
+                    metaData = metaData.withSource(moduleSource);
                     result.resolved(metaData);
                     break;
                 case Failed:

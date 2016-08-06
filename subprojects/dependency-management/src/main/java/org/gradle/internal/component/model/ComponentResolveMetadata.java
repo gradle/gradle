@@ -50,7 +50,7 @@ public interface ComponentResolveMetadata {
     ModuleSource getSource();
 
     /**
-     * Makes a copy of this meta-data with the given source.
+     * Creates a copy of this meta-data with the given source.
      */
     ComponentResolveMetadata withSource(ModuleSource source);
 

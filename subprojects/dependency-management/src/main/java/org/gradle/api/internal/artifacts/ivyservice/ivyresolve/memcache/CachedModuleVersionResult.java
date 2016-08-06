@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
 
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
@@ -30,7 +31,9 @@ class CachedModuleVersionResult {
     public CachedModuleVersionResult(BuildableModuleComponentMetaDataResolveResult result) {
         this.state = result.getState();
         if (state == Resolved) {
-            this.metaData = result.getMetaData().copy();
+            // Take a defensive copy
+            // TODO - remove this
+            this.metaData = result.getMetaData().asMutable();
             this.authoritative = result.isAuthoritative();
         } else if (state == Missing) {
             this.metaData = null;
@@ -48,7 +51,9 @@ class CachedModuleVersionResult {
     public void supply(BuildableModuleComponentMetaDataResolveResult result) {
         assert isCacheable() : "Results are not cacheable, cannot supply the results.";
         if (state == Resolved) {
-            MutableModuleComponentResolveMetadata metaData = this.metaData.copy();
+            // Take a defensive copy
+            // TODO - remove this
+            ModuleComponentResolveMetadata metaData = this.metaData.asImmutable();
             result.resolved(metaData);
             result.setAuthoritative(authoritative);
         } else if (state == Missing) {
