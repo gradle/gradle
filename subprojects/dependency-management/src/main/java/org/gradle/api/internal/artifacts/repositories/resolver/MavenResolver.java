@@ -25,8 +25,18 @@ import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransp
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.Transformers;
-import org.gradle.internal.component.external.model.*;
-import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.ComponentUsage;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
@@ -37,7 +47,11 @@ import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -106,17 +120,13 @@ public class MavenResolver extends ExternalResourceResolver {
 
     private void resolveUniqueSnapshotDependency(MavenUniqueSnapshotComponentIdentifier module, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
         resolveStaticDependency(module, prescribedMetaData, result, createArtifactResolver(snapshotSource));
-        if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-            result.getMetaData().setSource(snapshotSource);
-        }
     }
 
     @Override
     protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
 
         if (moduleSource instanceof MavenUniqueSnapshotModuleSource) {
-            final String timestamp = ((MavenUniqueSnapshotModuleSource) moduleSource).getTimestamp();
-            return new MavenUniqueSnapshotExternalResourceArtifactResolver(super.createArtifactResolver(moduleSource), timestamp);
+            return new MavenUniqueSnapshotExternalResourceArtifactResolver(super.createArtifactResolver(moduleSource), (MavenUniqueSnapshotModuleSource) moduleSource);
         }
 
         return super.createArtifactResolver(moduleSource);

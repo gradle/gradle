@@ -171,6 +171,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         MutableModuleComponentResolveMetadata metaDataArtifactMetaData = parseMetaDataFromArtifact(moduleVersionIdentifier, artifactResolver, result);
         if (metaDataArtifactMetaData != null) {
             LOGGER.debug("Metadata file found for module '{}' in repository '{}'.", moduleVersionIdentifier, getName());
+            metaDataArtifactMetaData.setSource(artifactResolver.getSource());
             result.resolved(metaDataArtifactMetaData);
             return;
         }
@@ -178,6 +179,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         MutableModuleComponentResolveMetadata metaDataFromDefaultArtifact = createMetaDataFromDefaultArtifact(moduleVersionIdentifier, prescribedMetaData, artifactResolver, result);
         if (metaDataFromDefaultArtifact != null) {
             LOGGER.debug("Found artifact but no meta-data for module '{}' in repository '{}', using default meta-data.", moduleVersionIdentifier, getName());
+            metaDataFromDefaultArtifact.setSource(artifactResolver.getSource());
             result.resolved(metaDataFromDefaultArtifact);
             return;
         }
