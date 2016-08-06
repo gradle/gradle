@@ -105,6 +105,17 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
 
     public abstract AbstractModuleComponentResolveMetadata copy();
 
+    @Override
+    public ModuleComponentResolveMetadata asImmutable() {
+        // Not quite true yet
+        return copy();
+    }
+
+    @Override
+    public MutableModuleComponentResolveMetadata asMutable() {
+        return copy();
+    }
+
     public MutableModuleComponentResolveMetadata withSource(ModuleSource source) {
         AbstractModuleComponentResolveMetadata copy = copy();
         copy.setModuleSource(source);
