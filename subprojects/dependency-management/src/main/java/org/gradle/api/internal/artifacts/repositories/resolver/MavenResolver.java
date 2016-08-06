@@ -29,6 +29,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
@@ -225,8 +226,8 @@ public class MavenResolver extends ExternalResourceResolver {
         return (MavenModuleResolveMetadata) metaData;
     }
 
-    protected static MavenModuleResolveMetadata mavenMetaData(MutableModuleComponentResolveMetadata metaData) {
-        return (MavenModuleResolveMetadata) metaData;
+    protected static MutableMavenModuleResolveMetadata mavenMetaData(MutableModuleComponentResolveMetadata metaData) {
+        return (MutableMavenModuleResolveMetadata) metaData;
     }
 
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {

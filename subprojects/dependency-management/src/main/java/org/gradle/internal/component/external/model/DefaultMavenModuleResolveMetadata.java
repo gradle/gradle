@@ -22,12 +22,13 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
-public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
+public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata, MutableMavenModuleResolveMetadata {
     private static final String POM_PACKAGING = "pom";
     private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private final String packaging;
@@ -53,7 +54,22 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     @Override
-    public DefaultMavenModuleResolveMetadata copy() {
+    public DefaultMavenModuleResolveMetadata withSource(ModuleSource source) {
+        return (DefaultMavenModuleResolveMetadata) super.withSource(source);
+    }
+
+    @Override
+    public MutableMavenModuleResolveMetadata asMutable() {
+        return copy();
+    }
+
+    @Override
+    public MavenModuleResolveMetadata asImmutable() {
+        return copy();
+    }
+
+    @Override
+    protected DefaultMavenModuleResolveMetadata copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
         DefaultMavenModuleResolveMetadata copy = new DefaultMavenModuleResolveMetadata(getComponentId(), getId(), getDescriptor(), packaging, relocated);
         copyTo(copy);

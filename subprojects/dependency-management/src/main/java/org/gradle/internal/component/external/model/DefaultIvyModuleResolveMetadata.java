@@ -21,11 +21,12 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
+public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata {
     private final Map<NamespaceId, String> extraInfo;
     private String branch;
 
@@ -44,7 +45,22 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     @Override
-    public DefaultIvyModuleResolveMetadata copy() {
+    public DefaultIvyModuleResolveMetadata withSource(ModuleSource source) {
+        return (DefaultIvyModuleResolveMetadata) super.withSource(source);
+    }
+
+    @Override
+    public MutableIvyModuleResolveMetadata asMutable() {
+        return copy();
+    }
+
+    @Override
+    public IvyModuleResolveMetadata asImmutable() {
+        return copy();
+    }
+
+    @Override
+    protected DefaultIvyModuleResolveMetadata copy() {
         // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
         DefaultIvyModuleResolveMetadata copy = new DefaultIvyModuleResolveMetadata(getComponentId(), getId(), getDescriptor());
         copyTo(copy);

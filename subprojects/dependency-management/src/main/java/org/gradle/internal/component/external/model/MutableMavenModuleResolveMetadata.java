@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,14 @@
 
 package org.gradle.internal.component.external.model;
 
-import org.gradle.internal.component.model.ModuleSource;
-
-/**
- * Meta-data for a module version resolved from a Maven repository.
- */
-public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetadata {
+public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
     /**
      * {@inheritDoc}
      */
     @Override
-    MutableMavenModuleResolveMetadata asMutable();
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    MavenModuleResolveMetadata withSource(ModuleSource source);
+    MavenModuleResolveMetadata asImmutable();
 
     String getPackaging();
-    boolean isRelocated();
     boolean isPomPackaging();
     boolean isKnownJarPackaging();
-    String getSnapshotTimestamp();
 }

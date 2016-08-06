@@ -36,7 +36,7 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     ModuleComponentResolveMetadata withSource(ModuleSource source);
 
     /**
-     * Creates a mutable copy of this metadata. Often it is more efficient to use a more specialised mutation method such as {@link #withSource(ModuleSource)}.
+     * Creates a mutable copy of this metadata. Often it is more efficient to use a more specialised mutation method such as {@link #withSource(ModuleSource)} rather than this method.
      */
     MutableModuleComponentResolveMetadata asMutable();
 

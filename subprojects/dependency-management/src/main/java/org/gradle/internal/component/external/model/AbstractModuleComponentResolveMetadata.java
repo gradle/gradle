@@ -103,18 +103,7 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
         return descriptor;
     }
 
-    public abstract AbstractModuleComponentResolveMetadata copy();
-
-    @Override
-    public ModuleComponentResolveMetadata asImmutable() {
-        // Not quite true yet
-        return copy();
-    }
-
-    @Override
-    public MutableModuleComponentResolveMetadata asMutable() {
-        return copy();
-    }
+    protected abstract AbstractModuleComponentResolveMetadata copy();
 
     public AbstractModuleComponentResolveMetadata withSource(ModuleSource source) {
         AbstractModuleComponentResolveMetadata copy = copy();
