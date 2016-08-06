@@ -23,7 +23,7 @@ public interface EarWebModule extends EarModule {
     /**
      * The context-root element specifies the context root of a web application.
      */
-    public String getContextRoot();
+    String getContextRoot();
 
-    public void setContextRoot(String contextRoot);
+    void setContextRoot(String contextRoot);
 }
