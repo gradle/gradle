@@ -16,13 +16,19 @@
 
 package org.gradle.internal.component.external.model
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ModuleSource
-import spock.lang.Specification
 
-class DefaultMutableMavenModuleResolveMetadataTest extends Specification {
+class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
+    @Override
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
+        return new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "jar", false)
+    }
+
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
@@ -54,6 +60,19 @@ class DefaultMutableMavenModuleResolveMetadataTest extends Specification {
         immutable.snapshotTimestamp == null
         immutable.packaging == "packaging"
         immutable.relocated
+
+        and:
+        def copy = immutable.asMutable()
+        copy != metadata
+        copy.componentId == id
+        copy.source == null
+        copy.id == DefaultModuleVersionIdentifier.newId(id)
+        copy.status == "2"
+        copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        !copy.changing
+        copy.snapshotTimestamp == null
+        copy.packaging == "packaging"
+        copy.relocated
     }
 
     def "can override values from descriptor"() {
@@ -89,6 +108,16 @@ class DefaultMutableMavenModuleResolveMetadataTest extends Specification {
         immutable.changing
         immutable.statusScheme == ["1", "2", "3"]
         immutable.snapshotTimestamp == "123"
+
+        def copy = immutable.asMutable()
+        copy != metadata
+        copy.componentId == newId
+        copy.id == DefaultModuleVersionIdentifier.newId(newId)
+        copy.source == source
+        copy.status == "3"
+        copy.changing
+        copy.statusScheme == ["1", "2", "3"]
+        copy.snapshotTimestamp == "123"
     }
 
     def "making changes to copy does not affect original"() {

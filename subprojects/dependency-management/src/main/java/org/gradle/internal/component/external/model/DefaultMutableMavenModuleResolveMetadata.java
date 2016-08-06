@@ -46,6 +46,13 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
         this.relocated = relocated;
     }
 
+    DefaultMutableMavenModuleResolveMetadata(MavenModuleResolveMetadata metadata) {
+        super(metadata);
+        this.packaging = metadata.getPackaging();
+        this.relocated = metadata.isRelocated();
+        this.snapshotTimestamp = metadata.getSnapshotTimestamp();
+    }
+
     @Override
     public MavenModuleResolveMetadata asImmutable() {
         return new DefaultMavenModuleResolveMetadata(this);

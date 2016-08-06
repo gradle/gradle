@@ -24,12 +24,10 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DefaultDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -46,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata, ModuleComponentResolveMetadata {
+abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
     private final ModuleDescriptorState descriptor;
     private ModuleVersionIdentifier moduleVersionIdentifier;
     private ModuleComponentIdentifier componentIdentifier;
@@ -55,19 +53,40 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
     private Map<String, DefaultConfigurationMetadata> configurations;
+    private final List<ModuleComponentArtifactMetadata> artifacts;
     private Multimap<String, ModuleComponentArtifactMetadata> artifactsByConfig;
     private List<DependencyMetadata> dependencies;
     private List<Exclude> excludes;
 
-    public AbstractModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptorState moduleDescriptor) {
+    protected AbstractModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptorState moduleDescriptor) {
         this.descriptor = moduleDescriptor;
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = moduleVersionIdentifier;
         status = moduleDescriptor.getStatus();
         configurations = populateConfigurationsFromDescriptor(moduleDescriptor);
+        artifacts = null;
         artifactsByConfig = populateArtifactsFromDescriptor(componentIdentifier, moduleDescriptor);
-        dependencies = populateDependenciesFromDescriptor(moduleDescriptor);
+        dependencies = Collections.emptyList();
         excludes = moduleDescriptor.getExcludes();
+    }
+
+    protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
+        this.descriptor = metadata.getDescriptor();
+        this.componentIdentifier = metadata.getComponentId();
+        this.moduleVersionIdentifier = metadata.getId();
+        changing = metadata.isChanging();
+        status = metadata.getStatus();
+        statusScheme = metadata.getStatusScheme();
+        moduleSource = metadata.getSource();
+        dependencies = metadata.getDependencies();
+        excludes = descriptor.getExcludes();
+        configurations = populateConfigurationsFromDescriptor(descriptor);
+        artifacts = metadata.getArtifacts();
+        if (artifacts != null) {
+            artifactsByConfig = populateArtifacts(artifacts);
+        } else {
+            artifactsByConfig = populateArtifactsFromDescriptor(componentIdentifier, descriptor);
+        }
     }
 
     protected void copyTo(AbstractModuleComponentResolveMetadata copy) {
@@ -163,11 +182,12 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
     }
 
-    public void setArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts) {
-        this.artifactsByConfig = LinkedHashMultimap.create();
+    private Multimap<String, ModuleComponentArtifactMetadata> populateArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts) {
+        Multimap<String, ModuleComponentArtifactMetadata> artifactsByConfig = LinkedHashMultimap.create();
         for (String config : getConfigurationNames()) {
             artifactsByConfig.putAll(config, artifacts);
         }
+        return artifactsByConfig;
     }
 
     private static Multimap<String, ModuleComponentArtifactMetadata> populateArtifactsFromDescriptor(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor) {
@@ -181,15 +201,11 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
         return artifactsByConfig;
     }
 
-    private static List<DependencyMetadata> populateDependenciesFromDescriptor(ModuleDescriptorState moduleDescriptor) {
-        List<Dependency> dependencies = moduleDescriptor.getDependencies();
-        List<DependencyMetadata> result = new ArrayList<DependencyMetadata>(dependencies.size());
-        for (Dependency dependency : dependencies) {
-            result.add(new DefaultDependencyMetadata(dependency));
-        }
-        return result;
+    @Nullable
+    @Override
+    public List<ModuleComponentArtifactMetadata> getArtifacts() {
+        return artifacts;
     }
-
 
     public List<DependencyMetadata> getDependencies() {
         return dependencies;

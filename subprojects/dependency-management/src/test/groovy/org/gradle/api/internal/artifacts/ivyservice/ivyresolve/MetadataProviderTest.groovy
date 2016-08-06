@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
@@ -96,7 +96,7 @@ class MetadataProviderTest extends Specification {
         def mds = new MutableModuleDescriptorState(DefaultModuleComponentIdentifier.newId("group", "name", "version"), "test", false)
         mds.setBranch("branchValue")
         mds.getExtraInfo().put(new NamespaceId("baz", "foo"), "extraInfoValue")
-        def metaData = new DefaultIvyModuleResolveMetadata(id, mds)
+        def metaData = new DefaultMutableIvyModuleResolveMetadata(id, mds).asImmutable()
         resolveState.resolve() >> {
             def result = new DefaultBuildableModuleComponentMetaDataResolveResult()
             result.resolved(metaData)

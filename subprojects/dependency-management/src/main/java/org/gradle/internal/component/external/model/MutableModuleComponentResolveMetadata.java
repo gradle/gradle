@@ -65,10 +65,15 @@ public interface MutableModuleComponentResolveMetadata {
      */
     ModuleDescriptorState getDescriptor();
 
+    List<DependencyMetadata> getDependencies();
+
     /**
      * Replaces the dependencies of this module version.
      */
     void setDependencies(Iterable<? extends DependencyMetadata> dependencies);
+
+    @Nullable
+    List<ModuleComponentArtifactMetadata> getArtifacts();
 
     /**
      * Replaces the artifacts of this module version.

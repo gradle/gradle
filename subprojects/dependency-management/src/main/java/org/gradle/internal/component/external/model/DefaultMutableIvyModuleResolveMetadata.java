@@ -32,6 +32,10 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
         super(componentIdentifier, descriptor);
     }
 
+    public DefaultMutableIvyModuleResolveMetadata(ModuleComponentResolveMetadata metadata) {
+        super(metadata);
+    }
+
     @Override
     public IvyModuleResolveMetadata asImmutable() {
         return new DefaultIvyModuleResolveMetadata(this);

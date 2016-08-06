@@ -16,13 +16,19 @@
 
 package org.gradle.internal.component.external.model
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.ModuleSource
-import spock.lang.Specification
 
-class DefaultMutableIvyModuleResolveMetadataTest extends Specification {
+class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
+    @Override
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
+        return new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor)
+    }
+
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
@@ -44,15 +50,23 @@ class DefaultMutableIvyModuleResolveMetadataTest extends Specification {
         def immutable = metadata.asImmutable()
         immutable != metadata
         immutable.componentId == id
+        immutable.source == null
         immutable.id == DefaultModuleVersionIdentifier.newId(id)
         immutable.status == "2"
+        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
         immutable.generated
         immutable.branch == "b"
+        !immutable.changing
 
         and:
-        !immutable.changing
-        immutable.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
-        immutable.source == null
+        def copy = immutable.asMutable()
+        copy != metadata
+        copy.componentId == id
+        copy.source == null
+        copy.id == DefaultModuleVersionIdentifier.newId(id)
+        copy.status == "2"
+        copy.statusScheme == ComponentResolveMetadata.DEFAULT_STATUS_SCHEME
+        !copy.changing
     }
 
     def "can override values from descriptor"() {
@@ -85,6 +99,15 @@ class DefaultMutableIvyModuleResolveMetadataTest extends Specification {
         immutable.status == "3"
         immutable.changing
         immutable.statusScheme == ["1", "2", "3"]
+
+        def copy = immutable.asMutable()
+        copy != metadata
+        copy.componentId == newId
+        copy.id == DefaultModuleVersionIdentifier.newId(newId)
+        copy.source == source
+        copy.status == "3"
+        copy.changing
+        copy.statusScheme == ["1", "2", "3"]
     }
 
     def "making changes to copy does not affect original"() {

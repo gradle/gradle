@@ -17,24 +17,15 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Map;
 
-public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata {
-    public DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor) {
-        this(componentIdentifier, DefaultModuleVersionIdentifier.newId(componentIdentifier), moduleDescriptor);
-    }
-
-    DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata resolveMetadata) {
-        this(resolveMetadata.getComponentId(), resolveMetadata.getId(), resolveMetadata.getDescriptor());
-        setStatus(resolveMetadata.getStatus());
-        setChanging(resolveMetadata.isChanging());
-        setStatusScheme(resolveMetadata.getStatusScheme());
-        setSource(resolveMetadata.getSource());
+public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
+    DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata metadata) {
+        super(metadata);
     }
 
     private DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier identifier, ModuleDescriptorState moduleDescriptor) {
@@ -48,12 +39,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
 
     @Override
     public MutableIvyModuleResolveMetadata asMutable() {
-        return copy();
-    }
-
-    @Override
-    public IvyModuleResolveMetadata asImmutable() {
-        return copy();
+        return new DefaultMutableIvyModuleResolveMetadata(this);
     }
 
     @Override

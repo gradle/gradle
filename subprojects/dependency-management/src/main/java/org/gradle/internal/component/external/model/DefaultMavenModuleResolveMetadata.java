@@ -26,7 +26,7 @@ import org.gradle.internal.component.model.ModuleSource;
 import java.util.Arrays;
 import java.util.Collection;
 
-public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata, MutableMavenModuleResolveMetadata {
+public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata {
     public static final String POM_PACKAGING = "pom";
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private final String packaging;
@@ -38,12 +38,10 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
-        this(metadata.getComponentId(), metadata.getDescriptor(), metadata.getPackaging(), metadata.isRelocated());
-        setStatus(metadata.getStatus());
-        setChanging(metadata.isChanging());
-        setStatusScheme(metadata.getStatusScheme());
-        setSource(metadata.getSource());
-        setSnapshotTimestamp(metadata.getSnapshotTimestamp());
+        super(metadata);
+        this.packaging = metadata.getPackaging();
+        this.relocated = metadata.isRelocated();
+        this.snapshotTimestamp = metadata.getSnapshotTimestamp();
     }
 
     private DefaultMavenModuleResolveMetadata(ModuleComponentIdentifier componentId, ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
@@ -59,12 +57,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     @Override
     public MutableMavenModuleResolveMetadata asMutable() {
-        return copy();
-    }
-
-    @Override
-    public MavenModuleResolveMetadata asImmutable() {
-        return copy();
+        return new DefaultMutableMavenModuleResolveMetadata(this);
     }
 
     @Override

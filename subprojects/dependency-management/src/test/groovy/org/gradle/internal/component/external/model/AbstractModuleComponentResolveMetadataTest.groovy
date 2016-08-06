@@ -33,7 +33,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
 
     abstract AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor);
 
-    MutableModuleComponentResolveMetadata getMetadata() {
+    ModuleComponentResolveMetadata getMetadata() {
         return createMetadata(id, moduleDescriptor)
     }
 
@@ -58,20 +58,6 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         metadata.id.group == "group"
         metadata.id.name == "module"
         metadata.id.version == "version"
-    }
-
-    def "builds and caches the dependency meta-data from the module descriptor"() {
-        given:
-        dependency("org", "module", "1.2")
-        dependency("org", "another", "1.2")
-
-        when:
-        def deps = metadata.dependencies
-
-        then:
-        deps.size() == 2
-        deps[0].requested == newSelector("org", "module", "1.2")
-        deps[1].requested == newSelector("org", "another", "1.2")
     }
 
     def "builds and caches the configuration meta-data from the module descriptor"() {
@@ -99,17 +85,17 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         dependency("org", "module", "1.5").addDependencyConfiguration("%", "e")
 
         when:
-        def dependencies = this.metadata.getConfiguration("conf").dependencies
+        def md = metadata
 
         then:
-        dependencies*.requested*.version == ["1.1", "1.2", "1.3", "1.5"]
+        md.getConfiguration("conf").dependencies*.requested*.version == ["1.1", "1.2", "1.3", "1.5"]
+        md.getConfiguration("super").dependencies*.requested*.version == ["1.2", "1.3", "1.5"]
 
         when:
-        def metadata = getMetadata()
-        metadata.setDependencies([])
+        md.dependencies = []
 
         then:
-        metadata.getConfiguration("conf").dependencies == []
+        md.getConfiguration("conf").dependencies == []
     }
 
     def "builds and caches artifacts for a configuration"() {
@@ -161,13 +147,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         def dependency2 = Stub(DependencyMetadata)
 
         when:
-        dependency("foo", "bar", "1.0")
         def metadata = getMetadata()
-
-        then:
-        metadata.dependencies*.requested*.toString() == ["foo:bar:1.0"]
-
-        when:
         metadata.dependencies = [dependency1, dependency2]
 
         then:

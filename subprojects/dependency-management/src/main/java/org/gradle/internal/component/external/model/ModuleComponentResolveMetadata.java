@@ -21,6 +21,8 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
+import java.util.List;
+
 /**
  * The meta-data for a module version that is required during dependency resolution.
  */
@@ -44,6 +46,9 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
      * Creates an artifact for this module. Does not mutate this metadata.
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
+
+    @Nullable
+    List<ModuleComponentArtifactMetadata> getArtifacts();
 
     /**
      * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types

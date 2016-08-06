@@ -24,7 +24,7 @@ import org.gradle.internal.component.model.DependencyMetadata
 class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
 
     AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
-        return new DefaultMavenModuleResolveMetadata(id, moduleDescriptor, "pom", false)
+        return new DefaultMavenModuleResolveMetadata(new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "pom", false))
     }
 
     def "can make a copy"() {

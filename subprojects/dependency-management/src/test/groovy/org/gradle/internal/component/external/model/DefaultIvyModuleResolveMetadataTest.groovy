@@ -32,7 +32,7 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
         moduleDescriptor.getAllArtifacts() >> new Artifact[0]
         moduleDescriptor.getDependencies() >> new DependencyDescriptor[0]
         moduleDescriptor.getAllExcludeRules() >> new ExcludeRule[0]
-        return new DefaultIvyModuleResolveMetadata(id, moduleDescriptor)
+        return new DefaultIvyModuleResolveMetadata(new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor))
     }
 
     def "can make a copy"() {
@@ -61,7 +61,7 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
     def "getBranch returns branch from moduleDescriptor" () {
         setup:
         moduleDescriptor.setBranch(expectedBranch)
-        def metadataWithBranch = new DefaultIvyModuleResolveMetadata(id, moduleDescriptor)
+        def metadataWithBranch = new DefaultIvyModuleResolveMetadata(new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor))
 
         expect:
         metadataWithBranch.branch == expectedBranch
