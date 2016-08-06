@@ -52,11 +52,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         rule { ComponentSelection cs -> closureCalled << 0 }
         rule { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2 }
-        rule { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closureCalled << 3 }
-        rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
-        rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
-        rule { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetadata mvm -> closureCalled << 6 }
-        rule { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closureCalled << 7 }
+        rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 3 }
+        rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 4 }
 
         and:
         apply(metadataProvider)
@@ -66,7 +63,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         // rules without metadata should be executed first
         closureCalled[0] == 0
         // metadata rules get called second in indeterminate order
-        closureCalled[1..-1].sort() == 1..7
+        closureCalled[1..-1].sort() == 1..4
     }
 
     def "all non-rejecting targeted rules are evaluated" () {
@@ -78,11 +75,8 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 0 }
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closureCalled << 3 }
-        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetadata mvm -> closureCalled << 6 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closureCalled << 7 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 3 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 4 }
 
         and:
         apply(metadataProvider)
@@ -92,7 +86,7 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         // rules without metadata should be executed first
         closureCalled[0] == 0
         // metadata rules get called second in in-determinate order
-        closureCalled[1..-1].sort() == 1..7
+        closureCalled[1..-1].sort() == 1..4
     }
 
     def "can call both targeted and untargeted rules" () {
@@ -104,19 +98,13 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         rule { ComponentSelection cs -> closureCalled << 0 }
         rule { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 1 }
         rule { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 2 }
-        rule { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closureCalled << 3 }
-        rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 4 }
-        rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 5 }
-        rule { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetadata mvm -> closureCalled << 6 }
-        rule { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closureCalled << 7 }
-        targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 8 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 9 }
-        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 10 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closureCalled << 11 }
-        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 12 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 13 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetadata mvm -> closureCalled << 14 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closureCalled << 15 }
+        rule { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 3 }
+        rule { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 4 }
+        targetedRule("group", "module") { ComponentSelection cs -> closureCalled << 5 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closureCalled << 6 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closureCalled << 7 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closureCalled << 8 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closureCalled << 9 }
 
         and:
         apply(metadataProvider)
@@ -124,9 +112,9 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         then:
         !componentSelection.rejected
         // rules without metadata should be executed first in in-determinate order
-        closureCalled[0..1].sort() == [0, 8]
+        closureCalled[0..1].sort() == [0, 5]
         // metadata rules get called second in in-determinate order
-        closureCalled[2..-1].sort() == [*1..7, *9..15]
+        closureCalled[2..-1].sort() == [*1..4, *6..9]
     }
 
     def "short-circuit prefers non-metadata rules over rules requiring metadata"() {
@@ -269,20 +257,16 @@ class ComponentSelectionRulesProcessorTest extends Specification {
         targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 2 }
         targetedRule("group", "module1") { ComponentSelection cs, ComponentMetadata cm -> closuresCalled << 3 }
         targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd -> closuresCalled << 4 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm -> closuresCalled << 5 }
-        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closuresCalled << 6 }
-        targetedRule("group1", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closuresCalled << 7 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closuresCalled << 8 }
-        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, ModuleComponentResolveMetadata mvm -> closuresCalled << 9 }
-        targetedRule("group", "module") { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closuresCalled << 10 }
-        targetedRule("group", "module1") { ComponentSelection cs, ModuleComponentResolveMetadata mvm, ComponentMetadata cm -> closuresCalled << 11 }
+        targetedRule("group", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closuresCalled << 5 }
+        targetedRule("group1", "module") { ComponentSelection cs, IvyModuleDescriptor imd, ComponentMetadata cm -> closuresCalled << 6 }
+        targetedRule("group", "module") { ComponentSelection cs, ComponentMetadata cm, IvyModuleDescriptor imd -> closuresCalled << 7 }
 
         and:
         apply(metadataProvider)
 
         then:
         !componentSelection.rejected
-        closuresCalled.sort() == [0, 2, 4, 5, 6, 8, 9, 10]
+        closuresCalled.sort() == [0, 2, 4, 5, 7]
     }
 
     def "does not invoke rules that require meta-data when it cannot be resolved" () {
