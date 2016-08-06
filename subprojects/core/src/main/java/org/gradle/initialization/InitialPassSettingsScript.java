@@ -17,11 +17,8 @@ package org.gradle.initialization;
 
 import groovy.lang.Closure;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.internal.DynamicObjectUtil;
 import org.gradle.api.internal.ExtensibleDynamicObject;
 import org.gradle.api.internal.plugins.ExtraPropertiesDynamicObjectAdapter;
-import org.gradle.internal.metaobject.CompositeDynamicObject;
-import org.gradle.internal.metaobject.ConfigureDelegate;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugin.repository.PluginRepositoriesSpec;
