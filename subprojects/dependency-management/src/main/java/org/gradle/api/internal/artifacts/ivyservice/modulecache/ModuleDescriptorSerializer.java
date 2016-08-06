@@ -111,7 +111,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void writeExtraInfo(Map<NamespaceId, String> extraInfo) throws IOException {
-            writeInt(extraInfo.size());
+            writeCount(extraInfo.size());
             for (Map.Entry<NamespaceId, String> entry : extraInfo.entrySet()) {
                 NamespaceId namespaceId = entry.getKey();
                 writeString(namespaceId.getNamespace());
@@ -121,7 +121,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void writeConfigurations(Collection<Configuration> configurations) throws IOException {
-            writeInt(configurations.size());
+            writeCount(configurations.size());
             for (Configuration conf : configurations) {
                 writeConfiguration(conf);
             }
@@ -135,7 +135,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void writeArtifacts(List<Artifact> artifacts) throws IOException {
-            writeInt(artifacts.size());
+            writeCount(artifacts.size());
             for (Artifact artifact : artifacts) {
                 IvyArtifactName artifactName = artifact.getArtifactName();
                 writeString(artifactName.getName());
@@ -147,7 +147,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void writeDependencies(List<Dependency> dependencies) throws IOException {
-            writeInt(dependencies.size());
+            writeCount(dependencies.size());
             for (Dependency dd : dependencies) {
                 writeDependency(dd);
             }
@@ -172,7 +172,7 @@ public class ModuleDescriptorSerializer {
 
         private void writeDependencyConfigurationMapping(Dependency dep) throws IOException {
             Map<String, List<String>> confMappings = dep.getConfMappings();
-            writeInt(confMappings.size());
+            writeCount(confMappings.size());
             for (Map.Entry<String, List<String>> entry : confMappings.entrySet()) {
                 writeString(entry.getKey());
                 writeStringList(entry.getValue());
@@ -180,7 +180,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void writeExcludeRules(List<Exclude> excludes) throws IOException {
-            writeInt(excludes.size());
+            writeCount(excludes.size());
             for (Exclude exclude : excludes) {
                 IvyArtifactName artifact = exclude.getArtifact();
                 writeString(exclude.getModuleId().getGroup());
@@ -193,8 +193,8 @@ public class ModuleDescriptorSerializer {
             }
         }
 
-        private void writeInt(int i) throws IOException {
-            encoder.writeInt(i);
+        private void writeCount(int i) throws IOException {
+            encoder.writeSmallInt(i);
         }
 
         private void writeString(String str) throws IOException {
@@ -222,21 +222,21 @@ public class ModuleDescriptorSerializer {
         }
 
         private void writeStringArray(String[] values) throws IOException {
-            writeInt(values.length);
+            writeCount(values.length);
             for (String configuration : values) {
                 writeNullableString(configuration);
             }
         }
 
         private void writeStringList(List<String> values) throws IOException {
-            writeInt(values.size());
+            writeCount(values.size());
             for (String configuration : values) {
                 writeString(configuration);
             }
         }
 
         private void writeStringSet(Set<String> values) throws IOException {
-            writeInt(values.size());
+            writeCount(values.size());
             for (String configuration : values) {
                 writeString(configuration);
             }
@@ -298,7 +298,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void readExtraInfo() throws IOException {
-            int len = readInt();
+            int len = readCount();
             for (int i = 0; i < len; i++) {
                 NamespaceId namespaceId = new NamespaceId(readString(), readString());
                 String value = readString();
@@ -307,7 +307,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void readConfigurations() throws IOException {
-            int len = readInt();
+            int len = readCount();
             for (int i = 0; i < len; i++) {
                 readConfiguration();
             }
@@ -322,7 +322,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void readArtifacts() throws IOException {
-            int size = readInt();
+            int size = readCount();
             for (int i = 0; i < size; i++) {
                 IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString());
                 md.addArtifact(ivyArtifactName, readStringSet());
@@ -330,7 +330,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void readDependencies() throws IOException {
-            int len = readInt();
+            int len = readCount();
             for (int i = 0; i < len; i++) {
                 readDependency();
             }
@@ -347,7 +347,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void readDependencyConfigurationMapping(Dependency dep) throws IOException {
-            int size = readInt();
+            int size = readCount();
             for (int i = 0; i < size; i++) {
                 String from = readString();
                 List<String> to = readStringList();
@@ -356,7 +356,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void readDependencyArtifactDescriptors(Dependency dep) throws IOException {
-            int size = readInt();
+            int size = readCount();
             for (int i = 0; i < size; i++) {
                 IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(readString(), readString(), readNullableString(), readNullableString());
                 dep.addArtifact(ivyArtifactName, readStringSet());
@@ -364,7 +364,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private void readExcludeRules(Dependency dep) throws IOException {
-            int len = readInt();
+            int len = readCount();
             for (int i = 0; i < len; i++) {
                 DefaultExclude rule = readExcludeRule();
                 dep.addExcludeRule(rule);
@@ -383,10 +383,14 @@ public class ModuleDescriptorSerializer {
         }
 
         private void readAllExcludes() throws IOException {
-            int len = readInt();
+            int len = readCount();
             for (int i = 0; i < len; i++) {
                 md.addExclude(readExcludeRule());
             }
+        }
+
+        private int readCount() throws IOException {
+            return decoder.readSmallInt();
         }
 
         private int readInt() throws IOException {
@@ -419,7 +423,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private String[] readStringArray() throws IOException {
-            int size = readInt();
+            int size = readCount();
             String[] array = new String[size];
             for (int i = 0; i < size; i++) {
                 array[i] = readString();
@@ -428,7 +432,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private List<String> readStringList() throws IOException {
-            int size = readInt();
+            int size = readCount();
             List<String> list = new ArrayList<String>(size);
             for (int i = 0; i < size; i++) {
                 list.add(readString());
@@ -437,7 +441,7 @@ public class ModuleDescriptorSerializer {
         }
 
         private Set<String> readStringSet() throws IOException {
-            int size = readInt();
+            int size = readCount();
             Set<String> set = new LinkedHashSet<String>(size);
             for (int i = 0; i < size; i++) {
                 set.add(readString());
