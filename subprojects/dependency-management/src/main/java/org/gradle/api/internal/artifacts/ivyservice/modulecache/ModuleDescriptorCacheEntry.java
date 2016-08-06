@@ -15,18 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.math.BigInteger;
 
-abstract class ModuleDescriptorCacheEntry {
+class ModuleDescriptorCacheEntry {
     static final byte TYPE_MISSING = 0;
-    static final byte TYPE_IVY = 1;
-    static final byte TYPE_MAVEN = 2;
+    static final byte TYPE_PRESENT = 1;
 
     final byte type;
     final boolean isChanging;
@@ -47,13 +44,7 @@ abstract class ModuleDescriptorCacheEntry {
     }
 
     public static ModuleDescriptorCacheEntry forMetaData(ModuleComponentResolveMetadata metaData, long createTimestamp, BigInteger moduleDescriptorHash) {
-        if (metaData instanceof IvyModuleResolveMetadata) {
-            return new IvyModuleCacheEntry(metaData.isChanging(), createTimestamp, moduleDescriptorHash, metaData.getSource());
-        }
-        if (metaData instanceof MavenModuleResolveMetadata) {
-            return new MavenModuleCacheEntry(metaData.isChanging(), createTimestamp, moduleDescriptorHash, metaData.getSource());
-        }
-        throw new IllegalArgumentException("Not a valid module version type: " + metaData);
+        return new ModuleDescriptorCacheEntry(TYPE_PRESENT, metaData.isChanging(), createTimestamp, moduleDescriptorHash, metaData.getSource());
     }
 
     public boolean isMissing() {

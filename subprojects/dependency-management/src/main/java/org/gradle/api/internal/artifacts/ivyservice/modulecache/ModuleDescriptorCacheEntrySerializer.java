@@ -33,19 +33,11 @@ class ModuleDescriptorCacheEntrySerializer implements Serializer<ModuleDescripto
             case ModuleDescriptorCacheEntry.TYPE_MISSING:
                 encoder.writeLong(value.createTimestamp);
                 break;
-            case ModuleDescriptorCacheEntry.TYPE_IVY:
+            case ModuleDescriptorCacheEntry.TYPE_PRESENT:
                 encoder.writeBoolean(value.isChanging);
                 encoder.writeLong(value.createTimestamp);
                 moduleSourceSerializer.write(encoder, value.moduleSource);
                 byte[] hash = value.moduleDescriptorHash.toByteArray();
-                encoder.writeBinary(hash);
-                break;
-            case ModuleDescriptorCacheEntry.TYPE_MAVEN:
-                MavenModuleCacheEntry mavenCacheEntry = (MavenModuleCacheEntry) value;
-                encoder.writeBoolean(value.isChanging);
-                encoder.writeLong(value.createTimestamp);
-                moduleSourceSerializer.write(encoder, value.moduleSource);
-                hash = value.moduleDescriptorHash.toByteArray();
                 encoder.writeBinary(hash);
                 break;
             default:
@@ -59,20 +51,13 @@ class ModuleDescriptorCacheEntrySerializer implements Serializer<ModuleDescripto
             case ModuleDescriptorCacheEntry.TYPE_MISSING:
                 long createTimestamp = decoder.readLong();
                 return new MissingModuleCacheEntry(createTimestamp);
-            case ModuleDescriptorCacheEntry.TYPE_IVY:
+            case ModuleDescriptorCacheEntry.TYPE_PRESENT:
                 boolean isChanging = decoder.readBoolean();
                 createTimestamp = decoder.readLong();
                 ModuleSource moduleSource = moduleSourceSerializer.read(decoder);
                 byte[] encodedHash = decoder.readBinary();
                 BigInteger hash = new BigInteger(encodedHash);
-                return new IvyModuleCacheEntry(isChanging, createTimestamp, hash, moduleSource);
-            case ModuleDescriptorCacheEntry.TYPE_MAVEN:
-                isChanging = decoder.readBoolean();
-                createTimestamp = decoder.readLong();
-                moduleSource = moduleSourceSerializer.read(decoder);
-                encodedHash = decoder.readBinary();
-                hash = new BigInteger(encodedHash);
-                return new MavenModuleCacheEntry(isChanging, createTimestamp, hash, moduleSource);
+                return new ModuleDescriptorCacheEntry(ModuleDescriptorCacheEntry.TYPE_PRESENT, isChanging, createTimestamp, hash, moduleSource);
             default:
                 throw new IllegalArgumentException("Don't know how to deserialize meta-data entry of type " + type);
         }
