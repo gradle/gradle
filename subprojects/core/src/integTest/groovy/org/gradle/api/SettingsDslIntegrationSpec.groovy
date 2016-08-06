@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.test.fixtures.file.TestFile
 
 class SettingsDslIntegrationSpec extends AbstractIntegrationSpec {
 
