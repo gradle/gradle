@@ -40,6 +40,7 @@ class ClientModuleResolverTest extends Specification {
     def id = Mock(ComponentIdentifier)
     def result = Mock(BuildableComponentResolveResult)
     def metaData = Mock(MutableModuleComponentResolveMetadata)
+    def updatedMetaData = Mock(MutableModuleComponentResolveMetadata)
     def componentRequestMetaData = Mock(ComponentOverrideMetadata)
     def dependency = Mock(DslOriginDependencyMetadata)
 
@@ -57,16 +58,16 @@ class ClientModuleResolverTest extends Specification {
         1 * result.getFailure() >> null
         1 * componentRequestMetaData.clientModule >> clientModule
         1 * result.getMetaData() >> metaData
-        1 * metaData.copy() >> metaData
+        1 * metaData.asMutable() >> updatedMetaData
         1 * clientModule.getDependencies() >> ([dep] as Set)
         1 * dep.getConfiguration() >> "config"
         1 * dependencyDescriptorFactory.createDependencyDescriptor("config", dep) >> dependencyMetaData
-        1 * metaData.setDependencies([dependencyMetaData])
-        1 * metaData.artifact('jar', 'jar', null) >> artifact
-        1 * metaData.setArtifacts({
+        1 * updatedMetaData.setDependencies([dependencyMetaData])
+        1 * updatedMetaData.artifact('jar', 'jar', null) >> artifact
+        1 * updatedMetaData.setArtifacts({
             (it as List) == [artifact]
         })
-        1 * result.setMetaData(metaData)
+        1 * result.setMetaData(updatedMetaData)
         0 * _
     }
 
