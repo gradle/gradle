@@ -35,7 +35,12 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.rules.*;
+import org.gradle.internal.rules.DefaultRuleActionAdapter;
+import org.gradle.internal.rules.DefaultRuleActionValidator;
+import org.gradle.internal.rules.RuleAction;
+import org.gradle.internal.rules.RuleActionAdapter;
+import org.gradle.internal.rules.RuleActionValidator;
+import org.gradle.internal.rules.SpecRuleAction;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.internal.typeconversion.NotationParserBuilder;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
@@ -124,12 +129,14 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         return addRule(createSpecRuleActionForModule(id, ruleActionAdapter.createFromRuleSource(ComponentMetadataDetails.class, ruleSource)));
     }
 
-    public void processMetadata(MutableModuleComponentResolveMetadata metadata) {
-        ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, metadata);
-        processAllRules(metadata, details);
-        if (!metadata.getStatusScheme().contains(metadata.getStatus())) {
-            throw new ModuleVersionResolveException(metadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", metadata.getStatus(), metadata.getComponentId().getDisplayName(), metadata.getStatusScheme()));
+    public MutableModuleComponentResolveMetadata processMetadata(MutableModuleComponentResolveMetadata metadata) {
+        MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
+        ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata);
+        processAllRules(mutableMetadata, details);
+        if (!mutableMetadata.getStatusScheme().contains(mutableMetadata.getStatus())) {
+            throw new ModuleVersionResolveException(mutableMetadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", mutableMetadata.getStatus(), mutableMetadata.getComponentId().getDisplayName(), mutableMetadata.getStatusScheme()));
         }
+        return mutableMetadata;
     }
 
     private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {

@@ -49,9 +49,14 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
     ModuleVersionResolveException getFailure();
 
     /**
-     * Marks the module version as resolved, with the given meta-data and source.
+     * Marks the module version as resolved, with the given meta-data.
      */
     void resolved(MutableModuleComponentResolveMetadata metaData);
+
+    /**
+     * Replaces the meta-data for this result. Must be resolved.
+     */
+    void setMetadata(MutableModuleComponentResolveMetadata metaData);
 
     /**
      * Marks the resolve as failed with the given exception.

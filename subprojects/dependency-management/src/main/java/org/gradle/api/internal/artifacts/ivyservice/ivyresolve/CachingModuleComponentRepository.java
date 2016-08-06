@@ -171,7 +171,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                 return;
             }
             MutableModuleComponentResolveMetadata metaData = cachedMetaData.getMetaData();
-            metadataProcessor.processMetadata(metaData);
+            metaData = metadataProcessor.processMetadata(metaData);
             if (requestMetaData.isChanging() || metaData.isChanging()) {
                 if (cachePolicy.mustRefreshChangingModule(moduleComponentIdentifier, cachedMetaData.getModuleVersion(), cachedMetaData.getAgeMillis())) {
                     LOGGER.debug("Cached meta-data for changing module is expired: will perform fresh resolve of '{}' in '{}'", moduleComponentIdentifier, delegate.getName());
@@ -303,7 +303,7 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
                     MutableModuleComponentResolveMetadata metaData = result.getMetaData();
                     ModuleSource moduleSource = metaData.getSource();
                     ModuleMetaDataCache.CachedMetaData cachedMetaData = moduleMetaDataCache.cacheMetaData(delegate, metaData);
-                    metadataProcessor.processMetadata(metaData);
+                    metaData = metadataProcessor.processMetadata(metaData);
                     moduleSource = new CachingModuleSource(cachedMetaData.getDescriptorHash(), requestMetaData.isChanging() || metaData.isChanging(), moduleSource);
                     metaData.setSource(moduleSource);
                     result.resolved(metaData);

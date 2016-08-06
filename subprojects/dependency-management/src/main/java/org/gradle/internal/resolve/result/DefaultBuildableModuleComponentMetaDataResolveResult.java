@@ -41,6 +41,12 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
         authoritative = true;
     }
 
+    @Override
+    public void setMetadata(MutableModuleComponentResolveMetadata metaData) {
+        assertResolved();
+        this.metaData = metaData;
+    }
+
     public void missing() {
         reset(State.Missing);
         authoritative = true;

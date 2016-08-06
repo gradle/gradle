@@ -18,11 +18,12 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 
 public interface ComponentMetadataProcessor {
-    static ComponentMetadataProcessor NO_OP = new ComponentMetadataProcessor() {
+    ComponentMetadataProcessor NO_OP = new ComponentMetadataProcessor() {
         @Override
-        public void processMetadata(MutableModuleComponentResolveMetadata metadata) {
+        public MutableModuleComponentResolveMetadata processMetadata(MutableModuleComponentResolveMetadata metadata) {
+            return metadata;
         }
     };
 
-    void processMetadata(MutableModuleComponentResolveMetadata metadata);
+    MutableModuleComponentResolveMetadata processMetadata(MutableModuleComponentResolveMetadata metadata);
 }

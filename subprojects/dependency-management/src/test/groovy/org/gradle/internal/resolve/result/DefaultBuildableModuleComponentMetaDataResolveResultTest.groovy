@@ -69,6 +69,23 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
         descriptor.hasResult()
     }
 
+    def "can replace meta-data when resolved"() {
+        def metaData = Stub(MutableModuleComponentResolveMetadata)
+        def metaData2 = Stub(MutableModuleComponentResolveMetadata)
+
+        descriptor.resolved(metaData)
+
+        when:
+        descriptor.setMetadata(metaData2)
+
+        then:
+        descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Resolved
+        descriptor.failure == null
+        descriptor.metaData == metaData2
+        descriptor.authoritative
+        descriptor.hasResult()
+    }
+
     def "cannot get failure when has no result"() {
         when:
         descriptor.failure
@@ -104,5 +121,20 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
         then:
         ModuleVersionResolveException e = thrown()
         e == failure
+    }
+
+    def "cannot set metadata when not resolved"() {
+        when:
+        descriptor.metadata = Stub(MutableModuleComponentResolveMetadata)
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        descriptor.missing()
+        descriptor.metadata = Stub(MutableModuleComponentResolveMetadata)
+
+        then:
+        thrown(IllegalStateException)
     }
 }

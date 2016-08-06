@@ -18,11 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
-import org.gradle.internal.component.model.*;
+import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ComponentUsage;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
@@ -64,7 +68,7 @@ public class LocalModuleComponentRepository extends BaseModuleComponentRepositor
             }
 
             if (result.getState() == BuildableModuleComponentMetaDataResolveResult.State.Resolved) {
-                metadataProcessor.processMetadata(result.getMetaData());
+                result.setMetadata(metadataProcessor.processMetadata(result.getMetaData()));
             }
         }
 

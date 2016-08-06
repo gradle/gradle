@@ -197,6 +197,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatus() >> "green"
             getStatusScheme() >> ["alpha", "beta"]
         }
+        metadata.asMutable() >> metadata
 
         when:
         handler.processMetadata(metadata)
@@ -211,6 +212,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = Stub(TestIvyMetadata) {
             getId() >> new DefaultModuleVersionIdentifier("group", "module", "version")
         }
+        metadata.asMutable() >> metadata
 
         when:
         handler.all { throw failure }
@@ -230,6 +232,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
         }
+        metadata.asMutable() >> metadata
         def closuresCalled = []
 
         when:
@@ -250,6 +253,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
         }
+        metadata.asMutable() >> metadata
         def capturedDetails = null
         handler.all { ComponentMetadataDetails details ->
             capturedDetails = details
@@ -280,6 +284,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getExtraInfo() >> [(id1): "info1 value", (id2): "info2 value"]
             getBranch() >> "someBranch"
         }
+        metadata.asMutable() >> metadata
         def capturedDescriptor = null
         handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             capturedDescriptor = descriptor
@@ -304,6 +309,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatus() >> "integration"
             getStatusScheme() >> ["integration", "release"]
         }
+        metadata.asMutable() >> metadata
 
         def invoked = false
         handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
@@ -354,6 +360,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
             getStatusScheme() >> ["integration", "release"]
             getExtraInfo() >> [(id1): "info1 value", (id2): "info2 value"]
         }
+        metadata.asMutable() >> metadata
 
         def capturedDetails1 = null
         def capturedDescriptor1 = null
