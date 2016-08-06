@@ -29,7 +29,7 @@ class DefaultCachedMetaData implements ModuleMetaDataCache.CachedMetaData {
     private final long ageMillis;
     private final ModuleComponentResolveMetadata metaData;
 
-    public DefaultCachedMetaData(ModuleDescriptorCacheEntry entry, ModuleComponentResolveMetadata metaData, BuildCommencedTimeProvider timeProvider) {
+    public DefaultCachedMetaData(ModuleMetadataCacheEntry entry, ModuleComponentResolveMetadata metaData, BuildCommencedTimeProvider timeProvider) {
         this.moduleSource = entry.moduleSource;
         this.descriptorHash = entry.moduleDescriptorHash;
         this.ageMillis = timeProvider.getCurrentTime() - entry.createTimestamp;

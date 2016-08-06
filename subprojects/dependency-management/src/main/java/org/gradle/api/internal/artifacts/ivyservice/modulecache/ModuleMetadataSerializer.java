@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ModuleDescriptorSerializer {
+public class ModuleMetadataSerializer {
     private static final byte TYPE_IVY = 1;
     private static final byte TYPE_MAVEN = 2;
 

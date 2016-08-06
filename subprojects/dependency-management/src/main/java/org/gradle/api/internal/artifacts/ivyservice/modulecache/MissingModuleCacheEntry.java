@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import java.math.BigInteger;
 
-class MissingModuleCacheEntry extends ModuleDescriptorCacheEntry {
+class MissingModuleCacheEntry extends ModuleMetadataCacheEntry {
     public MissingModuleCacheEntry(long createTimestamp) {
         super(TYPE_MISSING, false, createTimestamp, BigInteger.ZERO, null);
     }

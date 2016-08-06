@@ -30,14 +30,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
-public class ModuleDescriptorStore {
+public class ModuleMetadataStore {
 
     private final PathKeyFileStore metaDataStore;
-    private final ModuleDescriptorSerializer moduleDescriptorSerializer;
+    private final ModuleMetadataSerializer moduleMetadataSerializer;
 
-    public ModuleDescriptorStore(PathKeyFileStore metaDataStore, ModuleDescriptorSerializer moduleDescriptorSerializer) {
+    public ModuleMetadataStore(PathKeyFileStore metaDataStore, ModuleMetadataSerializer moduleMetadataSerializer) {
         this.metaDataStore = metaDataStore;
-        this.moduleDescriptorSerializer = moduleDescriptorSerializer;
+        this.moduleMetadataSerializer = moduleMetadataSerializer;
     }
 
     public MutableModuleComponentResolveMetadata getModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
@@ -47,7 +47,7 @@ public class ModuleDescriptorStore {
             try {
                 KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(resource.getFile()));
                 try {
-                    return moduleDescriptorSerializer.read(decoder);
+                    return moduleMetadataSerializer.read(decoder);
                 } finally {
                     decoder.close();
                 }
@@ -64,7 +64,7 @@ public class ModuleDescriptorStore {
             public void execute(File moduleDescriptorFile) {
                 try {
                     KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(moduleDescriptorFile));
-                    moduleDescriptorSerializer.write(encoder, metadata);
+                    moduleMetadataSerializer.write(encoder, metadata);
                     encoder.close();
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);

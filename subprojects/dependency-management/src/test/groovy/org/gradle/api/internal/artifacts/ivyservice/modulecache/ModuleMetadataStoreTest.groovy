@@ -27,18 +27,18 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-class ModuleDescriptorStoreTest extends Specification {
+class ModuleMetadataStoreTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder
-    ModuleDescriptorStore store
+    ModuleMetadataStore store
     PathKeyFileStore pathKeyFileStore = Mock()
     ModuleComponentRepository repository = Mock()
     LocallyAvailableResource fileStoreEntry = Mock()
     ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "testArtifact", "1.0")
-    ModuleDescriptorSerializer serializer = Mock()
+    ModuleMetadataSerializer serializer = Mock()
 
     def setup() {
-        store = new ModuleDescriptorStore(pathKeyFileStore, serializer);
+        store = new ModuleMetadataStore(pathKeyFileStore, serializer);
         _ * repository.getId() >> "repositoryId"
     }
 

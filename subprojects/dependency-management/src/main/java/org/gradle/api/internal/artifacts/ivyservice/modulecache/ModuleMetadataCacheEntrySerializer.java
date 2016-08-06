@@ -24,16 +24,16 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.math.BigInteger;
 
-class ModuleDescriptorCacheEntrySerializer implements Serializer<ModuleDescriptorCacheEntry> {
+class ModuleMetadataCacheEntrySerializer implements Serializer<ModuleMetadataCacheEntry> {
     private final DefaultSerializer<ModuleSource> moduleSourceSerializer = new DefaultSerializer<ModuleSource>(ModuleSource.class.getClassLoader());
 
-    public void write(Encoder encoder, ModuleDescriptorCacheEntry value) throws Exception {
+    public void write(Encoder encoder, ModuleMetadataCacheEntry value) throws Exception {
         encoder.writeByte(value.type);
         switch (value.type) {
-            case ModuleDescriptorCacheEntry.TYPE_MISSING:
+            case ModuleMetadataCacheEntry.TYPE_MISSING:
                 encoder.writeLong(value.createTimestamp);
                 break;
-            case ModuleDescriptorCacheEntry.TYPE_PRESENT:
+            case ModuleMetadataCacheEntry.TYPE_PRESENT:
                 encoder.writeBoolean(value.isChanging);
                 encoder.writeLong(value.createTimestamp);
                 moduleSourceSerializer.write(encoder, value.moduleSource);
@@ -45,19 +45,19 @@ class ModuleDescriptorCacheEntrySerializer implements Serializer<ModuleDescripto
         }
     }
 
-    public ModuleDescriptorCacheEntry read(Decoder decoder) throws Exception {
+    public ModuleMetadataCacheEntry read(Decoder decoder) throws Exception {
         byte type = decoder.readByte();
         switch (type) {
-            case ModuleDescriptorCacheEntry.TYPE_MISSING:
+            case ModuleMetadataCacheEntry.TYPE_MISSING:
                 long createTimestamp = decoder.readLong();
                 return new MissingModuleCacheEntry(createTimestamp);
-            case ModuleDescriptorCacheEntry.TYPE_PRESENT:
+            case ModuleMetadataCacheEntry.TYPE_PRESENT:
                 boolean isChanging = decoder.readBoolean();
                 createTimestamp = decoder.readLong();
                 ModuleSource moduleSource = moduleSourceSerializer.read(decoder);
                 byte[] encodedHash = decoder.readBinary();
                 BigInteger hash = new BigInteger(encodedHash);
-                return new ModuleDescriptorCacheEntry(ModuleDescriptorCacheEntry.TYPE_PRESENT, isChanging, createTimestamp, hash, moduleSource);
+                return new ModuleMetadataCacheEntry(ModuleMetadataCacheEntry.TYPE_PRESENT, isChanging, createTimestamp, hash, moduleSource);
             default:
                 throw new IllegalArgumentException("Don't know how to deserialize meta-data entry of type " + type);
         }

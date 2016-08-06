@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class ModuleDescriptorState {
-    // The identifier extracted from the descriptor itself. May be different to the referring module id
+    // The identifier extracted from the descriptor itself. May be different to the id of the containing module
     private final ModuleComponentIdentifier componentIdentifier;
     protected final Map<String, Configuration> configurations;
     protected final List<Exclude> excludes;
