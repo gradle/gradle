@@ -26,6 +26,7 @@ import spock.lang.Specification
 class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification {
     final target = Mock(ModuleComponentRepositoryAccess)
     final metaData = Mock(MutableModuleComponentResolveMetadata)
+    final updatedMetaData = Mock(MutableModuleComponentResolveMetadata)
     final requestedDependency = Mock(ComponentOverrideMetadata)
     final moduleComponentId = Mock(ModuleComponentIdentifier)
     final result = Mock(BuildableModuleComponentMetaDataResolveResult)
@@ -46,9 +47,11 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
         1 * target.resolveComponentMetaData(moduleComponentId, requestedDependency, result)
 
         and:
-        1 * metaData.dependencies >> [original]
+        1 * metaData.asMutable() >> updatedMetaData
+        1 * updatedMetaData.dependencies >> [original]
         1 * original.withRequestedVersion('1.2+') >> transformed
-        1 * metaData.setDependencies([transformed])
+        1 * updatedMetaData.setDependencies([transformed])
+        1 * result.setMetadata(updatedMetaData)
     }
 
     def "does nothing when dependency has not been resolved"() {
