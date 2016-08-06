@@ -19,7 +19,8 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
@@ -39,7 +40,7 @@ public class ModuleDescriptorStore {
         this.moduleDescriptorSerializer = moduleDescriptorSerializer;
     }
 
-    public ModuleDescriptorState getModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
+    public MutableModuleComponentResolveMetadata getModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
         String filePath = getFilePath(repository, moduleComponentIdentifier);
         final LocallyAvailableResource resource = metaDataStore.get(filePath);
         if (resource != null) {
@@ -57,13 +58,13 @@ public class ModuleDescriptorStore {
         return null;
     }
 
-    public LocallyAvailableResource putModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier, final ModuleDescriptorState moduleDescriptor) {
-        String filePath = getFilePath(repository, moduleComponentIdentifier);
+    public LocallyAvailableResource putModuleDescriptor(ModuleComponentRepository repository, final ModuleComponentResolveMetadata metadata) {
+        String filePath = getFilePath(repository, metadata.getComponentId());
         return metaDataStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
                     KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(moduleDescriptorFile));
-                    moduleDescriptorSerializer.write(encoder, moduleDescriptor);
+                    moduleDescriptorSerializer.write(encoder, metadata);
                     encoder.close();
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);

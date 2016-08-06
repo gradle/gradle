@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.resource.local.LocallyAvailableResource
 import org.gradle.internal.resource.local.PathKeyFileStore
@@ -58,9 +59,10 @@ class ModuleDescriptorStoreTest extends Specification {
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {
         setup:
         File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
-        def descriptor = new MutableModuleDescriptorState(moduleComponentIdentifier)
+        def descriptor = new DefaultMavenModuleResolveMetadata(new MutableModuleDescriptorState(moduleComponentIdentifier), "packaging", false)
+
         when:
-        store.putModuleDescriptor(repository, moduleComponentIdentifier, descriptor);
+        store.putModuleDescriptor(repository, descriptor)
         then:
         1 * pathKeyFileStore.add("org.test/testArtifact/1.0/repositoryId/descriptor.bin", _) >> { path, action ->
             action.execute(descriptorFile); fileStoreEntry

@@ -20,8 +20,8 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
@@ -67,12 +67,12 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         if (entry.isMissing()) {
             return new DefaultCachedMetaData(entry, null, timeProvider);
         }
-        ModuleDescriptorState descriptor = moduleDescriptorStore.getModuleDescriptor(repository, componentId);
-        if (descriptor == null) {
+        MutableModuleComponentResolveMetadata metadata = moduleDescriptorStore.getModuleDescriptor(repository, componentId);
+        if (metadata == null) {
             // Descriptor file has been deleted - ignore the entry
             return null;
         }
-        return new DefaultCachedMetaData(entry, entry.createMetaData(componentId, descriptor), timeProvider);
+        return new DefaultCachedMetaData(entry, entry.configure(metadata), timeProvider);
     }
 
     public CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
@@ -82,12 +82,11 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
-    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetadata metaData) {
-        ModuleDescriptorState moduleDescriptor = metaData.getDescriptor();
-        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getComponentIdentifier(), metaData.isChanging());
-        LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, metaData.getComponentId(), moduleDescriptor);
-        ModuleDescriptorCacheEntry entry = createEntry(metaData, resource.getSha1());
-        getCache().put(createKey(repository, metaData.getComponentId()), entry);
+    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetadata metadata) {
+        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", metadata.getComponentId(), metadata.isChanging());
+        LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, metadata);
+        ModuleDescriptorCacheEntry entry = createEntry(metadata, resource.getSha1());
+        getCache().put(createKey(repository, metadata.getComponentId()), entry);
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 

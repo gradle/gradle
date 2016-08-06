@@ -25,14 +25,19 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
+import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.EOFException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,17 +47,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class ModuleDescriptorSerializer implements org.gradle.internal.serialize.Serializer<ModuleDescriptorState> {
+public class ModuleDescriptorSerializer {
+    private static final byte TYPE_IVY = 1;
+    private static final byte TYPE_MAVEN = 2;
 
-
-    @Override
-    public ModuleDescriptorState read(Decoder decoder) throws EOFException, Exception {
+    public MutableModuleComponentResolveMetadata read(Decoder decoder) throws IOException {
         return new Reader(decoder).read();
     }
 
-    @Override
-    public void write(Encoder encoder, ModuleDescriptorState md) throws Exception {
-        new Writer(encoder).write(md);
+    public void write(Encoder encoder, ModuleComponentResolveMetadata metadata) throws IOException {
+        new Writer(encoder).write(metadata);
     }
 
     private static class Writer {
@@ -62,19 +66,40 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             this.encoder = encoder;
         }
 
-        public void write(ModuleDescriptorState md) throws IOException {
+        public void write(ModuleComponentResolveMetadata metadata) throws IOException {
+            writeId(metadata.getComponentId());
+            ModuleDescriptorState md = metadata.getDescriptor();
             writeInfoSection(md);
             writeConfigurations(md.getConfigurations());
             writeArtifacts(md.getArtifacts());
             writeDependencies(md.getDependencies());
             writeExcludeRules(md.getExcludes());
+            writeTypeSpecificInfo(metadata);
+        }
+
+        private void writeId(ModuleComponentIdentifier componentIdentifier) throws IOException {
+            writeString(componentIdentifier.getGroup());
+            writeString(componentIdentifier.getModule());
+            writeString(componentIdentifier.getVersion());
+        }
+
+        private void writeTypeSpecificInfo(ModuleComponentResolveMetadata metadata) throws IOException {
+            if (metadata instanceof IvyModuleResolveMetadata) {
+                encoder.writeByte(TYPE_IVY);
+            } else if (metadata instanceof MavenModuleResolveMetadata) {
+                MavenModuleResolveMetadata mavenMetadata = (MavenModuleResolveMetadata) metadata;
+                encoder.writeByte(TYPE_MAVEN);
+                writeNullableString(mavenMetadata.getSnapshotTimestamp());
+                writeNullableString(mavenMetadata.getPackaging());
+                writeBoolean(mavenMetadata.isRelocated());
+            } else {
+                throw new IllegalArgumentException("Unexpected metadata type: " + metadata.getClass());
+            }
         }
 
         private void writeInfoSection(ModuleDescriptorState md) throws IOException {
             ModuleComponentIdentifier componentIdentifier = md.getComponentIdentifier();
-            writeString(componentIdentifier.getGroup());
-            writeString(componentIdentifier.getModule());
-            writeString(componentIdentifier.getVersion());
+            writeId(componentIdentifier);
             writeString(md.getStatus());
             writeBoolean(md.isGenerated());
 
@@ -221,22 +246,41 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
     private static class Reader {
         private final Decoder decoder;
         private MutableModuleDescriptorState md;
+        private ModuleComponentIdentifier id;
 
         private Reader(Decoder decoder) {
             this.decoder = decoder;
         }
 
-        public ModuleDescriptorState read() throws IOException {
+        public MutableModuleComponentResolveMetadata read() throws IOException {
+            id = readId();
             readInfoSection();
             readConfigurations();
             readArtifacts();
             readDependencies();
             readAllExcludes();
-            return md;
+            return create();
+        }
+
+        private MutableModuleComponentResolveMetadata create() throws IOException {
+            byte type = decoder.readByte();
+            switch (type) {
+                case TYPE_IVY:
+                    return new DefaultIvyModuleResolveMetadata(id, md);
+                case TYPE_MAVEN:
+                    String snapshotTimestamp = readNullableString();
+                    String packaging = readNullableString();
+                    boolean relocated = readBoolean();
+                    DefaultMavenModuleResolveMetadata metadata = new DefaultMavenModuleResolveMetadata(id, md, packaging, relocated);
+                    metadata.setSnapshotTimestamp(snapshotTimestamp);
+                    return metadata;
+                default:
+                    throw new IllegalArgumentException("Unexpected metadata type found.");
+            }
         }
 
         private void readInfoSection() throws IOException {
-            ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(readString(), readString(), readString());
+            ModuleComponentIdentifier componentIdentifier = readId();
             String status = readString();
             boolean generated = readBoolean();
 
@@ -247,6 +291,10 @@ public class ModuleDescriptorSerializer implements org.gradle.internal.serialize
             md.setBranch(readNullableString());
 
             readExtraInfo();
+        }
+
+        private ModuleComponentIdentifier readId() throws IOException {
+            return DefaultModuleComponentIdentifier.newId(readString(), readString(), readString());
         }
 
         private void readExtraInfo() throws IOException {

@@ -16,10 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.math.BigInteger;
@@ -29,7 +25,4 @@ class IvyModuleCacheEntry extends ModuleDescriptorCacheEntry {
         super(TYPE_IVY, isChanging, createTimestamp, moduleDescriptorHash, moduleSource);
     }
 
-    public MutableModuleComponentResolveMetadata createMetaData(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor) {
-        return configure(new DefaultIvyModuleResolveMetadata(componentIdentifier, descriptor));
-    }
 }
