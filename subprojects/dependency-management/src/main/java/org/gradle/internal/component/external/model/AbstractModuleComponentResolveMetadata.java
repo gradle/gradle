@@ -16,12 +16,9 @@
 
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
@@ -33,7 +30,6 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.util.CollectionUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,28 +42,32 @@ import java.util.Set;
 
 abstract class AbstractModuleComponentResolveMetadata implements ModuleComponentResolveMetadata {
     private final ModuleDescriptorState descriptor;
-    private ModuleVersionIdentifier moduleVersionIdentifier;
-    private ModuleComponentIdentifier componentIdentifier;
-    private boolean changing;
-    private String status;
-    private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
-    private ModuleSource moduleSource;
-    private Map<String, DefaultConfigurationMetadata> configurations;
+    private final ModuleVersionIdentifier moduleVersionIdentifier;
+    private final ModuleComponentIdentifier componentIdentifier;
+    private final boolean changing;
+    private final String status;
+    private final List<String> statusScheme;
+    @Nullable
+    private final ModuleSource moduleSource;
+    private final Map<String, DefaultConfigurationMetadata> configurations;
+    @Nullable
     private final List<ModuleComponentArtifactMetadata> artifacts;
-    private Multimap<String, ModuleComponentArtifactMetadata> artifactsByConfig;
-    private List<DependencyMetadata> dependencies;
-    private List<Exclude> excludes;
+    private final List<DependencyMetadata> dependencies;
+    private final List<Exclude> excludes;
 
     protected AbstractModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptorState moduleDescriptor) {
         this.descriptor = moduleDescriptor;
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = moduleVersionIdentifier;
+        changing = false;
+        moduleSource = null;
         status = moduleDescriptor.getStatus();
-        configurations = populateConfigurationsFromDescriptor(moduleDescriptor);
-        artifacts = null;
-        artifactsByConfig = populateArtifactsFromDescriptor(componentIdentifier, moduleDescriptor);
+        statusScheme = DEFAULT_STATUS_SCHEME;
         dependencies = Collections.emptyList();
+        artifacts = null;
         excludes = moduleDescriptor.getExcludes();
+        configurations = populateConfigurationsFromDescriptor(moduleDescriptor);
+        populateArtifactsFromDescriptor(componentIdentifier, moduleDescriptor);
     }
 
     protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
@@ -80,35 +80,36 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         moduleSource = metadata.getSource();
         dependencies = metadata.getDependencies();
         excludes = descriptor.getExcludes();
-        configurations = populateConfigurationsFromDescriptor(descriptor);
         artifacts = metadata.getArtifacts();
+        configurations = populateConfigurationsFromDescriptor(descriptor);
         if (artifacts != null) {
-            artifactsByConfig = populateArtifacts(artifacts);
+            populateArtifacts(artifacts);
         } else {
-            artifactsByConfig = populateArtifactsFromDescriptor(componentIdentifier, descriptor);
+            populateArtifactsFromDescriptor(componentIdentifier, descriptor);
         }
     }
 
-    protected void copyTo(AbstractModuleComponentResolveMetadata copy) {
-        copy.changing = changing;
-        copy.status = status;
-        copy.statusScheme = statusScheme;
-        copy.moduleSource = moduleSource;
-        copy.artifactsByConfig = artifactsByConfig;
-        copy.dependencies = dependencies;
-        copy.excludes = excludes;
+    protected AbstractModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata, ModuleSource source) {
+        this.descriptor = metadata.getDescriptor();
+        this.componentIdentifier = metadata.getComponentId();
+        this.moduleVersionIdentifier = metadata.getId();
+        changing = metadata.isChanging();
+        status = metadata.getStatus();
+        statusScheme = metadata.getStatusScheme();
+        moduleSource = source;
+        dependencies = metadata.getDependencies();
+        excludes = descriptor.getExcludes();
+        artifacts = metadata.getArtifacts();
+        configurations = populateConfigurationsFromDescriptor(descriptor);
+        if (artifacts != null) {
+            populateArtifacts(artifacts);
+        } else {
+            populateArtifactsFromDescriptor(componentIdentifier, descriptor);
+        }
     }
 
     public ModuleDescriptorState getDescriptor() {
         return descriptor;
-    }
-
-    protected abstract AbstractModuleComponentResolveMetadata copy();
-
-    public AbstractModuleComponentResolveMetadata withSource(ModuleSource source) {
-        AbstractModuleComponentResolveMetadata copy = copy();
-        copy.setModuleSource(source);
-        return copy;
     }
 
     public boolean isChanging() {
@@ -131,41 +132,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return componentIdentifier;
     }
 
-    public void setComponentId(ModuleComponentIdentifier componentId) {
-        this.componentIdentifier = componentId;
-        setId(DefaultModuleVersionIdentifier.newId(componentId));
-    }
-
     public ModuleVersionIdentifier getId() {
         return moduleVersionIdentifier;
     }
 
-    public void setId(ModuleVersionIdentifier moduleVersionIdentifier) {
-        this.moduleVersionIdentifier = moduleVersionIdentifier;
-    }
-
-    public void setChanging(boolean changing) {
-        this.changing = changing;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public void setStatusScheme(List<String> statusScheme) {
-        this.statusScheme = statusScheme;
-    }
-
     public ModuleSource getSource() {
         return moduleSource;
-    }
-
-    public void setSource(ModuleSource source) {
-        this.moduleSource = source;
-    }
-
-    public void setModuleSource(ModuleSource moduleSource) {
-        this.moduleSource = moduleSource;
     }
 
     public Set<String> getConfigurationNames() {
@@ -182,23 +154,23 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return new DefaultModuleComponentArtifactMetadata(getComponentId(), ivyArtifactName);
     }
 
-    private Multimap<String, ModuleComponentArtifactMetadata> populateArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts) {
-        Multimap<String, ModuleComponentArtifactMetadata> artifactsByConfig = LinkedHashMultimap.create();
-        for (String config : getConfigurationNames()) {
-            artifactsByConfig.putAll(config, artifacts);
+    private void populateArtifacts(List<ModuleComponentArtifactMetadata> artifacts) {
+        for (DefaultConfigurationMetadata configuration : configurations.values()) {
+            configuration.artifacts.addAll(artifacts);
         }
-        return artifactsByConfig;
     }
 
-    private static Multimap<String, ModuleComponentArtifactMetadata> populateArtifactsFromDescriptor(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor) {
-        Multimap<String, ModuleComponentArtifactMetadata> artifactsByConfig = LinkedHashMultimap.create();
+    private void populateArtifactsFromDescriptor(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor) {
         for (Artifact artifact : descriptor.getArtifacts()) {
             ModuleComponentArtifactMetadata artifactMetadata = new DefaultModuleComponentArtifactMetadata(componentId, artifact.getArtifactName());
             for (String configuration : artifact.getConfigurations()) {
-                artifactsByConfig.put(configuration, artifactMetadata);
+                configurations.get(configuration).artifacts.add(artifactMetadata);
             }
         }
-        return artifactsByConfig;
+        Set<ConfigurationMetadata> visited = new HashSet<ConfigurationMetadata>();
+        for (DefaultConfigurationMetadata configuration : configurations.values()) {
+            configuration.collectInheritedArtifacts(visited);
+        }
     }
 
     @Nullable
@@ -209,13 +181,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
 
     public List<DependencyMetadata> getDependencies() {
         return dependencies;
-    }
-
-    public void setDependencies(Iterable<? extends DependencyMetadata> dependencies) {
-        this.dependencies = CollectionUtils.toList(dependencies);
-        for (DefaultConfigurationMetadata configuration : configurations.values()) {
-            configuration.configDependencies = null;
-        }
     }
 
     public DefaultConfigurationMetadata getConfiguration(final String name) {
@@ -274,9 +239,9 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private class DefaultConfigurationMetadata implements ConfigurationMetadata {
         private final String name;
         private final List<DefaultConfigurationMetadata> parents;
-        private List<DependencyMetadata> configDependencies;
-        private Set<ComponentArtifactMetadata> artifacts;
-        private LinkedHashSet<Exclude> configExcludes;
+        private final List<DependencyMetadata> configDependencies;
+        private final Set<ComponentArtifactMetadata> artifacts;
+        private final Set<Exclude> configExcludes;
         private final boolean transitive;
         private final boolean visible;
 
@@ -285,12 +250,14 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             this.parents = parents;
             this.transitive = transitive;
             this.visible = visible;
+            this.configDependencies = calculateDependencies();
+            this.configExcludes = populateExcludeRulesFromDescriptor();
+            this.artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
         }
 
         private DefaultConfigurationMetadata(String name, boolean transitive, boolean visible) {
             this(name, transitive, visible, null);
         }
-
 
         @Override
         public String toString() {
@@ -332,12 +299,14 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         public List<DependencyMetadata> getDependencies() {
-            if (configDependencies == null) {
-                configDependencies = new ArrayList<DependencyMetadata>();
-                for (DependencyMetadata dependency : dependencies) {
-                    if (include(dependency)) {
-                        configDependencies.add(dependency);
-                    }
+            return configDependencies;
+        }
+
+        private List<DependencyMetadata> calculateDependencies() {
+            List<DependencyMetadata> configDependencies = new ArrayList<DependencyMetadata>();
+            for (DependencyMetadata dependency : dependencies) {
+                if (include(dependency)) {
+                    configDependencies.add(dependency);
                 }
             }
             return configDependencies;
@@ -368,14 +337,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         public Set<Exclude> getExcludes() {
-            if (configExcludes == null) {
-                populateExcludeRulesFromDescriptor();
-            }
             return configExcludes;
         }
 
-        private void populateExcludeRulesFromDescriptor() {
-            configExcludes = new LinkedHashSet<Exclude>();
+        private Set<Exclude> populateExcludeRulesFromDescriptor() {
+            Set<Exclude> configExcludes = new LinkedHashSet<Exclude>();
             Set<String> hierarchy = getHierarchy();
             for (Exclude exclude : excludes) {
                 for (String config : exclude.getConfigurations()) {
@@ -385,32 +351,29 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
                     }
                 }
             }
+            return configExcludes;
         }
 
         public Set<ComponentArtifactMetadata> getArtifacts() {
-            if (artifacts == null) {
-                artifacts = getArtifactsForConfiguration(this, new LinkedHashSet<ComponentArtifactMetadata>(), new HashSet<String>());
-            }
             return artifacts;
-        }
-
-        protected Set<ComponentArtifactMetadata> getArtifactsForConfiguration(ConfigurationMetadata configurationMetadata, Set<ComponentArtifactMetadata> accumulator, HashSet<String> visited) {
-            String name = configurationMetadata.getName();
-            if (visited.contains(name)) {
-                return accumulator;
-            }
-            visited.add(name);
-            accumulator.addAll(artifactsByConfig.get(name));
-            if (parents!= null) {
-                for (DefaultConfigurationMetadata parent : parents) {
-                    getArtifactsForConfiguration(parent, accumulator, visited);
-                }
-            }
-            return accumulator;
         }
 
         public ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {
             return new DefaultModuleComponentArtifactMetadata(getComponentId(), artifact);
+        }
+
+        public void collectInheritedArtifacts(Set<ConfigurationMetadata> visited) {
+            if (!visited.add(this)) {
+                return;
+            }
+            if (parents == null) {
+                return;
+            }
+
+            for (DefaultConfigurationMetadata parent : parents) {
+                parent.collectInheritedArtifacts(visited);
+                artifacts.addAll(parent.artifacts);
+            }
         }
     }
 

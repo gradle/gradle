@@ -21,7 +21,7 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.ModuleSource
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -44,20 +44,6 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         expect:
         metadata.toString() == 'group:module:version'
         metadata.getConfiguration('config').toString() == 'group:module:version:config'
-    }
-
-    def "can replace identifiers"() {
-        def newId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
-        def metadata = getMetadata()
-
-        given:
-        metadata.setComponentId(newId)
-
-        expect:
-        metadata.componentId.is(newId)
-        metadata.id.group == "group"
-        metadata.id.name == "module"
-        metadata.id.version == "version"
     }
 
     def "builds and caches the configuration meta-data from the module descriptor"() {
@@ -90,12 +76,6 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         then:
         md.getConfiguration("conf").dependencies*.requested*.version == ["1.1", "1.2", "1.3", "1.5"]
         md.getConfiguration("super").dependencies*.requested*.version == ["1.2", "1.3", "1.5"]
-
-        when:
-        md.dependencies = []
-
-        then:
-        md.getConfiguration("conf").dependencies == []
     }
 
     def "builds and caches artifacts for a configuration"() {
@@ -142,16 +122,18 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         excludeRules as List == [rule1, rule2]
     }
 
-    def "can replace the dependencies for the module version"() {
-        def dependency1 = Stub(DependencyMetadata)
-        def dependency2 = Stub(DependencyMetadata)
+    def "can make a copy with different source"() {
+        given:
+        configuration("conf")
+        def source = Stub(ModuleSource)
 
         when:
         def metadata = getMetadata()
-        metadata.dependencies = [dependency1, dependency2]
+        def copy = metadata.withSource(source)
 
         then:
-        metadata.dependencies == [dependency1, dependency2]
+        copy.source == source
+        copy.configurationNames == ["conf"] as Set
     }
 
     def configuration(String name, List<String> extendsFrom = []) {

@@ -28,8 +28,8 @@ import static org.gradle.internal.component.external.model.DefaultMavenModuleRes
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.POM_PACKAGING;
 
 public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableModuleComponentResolveMetadata implements MutableMavenModuleResolveMetadata {
-    private final String packaging;
-    private final boolean relocated;
+    private String packaging;
+    private boolean relocated;
     private String snapshotTimestamp;
 
     public DefaultMutableMavenModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {

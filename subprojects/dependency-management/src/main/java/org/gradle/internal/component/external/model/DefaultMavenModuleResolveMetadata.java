@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
@@ -31,42 +30,37 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private final String packaging;
     private final boolean relocated;
-    private String snapshotTimestamp;
+    private final String snapshotTimestamp;
 
     public DefaultMavenModuleResolveMetadata(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor, String packaging, boolean relocated) {
-        this(componentId, DefaultModuleVersionIdentifier.newId(componentId), descriptor, packaging, relocated);
+        super(componentId, DefaultModuleVersionIdentifier.newId(componentId), descriptor);
+        this.packaging = packaging;
+        this.relocated = relocated;
+        this.snapshotTimestamp = null;
     }
 
     DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
         super(metadata);
-        this.packaging = metadata.getPackaging();
-        this.relocated = metadata.isRelocated();
-        this.snapshotTimestamp = metadata.getSnapshotTimestamp();
+        packaging = metadata.getPackaging();
+        relocated = metadata.isRelocated();
+        snapshotTimestamp = metadata.getSnapshotTimestamp();
     }
 
-    private DefaultMavenModuleResolveMetadata(ModuleComponentIdentifier componentId, ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
-        super(componentId, id, moduleDescriptor);
-        this.packaging = packaging;
-        this.relocated = relocated;
+    private DefaultMavenModuleResolveMetadata(DefaultMavenModuleResolveMetadata metadata, ModuleSource source) {
+        super(metadata, source);
+        packaging = metadata.getPackaging();
+        relocated = metadata.isRelocated();
+        snapshotTimestamp = metadata.getSnapshotTimestamp();
     }
 
     @Override
     public DefaultMavenModuleResolveMetadata withSource(ModuleSource source) {
-        return (DefaultMavenModuleResolveMetadata) super.withSource(source);
+        return new DefaultMavenModuleResolveMetadata(this, source);
     }
 
     @Override
     public MutableMavenModuleResolveMetadata asMutable() {
         return new DefaultMutableMavenModuleResolveMetadata(this);
-    }
-
-    @Override
-    protected DefaultMavenModuleResolveMetadata copy() {
-        // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        DefaultMavenModuleResolveMetadata copy = new DefaultMavenModuleResolveMetadata(getComponentId(), getId(), getDescriptor(), packaging, relocated);
-        copyTo(copy);
-        copy.snapshotTimestamp = snapshotTimestamp;
-        return copy;
     }
 
     public String getPackaging() {
@@ -83,10 +77,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
 
     public boolean isKnownJarPackaging() {
         return JAR_PACKAGINGS.contains(packaging);
-    }
-
-    public void setSnapshotTimestamp(@Nullable String snapshotTimestamp) {
-        this.snapshotTimestamp = snapshotTimestamp;
     }
 
     @Nullable

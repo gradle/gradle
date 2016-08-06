@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -33,6 +34,20 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
     MutableModuleComponentResolveMetadata getMetadata() {
         return createMetadata(id, moduleDescriptor)
+    }
+
+    def "can replace identifiers"() {
+        def newId = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def metadata = getMetadata()
+
+        given:
+        metadata.componentId = newId
+
+        expect:
+        metadata.componentId == newId
+        metadata.id == DefaultModuleVersionIdentifier.newId(newId)
+        metadata.asImmutable().componentId == newId
+        metadata.asImmutable().asMutable().componentId == newId
     }
 
     def "builds and caches the dependency meta-data from the module descriptor"() {
