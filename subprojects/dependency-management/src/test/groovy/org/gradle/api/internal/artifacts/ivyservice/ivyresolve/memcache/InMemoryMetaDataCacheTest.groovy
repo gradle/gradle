@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
@@ -74,9 +75,9 @@ class InMemoryMetaDataCacheTest extends Specification {
     }
 
     def "caches and supplies remote metadata"() {
-        def suppliedMetaData = Stub(MutableModuleComponentResolveMetadata)
+        def suppliedMetaData = Stub(ModuleComponentResolveMetadata)
         def cachedCopy = Stub(MutableModuleComponentResolveMetadata)
-        def originalMetaData = Stub(MutableModuleComponentResolveMetadata)
+        def originalMetaData = Stub(ModuleComponentResolveMetadata)
         def resolvedResult = Mock(BuildableModuleComponentMetaDataResolveResult.class) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> originalMetaData
@@ -106,9 +107,10 @@ class InMemoryMetaDataCacheTest extends Specification {
     }
 
     def "caches and supplies remote and local metadata"() {
-        def moduleMetaData = Stub(MutableModuleComponentResolveMetadata)
-        _ * moduleMetaData.asMutable() >> moduleMetaData
-        _ * moduleMetaData.asImmutable() >> moduleMetaData
+        def moduleMetaData = Stub(ModuleComponentResolveMetadata)
+        def cachedMetaData = Stub(MutableModuleComponentResolveMetadata)
+        _ * moduleMetaData.asMutable() >> cachedMetaData
+        _ * cachedMetaData.asImmutable() >> moduleMetaData
         def resolvedResult = Mock(BuildableModuleComponentMetaDataResolveResult.class) {
             getMetaData() >> moduleMetaData
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved

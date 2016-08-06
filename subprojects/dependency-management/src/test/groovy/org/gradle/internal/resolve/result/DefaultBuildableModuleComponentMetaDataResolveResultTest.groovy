@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resolve.result
 
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -56,7 +56,7 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
     }
 
     def "can mark as resolved using meta-data"() {
-        def metaData = Stub(MutableModuleComponentResolveMetadata)
+        def metaData = Stub(ModuleComponentResolveMetadata)
 
         when:
         descriptor.resolved(metaData)
@@ -70,8 +70,8 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
     }
 
     def "can replace meta-data when resolved"() {
-        def metaData = Stub(MutableModuleComponentResolveMetadata)
-        def metaData2 = Stub(MutableModuleComponentResolveMetadata)
+        def metaData = Stub(ModuleComponentResolveMetadata)
+        def metaData2 = Stub(ModuleComponentResolveMetadata)
 
         descriptor.resolved(metaData)
 
@@ -125,14 +125,14 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
 
     def "cannot set metadata when not resolved"() {
         when:
-        descriptor.metadata = Stub(MutableModuleComponentResolveMetadata)
+        descriptor.metadata = Stub(ModuleComponentResolveMetadata)
 
         then:
         thrown(IllegalStateException)
 
         when:
         descriptor.missing()
-        descriptor.metadata = Stub(MutableModuleComponentResolveMetadata)
+        descriptor.metadata = Stub(ModuleComponentResolveMetadata)
 
         then:
         thrown(IllegalStateException)

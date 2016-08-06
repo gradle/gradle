@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-abstract class AbstractModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata {
+abstract class AbstractModuleComponentResolveMetadata implements MutableModuleComponentResolveMetadata, ModuleComponentResolveMetadata {
     private final ModuleDescriptorState descriptor;
     private ModuleVersionIdentifier moduleVersionIdentifier;
     private ModuleComponentIdentifier componentIdentifier;
@@ -116,7 +116,7 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
         return copy();
     }
 
-    public MutableModuleComponentResolveMetadata withSource(ModuleSource source) {
+    public AbstractModuleComponentResolveMetadata withSource(ModuleSource source) {
         AbstractModuleComponentResolveMetadata copy = copy();
         copy.setModuleSource(source);
         return copy;

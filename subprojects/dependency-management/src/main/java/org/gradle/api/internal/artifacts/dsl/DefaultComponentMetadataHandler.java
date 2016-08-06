@@ -132,11 +132,12 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     public ModuleComponentResolveMetadata processMetadata(ModuleComponentResolveMetadata metadata) {
         MutableModuleComponentResolveMetadata mutableMetadata = metadata.asMutable();
         ComponentMetadataDetails details = instantiator.newInstance(ComponentMetadataDetailsAdapter.class, mutableMetadata);
-        processAllRules(mutableMetadata, details);
-        if (!mutableMetadata.getStatusScheme().contains(mutableMetadata.getStatus())) {
-            throw new ModuleVersionResolveException(mutableMetadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", mutableMetadata.getStatus(), mutableMetadata.getComponentId().getDisplayName(), mutableMetadata.getStatusScheme()));
+        processAllRules(metadata, details);
+        ModuleComponentResolveMetadata updatedMetadata = mutableMetadata.asImmutable();
+        if (!updatedMetadata.getStatusScheme().contains(updatedMetadata.getStatus())) {
+            throw new ModuleVersionResolveException(updatedMetadata.getId(), String.format("Unexpected status '%s' specified for %s. Expected one of: %s", updatedMetadata.getStatus(), updatedMetadata.getComponentId().getDisplayName(), updatedMetadata.getStatusScheme()));
         }
-        return mutableMetadata;
+        return updatedMetadata;
     }
 
     private void processAllRules(ModuleComponentResolveMetadata metadata, ComponentMetadataDetails details) {

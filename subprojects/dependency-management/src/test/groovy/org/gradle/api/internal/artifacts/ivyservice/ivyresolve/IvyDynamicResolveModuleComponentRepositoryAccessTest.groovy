@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -25,8 +26,9 @@ import spock.lang.Specification
 
 class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification {
     final target = Mock(ModuleComponentRepositoryAccess)
-    final metaData = Mock(MutableModuleComponentResolveMetadata)
-    final updatedMetaData = Mock(MutableModuleComponentResolveMetadata)
+    final metaData = Mock(ModuleComponentResolveMetadata)
+    final mutableMetaData = Mock(MutableModuleComponentResolveMetadata)
+    final updatedMetaData = Mock(ModuleComponentResolveMetadata)
     final requestedDependency = Mock(ComponentOverrideMetadata)
     final moduleComponentId = Mock(ModuleComponentIdentifier)
     final result = Mock(BuildableModuleComponentMetaDataResolveResult)
@@ -47,10 +49,11 @@ class IvyDynamicResolveModuleComponentRepositoryAccessTest extends Specification
         1 * target.resolveComponentMetaData(moduleComponentId, requestedDependency, result)
 
         and:
-        1 * metaData.asMutable() >> updatedMetaData
-        1 * updatedMetaData.dependencies >> [original]
+        1 * metaData.asMutable() >> mutableMetaData
+        1 * metaData.dependencies >> [original]
         1 * original.withRequestedVersion('1.2+') >> transformed
-        1 * updatedMetaData.setDependencies([transformed])
+        1 * mutableMetaData.setDependencies([transformed])
+        1 * mutableMetaData.asImmutable() >> updatedMetaData
         1 * result.setMetadata(updatedMetaData)
     }
 

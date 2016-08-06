@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
-import org.gradle.internal.Transformers;
 import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
@@ -223,7 +222,11 @@ public class MavenResolver extends ExternalResourceResolver {
     }
 
     protected static MavenModuleResolveMetadata mavenMetaData(ModuleComponentResolveMetadata metaData) {
-        return Transformers.cast(MavenModuleResolveMetadata.class).transform(metaData);
+        return (MavenModuleResolveMetadata) metaData;
+    }
+
+    protected static MavenModuleResolveMetadata mavenMetaData(MutableModuleComponentResolveMetadata metaData) {
+        return (MavenModuleResolveMetadata) metaData;
     }
 
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {

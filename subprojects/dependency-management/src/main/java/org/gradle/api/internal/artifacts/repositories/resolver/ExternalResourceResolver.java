@@ -172,7 +172,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         if (metaDataArtifactMetaData != null) {
             LOGGER.debug("Metadata file found for module '{}' in repository '{}'.", moduleVersionIdentifier, getName());
             metaDataArtifactMetaData.setSource(artifactResolver.getSource());
-            result.resolved(metaDataArtifactMetaData);
+            result.resolved(metaDataArtifactMetaData.asImmutable());
             return;
         }
 
@@ -180,7 +180,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         if (metaDataFromDefaultArtifact != null) {
             LOGGER.debug("Found artifact but no meta-data for module '{}' in repository '{}', using default meta-data.", moduleVersionIdentifier, getName());
             metaDataFromDefaultArtifact.setSource(artifactResolver.getSource());
-            result.resolved(metaDataFromDefaultArtifact);
+            result.resolved(metaDataFromDefaultArtifact.asImmutable());
             return;
         }
 
@@ -225,7 +225,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         return artifactSet;
     }
 
-    protected void checkMetadataConsistency(ModuleComponentIdentifier expectedId, ModuleComponentResolveMetadata metadata) throws MetaDataParseException {
+    protected void checkMetadataConsistency(ModuleComponentIdentifier expectedId, MutableModuleComponentResolveMetadata metadata) throws MetaDataParseException {
         List<String> errors = new ArrayList<String>();
         if (!expectedId.getGroup().equals(metadata.getId().getGroup())) {
             errors.add("bad group: expected='" + expectedId.getGroup() + "' found='" + metadata.getId().getGroup() + "'");

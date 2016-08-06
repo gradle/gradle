@@ -54,7 +54,7 @@ public class ClientModuleResolver implements ComponentMetaDataResolver {
 
             setClientModuleArtifact(clientModuleMetaData);
 
-            result.setMetaData(clientModuleMetaData);
+            result.setMetaData(clientModuleMetaData.asImmutable());
         }
     }
 

@@ -27,7 +27,7 @@ import java.util.Set;
 
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
     private final Map<NamespaceId, String> extraInfo;
-    private final String branch;
+    private String branch;
 
     public DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
         this(componentIdentifier, createModuleDescriptor(componentIdentifier, artifacts));

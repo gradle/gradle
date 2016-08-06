@@ -25,8 +25,14 @@ import org.gradle.internal.component.model.ModuleSource;
  * The meta-data for a module version that is required during dependency resolution.
  */
 public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata {
+    /**
+     * {@inheritDoc}
+     */
     ModuleComponentIdentifier getComponentId();
 
+    /**
+     * {@inheritDoc}
+     */
     ModuleComponentResolveMetadata withSource(ModuleSource source);
 
     /**
@@ -35,7 +41,7 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     MutableModuleComponentResolveMetadata asMutable();
 
     /**
-     * Creates a potential artifact for this module. Does not mutate this metadata.
+     * Creates an artifact for this module. Does not mutate this metadata.
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 
