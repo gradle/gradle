@@ -23,15 +23,15 @@ public interface EarSecurityRole {
     /**
      * A description of the security role. Optional.
      */
-    public String getDescription();
+    String getDescription();
 
-    public void setDescription(String description);
+    void setDescription(String description);
 
     /**
      * The name of the security role. Required.
      */
-    public String getRoleName();
+    String getRoleName();
 
-    public void setRoleName(String roleName);
+    void setRoleName(String roleName);
 
 }
