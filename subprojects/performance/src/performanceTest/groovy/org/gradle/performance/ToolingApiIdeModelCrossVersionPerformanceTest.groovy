@@ -33,10 +33,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         given:
 
         experiment(template, "get $template EclipseProject model") {
-            if ('lotDependencies' == template) {
-                warmUpCount = 10
-                invocationCount = 100
-            }
+            warmUpCount = 20
+            invocationCount = 30
             maxExecutionTimeRegression = millis(maxRegressionTime)
             action {
                 def model = getModel(tapiClass(EclipseProject))
