@@ -28,7 +28,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     @Requires(TestPrecondition.NOT_WINDOWS)
-    def "tears down the daemon process when the client disconnects"() {
+    def "tears down the daemon process when the client disconnects and build does not cancel in a timely manner"() {
         buildFile << """
 task block << {
     new URL("$server.uri").text
@@ -43,6 +43,25 @@ task block << {
 
         then:
         daemons.daemon.stops()
+    }
+
+    @Requires(TestPrecondition.NOT_WINDOWS)
+    def "daemon is idle after the client disconnects and build cancels in a timely manner"() {
+        buildFile << """
+task block << {
+    new URL("$server.uri").text
+}
+"""
+
+        when:
+        def build = executer.withTasks("block").start()
+        server.waitFor()
+        daemons.daemon.assertBusy()
+        build.abort().waitForFailure()
+        server.release()
+
+        then:
+        daemons.daemon.becomesIdle()
     }
 
     def "client logs useful information when daemon crashes"() {
