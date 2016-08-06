@@ -24,8 +24,8 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -59,12 +59,12 @@ public class MavenResolver extends ExternalResourceResolver {
     private final URI root;
     private final List<URI> artifactRoots = new ArrayList<URI>();
     private final MavenMetadataLoader mavenMetaDataLoader;
-    private final MetaDataParser<DefaultMavenModuleResolveMetadata> metaDataParser;
+    private final MetaDataParser<MutableMavenModuleResolveMetadata> metaDataParser;
     private static final Pattern UNIQUE_SNAPSHOT = Pattern.compile("(?:.+)-(\\d{8}\\.\\d{6}-\\d+)");
 
     public MavenResolver(String name, URI rootUri, RepositoryTransport transport,
                          LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                         FileStore<ModuleComponentArtifactMetadata> artifactFileStore, MetaDataParser<DefaultMavenModuleResolveMetadata> pomParser) {
+                         FileStore<ModuleComponentArtifactMetadata> artifactFileStore, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser) {
         super(name, transport.isLocal(),
                 transport.getRepository(),
                 transport.getResourceAccessor(),
@@ -202,11 +202,11 @@ public class MavenResolver extends ExternalResourceResolver {
 
     @Override
     protected MutableModuleComponentResolveMetadata createDefaultComponentResolveMetaData(ModuleComponentIdentifier moduleComponentIdentifier, Set<IvyArtifactName> artifacts) {
-        return processMetaData(new DefaultMavenModuleResolveMetadata(moduleComponentIdentifier, artifacts));
+        return processMetaData(new DefaultMutableMavenModuleResolveMetadata(moduleComponentIdentifier, artifacts));
     }
 
     protected MutableModuleComponentResolveMetadata parseMetaDataFromResource(ModuleComponentIdentifier moduleComponentIdentifier, LocallyAvailableExternalResource cachedResource, DescriptorParseContext context) {
-        DefaultMavenModuleResolveMetadata metaData = metaDataParser.parseMetaData(context, cachedResource);
+        MutableMavenModuleResolveMetadata metaData = metaDataParser.parseMetaData(context, cachedResource);
         if (moduleComponentIdentifier instanceof MavenUniqueSnapshotComponentIdentifier) {
             // Snapshot POMs use -SNAPSHOT instead of the timestamp as version, so validate against the expected id
             MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier = (MavenUniqueSnapshotComponentIdentifier) moduleComponentIdentifier;

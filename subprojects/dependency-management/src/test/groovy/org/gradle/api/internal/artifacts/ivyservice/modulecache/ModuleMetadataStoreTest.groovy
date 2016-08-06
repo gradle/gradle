@@ -59,7 +59,7 @@ class ModuleMetadataStoreTest extends Specification {
     def "putModuleDescriptor uses PathKeyFileStore to write file"() {
         setup:
         File descriptorFile = temporaryFolder.createFile("fileStoreEntry")
-        def descriptor = new DefaultMavenModuleResolveMetadata(new MutableModuleDescriptorState(moduleComponentIdentifier), "packaging", false)
+        def descriptor = new DefaultMavenModuleResolveMetadata(moduleComponentIdentifier, new MutableModuleDescriptorState(moduleComponentIdentifier), "packaging", false)
 
         when:
         store.putModuleDescriptor(repository, descriptor)

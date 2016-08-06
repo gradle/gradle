@@ -58,6 +58,7 @@ public class IvyModuleDescriptorConverter {
             throw UncheckedException.throwAsUncheckedException(e);
         }
     }
+
     public static ModuleDescriptorState forIvyModuleDescriptor(ModuleDescriptor ivyDescriptor) {
         ModuleRevisionId moduleRevisionId = ivyDescriptor.getModuleRevisionId();
         ModuleComponentIdentifier componentIdentifier = DefaultModuleComponentIdentifier.newId(moduleRevisionId.getOrganisation(), moduleRevisionId.getName(), moduleRevisionId.getRevision());

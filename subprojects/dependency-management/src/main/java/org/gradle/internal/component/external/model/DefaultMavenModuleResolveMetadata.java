@@ -21,30 +21,29 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
 
 public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements MavenModuleResolveMetadata, MutableMavenModuleResolveMetadata {
-    private static final String POM_PACKAGING = "pom";
-    private static final Collection<String> JAR_PACKAGINGS = Arrays.asList("ejb", "bundle", "maven-plugin", "eclipse-plugin");
+    public static final String POM_PACKAGING = "pom";
+    public static final Collection<String> JAR_PACKAGINGS = Arrays.asList("jar", "ejb", "bundle", "maven-plugin", "eclipse-plugin");
     private final String packaging;
     private final boolean relocated;
     private String snapshotTimestamp;
 
-    public DefaultMavenModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(componentIdentifier, createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
-    }
-
-    public DefaultMavenModuleResolveMetadata(ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
-        this(moduleDescriptor.getComponentIdentifier(), moduleDescriptor, packaging, relocated);
-    }
-
     public DefaultMavenModuleResolveMetadata(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor, String packaging, boolean relocated) {
         this(componentId, DefaultModuleVersionIdentifier.newId(componentId), descriptor, packaging, relocated);
+    }
+
+    DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
+        this(metadata.getComponentId(), metadata.getDescriptor(), metadata.getPackaging(), metadata.isRelocated());
+        setStatus(metadata.getStatus());
+        setChanging(metadata.isChanging());
+        setStatusScheme(metadata.getStatusScheme());
+        setSource(metadata.getSource());
+        setSnapshotTimestamp(metadata.getSnapshotTimestamp());
     }
 
     private DefaultMavenModuleResolveMetadata(ModuleComponentIdentifier componentId, ModuleVersionIdentifier id, ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
@@ -90,7 +89,7 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     }
 
     public boolean isKnownJarPackaging() {
-        return "jar".equals(packaging) || JAR_PACKAGINGS.contains(packaging);
+        return JAR_PACKAGINGS.contains(packaging);
     }
 
     public void setSnapshotTimestamp(@Nullable String snapshotTimestamp) {

@@ -26,7 +26,6 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -52,7 +51,6 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
     private ModuleVersionIdentifier moduleVersionIdentifier;
     private ModuleComponentIdentifier componentIdentifier;
     private boolean changing;
-    private boolean generated;
     private String status;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
@@ -65,28 +63,11 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
         this.descriptor = moduleDescriptor;
         this.componentIdentifier = componentIdentifier;
         this.moduleVersionIdentifier = moduleVersionIdentifier;
-        generated = moduleDescriptor.isGenerated();
         status = moduleDescriptor.getStatus();
         configurations = populateConfigurationsFromDescriptor(moduleDescriptor);
         artifactsByConfig = populateArtifactsFromDescriptor(componentIdentifier, moduleDescriptor);
         dependencies = populateDependenciesFromDescriptor(moduleDescriptor);
         excludes = moduleDescriptor.getExcludes();
-    }
-
-    protected static ModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> componentArtifacts) {
-        MutableModuleDescriptorState moduleDescriptorState = new MutableModuleDescriptorState(componentIdentifier);
-        moduleDescriptorState.addConfiguration(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION, true, true, Collections.<String>emptySet());
-
-        for (IvyArtifactName artifactName : componentArtifacts) {
-            moduleDescriptorState.addArtifact(artifactName, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
-        }
-
-        if (componentArtifacts.isEmpty()) {
-            IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar");
-            moduleDescriptorState.addArtifact(defaultArtifact, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
-        }
-
-        return moduleDescriptorState;
     }
 
     protected void copyTo(AbstractModuleComponentResolveMetadata copy) {
@@ -116,7 +97,7 @@ abstract class AbstractModuleComponentResolveMetadata implements MutableModuleCo
     }
 
     public boolean isGenerated() {
-        return generated;
+        return descriptor.isGenerated();
     }
 
     public String getStatus() {

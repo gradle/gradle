@@ -54,6 +54,7 @@ public interface MutableModuleComponentResolveMetadata {
     List<String> getStatusScheme();
     void setStatusScheme(List<String> statusScheme);
 
+    ModuleSource getSource();
     void setSource(ModuleSource source);
 
     /**

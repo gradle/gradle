@@ -50,9 +50,10 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
+import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resource.ExternalResource;
@@ -93,7 +94,7 @@ import static org.gradle.api.internal.artifacts.ivyservice.IvyUtil.createModuleR
 /**
  * Copied from org.apache.ivy.plugins.parser.xml.XmlModuleDescriptorParser into Gradle codebase, and heavily modified.
  */
-public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser<DefaultIvyModuleResolveMetadata> {
+public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser<MutableIvyModuleResolveMetadata> {
     static final String[] DEPENDENCY_REGULAR_ATTRIBUTES =
             new String[] {"org", "name", "branch", "branchConstraint", "rev", "revConstraint", "force", "transitive", "changing", "conf"};
 
@@ -101,7 +102,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
 
     private static final Logger LOGGER = LoggerFactory.getLogger(IvyXmlModuleDescriptorParser.class);
 
-    protected DefaultIvyModuleResolveMetadata doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
+    protected MutableIvyModuleResolveMetadata doParseDescriptor(DescriptorParseContext parseContext, LocallyAvailableExternalResource resource, boolean validate) throws IOException, ParseException {
         Parser parser = createParser(parseContext, resource, populateProperties());
         parser.setValidate(validate);
         parser.parse();
@@ -413,7 +414,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
             return md;
         }
 
-        public DefaultIvyModuleResolveMetadata getMetaData() {
+        public DefaultMutableIvyModuleResolveMetadata getMetaData() {
             return metaData.build();
         }
 

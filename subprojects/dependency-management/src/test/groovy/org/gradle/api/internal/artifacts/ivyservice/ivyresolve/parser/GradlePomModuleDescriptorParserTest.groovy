@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
 import groovy.transform.NotYetImplemented
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.internal.component.external.model.MavenModuleResolveMetadata
+import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import spock.lang.Issue
@@ -51,7 +51,7 @@ class GradlePomModuleDescriptorParserTest extends AbstractGradlePomModuleDescrip
         def metaData = parseMetaData()
 
         then:
-        metaData instanceof MavenModuleResolveMetadata
+        metaData instanceof MutableMavenModuleResolveMetadata
         metaData.descriptor.componentIdentifier == componentId('group-one', 'artifact-one', 'version-one')
         def dependency = single(metaData.descriptor.dependencies)
         dependency.requested == moduleId('group-two', 'artifact-two', 'version-two')

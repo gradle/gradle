@@ -16,6 +16,8 @@
 
 package org.gradle.internal.component.external.model;
 
+import org.gradle.api.Nullable;
+
 public interface MutableMavenModuleResolveMetadata extends MutableModuleComponentResolveMetadata {
     /**
      * {@inheritDoc}
@@ -23,7 +25,13 @@ public interface MutableMavenModuleResolveMetadata extends MutableModuleComponen
     @Override
     MavenModuleResolveMetadata asImmutable();
 
+    void setSnapshotTimestamp(@Nullable String snapshotTimestamp);
+
+    @Nullable
+    String getSnapshotTimestamp();
+
     String getPackaging();
     boolean isPomPackaging();
     boolean isKnownJarPackaging();
+    boolean isRelocated();
 }

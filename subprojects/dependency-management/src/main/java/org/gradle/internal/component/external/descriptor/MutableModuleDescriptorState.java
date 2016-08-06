@@ -19,14 +19,17 @@ package org.gradle.internal.component.external.descriptor;
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public class MutableModuleDescriptorState extends ModuleDescriptorState {
 
@@ -36,6 +39,22 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
 
     public MutableModuleDescriptorState(ModuleComponentIdentifier componentIdentifier, String status, boolean generated) {
         super(componentIdentifier, status, generated);
+    }
+
+    public static MutableModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> componentArtifacts) {
+        MutableModuleDescriptorState moduleDescriptorState = new MutableModuleDescriptorState(componentIdentifier);
+        moduleDescriptorState.addConfiguration(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION, true, true, Collections.<String>emptySet());
+
+        for (IvyArtifactName artifactName : componentArtifacts) {
+            moduleDescriptorState.addArtifact(artifactName, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
+        }
+
+        if (componentArtifacts.isEmpty()) {
+            IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar");
+            moduleDescriptorState.addArtifact(defaultArtifact, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
+        }
+
+        return moduleDescriptorState;
     }
 
     public void setDescription(String description) {

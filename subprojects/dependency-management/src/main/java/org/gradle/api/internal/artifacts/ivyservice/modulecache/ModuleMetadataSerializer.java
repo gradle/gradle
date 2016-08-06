@@ -25,9 +25,9 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata;
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -266,12 +266,12 @@ public class ModuleMetadataSerializer {
             byte type = decoder.readByte();
             switch (type) {
                 case TYPE_IVY:
-                    return new DefaultIvyModuleResolveMetadata(id, md);
+                    return new DefaultMutableIvyModuleResolveMetadata(id, md);
                 case TYPE_MAVEN:
                     String snapshotTimestamp = readNullableString();
                     String packaging = readNullableString();
                     boolean relocated = readBoolean();
-                    DefaultMavenModuleResolveMetadata metadata = new DefaultMavenModuleResolveMetadata(id, md, packaging, relocated);
+                    DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, md, packaging, relocated);
                     metadata.setSnapshotTimestamp(snapshotTimestamp);
                     return metadata;
                 default:

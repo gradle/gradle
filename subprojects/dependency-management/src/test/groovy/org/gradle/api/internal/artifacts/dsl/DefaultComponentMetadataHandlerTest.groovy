@@ -24,9 +24,9 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.specs.Specs
-import org.gradle.internal.component.external.model.DefaultIvyModuleResolveMetadata
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata
+import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.rules.RuleAction
@@ -192,11 +192,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
 
     def "processing fails when status is not present in status scheme"() {
         def metadata = ivyMetadata()
-        metadata.setStatus("green")
-        metadata.setStatusScheme(["alpha", "beta"])
+        metadata.status = "green"
+        metadata.statusScheme = ["alpha", "beta"]
 
         when:
-        handler.processMetadata(metadata)
+        handler.processMetadata(metadata.asImmutable())
 
         then:
         ModuleVersionResolveException e = thrown()
@@ -211,7 +211,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { throw failure }
 
         and:
-        handler.processMetadata(metadata)
+        handler.processMetadata(metadata.asImmutable())
 
         then:
         InvalidUserCodeException e = thrown()
@@ -229,7 +229,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { ComponentMetadataDetails cmd, IvyModuleDescriptor imd -> closuresCalled << 3 }
 
         and:
-        handler.processMetadata(metadata)
+        handler.processMetadata(metadata.asImmutable())
 
         then:
         closuresCalled.sort() == [ 1, 2, 3 ]
@@ -243,7 +243,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata)
+        handler.processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -261,9 +261,9 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = ivyMetadata()
         def id1 = new NamespaceId('namespace', 'info1')
         def id2 = new NamespaceId('namespace', 'info2')
-        metadata.extraInfo[id1] = "info1 value"
-        metadata.extraInfo[id2] = "info2 value"
-        metadata.branch = "someBranch"
+        metadata.descriptor.extraInfo[id1] = "info1 value"
+        metadata.descriptor.extraInfo[id2] = "info2 value"
+        metadata.descriptor.branch = "someBranch"
 
         def capturedDescriptor = null
         handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
@@ -271,7 +271,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata)
+        handler.processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -287,9 +287,9 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = ivyMetadata()
         def id1 = new NamespaceId('namespace', 'info1')
         def id2 = new NamespaceId('namespace', 'info2')
-        metadata.extraInfo[id1] = "info1 value"
-        metadata.extraInfo[id2] = "info2 value"
-        metadata.branch = "someBranch"
+        metadata.descriptor.extraInfo[id1] = "info1 value"
+        metadata.descriptor.extraInfo[id2] = "info2 value"
+        metadata.descriptor.branch = "someBranch"
 
         def capturedDescriptor = null
         handler.all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
@@ -300,7 +300,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata)
+        handler.processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -316,7 +316,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata)
+        handler.processMetadata(metadata.asImmutable())
 
         then:
         !invoked
@@ -348,9 +348,9 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         def metadata = ivyMetadata()
         def id1 = new NamespaceId('namespace', 'info1')
         def id2 = new NamespaceId('namespace', 'info2')
-        metadata.extraInfo[id1] = "info1 value"
-        metadata.extraInfo[id2] = "info2 value"
-        metadata.branch = "someBranch"
+        metadata.descriptor.extraInfo[id1] = "info1 value"
+        metadata.descriptor.extraInfo[id2] = "info2 value"
+        metadata.descriptor.branch = "someBranch"
 
         def capturedDetails1 = null
         def capturedDescriptor1 = null
@@ -363,7 +363,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.processMetadata(metadata)
+        handler.processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -405,15 +405,15 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         "org.gradle" | "lib" | false
     }
 
-    private DefaultIvyModuleResolveMetadata ivyMetadata() {
-        def metadata = new DefaultIvyModuleResolveMetadata(DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
+    private DefaultMutableIvyModuleResolveMetadata ivyMetadata() {
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata
     }
 
-    private DefaultMavenModuleResolveMetadata mavenMetadata() {
-        def metadata = new DefaultMavenModuleResolveMetadata(DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
+    private DefaultMutableMavenModuleResolveMetadata mavenMetadata() {
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(DefaultModuleComponentIdentifier.newId("group", "module", "version"), [] as Set)
         metadata.status = "integration"
         metadata.statusScheme = ["integration", "release"]
         return metadata

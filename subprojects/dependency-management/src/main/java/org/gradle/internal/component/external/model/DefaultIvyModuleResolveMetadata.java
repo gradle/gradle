@@ -20,28 +20,25 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata, MutableIvyModuleResolveMetadata {
-    private final Map<NamespaceId, String> extraInfo;
-    private String branch;
-
-    public DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(componentIdentifier, createModuleDescriptor(componentIdentifier, artifacts));
-    }
-
     public DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor) {
         this(componentIdentifier, DefaultModuleVersionIdentifier.newId(componentIdentifier), moduleDescriptor);
     }
 
+    DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata resolveMetadata) {
+        this(resolveMetadata.getComponentId(), resolveMetadata.getId(), resolveMetadata.getDescriptor());
+        setStatus(resolveMetadata.getStatus());
+        setChanging(resolveMetadata.isChanging());
+        setStatusScheme(resolveMetadata.getStatusScheme());
+        setSource(resolveMetadata.getSource());
+    }
+
     private DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier identifier, ModuleDescriptorState moduleDescriptor) {
         super(componentIdentifier, identifier, moduleDescriptor);
-        this.extraInfo = moduleDescriptor.getExtraInfo();
-        this.branch = moduleDescriptor.getBranch();
     }
 
     @Override
@@ -68,10 +65,10 @@ public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentReso
     }
 
     public String getBranch() {
-        return branch;
+        return getDescriptor().getBranch();
     }
 
     public Map<NamespaceId, String> getExtraInfo() {
-        return extraInfo;
+        return getDescriptor().getExtraInfo();
     }
 }
