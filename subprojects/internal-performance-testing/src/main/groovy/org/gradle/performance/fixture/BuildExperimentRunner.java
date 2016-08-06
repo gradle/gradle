@@ -157,7 +157,7 @@ public class BuildExperimentRunner {
         InvocationSpec invocation = experiment.getInvocation();
         if (invocation instanceof GradleInvocationSpec) {
             if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon()) {
-                return 3;
+                return 4;
             }
         }
         return 1;
