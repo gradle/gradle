@@ -91,7 +91,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
                             break;
                         case Canceled:
                             LOGGER.debug("cancel requested.");
-                            cancelBuild();
+                            cancelNow();
                             break;
                         case Broken:
                             throw new IllegalStateException("This daemon is in a broken state.");
@@ -209,11 +209,39 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
     @Override
     public void cancelBuild() {
+        requestCancel();
+
+        lock.lock();
+        try {
+            while(true) {
+                try {
+                    switch (state) {
+                        case Idle:
+                        case Stopped:
+                            return;
+                        case Busy:
+                        case Canceled:
+                        case StopRequested:
+                            condition.await();
+                            break;
+                        case Broken:
+                            throw new IllegalStateException("This daemon is in a broken state.");
+                    }
+                } catch (InterruptedException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void cancelNow() {
         long waitUntil = System.currentTimeMillis() + cancelTimeoutMs;
         Date expiry = new Date(waitUntil);
+
         LOGGER.debug("Cancel requested: will wait for daemon to become idle.");
         try {
-            requestCancel();
             cancellationToken.cancel();
         } catch (Exception ex) {
             LOGGER.error("Cancel processing failed. Will continue.", ex);

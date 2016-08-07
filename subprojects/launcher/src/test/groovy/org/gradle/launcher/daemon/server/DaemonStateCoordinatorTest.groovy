@@ -548,8 +548,19 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         !stopped
 
         when:
-        operation.run {
+        start {
             coordinator.runCommand(command, "command")
+        }
+        start {
+            instant.awaitRunning
+            coordinator.awaitStop()
+            instant.finished
+        }
+        async {
+            thread.blockUntil.commandRunning
+            thread.blockUntil.awaitRunning
+            thread.block()
+            coordinator.cancelBuild()
         }
 
         then:
@@ -562,8 +573,8 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         and:
         1 * onStartCommand.run()
         1 * command.run() >> {
-            coordinator.cancelBuild()
-            thread.blockUntil.run
+            instant.commandRunning
+            thread.blockUntil.finished
         }
         0 * _._
     }
