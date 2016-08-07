@@ -65,7 +65,7 @@ public class Daemon implements Stoppable {
     private final Lock lifecycleLock = new ReentrantLock();
 
     private Address connectorAddress;
-    private DomainRegistryUpdater registryUpdater;
+    private DaemonRegistryUpdater registryUpdater;
     private DefaultIncomingConnectionHandler connectionHandler;
 
     /**
@@ -118,7 +118,7 @@ public class Daemon implements Stoppable {
             byte[] token = new byte[16];
             secureRandom.nextBytes(token);
 
-            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, token);
+            registryUpdater = new DaemonRegistryUpdater(daemonRegistry, daemonContext, token);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
@@ -280,9 +280,9 @@ public class Daemon implements Stoppable {
 
     private static class DefaultDaemonExpirationListener implements DaemonExpirationListener {
         private final DaemonStateControl stateControl;
-        private final DomainRegistryUpdater registryUpdater;
+        private final DaemonRegistryUpdater registryUpdater;
 
-        public DefaultDaemonExpirationListener(DaemonStateControl stateControl, DomainRegistryUpdater registryUpdater) {
+        public DefaultDaemonExpirationListener(DaemonStateControl stateControl, DaemonRegistryUpdater registryUpdater) {
             this.stateControl = stateControl;
             this.registryUpdater = registryUpdater;
         }

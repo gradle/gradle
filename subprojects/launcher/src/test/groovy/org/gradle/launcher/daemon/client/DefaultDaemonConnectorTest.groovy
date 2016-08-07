@@ -30,6 +30,8 @@ import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+
 class DefaultDaemonConnectorTest extends Specification {
 
     def javaHome = new File("tmp")
@@ -69,8 +71,7 @@ class DefaultDaemonConnectorTest extends Specification {
         def daemonNum = daemonCounter++
         DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
         def address = createAddress(daemonNum)
-        registry.store(new DaemonInfo(address, context, "password".bytes, false))
-        registry.markBusy(address)
+        registry.store(new DaemonInfo(address, context, "password".bytes, Busy))
         return new DaemonStartupInfo(daemonNum.toString(), null, null);
     }
 
@@ -78,7 +79,7 @@ class DefaultDaemonConnectorTest extends Specification {
         def daemonNum = daemonCounter++
         DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, javaHome, daemonNum, 1000, [])
         def address = createAddress(daemonNum)
-        registry.store(new DaemonInfo(address, context, "password".bytes, true))
+        registry.store(new DaemonInfo(address, context, "password".bytes, Idle))
     }
 
     def theConnector

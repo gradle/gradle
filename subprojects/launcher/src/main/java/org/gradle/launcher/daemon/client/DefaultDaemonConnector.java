@@ -45,6 +45,8 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
+
 /**
  * Provides the mechanics of connecting to a daemon, starting one via a given runnable if no suitable daemons are already available.
  */
@@ -126,7 +128,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
     private Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> partitionByIdleState(final Collection<DaemonInfo> daemons) {
         return CollectionUtils.partition(daemons, new Spec<DaemonInfo>() {
             public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
-                return daemonInfo.isIdle();
+                return daemonInfo.getState() == Idle;
             }
         });
     }
@@ -184,7 +186,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
     private DaemonClientConnection connectToDaemonWithId(DaemonStartupInfo daemon, ExplainingSpec<DaemonContext> constraint) throws ConnectException {
         // Look for 'our' daemon among the busy daemons - a daemon will start in busy state so that nobody else will grab it.
-        for (DaemonInfo daemonInfo : daemonRegistry.getBusy()) {
+        for (DaemonInfo daemonInfo : daemonRegistry.getNotIdle()) {
             if (daemonInfo.getUid().equals(daemon.getUid())) {
                 try {
                     if (!constraint.isSatisfiedBy(daemonInfo.getContext())) {

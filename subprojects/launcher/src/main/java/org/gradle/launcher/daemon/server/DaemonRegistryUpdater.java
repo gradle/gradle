@@ -29,16 +29,18 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 
 import java.util.Date;
 
-class DomainRegistryUpdater implements Stoppable {
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
 
-    private static final Logger LOGGER = Logging.getLogger(DomainRegistryUpdater.class);
+class DaemonRegistryUpdater implements Stoppable {
+
+    private static final Logger LOGGER = Logging.getLogger(DaemonRegistryUpdater.class);
 
     private final DaemonRegistry daemonRegistry;
     private final DaemonContext daemonContext;
     private final byte[] token;
     private Address connectorAddress;
 
-    public DomainRegistryUpdater(DaemonRegistry daemonRegistry, DaemonContext daemonContext, byte[] token) {
+    public DaemonRegistryUpdater(DaemonRegistry daemonRegistry, DaemonContext daemonContext, byte[] token) {
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
         this.token = token;
@@ -47,7 +49,7 @@ class DomainRegistryUpdater implements Stoppable {
     public void onStartActivity() {
         LOGGER.info("Marking the daemon as busy, address: {}", connectorAddress);
         try {
-            daemonRegistry.markBusy(connectorAddress);
+            daemonRegistry.markState(connectorAddress, Busy);
         } catch (DaemonRegistry.EmptyRegistryException e) {
             LOGGER.warn("Cannot mark daemon as busy because the registry is empty.");
         }
@@ -56,7 +58,7 @@ class DomainRegistryUpdater implements Stoppable {
     public void onCompleteActivity() {
         LOGGER.info("Marking the daemon as idle, address: {}", connectorAddress);
         try {
-            daemonRegistry.markIdle(connectorAddress);
+            daemonRegistry.markState(connectorAddress, Idle);
         } catch (DaemonRegistry.EmptyRegistryException e) {
             LOGGER.warn("Cannot mark daemon as idle because the registry is empty.");
         }
@@ -66,7 +68,7 @@ class DomainRegistryUpdater implements Stoppable {
         LOGGER.info("{}{}", DaemonMessages.ADVERTISING_DAEMON, connectorAddress);
         LOGGER.debug("Advertised daemon context: {}", daemonContext);
         this.connectorAddress = connectorAddress;
-        daemonRegistry.store(new DaemonInfo(connectorAddress, daemonContext, token, false));
+        daemonRegistry.store(new DaemonInfo(connectorAddress, daemonContext, token, Busy));
     }
 
     public void onExpire(String reason, DaemonExpirationStatus status) {

@@ -26,6 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*;
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
+
 /**
  * A daemon registry for daemons running in the same JVM.
  * <p>
@@ -48,14 +51,21 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
     @SuppressWarnings("unchecked")
     private final Spec<DaemonInfo> idleSpec = Specs.<DaemonInfo>intersect(allSpec, new Spec<DaemonInfo>() {
         public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
-            return daemonInfo.isIdle();
+            return daemonInfo.getState() == Idle;
         }
     });
 
     @SuppressWarnings("unchecked")
     private final Spec<DaemonInfo> busySpec = Specs.<DaemonInfo>intersect(allSpec, new Spec<DaemonInfo>() {
         public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
-            return !daemonInfo.isIdle();
+            return daemonInfo.getState() != Idle;
+        }
+    });
+
+    @SuppressWarnings("unchecked")
+    private final Spec<DaemonInfo> canceledSpec = Specs.<DaemonInfo>intersect(allSpec, new Spec<DaemonInfo>() {
+        public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
+            return daemonInfo.getState() == Canceled;
         }
     });
 
@@ -67,8 +77,12 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         return daemonInfosOfEntriesMatching(idleSpec);
     }
 
-    public List<DaemonInfo> getBusy() {
+    public List<DaemonInfo> getNotIdle() {
         return daemonInfosOfEntriesMatching(busySpec);
+    }
+
+    public List<DaemonInfo> getCanceled() {
+        return daemonInfosOfEntriesMatching(canceledSpec);
     }
 
     @Override
@@ -81,15 +95,9 @@ public class EmbeddedDaemonRegistry implements DaemonRegistry {
         daemonInfos.remove(address);
     }
 
-    public void markBusy(Address address) {
+    public void markState(Address address, State state) {
         synchronized (daemonInfos) {
-            daemonInfos.get(address).setIdle(false);
-        }
-    }
-
-    public void markIdle(Address address) {
-        synchronized (daemonInfos) {
-            daemonInfos.get(address).setIdle(true);
+            daemonInfos.get(address).setState(state);
         }
     }
 

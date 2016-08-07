@@ -28,6 +28,7 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
@@ -62,7 +63,7 @@ class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
         DaemonDir daemonDir = new DaemonDir(daemonDir)
         DaemonRegistry registry = new EmbeddedDaemonRegistry()
         daemonDir.getRegistry().createNewFile()
-        registry.store(new DaemonInfo(address, daemonContext, "password".bytes, true))
+        registry.store(new DaemonInfo(address, daemonContext, "password".bytes, Idle))
 
         when:
         1 * daemon.getDaemonContext() >> { daemonContext }

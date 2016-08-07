@@ -19,6 +19,8 @@ import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.internal.remote.Address
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+
 class EmbeddedDaemonRegistrySpec extends Specification {
 
     @Delegate EmbeddedDaemonRegistry registry = new EmbeddedDaemonRegistry()
@@ -33,43 +35,43 @@ class EmbeddedDaemonRegistrySpec extends Specification {
         expect:
         all.empty
         idle.empty
-        busy.empty
+        notIdle.empty
     }
 
     def "lifecycle"() {
         given:
-        store(new DaemonInfo(address(10), context, "password".bytes, true))
-        store(new DaemonInfo(address(20), context, "password".bytes, true))
+        store(new DaemonInfo(address(10), context, "password".bytes, Idle))
+        store(new DaemonInfo(address(20), context, "password".bytes, Idle))
 
         expect:
         all.size() == 2
         idle.size() == 2
-        busy.empty
+        notIdle.empty
 
         when:
-        markBusy(address(10))
+        markState(address(10), Busy)
 
         then:
         all.size() == 2
         idle.size() == 1
-        busy.size() == 1
+        notIdle.size() == 1
 
         when:
-        markBusy(address(20))
+        markState(address(20), Busy)
 
         then:
         all.size() == 2
         idle.empty
-        busy.size() == 2
+        notIdle.size() == 2
 
         when:
-        markIdle(address(10))
-        markIdle(address(20))
+        markState(address(10), Idle)
+        markState(address(20), Idle)
 
         then:
         all.size() == 2
         idle.size() == 2
-        busy.empty
+        notIdle.empty
 
         when:
         remove(address(10))
@@ -78,6 +80,6 @@ class EmbeddedDaemonRegistrySpec extends Specification {
         then:
         all.empty
         idle.empty
-        busy.empty
+        notIdle.empty
     }
 }

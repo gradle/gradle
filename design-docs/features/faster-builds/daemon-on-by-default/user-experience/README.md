@@ -19,6 +19,7 @@ to gracefully stop the build.
 - Start a build that will cancel immediately and kill the client.  Verify that the build is cancelled and that a new client connects to the original daemon.
 - Start a build that will not cancel immediately and kill the client.  Start a new client before the cancel finishes and verify that when the cancel finishes, the client reconnects to the original daemon.
 - Start a build that will not finish and kill the client.  Start a new client and verify that after the timout, the old daemon is killed and a new daemon is started.
+- Start a build that will not complete and a build that will complete (results in idle daemon).  Cancel the build that will not complete, and start a new build.  Verify that the idle daemon is used rather than waiting on the daemon with the canceled build.
 
 ### Visibility of daemon status from the command line and IDE
 
