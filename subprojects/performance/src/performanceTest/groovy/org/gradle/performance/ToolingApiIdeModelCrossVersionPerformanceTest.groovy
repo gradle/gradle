@@ -95,6 +95,8 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         given:
 
         experiment(template, "get $template IdeaProject model") {
+            warmUpCount = 20
+            invocationCount = 30
             maxExecutionTimeRegression = millis(maxRegressionTime)
             action {
                 def model = getModel(tapiClass(IdeaProject))
