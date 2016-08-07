@@ -72,6 +72,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.targetVersions = ['2.11', '2.13']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m"]
+        runner.warmUpRuns = 5
         runner.runs = 10
 
         runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
