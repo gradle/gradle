@@ -60,6 +60,23 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         metadata.getConfiguration("conf") == null
     }
 
+    def "builds and caches hierarchy for a configuration"() {
+        given:
+        configuration("a")
+        configuration("b", ["a"])
+        configuration("c", ["a"])
+        configuration("d", ["b", "c"])
+
+        when:
+        def md = metadata
+
+        then:
+        md.getConfiguration("a").hierarchy == ["a"] as Set
+        md.getConfiguration("b").hierarchy == ["a", "b"] as Set
+        md.getConfiguration("c").hierarchy == ["a", "c"] as Set
+        md.getConfiguration("d").hierarchy == ["a", "b", "c", "d"] as Set
+    }
+
     def "builds and caches dependencies for a configuration"() {
         given:
         configuration("super")

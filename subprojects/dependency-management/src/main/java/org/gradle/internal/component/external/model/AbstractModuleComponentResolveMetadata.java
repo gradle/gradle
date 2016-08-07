@@ -243,6 +243,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         private final Set<Exclude> configExcludes = new LinkedHashSet<Exclude>();
         private final boolean transitive;
         private final boolean visible;
+        private final Set<String> hierarchy;
 
         private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<DefaultConfigurationMetadata> parents) {
             this.componentId = componentId;
@@ -250,6 +251,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             this.parents = parents;
             this.transitive = transitive;
             this.visible = visible;
+            this.hierarchy = calculateHierarchy();
         }
 
         private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible) {
@@ -265,7 +267,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return name;
         }
 
+        @Override
         public Set<String> getHierarchy() {
+            return hierarchy;
+        }
+
+        private Set<String> calculateHierarchy() {
             if (parents == null) {
                 return Collections.singleton(name);
             }
