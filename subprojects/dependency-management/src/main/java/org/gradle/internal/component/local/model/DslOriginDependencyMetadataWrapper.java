@@ -19,6 +19,7 @@ package org.gradle.internal.component.local.model;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -54,6 +55,11 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration) {
         return delegate.getDependencyConfigurations(moduleConfiguration, requestedConfiguration);
+    }
+
+    @Override
+    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
+        return delegate.getExclusions(fromConfiguration);
     }
 
     public List<Exclude> getExcludes(Collection<String> configurations) {

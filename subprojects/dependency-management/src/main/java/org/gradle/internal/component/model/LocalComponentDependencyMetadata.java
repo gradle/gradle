@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
 import java.util.Collection;
@@ -39,6 +41,7 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
     private final boolean force;
     private final boolean changing;
     private final boolean transitive;
+    private final ModuleExclusion exclusions;
 
     public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested, String moduleConfiguration, String dependencyConfiguration,
                                             Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
@@ -49,6 +52,7 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = artifactNames;
         this.excludes = excludes;
+        this.exclusions = excludes.isEmpty() ? null : ModuleExclusions.excludeAny(excludes);
         this.force = force;
         this.changing = changing;
         this.transitive = transitive;
@@ -80,6 +84,14 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
             };
         }
         return new String[0];
+    }
+
+    @Override
+    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
+        if (exclusions == null || !fromConfiguration.getHierarchy().contains(moduleConfiguration)) {
+            return ModuleExclusions.excludeNone();
+        }
+        return exclusions;
     }
 
     public List<Exclude> getExcludes(Collection<String> configurations) {
