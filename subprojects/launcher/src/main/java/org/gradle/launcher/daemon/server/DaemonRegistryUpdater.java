@@ -64,6 +64,15 @@ class DaemonRegistryUpdater implements Stoppable {
         }
     }
 
+    public void onCancel() {
+        LOGGER.info("Marking the daemon as canceled, address: {}", connectorAddress);
+        try {
+            daemonRegistry.markState(connectorAddress, Canceled);
+        } catch (DaemonRegistry.EmptyRegistryException e) {
+            LOGGER.warn("Cannot mark daemon as canceled because the registry is empty.");
+        }
+    }
+
     public void onStart(Address connectorAddress) {
         LOGGER.info("{}{}", DaemonMessages.ADVERTISING_DAEMON, connectorAddress);
         LOGGER.debug("Advertised daemon context: {}", daemonContext);

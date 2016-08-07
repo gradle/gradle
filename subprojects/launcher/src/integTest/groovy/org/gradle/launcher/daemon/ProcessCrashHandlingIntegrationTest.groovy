@@ -30,10 +30,10 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "tears down the daemon process when the client disconnects and build does not cancel in a timely manner"() {
         buildFile << """
-task block << {
-    new URL("$server.uri").text
-}
-"""
+            task block << {
+                new URL("$server.uri").text
+            }
+        """
 
         when:
         def build = executer.withTasks("block").start()
@@ -42,22 +42,30 @@ task block << {
         build.abort().waitForFailure()
 
         then:
+        daemons.daemon.becomesCanceled()
+
+        and:
         daemons.daemon.stops()
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "daemon is idle after the client disconnects and build cancels in a timely manner"() {
         buildFile << """
-task block << {
-    new URL("$server.uri").text
-}
-"""
+            task block << {
+                new URL("$server.uri").text
+            }
+        """
 
         when:
         def build = executer.withTasks("block").start()
         server.waitFor()
         daemons.daemon.assertBusy()
         build.abort().waitForFailure()
+
+        then:
+        daemons.daemon.becomesCanceled()
+
+        when:
         server.release()
 
         then:
@@ -66,10 +74,10 @@ task block << {
 
     def "client logs useful information when daemon crashes"() {
         buildFile << """
-task block << {
-    new URL("$server.uri").text
-}
-"""
+            task block << {
+                new URL("$server.uri").text
+            }
+        """
 
         when:
         executer.withStackTraceChecksDisabled() // daemon log may contain stack traces

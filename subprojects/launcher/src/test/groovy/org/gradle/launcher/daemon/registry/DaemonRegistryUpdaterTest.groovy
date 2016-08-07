@@ -65,6 +65,17 @@ public class DaemonRegistryUpdaterTest extends Specification {
         1 * registry.markState(address, Busy)
     }
 
+    def "marks canceled"() {
+        given:
+        updater.onStart(address)
+
+        when:
+        updater.onCancel()
+
+        then:
+        1 * registry.markState(address, Canceled)
+    }
+
     def "ignores empty cache on marking busy"() {
         given:
         updater.onStart(address)

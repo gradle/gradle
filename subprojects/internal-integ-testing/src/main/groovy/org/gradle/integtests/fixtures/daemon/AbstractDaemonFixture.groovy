@@ -72,6 +72,16 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
         assertHasState(Stopped)
     }
 
+    @Override
+    void assertCanceled() {
+        assertHasState(Canceled)
+    }
+
+    @Override
+    void becomesCanceled() {
+        waitForState(Canceled)
+    }
+
     protected abstract void waitForState(State state)
 
     protected abstract void assertHasState(State state)

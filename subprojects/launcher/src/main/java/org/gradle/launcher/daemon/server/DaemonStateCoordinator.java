@@ -59,18 +59,20 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     private final StoppableExecutor executor;
     private final Runnable onStartCommand;
     private final Runnable onFinishCommand;
+    private final Runnable onCancelCommand;
 
-    public DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand) {
-        this(executorFactory, onStartCommand, onFinishCommand, 10 * 1000L);
+    public DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, Runnable onCancelCommand) {
+        this(executorFactory, onStartCommand, onFinishCommand, onCancelCommand, 10 * 1000L);
     }
 
-    DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, long cancelTimeoutMs) {
+    DaemonStateCoordinator(ExecutorFactory executorFactory, Runnable onStartCommand, Runnable onFinishCommand, Runnable onCancelCommand, long cancelTimeoutMs) {
         executor = executorFactory.create("Daemon worker");
         this.onStartCommand = onStartCommand;
         this.onFinishCommand = onFinishCommand;
+        this.onCancelCommand = onCancelCommand;
         this.cancelTimeoutMs = cancelTimeoutMs;
         updateActivityTimestamp();
-        cancellationToken = new DefaultBuildCancellationToken();
+        updateCancellationToken();
     }
 
     private void setState(State state) {
@@ -193,6 +195,7 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
 
     private void updateCancellationToken() {
         cancellationToken = new DefaultBuildCancellationToken();
+        cancellationToken.addCallback(onCancelCommand);
     }
 
     @Override

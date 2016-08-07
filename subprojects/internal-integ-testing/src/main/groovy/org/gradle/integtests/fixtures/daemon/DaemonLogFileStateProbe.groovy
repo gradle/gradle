@@ -59,6 +59,8 @@ class DaemonLogFileStateProbe implements DaemonStateProbe {
                 states << Busy
             } else if (it.contains(finishBuildMessage)) {
                 states << Idle
+            } else if (it.contains(DaemonMessages.CANCELED_BUILD)) {
+                states << Canceled
             } else if (it.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)) {
                 states << Stopped
             }

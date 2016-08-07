@@ -145,13 +145,21 @@ public class Daemon implements Stoppable {
                 }
             };
 
+            Runnable onCancelCommand = new Runnable() {
+                @Override
+                public void run() {
+                    LOGGER.warn(DaemonMessages.CANCELED_BUILD);
+                    registryUpdater.onCancel();
+                }
+            };
+
             // Start the pipeline in reverse order:
             // 1. mark daemon as running
             // 2. start handling incoming commands
             // 3. start accepting incoming connections
             // 4. advertise presence in registry
 
-            stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand);
+            stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand, onCancelCommand);
             connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory, token);
             Runnable connectionErrorHandler = new Runnable() {
                 @Override
