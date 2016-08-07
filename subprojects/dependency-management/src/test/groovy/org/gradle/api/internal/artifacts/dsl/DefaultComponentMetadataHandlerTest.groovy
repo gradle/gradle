@@ -50,6 +50,13 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     def mockedHandler = new DefaultComponentMetadataHandler(DirectInstantiator.INSTANCE, adapter, notationParser)
     def ruleAction = Stub(RuleAction)
 
+    def "does nothing when no rules registered"() {
+        def metadata = ivyMetadata().asImmutable()
+
+        expect:
+        mockedHandler.processMetadata(metadata).is(metadata)
+    }
+
     def "add action rule that applies to all components" () {
         def action = new Action<ComponentMetadataDetails>() {
             @Override
