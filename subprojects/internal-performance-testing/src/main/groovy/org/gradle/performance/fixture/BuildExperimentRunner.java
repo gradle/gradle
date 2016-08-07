@@ -139,14 +139,7 @@ public class BuildExperimentRunner {
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
         }
-        // Take more samples when using the daemon, as execution time tends to be spiky
-        InvocationSpec invocation = experiment.getInvocation();
-        if (invocation instanceof GradleInvocationSpec) {
-            if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon()) {
-                return 10;
-            }
-        }
-        return 5;
+        return 10;
     }
 
     protected int warmupsForExperiment(BuildExperimentSpec experiment) {
