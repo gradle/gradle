@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
@@ -66,8 +65,6 @@ class CachedModuleVersionResultTest extends Specification {
     }
 
     def "supplies cached data"() {
-        def suppliedMetaData = Mock(ModuleComponentResolveMetadata)
-        def cachedMetaData = Mock(MutableModuleComponentResolveMetadata)
         def metaData = Mock(ModuleComponentResolveMetadata)
         def resolved = Mock(BuildableModuleComponentMetaDataResolveResult) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
@@ -84,21 +81,16 @@ class CachedModuleVersionResultTest extends Specification {
 
         def result = Mock(BuildableModuleComponentMetaDataResolveResult)
 
-        when:
+        given:
         def cached = new CachedModuleVersionResult(resolved)
-
-        then:
-        1 * metaData.asMutable() >> cachedMetaData
 
         when:
         cached.supply(result)
 
         then:
-        1 * cachedMetaData.asImmutable() >> suppliedMetaData
-        1 * result.resolved(suppliedMetaData)
+        1 * result.resolved(metaData)
         1 * result.setAuthoritative(false)
         0 * result._
-
 
         when:
         new CachedModuleVersionResult(missing).supply(result)
