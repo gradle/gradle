@@ -25,15 +25,16 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultDependencyToConfigurationResolver implements DependencyToConfigurationResolver {
-    // TODO - don't pass in 'from' configuration - the dependency should have whatever context it needs
-    public Set<ConfigurationMetadata> resolveTargetConfigurations(DependencyMetadata dependencyMetadata, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+    // TODO - don't pass in 'from' configuration or component - the dependency should have whatever context it needs
+    @Override
+    public Set<ConfigurationMetadata> resolveTargetConfigurations(DependencyMetadata dependencyMetadata, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
         // TODO - resolve directly to config meta data
         Set<String> targetConfigurationNames = new LinkedHashSet<String>();
         for (String config : dependencyMetadata.getModuleConfigurations()) {
             if (config.equals("*") || config.equals("%")) {
-                collectTargetConfiguration(dependencyMetadata, fromConfiguration, fromConfiguration.getName(), targetComponent, targetConfigurationNames);
+                collectTargetConfiguration(dependencyMetadata, fromComponent, fromConfiguration, fromConfiguration.getName(), targetComponent, targetConfigurationNames);
             } else if (fromConfiguration.getHierarchy().contains(config)) {
-                collectTargetConfiguration(dependencyMetadata, fromConfiguration, config, targetComponent, targetConfigurationNames);
+                collectTargetConfiguration(dependencyMetadata, fromComponent, fromConfiguration, config, targetComponent, targetConfigurationNames);
             }
         }
 
@@ -45,7 +46,7 @@ public class DefaultDependencyToConfigurationResolver implements DependencyToCon
         return targets;
     }
 
-    private void collectTargetConfiguration(DependencyMetadata dependencyDescriptor, ConfigurationMetadata fromConfiguration, String mappingRhs, ComponentResolveMetadata targetModule, Collection<String> targetConfigs) {
+    private void collectTargetConfiguration(DependencyMetadata dependencyDescriptor, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, String mappingRhs, ComponentResolveMetadata targetModule, Collection<String> targetConfigs) {
         String[] dependencyConfigurations = dependencyDescriptor.getDependencyConfigurations(mappingRhs, fromConfiguration.getName());
         for (String target : dependencyConfigurations) {
             String candidate = target;
@@ -72,9 +73,7 @@ public class DefaultDependencyToConfigurationResolver implements DependencyToCon
                 targetConfigs.add(candidate);
                 continue;
             }
-            throw new RuntimeException(String.format("Module version %s, configuration '%s' declares a dependency on configuration '%s' which is not declared in the module descriptor for %s",
-                    fromConfiguration.getComponent().getId(), fromConfiguration.getName(),
-                    target, targetModule.getId()));
+            throw new RuntimeException(String.format("Module version %s, configuration '%s' declares a dependency on configuration '%s' which is not declared in the module descriptor for %s", fromComponent.getId(), fromConfiguration.getName(), target, targetModule.getId()));
         }
     }
 }

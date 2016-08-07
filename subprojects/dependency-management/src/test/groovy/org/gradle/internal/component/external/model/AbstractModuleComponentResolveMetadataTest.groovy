@@ -134,6 +134,8 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         then:
         copy.source == source
         copy.configurationNames == ["conf"] as Set
+        copy.getConfiguration("conf").is(metadata.getConfiguration("conf"))
+        copy.dependencies.is(metadata.dependencies)
     }
 
     def configuration(String name, List<String> extendsFrom = []) {

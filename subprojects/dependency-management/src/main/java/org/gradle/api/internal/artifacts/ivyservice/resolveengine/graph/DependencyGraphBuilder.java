@@ -263,7 +263,7 @@ public class DependencyGraphBuilder {
                 return;
             }
 
-            Set<ConfigurationMetadata> targetConfigurations = resolveState.dependencyToConfigurationResolver.resolveTargetConfigurations(dependencyMetadata, from.metaData, targetModuleVersion);
+            Set<ConfigurationMetadata> targetConfigurations = resolveState.dependencyToConfigurationResolver.resolveTargetConfigurations(dependencyMetadata, from.moduleRevision.metaData, from.metaData, targetModuleVersion);
             for (ConfigurationMetadata targetConfiguration : targetConfigurations) {
                 ConfigurationNode targetConfigurationNode = resolveState.getConfigurationNode(targetModuleRevision, targetConfiguration.getName());
                 this.targetConfigurations.add(targetConfigurationNode);
@@ -642,6 +642,11 @@ public class DependencyGraphBuilder {
         @Override
         public ComponentIdentifier getComponentId() {
             return moduleRevision.getComponentId();
+        }
+
+        @Override
+        public ComponentResolveMetadata getComponent() {
+            return moduleRevision.metaData;
         }
 
         @Override

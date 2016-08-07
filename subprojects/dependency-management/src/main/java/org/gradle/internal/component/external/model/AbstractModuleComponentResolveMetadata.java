@@ -23,7 +23,6 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -89,7 +88,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
     }
 
-    protected AbstractModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata, ModuleSource source) {
+    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSource source) {
         this.descriptor = metadata.getDescriptor();
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
@@ -98,14 +97,9 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         statusScheme = metadata.getStatusScheme();
         moduleSource = source;
         dependencies = metadata.getDependencies();
-        excludes = descriptor.getExcludes();
-        artifacts = metadata.getArtifacts();
-        configurations = populateConfigurationsFromDescriptor(descriptor);
-        if (artifacts != null) {
-            populateArtifacts(artifacts);
-        } else {
-            populateArtifactsFromDescriptor(componentIdentifier, descriptor);
-        }
+        excludes = metadata.excludes;
+        artifacts = metadata.artifacts;
+        configurations = metadata.configurations;
     }
 
     public ModuleDescriptorState getDescriptor() {
@@ -191,7 +185,9 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         Set<String> configurationsNames = moduleDescriptor.getConfigurationsNames();
         Map<String, DefaultConfigurationMetadata> configurations = new HashMap<String, DefaultConfigurationMetadata>(configurationsNames.size());
         for (String configName : configurationsNames) {
-            populateConfigurationFromDescriptor(configName, moduleDescriptor, configurations);
+            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, moduleDescriptor, configurations);
+            configuration.populateDependencies(dependencies);
+            configuration.populateExcludeRulesFromDescriptor(excludes);
         }
         return configurations;
     }
@@ -208,11 +204,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         boolean visible = descriptorConfiguration.isVisible();
         if (extendsFrom.isEmpty()) {
             // tail
-            populated = new DefaultConfigurationMetadata(name, transitive, visible);
+            populated = new DefaultConfigurationMetadata(componentIdentifier, name, transitive, visible);
             configurations.put(name, populated);
             return populated;
         } else if (extendsFrom.size() == 1) {
             populated = new DefaultConfigurationMetadata(
+                componentIdentifier,
                 name,
                 transitive,
                 visible,
@@ -226,6 +223,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             hierarchy.add(populateConfigurationFromDescriptor(confName, moduleDescriptor, configurations));
         }
         populated = new DefaultConfigurationMetadata(
+            componentIdentifier,
             name,
             transitive,
             visible,
@@ -236,36 +234,31 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return populated;
     }
 
-    private class DefaultConfigurationMetadata implements ConfigurationMetadata {
+    private static class DefaultConfigurationMetadata implements ConfigurationMetadata {
+        private final ModuleComponentIdentifier componentId;
         private final String name;
         private final List<DefaultConfigurationMetadata> parents;
-        private final List<DependencyMetadata> configDependencies;
-        private final Set<ComponentArtifactMetadata> artifacts;
-        private final Set<Exclude> configExcludes;
+        private final List<DependencyMetadata> configDependencies = new ArrayList<DependencyMetadata>();
+        private final Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
+        private final Set<Exclude> configExcludes = new LinkedHashSet<Exclude>();
         private final boolean transitive;
         private final boolean visible;
 
-        private DefaultConfigurationMetadata(String name, boolean transitive, boolean visible, List<DefaultConfigurationMetadata> parents) {
+        private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<DefaultConfigurationMetadata> parents) {
+            this.componentId = componentId;
             this.name = name;
             this.parents = parents;
             this.transitive = transitive;
             this.visible = visible;
-            this.configDependencies = calculateDependencies();
-            this.configExcludes = populateExcludeRulesFromDescriptor();
-            this.artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
         }
 
-        private DefaultConfigurationMetadata(String name, boolean transitive, boolean visible) {
-            this(name, transitive, visible, null);
+        private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible) {
+            this(componentId, name, transitive, visible, null);
         }
 
         @Override
         public String toString() {
-            return getComponent().getComponentId() + ":" + name;
-        }
-
-        public ComponentResolveMetadata getComponent() {
-            return AbstractModuleComponentResolveMetadata.this;
+            return componentId + ":" + name;
         }
 
         public String getName() {
@@ -302,14 +295,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return configDependencies;
         }
 
-        private List<DependencyMetadata> calculateDependencies() {
-            List<DependencyMetadata> configDependencies = new ArrayList<DependencyMetadata>();
+        private void populateDependencies(Iterable<DependencyMetadata> dependencies) {
             for (DependencyMetadata dependency : dependencies) {
                 if (include(dependency)) {
-                    configDependencies.add(dependency);
+                    this.configDependencies.add(dependency);
                 }
             }
-            return configDependencies;
         }
 
         private boolean include(DependencyMetadata dependency) {
@@ -340,18 +331,16 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return configExcludes;
         }
 
-        private Set<Exclude> populateExcludeRulesFromDescriptor() {
-            Set<Exclude> configExcludes = new LinkedHashSet<Exclude>();
+        private void populateExcludeRulesFromDescriptor(Iterable<Exclude> excludes) {
             Set<String> hierarchy = getHierarchy();
             for (Exclude exclude : excludes) {
                 for (String config : exclude.getConfigurations()) {
                     if (hierarchy.contains(config)) {
-                        configExcludes.add(exclude);
+                        this.configExcludes.add(exclude);
                         break;
                     }
                 }
             }
-            return configExcludes;
         }
 
         public Set<ComponentArtifactMetadata> getArtifacts() {
@@ -359,7 +348,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         public ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {
-            return new DefaultModuleComponentArtifactMetadata(getComponentId(), artifact);
+            return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
         }
 
         public void collectInheritedArtifacts(Set<ConfigurationMetadata> visited) {

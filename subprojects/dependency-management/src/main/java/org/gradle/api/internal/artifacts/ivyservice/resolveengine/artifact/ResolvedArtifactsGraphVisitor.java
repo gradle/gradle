@@ -80,7 +80,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
         long id = idGenerator.generateId();
         ResolvedConfigurationIdentifier configurationIdentifier = childConfiguration.getNodeId();
         ConfigurationMetadata metaData = childConfiguration.getMetaData();
-        ComponentResolveMetadata component = metaData.getComponent();
+        ComponentResolveMetadata component = childConfiguration.getComponent();
 
         Set<ComponentArtifactMetadata> artifacts = dependency.getArtifacts(metaData);
         if (!artifacts.isEmpty()) {
