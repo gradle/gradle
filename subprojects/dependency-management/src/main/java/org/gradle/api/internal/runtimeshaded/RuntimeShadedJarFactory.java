@@ -51,7 +51,7 @@ public class RuntimeShadedJarFactory implements Closeable {
     }
 
     public File get(final RuntimeShadedJarType type, final Collection<? extends File> classpath) {
-        final File jarFile = jarFile(cache, type);
+        final File jarFile = jarFile(type);
         if (!jarFile.exists()) {
             cache.useCache("Generating " + jarFile.getName(), new Runnable() {
                 public void run() {
@@ -74,7 +74,7 @@ public class RuntimeShadedJarFactory implements Closeable {
         cache.close();
     }
 
-    private File jarFile(PersistentCache cache, RuntimeShadedJarType type) {
+    private File jarFile(RuntimeShadedJarType type) {
         return new File(cache.getBaseDir(), "gradle-" + type.getIdentifier() + "-" + gradleVersion + ".jar");
     }
 }
