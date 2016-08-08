@@ -1148,13 +1148,10 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Configures the reports that this task potentially produces.
      *
-     * @deprecated Use {@link #reports(Action)} instead
-     *
      * @param closure The configuration
      * @return The reports that this task potentially produces
      */
     @Override
-    @Deprecated
     public TestTaskReports reports(Closure closure) {
         return reports(new ClosureBackedAction<TestTaskReports>(closure));
     }

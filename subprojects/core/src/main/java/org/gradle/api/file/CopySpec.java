@@ -303,13 +303,10 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * Creates and configures a child {@code CopySpec} with the given destination path.
      * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
-     * @deprecated Use {@link #into(Object, Action)} instead
-     *
      * @param destPath Path to the destination directory for a Copy
      * @param configureClosure The closure to use to configure the child {@code CopySpec}.
      * @return this
      */
-    @Deprecated
     CopySpec into(Object destPath, Closure configureClosure);
 
     /**

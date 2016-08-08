@@ -65,12 +65,9 @@ public interface ContentFilterable {
      * endings) and should return a String to replace the line or {@code null} to remove the line.  If every line is
      * removed, the result will be an empty file, not an absent one.
      *
-     * @deprecated Use {@link #filter(Transformer)} instead
-     *
      * @param closure to implement line based filtering
      * @return this
      */
-    @Deprecated
     ContentFilterable filter(Closure closure);
 
     /**

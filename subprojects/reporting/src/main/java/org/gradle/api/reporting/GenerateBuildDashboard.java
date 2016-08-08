@@ -123,12 +123,9 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
      * }
      * </pre>
      *
-     * @deprecated Use {@link #reports(Action)} instead
-     *
      * @param closure The configuration
      * @return The reports container
      */
-    @Deprecated
     public BuildDashboardReports reports(Closure closure) {
         return reports(new ClosureBackedAction<BuildDashboardReports>(closure));
     }

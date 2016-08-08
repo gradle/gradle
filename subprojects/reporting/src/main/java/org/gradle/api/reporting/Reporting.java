@@ -80,12 +80,9 @@ public interface Reporting<T extends ReportContainer> {
      * }
      * </pre>
      *
-     * @deprecated Use {@link #reports(Action)} instead
-     *
      * @param closure The configuration
      * @return The report container
      */
-    @Deprecated
     T reports(@DelegatesTo(type="T", strategy = Closure.DELEGATE_FIRST) Closure closure);
 
     /**
