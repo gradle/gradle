@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
@@ -39,6 +41,8 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 1
     }
 
+    // GradleHandle.abort() does not work reliably on windows and creates flakiness
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "canceled daemon is reused when it becomes available"() {
         buildFile << """
             task block << {
@@ -67,6 +71,8 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 1
     }
 
+    // GradleHandle.abort() does not work reliably on windows and creates flakiness
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "does not attempt to reuse a canceled daemon that is not compatible"() {
         buildFile << """
             task block << {
@@ -94,6 +100,8 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         !build.standardOutput.contains(DaemonMessages.WAITING_ON_CANCELED)
     }
 
+    // GradleHandle.abort() does not work reliably on windows and creates flakiness
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "starts a new daemon when daemons with canceled builds do not become available"() {
         buildFile << """
             task block << {
@@ -121,6 +129,8 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 2
     }
 
+    // GradleHandle.abort() does not work reliably on windows and creates flakiness
+    @Requires(TestPrecondition.NOT_WINDOWS)
     def "prefers an idle daemon when daemons with canceled builds are available"() {
         given:
         buildFile << """
