@@ -34,7 +34,7 @@ class JavaSourceChangesFullAssembleDaemonPerformanceTest extends AbstractCrossVe
         runner.tasksToRun = ['assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.10', '2.11', 'last']
+        runner.targetVersions = ['2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
         runner.buildExperimentListener = new JavaSoftwareModelSourceFileUpdater(10, 0, 0)

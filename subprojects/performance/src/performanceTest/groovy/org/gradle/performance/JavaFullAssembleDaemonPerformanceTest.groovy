@@ -49,7 +49,7 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)           | ['2.11', 'last']
         "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(3000)      | mbytes(50)          | ['2.11', 'last']
         "smallJavaSwModelProject"                    | millis(800)       | mbytes(5)           | ['2.9', 'last']
-        "largeJavaSwModelProject"                    | millis(5000)      | mbytes(50)          | ['2.9', '2.10', 'last']
+        "largeJavaSwModelProject"                    | millis(5000)      | mbytes(50)          | ['2.10', 'last']
         "bigNewJava"                                 | millis(1000)      | mbytes(50)          | ['2.11', 'last']
         "mediumNewJava"                              | millis(1000)      | mbytes(50)          | ['2.11', 'last']
         "smallNewJava"                               | millis(800)       | mbytes(5)           | ['2.9', '2.10', 'last']
