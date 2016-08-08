@@ -79,7 +79,7 @@ public class TestScenarioSelector {
             BigDecimal sum = BigDecimal.ZERO;
             for (MeasuredOperationList operation : lastRun.getScenarios()) {
                 for (Amount<Duration> duration : operation.getTotalTime()) {
-                    sum = sum.add(duration.getValue());
+                    sum = sum.add(duration.toUnits(Duration.MILLI_SECONDS).getValue());
                 }
             }
             return sum;
