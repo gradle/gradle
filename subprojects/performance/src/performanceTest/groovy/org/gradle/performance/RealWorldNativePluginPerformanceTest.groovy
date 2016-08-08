@@ -31,14 +31,14 @@ import static org.gradle.performance.measure.Duration.millis
 
 @Category(NativePerformanceTest)
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    @Unroll("Project '#testProject' measuring incremental build speed")
+    @Unroll("Project '#testProject' measuring incremental build speed with #parallelWorkers parallel workers")
     def "build real world native project"() {
         given:
         runner.testId = "build monolithic native project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.11', '2.13']
+        runner.targetVersions = ['2.14.1']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m"]
 
@@ -62,14 +62,14 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     @Unroll('Project #buildSize native build #changeType')
-    def "build with changes"(String buildSize, String changeType, Amount<Duration> maxExecutionTimeRegression, String changedFile, Closure changeClosure) {
+    def "build with changes"(String buildSize, String changeType, Amount<Duration> maxExecutionTimeRegression, String changedFile, Closure changeClosure, String fastestVersion) {
         given:
         runner.testId = "native build ${buildSize} ${changeType}"
         runner.testProject = "${buildSize}NativeMonolithic"
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=4"]
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.11', '2.13']
+        runner.targetVersions = [fastestVersion]
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m"]
         runner.warmUpRuns = 5
@@ -122,10 +122,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // source file change causes a single project, single source set, single file to be recompiled.
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
-        buildSize | changeType              | maxExecutionTimeRegression | changedFile                       | changeClosure
-        "medium"  | 'source file change'    | millis(300)                | 'modules/project5/src/src100_c.c' | this.&changeCSource
-        "medium"  | 'header file change'    | millis(300)                | 'modules/project1/src/src50_h.h'  | this.&changeHeader
-        "medium"  | 'recompile all sources' | millis(1500)               | 'common.gradle'                   | this.&changeArgs
+        buildSize | changeType              | maxExecutionTimeRegression | changedFile                       | changeClosure        | fastestVersion
+        "medium"  | 'source file change'    | millis(300)                | 'modules/project5/src/src100_c.c' | this.&changeCSource  | '2.14.1'
+        "medium"  | 'header file change'    | millis(300)                | 'modules/project1/src/src50_h.h'  | this.&changeHeader   | '2.14.1'
+        "medium"  | 'recompile all sources' | millis(1500)               | 'common.gradle'                   | this.&changeArgs     | '2.11'
     }
 
     void changeCSource(File file, String originalContent) {
