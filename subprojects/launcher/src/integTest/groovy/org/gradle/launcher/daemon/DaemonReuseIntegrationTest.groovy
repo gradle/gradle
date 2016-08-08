@@ -140,14 +140,16 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         build2.waitForFinish()
 
         then:
-        daemons.daemons[0].assertBusy()
-        daemons.daemons[1].assertIdle()
+        assertDaemonCount(1) { it.assertIdle() }
+        assertDaemonCount(1) { it.assertBusy() }
 
         when:
         build1.abort().waitForFailure()
 
         then:
-        daemons.daemons[0].becomesCanceled()
+        ConcurrentTestUtil.poll {
+            assertDaemonCount(1) { it.assertCanceled() }
+        }
 
         when:
         executer.withTasks("markAndBlock").start()
@@ -159,7 +161,26 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 2
 
         and:
-        daemons.daemons[0].assertCanceled()
-        daemons.daemons[1].assertBusy()
+        assertDaemonCount(1) { it.assertCanceled() }
+        assertDaemonCount(1) { it.assertBusy() }
+    }
+
+    /**
+     * Assert that exactly a given number of daemons match a condition
+     *
+     * @param expected - number of daemons that should match
+     * @param closure - the condition to check for each daemon - this should throw an exception if a daemon does not match
+     */
+    void assertDaemonCount(int expected, Closure closure) {
+        int count = 0
+        daemons.daemons.each { daemon ->
+            try {
+                closure(daemon)
+                count++
+            } catch (Throwable t) {
+                // does not match
+            }
+        }
+        assert count == expected
     }
 }
