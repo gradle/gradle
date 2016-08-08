@@ -27,11 +27,15 @@ public class PercentageProgressFormatter implements ProgressFormatter {
     }
 
     public String incrementAndGetProgress() {
+        increment();
+        return getProgress();
+    }
+
+    public void increment() {
         if (current == total) {
             throw new IllegalStateException("Cannot increment beyond the total of: " + total);
         }
         current++;
-        return getProgress();
     }
 
     public String getProgress() {

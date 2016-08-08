@@ -62,11 +62,13 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 class RuntimeShadedJarCreator {
+
+    public static final int ADDITIONAL_PROGRESS_STEPS = 2;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarCreator.class);
 
     private static final int BUFFER_SIZE = 8192;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
-    private static final int ADDITIONAL_PROGRESS_STEPS = 2;
     private static final String CLASS_DESC = "Ljava/lang/Class;";
 
     private final ProgressLoggerFactory progressLoggerFactory;
@@ -92,14 +94,7 @@ class RuntimeShadedJarCreator {
     }
 
     private void createFatJar(final File outputJar, final Iterable<? extends File> files, final ProgressLogger progressLogger) {
-        final File tmpFile;
-
-        try {
-            tmpFile = File.createTempFile(outputJar.getName(), ".tmp");
-            tmpFile.deleteOnExit();
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+        final File tmpFile = tempFileFor(outputJar);
 
         IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
             @Override
@@ -110,6 +105,16 @@ class RuntimeShadedJarCreator {
         });
 
         GFileUtils.moveFile(tmpFile, outputJar);
+    }
+
+    private File tempFileFor(File outputJar) {
+        try {
+            final File tmpFile = File.createTempFile(outputJar.getName(), ".tmp");
+            tmpFile.deleteOnExit();
+            return tmpFile;
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
     private ZipOutputStream openJarOutputStream(File outputJar) {
@@ -135,14 +140,14 @@ class RuntimeShadedJarCreator {
                 processDirectory(outputStream, file, buffer, seenPaths, services);
             }
 
-            progressFormatter.incrementAndGetProgress();
+            progressFormatter.increment();
         }
 
         writeServiceFiles(outputStream, services);
-        progressFormatter.incrementAndGetProgress();
+        progressLogger.progress(progressFormatter.incrementAndGetProgress());
 
         writeIdentifyingMarkerFile(outputStream);
-        progressFormatter.incrementAndGetProgress();
+        progressLogger.progress(progressFormatter.incrementAndGetProgress());
     }
 
     private void writeServiceFiles(ZipOutputStream outputStream, Map<String, List<String>> services) throws IOException {

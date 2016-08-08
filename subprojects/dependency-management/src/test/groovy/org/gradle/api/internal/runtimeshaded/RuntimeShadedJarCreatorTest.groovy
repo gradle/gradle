@@ -37,6 +37,8 @@ import spock.lang.Specification
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
+import static org.gradle.api.internal.runtimeshaded.RuntimeShadedJarCreator.ADDITIONAL_PROGRESS_STEPS
+
 @UsesNativeServices
 class RuntimeShadedJarCreatorTest extends Specification {
 
@@ -61,7 +63,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
         1 * progressLogger.setDescription('Gradle JARs generation')
         1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
         1 * progressLogger.started()
-        1 * progressLogger.progress(_)
+        (1 + ADDITIONAL_PROGRESS_STEPS) * progressLogger.progress(_)
         1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
@@ -85,7 +87,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
         1 * progressLogger.setDescription('Gradle JARs generation')
         1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
         1 * progressLogger.started()
-        2 * progressLogger.progress(_)
+        (2 + ADDITIONAL_PROGRESS_STEPS) * progressLogger.progress(_)
         1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
@@ -119,7 +121,7 @@ org.gradle.api.internal.tasks.CompileServices
         1 * progressLogger.setDescription('Gradle JARs generation')
         1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
         1 * progressLogger.started()
-        3 * progressLogger.progress(_)
+        (3 + ADDITIONAL_PROGRESS_STEPS) * progressLogger.progress(_)
         1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
@@ -169,7 +171,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         1 * progressLogger.setDescription('Gradle JARs generation')
         1 * progressLogger.setLoggingHeader("Generating JAR file '$outputJar.name'")
         1 * progressLogger.started()
-        1 * progressLogger.progress(_)
+        (1 + ADDITIONAL_PROGRESS_STEPS) * progressLogger.progress(_)
         1 * progressLogger.completed()
         TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
         contents.length == 1
