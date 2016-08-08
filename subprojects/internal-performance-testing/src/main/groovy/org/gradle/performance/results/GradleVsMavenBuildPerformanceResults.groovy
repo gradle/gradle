@@ -35,13 +35,8 @@ class GradleVsMavenBuildPerformanceResults extends CrossBuildPerformanceResults 
             }
 
             def mavenIsFaster = baselineVersion.fasterThan(gradle)
-            def mavenUsesLessMemory = baselineVersion.usesLessMemoryThan(gradle)
-            if (mavenIsFaster && mavenUsesLessMemory) {
-                throw new AssertionError(stats.join('\n'))
-            } else if (mavenIsFaster) {
+            if (mavenIsFaster) {
                 throw new AssertionError(stats[0])
-            } else if (mavenUsesLessMemory) {
-                throw new AssertionError(stats[1])
             }
         }
     }
