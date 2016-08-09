@@ -204,7 +204,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             + Joiner.on(' ').join(cleanTasks)
             + " "
             + Joiner.on(' ').join(templates)
-            + "cleanPerformanceAdhocTest performanceAdhocTest --scenarios "
+            + "cleanPerformanceTest performanceTest --scenarios "
             + "'" + history.getDisplayName() + "'"
             + " -x prepareSamples";
     }

@@ -75,7 +75,7 @@ buildTypes {
     }
 
     // Run the performance tests
-    performanceTest {
+    performanceTests {
         tasks "performance:performanceTest"
         projectProperties useIncomingDistributions: true
     }
@@ -87,7 +87,7 @@ buildTypes {
     }
 
     // Run a single performance scenario
-    performanceScenario {
+    performanceScenarios {
         tasks "performance:performanceScenario"
         projectProperties useIncomingDistributions: true
     }

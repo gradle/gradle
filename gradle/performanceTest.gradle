@@ -140,13 +140,13 @@ task distributedPerformanceTest(type: DistributedPerformanceTest) {
     }
 }
 
-task distributedPerformanceExperiments(type: DistributedPerformanceTest) {
+task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
     options {
         includeCategories 'org.gradle.performance.categories.Experiment'
     }
 }
 
-task performanceExperiments(type: PerformanceTest) {
+task performanceExperiment(type: PerformanceTest) {
     options {
         includeCategories 'org.gradle.performance.categories.Experiment'
     }
@@ -159,7 +159,7 @@ task performanceAdhocTest(type: PerformanceTest) {
 task performanceScenario(type: PerformanceTest) {
 }
 
-configure([performanceTest, performanceExperiments]) {
+configure([performanceTest, performanceExperiment]) {
     if (project.hasProperty('org.gradle.performance.use_yourkit')) {
         testLogging.showStandardStreams = true
         systemProperties['org.gradle.performance.use_yourkit'] = '1'
