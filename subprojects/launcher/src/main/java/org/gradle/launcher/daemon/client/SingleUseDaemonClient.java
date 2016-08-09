@@ -29,6 +29,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.protocol.BuildAndStop;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.internal.logging.events.OutputEventListener;
 
@@ -40,8 +41,8 @@ public class SingleUseDaemonClient extends DaemonClient {
     private final DocumentationRegistry documentationRegistry;
 
     public SingleUseDaemonClient(DaemonConnector connector, OutputEventListener outputEventListener, ExplainingSpec<DaemonContext> compatibilitySpec, InputStream buildStandardInput,
-                                 ExecutorFactory executorFactory, IdGenerator<?> idGenerator, DocumentationRegistry documentationRegistry) {
-        super(connector, outputEventListener, compatibilitySpec, buildStandardInput, executorFactory, idGenerator);
+                                 ExecutorFactory executorFactory, IdGenerator<?> idGenerator, DaemonRegistry daemonRegistry, DocumentationRegistry documentationRegistry) {
+        super(connector, outputEventListener, compatibilitySpec, buildStandardInput, executorFactory, idGenerator, daemonRegistry);
         this.documentationRegistry = documentationRegistry;
     }
 

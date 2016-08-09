@@ -58,7 +58,7 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idl
 public class DefaultDaemonConnector implements DaemonConnector {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonConnector.class);
     public static final int DEFAULT_CONNECT_TIMEOUT = 30000;
-    public static final int CANCELED_WAIT_TIMEOUT = 3000;
+    public static final int CANCELED_WAIT_TIMEOUT = 2000;
     private final DaemonRegistry daemonRegistry;
     protected final OutgoingConnector connector;
     private final DaemonStarter daemonStarter;

@@ -24,6 +24,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec
 import org.gradle.launcher.daemon.context.DaemonConnectDetails
 import org.gradle.launcher.daemon.protocol.*
+import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.internal.logging.events.OutputEventListener
@@ -34,8 +35,9 @@ class DaemonClientTest extends ConcurrentSpecification {
     final DaemonClientConnection connection = Mock()
     final OutputEventListener outputEventListener = Mock()
     final DaemonCompatibilitySpec compatibilitySpec = Mock()
+    final DaemonRegistry daemonRegistry = Mock()
     final IdGenerator<?> idGenerator = {12} as IdGenerator
-    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator)
+    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator, daemonRegistry)
 
     def executesAction() {
         when:
@@ -44,6 +46,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         then:
         result == '[result]'
         1 * connector.connect(compatibilitySpec) >> connection
+        1 * daemonRegistry.getAll() >> []
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [Stub(BuildStarted), new Success('[result]')]
@@ -63,6 +66,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         RuntimeException e = thrown()
         e == failure
         1 * connector.connect(compatibilitySpec) >> connection
+        1 * daemonRegistry.getAll() >> []
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * connection.dispatch({it instanceof Build})
         2 * connection.receive() >>> [Stub(BuildStarted), new Failure(failure)]
@@ -84,6 +88,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         then:
         BuildCancelledException gce = thrown()
         1 * connector.connect(compatibilitySpec) >> connection
+        1 * daemonRegistry.getAll() >> []
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
             callback.run()
@@ -115,6 +120,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         BuildCancelledException gce = thrown()
         gce == cancelledException
         1 * connector.connect(compatibilitySpec) >> connection
+        1 * daemonRegistry.getAll() >> []
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
             // simulate cancel request processing
@@ -140,6 +146,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        2 * daemonRegistry.getAll() >> []
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * connection.dispatch({it instanceof Build}) >> { throw new StaleDaemonAddressException("broken", new RuntimeException())}
         1 * connection.stop()
@@ -156,6 +163,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        2 * daemonRegistry.getAll() >> []
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * connection.dispatch({it instanceof Build})
         1 * connection.receive() >> Stub(DaemonUnavailable)
@@ -174,6 +182,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         2 * connector.connect(compatibilitySpec) >>> [connection, connection2]
+        2 * daemonRegistry.getAll() >> []
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * connection.dispatch({it instanceof Build})
         1 * connection.receive() >> null
@@ -186,6 +195,7 @@ class DaemonClientTest extends ConcurrentSpecification {
     def "does not loop forever finding usable daemons"() {
         given:
         connector.connect(compatibilitySpec) >> connection
+        daemonRegistry.getAll() >> []
         connection.daemon >> Stub(DaemonConnectDetails)
         connection.receive() >> Mock(DaemonUnavailable)
 
