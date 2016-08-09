@@ -209,7 +209,8 @@ fun retrieveKotlinBuildScriptModelFrom(projectActionExecutor: ((ProjectConnectio
     return model
 }
 
-private val modelSpecificJvmOptions = listOf("-D${KotlinScriptPluginFactory.modeSystemPropertyName}=${KotlinScriptPluginFactory.classPathMode}")
+private val modelSpecificJvmOptions =
+    listOf("-D${KotlinScriptPluginFactory.modeSystemPropertyName}=${KotlinScriptPluginFactory.classPathMode}")
 
 private fun ProjectConnection.kotlinBuildScriptModel(javaHome: File?, jvmOptions: List<String>?): KotlinBuildScriptModel? =
     model(KotlinBuildScriptModel::class.java)?.run {
