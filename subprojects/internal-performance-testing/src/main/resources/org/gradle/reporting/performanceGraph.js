@@ -1,5 +1,5 @@
 (function ($) {
-  var createPerformanceGraph = function(jsonFile, executionChartId, heapUsageChartId) {
+  var createPerformanceGraph = function(jsonFile, dataSelector, label, unit, chartId) {
     $(function() {
       $.ajax({ url: jsonFile, dataType: 'json',
         success: function(data) {
@@ -13,8 +13,8 @@
             grid: { hoverable: true, clickable: true },
             xaxis: { tickFormatter: function(index, value) { return labels[index]; } },
             yaxis: { min: 0 }, selection: { mode: 'xy' } };
-          var executionChart = $.plot('#' + executionChartId, data.totalTime, options);
-          var heapChart = $.plot('#' + heapUsageChartId, data.heapUsage, options);
+          var foo = dataSelector(data)
+          var chart = $.plot('#' + chartId, foo, options);
           var zoomFunction = function(plot, reset) {
             var reset = reset || false;
             return function (event, ranges) {
@@ -33,22 +33,14 @@
               plot.clearSelection();
             };
           };
-          $('#' + executionChartId).bind('plothover', function (event, pos, item) {
+          $('#' + chartId).bind('plothover', function (event, pos, item) {
             if (!item) {
               $('#tooltip').hide();
             } else {
-              var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', execution time: ' + item.datapoint[1] + 's';
+              var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', '+ label + ' ' + item.datapoint[1] + unit;
               $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();
             }
-          }).bind('plotselected', zoomFunction(executionChart)).bind('dblclick', zoomFunction(executionChart, true));
-          $('#' + heapUsageChartId).bind('plothover', function (event, pos, item) {
-            if (!item) {
-              $('#tooltip').hide();
-            } else {
-              var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', heap usage: ' + item.datapoint[1] + 'mb';
-              $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();
-            }
-          }).bind('plotselected', zoomFunction(heapChart)).bind('dblclick', zoomFunction(heapChart, true));
+          }).bind('plotselected', zoomFunction(chart)).bind('dblclick', zoomFunction(chart, true));
         }
       });
     });

@@ -18,6 +18,8 @@ package org.gradle.performance.results;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.Transformer;
+import org.gradle.performance.measure.Amount;
+import org.gradle.performance.measure.Duration;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.IOException;
@@ -47,6 +49,30 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
                 return format.seconds(original.getTotalTime().getAverage());
+            }
+        }, out);
+        out.println(",");
+        out.print("\"configurationTime\":");
+        render(testHistory, new Transformer<String, MeasuredOperationList>() {
+            public String transform(MeasuredOperationList original) {
+                return format.seconds(original.getConfigurationTime().getAverage());
+            }
+        }, out);
+        out.println(",");
+        out.print("\"executionTime\":");
+        render(testHistory, new Transformer<String, MeasuredOperationList>() {
+            public String transform(MeasuredOperationList original) {
+                return format.seconds(original.getExecutionTime().getAverage());
+            }
+        }, out);
+        out.println(",");
+        out.print("\"miscTime\":");
+        render(testHistory, new Transformer<String, MeasuredOperationList>() {
+            public String transform(MeasuredOperationList original) {
+                Amount<Duration> miscTime = original.getTotalTime().getAverage()
+                    .minus(original.getConfigurationTime().getAverage())
+                    .minus(original.getExecutionTime().getAverage());
+                return format.seconds(miscTime);
             }
         }, out);
         out.println(",");

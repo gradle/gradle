@@ -51,14 +51,47 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             div().id("content");
             h2().text(String.format("Test: %s", testHistory.getDisplayName())).end();
             text(getReproductionInstructions(testHistory));
+
+            h3().text("Average total time").end();
+            div().id("totalTimeChart").classAttr("chart");
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.totalTime }, 'total time', 's', 'totalTimeChart');");
+                end();
+            end();
+
+            h3().text("Average configuration time").end();
+            div().id("configurationTimeChart").classAttr("chart");
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.configurationTime }, 'configuration time', 's', 'configurationTimeChart');");
+                end();
+            end();
+
             h3().text("Average execution time").end();
             div().id("executionTimeChart").classAttr("chart");
-            p().text("Loading...").end();
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.executionTime }, 'execution time', 's', 'executionTimeChart');");
+                end();
             end();
+
+            h3().text("Average setup/teardown time").end();
+            div().id("miscTimeChart").classAttr("chart");
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.miscTime }, 'setup/teardown time', 's', 'miscTimeChart');");
+                end();
+            end();
+
             h3().text("Average heap usage").end();
             div().id("heapUsageChart").classAttr("chart");
-            p().text("Loading...").end();
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.heapUsage }, 'heap usage', 'mb', 'heapUsageChart');");
+                end();
             end();
+
             div().id("tooltip").end();
             div().id("controls").end();
 
@@ -183,9 +216,6 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 end();
             }
             end();
-            end();
-            script();
-                text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', 'executionTimeChart', 'heapUsageChart');");
             end();
             footer(this);
             endAll();

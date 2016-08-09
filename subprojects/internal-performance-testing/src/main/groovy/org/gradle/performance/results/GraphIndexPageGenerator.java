@@ -50,22 +50,27 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         text("Test: " + testName);
                     end();
                     div().classAttr("charts");
-                        h3().text("Execution time").end();
-                        String executionTimeChartId = "executionTimeChart" + testHistory.getId().replaceAll("[^a-zA-Z]", "_");
-                        div().id(executionTimeChartId).classAttr("chart");
+                        h3().text("Average total time").end();
+                        String totalTimeChartId = "totalTimeChart" + testHistory.getId().replaceAll("[^a-zA-Z]", "_");
+                        div().id(totalTimeChartId).classAttr("chart");
                             p().text("Loading...").end();
                         end();
+                        script();
+                            text("performanceTests.createPerformanceGraph('tests/" + testHistory.getId() + ".json', function(data) { return data.totalTime }, 'total time', 's', '" + totalTimeChartId + "');");
+                        end();
                     end();
+
                     div().classAttr("charts");
                         h3().text("Average heap usage").end();
                         String heapUsageChartId = "heapUsageChart" + testHistory.getId().replaceAll("[^a-zA-Z]", "_");
                         div().id(heapUsageChartId).classAttr("chart");
                             p().text("Loading...").end();
                         end();
+                        script();
+                            text("performanceTests.createPerformanceGraph('tests/" + testHistory.getId() + ".json', function(data) { return data.heapUsage }, 'heap usage', 'mb', '" + heapUsageChartId + "');");
+                        end();
                     end();
-                    script();
-                        text("performanceTests.createPerformanceGraph('tests/" + testHistory.getId() + ".json', '" + executionTimeChartId + "', '" + heapUsageChartId + "');");
-                    end();
+
                     div().classAttr("details");
                         String url = "tests/" + testHistory.getId() + ".html";
                         a().href(url).text("details...").end();
