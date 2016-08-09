@@ -21,13 +21,13 @@ import com.google.common.collect.Lists
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
-import groovy.util.slurpersupport.NodeChildren
 import groovyx.net.http.ContentType
 import groovyx.net.http.RESTClient
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.IoActions
 
 import java.util.concurrent.TimeUnit
 
@@ -60,11 +60,14 @@ class DistributedPerformanceTest extends PerformanceTest {
     @OutputFile
     File scenarioList
 
+    @OutputFile
+    File scenarioReport
+
     RESTClient client
 
-    List<String> scheduledJobs = Lists.newArrayList()
+    List<String> scheduledBuilds = Lists.newArrayList()
 
-    List<Object> failedJobs = Lists.newArrayList()
+    List<Object> finishedBuilds = Lists.newArrayList()
 
     void setScenarioList(File scenarioList) {
         systemProperty "org.gradle.performance.scenario.list", scenarioList
@@ -90,11 +93,13 @@ class DistributedPerformanceTest extends PerformanceTest {
             schedule(it)
         }
 
-        scheduledJobs.each {
+        scheduledBuilds.each {
             join(it)
         }
 
-        reportErrors()
+        writeScenarioReport()
+
+        checkForErrors()
     }
 
     private void fillScenarioList() {
@@ -121,7 +126,7 @@ class DistributedPerformanceTest extends PerformanceTest {
             """
         )
 
-        scheduledJobs += response.data.@id
+        scheduledBuilds += response.data.@id
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -135,22 +140,20 @@ class DistributedPerformanceTest extends PerformanceTest {
                 sleep(TimeUnit.MINUTES.toMillis(1))
             }
         }
-        if (response.data.@status != "SUCCESS") {
-            failedJobs += response.data
+        finishedBuilds += response.data
+    }
+
+    private void writeScenarioReport() {
+        IoActions.writeTextFile(scenarioReport) { Writer writer ->
+            new ScenarioReportRenderer().render(finishedBuilds, writer)
         }
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void reportErrors() {
-        if (failedJobs) {
-            throw new GradleException("${failedJobs.size()} performance tests failed. See individual builds for details:\n" +
-                    failedJobs.collect {job ->
-                        NodeChildren properties = job.properties.children()
-                        String scenario = properties.find { it.@name == 'scenario' }.@value
-                        String url = job.@webUrl
-                        "$scenario -> $url"
-                    }.join("\n")
-            )
+    private void checkForErrors() {
+        def failedBuilds = finishedBuilds.findAll { it.@status != "SUCCESS"}
+        if (failedBuilds) {
+            throw new GradleException("${failedBuilds.size()} performance tests failed. See $scenarioReport for details.")
         }
     }
 

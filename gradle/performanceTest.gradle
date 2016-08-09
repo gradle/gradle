@@ -127,6 +127,7 @@ task distributedPerformanceTest(type: DistributedPerformanceTest) {
         includeCategories 'org.gradle.performance.categories.GradleCorePerformanceTest'
     }
     scenarioList = file("$buildDir/performance-tests/scenario-list.csv")
+    scenarioReport = file("$buildDir/performance-tests/scenario-report.html")
     buildTypeId = project.findProperty("org.gradle.performance.buildTypeId")
     revision = project.findProperty("org.gradle.performance.revision")
     teamCityUrl = "https://builds.gradle.org/"
