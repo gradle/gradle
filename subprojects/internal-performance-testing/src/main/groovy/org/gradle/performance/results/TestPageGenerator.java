@@ -19,6 +19,7 @@ package org.gradle.performance.results;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
@@ -193,13 +194,17 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
 
     private String getReproductionInstructions(PerformanceTestHistory history) {
         Set<String> templates = Sets.newHashSet();
+        Set<String> cleanTasks = Sets.newHashSet();
         for (ScenarioDefinition scenario : history.getScenarios()) {
             templates.add(scenario.getTestProject());
+            cleanTasks.add("clean" + StringUtils.capitalize(scenario.getTestProject()));
         }
 
-        return "To reproduce, run ./gradlew clean "
+        return "To reproduce, run ./gradlew "
+            + Joiner.on(' ').join(cleanTasks)
+            + " "
             + Joiner.on(' ').join(templates)
-            + " performanceAdhocTest --scenarios "
+            + "cleanPerformanceAdhocTest performanceAdhocTest --scenarios "
             + "'" + history.getDisplayName() + "'"
             + " -x prepareSamples";
     }
