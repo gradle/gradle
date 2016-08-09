@@ -199,7 +199,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
 
         return "To reproduce, run ./gradlew clean "
             + Joiner.on(' ').join(templates)
-            + " performanceTest --scenarios "
+            + " performanceAdhocTest --scenarios "
             + "'" + history.getDisplayName() + "'"
             + " -x prepareSamples";
     }

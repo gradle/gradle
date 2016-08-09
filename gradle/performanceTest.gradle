@@ -156,6 +156,9 @@ task performanceAdhocTest(type: PerformanceTest) {
     systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
 }
 
+task performanceScenario(type: PerformanceTest) {
+}
+
 configure([performanceTest, performanceExperiments]) {
     if (project.hasProperty('org.gradle.performance.use_yourkit')) {
         testLogging.showStandardStreams = true

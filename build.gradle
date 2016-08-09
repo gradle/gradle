@@ -86,6 +86,12 @@ buildTypes {
         projectProperties useIncomingDistributions: true
     }
 
+    // Run a single performance scenario
+    performanceScenario {
+        tasks "performance:performanceScenario"
+        projectProperties useIncomingDistributions: true
+    }
+
     // Used for cross version tests on CI
     crossVersionTest {
         tasks "crossVersionIntegTest"
