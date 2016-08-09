@@ -10,6 +10,7 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 
 import org.hamcrest.CoreMatchers.hasItems
+import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Rule
@@ -163,18 +164,26 @@ class GradleScriptKotlinIntegrationTest {
                 }
             }
 
+            apply { plugin("kotlin") }
+
             tasks.withType<KotlinCompile> {
                 // can configure the Kotlin compiler
-                kotlinOptions.verbose = true
+                kotlinOptions.noCallAssertions = true
             }
 
             task("print-kotlin-version") {
-                doLast { println(KotlinVersion.VERSION) }
+                doLast {
+                    val compileOptions = tasks.filterIsInstance<KotlinCompile>().joinToString(prefix="[", postfix="]") {
+                        it.name + "=" + it.kotlinOptions.noCallAssertions
+                    }
+                    println(KotlinVersion.VERSION + compileOptions)
+                }
             }
         """)
 
-        assert(
-            build("print-kotlin-version").output.contains(differentKotlinVersion))
+        assertThat(
+            build("print-kotlin-version").output,
+            containsString(differentKotlinVersion + "[compileKotlin=true, compileTestKotlin=true]"))
     }
 
     @Test
