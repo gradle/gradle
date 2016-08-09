@@ -17,7 +17,6 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.Experiment
-import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
