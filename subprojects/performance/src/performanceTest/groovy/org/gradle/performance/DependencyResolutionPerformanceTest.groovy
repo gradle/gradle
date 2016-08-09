@@ -16,14 +16,13 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([GradleCorePerformanceTest, Experiment])
+@Category(GradleCorePerformanceTest)
 class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Resolves dependencies from #repoType repository - #testProject (daemon)")
     def "full build Java build"() {
