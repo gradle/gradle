@@ -42,31 +42,18 @@ import java.util.Set;
 
 public class CompositeContextBuildActionRunner {
     private final CompositeBuildContext context;
-    private final boolean propagateFailures;
 
-    public CompositeContextBuildActionRunner(CompositeBuildContext context, boolean propagateFailures) {
+    public CompositeContextBuildActionRunner(CompositeBuildContext context) {
         this.context = context;
-        this.propagateFailures = propagateFailures;
     }
 
     public void run(BuildController buildController) {
-        try {
-            GradleInternal gradle = buildController.configure();
-            ProjectInternal rootProject = gradle.getRootProject();
+        GradleInternal gradle = buildController.configure();
+        ProjectInternal rootProject = gradle.getRootProject();
 
-            String participantName = rootProject.getName();
-            for (Project project : rootProject.getAllprojects()) {
-                registerProject(participantName, (ProjectInternal) project);
-            }
-        } catch (RuntimeException e) {
-            maybeRethrow(e);
-        }
-    }
-
-    private void maybeRethrow(RuntimeException e) {
-        // Ignore exceptions creating composite context for a model request
-        if (propagateFailures) {
-            throw e;
+        String participantName = rootProject.getName();
+        for (Project project : rootProject.getAllprojects()) {
+            registerProject(participantName, (ProjectInternal) project);
         }
     }
 

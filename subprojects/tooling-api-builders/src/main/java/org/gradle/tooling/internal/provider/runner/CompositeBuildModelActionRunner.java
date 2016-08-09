@@ -85,8 +85,14 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     private List<Object> fetchCompositeModelsInProcess(BuildModelAction modelAction, BuildRequestContext buildRequestContext,
                                                        CompositeParameters compositeParameters, ServiceRegistry sharedServices) {
 
-        boolean propagateFailures = ModelIdentifier.NULL_MODEL.equals(modelAction.getModelName());
-        registerParticipantsInContext(compositeParameters, propagateFailures, buildRequestContext, sharedServices);
+        try {
+            registerParticipantsInContext(compositeParameters, buildRequestContext, sharedServices);
+        } catch (Exception e) {
+            // Currently we are ignoring exceptions when configuring the included builds to construct the context
+            // This allows us to catch the same exception when constructing the models, below.
+            // This is a cludge, at best.
+            LOGGER.debug("Ignoring exception thrown when constructing composite context: " + e.getMessage(), e);
+        }
 
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelsActionRunner());
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(sharedServices.get(GradleLauncherFactory.class), runner);
@@ -135,7 +141,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     }
 
     private void executeTasksInProcess(BuildModelAction compositeAction, CompositeParameters compositeParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
-        registerParticipantsInContext(compositeParameters, true, buildRequestContext, sharedServices);
+        registerParticipantsInContext(compositeParameters, buildRequestContext, sharedServices);
 
         StartParameter startParameter = compositeAction.getStartParameter().newInstance();
         IncludedBuild targetBuild = compositeParameters.getTargetBuild();
@@ -153,8 +159,8 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         buildActionExecuter.execute(participantAction, buildRequestContext, null, sharedServices);
     }
 
-    private void registerParticipantsInContext(CompositeParameters compositeParameters, boolean propagateFailures, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
+    private void registerParticipantsInContext(CompositeParameters compositeParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
         CompositeContextBuilder contextBuilder = sharedServices.get(CompositeContextBuilder.class);
-        contextBuilder.addToCompositeContext(compositeParameters.getBuilds(), buildRequestContext, propagateFailures);
+        contextBuilder.addToCompositeContext(compositeParameters.getBuilds(), buildRequestContext);
     }
 }

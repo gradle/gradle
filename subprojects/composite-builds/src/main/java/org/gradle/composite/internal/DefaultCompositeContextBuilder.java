@@ -39,19 +39,19 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     }
 
     @Override
-    public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds, boolean propagateFailures) {
-        doAddToCompositeContext(includedBuilds, null, propagateFailures);
+    public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds) {
+        doAddToCompositeContext(includedBuilds, null);
     }
 
     @Override
-    public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
-        doAddToCompositeContext(includedBuilds, requestContext, propagateFailures);
+    public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds, BuildRequestContext requestContext) {
+        doAddToCompositeContext(includedBuilds, requestContext);
     }
 
-    private void doAddToCompositeContext(Iterable<IncludedBuild> includedBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
+    private void doAddToCompositeContext(Iterable<IncludedBuild> includedBuilds, BuildRequestContext requestContext) {
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         CompositeBuildContext context = sharedServices.get(CompositeBuildContext.class);
-        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context, propagateFailures);
+        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context);
 
         for (IncludedBuild build : includedBuilds) {
             StartParameter includedBuildStartParam = buildStartParam.newBuild();
