@@ -127,7 +127,7 @@ tasks.withType(DistributedPerformanceTest) {
     scenarioList = file("$buildDir/performance-tests/scenario-list.csv")
     scenarioReport = file("$buildDir/performance-tests/scenario-report.html")
     buildTypeId = project.findProperty("org.gradle.performance.buildTypeId")
-    revision = project.findProperty("org.gradle.performance.revision")
+    coordinatorBuildId = project.findProperty("org.gradle.performance.coordinatorBuildId")
     teamCityUrl = "https://builds.gradle.org/"
     teamCityUsername = project.findProperty("teamCityUsername")
     teamCityPassword = project.findProperty("teamCityPassword")
