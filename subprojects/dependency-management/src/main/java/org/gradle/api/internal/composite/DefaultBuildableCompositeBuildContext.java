@@ -19,7 +19,9 @@ package org.gradle.api.internal.composite;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.internal.Pair;
@@ -54,11 +56,6 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     @Override
     public Set<ProjectComponentIdentifier> getAllProjects() {
         return projectMetadata.keySet();
-    }
-
-    @Override
-    public Collection<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> getProvidedComponents() {
-        return provided;
     }
 
     public Collection<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
@@ -101,5 +98,10 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
             this.metaData = metaData;
             this.projectDirectory = projectDirectory;
         }
+    }
+
+    @Override
+    public Action<DependencySubstitution> getDependencySubstitutionRule() {
+        return new CompositeBuildDependencySubstitutions(provided);
     }
 }

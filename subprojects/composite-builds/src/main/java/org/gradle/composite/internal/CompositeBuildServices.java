@@ -17,14 +17,12 @@
 package org.gradle.composite.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.initialization.IncludedBuildFactory;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRuleProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.composite.CompositeBuildDependencySubstitutions;
 import org.gradle.api.internal.composite.CompositeProjectArtifactBuilder;
 import org.gradle.api.internal.composite.DefaultBuildableCompositeBuildContext;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
@@ -62,10 +60,6 @@ public class CompositeBuildServices implements PluginServiceRegistry {
 
         public ProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext, GradleLauncherFactory gradleLauncherFactory, StartParameter startParameter, ServiceRegistry compositeServices) {
             return new CompositeProjectArtifactBuilder(compositeBuildContext, gradleLauncherFactory, startParameter, compositeServices);
-        }
-
-        public DependencySubstitutionRuleProvider createCompositeBuildDependencySubstitutions(CompositeBuildContext compositeBuildContext) {
-            return new CompositeBuildDependencySubstitutions(compositeBuildContext);
         }
     }
 
