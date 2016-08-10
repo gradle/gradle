@@ -33,7 +33,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.composite.DefaultIncludedBuild;
-import org.gradle.internal.composite.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
@@ -236,20 +236,23 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     @Override
-    public IncludedBuild includeBuild(Object projectPath) {
+    public void includeBuild(Object rootProject) {
+        doIncludeBuild(rootProject);
+    }
+
+    @Override
+    public void includeBuild(Object rootProject, Action<IncludedBuild> configuration) {
+        IncludedBuild build = doIncludeBuild(rootProject);
+        configuration.execute(build);
+    }
+
+    private IncludedBuild doIncludeBuild(Object projectPath) {
         File projectDir = getFileResolver().resolve(projectPath);
         IncludedBuild build = includedBuilds.get(projectDir);
         if (build == null) {
             build = new DefaultIncludedBuild(projectDir);
             includedBuilds.put(projectDir, build);
         }
-        return build;
-    }
-
-    @Override
-    public IncludedBuild includeBuild(Object projectPath, Action<IncludedBuild> configuration) {
-        IncludedBuild build = includeBuild(projectPath);
-        configuration.execute(build);
         return build;
     }
 

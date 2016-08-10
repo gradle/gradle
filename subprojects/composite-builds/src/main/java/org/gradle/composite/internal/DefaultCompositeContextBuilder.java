@@ -29,7 +29,7 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.composite.CompositeContextBuilder;
-import org.gradle.internal.composite.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.GradleBuildController;
 

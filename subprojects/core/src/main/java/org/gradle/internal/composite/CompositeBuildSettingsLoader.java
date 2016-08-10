@@ -18,6 +18,7 @@ package org.gradle.internal.composite;
 
 import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.SettingsLoader;

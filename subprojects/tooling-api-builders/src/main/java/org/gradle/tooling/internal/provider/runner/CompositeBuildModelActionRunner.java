@@ -34,7 +34,7 @@ import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.composite.CompositeParameters;
 import org.gradle.internal.composite.DefaultIncludedBuild;
 import org.gradle.internal.composite.GradleParticipantBuild;
-import org.gradle.internal.composite.IncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;

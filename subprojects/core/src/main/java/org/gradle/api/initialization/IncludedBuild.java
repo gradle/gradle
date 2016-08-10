@@ -14,15 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.composite;
+package org.gradle.api.initialization;
+
+import org.gradle.api.Incubating;
 
 import java.io.File;
 import java.util.Map;
 
+/**
+ * A build that is included in the composite.
+ */
+@Incubating
 public interface IncludedBuild {
+    /**
+     * The root directory of the included build.
+     */
     File getProjectDir();
 
-    void provides(String projectPath, String moduleId);
+    /**
+     * Declares an output provided by this included build.
+     */
+    void provides(String moduleId, String projectPath);
 
+    /**
+     * All of the outputs declared for this included build, if any.
+     * @return The declared outputs.
+     */
     Map<String, String> getProvided();
 }

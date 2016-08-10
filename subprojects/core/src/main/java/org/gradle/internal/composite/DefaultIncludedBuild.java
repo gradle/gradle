@@ -17,6 +17,7 @@
 package org.gradle.internal.composite;
 
 import com.google.common.collect.Maps;
+import org.gradle.api.initialization.IncludedBuild;
 
 import java.io.File;
 import java.util.Map;

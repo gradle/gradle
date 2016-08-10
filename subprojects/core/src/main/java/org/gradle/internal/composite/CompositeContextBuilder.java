@@ -16,6 +16,7 @@
 
 package org.gradle.internal.composite;
 
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.initialization.BuildRequestContext;
 
 public interface CompositeContextBuilder {

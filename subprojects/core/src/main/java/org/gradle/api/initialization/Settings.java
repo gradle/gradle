@@ -18,10 +18,10 @@ package org.gradle.api.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginAware;
-import org.gradle.internal.composite.IncludedBuild;
 
 import java.io.File;
 
@@ -175,8 +175,19 @@ public interface Settings extends PluginAware {
      */
     Gradle getGradle();
 
-    IncludedBuild includeBuild(Object projectPath);
+    /**
+     * Includes a build at the specified path to the composite build.
+     * @param rootProject The path to the root project directory for the build.
+     */
+    @Incubating
+    void includeBuild(Object rootProject);
 
-    IncludedBuild includeBuild(Object projectPath, Action<IncludedBuild> configuration);
+    /**
+     * Includes a build at the specified path to the composite build, with the supplied configuration.
+     * @param rootProject The path to the root project directory for the build.
+     * @param configuration An action to configure the included build.
+     */
+    @Incubating
+    void includeBuild(Object rootProject, Action<IncludedBuild> configuration);
 
 }
