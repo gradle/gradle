@@ -72,8 +72,7 @@ public abstract class DaemonClientServicesSupport extends DefaultServiceRegistry
                 matchingContextSpec,
                 buildStandardInput,
                 get(ExecutorFactory.class),
-                get(IdGenerator.class),
-                get(DaemonRegistry.class));
+                get(IdGenerator.class));
     }
 
     DaemonContext createDaemonContext(ProcessEnvironment processEnvironment) {

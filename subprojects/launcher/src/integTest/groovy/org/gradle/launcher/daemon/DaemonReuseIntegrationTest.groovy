@@ -140,7 +140,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 2
 
         and:
-        daemonCount(1) { it.assertStopped() }
+        daemonCount(1) { it.assertCanceled() }
         daemonCount(1) { it.assertIdle() }
     }
 
@@ -193,7 +193,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 3
 
         and:
-        daemonCount(2) { it.assertStopped() }
+        daemonCount(2) { it.assertCanceled() }
         daemonCount(1) { it.assertIdle() }
     }
 

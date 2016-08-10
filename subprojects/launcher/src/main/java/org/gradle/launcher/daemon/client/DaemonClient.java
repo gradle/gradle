@@ -20,7 +20,6 @@ import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.specs.Spec;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
@@ -30,24 +29,17 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.protocol.*;
-import org.gradle.launcher.daemon.registry.DaemonInfo;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.internal.Connection;
-import org.gradle.util.CollectionUtils;
 
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.List;
-
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
 
 /**
  * The client piece of the build daemon.
@@ -93,21 +85,17 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     private final InputStream buildStandardInput;
     private final ExecutorFactory executorFactory;
     private final IdGenerator<?> idGenerator;
-    private final DaemonRegistry daemonRegistry;
-    private final StopDispatcher stopDispatcher;
 
     //TODO - outputEventListener and buildStandardInput are per-build settings
     //so down the road we should refactor the code accordingly and potentially attach them to BuildActionParameters
     public DaemonClient(DaemonConnector connector, OutputEventListener outputEventListener, ExplainingSpec<DaemonContext> compatibilitySpec,
-                        InputStream buildStandardInput, ExecutorFactory executorFactory, IdGenerator<?> idGenerator, DaemonRegistry daemonRegistry) {
+                        InputStream buildStandardInput, ExecutorFactory executorFactory, IdGenerator<?> idGenerator) {
         this.connector = connector;
         this.outputEventListener = outputEventListener;
         this.compatibilitySpec = compatibilitySpec;
         this.buildStandardInput = buildStandardInput;
         this.executorFactory = executorFactory;
         this.idGenerator = idGenerator;
-        this.daemonRegistry = daemonRegistry;
-        this.stopDispatcher = new StopDispatcher();
     }
 
     protected IdGenerator<?> getIdGenerator() {
@@ -132,10 +120,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
 
         for (int i = 1; i < saneNumberOfAttempts; i++) {
             final DaemonClientConnection connection = connector.connect(compatibilitySpec);
-
-            // Immediately stop any canceled compatible daemons since we have a compatible idle daemon
-            stopOtherCanceledCompatibleDaemons(connection);
-
             try {
                 Build build = new Build(buildId, connection.getDaemon().getToken(), action, requestContext.getClient(), requestContext.getBuildTimeClock().getStartTime(), parameters);
                 return executeBuild(build, connection, requestContext.getCancellationToken(), requestContext.getEventConsumer());
@@ -223,34 +207,6 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
         } finally {
             // Stop cancelling before sending end-of-input
             CompositeStoppable.stoppable(cancelForwarder, inputForwarder).stop();
-        }
-    }
-
-    private void stopOtherCanceledCompatibleDaemons(final DaemonClientConnection connectionToExclude) {
-        final Spec<DaemonInfo> filter = new Spec<DaemonInfo>() {
-            @Override
-            public boolean isSatisfiedBy(DaemonInfo daemon) {
-                return daemon.getUid() != connectionToExclude.getDaemon().getUid()
-                    && daemon.getState() == Canceled
-                    && compatibilitySpec.isSatisfiedBy(daemon.getContext());
-            }
-        };
-        Collection<DaemonInfo> canceledCompatibleDaemons = CollectionUtils.filter(daemonRegistry.getAll(), filter);
-        stop(canceledCompatibleDaemons);
-    }
-
-    void stop(Collection<? extends DaemonConnectDetails> daemons) {
-        for (DaemonConnectDetails daemon : daemons) {
-            DaemonClientConnection connection = connector.maybeConnect(daemon);
-            if (connection == null) {
-                continue;
-            }
-            try {
-                LOGGER.debug("Requesting daemon {} stop immediately", daemon);
-                stopDispatcher.dispatch(connection, new Stop(idGenerator.generateId(), connection.getDaemon().getToken()));
-            } finally {
-                connection.stop();
-            }
         }
     }
 

@@ -25,7 +25,6 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.internal.logging.events.OutputEventListener;
-import org.gradle.launcher.daemon.registry.DaemonRegistry;
 
 import java.io.InputStream;
 
@@ -44,7 +43,6 @@ public class SingleUseDaemonClientServices extends DaemonClientServices {
                 getBuildStandardInput(),
                 get(ExecutorFactory.class),
                 get(IdGenerator.class),
-                get(DaemonRegistry.class),
                 get(DocumentationRegistry.class));
     }
 }
