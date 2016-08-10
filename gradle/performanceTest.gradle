@@ -159,6 +159,10 @@ task performanceExperiment(type: PerformanceTest) {
 task performanceScenario(type: PerformanceTest) {
 }
 
+task performanceAdhocTest(type: PerformanceTest) {
+    systemProperty "org.gradle.performance.db.url", "jdbc:h2:./build/database"
+}
+
 configure([performanceTest, performanceExperiment]) {
     if (project.hasProperty('org.gradle.performance.use_yourkit')) {
         testLogging.showStandardStreams = true
