@@ -7,6 +7,7 @@ import org.gradle.api.Project
 
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.mock
+import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -148,5 +149,18 @@ class DependencyHandlerExtensionsTest {
                 exclude(group = "org.gradle")
             }
         }
+    }
+
+    @Test
+    fun `given configuration name and dependency notation, it will add the dependency`() {
+
+        val dependencies = KotlinDependencyHandler(mock())
+        whenever(dependencies.add(any(), any())).thenReturn(mock())
+
+        dependencies {
+            "configuration"("notation")
+        }
+
+        verify(dependencies.dependencies).add("configuration", "notation")
     }
 }
