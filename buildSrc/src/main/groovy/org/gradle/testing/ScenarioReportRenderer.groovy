@@ -4,7 +4,7 @@ import groovy.util.slurpersupport.NodeChildren
 import groovy.xml.MarkupBuilder
 
 class ScenarioReportRenderer {
-    void render(List<Object> finishedBuilds, Writer writer) {
+    void render(String projectName, List<Object> finishedBuilds, Writer writer) {
         def markup = new MarkupBuilder(writer)
 
         markup.html {
@@ -33,7 +33,7 @@ class ScenarioReportRenderer {
                             a(href: build.@webUrl, "Test Report")
                         }
                         td {
-                            a(href: "https://builds.gradle.org/repository/download/${build.@buildTypeId}/${build.@id}:id/reports/performance/performanceScenario/index.html", "Test Summary")
+                            a(href: "https://builds.gradle.org/repository/download/${build.@buildTypeId}/${build.@id}:id/reports/${projectName}/performanceScenario/index.html", "Test Summary")
                         }
                         td {
                             a(href: "report/tests/${this.getScenarioId(build).replaceAll(" ", "-")}.html", "Performance Report")

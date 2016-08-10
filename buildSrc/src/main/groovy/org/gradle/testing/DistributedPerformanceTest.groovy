@@ -160,7 +160,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     private void writeScenarioReport() {
         def renderer = new ScenarioReportRenderer()
         IoActions.writeTextFile(scenarioReport) { Writer writer ->
-            renderer.render(finishedBuilds, writer)
+            renderer.render(project.name, finishedBuilds, writer)
         }
         renderer.writeCss(scenarioReport.getParentFile())
     }
