@@ -52,11 +52,11 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
     }
 
     private Collection<IncludedBuild> getIncludedBuilds(StartParameter startParameter, SettingsInternal settings) {
-        IncludedBuildFactory includedBuildFactory = buildServices.get(IncludedBuildFactory.class);
         Map<File, IncludedBuild> includedBuildMap = Maps.newLinkedHashMap();
         includedBuildMap.putAll(settings.getIncludedBuilds());
 
         for (File file : startParameter.getIncludedBuilds()) {
+            IncludedBuildFactory includedBuildFactory = buildServices.get(IncludedBuildFactory.class);
             if (!includedBuildMap.containsKey(file)) {
                 includedBuildMap.put(file, includedBuildFactory.createBuild(file));
             }
