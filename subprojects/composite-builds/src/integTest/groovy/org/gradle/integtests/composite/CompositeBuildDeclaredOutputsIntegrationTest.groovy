@@ -61,7 +61,7 @@ class CompositeBuildDeclaredOutputsIntegrationTest extends AbstractCompositeBuil
         }
     }
 
-    def "will only substitute declared output for included build with declared outputs"() {
+    def "will substitute only declared outputs when defined for included build"() {
         given:
         buildA.buildFile << """
             dependencies {
@@ -81,6 +81,27 @@ class CompositeBuildDeclaredOutputsIntegrationTest extends AbstractCompositeBuil
                 compositeSubstitute()
             }
             module("org.test:b2:1.0")
+        }
+    }
+
+    def "can substitute arbitrary coordinates using declared outputs for included build"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile "X:Y:4.0"
+            }
+"""
+        buildA.settingsFile << """
+            includeBuild('${buildB.toURI()}') {
+                provides("X:Y:2.0", "buildB::b1")
+            }
+"""
+
+        expect:
+        resolvedGraph {
+            edge("X:Y:4.0", "project buildB::b1", "org.test:b1:2.0") {
+                compositeSubstitute()
+            }
         }
     }
 
