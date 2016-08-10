@@ -19,6 +19,19 @@ package org.gradle.script.lang.kotlin
 import org.gradle.api.DomainObjectCollection
 
 /**
+ * Returns a collection containing the objects in this collection of the given type. Equivalent to calling
+ * {@code withType(type).all(configureAction)}
+ *
+ * @param S The type of objects to find.
+ * @param configuration The action to execute for each object in the resulting collection.
+ * @return The matching objects. Returns an empty collection if there are no such objects
+ * in this collection.
+ * @see DomainObjectCollection.withType
+ */
+inline fun <reified S : Any> DomainObjectCollection<in S>.withType(crossinline configuration: S.() -> Unit) =
+    withType(S::class.java, { it.configuration() })!!
+
+/**
  * Returns a collection containing the objects in this collection of the given type. The
  * returned collection is live, so that when matching objects are later added to this
  * collection, they are also visible in the filtered collection.
@@ -28,5 +41,6 @@ import org.gradle.api.DomainObjectCollection
  * in this collection.
  * @see DomainObjectCollection.withType
  */
-inline fun <reified S : Any> DomainObjectCollection<in S>.withType(crossinline configuration: S.() -> Unit) =
-    withType(S::class.java, { configuration(it) })
+inline fun <reified S : Any> DomainObjectCollection<in S>.withType() =
+    withType(S::class.java)!!
+
