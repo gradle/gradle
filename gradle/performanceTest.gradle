@@ -160,7 +160,6 @@ task performanceScenario(type: PerformanceTest) {
 }
 
 task performanceAdhocTest(type: PerformanceTest) {
-    systemProperty "org.gradle.performance.db.url", "jdbc:h2:./build/database"
 }
 
 configure([performanceTest, performanceExperiment]) {
@@ -199,6 +198,10 @@ def withPerformanceDb = {
 }
 
 performanceTestTasks.all(withPerformanceDb)
+performanceAdhocTest {
+    systemProperty "org.gradle.performance.db.url", "jdbc:h2:./build/database"
+}
+
 performanceReportTasks.all(withPerformanceDb)
 
 plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
