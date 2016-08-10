@@ -41,9 +41,11 @@ import static org.gradle.performance.results.ResultsStoreHelper.splitVcsCommits;
 public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> implements ResultsStore, DataReporter<R>, Closeable {
 
     private final PerformanceDatabase db;
+    private final String resultType;
 
-    public BaseCrossBuildResultsStore(String databaseName) {
-        this.db = new PerformanceDatabase(databaseName, new CrossBuildResultsSchemaInitializer());
+    public BaseCrossBuildResultsStore(String resultType) {
+        this.db = new PerformanceDatabase("cross-build-results", new CrossBuildResultsSchemaInitializer());
+        this.resultType = resultType;
     }
 
     public void report(final R results) {
@@ -51,7 +53,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             db.withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws Exception {
                     long executionId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup) values (?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getTestTime()));
@@ -61,6 +63,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         statement.setString(6, results.getVcsBranch());
                         statement.setString(7, Joiner.on(",").join(results.getVcsCommits()));
                         statement.setString(8, results.getTestGroup());
+                        statement.setString(9, resultType);
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -119,9 +122,10 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 public List<String> execute(Connection connection) throws Exception {
                     List<String> testNames = new ArrayList<String>();
                     ResultSet testGroups = connection.createStatement().executeQuery("select distinct testGroup from testExecution order by testGroup");
-                    PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId from testExecution where testGroup = ? order by testId");
+                    PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId from testExecution where testGroup = ? and resultType = ? order by testId");
                     while (testGroups.next()) {
                         testIdsStatement.setString(1, testGroups.getString(1));
+                        testIdsStatement.setString(2, resultType);
                         ResultSet testExecutions = testIdsStatement.executeQuery();
                         while (testExecutions.next()) {
                             testNames.add(testExecutions.getString(1));
@@ -254,6 +258,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             }
             statement.execute("alter table testOperation add column if not exists gradleOpts array");
             statement.execute("alter table testOperation add column if not exists daemon boolean");
+            statement.execute("alter table testExecution add column if not exists resultType varchar not null default 'cross-build'");
             statement.close();
             return null;
         }
