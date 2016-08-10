@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
+
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -28,12 +29,13 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.SELECTED_BY_RULE
 
 class DefaultDependencySubstitutionsSpec extends Specification {
     DependencySubstitutionsInternal substitutions;
 
     def setup() {
-        substitutions = new DefaultDependencySubstitutions()
+        substitutions = DefaultDependencySubstitutions.forResolutionStrategy()
     }
 
     def "provides no op resolve rule when no rules or forced modules configured"() {
@@ -126,7 +128,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
         then:
         _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
-        1 * moduleDetails.useTarget(matchingSubstitute)
+        1 * moduleDetails.useTarget(matchingSubstitute, SELECTED_BY_RULE)
         0 * _
 
         when:
@@ -171,7 +173,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
 
         then:
         _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
-        1 * projectDetails.useTarget(matchingSubstitute)
+        1 * projectDetails.useTarget(matchingSubstitute, SELECTED_BY_RULE)
         0 * _
 
         when:

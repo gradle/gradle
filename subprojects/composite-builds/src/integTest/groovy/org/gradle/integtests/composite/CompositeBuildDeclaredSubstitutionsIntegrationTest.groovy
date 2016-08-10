@@ -16,13 +16,14 @@
 
 package org.gradle.integtests.composite
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
-class CompositeBuildDeclaredOutputsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildA
     BuildTestFile buildB
     MavenFileRepository mavenRepo
@@ -61,10 +62,11 @@ class CompositeBuildDeclaredOutputsIntegrationTest extends AbstractCompositeBuil
         }
     }
 
-    def "will substitute only declared outputs when defined for included build"() {
+    def "will only make declared substitutions when defined for included build"() {
         given:
         buildA.buildFile << """
             dependencies {
+                compile "org.test:buildB:1.0"
                 compile "org.test:b1:1.0"
                 compile "org.test:b2:1.0"
             }
@@ -72,13 +74,17 @@ class CompositeBuildDeclaredOutputsIntegrationTest extends AbstractCompositeBuil
         buildA.settingsFile << """
             includeBuild('${buildB.toURI()}') {
                 dependencySubstitution {
-                    substitute module("org.test:b1:1.0") with project("buildB::b1")
+                    substitute module("org.test:buildB") with project(":")
+                    substitute module("org.test:b1:1.0") with project(":b1")
                 }
             }
 """
 
         expect:
         resolvedGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
             edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
                 compositeSubstitute()
             }
@@ -86,24 +92,62 @@ class CompositeBuildDeclaredOutputsIntegrationTest extends AbstractCompositeBuil
         }
     }
 
-    def "can substitute arbitrary coordinates using declared outputs for included build"() {
+    def "can substitute arbitrary coordinates for included build"() {
         given:
+        buildB.settingsFile << """
+"""
         buildA.buildFile << """
             dependencies {
-                compile "X:Y:4.0"
+                compile "org.test:buildX:1.0"
             }
 """
         buildA.settingsFile << """
             includeBuild('${buildB.toURI()}') {
                 dependencySubstitution {
-                    substitute module("X:Y") with project("buildB::b1")
+                    substitute module("org.test:buildX") with project(":b1")
                 }
             }
 """
 
         expect:
         resolvedGraph {
-            edge("X:Y:4.0", "project buildB::b1", "org.test:b1:2.0") {
+            edge("org.test:buildX:1.0", "project buildB::b1", "org.test:b1:2.0") {
+                compositeSubstitute()
+            }
+        }
+    }
+
+    // Currently we incorrectly resolve a project substitution for included build,
+    // by using the projectDir name instead of the rootProject name.
+    @NotYetImplemented
+    def "resolves project substitution for build based on rootProject name"() {
+        given:
+        def buildC = rootDir.file("hierarchy", "buildB");
+        buildC.file('settings.gradle') << """
+            rootProject.name = 'buildC'
+"""
+        buildC.file('build.gradle') << """
+            apply plugin: 'java'
+            group = 'org.test'
+            version = '1.0'
+"""
+
+        buildA.buildFile << """
+            dependencies {
+                compile "org.gradle:buildC:1.0"
+            }
+"""
+        buildA.settingsFile << """
+            includeBuild('${buildC.toURI()}') {
+                dependencySubstitution {
+                    substitute module("org.gradle:buildC") with project(":")
+                }
+            }
+"""
+
+        expect:
+        resolvedGraph {
+            edge("org.gradle:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
                 compositeSubstitute()
             }
         }

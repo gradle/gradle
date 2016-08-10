@@ -20,16 +20,17 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 import java.io.File;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
-    private final DefaultDependencySubstitutions dependencySubstitutions = new DefaultDependencySubstitutions(VersionSelectionReasons.COMPOSITE_BUILD);
+    private final DefaultDependencySubstitutions dependencySubstitutions;
 
     public DefaultIncludedBuild(File projectDir) {
         this.projectDir = projectDir;
+        // TODO:DAZ This isn't the correct name: we'll need to evaluate settings for included build to make this work properly
+        this.dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(projectDir.getName());
     }
 
     public File getProjectDir() {
