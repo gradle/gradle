@@ -1,5 +1,6 @@
 package org.gradle.testing
 
+import groovy.util.slurpersupport.GPathResult
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -27,16 +28,21 @@ class ScenarioReportRendererTest extends Specification {
     def "should create html report"() {
         given:
         def htmlFile = tempDir.newFile("scenario-report.html")
-        def buildData = getClass().getResourceAsStream("sample-build-result.xml").withStream { input ->
-            new XmlSlurper().parse(input)
-        }
+        def failedBuild = getSampleBuild("sample-build-result-failure.xml")
+        def successfulBuild = getSampleBuild("sample-build-result-success.xml")
 
         when:
         htmlFile.withWriter { Writer writer ->
-            renderer.render("performance", [buildData], writer)
+            renderer.render('performance', [failedBuild, successfulBuild, failedBuild, successfulBuild], writer)
         }
 
         then:
         noExceptionThrown()
+    }
+
+    private GPathResult getSampleBuild(name) {
+        getClass().getResourceAsStream(name).withStream { input ->
+            new XmlSlurper().parse(input)
+        }
     }
 }

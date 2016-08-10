@@ -13,27 +13,49 @@ class ScenarioReportRenderer {
                 meta("http-equiv": "Content-Type", content: "text/html; charset=utf-8")
                 link(rel: "stylesheet", type: "text/css", href: "scenario-report-style.css")
             }
+            def buildsSuccessOrNot = finishedBuilds.groupBy { build -> build.@status.toString() == 'SUCCESS' }
+            def successfullBuilds = buildsSuccessOrNot.get(true)
+            def otherBuilds = buildsSuccessOrNot.get(false)
+            if (otherBuilds) {
+                h3 'Unsuccessful builds'
+                renderResultTable(markup, projectName, otherBuilds, true)
+            }
+            if (successfullBuilds) {
+                h3 'Successful builds'
+                renderResultTable(markup, projectName, successfullBuilds)
+            }
+        }
+    }
+
+    private renderResultTable(markup, projectName, builds, showExtraColumns = false) {
+        def closure = {
             table {
                 thead {
                     tr {
                         th("Scenario")
                         th("Status")
-                        th("")
-                        th("")
+                        if (showExtraColumns) {
+                            th("")
+                            th("")
+                        }
                         th("")
                         th("")
                     }
                 }
-                finishedBuilds.each { build ->
+                builds.each { build ->
                     tr(class: build.@status.toString().toLowerCase()) {
                         td(this.getScenarioId(build))
                         td(build.@status)
-                        td(build.statusText.text())
+                        if (showExtraColumns) {
+                            td(build.statusText.text())
+                        }
                         td {
                             a(href: build.@webUrl, "Test Report")
                         }
-                        td {
-                            a(href: "https://builds.gradle.org/repository/download/${build.@buildTypeId}/${build.@id}:id/reports/${projectName}/performanceScenario/index.html", "Test Summary")
+                        if (showExtraColumns) {
+                            td {
+	                       a(href: "https://builds.gradle.org/repository/download/${build.@buildTypeId}/${build.@id}:id/reports/${projectName}/performanceScenario/index.html", "Test Summary")
+                            }
                         }
                         td {
                             a(href: "report/tests/${this.getScenarioId(build).replaceAll(" ", "-")}.html", "Performance Report")
@@ -42,7 +64,11 @@ class ScenarioReportRenderer {
                 }
             }
         }
+        closure.delegate = markup
+        closure.resolveStrategy = Closure.DELEGATE_FIRST
+        closure.call()
     }
+
 
     private String getScenarioId(Object build) {
         NodeChildren properties = build.properties.children()
