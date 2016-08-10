@@ -16,15 +16,17 @@
 
 package org.gradle.composite.internal;
 
-import com.google.common.collect.Maps;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 
 import java.io.File;
-import java.util.Map;
 
-public class DefaultIncludedBuild implements IncludedBuild {
+public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
-    private final Map<String, String> provided = Maps.newHashMap();
+    private final DefaultDependencySubstitutions dependencySubstitutions = new DefaultDependencySubstitutions(VersionSelectionReasons.COMPOSITE_BUILD);
 
     public DefaultIncludedBuild(File projectDir) {
         this.projectDir = projectDir;
@@ -35,13 +37,12 @@ public class DefaultIncludedBuild implements IncludedBuild {
     }
 
     @Override
-    public void provides(String moduleId, String projectPath) {
-        provided.put(moduleId, projectPath);
+    public void dependencySubstitution(Action<? super DependencySubstitutions> action) {
+        action.execute(dependencySubstitutions);
     }
 
-    @Override
-    public Map<String, String> getProvided() {
-        return provided;
+    public DependencySubstitutionsInternal getDependencySubstitution() {
+        return dependencySubstitutions;
     }
 
     @Override

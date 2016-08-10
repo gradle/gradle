@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.composite;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
@@ -32,6 +33,9 @@ public interface CompositeBuildContext extends LocalComponentProvider, Dependenc
     Set<ProjectComponentIdentifier> getAllProjects();
 
     void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project);
+    void registerSubstitution(Action<DependencySubstitution> substitutions);
+
     void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory);
     void registerAdditionalArtifact(ProjectComponentIdentifier componentIdentifier, LocalComponentArtifactMetadata compositeCopy);
+
 }

@@ -55,8 +55,11 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             includeBuild('${pluginBuild.toURI()}')
 """
 
-        expect:
+        when:
         execute(buildA, "tasks")
+
+        then:
+        outputContains("taskFromPluginC")
     }
 
     @NotYetImplemented // Need to configure buildB (to determine metadata) with pluginC in the context.
@@ -71,37 +74,54 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
 """
         buildA.settingsFile << """
             includeBuild('${buildB.toURI()}') {
-                provides("org.test:buildB:1.0", "buildB::") // By declaring output, don't need to pre-configure
+                dependencySubstitution { // By declaring substitutions, don't need to pre-configure
+                    substitute module("org.test:buildB") with project("buildB::")
+                }
             }
             includeBuild('${pluginBuild.toURI()}')
 """
 
-        expect:
+        when:
         execute(buildA, "tasks")
+
+        then:
+        outputContains("taskFromPluginC")
     }
 
-    @NotYetImplemented // Need a way to specify exact version to match for substituted dependency
     def "can co-develop plugin and consumer where plugin uses previous version of itself to build"() {
         given:
-        // TODO:DAZ Ensure that plugin is published with older version
+        // Ensure that 'plugin' is published with older version
+        mavenRepo.module("org.test", "pluginC", "0.1").publish()
 
         pluginBuild.buildFile << """
             buildscript {
+                repositories {
+                    repositories {
+                        maven { url "${mavenRepo.uri}" }
+                    }
+                }
                 dependencies {
                     classpath 'org.test:pluginC:0.1'
                 }
             }
-            apply plugin: 'org.test.plugin.pluginC'
 """
 
         applyPlugin(buildA)
 
         buildA.settingsFile << """
-            includeBuild('${pluginBuild.toURI()}')
+            includeBuild('${pluginBuild.toURI()}') {
+                dependencySubstitution {
+                    // Only substitute version 1.0 with project dependency. This allows this project to build with the published dependency.
+                    substitute module("org.test:pluginC:1.0") with project("pluginC::")
+                }
+            }
 """
 
-        expect:
+        when:
         execute(buildA, "tasks")
+
+        then:
+        outputContains("taskFromPluginC")
     }
 
     def applyPlugin(BuildTestFile build) {
@@ -138,7 +158,7 @@ import org.gradle.api.Project;
 
 public class ${className} implements Plugin<Project> {
     public void apply(Project project) {
-        System.out.println("Applied ${name}");
+        project.task("taskFrom${className}");
     }
 }
 """

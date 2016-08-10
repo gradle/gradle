@@ -16,15 +16,18 @@
 
 package org.gradle.api.initialization;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * A build that is included in the composite.
  */
 @Incubating
+@HasInternalProtocol
 public interface IncludedBuild {
     /**
      * The root directory of the included build.
@@ -32,13 +35,27 @@ public interface IncludedBuild {
     File getProjectDir();
 
     /**
-     * Declares an output provided by this included build.
+     * Configures the set of dependency substitution rules for this configuration.  The action receives an instance of {@link DependencySubstitutions} which
+     * can then be configured with substitution rules.
+     * <p/>
+     * Examples:
+     * <pre autoTested=''>
+     * // add dependency substitution rules
+     * configurations.all {
+     *   resolutionStrategy.dependencySubstitution {
+     *     // Substitute project and module dependencies
+     *     substitute module('org.gradle:api') with project(':api')
+     *     substitute project(':util') with module('org.gradle:util:3.0')
+     *
+     *     // Substitute one module dependency for another
+     *     substitute module('org.gradle:api:2.0') with module('org.gradle:api:2.1')
+     *   }
+     * }
+     * </pre>
+     *
+     * @see DependencySubstitutions
+     * @since 2.5
      */
-    void provides(String moduleId, String projectPath);
-
-    /**
-     * All of the outputs declared for this included build, if any.
-     * @return The declared outputs.
-     */
-    Map<String, String> getProvided();
+    @Incubating
+    void dependencySubstitution(Action<? super DependencySubstitutions> action);
 }

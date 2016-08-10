@@ -24,6 +24,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,6 +42,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> provided = Sets.newHashSet();
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
+    private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
 
     @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier project) {
@@ -67,6 +70,11 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     public void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project) {
         LOGGER.info("Registering project '" + project + "' in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
         provided.add(Pair.of(moduleId, project));
+    }
+
+    @Override
+    public void registerSubstitution(Action<DependencySubstitution> substitutions) {
+        substitutionRules.add(substitutions);
     }
 
     public void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory) {
@@ -102,6 +110,9 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     @Override
     public Action<DependencySubstitution> getDependencySubstitutionRule() {
-        return new CompositeBuildDependencySubstitutions(provided);
+        List<Action<DependencySubstitution>> allActions = Lists.newArrayList();
+        allActions.add(new CompositeBuildDependencySubstitutions(provided));
+        allActions.addAll(substitutionRules);
+        return Actions.composite(allActions);
     }
 }

@@ -71,7 +71,9 @@ class CompositeBuildDeclaredOutputsIntegrationTest extends AbstractCompositeBuil
 """
         buildA.settingsFile << """
             includeBuild('${buildB.toURI()}') {
-                provides("org.test:b1:1.0", "buildB::b1")
+                dependencySubstitution {
+                    substitute module("org.test:b1:1.0") with project("buildB::b1")
+                }
             }
 """
 
@@ -93,7 +95,9 @@ class CompositeBuildDeclaredOutputsIntegrationTest extends AbstractCompositeBuil
 """
         buildA.settingsFile << """
             includeBuild('${buildB.toURI()}') {
-                provides("X:Y:2.0", "buildB::b1")
+                dependencySubstitution {
+                    substitute module("X:Y") with project("buildB::b1")
+                }
             }
 """
 

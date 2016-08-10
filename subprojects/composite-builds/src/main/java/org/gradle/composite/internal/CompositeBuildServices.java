@@ -24,6 +24,7 @@ import org.gradle.api.internal.composite.DefaultBuildableCompositeBuildContext;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
+import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -46,8 +47,8 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     public static class CompositeBuildSessionScopeServices {
-        public IncludedBuildFactory createIncludedBuildFactory() {
-            return new DefaultIncludedBuildFactory();
+        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator) {
+            return new DefaultIncludedBuildFactory(instantiator);
         }
 
         public CompositeBuildContext createCompositeBuildContext() {

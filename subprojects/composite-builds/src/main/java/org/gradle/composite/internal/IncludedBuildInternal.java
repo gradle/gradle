@@ -17,20 +17,8 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.initialization.IncludedBuildFactory;
-import org.gradle.internal.reflect.Instantiator;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 
-import java.io.File;
-
-public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
-    private final Instantiator instantiator;
-
-    public DefaultIncludedBuildFactory(Instantiator instantiator) {
-        this.instantiator = instantiator;
-    }
-
-    @Override
-    public IncludedBuild createBuild(File buildDirectory) {
-        return instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory);
-    }
+public interface IncludedBuildInternal extends IncludedBuild {
+    DependencySubstitutionsInternal getDependencySubstitution();
 }
