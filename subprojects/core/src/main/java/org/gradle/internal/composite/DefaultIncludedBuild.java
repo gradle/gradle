@@ -17,44 +17,20 @@
 package org.gradle.internal.composite;
 
 import java.io.File;
-import java.io.Serializable;
-import java.net.URI;
 
-public class DefaultIncludedBuild implements IncludedBuild, Serializable {
+public class DefaultIncludedBuild implements IncludedBuild {
     private final File projectDir;
-    private final File gradleHome;
-    private final URI gradleDistribution;
-    private final String gradleVersion;
 
-    public DefaultIncludedBuild(IncludedBuild build) {
-        this(build.getProjectDir() != null ? new File(build.getProjectDir().getAbsolutePath()) : null, build.getGradleHome() != null ? new File(build.getGradleHome().getAbsolutePath()) : null, build.getGradleDistribution(), build.getGradleVersion());
-    }
-
-    public DefaultIncludedBuild(File projectDir, File gradleHome, URI gradleDistribution, String gradleVersion) {
+    public DefaultIncludedBuild(File projectDir) {
         this.projectDir = projectDir;
-        this.gradleHome = gradleHome;
-        this.gradleDistribution = gradleDistribution;
-        this.gradleVersion = gradleVersion;
     }
 
     public File getProjectDir() {
         return projectDir;
     }
 
-    public File getGradleHome() {
-        return gradleHome;
-    }
-
-    public URI getGradleDistribution() {
-        return gradleDistribution;
-    }
-
-    public String getGradleVersion() {
-        return gradleVersion;
-    }
-
     @Override
     public String toString() {
-        return String.format("connectionParticipant[rootDir=%s]", projectDir.getPath());
+        return String.format("includedBuild[%s]", projectDir.getPath());
     }
 }

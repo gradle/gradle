@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
-import org.gradle.internal.composite.DefaultIncludedBuild;
-import org.gradle.internal.composite.IncludedBuild;
+import org.gradle.internal.composite.DefaultGradleParticipantBuild;
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.GradleConnection;
 import org.gradle.tooling.connection.GradleConnectionBuilder;
@@ -74,9 +74,9 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     private GradleConnection createGradleConnection() {
-        Set<IncludedBuild> builds = CollectionUtils.collect(participantBuilders, new Transformer<IncludedBuild, DefaultGradleConnectionParticipantBuilder>() {
+        Set<GradleParticipantBuild> builds = CollectionUtils.collect(participantBuilders, new Transformer<GradleParticipantBuild, DefaultGradleConnectionParticipantBuilder>() {
             @Override
-            public IncludedBuild transform(DefaultGradleConnectionParticipantBuilder participantBuilder) {
+            public GradleParticipantBuild transform(DefaultGradleConnectionParticipantBuilder participantBuilder) {
                 return participantBuilder.build();
             }
         });
@@ -194,8 +194,8 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
             return this;
         }
 
-        public IncludedBuild build() {
-            return new DefaultIncludedBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
+        public GradleParticipantBuild build() {
+            return new DefaultGradleParticipantBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
         }
 
         private void resetDistribution() {

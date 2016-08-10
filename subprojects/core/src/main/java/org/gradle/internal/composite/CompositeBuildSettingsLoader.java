@@ -59,7 +59,7 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
         return CollectionUtils.collect(buildRoots, new Transformer<IncludedBuild, File>() {
             @Override
             public IncludedBuild transform(File buildRoot) {
-                return new DefaultIncludedBuild(buildRoot, null, null, null);
+                return new DefaultIncludedBuild(buildRoot);
             }
         });
     }

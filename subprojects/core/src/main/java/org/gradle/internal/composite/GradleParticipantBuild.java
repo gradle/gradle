@@ -17,7 +17,14 @@
 package org.gradle.internal.composite;
 
 import java.io.File;
+import java.net.URI;
 
-public interface IncludedBuild {
+public interface GradleParticipantBuild {
     File getProjectDir();
+
+    File getGradleHome();
+
+    URI getGradleDistribution();
+
+    String getGradleVersion();
 }
