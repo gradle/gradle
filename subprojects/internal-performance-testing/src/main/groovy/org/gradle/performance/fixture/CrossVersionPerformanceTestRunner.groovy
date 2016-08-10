@@ -127,11 +127,10 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def baselineVersions = new LinkedHashSet()
         Set<String> overridenTargetVersions = Splitter.on(COMMA_OR_SEMICOLON)
             .omitEmptyStrings()
-            .splitToList(System.getProperty('org.gradle.performance.baselines',''))
+            .splitToList(System.getProperty('org.gradle.performance.baselines','').replace('defaults', targetVersions.join(',')))
             .collect(new LinkedHashSet<String>()) {
             it == 'nightly' ? mostRecentSnapshot : (it == 'last' ? mostRecentFinalRelease : it)
         }
-
         if (overridenTargetVersions) {
             baselineVersions = overridenTargetVersions
         } else {

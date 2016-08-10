@@ -33,10 +33,15 @@ import org.junit.Rule
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     private static interface ReporterAndStore extends DataReporter, ResultsStore {}
 
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    private static final String mostRecentSnapshot = "2.11-20160101120000+0000"
+    private static final String mostRecentRelease = "2.10"
 
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties(
-        'org.gradle.performance.db.url' : "jdbc:h2:${tmpDir.testDirectory}"
+    @Rule
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    @Rule
+    SetSystemProperties systemProperties = new SetSystemProperties(
+        'org.gradle.performance.db.url': "jdbc:h2:${tmpDir.testDirectory}"
     )
 
     final buildContext = new IntegrationTestBuildContext();
@@ -45,16 +50,15 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     final testProjectLocator = Stub(TestProjectLocator)
     final currentGradle = Stub(GradleDistribution)
     final releases = Stub(ReleasedVersionDistributions)
-    final mostRecentRelease = "2.10"
     final currentVersionBase = GradleVersion.current().baseVersion.version
 
     def setup() {
         releases.all >> [
-                buildContext.distribution("1.0"),
-                buildContext.distribution("1.1"),
-                buildContext.distribution("2.11-rc-4"),
-                buildContext.distribution("2.11-rc-2"),
-                buildContext.distribution(mostRecentRelease)]
+            buildContext.distribution("1.0"),
+            buildContext.distribution("1.1"),
+            buildContext.distribution("2.11-rc-4"),
+            buildContext.distribution("2.11-rc-2"),
+            buildContext.distribution(mostRecentRelease)]
         releases.mostRecentFinalRelease >> buildContext.distribution(mostRecentRelease)
     }
 
@@ -128,7 +132,6 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
 
     def "can use 'nightly' baseline version to refer to most recently snapshot version and exclude most recent release"() {
         given:
-        def mostRecentSnapshot = "2.11-20160101120000+0000"
         releases.mostRecentSnapshot >> buildContext.distribution(mostRecentSnapshot)
 
         and:
@@ -179,6 +182,32 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         3 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
             result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
         }
+    }
+
+    def "can override baseline versions using a system property"() {
+        given:
+        def runner = runner()
+        runner.targetVersions = versions
+        releases.mostRecentSnapshot >> buildContext.distribution(mostRecentSnapshot)
+
+        when:
+        System.setProperty('org.gradle.performance.baselines', override.join(','))
+        experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        def results = runner.run()
+
+        then:
+        results.baselineVersions*.version == expected
+
+        where:
+        versions         | override                        | expected
+        ['2.11']         | ['2.12']                        | ['2.12']
+        ['2.11']         | ['last']                        | [mostRecentRelease]
+        ['2.11']         | ['nightly']                     | [mostRecentSnapshot]
+        ['2.11']         | ['last', 'nightly']             | [mostRecentRelease, mostRecentSnapshot]
+        ['2.11', '2.12'] | ['last', 'defaults', 'nightly'] | [mostRecentRelease, '2.11', '2.12', mostRecentSnapshot]
+        ['2.11', 'last'] | ['last', 'defaults', 'nightly'] | [mostRecentRelease, '2.11', mostRecentSnapshot]
     }
 
     def runner() {
