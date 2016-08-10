@@ -40,7 +40,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = ['2.14.1']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
@@ -71,7 +71,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = [fastestVersion]
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms4g", "-Xmx4g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
         runner.warmUpRuns = 5
         runner.runs = 10
 

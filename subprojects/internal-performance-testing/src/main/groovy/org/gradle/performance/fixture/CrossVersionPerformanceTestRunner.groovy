@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
@@ -45,8 +46,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
     List<String> tasksToRun = []
     List<String> args = []
-    List<String> gradleOpts = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
+    List<String> gradleOpts = ['-Xms2g', '-Xmx2g']
     List<String> previousTestIds = []
+    int maxPermSizeMB = 256
 
     List<String> targetVersions = []
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
@@ -85,7 +87,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             testProject: testProject,
             tasks: tasksToRun.collect { it.toString() },
             args: args.collect { it.toString() },
-            gradleOpts: gradleOpts.collect { it.toString() },
+            gradleOpts: resolveGradleOpts().collect { it.toString() },
             daemon: useDaemon,
             jvm: Jvm.current().toString(),
             operatingSystem: OperatingSystem.current().toString(),
@@ -160,6 +162,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     }
 
     private void runVersion(GradleDistribution dist, File workingDir, MeasuredOperationList results) {
+        def gradleOptsInUse = resolveGradleOpts()
         def builder = GradleBuildExperimentSpec.builder()
             .projectName(testProject)
             .displayName(dist.version.version)
@@ -171,13 +174,21 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 distribution(dist)
                 tasksToRun(this.tasksToRun as String[])
                 args(this.args as String[])
-                gradleOpts(this.gradleOpts as String[])
+                gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
             }
 
         def spec = builder.build()
 
         experimentRunner.run(spec, results)
+    }
+
+    def resolveGradleOpts() {
+        def gradleOptsInUse = [] + this.gradleOpts
+        if (!JavaVersion.current().isJava8Compatible() && gradleOptsInUse.count { it.startsWith('-XX:MaxPermSize=') } == 0) {
+            gradleOptsInUse << "-XX:MaxPermSize=${maxPermSizeMB}m".toString()
+        }
+        gradleOptsInUse
     }
 
 }

@@ -54,7 +54,7 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
         runner.targetVersions = ['2.11', 'last']
         runner.useDaemon = true
         when:

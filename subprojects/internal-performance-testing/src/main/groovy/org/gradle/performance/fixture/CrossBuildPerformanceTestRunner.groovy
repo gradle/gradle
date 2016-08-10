@@ -16,6 +16,7 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.api.JavaVersion
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.results.CrossBuildPerformanceResults
@@ -24,7 +25,6 @@ import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.util.GradleVersion
 
 class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTestRunner<CrossBuildPerformanceResults> {
-
     public CrossBuildPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossBuildPerformanceResults> dataReporter) {
         super(experimentRunner, dataReporter)
     }
@@ -41,7 +41,10 @@ class CrossBuildPerformanceTestRunner extends AbstractGradleBuildPerformanceTest
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
             def invocation = (GradleInvocationSpec.InvocationBuilder) builder.invocation
             if (!invocation.gradleOptions) {
-                invocation.gradleOptions = ['-Xms2g', '-Xmx2g', '-XX:MaxPermSize=256m']
+                invocation.gradleOptions = ['-Xms2g', '-Xmx2g']
+                if (!JavaVersion.current().isJava8Compatible()) {
+                    invocation.gradleOptions << '-XX:MaxPermSize=256m'
+                }
             }
         }
     }

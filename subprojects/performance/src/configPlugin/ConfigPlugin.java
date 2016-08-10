@@ -1,7 +1,9 @@
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.testing.Test;
+
 import java.io.File;
 
 public class ConfigPlugin implements Plugin<Project> {
@@ -24,7 +26,10 @@ public class ConfigPlugin implements Plugin<Project> {
             child.getDependencies().add("testCompile", "org.testng:testng:6.4");
             child.getDependencies().add("runtime", "com.googlecode:reflectasm:1.01");
             Test test = (Test)(child.getTasks().getByName("test"));
-            test.jvmArgs("-XX:MaxPermSize=512m", "-XX:+HeapDumpOnOutOfMemoryError");
+            if (!JavaVersion.current().isJava8Compatible()) {
+                test.jvmArgs("-XX:MaxPermSize=512m");
+            }
+            test.jvmArgs("-XX:+HeapDumpOnOutOfMemoryError");
             child.getTasks().add("dependencyReport", DependencyReportTask.class).setOutputFile(new File(child.getBuildDir(), "dependencies.txt"));
         }
     }

@@ -78,7 +78,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.testProject == 'test1'
         results.tasks == ['clean', 'build']
         results.args == ['--arg1', '--arg2']
-        results.gradleOpts == ['-Xmx24']
+        runner.gradleOpts.findAll { !it.startsWith('-XX:MaxPermSize=') } == ['-Xmx24']
         results.daemon
         results.versionUnderTest
         results.jvm

@@ -39,7 +39,7 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         runner.useDaemon = true
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(25)
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
         def result = runner.run()
@@ -66,7 +66,7 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         runner.useDaemon = true
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(25)
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
         def result = runner.run()
