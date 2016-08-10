@@ -4,6 +4,8 @@ dependencies {
     compile project(':launcher')
 
     integTestRuntime project(":toolingApiBuilders")
+    integTestRuntime project(":pluginDevelopment")
+    integTestRuntime project(":testKit")
 }
 
 useTestFixtures(project: ':dependencyManagement')

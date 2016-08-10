@@ -20,10 +20,12 @@ import com.google.common.collect.Lists;
 import org.gradle.StartParameter;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Transformer;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.Cast;
 import org.gradle.internal.classpath.ClassPath;
@@ -32,9 +34,7 @@ import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.composite.CompositeBuildController;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.composite.CompositeParameters;
-import org.gradle.internal.composite.DefaultIncludedBuild;
 import org.gradle.internal.composite.GradleParticipantBuild;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistry;
@@ -165,10 +165,11 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
 
     private void registerParticipantsInContext(CompositeParameters compositeParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
         CompositeContextBuilder contextBuilder = sharedServices.get(CompositeContextBuilder.class);
+        final IncludedBuildFactory includedBuildFactory = sharedServices.get(IncludedBuildFactory.class);
         Iterable<IncludedBuild> includedBuilds = CollectionUtils.collect(compositeParameters.getBuilds(), new Transformer<IncludedBuild, GradleParticipantBuild>() {
             @Override
             public IncludedBuild transform(GradleParticipantBuild gradleParticipantBuild) {
-                return new DefaultIncludedBuild(gradleParticipantBuild.getProjectDir());
+                return includedBuildFactory.createBuild(gradleParticipantBuild.getProjectDir());
             }
         });
         contextBuilder.addToCompositeContext(includedBuilds, buildRequestContext);

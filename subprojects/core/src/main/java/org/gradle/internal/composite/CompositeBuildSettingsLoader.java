@@ -21,6 +21,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -51,12 +52,13 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
     }
 
     private Collection<IncludedBuild> getIncludedBuilds(StartParameter startParameter, SettingsInternal settings) {
+        IncludedBuildFactory includedBuildFactory = buildServices.get(IncludedBuildFactory.class);
         Map<File, IncludedBuild> includedBuildMap = Maps.newLinkedHashMap();
         includedBuildMap.putAll(settings.getIncludedBuilds());
 
         for (File file : startParameter.getIncludedBuilds()) {
             if (!includedBuildMap.containsKey(file)) {
-                includedBuildMap.put(file, new DefaultIncludedBuild(file));
+                includedBuildMap.put(file, includedBuildFactory.createBuild(file));
             }
         }
 

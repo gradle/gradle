@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import org.gradle.StartParameter;
+import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRuleProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
@@ -47,6 +48,10 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     public static class CompositeBuildSessionScopeServices {
+        public IncludedBuildFactory createIncludedBuildFactory() {
+            return new DefaultIncludedBuildFactory();
+        }
+
         public CompositeBuildContext createCompositeBuildContext() {
             return new DefaultBuildableCompositeBuildContext();
         }

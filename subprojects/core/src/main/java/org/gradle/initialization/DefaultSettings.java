@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.GradleInternal;
@@ -32,8 +33,6 @@ import org.gradle.api.internal.project.AbstractPluginAware;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.composite.DefaultIncludedBuild;
-import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
@@ -231,6 +230,11 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     }
 
     @Inject
+    protected IncludedBuildFactory getIncludedBuildFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
     public PluginManagerInternal getPluginManager() {
         throw new UnsupportedOperationException();
     }
@@ -250,7 +254,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
         File projectDir = getFileResolver().resolve(projectPath);
         IncludedBuild build = includedBuilds.get(projectDir);
         if (build == null) {
-            build = new DefaultIncludedBuild(projectDir);
+            build = getIncludedBuildFactory().createBuild(projectDir);
             includedBuilds.put(projectDir, build);
         }
         return build;
