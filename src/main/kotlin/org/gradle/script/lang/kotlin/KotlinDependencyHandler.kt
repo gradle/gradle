@@ -16,6 +16,7 @@
 
 package org.gradle.script.lang.kotlin
 
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
@@ -41,6 +42,22 @@ class KotlinDependencyHandler(val dependencies: DependencyHandler) : DependencyH
 
     operator fun <T : ModuleDependency> String.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         dependencies.add(this, dependency, dependencyConfiguration)
+
+    /**
+     * Adds a dependency to the given configuration.
+     *
+     * @param dependencyNotation notation for the dependency to be added.
+     * @return The dependency.
+     * @see DependencyHandler.add
+     */
+    operator fun Configuration.invoke(dependencyNotation: Any): Dependency =
+        add(name, dependencyNotation)
+
+    operator fun Configuration.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
+        add(name, dependencyNotation, dependencyConfiguration)
+
+    operator fun <T : ModuleDependency> Configuration.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
+        add(name, dependency, dependencyConfiguration)
 
     inline operator fun invoke(configuration: KotlinDependencyHandler.() -> Unit) =
         configuration()
