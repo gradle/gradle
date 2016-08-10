@@ -2,8 +2,8 @@
   var createPerformanceGraph = function(jsonFile, dataSelector, label, unit, chartId) {
     $(function() {
       $.ajax({ url: jsonFile, dataType: 'json',
-        success: function(data) {
-          var labels = data.labels;
+        success: function(allData) {
+          var labels = allData.labels;
           var options = {
             series: {
               points: { show: true },
@@ -13,8 +13,8 @@
             grid: { hoverable: true, clickable: true },
             xaxis: { tickFormatter: function(index, value) { return labels[index]; } },
             yaxis: { min: 0 }, selection: { mode: 'xy' } };
-          var foo = dataSelector(data)
-          var chart = $.plot('#' + chartId, foo, options);
+          var data = dataSelector(allData)
+          var chart = $.plot('#' + chartId, data, options);
           var zoomFunction = function(plot, reset) {
             var reset = reset || false;
             return function (event, ranges) {
