@@ -33,7 +33,7 @@ class ScenarioReportRendererTest extends Specification {
 
         when:
         htmlFile.withWriter { Writer writer ->
-            renderer.render([buildData], writer)
+            renderer.render("performance", [buildData], writer)
         }
 
         then:
