@@ -29,5 +29,3 @@ useClassycle()
 tasks.withType(org.gradle.testing.PerformanceTest) {
     systemProperties += [incomingArtifactDir: "${rootDir}/incoming/"]
 }
-
-performanceAdhocTest.enabled = false

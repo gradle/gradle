@@ -27,12 +27,17 @@ import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     private static interface ReporterAndStore extends DataReporter, ResultsStore {}
 
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+
+    @Rule SetSystemProperties systemProperties = new SetSystemProperties(
+        'org.gradle.performance.db.url' : "jdbc:h2:${tmpDir.testDirectory}"
+    )
 
     final buildContext = new IntegrationTestBuildContext();
     final experimentRunner = Mock(BuildExperimentRunner)
@@ -177,7 +182,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
     }
 
     def runner() {
-        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases, false)
+        def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases)
         runner.testId = 'some-test'
         runner.testProject = 'some-project'
         runner.workingDir = tmpDir.testDirectory

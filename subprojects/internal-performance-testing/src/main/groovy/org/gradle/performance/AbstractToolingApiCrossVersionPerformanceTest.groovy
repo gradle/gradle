@@ -42,7 +42,6 @@ import org.gradle.performance.results.BuildDisplayInfo
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.MeasuredOperationList
-import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -57,7 +56,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     protected final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
     protected final static UnderDevelopmentGradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
 
-    static def resultStore = ResultsStoreHelper.maybeUseResultStore { new CrossVersionResultsStore() }
+    static def resultStore = new CrossVersionResultsStore()
     final TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
 
@@ -141,7 +140,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 daemon: true)
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
             try {
-                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
+                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions).toList()
                 [*baselines, 'current'].each { String version ->
                     def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)

@@ -27,4 +27,9 @@ public class PerformanceTest extends DistributionTest {
     public void setScenarios(String scenarios) {
         systemProperty("org.gradle.performance.scenarios", scenarios);
     }
+
+    @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
+    public void setBaselines(String baselines) {
+        systemProperty("org.gradle.performance.baselines", baselines);
+    }
 }

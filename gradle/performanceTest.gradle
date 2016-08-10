@@ -103,6 +103,10 @@ performanceTestTasks.all { PerformanceTest task ->
         systemProperty "org.gradle.performance.strict", "true"
     }
 
+    if (project.findProperty('org.gradle.performance.baselines')) {
+        systemProperty 'org.gradle.performance.baselines', project.getProperty('org.gradle.performance.baselines')
+    }
+
     maxParallelForks = 1
 
     doFirst {
@@ -150,10 +154,6 @@ task performanceExperiment(type: PerformanceTest) {
     options {
         includeCategories 'org.gradle.performance.categories.Experiment'
     }
-}
-
-task performanceAdhocTest(type: PerformanceTest) {
-    systemProperty "GRADLE_ADHOC_PERF_TESTS", "true"
 }
 
 task performanceScenario(type: PerformanceTest) {
