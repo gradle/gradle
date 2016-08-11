@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.collect.Iterators;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
@@ -26,9 +29,11 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 
-public class DiscoveredInputsTaskStateChanges extends AbstractFileSnapshotTaskStateChanges implements DiscoveredInputsListener {
+public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, DiscoveredInputsListener {
+    private final String taskName;
     private final FileCollectionSnapshotter snapshotter;
     private final FileCollectionFactory fileCollectionFactory;
     private final TaskExecution previous;
@@ -37,20 +42,18 @@ public class DiscoveredInputsTaskStateChanges extends AbstractFileSnapshotTaskSt
 
     public DiscoveredInputsTaskStateChanges(TaskExecution previous, TaskExecution current, FileCollectionSnapshotter snapshotter, FileCollectionFactory fileCollectionFactory,
                                             TaskInternal task) {
-        super(task.getName());
+        this.taskName = task.getName();
         this.snapshotter = snapshotter;
         this.fileCollectionFactory = fileCollectionFactory;
         this.previous = previous;
         this.current = current;
     }
 
-    @Override
-    public FileCollectionSnapshot getPrevious() {
+    private FileCollectionSnapshot getPrevious() {
         return previous != null ? previous.getDiscoveredInputFilesSnapshot() : null;
     }
 
-    @Override
-    public FileCollectionSnapshot getCurrent() {
+    private FileCollectionSnapshot getCurrent() {
         if (getPrevious() != null) {
             // Get the current state of the files from the previous execution
             return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getFiles()), TaskFilePropertyCompareType.UNORDERED);
@@ -60,17 +63,29 @@ public class DiscoveredInputsTaskStateChanges extends AbstractFileSnapshotTaskSt
     }
 
     @Override
-    public void saveCurrent() {
+    public Iterator<TaskStateChange> iterator() {
+        if (getPrevious() == null) {
+            return Iterators.<TaskStateChange>singletonIterator(new DescriptiveChange("Discovered input file history is not available."));
+        }
+        return getCurrent().iterateContentChangesSince(getPrevious(), "discovered input");
+    }
+
+    @Override
+    public void snapshotAfterTask() {
         FileCollectionSnapshot discoveredFilesSnapshot = createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", discoveredFiles), TaskFilePropertyCompareType.UNORDERED);
         current.setDiscoveredInputFilesSnapshot(discoveredFilesSnapshot);
     }
 
+    @Override
     public void newInputs(Set<File> files) {
         this.discoveredFiles = files;
     }
 
-    @Override
-    protected String getInputFileType() {
-        return "Discovered input";
+    private FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection, TaskFilePropertyCompareType compareType) {
+        try {
+            return snapshotter.snapshot(fileCollection, compareType);
+        } catch (UncheckedIOException e) {
+            throw new UncheckedIOException(String.format("Failed to capture snapshot of discovered input files for task '%s' during up-to-date check.", taskName), e);
+        }
     }
 }
