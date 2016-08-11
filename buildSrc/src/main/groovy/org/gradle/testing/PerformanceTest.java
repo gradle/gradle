@@ -32,4 +32,14 @@ public class PerformanceTest extends DistributionTest {
     public void setBaselines(String baselines) {
         systemProperty("org.gradle.performance.baselines", baselines);
     }
+
+    @Option(option = "warmups", description = "Number of warmups before measurements")
+    public void setWarmups(String warmups) {
+        systemProperty("org.gradle.performance.execution.warmups", warmups);
+    }
+
+    @Option(option = "runs", description = "Number of iterations of measurements")
+    public void setRuns(String runs) {
+        systemProperty("org.gradle.performance.execution.runs", runs);
+    }
 }
