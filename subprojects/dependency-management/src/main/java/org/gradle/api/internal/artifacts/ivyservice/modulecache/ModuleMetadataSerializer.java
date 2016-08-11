@@ -79,7 +79,7 @@ public class ModuleMetadataSerializer {
 
         private void writeId(ModuleComponentIdentifier componentIdentifier) throws IOException {
             writeString(componentIdentifier.getGroup());
-            writeString(componentIdentifier.getModule());
+            writeString(componentIdentifier.getName());
             writeString(componentIdentifier.getVersion());
         }
 

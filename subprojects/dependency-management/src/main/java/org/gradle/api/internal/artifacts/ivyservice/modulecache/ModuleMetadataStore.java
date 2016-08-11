@@ -77,7 +77,7 @@ public class ModuleMetadataStore {
     }
 
     private String getFilePath(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
-        return moduleComponentIdentifier.getGroup() + "/" + moduleComponentIdentifier.getModule() + "/" + moduleComponentIdentifier.getVersion() + "/" + repository.getId() + "/descriptor.bin";
+        return moduleComponentIdentifier.getGroup() + "/" + moduleComponentIdentifier.getName() + "/" + moduleComponentIdentifier.getVersion() + "/" + repository.getId() + "/descriptor.bin";
     }
 
 }

@@ -30,7 +30,7 @@ public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleCompone
     }
 
     public MavenUniqueSnapshotComponentIdentifier(ModuleComponentIdentifier baseIdentifier, String timestamp) {
-        super(baseIdentifier.getGroup(), baseIdentifier.getModule(), baseIdentifier.getVersion());
+        super(baseIdentifier.getGroup(), baseIdentifier.getName(), baseIdentifier.getVersion());
         this.timestamp = timestamp;
     }
 
@@ -46,7 +46,7 @@ public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleCompone
 
     @Override
     public String getDisplayName() {
-        return String.format("%s:%s:%s:%s", getGroup(), getModule(), getSnapshotVersion(), timestamp);
+        return String.format("%s:%s:%s:%s", getGroup(), getName(), getSnapshotVersion(), timestamp);
     }
 
     public String getTimestamp() {
@@ -58,7 +58,7 @@ public class MavenUniqueSnapshotComponentIdentifier extends DefaultModuleCompone
     }
 
     public ModuleComponentIdentifier getSnapshotComponent() {
-        return DefaultModuleComponentIdentifier.newId(getGroup(), getModule(), getSnapshotVersion());
+        return DefaultModuleComponentIdentifier.newId(getGroup(), getName(), getSnapshotVersion());
     }
 
     public String getTimestampedVersion() {

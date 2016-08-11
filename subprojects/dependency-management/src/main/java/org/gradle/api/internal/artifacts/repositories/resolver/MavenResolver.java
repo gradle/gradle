@@ -213,7 +213,7 @@ public class MavenResolver extends ExternalResourceResolver {
             checkMetadataConsistency(snapshotComponentIdentifier.getSnapshotComponent(), metaData);
             // Use the requested id. Currently we're discarding the MavenUniqueSnapshotComponentIdentifier and replacing with DefaultModuleComponentIdentifier as pretty
             // much every consumer of the meta-data is expecting a DefaultModuleComponentIdentifier.
-            ModuleComponentIdentifier lossyId = DefaultModuleComponentIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getModule(), moduleComponentIdentifier.getVersion());
+            ModuleComponentIdentifier lossyId = DefaultModuleComponentIdentifier.newId(moduleComponentIdentifier.getGroup(), moduleComponentIdentifier.getName(), moduleComponentIdentifier.getVersion());
             metaData.setComponentId(lossyId);
             metaData.setSnapshotTimestamp(snapshotComponentIdentifier.getTimestamp());
         } else {
@@ -287,7 +287,7 @@ public class MavenResolver extends ExternalResourceResolver {
 
     private MavenUniqueSnapshotComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
         return new MavenUniqueSnapshotComponentIdentifier(moduleComponentIdentifier.getGroup(),
-                moduleComponentIdentifier.getModule(),
+                moduleComponentIdentifier.getName(),
                 moduleComponentIdentifier.getVersion(),
                 uniqueSnapshotVersion.getTimestamp());
     }

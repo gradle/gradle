@@ -55,15 +55,15 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, String messageFormat) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), messageFormat);
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getName(), id.getVersion()), messageFormat);
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Throwable cause) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), Arrays.asList(cause));
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getName(), id.getVersion()), Arrays.asList(cause));
     }
 
     public ModuleVersionResolveException(ModuleComponentIdentifier id, Iterable<? extends Throwable> causes) {
-        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getModule(), id.getVersion()), causes);
+        this(DefaultModuleComponentSelector.newSelector(id.getGroup(), id.getName(), id.getVersion()), causes);
     }
 
     public ModuleVersionResolveException(ModuleVersionSelector selector, Throwable cause) {

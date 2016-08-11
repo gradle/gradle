@@ -35,10 +35,10 @@ public interface ModuleComponentIdentifier extends ComponentIdentifier {
     /**
      * The module name of the component.
      *
-     * @return Component module
+     * @return Component name
      * @since 1.10
      */
-    String getModule();
+    String getName();
 
     /**
      * The module version of the component.

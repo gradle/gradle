@@ -20,23 +20,23 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 
 public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifier {
     private final String group;
-    private final String module;
+    private final String name;
     private final String version;
 
-    public DefaultModuleComponentIdentifier(String group, String module, String version) {
+    public DefaultModuleComponentIdentifier(String group, String name, String version) {
         assert group != null : "group cannot be null";
-        assert module != null : "module cannot be null";
+        assert name != null : "name cannot be null";
         assert version != null : "version cannot be null";
         this.group = group;
-        this.module = module;
+        this.name = name;
         this.version = version;
     }
 
     public String getDisplayName() {
-        StringBuilder builder = new StringBuilder(group.length() + module.length() + version.length() + 2);
+        StringBuilder builder = new StringBuilder(group.length() + name.length() + version.length() + 2);
         builder.append(group);
         builder.append(":");
-        builder.append(module);
+        builder.append(name);
         builder.append(":");
         builder.append(version);
         return builder.toString();
@@ -46,8 +46,8 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         return group;
     }
 
-    public String getModule() {
-        return module;
+    public String getName() {
+        return name;
     }
 
     public String getVersion() {
@@ -68,7 +68,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
         if (!group.equals(that.group)) {
             return false;
         }
-        if (!module.equals(that.module)) {
+        if (!name.equals(that.name)) {
             return false;
         }
         if (!version.equals(that.version)) {
@@ -81,7 +81,7 @@ public class DefaultModuleComponentIdentifier implements ModuleComponentIdentifi
     @Override
     public int hashCode() {
         int result = group.hashCode();
-        result = 31 * result + module.hashCode();
+        result = 31 * result + name.hashCode();
         result = 31 * result + version.hashCode();
         return result;
     }

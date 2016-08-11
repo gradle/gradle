@@ -40,7 +40,7 @@ public class DefaultDependencyResolveDetails implements DependencyResolveDetails
         // Temporary logic until we add DependencySubstitution back in
         if (delegate.getTarget() instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleComponentSelector = (ModuleComponentSelector) delegate.getTarget();
-            return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getModule(), moduleComponentSelector.getVersion());
+            return DefaultModuleVersionSelector.newSelector(moduleComponentSelector.getGroup(), moduleComponentSelector.getName(), moduleComponentSelector.getVersion());
         }
         // If the target is a project component, it must be unmodified from the requested
         return delegate.getOldRequested();

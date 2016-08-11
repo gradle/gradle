@@ -64,7 +64,7 @@ public class RenderableUnresolvedDependencyResult implements RenderableDependenc
             ModuleComponentSelector attemptedSelector = (ModuleComponentSelector)attempted;
 
             if(requestedSelector.getGroup().equals(attemptedSelector.getGroup())
-                    && requestedSelector.getModule().equals(attemptedSelector.getModule())
+                    && requestedSelector.getName().equals(attemptedSelector.getName())
                     && !requestedSelector.getVersion().equals(attemptedSelector.getVersion())) {
                 return requested.getDisplayName() + " -> " + ((ModuleComponentSelector) attempted).getVersion();
             }

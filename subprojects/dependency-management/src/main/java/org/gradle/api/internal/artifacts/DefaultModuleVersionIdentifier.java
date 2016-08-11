@@ -98,6 +98,6 @@ public class DefaultModuleVersionIdentifier implements ModuleVersionIdentifier {
     }
 
     public static ModuleVersionIdentifier newId(ModuleComponentIdentifier componentId) {
-        return new DefaultModuleVersionIdentifier(componentId.getGroup(), componentId.getModule(), componentId.getVersion());
+        return new DefaultModuleVersionIdentifier(componentId.getGroup(), componentId.getName(), componentId.getVersion());
     }
 }

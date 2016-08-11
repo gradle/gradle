@@ -80,7 +80,7 @@ abstract class AbstractResourcePattern implements ResourcePattern {
     protected Map<String, String> toAttributes(ModuleComponentIdentifier componentIdentifier) {
         HashMap<String, String> attributes = new HashMap<String, String>();
         attributes.put(IvyPatternHelper.ORGANISATION_KEY, componentIdentifier.getGroup());
-        attributes.put(IvyPatternHelper.MODULE_KEY, componentIdentifier.getModule());
+        attributes.put(IvyPatternHelper.MODULE_KEY, componentIdentifier.getName());
         attributes.put(IvyPatternHelper.REVISION_KEY, componentIdentifier.getVersion());
         return attributes;
     }

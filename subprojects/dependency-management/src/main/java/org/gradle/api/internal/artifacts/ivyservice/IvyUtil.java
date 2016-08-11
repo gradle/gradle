@@ -33,7 +33,7 @@ public class IvyUtil {
     }
 
     public static ModuleRevisionId createModuleRevisionId(ModuleComponentIdentifier id) {
-        return createModuleRevisionId(id.getGroup(), id.getModule(), id.getVersion());
+        return createModuleRevisionId(id.getGroup(), id.getName(), id.getVersion());
     }
 
     private static String emptyStringIfNull(String value) {
