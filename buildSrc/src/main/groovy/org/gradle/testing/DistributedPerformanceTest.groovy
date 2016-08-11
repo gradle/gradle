@@ -64,18 +64,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     @OutputFile
     File scenarioReport
 
-    @Input @Optional
-    String baselines
-
-    @Input @Optional
-    Integer warmups
-
-    @Input @Optional
-    Integer runs
-
-    @Input @Optional
-    String checks
-
     RESTClient client
 
     List<String> scheduledBuilds = Lists.newArrayList()
