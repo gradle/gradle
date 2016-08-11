@@ -26,8 +26,6 @@ import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.OperationType
 import org.junit.Rule
 
-import java.util.concurrent.atomic.AtomicBoolean
-
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
     boolean killed = false
