@@ -18,19 +18,22 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
+import org.gradle.initialization.GradleLauncher;
 
 import java.io.File;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
-    private final DefaultDependencySubstitutions dependencySubstitutions;
+    // TODO:DAZ This should possibly be a BuildController
+    private final GradleLauncher gradleLauncher;
+    private DefaultDependencySubstitutions dependencySubstitutions;
 
-    public DefaultIncludedBuild(File projectDir) {
+    public DefaultIncludedBuild(File projectDir, GradleLauncher gradleLauncher) {
         this.projectDir = projectDir;
-        // TODO:DAZ This isn't the correct name: we'll need to evaluate settings for included build to make this work properly
-        this.dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(projectDir.getName());
+        this.gradleLauncher = gradleLauncher;
     }
 
     public File getProjectDir() {
@@ -39,10 +42,16 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public void dependencySubstitution(Action<? super DependencySubstitutions> action) {
-        action.execute(dependencySubstitutions);
+        action.execute(getDependencySubstitution());
     }
 
     public DependencySubstitutionsInternal getDependencySubstitution() {
+        if (dependencySubstitutions == null) {
+            gradleLauncher.load();
+            SettingsInternal settings = gradleLauncher.getSettings();
+            String buildName = settings.getRootProject().getName();
+            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(buildName);
+        }
         return dependencySubstitutions;
     }
 

@@ -22,4 +22,5 @@ import java.io.File;
 
 public interface IncludedBuildFactory {
     IncludedBuild createBuild(File buildDirectory);
+    IncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext);
 }

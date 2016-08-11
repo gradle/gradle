@@ -163,13 +163,13 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         buildActionExecuter.execute(participantAction, buildRequestContext, null, sharedServices);
     }
 
-    private void registerParticipantsInContext(CompositeParameters compositeParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
+    private void registerParticipantsInContext(CompositeParameters compositeParameters, final BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
         CompositeContextBuilder contextBuilder = sharedServices.get(CompositeContextBuilder.class);
         final IncludedBuildFactory includedBuildFactory = sharedServices.get(IncludedBuildFactory.class);
         Iterable<IncludedBuild> includedBuilds = CollectionUtils.collect(compositeParameters.getBuilds(), new Transformer<IncludedBuild, GradleParticipantBuild>() {
             @Override
             public IncludedBuild transform(GradleParticipantBuild gradleParticipantBuild) {
-                return includedBuildFactory.createBuild(gradleParticipantBuild.getProjectDir());
+                return includedBuildFactory.createBuild(gradleParticipantBuild.getProjectDir(), buildRequestContext);
             }
         });
         contextBuilder.addToCompositeContext(includedBuilds, buildRequestContext);

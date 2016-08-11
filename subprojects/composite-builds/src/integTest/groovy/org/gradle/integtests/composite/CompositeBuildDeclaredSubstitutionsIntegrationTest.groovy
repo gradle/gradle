@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -117,9 +116,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    // Currently we incorrectly resolve a project substitution for included build,
-    // by using the projectDir name instead of the rootProject name.
-    @NotYetImplemented
     def "resolves project substitution for build based on rootProject name"() {
         given:
         def buildC = rootDir.file("hierarchy", "buildB");

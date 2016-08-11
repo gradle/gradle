@@ -47,8 +47,8 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     public static class CompositeBuildSessionScopeServices {
-        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator) {
-            return new DefaultIncludedBuildFactory(instantiator);
+        public IncludedBuildFactory createIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter, GradleLauncherFactory gradleLauncherFactory, ServiceRegistry serviceRegistry) {
+            return new DefaultIncludedBuildFactory(instantiator, startParameter, gradleLauncherFactory, serviceRegistry);
         }
 
         public CompositeBuildContext createCompositeBuildContext() {

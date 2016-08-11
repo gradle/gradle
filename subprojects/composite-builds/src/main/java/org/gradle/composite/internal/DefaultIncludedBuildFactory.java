@@ -16,21 +16,59 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.StartParameter;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.initialization.BuildRequestContext;
+import org.gradle.initialization.GradleLauncher;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
 
 public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
     private final Instantiator instantiator;
+    private final StartParameter startParameter;
+    private final GradleLauncherFactory gradleLauncherFactory;
+    private final ServiceRegistry sharedServices;
 
-    public DefaultIncludedBuildFactory(Instantiator instantiator) {
+    public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter,
+                                       GradleLauncherFactory gradleLauncherFactory, ServiceRegistry sharedServices) {
         this.instantiator = instantiator;
+        this.startParameter = startParameter;
+        this.gradleLauncherFactory = gradleLauncherFactory;
+        this.sharedServices = sharedServices;
+    }
+
+    @Override
+    public IncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext) {
+        GradleLauncher launcher = createGradleLauncher(buildDirectory, requestContext);
+        return instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, launcher);
     }
 
     @Override
     public IncludedBuild createBuild(File buildDirectory) {
-        return instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory);
+        return createBuild(buildDirectory, null);
+    }
+
+    private StartParameter createStartParameter(File buildDirectory) {
+        StartParameter includedBuildStartParam = startParameter.newBuild();
+        includedBuildStartParam.setProjectDir(buildDirectory);
+        includedBuildStartParam.setSearchUpwards(false);
+        includedBuildStartParam.setConfigureOnDemand(false);
+        return includedBuildStartParam;
+    }
+
+    private GradleLauncher createGradleLauncher(File buildDirectory, BuildRequestContext requestContext) {
+        StartParameter participantStartParam = createStartParameter(buildDirectory);
+        if (requestContext == null) {
+            return gradleLauncherFactory.nestedInstance(participantStartParam, sharedServices);
+        }
+
+        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(participantStartParam, requestContext, sharedServices);
+        gradleLauncher.addStandardOutputListener(requestContext.getOutputListener());
+        gradleLauncher.addStandardErrorListener(requestContext.getErrorListener());
+        return gradleLauncher;
     }
 }
