@@ -154,7 +154,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             includeSource: subprojectNames.empty)
 
         project.copy {
-            from "src/templates/init.gradle"
+            from resolveTemplate("init.gradle")
             into(getDestDir())
         }
     }
