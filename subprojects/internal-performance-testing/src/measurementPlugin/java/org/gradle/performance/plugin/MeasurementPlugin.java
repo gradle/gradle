@@ -61,7 +61,7 @@ public class MeasurementPlugin implements Plugin<Project> {
         });
     }
 
-    public void handleHeapDump(final Project project, Logger logger) {
+    private void handleHeapDump(final Project project, Logger logger) {
         if (project.hasProperty("heapdump")) {
             boolean skipHeapDump = false;
 
@@ -95,20 +95,20 @@ public class MeasurementPlugin implements Plugin<Project> {
 
     }
 
-    public void handleHeapMeasurement(Project project, Logger logger) {
+    private void handleHeapMeasurement(Project project, Logger logger) {
         MemoryUsage heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
         MemoryUsage nonHeap = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
         logger.lifecycle("BEFORE GC");
-        logger.lifecycle("heap: " + format(heap.getUsed()) + " (initial " + format(heap.getInit()) + ", committed " + format(heap.getCommitted()) + ", max " + format(heap.getMax()));
-        logger.lifecycle("nonHeap: " + format(nonHeap.getUsed()) + " (initial " + format(nonHeap.getInit()) + ", committed " + format(nonHeap.getCommitted()) + ", max " + format(nonHeap.getMax()));
+        logger.lifecycle("heap: " + formatBytes(heap.getUsed()) + " (initial " + formatBytes(heap.getInit()) + ", committed " + formatBytes(heap.getCommitted()) + ", max " + formatBytes(heap.getMax()));
+        logger.lifecycle("nonHeap: " + formatBytes(nonHeap.getUsed()) + " (initial " + formatBytes(nonHeap.getInit()) + ", committed " + formatBytes(nonHeap.getCommitted()) + ", max " + formatBytes(nonHeap.getMax()));
 
         ManagementFactory.getMemoryMXBean().gc();
 
         heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
         nonHeap = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
         logger.lifecycle("AFTER GC");
-        logger.lifecycle("heap: " + format(heap.getUsed()) + " (initial " + format(heap.getInit()) + ", committed " + format(heap.getCommitted()) + ", max " + format(heap.getMax()));
-        logger.lifecycle("nonHeap: " + format(nonHeap.getUsed()) + " (initial " + format(nonHeap.getInit()) + ", committed " + format(nonHeap.getCommitted()) + ", max " + format(nonHeap.getMax()));
+        logger.lifecycle("heap: " + formatBytes(heap.getUsed()) + " (initial " + formatBytes(heap.getInit()) + ", committed " + formatBytes(heap.getCommitted()) + ", max " + formatBytes(heap.getMax()));
+        logger.lifecycle("nonHeap: " + formatBytes(nonHeap.getUsed()) + " (initial " + formatBytes(nonHeap.getInit()) + ", committed " + formatBytes(nonHeap.getCommitted()) + ", max " + formatBytes(nonHeap.getMax()));
 
         project.getBuildDir().mkdirs();
         File totalMemoryUsedFile = new File(project.getBuildDir(), "totalMemoryUsed.txt");
@@ -124,13 +124,13 @@ public class MeasurementPlugin implements Plugin<Project> {
         }
     }
 
-    public String format(long value) {
+    private String formatBytes(long bytesValue) {
         BigDecimal divisor = new BigDecimal(1024 * 1024);
-        BigDecimal megabytes = new BigDecimal(value).divide(divisor).setScale(4, BigDecimal.ROUND_DOWN);
+        BigDecimal megabytes = new BigDecimal(bytesValue).divide(divisor).setScale(4, BigDecimal.ROUND_DOWN);
         return megabytes.toString() + "MB";
     }
 
-    public void handleExternalResourcesStats() {
+    private void handleExternalResourcesStats() {
         if (System.getProperty("gradle.externalresources.recordstats") != null) {
             try {
                 Object statistics = DefaultGroovyMethods.invokeMethod(Class.forName("org.gradle.internal.resource.transfer.DefaultExternalResourceConnector"), "getStatistics", new Object[0]);
