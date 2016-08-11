@@ -210,6 +210,109 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         ['2.11', 'last'] | ['last', 'defaults', 'nightly'] | [MOST_RECENT_RELEASE, '2.11', MOST_RECENT_SNAPSHOT]
     }
 
+    def "can skip speed or memory checks"() {
+        given:
+        def runner = runner()
+        runner.targetVersions = ['last']
+
+        when: "a performance regression is identified in speed"
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(5), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        def results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then: "without overrides, test fails"
+        thrown(AssertionError)
+
+        when: "a performance regression is identified in speed but we only check for memory"
+        System.setProperty('org.gradle.performance.execution.checks', 'memory')
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(5), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then: "test passes"
+        noExceptionThrown()
+
+        when: "a performance regression is identified in speed but we check for nothing"
+        System.setProperty('org.gradle.performance.execution.checks', 'none')
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(5), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then: "test passes"
+        noExceptionThrown()
+
+        when: "a performance regression is identified in memory but we only check for speed"
+        System.setProperty('org.gradle.performance.execution.checks', 'speed')
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(5)))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then: "test passes"
+        noExceptionThrown()
+
+        when: "a performance regression is identified in memory but we only check for nothing"
+        System.setProperty('org.gradle.performance.execution.checks', 'none')
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(5)))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then: "test passes"
+        noExceptionThrown()
+
+        when: "a performance regression is identified in speed and memory and we explicitly check for all"
+        System.setProperty('org.gradle.performance.execution.checks', 'all')
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(5)))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then: "test fails"
+        thrown(AssertionError)
+
+        when:
+        System.setProperty('org.gradle.performance.execution.checks', 'all')
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(5), totalMemoryUsed: DataAmount.kbytes(5)))
+        }
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        results = runner.run()
+        results.assertCurrentVersionHasNotRegressed()
+
+        then:
+        thrown(AssertionError)
+    }
+
     def runner() {
         def runner = new CrossVersionPerformanceTestRunner(experimentRunner, reporter, releases)
         runner.testId = 'some-test'

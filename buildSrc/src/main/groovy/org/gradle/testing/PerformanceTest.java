@@ -42,4 +42,9 @@ public class PerformanceTest extends DistributionTest {
     public void setRuns(String runs) {
         systemProperty("org.gradle.performance.execution.runs", runs);
     }
+
+    @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, memory, all]")
+    public void setChecks(String checks) {
+        systemProperty("org.gradle.performance.execution.checks", checks);
+    }
 }
