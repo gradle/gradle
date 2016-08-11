@@ -58,7 +58,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         final LazyTaskExecution currentExecution = new LazyTaskExecution();
         currentExecution.snapshotRepository = snapshotRepository;
         currentExecution.cacheAccess = cacheAccess;
-        currentExecution.setOutputFiles(outputFiles(task));
+        currentExecution.setDeclaredOutputFilePaths(getDeclaredOutputFilePaths(task));
         final LazyTaskExecution previousExecution = findBestMatchingPreviousExecution(currentExecution, previousExecutions.executions);
         if (previousExecution != null) {
             previousExecution.snapshotRepository = snapshotRepository;
@@ -134,7 +134,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         });
     }
 
-    private Set<String> outputFiles(TaskInternal task) {
+    private Set<String> getDeclaredOutputFilePaths(TaskInternal task) {
         Set<String> outputFiles = new HashSet<String>();
         for (File file : task.getOutputs().getFiles()) {
             outputFiles.add(stringInterner.intern(file.getAbsolutePath()));
@@ -143,19 +143,20 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private LazyTaskExecution findBestMatchingPreviousExecution(TaskExecution currentExecution, Collection<LazyTaskExecution> previousExecutions) {
-        Set<String> outputFiles = currentExecution.getOutputFiles();
+        Set<String> outputFiles = currentExecution.getDeclaredOutputFilePaths();
         int outputFilesSize = outputFiles.size();
         LazyTaskExecution bestMatch = null;
         int bestMatchOverlap = 0;
         for (LazyTaskExecution previousExecution : previousExecutions) {
+            Set<String> previousOutputFiles = previousExecution.getDeclaredOutputFilePaths();
             if (outputFilesSize == 0) {
-                if (previousExecution.getOutputFiles().size() == 0) {
+                if (previousOutputFiles.size() == 0) {
                     bestMatch = previousExecution;
                     break;
                 }
             }
 
-            Set<String> intersection = Sets.intersection(outputFiles, previousExecution.getOutputFiles());
+            Set<String> intersection = Sets.intersection(outputFiles, previousOutputFiles);
             int overlap = intersection.size();
             if (overlap > bestMatchOverlap) {
                 bestMatch = previousExecution;
@@ -321,7 +322,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 for (int j = 0; j < outputFiles; j++) {
                     files.add(stringInterner.intern(decoder.readString()));
                 }
-                execution.setOutputFiles(files);
+                execution.setDeclaredOutputFilePaths(files);
 
                 boolean inputProperties = decoder.readBoolean();
                 if (inputProperties) {
@@ -352,8 +353,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     encoder.writeBoolean(true);
                     encoder.writeBinary(actionsClassLoaderHash.asBytes());
                 }
-                encoder.writeInt(execution.getOutputFiles().size());
-                for (String outputFile : execution.getOutputFiles()) {
+                encoder.writeInt(execution.getDeclaredOutputFilePaths().size());
+                for (String outputFile : execution.getDeclaredOutputFilePaths()) {
                     encoder.writeString(outputFile);
                 }
                 if (execution.getInputProperties() == null || execution.getInputProperties().isEmpty()) {

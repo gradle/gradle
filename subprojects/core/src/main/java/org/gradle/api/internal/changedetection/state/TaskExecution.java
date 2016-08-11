@@ -40,14 +40,19 @@ public abstract class TaskExecution {
     private HashCode taskClassLoaderHash;
     private HashCode taskActionsClassLoaderHash;
     private Map<String, Object> inputProperties;
-    private Set<String> outputFiles;
+    private Set<String> declaredOutputFilePaths;
 
-    public Set<String> getOutputFiles() {
-        return outputFiles;
+    /**
+     * Returns the absolute path of every declared output file and directory.
+     * The returned set includes potentially missing files as well, and does
+     * not include the resolved contents of directories.
+     */
+    public Set<String> getDeclaredOutputFilePaths() {
+        return declaredOutputFilePaths;
     }
 
-    public void setOutputFiles(Set<String> outputFiles) {
-        this.outputFiles = outputFiles;
+    public void setDeclaredOutputFilePaths(Set<String> declaredOutputFilePaths) {
+        this.declaredOutputFilePaths = declaredOutputFilePaths;
     }
 
     public String getTaskClass() {
