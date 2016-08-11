@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -220,7 +219,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public String toString() {
-            return String.format("%s -> %s(%s)", from.toString(), dependencyMetadata.getRequested(), Joiner.on(',').join(dependencyMetadata.getModuleConfigurations()));
+            return String.format("%s -> %s", from.toString(), dependencyMetadata);
         }
 
         @Override

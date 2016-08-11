@@ -39,6 +39,11 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
         this.source = source;
     }
 
+    @Override
+    public String toString() {
+        return delegate.toString();
+    }
+
     public ModuleDependency getSource() {
         return source;
     }

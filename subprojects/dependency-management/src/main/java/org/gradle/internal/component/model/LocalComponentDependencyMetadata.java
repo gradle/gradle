@@ -60,7 +60,7 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
 
     @Override
     public String toString() {
-        return "dependency: " + requested + " " + moduleConfiguration;
+        return "dependency: " + requested + " from-conf: " + moduleConfiguration + " to-conf: " + dependencyConfiguration;
     }
 
     public ModuleVersionSelector getRequested() {
