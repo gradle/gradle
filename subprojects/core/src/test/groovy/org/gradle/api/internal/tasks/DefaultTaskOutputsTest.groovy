@@ -222,7 +222,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.history = history
 
         when:
-        def f = outputs.previousFiles
+        def f = outputs.previousOutputFiles
 
         then:
         f == outputFiles
@@ -231,7 +231,7 @@ class DefaultTaskOutputsTest extends Specification {
 
     public void getPreviousFilesFailsWhenNoTaskHistoryAvailable() {
         when:
-        outputs.previousFiles
+        outputs.previousOutputFiles
 
         then:
         def e = thrown(IllegalStateException)

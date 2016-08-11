@@ -51,7 +51,10 @@ public interface TaskOutputsInternal extends TaskOutputs {
 
     SortedSet<TaskOutputFilePropertySpec> getFileProperties();
 
-    FileCollection getPreviousFiles();
+    /**
+     * Returns the output files recorded during the previous execution of the task.
+     */
+    FileCollection getPreviousOutputFiles();
 
     void setHistory(TaskExecutionHistory history);
 

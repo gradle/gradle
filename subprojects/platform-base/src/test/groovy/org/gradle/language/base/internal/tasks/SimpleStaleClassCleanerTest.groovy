@@ -24,7 +24,7 @@ class SimpleStaleClassCleanerTest extends Specification {
     @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final outputs = Mock(TaskOutputsInternal)
     private final SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs)
-    
+
     def deletesAllPreviousOutputFiles() {
         def file1 = tmpDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
@@ -36,7 +36,7 @@ class SimpleStaleClassCleanerTest extends Specification {
         then:
         !file1.exists()
         !file2.exists()
-        1 * outputs.previousFiles >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
+        1 * outputs.previousOutputFiles >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
 
         and:
         cleaner.didWork
@@ -54,7 +54,7 @@ class SimpleStaleClassCleanerTest extends Specification {
         then:
         !file1.exists()
         file2.exists()
-        1 * outputs.previousFiles >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
+        1 * outputs.previousOutputFiles >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
 
         and:
         cleaner.didWork
@@ -67,7 +67,7 @@ class SimpleStaleClassCleanerTest extends Specification {
         cleaner.execute()
 
         then:
-        1 * outputs.previousFiles >> { [iterator: { [].iterator() }] as FileCollection }
+        1 * outputs.previousOutputFiles >> { [iterator: { [].iterator() }] as FileCollection }
 
         and:
         !cleaner.didWork

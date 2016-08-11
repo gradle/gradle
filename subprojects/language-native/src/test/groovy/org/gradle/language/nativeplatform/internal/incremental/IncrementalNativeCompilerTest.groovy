@@ -82,7 +82,7 @@ class IncrementalNativeCompilerTest extends Specification {
 
         then:
         1 * spec.getObjectFileDir() >> outputFile.parentFile
-        1 * outputs.previousFiles >> new SimpleFileCollection(outputFile)
+        1 * outputs.previousOutputFiles >> new SimpleFileCollection(outputFile)
         0 * spec._
         1 * delegateCompiler.execute(spec) >> new SimpleWorkResult(false)
 
