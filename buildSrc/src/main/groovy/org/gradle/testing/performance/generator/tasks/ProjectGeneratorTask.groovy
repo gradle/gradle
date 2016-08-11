@@ -20,6 +20,7 @@ import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.testing.performance.generator.*
@@ -44,11 +45,16 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     int numberOfExternalDependencies = 0
     MavenJarCreator mavenJarCreator = new MavenJarCreator()
 
+    @InputDirectory
+    File templateDirectory
+
+
     Callable<String> buildScanPluginVersionProvider
 
     def ProjectGeneratorTask() {
         setProjects(1)
         destDir = project.file("${project.buildDir}/${name}")
+        templateDirectory = project.file("src/templates")
     }
 
     int getTestSourceFiles() {
@@ -194,7 +200,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
 
     void generateWithTemplate(File projectDir, String name, String templateName, Map templateArgs) {
         File destFile = new File(projectDir, name).absoluteFile
-        File baseFile = project.file("src/templates/$templateName")
+        File baseFile = resolveTemplate(templateName)
 
         def extraArgs = [:]
         extraArgs.destFile = destFile
@@ -208,7 +214,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             templateFiles << baseFile
         }
         List<String> templates = templateArgs.templates
-        templateFiles.addAll templates.collect { project.file("src/templates/$it/$templateName") }.findAll { it.exists() }
+        templateFiles.addAll templates.collect { new File(resolveTemplate(it), templateName) }.findAll { it.exists() }
         if (templateFiles.empty) {
             return
         }
@@ -225,6 +231,11 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             }
             getTemplate(templateFiles.last()).make(templateArgs + extraArgs).writeTo(writer)
         }
+    }
+
+    protected File resolveTemplate(String templateName) {
+        File templateFile = new File(templateDirectory, templateName)
+        templateFile
     }
 
     def getTemplate(File srcTemplate) {
