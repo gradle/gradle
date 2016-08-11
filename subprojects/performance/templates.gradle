@@ -19,12 +19,6 @@ import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGen
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
 
-tasks.withType(JvmProjectGeneratorTask) {
-    if(project.hasProperty("springDmPluginVersion")) {
-        templateArgs['springDmPluginVersion'] = springDmPluginVersion
-    }
-}
-
 task small(type: JvmProjectGeneratorTask, description: 'Generates a small project') {
 }
 
@@ -548,4 +542,11 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
     rootProjectTemplates = ['native-monolithic']
     subProjectTemplates = []
     additionalProjectFiles = ['common.gradle', 'prebuilt.gradle', 'components.gradle']
+}
+
+tasks.withType(JvmProjectGeneratorTask) {
+    dependsOn measurementPluginJar
+    if(project.hasProperty("springDmPluginVersion")) {
+        templateArgs['springDmPluginVersion'] = springDmPluginVersion
+    }
 }
