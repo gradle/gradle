@@ -16,7 +16,6 @@
 
 package org.gradle.performance.plugin;
 
-import org.codehaus.groovy.runtime.DateGroovyMethods;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
@@ -34,6 +33,7 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryUsage;
 import java.lang.management.PlatformManagedObject;
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class MeasurementPlugin implements Plugin<Project> {
@@ -84,7 +84,7 @@ public class MeasurementPlugin implements Plugin<Project> {
                 if (hotspotDiagnosticMXBean != null) {
                     logger.lifecycle("Creating heap dump...");
                     final String dumpDescription = (project.hasProperty("buildExperimentDisplayName") ? (project.getName() + "_" + project.property("buildExperimentDisplayName")) : project.getName()).replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_");
-                    final File dumpFile = new File(System.getProperty("java.io.tmpdir"), "heapdump-" + dumpDescription + "-" + DateGroovyMethods.format(new Date(), "yyyy-MM-dd-HH-mm-ss") + ".hprof");
+                    final File dumpFile = new File(System.getProperty("java.io.tmpdir"), "heapdump-" + dumpDescription + "-" + new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()) + ".hprof");
                     DefaultGroovyMethods.invokeMethod(hotspotDiagnosticMXBean, "dumpHeap", new Object[]{dumpFile.getAbsolutePath(), true});
                     logger.lifecycle("Dumped to " + dumpFile.getAbsolutePath() + ".");
                 }
