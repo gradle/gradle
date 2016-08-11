@@ -204,13 +204,6 @@ abstract class ProjectGeneratorTask extends DefaultTask {
         File destFile = new File(projectDir, name).absoluteFile
         File baseFile = resolveTemplate(templateName)
 
-        def extraArgs = [:]
-        extraArgs.destFile = destFile
-        def pathBase = destFile.getParentFile().toPath()
-        extraArgs.relativePath = { File path ->
-            pathBase.relativize(path.toPath()).toString()
-        }
-
         List<File> templateFiles = []
         if (baseFile.exists()) {
             templateFiles << baseFile
@@ -231,7 +224,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             if (templateName.endsWith('.gradle')) {
                 writer << "// Generated ${UUID.randomUUID()}\n"
             }
-            getTemplate(templateFiles.last()).make(templateArgs + extraArgs).writeTo(writer)
+            getTemplate(templateFiles.last()).make(templateArgs).writeTo(writer)
         }
     }
 
