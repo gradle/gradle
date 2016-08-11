@@ -1,3 +1,4 @@
+import org.gradle.performance.plugin.BuildEventTimeStamps
 import org.gradle.performance.plugin.MeasurementPlugin
 
 buildscript {
@@ -9,4 +10,6 @@ buildscript {
 apply plugin: MeasurementPlugin
 
 ${original}
+
+BuildEventTimeStamps.settingsEvaluated()
 

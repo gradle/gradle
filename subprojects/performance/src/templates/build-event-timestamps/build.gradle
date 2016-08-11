@@ -1,5 +1,0 @@
-import org.gradle.performance.plugin.BuildEventTimeStamps
-
-${original}
-
-BuildEventTimeStamps.settingsEvaluated()
