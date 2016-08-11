@@ -145,6 +145,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return allOutputFiles;
     }
 
+    @Override
     public SortedSet<TaskOutputFilePropertySpec> getFileProperties() {
         if (fileProperties == null) {
             TaskPropertyUtils.ensurePropertiesHaveNames(filePropertiesInternal);
@@ -222,11 +223,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public FileCollection getPreviousOutputFiles() {
+    public FileCollection getPreviousOutputFiles(String propertyName) {
         if (history == null) {
             throw new IllegalStateException("Task history is currently not available for this task.");
         }
-        return history.getOutputFiles();
+        return history.getOutputFiles(propertyName);
     }
 
     @Override

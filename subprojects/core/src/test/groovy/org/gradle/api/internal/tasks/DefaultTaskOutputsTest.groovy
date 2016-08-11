@@ -214,7 +214,7 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.upToDateSpec.isSatisfiedBy(task)
     }
 
-    public void getPreviousFilesDelegatesToTaskHistory() {
+    public void getPreviousOutputFilesDelegatesToTaskHistory() {
         TaskExecutionHistory history = Mock()
         FileCollection outputFiles = Mock()
 
@@ -222,16 +222,16 @@ class DefaultTaskOutputsTest extends Specification {
         outputs.history = history
 
         when:
-        def f = outputs.previousOutputFiles
+        def f = outputs.getPreviousOutputFiles("property")
 
         then:
         f == outputFiles
-        1 * history.outputFiles >> outputFiles
+        1 * history.getOutputFiles("property") >> outputFiles
     }
 
-    public void getPreviousFilesFailsWhenNoTaskHistoryAvailable() {
+    public void getPreviousOutputFilesFailsWhenNoTaskHistoryAvailable() {
         when:
-        outputs.previousOutputFiles
+        outputs.getPreviousOutputFiles("property")
 
         then:
         def e = thrown(IllegalStateException)

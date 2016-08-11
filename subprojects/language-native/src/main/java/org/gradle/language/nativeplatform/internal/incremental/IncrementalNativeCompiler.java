@@ -48,6 +48,7 @@ import java.util.Map;
 public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements Compiler<T> {
     private final Compiler<T> delegateCompiler;
     private final boolean importsAreIncludes;
+    private final String outputDirProperty;
     private final TaskInternal task;
     private final TaskArtifactStateCacheAccess cacheAccess;
     private final FileSnapshotter fileSnapshotter;
@@ -57,13 +58,14 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private final CSourceParser sourceParser = new RegexBackedCSourceParser();
 
     public IncrementalNativeCompiler(TaskInternal task, TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory,
-                                     Compiler<T> delegateCompiler, NativeToolChain toolChain) {
+                                     Compiler<T> delegateCompiler, NativeToolChain toolChain, String outputDirProperty) {
         this.task = task;
         this.cacheAccess = cacheAccess;
         this.fileSnapshotter = fileSnapshotter;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.delegateCompiler = delegateCompiler;
         this.importsAreIncludes = Clang.class.isAssignableFrom(toolChain.getClass()) || Gcc.class.isAssignableFrom(toolChain.getClass());
+        this.outputDirProperty = outputDirProperty;
     }
 
     @Override
@@ -161,8 +163,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     }
 
     private boolean cleanPreviousOutputs(NativeCompileSpec spec) {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getTask().getOutputs());
-        cleaner.setDestinationDir(spec.getObjectFileDir());
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getTask().getOutputs(), outputDirProperty);
         cleaner.execute();
         return cleaner.getDidWork();
     }
