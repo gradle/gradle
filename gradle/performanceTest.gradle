@@ -234,4 +234,5 @@ class PerformanceReport extends JavaExec {
 
 tasks.withType(JvmProjectGeneratorTask) {
     dependsOn ':internalPerformanceTesting:measurementPluginJar'
+    sharedTemplateDirectory = project.findProject(':internalPerformanceTesting').file('src/templates')
 }

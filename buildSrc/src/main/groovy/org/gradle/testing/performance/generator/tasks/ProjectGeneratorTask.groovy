@@ -47,6 +47,8 @@ abstract class ProjectGeneratorTask extends DefaultTask {
 
     @InputDirectory
     File templateDirectory
+    @InputDirectory
+    File sharedTemplateDirectory
 
 
     Callable<String> buildScanPluginVersionProvider
@@ -235,6 +237,11 @@ abstract class ProjectGeneratorTask extends DefaultTask {
 
     protected File resolveTemplate(String templateName) {
         File templateFile = new File(templateDirectory, templateName)
+        if (!templateFile.exists()) {
+            if (sharedTemplateDirectory?.exists()) {
+                templateFile = new File(sharedTemplateDirectory, templateName)
+            }
+        }
         templateFile
     }
 
