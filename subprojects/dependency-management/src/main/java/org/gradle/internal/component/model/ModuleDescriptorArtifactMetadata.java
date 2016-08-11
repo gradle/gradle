@@ -18,5 +18,8 @@ package org.gradle.internal.component.model;
 
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
+/**
+ * Represents a module descriptor artifact.
+ */
 public interface ModuleDescriptorArtifactMetadata extends ModuleComponentArtifactMetadata {
 }
