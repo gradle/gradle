@@ -17,44 +17,38 @@ class ScenarioReportRenderer {
             def successfullBuilds = buildsSuccessOrNot.get(true)
             def otherBuilds = buildsSuccessOrNot.get(false)
             if (otherBuilds) {
-                h3 'Unsuccessful builds'
+                h3 'Failed scenarios'
                 renderResultTable(markup, projectName, otherBuilds, true)
             }
             if (successfullBuilds) {
-                h3 'Successful builds'
+                h3 'Successful scenarios'
                 renderResultTable(markup, projectName, successfullBuilds)
             }
         }
     }
 
-    private renderResultTable(markup, projectName, builds, showExtraColumns = false) {
+    private renderResultTable(markup, projectName, builds, failed = false) {
         def closure = {
             table {
                 thead {
                     tr {
                         th("Scenario")
-                        th("Status")
-                        if (showExtraColumns) {
-                            th("")
+                        th("")
+                        if (failed) {
                             th("")
                         }
-                        th("")
                         th("")
                     }
                 }
                 builds.each { build ->
                     tr(class: build.@status.toString().toLowerCase()) {
                         td(this.getScenarioId(build))
-                        td(build.@status)
-                        if (showExtraColumns) {
-                            td(build.statusText.text())
-                        }
                         td {
-                            a(href: build.@webUrl, "Test Report")
+                            a(href: build.@webUrl, "Go to this Build")
                         }
-                        if (showExtraColumns) {
+                        if (failed) {
                             td {
-	                       a(href: "https://builds.gradle.org/repository/download/${build.@buildTypeId}/${build.@id}:id/reports/${projectName}/fullPerformanceTest/index.html", "Test Summary")
+                                a(href: "https://builds.gradle.org/repository/download/${build.@buildTypeId}/${build.@id}:id/reports/${projectName}/fullPerformanceTest/index.html", "Test Summary")
                             }
                         }
                         td {
