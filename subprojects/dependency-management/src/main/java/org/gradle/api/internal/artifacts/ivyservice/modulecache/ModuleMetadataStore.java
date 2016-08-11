@@ -64,8 +64,11 @@ public class ModuleMetadataStore {
             public void execute(File moduleDescriptorFile) {
                 try {
                     KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(moduleDescriptorFile));
-                    moduleMetadataSerializer.write(encoder, metadata);
-                    encoder.close();
+                    try {
+                        moduleMetadataSerializer.write(encoder, metadata);
+                    } finally {
+                        encoder.close();
+                    }
                 } catch (Exception e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
