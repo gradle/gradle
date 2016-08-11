@@ -19,6 +19,7 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -32,7 +33,7 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 public class DefaultGradleLauncher extends GradleLauncher {
 
     private enum Stage {
-        Configure, Build
+        Load, Configure, Build
     }
 
     private final GradleInternal gradle;
@@ -48,6 +49,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
+    private SettingsInternal settings;
 
     /**
      * Creates a new instance.
@@ -80,6 +82,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     @Override
+    public SettingsInternal getSettings() {
+        return settings;
+    }
+
+    @Override
     public BuildResult run() {
         return doBuild(Stage.Build);
     }
@@ -87,6 +94,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
     @Override
     public BuildResult getBuildAnalysis() {
         return doBuild(Stage.Configure);
+    }
+
+    @Override
+    public BuildResult load() throws ReportedException {
+        return doBuild(Stage.Load);
     }
 
     private BuildResult doBuild(final Stage upTo) {
@@ -116,7 +128,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
         initScriptHandler.executeScripts(gradle);
 
         // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-        settingsLoader.findAndLoadSettings(gradle);
+        settings = settingsLoader.findAndLoadSettings(gradle);
+
+        if (upTo == Stage.Load) {
+            return;
+        }
 
         // Configure build
         buildOperationExecutor.run("Configure build", new Runnable() {
