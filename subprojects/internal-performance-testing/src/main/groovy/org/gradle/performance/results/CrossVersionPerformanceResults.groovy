@@ -97,10 +97,10 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     }
 
     private static Checks whatToCheck() {
-        Checks result = Checks.all
+        Checks result = Checks.ALL
         String override = System.getProperty('org.gradle.performance.execution.checks')
         if (override) {
-            result = Checks.valueOf(override.toLowerCase())
+            result = Checks.valueOf(override.toUpperCase())
         }
         result
     }
@@ -129,10 +129,10 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     }
 
     private static enum Checks {
-        none(false, false),
-        all(true, true),
-        speed(false, true),
-        memory(true, false)
+        NONE(false, false),
+        ALL(true, true),
+        SPEED(false, true),
+        MEMORY(true, false)
 
         private final boolean checkMemory
         private final boolean checkSpeed
