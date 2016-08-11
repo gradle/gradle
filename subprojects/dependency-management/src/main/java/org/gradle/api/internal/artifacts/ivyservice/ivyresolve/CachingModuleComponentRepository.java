@@ -381,6 +381,11 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             this.changingModule = changingModule;
         }
 
+        @Override
+        public String toString() {
+            return "{descriptor: " + descriptorHash + ", changing: " + changingModule + ", source: " + delegate + "}";
+        }
+
         public BigInteger getDescriptorHash() {
             return descriptorHash;
         }
