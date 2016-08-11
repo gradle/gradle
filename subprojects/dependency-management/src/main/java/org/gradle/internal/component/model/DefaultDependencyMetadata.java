@@ -122,7 +122,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
 
     @Override
     public String toString() {
-        return "dependency: " + requested;
+        return "dependency: " + requested + ", confs: " + confs;
     }
 
     public ModuleVersionSelector getRequested() {
@@ -212,6 +212,10 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     }
 
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
+        if (dependencyArtifacts.isEmpty()) {
+            return Collections.emptySet();
+        }
+
         Set<String> includedConfigurations = fromConfiguration.getHierarchy();
         Set<ComponentArtifactMetadata> artifacts = Sets.newLinkedHashSet();
 
