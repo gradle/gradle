@@ -54,7 +54,7 @@ class ScenarioReportRenderer {
                         }
                         if (showExtraColumns) {
                             td {
-	                       a(href: "https://builds.gradle.org/repository/download/${build.@buildTypeId}/${build.@id}:id/reports/${projectName}/performanceScenario/index.html", "Test Summary")
+	                       a(href: "https://builds.gradle.org/repository/download/${build.@buildTypeId}/${build.@id}:id/reports/${projectName}/fullPerformanceTest/index.html", "Test Summary")
                             }
                         }
                         td {
