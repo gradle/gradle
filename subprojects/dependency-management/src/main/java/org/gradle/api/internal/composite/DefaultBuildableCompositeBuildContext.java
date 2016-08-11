@@ -109,10 +109,15 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     }
 
     @Override
-    public Action<DependencySubstitution> getDependencySubstitutionRule() {
+    public Action<DependencySubstitution> getRuleAction() {
         List<Action<DependencySubstitution>> allActions = Lists.newArrayList();
         allActions.add(new CompositeBuildDependencySubstitutions(provided));
         allActions.addAll(substitutionRules);
         return Actions.composite(allActions);
+    }
+
+    @Override
+    public boolean hasRules() {
+        return !(provided.isEmpty() && substitutionRules.isEmpty());
     }
 }

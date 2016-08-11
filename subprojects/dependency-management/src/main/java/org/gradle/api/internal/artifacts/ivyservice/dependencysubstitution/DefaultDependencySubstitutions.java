@@ -80,12 +80,12 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     @Override
-    public boolean hasDependencySubstitutionRules() {
+    public boolean hasRules() {
         return hasDependencySubstitutionRule;
     }
 
     @Override
-    public Action<DependencySubstitution> getDependencySubstitutionRule() {
+    public Action<DependencySubstitution> getRuleAction() {
         return Actions.composite(substitutionRules);
     }
 

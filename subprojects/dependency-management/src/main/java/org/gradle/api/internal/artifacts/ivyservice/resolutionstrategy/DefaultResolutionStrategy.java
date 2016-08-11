@@ -31,6 +31,7 @@ import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.dsl.ModuleVersionSelectorParsers;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.internal.Actions;
 import org.gradle.internal.rules.SpecRuleAction;
@@ -53,18 +54,20 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
 
     private final DefaultCachePolicy cachePolicy;
     private final DependencySubstitutionsInternal dependencySubstitutions;
+    private final DependencySubstitutionRules globalDependencySubstitutionRules;
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     private boolean assumeFluidDependencies;
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
-    public DefaultResolutionStrategy() {
-        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy());
+    public DefaultResolutionStrategy(DependencySubstitutionRules globalDependencySubstitutionRules) {
+        this(new DefaultCachePolicy(), DefaultDependencySubstitutions.forResolutionStrategy(), globalDependencySubstitutionRules);
     }
 
-    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions) {
+    DefaultResolutionStrategy(DefaultCachePolicy cachePolicy, DependencySubstitutionsInternal dependencySubstitutions, DependencySubstitutionRules globalDependencySubstitutionRules) {
         this.cachePolicy = cachePolicy;
         this.dependencySubstitutions = dependencySubstitutions;
+        this.globalDependencySubstitutionRules = globalDependencySubstitutionRules;
 
         // This is only used for testing purposes so we can test handling of fluid dependencies without adding dependency substituion rule
         assumeFluidDependencies = Boolean.getBoolean(ASSUME_FLUID_DEPENDENCIES);
@@ -110,7 +113,10 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public Action<DependencySubstitution> getDependencySubstitutionRule() {
-        Collection<Action<DependencySubstitution>> allRules = flattenElements(new ModuleForcingResolveRule(forcedModules), dependencySubstitutions.getDependencySubstitutionRule());
+        Collection<Action<DependencySubstitution>> allRules = flattenElements(
+                new ModuleForcingResolveRule(forcedModules),
+                dependencySubstitutions.getRuleAction(),
+                globalDependencySubstitutionRules.getRuleAction());
         return Actions.composite(allRules);
     }
 
@@ -119,7 +125,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public boolean resolveGraphToDetermineTaskDependencies() {
-        return assumeFluidDependencies || dependencySubstitutions.hasDependencySubstitutionRules();
+        return assumeFluidDependencies || dependencySubstitutions.hasRules() || globalDependencySubstitutionRules.hasRules();
     }
 
 
@@ -172,7 +178,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public DefaultResolutionStrategy copy() {
-        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy());
+        DefaultResolutionStrategy out = new DefaultResolutionStrategy(cachePolicy.copy(), dependencySubstitutions.copy(), globalDependencySubstitutionRules);
 
         if (conflictResolution instanceof StrictConflictResolution) {
             out.failOnVersionConflict();

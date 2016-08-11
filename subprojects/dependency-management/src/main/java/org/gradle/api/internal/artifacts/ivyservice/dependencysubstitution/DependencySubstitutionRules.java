@@ -18,16 +18,25 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
+import org.gradle.internal.Actions;
 
 /**
  * A service that injects dependency substitution rules into the build.
  */
-public interface DependencySubstitutionRuleProvider {
-    Action<DependencySubstitution> NO_OP = new Action<DependencySubstitution>() {
+public interface DependencySubstitutionRules {
+    DependencySubstitutionRules NO_OP = new DependencySubstitutionRules() {
         @Override
-        public void execute(DependencySubstitution dependencySubstitution) {
+        public Action<DependencySubstitution> getRuleAction() {
+            return Actions.doNothing();
+        }
+
+        @Override
+        public boolean hasRules() {
+            return false;
         }
     };
 
-    Action<DependencySubstitution> getDependencySubstitutionRule();
+    Action<DependencySubstitution> getRuleAction();
+
+    boolean hasRules();
 }

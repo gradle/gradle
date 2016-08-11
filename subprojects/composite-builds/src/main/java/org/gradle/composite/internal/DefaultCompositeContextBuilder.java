@@ -54,10 +54,10 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
             includedBuildStartParam.setConfigureOnDemand(false);
 
             DependencySubstitutionsInternal substitutions = ((IncludedBuildInternal) build).getDependencySubstitution();
-            if (!substitutions.hasDependencySubstitutionRules()) {
+            if (!substitutions.hasRules()) {
                 configureBuildToDetermineSubstitutions(buildInternal.createGradleLauncher(), context, includedBuildStartParam);
             } else {
-                context.registerSubstitution(substitutions.getDependencySubstitutionRule());
+                context.registerSubstitution(substitutions.getRuleAction());
             }
 
             configureBuildToRegisterDependencyMetadata(buildInternal.createGradleLauncher(), context, includedBuildStartParam);

@@ -43,7 +43,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def details = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(details)
+        substitutions.ruleAction.execute(details)
 
         then:
         0 * details._
@@ -57,7 +57,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def moduleDetails = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
+        substitutions.ruleAction.execute(moduleDetails)
 
         then:
         _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
@@ -67,7 +67,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def projectDetails = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
+        substitutions.ruleAction.execute(projectDetails)
 
         then:
         _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
@@ -85,7 +85,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def moduleDetails = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
+        substitutions.ruleAction.execute(moduleDetails)
 
         then:
         _ * moduleDetails.target >> moduleTarget
@@ -100,7 +100,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def projectDetails = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
+        substitutions.ruleAction.execute(projectDetails)
 
         then:
         _ * projectDetails.target >> projectTarget
@@ -124,7 +124,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         }
 
         when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
+        substitutions.ruleAction.execute(moduleDetails)
 
         then:
         _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
@@ -132,7 +132,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         0 * _
 
         when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
+        substitutions.ruleAction.execute(moduleDetails)
 
         then:
         _ * moduleDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
@@ -169,7 +169,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def projectDetails = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
+        substitutions.ruleAction.execute(projectDetails)
 
         then:
         _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
@@ -177,7 +177,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         0 * _
 
         when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
+        substitutions.ruleAction.execute(projectDetails)
 
         then:
         _ * projectDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
@@ -196,7 +196,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def details = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(details)
+        substitutions.ruleAction.execute(details)
 
         then:
         1 * details.useTarget("1.0")
