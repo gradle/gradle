@@ -20,8 +20,10 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.internal.component.external.descriptor.Artifact
+import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.Dependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
@@ -31,7 +33,6 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DefaultDependencyMetadataTest extends Specification {
-    final requestedModuleId = IvyUtil.createModuleRevisionId("org", "module", "1.2+")
     def requested = newSelector("org", "module", "1.2+")
     def descriptor = new Dependency(requested, "foo", false, false, false)
 
@@ -195,5 +196,66 @@ class DefaultDependencyMetadataTest extends Specification {
         false      | true
         true       | false
         false      | false
+    }
+
+    def "excludes nothing when no exclude rules provided"() {
+        def descriptor = new Dependency(requested, "foo", false, false, true)
+        def dep = new DefaultDependencyMetadata(descriptor)
+
+        expect:
+        dep.getExclusions(configuration("from")) == ModuleExclusions.excludeNone()
+        dep.getExclusions(configuration("anything")) == ModuleExclusions.excludeNone()
+    }
+
+    def "excludes nothing when traversing a different configuration"() {
+        def descriptor = new Dependency(requested, "foo", false, false, true)
+        descriptor.addExcludeRule(new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT))
+        def dep = new DefaultDependencyMetadata(descriptor)
+
+        expect:
+        dep.getExclusions(configuration("anything")) == ModuleExclusions.excludeNone()
+    }
+
+    def "applies and caches exclude rules"() {
+        def descriptor = new Dependency(requested, "foo", false, false, true)
+        def exclude = new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT)
+        descriptor.addExcludeRule(exclude)
+        def dep = new DefaultDependencyMetadata(descriptor)
+        def configuration = configuration("from")
+
+        expect:
+        dep.getExclusions(configuration) == ModuleExclusions.excludeAny(exclude)
+    }
+
+    def "applies and caches exclude rules when traversing a child of specified configuration"() {
+        def descriptor = new Dependency(requested, "foo", false, false, true)
+        def exclude = new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT)
+        descriptor.addExcludeRule(exclude)
+        def dep = new DefaultDependencyMetadata(descriptor)
+        def configuration = configuration("child", "from")
+
+        expect:
+        dep.getExclusions(configuration) == ModuleExclusions.excludeAny(exclude)
+    }
+
+    def "applies and caches matching exclude rules"() {
+        def descriptor = new Dependency(requested, "foo", false, false, true)
+        def exclude1 = new DefaultExclude("group1", "*", ["from"] as String[], PatternMatchers.EXACT)
+        def exclude2 = new DefaultExclude("group2", "*", ["*"] as String[], PatternMatchers.EXACT)
+        def exclude3 = new DefaultExclude("group3", "*", ["other"] as String[], PatternMatchers.EXACT)
+        descriptor.addExcludeRule(exclude1)
+        descriptor.addExcludeRule(exclude2)
+        descriptor.addExcludeRule(exclude3)
+        def dep = new DefaultDependencyMetadata(descriptor)
+        def configuration = configuration("from")
+
+        expect:
+        dep.getExclusions(configuration) == ModuleExclusions.excludeAny(exclude1, exclude2)
+    }
+
+    def configuration(String name, String... parents) {
+        def config = Stub(ConfigurationMetadata)
+        config.hierarchy >> ([name] as Set) + (parents as Set)
+        return config
     }
 }

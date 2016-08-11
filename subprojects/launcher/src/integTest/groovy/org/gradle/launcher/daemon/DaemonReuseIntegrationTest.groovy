@@ -19,13 +19,17 @@ package org.gradle.launcher.daemon
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
-    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    @Rule BlockingHttpServer server = new BlockingHttpServer()
+
+    def setup() {
+        server.start()
+    }
 
     def "idle daemon is reused in preference to starting a new daemon"() {
         given:
@@ -46,13 +50,16 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     def "canceled daemon is reused when it becomes available"() {
         buildFile << """
             task block << {
-                new URL("$server.uri").text
+                new URL("${getUrl('started')}").text
+                new URL("${getUrl('block')}").text
             }
         """
 
         given:
+        expectEvent("started")
+        expectEvent("block")
         def build = executer.withTasks("block").start()
-        server.waitFor()
+        waitFor("started")
         daemons.daemon.assertBusy()
         build.abort().waitForFailure()
         daemons.daemon.becomesCanceled()
@@ -62,7 +69,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         ConcurrentTestUtil.poll {
             assert build.standardOutput.contains(DaemonMessages.WAITING_ON_CANCELED)
         }
-        server.release()
+        release("block")
 
         then:
         build.waitForFinish()
@@ -76,13 +83,15 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     def "does not attempt to reuse a canceled daemon that is not compatible"() {
         buildFile << """
             task block << {
-                new URL("$server.uri").text
+                new URL("${getUrl('started')}").text
+                java.util.concurrent.locks.LockSupport.park()
             }
         """
 
         given:
+        expectEvent("started")
         def build = executer.withTasks("block").withArguments("-Dorg.gradle.jvmargs=-Xmx1025m").start()
-        server.waitFor()
+        waitFor("started")
         daemons.daemon.assertBusy()
         build.abort().waitForFailure()
         daemons.daemon.becomesCanceled()
@@ -105,13 +114,15 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     def "starts a new daemon when daemons with canceled builds do not become available"() {
         buildFile << """
             task block << {
-                new URL("$server.uri").text
+                new URL("${getUrl('started')}").text
+                java.util.concurrent.locks.LockSupport.park()
             }
         """
 
         given:
+        expectEvent("started")
         def build = executer.withTasks("block").start()
-        server.waitFor()
+        waitFor("started")
         daemons.daemon.assertBusy()
         build.abort().waitForFailure()
         daemons.daemon.becomesCanceled()
@@ -127,52 +138,63 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
 
         and:
         daemons.daemons.size() == 2
+
+        and:
+        daemonCount(1) { it.assertCanceled() }
+        daemonCount(1) { it.assertIdle() }
     }
 
     // GradleHandle.abort() does not work reliably on windows and creates flakiness
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "prefers an idle daemon when daemons with canceled builds are available"() {
         given:
+        expectEvent("started1")
+        expectEvent("started2")
         buildFile << """
             task block << {
-                new URL("$server.uri").text
-            }
-            task markAndBlock << {
-                file('started') << "started"
-                new URL("$server.uri").text
+                new URL("${getUrl('started')}\$buildNum").text
+                java.util.concurrent.locks.LockSupport.park()
             }
         """
-        def build1 = executer.withTasks("block").start()
-        server.waitFor()
-        def build2 = executer.withTasks("tasks").start()
+
+        // 2 daemons we can cancel
+        def build1 = executer.withTasks("block").withArguments("-PbuildNum=1").start()
+        waitFor("started1")
+        def build2 = executer.withTasks("block").withArguments("-PbuildNum=2").start()
+        waitFor("started2")
+
+        // 1 daemon we can reuse
+        def build3 = executer.withTasks("tasks").start()
 
         when:
-        build2.waitForFinish()
+        build3.waitForFinish()
 
         then:
-        assertDaemonCount(1) { it.assertIdle() }
-        assertDaemonCount(1) { it.assertBusy() }
+        daemonCount(1) { it.assertIdle() }
+        daemonCount(2) { it.assertBusy() }
 
         when:
         build1.abort().waitForFailure()
+        build2.abort().waitForFailure()
 
         then:
         ConcurrentTestUtil.poll {
-            assertDaemonCount(1) { it.assertCanceled() }
+            daemonCount(1) { it.assertIdle() }
+            daemonCount(2) { it.assertCanceled() }
         }
 
         when:
-        executer.withTasks("markAndBlock").start()
-        ConcurrentTestUtil.poll {
-            assert file('started').exists()
-        }
+        build3 = executer.withTasks("tasks").start()
 
         then:
-        daemons.daemons.size() == 2
+        build3.waitForFinish()
 
         and:
-        assertDaemonCount(1) { it.assertCanceled() }
-        assertDaemonCount(1) { it.assertBusy() }
+        daemons.daemons.size() == 3
+
+        and:
+        daemonCount(2) { it.assertCanceled() }
+        daemonCount(1) { it.assertIdle() }
     }
 
     /**
@@ -181,7 +203,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
      * @param expected - number of daemons that should match
      * @param closure - the condition to check for each daemon - this should throw an exception if a daemon does not match
      */
-    void assertDaemonCount(int expected, Closure closure) {
+    void daemonCount(int expected, Closure closure) {
         int count = 0
         daemons.daemons.each { daemon ->
             try {
@@ -191,6 +213,22 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
                 // does not match
             }
         }
-        assert count == expected
+        assert count == expected : "Expected ${expected} daemons to match the condition, only ${count} did."
+    }
+
+    String getUrl(String event) {
+        return "http://localhost:${server.port}/${event}"
+    }
+
+    void expectEvent(String event) {
+        server.expectConcurrentExecution(event, "${event}_release")
+    }
+
+    void waitFor(String event) {
+        new URL(getUrl("${event}_release")).text
+    }
+
+    void release(String event) {
+        waitFor(event)
     }
 }

@@ -45,7 +45,10 @@ dependencies {
 }
 
 test {
-    jvmArgs '-XX:MaxPermSize=512m', '-XX:+HeapDumpOnOutOfMemoryError'
+    if (!JavaVersion.current().java8Compatible) {
+        jvmArgs '-XX:MaxPermSize=512m'
+    }
+    jvmArgs '-XX:+HeapDumpOnOutOfMemoryError'
     <% if (binding.hasVariable("fullTestLogging")) { %>
         testLogging {
             events "started", "skipped", "failed", "passed", "standard_out", "standard_error"
@@ -69,7 +72,9 @@ tasks.withType(ScalaCompile) {
     scalaCompileOptions.with {
         useAnt = false
         fork = true
-        forkOptions.jvmArgs = ["-XX:MaxPermSize=512m"]
+        if (!JavaVersion.current().java8Compatible) {
+            forkOptions.jvmArgs = ["-XX:MaxPermSize=512m"]
+        }
     }
 }
 <% } %>

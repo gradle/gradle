@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import com.google.common.base.Joiner;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -40,16 +39,32 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleV
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
-import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver;
-import org.gradle.internal.resolve.result.*;
+import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
+import org.gradle.internal.resolve.result.ComponentIdResolveResult;
+import org.gradle.internal.resolve.result.ComponentResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult;
+import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DependencyGraphBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
@@ -204,7 +219,7 @@ public class DependencyGraphBuilder {
 
         @Override
         public String toString() {
-            return String.format("%s -> %s(%s)", from.toString(), dependencyMetadata.getRequested(), Joiner.on(',').join(dependencyMetadata.getModuleConfigurations()));
+            return String.format("%s -> %s", from.toString(), dependencyMetadata);
         }
 
         @Override
@@ -271,8 +286,7 @@ public class DependencyGraphBuilder {
         }
 
         public ModuleExclusion getExclusions() {
-            Set<String> hierarchy = from.metaData.getHierarchy();
-            ModuleExclusion edgeExclusions = ModuleExclusions.excludeAny(dependencyMetadata.getExcludes(hierarchy));
+            ModuleExclusion edgeExclusions = dependencyMetadata.getExclusions(from.metaData);
             return ModuleExclusions.intersect(edgeExclusions, moduleExclusion);
         }
 

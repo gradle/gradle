@@ -3,14 +3,16 @@ apply plugin: 'application'
 
 def toolingApiVersion = gradle.gradleVersion
 
+// START SNIPPET use-tooling-api
 repositories {
     maven { url 'https://repo.gradle.org/gradle/libs-releases' }
 }
 
 dependencies {
     compile "org.gradle:gradle-tooling-api:${toolingApiVersion}"
-    // Need an SLF4J implementation at runtime
+    // The tooling API need an SLF4J implementation available at runtime, replace this with any other implementation
     runtime 'org.slf4j:slf4j-simple:1.7.10'
 }
+// END SNIPPET use-tooling-api
 
 mainClassName = 'org.gradle.sample.Main'

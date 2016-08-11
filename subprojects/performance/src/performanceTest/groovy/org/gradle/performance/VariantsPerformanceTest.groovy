@@ -17,6 +17,7 @@
 
 package org.gradle.performance
 
+import org.gradle.api.JavaVersion
 import org.gradle.performance.categories.BasicPerformanceTest
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.junit.Ignore
@@ -28,7 +29,10 @@ class VariantsPerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        builder.invocation.gradleOpts("-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m")
+        builder.invocation.gradleOpts("-Xms1g", "-Xmx1g")
+        if (!JavaVersion.current().java8Compatible) {
+            builder.invocation.gradleOpts("-XX:MaxPermSize=256m")
+        }
         super.defaultSpec(builder)
     }
 

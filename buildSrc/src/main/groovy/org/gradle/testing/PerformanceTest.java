@@ -27,4 +27,24 @@ public class PerformanceTest extends DistributionTest {
     public void setScenarios(String scenarios) {
         systemProperty("org.gradle.performance.scenarios", scenarios);
     }
+
+    @Option(option = "baselines", description = "A comma or semicolon separated list of Gradle versions to be used as baselines for comparing.")
+    public void setBaselines(String baselines) {
+        systemProperty("org.gradle.performance.baselines", baselines);
+    }
+
+    @Option(option = "warmups", description = "Number of warmups before measurements")
+    public void setWarmups(String warmups) {
+        systemProperty("org.gradle.performance.execution.warmups", warmups);
+    }
+
+    @Option(option = "runs", description = "Number of iterations of measurements")
+    public void setRuns(String runs) {
+        systemProperty("org.gradle.performance.execution.runs", runs);
+    }
+
+    @Option(option = "checks", description = "Tells which regressions to check. One of [none, speed, memory, all]")
+    public void setChecks(String checks) {
+        systemProperty("org.gradle.performance.execution.checks", checks);
+    }
 }

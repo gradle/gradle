@@ -141,11 +141,11 @@ class BuildScanPluginPerformanceTest extends Specification {
         then:
         def (with, without) = [results.buildResult(WITH_PLUGIN_LABEL), results.buildResult(WITHOUT_PLUGIN_LABEL)]
 
-        // cannot be more than one second slower
-        with.totalTime.average - without.totalTime.average < millis(1500)
+        // cannot be more than 1s slower
+        with.totalTime.average - without.totalTime.average < millis(1000)
 
-        // cannot use 40MB more “memory”
-        with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(40)
+        // cannot use 10MB more
+        with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(10)
     }
 
     class Listener extends BuildExperimentListenerAdapter {

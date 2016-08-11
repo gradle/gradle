@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.changes;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
@@ -36,8 +35,8 @@ import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
 import org.gradle.internal.reflect.Instantiator;
 
-import java.io.File;
 import java.util.Collection;
+import java.util.Map;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
 
@@ -121,17 +120,19 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             return history.getCurrentExecution().calculateCacheKey();
         }
 
-        public FileCollection getOutputFiles() {
+        @Override
+        public FileCollection getOutputFiles(String propertyName) {
             TaskExecution lastExecution = history.getPreviousExecution();
-            if (lastExecution != null && lastExecution.getOutputFilesSnapshot() != null) {
-                ImmutableSet.Builder<File> builder = ImmutableSet.builder();
-                for (FileCollectionSnapshot snapshot : lastExecution.getOutputFilesSnapshot().values()) {
-                    builder.addAll(snapshot.getFiles());
+            if (lastExecution != null) {
+                Map<String, FileCollectionSnapshot> lastSnapshots = lastExecution.getOutputFilesSnapshot();
+                if (lastSnapshots != null) {
+                    FileCollectionSnapshot propertySnapshots = lastSnapshots.get(propertyName);
+                    if (propertySnapshots != null) {
+                        return fileCollectionFactory.fixed("Task " + task.getPath() + " " + propertyName + " outputs", propertySnapshots.getFiles());
+                    }
                 }
-                return fileCollectionFactory.fixed("Task " + task.getPath() + " outputs", builder.build());
-            } else {
-                return fileCollectionFactory.empty("Task " + task.getPath() + " outputs");
             }
+            return fileCollectionFactory.empty("Task " + task.getPath() + " " + propertyName + " outputs");
         }
 
         public TaskExecutionHistory getExecutionHistory() {

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build id="1090731" buildTypeId="Gradle_Master_Performance_DistributedPerformanceScenariosLinux" number="24019" status="FAILURE" state="finished" href="/app/rest/builds/id:1090731" webUrl="https://builds.gradle.org/viewLog.html?buildId=1090731&amp;buildTypeId=Gradle_Master_Performance_DistributedPerformanceScenariosLinux">
+  <statusText>Tests failed: 1 (1 new), passed: 0, ignored: 117</statusText>
+  <buildType id="Gradle_Master_Performance_DistributedPerformanceScenariosLinux" name="Distributed Performance scenarios - Linux" projectName="Gradle :: Master :: Performance :: Distributed" projectId="Gradle_Master_Performance_Distributed" href="/app/rest/buildTypes/id:Gradle_Master_Performance_DistributedPerformanceScenariosLinux" webUrl="https://builds.gradle.org/viewType.html?buildTypeId=Gradle_Master_Performance_DistributedPerformanceScenariosLinux"/>
+  <queuedDate>20160810T102419+0000</queuedDate>
+  <startDate>20160810T102426+0000</startDate>
+  <finishDate>20160810T103334+0000</finishDate>
+  <triggered type="user" date="20160810T102419+0000">
+    <user username="teamcityrestbot" name="TeamcityRestBot" id="58" href="/app/rest/users/id:58"/>
+  </triggered>
+  <lastChanges count="1">
+    <change id="164264" version="3a0a18a9c1eb06e613ad0b1308487fa7c94785d6" username="stefan" date="20160810T095038+0000" href="/app/rest/changes/id:164264" webUrl="https://builds.gradle.org/viewModification.html?modId=164264&amp;personal=false"/>
+  </lastChanges>
+  <changes href="/app/rest/changes?locator=build:(id:1090731)"/>
+  <revisions count="1">
+    <revision version="3a0a18a9c1eb06e613ad0b1308487fa7c94785d6">
+      <vcs-root-instance id="89" vcs-root-id="Gradle_Master" name="Gradle Master Branch" href="/app/rest/vcs-root-instances/id:89"/>
+    </revision>
+  </revisions>
+  <agent id="286" name="ubuntu52-agent1" typeId="196" href="/app/rest/agents/id:286"/>
+  <testOccurrences count="118" href="/app/rest/testOccurrences?locator=build:(id:1090731)" failed="1" newFailed="1" ignored="117"/>
+  <problemOccurrences count="2" href="/app/rest/problemOccurrences?locator=build:(id:1090731)"/>
+  <artifacts href="/app/rest/builds/id:1090731/artifacts/children/"/>
+  <relatedIssues href="/app/rest/builds/id:1090731/relatedIssues"/>
+  <properties count="26">
+    <property name="env.BUILD_ID" value="%teamcity.build.id%"/>
+    <property name="env.CI" value="1"/>
+    <property name="env.GRADLE_OPTS" value="-Xmx1536m -XX:MaxPermSize=384m"/>
+    <property name="env.JAVA_HOME" value="/opt/jdk/oracle-jdk-8-latest"/>
+    <property name="maxParallelForks" value="4"/>
+    <property name="scenario" value="full build Java build small" own="true"/>
+    <property name="teamcity.agent.filecache.publishing.disabled" value="true"/>
+    <property name="teamcity.agent.filecache.size.limit.bytes" value="524288000"/>
+    <property name="templates" value="small" own="true"/>
+  </properties>
+  <statistics href="/app/rest/builds/id:1090731/statistics"/>
+  <snapshot-dependencies count="1">
+    <build id="1090544" buildTypeId="Gradle_Master_CommitPhase_BuildDistributions" number="3521" status="SUCCESS" state="finished" href="/app/rest/builds/id:1090544" webUrl="https://builds.gradle.org/viewLog.html?buildId=1090544&amp;buildTypeId=Gradle_Master_CommitPhase_BuildDistributions"/>
+  </snapshot-dependencies>
+  <artifact-dependencies count="1">
+    <build id="1090544" buildTypeId="Gradle_Master_CommitPhase_BuildDistributions" number="3521" status="SUCCESS" state="finished" href="/app/rest/builds/id:1090544" webUrl="https://builds.gradle.org/viewLog.html?buildId=1090544&amp;buildTypeId=Gradle_Master_CommitPhase_BuildDistributions"/>
+  </artifact-dependencies>
+</build>

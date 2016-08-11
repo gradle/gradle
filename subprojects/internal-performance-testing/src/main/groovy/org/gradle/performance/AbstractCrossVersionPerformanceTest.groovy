@@ -26,7 +26,6 @@ import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.CrossVersionResultsStore
-import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
@@ -37,10 +36,10 @@ class AbstractCrossVersionPerformanceTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
-    static def resultStore = ResultsStoreHelper.maybeUseResultStore { new CrossVersionResultsStore() }
+    static def resultStore = new CrossVersionResultsStore()
 
     final def runner = new CrossVersionPerformanceTestRunner(
-        new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, new ReleasedVersionDistributions(), ResultsStoreHelper.ADHOC_RUN)
+        new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, new ReleasedVersionDistributions())
 
     def setup() {
         runner.workingDir = tmpDir.testDirectory

@@ -319,7 +319,7 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not locate library 'other'.")
+        failure.assertHasDescription("Could not locate library 'other' required by 'main' in project ':'.")
     }
 
     def "produces reasonable error message when prebuilt library does not exist in a different project"() {
@@ -363,6 +363,6 @@ model {
         fails "mainExecutable"
 
         then:
-        failure.assertHasDescription("Could not locate library 'hello' for project ':projectB'.")
+        failure.assertHasDescription("Could not locate library 'hello' in project ':projectB' required by 'main' in project ':projectA'.")
     }
 }

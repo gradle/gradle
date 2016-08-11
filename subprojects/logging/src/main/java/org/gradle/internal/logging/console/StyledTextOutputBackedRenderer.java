@@ -32,6 +32,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal;
 
 public class StyledTextOutputBackedRenderer implements OutputEventListener {
     private final OutputEventTextOutputImpl textOutput;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
     private boolean debugOutput;
     private RenderableOutputEvent lastEvent;
 
@@ -51,7 +52,7 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
                 if (!textOutput.atEndOfLine) {
                     textOutput.println();
                 }
-                textOutput.text(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date(outputEvent.getTimestamp())));
+                textOutput.text(dateFormat.format(new Date(outputEvent.getTimestamp())));
                 textOutput.text(" [");
                 textOutput.text(outputEvent.getLogLevel());
                 textOutput.text("] [");

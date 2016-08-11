@@ -1,0 +1,15 @@
+import org.gradle.performance.plugin.BuildEventTimeStamps
+import org.gradle.performance.plugin.MeasurementPlugin
+
+buildscript {
+    dependencies {
+        classpath files("${new File(gradleTask.project.rootProject.findProject(":internalPerformanceTesting").buildDir, 'libs/measurement-plugin.jar').absolutePath.replace('\\\\','/')}")
+    }
+}
+
+apply plugin: MeasurementPlugin
+
+${original}
+
+BuildEventTimeStamps.settingsEvaluated()
+

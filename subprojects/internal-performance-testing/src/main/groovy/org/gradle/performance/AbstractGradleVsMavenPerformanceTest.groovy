@@ -26,7 +26,6 @@ import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
 import org.gradle.performance.results.GradleVsMavenBuildResultsStore
-import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
@@ -35,7 +34,7 @@ import spock.lang.Specification
 @Category(Experiment)
 @CompileStatic
 class AbstractGradleVsMavenPerformanceTest extends Specification {
-    private static final DataReporter<GradleVsMavenBuildPerformanceResults> RESULT_STORE = ResultsStoreHelper.maybeUseResultStore { new GradleVsMavenBuildResultsStore() }
+    private static final DataReporter<GradleVsMavenBuildPerformanceResults> RESULT_STORE = new GradleVsMavenBuildResultsStore()
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()

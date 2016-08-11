@@ -135,7 +135,19 @@ public class BuildExperimentRunner {
         }
     }
 
+    private static String getExperimentOverride(String key) {
+        String value = System.getProperty("org.gradle.performance.execution." + key);
+        if (value != null && !"defaults".equals(value)) {
+            return value;
+        }
+        return null;
+    }
+
     protected Integer invocationsForExperiment(BuildExperimentSpec experiment) {
+        String overridenInvocationCount = getExperimentOverride("runs");
+        if (overridenInvocationCount != null) {
+            return Integer.valueOf(overridenInvocationCount);
+        }
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
         }
@@ -143,6 +155,10 @@ public class BuildExperimentRunner {
     }
 
     protected int warmupsForExperiment(BuildExperimentSpec experiment) {
+        String overridenWarmUpCount = getExperimentOverride("warmups");
+        if (overridenWarmUpCount != null) {
+            return Integer.valueOf(overridenWarmUpCount);
+        }
         if (experiment.getWarmUpCount() != null) {
             return experiment.getWarmUpCount();
         }

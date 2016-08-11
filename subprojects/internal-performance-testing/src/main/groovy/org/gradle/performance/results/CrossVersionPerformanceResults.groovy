@@ -82,20 +82,29 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     }
 
     void assertCurrentVersionHasNotRegressed() {
-        // TODO: Make it configurable from the commandline to only check for Performance/Memory regressions
         def slower = checkBaselineVersion({ it.fasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
         def larger = checkBaselineVersion({ it.usesLessMemoryThan(current) }, { it.getMemoryStatsAgainst(displayName, current) })
         assertEveryBuildSucceeds()
-        if (slower && larger) {
+        if (slower && larger && whatToCheck().speed() && whatToCheck().memory()) {
             throw new AssertionError("$slower\n$larger")
         }
-        if (slower) {
+        if (slower && whatToCheck().speed()) {
             throw new AssertionError(slower)
         }
-        if (larger) {
+        if (larger && whatToCheck().memory()) {
             throw new AssertionError(larger)
         }
     }
+
+    private static Checks whatToCheck() {
+        Checks result = Checks.ALL
+        String override = System.getProperty('org.gradle.performance.execution.checks')
+        if (override) {
+            result = Checks.valueOf(override.toUpperCase())
+        }
+        result
+    }
+
 
     private String checkBaselineVersion(Transformer<Boolean, BaselineVersion> fails, Transformer<String, BaselineVersion> provideMessage) {
         def failed = false
@@ -116,6 +125,29 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
 
         CurrentVersionResults(MeasuredOperationList results) {
             this.results = results
+        }
+    }
+
+    private static enum Checks {
+        NONE(false, false),
+        ALL(true, true),
+        SPEED(false, true),
+        MEMORY(true, false)
+
+        private final boolean checkMemory
+        private final boolean checkSpeed
+
+        private Checks(boolean memory, boolean speed) {
+            checkMemory = memory
+            checkSpeed = speed
+        }
+
+        boolean speed() {
+            checkSpeed
+        }
+
+        boolean memory() {
+            checkMemory
         }
     }
 }

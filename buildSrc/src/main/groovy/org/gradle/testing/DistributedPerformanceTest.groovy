@@ -25,6 +25,7 @@ import groovyx.net.http.ContentType
 import groovyx.net.http.RESTClient
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.IoActions
@@ -42,11 +43,11 @@ import java.util.concurrent.TimeUnit
 @CompileStatic
 class DistributedPerformanceTest extends PerformanceTest {
 
-    @Input
-    String buildTypeId
+    @Input @Optional
+    String coordinatorBuildId
 
     @Input
-    String revision
+    String buildTypeId
 
     @Input
     String teamCityUrl
@@ -119,14 +120,27 @@ class DistributedPerformanceTest extends PerformanceTest {
                         <property name="scenario" value="${scenario.id}"/>
                         <property name="templates" value="${scenario.templates.join(' ')}"/>
                     </properties>
-                    <revisions>
-                        <revision version="$revision"/>
-                    </revisions>
+                    ${getLastChange()}
                 </build>
             """
         )
 
         scheduledBuilds += response.data.@id
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private void getLastChange() {
+        if (coordinatorBuildId) {
+            def response = client.get(path: "builds/id:$coordinatorBuildId")
+            def id = response.data.lastChanges.change[0].@id
+            """
+                <lastChanges>
+                    <change id="$id"/>
+                </lastChanges>
+            """
+        } else {
+            ""
+        }
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -144,9 +158,11 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     private void writeScenarioReport() {
+        def renderer = new ScenarioReportRenderer()
         IoActions.writeTextFile(scenarioReport) { Writer writer ->
-            new ScenarioReportRenderer().render(finishedBuilds, writer)
+            renderer.render(project.name, finishedBuilds, writer)
         }
+        renderer.writeCss(scenarioReport.getParentFile())
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)

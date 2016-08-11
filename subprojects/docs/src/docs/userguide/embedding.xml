@@ -39,8 +39,8 @@
     <section id="sec:embedding_features">
         <title>Tooling API Features</title>
         <para>A fundamental characteristic of the Tooling API is that it operates in a version independent way.
-            This means that you can use the same API to work with different target versions of Gradle, including versions that are both newer and older than the version of the Tooling API that you are using.
-            The Tooling API is Gradle wrapper aware and, by default, uses the same target Gradle version as that used by the wrapper-powered project.
+            This means that you can use the same API to work with builds that use different versions of Gradle, including versions that are newer or older than the version of the Tooling API that you are using.
+            The Tooling API is Gradle wrapper aware and, by default, uses the same Gradle version as that used by the wrapper-powered build.
         </para>
 
         <para>Some features that the Tooling API provides:
@@ -82,6 +82,10 @@
             in <filename>samples/toolingApi</filename> in your Gradle distribution. These samples specify all of the required dependencies for the Tooling API with examples for
             querying information from Gradle builds and executing tasks from the Tooling API.
         </para>
+        <para>To use the Tooling API, add the following repository and dependency declarations to your build script:</para>
+        <sample id="useToolingApi" dir="toolingApi/runBuild" title="Using the tooling API">
+            <sourcefile file="build.gradle" snippet="use-tooling-api"/>
+        </sample>
         <para>
             The main entry point to the Tooling API is the <apilink class="org.gradle.tooling.GradleConnector"/>. You can navigate from there to find code samples and
             explore the available Tooling API models.
@@ -105,7 +109,7 @@
     </section>
 
     <section id="sec:embedding_compatibility">
-        <title>Gradle and Java version compatibility</title>
+        <title>Gradle version and Java version compatibility</title>
 
         <para>The current version of the Tooling API supports running builds using Gradle versions 1.2 and later.</para>
 

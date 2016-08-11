@@ -98,9 +98,9 @@ class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpec
         }
 
         then:
-        resultHandler.result.size() == 3
         // overall operation "succeeded"
         resultHandler.failure == null
+        resultHandler.result.size() == 3
         // each individual request failed
         resultHandler.result.each { result ->
             assertFailureHasCause(result.failure, BuildCancelledException)

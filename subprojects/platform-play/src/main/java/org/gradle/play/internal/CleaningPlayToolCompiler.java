@@ -33,8 +33,7 @@ public class CleaningPlayToolCompiler<T extends PlayCompileSpec> implements Comp
 
     @Override
     public WorkResult execute(T spec) {
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(taskOutputs);
-        cleaner.setDestinationDir(spec.getDestinationDir());
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(taskOutputs, "destinationDir");
         cleaner.execute();
         return delegate.execute(spec);
     }

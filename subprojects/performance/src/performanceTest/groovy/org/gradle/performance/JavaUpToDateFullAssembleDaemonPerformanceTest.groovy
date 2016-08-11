@@ -35,7 +35,7 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
 
         when:
         def result = runner.run()
@@ -64,7 +64,7 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
         runner.args += ["--parallel", "--max-workers=4"]
 
         when:

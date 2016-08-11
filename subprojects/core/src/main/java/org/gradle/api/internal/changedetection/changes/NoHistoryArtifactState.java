@@ -54,7 +54,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     public void finished() {
     }
 
-    public FileCollection getOutputFiles() {
+    public FileCollection getOutputFiles(String propertyName) {
         throw new UnsupportedOperationException();
     }
 }
