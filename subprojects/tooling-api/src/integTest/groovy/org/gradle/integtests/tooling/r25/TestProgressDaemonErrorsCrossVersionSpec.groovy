@@ -19,12 +19,18 @@ package org.gradle.integtests.tooling.r25
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.OperationType
+import org.junit.Rule
+
+import java.util.concurrent.atomic.AtomicBoolean
 
 class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
+    @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
+    boolean killed = false
 
     void setup() {
         toolingApi.requireIsolatedDaemons()
@@ -41,7 +47,12 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
         withConnection { ProjectConnection connection ->
             connection.newBuild().forTasks('test').addProgressListener({ ProgressEvent event ->
                 result << event
-                toolingApi.daemons.daemon.kill()
+                if (!killed) {
+                    server.waitFor()
+                    toolingApi.daemons.daemon.kill()
+                    server.release()
+                    killed = true
+                }
             }, EnumSet.of(OperationType.TEST)).run()
         }
 
@@ -58,6 +69,7 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.12' }
+            test.doLast { new URL("$server.uri").text }
         """
 
         file("src/test/java/example/MyTest.java") << """
@@ -69,5 +81,4 @@ class TestProgressDaemonErrorsCrossVersionSpec extends ToolingApiSpecification {
             }
         """
     }
-
 }
