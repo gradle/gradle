@@ -22,18 +22,18 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.initialization.GradleLauncher;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
-    // TODO:DAZ This should possibly be a BuildController
-    private final GradleLauncher gradleLauncher;
+    private final Factory<GradleLauncher> gradleLauncherFactory;
     private DefaultDependencySubstitutions dependencySubstitutions;
 
-    public DefaultIncludedBuild(File projectDir, GradleLauncher gradleLauncher) {
+    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> gradleLauncherFactory) {
         this.projectDir = projectDir;
-        this.gradleLauncher = gradleLauncher;
+        this.gradleLauncherFactory = gradleLauncherFactory;
     }
 
     public File getProjectDir() {
@@ -47,12 +47,18 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     public DependencySubstitutionsInternal getDependencySubstitution() {
         if (dependencySubstitutions == null) {
+            GradleLauncher gradleLauncher = createGradleLauncher();
             gradleLauncher.load();
             SettingsInternal settings = gradleLauncher.getSettings();
             String buildName = settings.getRootProject().getName();
             dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(buildName);
         }
         return dependencySubstitutions;
+    }
+
+    @Override
+    public GradleLauncher createGradleLauncher() {
+        return gradleLauncherFactory.create();
     }
 
     @Override

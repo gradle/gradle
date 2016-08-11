@@ -18,7 +18,9 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
+import org.gradle.initialization.GradleLauncher;
 
 public interface IncludedBuildInternal extends IncludedBuild {
     DependencySubstitutionsInternal getDependencySubstitution();
+    GradleLauncher createGradleLauncher();
 }

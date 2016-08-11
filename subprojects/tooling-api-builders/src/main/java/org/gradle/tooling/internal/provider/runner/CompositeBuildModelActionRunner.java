@@ -172,6 +172,6 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
                 return includedBuildFactory.createBuild(gradleParticipantBuild.getProjectDir(), buildRequestContext);
             }
         });
-        contextBuilder.addToCompositeContext(includedBuilds, buildRequestContext);
+        contextBuilder.addToCompositeContext(includedBuilds);
     }
 }
