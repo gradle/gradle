@@ -123,9 +123,10 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         expectEvent("started")
         def build = executer.withTasks("block").start()
         waitFor("started")
-        daemons.daemon.assertBusy()
+        def canceledDaemon = daemons.daemon
+        canceledDaemon.assertBusy()
         build.abort().waitForFailure()
-        daemons.daemon.becomesCanceled()
+        canceledDaemon.becomesCanceled()
 
         when:
         build = executer.withTasks("tasks").withArguments("--info").start()
@@ -138,10 +139,6 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
 
         and:
         daemons.daemons.size() == 2
-
-        and:
-        daemonCount(1) { it.assertCanceled() }
-        daemonCount(1) { it.assertIdle() }
     }
 
     // GradleHandle.abort() does not work reliably on windows and creates flakiness
@@ -160,8 +157,10 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         // 2 daemons we can cancel
         def build1 = executer.withTasks("block").withArguments("-PbuildNum=1").start()
         waitFor("started1")
+        def canceledDaemon1 = daemons.daemon
         def build2 = executer.withTasks("block").withArguments("-PbuildNum=2").start()
         waitFor("started2")
+        def canceledDaemon2 = daemons.daemons.find { it.context.pid != canceledDaemon1.context.pid }
 
         // 1 daemon we can reuse
         def build3 = executer.withTasks("tasks").start()
@@ -170,18 +169,19 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         build3.waitForFinish()
 
         then:
-        daemonCount(1) { it.assertIdle() }
-        daemonCount(2) { it.assertBusy() }
+        daemons.daemons.size() == 3
+        def idleDaemon = daemons.daemons.find { ! (it.context.pid in [ canceledDaemon1.context.pid, canceledDaemon2.context.pid ]) }
+        idleDaemon.assertIdle()
+        canceledDaemon1.assertBusy()
+        canceledDaemon2.assertBusy()
 
         when:
         build1.abort().waitForFailure()
         build2.abort().waitForFailure()
 
         then:
-        ConcurrentTestUtil.poll {
-            daemonCount(1) { it.assertIdle() }
-            daemonCount(2) { it.assertCanceled() }
-        }
+        canceledDaemon1.becomesCanceled()
+        canceledDaemon2.becomesCanceled()
 
         when:
         build3 = executer.withTasks("tasks").start()
@@ -193,27 +193,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 3
 
         and:
-        daemonCount(2) { it.assertCanceled() }
-        daemonCount(1) { it.assertIdle() }
-    }
-
-    /**
-     * Assert that exactly a given number of daemons match a condition
-     *
-     * @param expected - number of daemons that should match
-     * @param closure - the condition to check for each daemon - this should throw an exception if a daemon does not match
-     */
-    void daemonCount(int expected, Closure closure) {
-        int count = 0
-        daemons.daemons.each { daemon ->
-            try {
-                closure(daemon)
-                count++
-            } catch (Throwable t) {
-                // does not match
-            }
-        }
-        assert count == expected : "Expected ${expected} daemons to match the condition, only ${count} did."
+        assert ! build3.standardOutput.contains(DaemonMessages.WAITING_ON_CANCELED)
     }
 
     String getUrl(String event) {

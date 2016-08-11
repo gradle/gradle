@@ -119,6 +119,10 @@ class DistributedPerformanceTest extends PerformanceTest {
                     <properties>
                         <property name="scenario" value="${scenario.id}"/>
                         <property name="templates" value="${scenario.templates.join(' ')}"/>
+                        <property name="baselines" value="${baselines?:'defaults'}"/>
+                        <property name="warmups" value="${warmups!=null?:'defaults'}"/>
+                        <property name="runs" value="${runs!=null?:'defaults'}"/>
+                        <property name="checks" value="${checks?:'all'}"/>
                     </properties>
                     ${getLastChange()}
                 </build>
