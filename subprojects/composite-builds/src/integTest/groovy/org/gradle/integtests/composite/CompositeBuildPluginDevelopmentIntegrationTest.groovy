@@ -16,10 +16,8 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
-
 /**
  * Tests for plugin development scenarios within a composite build.
  */
@@ -62,7 +60,6 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         outputContains("taskFromPluginC")
     }
 
-    @NotYetImplemented // Need to configure buildB (to determine metadata) with pluginC in the context.
     def "can co-develop plugin and consumer with both plugin and consumer as included builds"() {
         given:
         applyPlugin(buildB)
@@ -72,20 +69,21 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
                 compile "org.test:buildB:1.0"
             }
 """
+        // TODO:DAZ The order of included builds is important here. This should go away when we build dependency metadata on-demand.
         buildA.settingsFile << """
+            includeBuild('${pluginBuild.toURI()}')
             includeBuild('${buildB.toURI()}') {
                 dependencySubstitution { // By declaring substitutions, don't need to pre-configure
                     substitute module("org.test:buildB") with project("buildB::")
                 }
             }
-            includeBuild('${pluginBuild.toURI()}')
 """
 
         when:
-        execute(buildA, "tasks")
+        execute(buildA, "assemble")
 
         then:
-        outputContains("taskFromPluginC")
+        executed ":pluginC:jar", ":buildB:jar", ":jar"
     }
 
     def "can co-develop plugin and consumer where plugin uses previous version of itself to build"() {
