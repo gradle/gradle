@@ -28,6 +28,7 @@ import spock.lang.Specification
 
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
 
 class PersistentDaemonRegistryTest extends Specification {
 
@@ -40,7 +41,7 @@ class PersistentDaemonRegistryTest extends Specification {
 
     def "corrupt registry file is ignored"() {
         given:
-        registry.store(new DaemonInfo(address(), daemonContext(), "password".bytes, true))
+        registry.store(new DaemonInfo(address(), daemonContext(), "password".bytes, Idle))
 
         expect:
         registry.all.size() == 1
@@ -57,7 +58,7 @@ class PersistentDaemonRegistryTest extends Specification {
         def address = address()
 
         and:
-        registry.store(new DaemonInfo(address, daemonContext(), "password".bytes, true))
+        registry.store(new DaemonInfo(address, daemonContext(), "password".bytes, Idle))
 
         when:
         registry.remove(address)
@@ -85,7 +86,7 @@ class PersistentDaemonRegistryTest extends Specification {
         def address = address()
 
         when:
-        registry.markBusy(address)
+        registry.markState(address, Busy)
 
         then:
         registry.all.empty
@@ -96,7 +97,7 @@ class PersistentDaemonRegistryTest extends Specification {
         def address = address()
 
         when:
-        registry.markIdle(address)
+        registry.markState(address, Idle)
 
         then:
         registry.all.empty

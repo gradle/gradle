@@ -19,6 +19,7 @@ package org.gradle.performance.fixture
 import org.gradle.performance.ResultSpecification
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
+import org.gradle.performance.results.CrossVersionPerformanceResults
 
 class CrossVersionPerformanceTestExecutionTest extends ResultSpecification {
     def CrossVersionPerformanceResults result = new CrossVersionPerformanceResults(testProject: "some-project", tasks: [])

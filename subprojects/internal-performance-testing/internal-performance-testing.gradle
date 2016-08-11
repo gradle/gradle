@@ -34,7 +34,7 @@ dependencies {
     compile 'com.googlecode.jatl:jatl:0.2.2'
     compile 'org.eclipse.jgit:org.eclipse.jgit:3.0.0.201306101825-r'
 
-    runtime 'com.h2database:h2:1.3.171'
+    runtime 'com.h2database:h2:1.4.192'
 }
 
 task reportResources(type: Copy) {
@@ -49,3 +49,28 @@ useTestFixtures(project: ':toolingApi', sourceSet: 'main')
 useClassycle()
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"
+
+apply plugin: 'groovy'
+
+sourceSets {
+    measurementPlugin
+}
+
+dependencies {
+    measurementPluginCompile project(":core"), project(":dependencyManagement"), project(":pluginUse"), project(":toolingApi") // mimic gradleApi()
+}
+
+task measurementPluginJar(type: org.gradle.jvm.tasks.Jar) {
+    from sourceSets.measurementPlugin.output
+    dependsOn measurementPluginClasses
+    archiveName = 'measurement-plugin.jar'
+}
+
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
+    idea {
+        module {
+            sourceDirs += sourceSets.measurementPlugin.allSource.srcDirs
+            scopes.COMPILE.plus.add(configurations.measurementPluginCompile)
+        }
+    }
+}

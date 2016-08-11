@@ -24,6 +24,7 @@ import org.gradle.api.plugins.WarPlugin;
 import org.gradle.api.plugins.WarPluginConvention;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.War;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -31,7 +32,10 @@ import java.util.concurrent.Callable;
 /**
  * <p>A {@link Plugin} which extends the {@link WarPlugin} to add tasks which run the web application using an embedded
  * Jetty web container.</p>
+ *
+ * @deprecated The Jetty plugin has been deprecated
  */
+@Deprecated
 public class JettyPlugin implements Plugin<Project> {
     public static final String JETTY_RUN = "jettyRun";
     public static final String JETTY_RUN_WAR = "jettyRunWar";
@@ -41,6 +45,7 @@ public class JettyPlugin implements Plugin<Project> {
     public static final String RELOAD_MANUAL = "manual";
 
     public void apply(Project project) {
+        DeprecationLogger.nagUserOfPluginReplacedWithExternalOne("Jetty", "Gretty (https://github.com/akhikhl/gretty)");
         project.getPluginManager().apply(WarPlugin.class);
         JettyPluginConvention jettyConvention = new JettyPluginConvention();
         Convention convention = project.getConvention();

@@ -16,11 +16,13 @@
 
 package org.gradle.performance.fixture
 
+import org.gradle.performance.results.BuildDisplayInfo
+
 class GradleBuildExperimentSpec extends BuildExperimentSpec {
     final GradleInvocationSpec invocation
 
-    GradleBuildExperimentSpec(String displayName, String projectName, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener) {
-        super(displayName, projectName, warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
+    GradleBuildExperimentSpec(String displayName, String projectName, File workingDirectory, GradleInvocationSpec invocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener) {
+        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
         this.invocation = invocation
     }
 
@@ -36,6 +38,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
     static class GradleBuilder implements BuildExperimentSpec.Builder {
         String displayName
         String projectName
+        File workingDirectory
         GradleInvocationSpec.InvocationBuilder invocation = GradleInvocationSpec.builder()
         Integer warmUpCount
         Integer invocationCount
@@ -88,7 +91,7 @@ class GradleBuildExperimentSpec extends BuildExperimentSpec {
             assert displayName != null
             assert invocation != null
 
-            new GradleBuildExperimentSpec(displayName, projectName, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
+            new GradleBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.buildInfo(displayName, projectName).build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
         }
     }
 }

@@ -18,6 +18,9 @@ package org.gradle.performance.fixture
 import groovy.transform.CompileStatic
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.performance.results.DataReporter
+import org.gradle.performance.results.GradleVsMavenBuildPerformanceResults
+import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.util.GradleVersion
@@ -56,7 +59,6 @@ class GradleVsMavenPerformanceTestRunner extends AbstractGradleBuildPerformanceT
             }
         } else if (builder instanceof MavenBuildExperimentSpec.MavenBuilder) {
             def invocation = ((MavenBuildExperimentSpec.MavenBuilder) builder).invocation
-            invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
             if (!invocation.args.find { it.startsWith("-Dmaven.repo.local=") }) {
                 def localRepoPath = m2.mavenRepo().rootDir.absolutePath
                 if (OperatingSystem.current().isWindows()) {

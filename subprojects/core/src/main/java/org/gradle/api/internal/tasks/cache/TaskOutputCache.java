@@ -18,10 +18,29 @@ package org.gradle.api.internal.tasks.cache;
 
 import java.io.IOException;
 
+/**
+ * Cache protocol interface to be implemented by task output cache backends.
+ */
 public interface TaskOutputCache {
-    TaskOutputReader get(TaskCacheKey key) throws IOException;
+    /**
+     * Load the cached task output corresponding to the given task cache key. The {@code reader} will be called if an entry is found in the cache.
+     * @param key the cache key.
+     * @param reader the reader to read the data corresponding to the cache key.
+     * @return {@code true} if an entry was found, {@code false} otherwise.
+     * @throws IOException if an I/O error occurs.
+     */
+    boolean load(TaskCacheKey key, TaskOutputReader reader) throws IOException;
 
-    void put(TaskCacheKey key, TaskOutputWriter output) throws IOException;
+    /**
+     * Store the task output with the given cache key. The {@code writer} will be called to actually write the data.
+     * @param key the cache key.
+     * @param writer the writer to write the data corresponding to the cache key.
+     * @throws IOException if an I/O error occurs.
+     */
+    void store(TaskCacheKey key, TaskOutputWriter output) throws IOException;
 
+    /**
+     * Returns a description for the cache.
+     */
     String getDescription();
 }

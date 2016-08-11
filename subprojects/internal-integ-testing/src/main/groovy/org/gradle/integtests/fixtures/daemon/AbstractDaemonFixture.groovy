@@ -21,6 +21,9 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.process.internal.streams.SafeStreams
 
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+
 abstract class AbstractDaemonFixture implements DaemonFixture {
     public static final int STATE_CHANGE_TIMEOUT = 20000
     final DaemonContext context
@@ -47,26 +50,36 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
     }
 
     void becomesIdle() {
-        waitForState(State.idle)
+        waitForState(Idle)
     }
 
     void stops() {
-        waitForState(State.stopped)
+        waitForState(Stopped)
     }
 
     @Override
     void assertIdle() {
-        assertHasState(State.idle)
+        assertHasState(Idle)
     }
 
     @Override
     void assertBusy() {
-        assertHasState(State.busy)
+        assertHasState(Busy)
     }
 
     @Override
     void assertStopped() {
-        assertHasState(State.stopped)
+        assertHasState(Stopped)
+    }
+
+    @Override
+    void assertCanceled() {
+        assertHasState(Canceled)
+    }
+
+    @Override
+    void becomesCanceled() {
+        waitForState(Canceled)
     }
 
     protected abstract void waitForState(State state)
@@ -132,10 +145,5 @@ killtree() {
         } else {
             throw new IllegalStateException()
         }
-    }
-
-    @SuppressWarnings("FieldName")
-    enum State {
-        busy, idle, stopped
     }
 }

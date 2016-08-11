@@ -23,12 +23,11 @@ import spock.lang.Specification
 class SimpleStaleClassCleanerTest extends Specification {
     @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     private final outputs = Mock(TaskOutputsInternal)
-    private final SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs)
-    
+    private final SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(outputs, "property")
+
     def deletesAllPreviousOutputFiles() {
         def file1 = tmpDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
-        cleaner.destinationDir = tmpDir.testDirectory
 
         when:
         cleaner.execute()
@@ -36,7 +35,7 @@ class SimpleStaleClassCleanerTest extends Specification {
         then:
         !file1.exists()
         !file2.exists()
-        1 * outputs.previousFiles >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
+        1 * outputs.getPreviousOutputFiles("property") >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
 
         and:
         cleaner.didWork
@@ -46,7 +45,6 @@ class SimpleStaleClassCleanerTest extends Specification {
         def destDir = tmpDir.file('dir')
         def file1 = destDir.file('file1').createFile()
         def file2 = tmpDir.file('file2').createFile()
-        cleaner.destinationDir = destDir
 
         when:
         cleaner.execute()
@@ -54,20 +52,18 @@ class SimpleStaleClassCleanerTest extends Specification {
         then:
         !file1.exists()
         file2.exists()
-        1 * outputs.previousFiles >> { [iterator: { [file1, file2].iterator() }] as FileCollection }
+        1 * outputs.getPreviousOutputFiles("property") >> { [iterator: { [file1].iterator() }] as FileCollection }
 
         and:
         cleaner.didWork
     }
 
     def reportsWhenNoWorkDone() {
-        cleaner.destinationDir = tmpDir.file('dir')
-
         when:
         cleaner.execute()
 
         then:
-        1 * outputs.previousFiles >> { [iterator: { [].iterator() }] as FileCollection }
+        1 * outputs.getPreviousOutputFiles("property") >> { [iterator: { [].iterator() }] as FileCollection }
 
         and:
         !cleaner.didWork

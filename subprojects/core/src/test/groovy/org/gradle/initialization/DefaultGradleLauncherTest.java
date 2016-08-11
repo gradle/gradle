@@ -49,6 +49,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
@@ -114,6 +115,8 @@ public class DefaultGradleLauncherTest {
             {
                 allowing(settingsMock).getRootProject();
                 will(returnValue(expectedRootProjectDescriptor));
+                allowing(settingsMock).getIncludedBuilds();
+                will(returnValue(Collections.<String>emptyList()));
                 allowing(settingsMock).getDefaultProject();
                 will(returnValue(expectedRootProjectDescriptor));
                 allowing(settingsMock).getRootClassLoaderScope();

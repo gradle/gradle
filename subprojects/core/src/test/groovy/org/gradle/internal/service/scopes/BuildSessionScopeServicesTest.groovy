@@ -29,6 +29,7 @@ import org.gradle.deployment.internal.DefaultDeploymentRegistry
 import org.gradle.deployment.internal.DeploymentRegistry
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.installation.CurrentGradleInstallation
+import org.gradle.internal.jvm.inspection.JvmVersionDetector
 import org.gradle.internal.remote.MessagingServer
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.process.internal.JavaExecHandleFactory
@@ -70,6 +71,7 @@ class BuildSessionScopeServicesTest extends Specification {
         expectParentServiceLocated(MessagingServer)
         expectParentServiceLocated(TemporaryFileProvider)
         expectParentServiceLocated(JavaExecHandleFactory)
+        expectParentServiceLocated(JvmVersionDetector)
 
         expect:
         registry.get(WorkerProcessFactory) instanceof DefaultWorkerProcessFactory

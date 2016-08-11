@@ -16,10 +16,24 @@
 
 package org.gradle.internal.component.external.model;
 
+import org.gradle.internal.component.model.ModuleSource;
+
 /**
  * Meta-data for a module version resolved from a Maven repository.
  */
 public interface MavenModuleResolveMetadata extends ModuleComponentResolveMetadata {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    MutableMavenModuleResolveMetadata asMutable();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    MavenModuleResolveMetadata withSource(ModuleSource source);
+
     String getPackaging();
     boolean isRelocated();
     boolean isPomPackaging();

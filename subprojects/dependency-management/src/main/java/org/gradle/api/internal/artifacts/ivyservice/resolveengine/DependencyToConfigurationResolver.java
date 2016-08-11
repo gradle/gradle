@@ -26,5 +26,5 @@ import java.util.Set;
  * Responsible for mapping a dependency definition to the set of configurations that it refers to.
  */
 public interface DependencyToConfigurationResolver {
-    Set<ConfigurationMetadata> resolveTargetConfigurations(DependencyMetadata dependencyMetadata, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
+    Set<ConfigurationMetadata> resolveTargetConfigurations(DependencyMetadata dependencyMetadata, ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
 }

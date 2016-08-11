@@ -88,11 +88,9 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
      * }
      * </pre>
      *
-     * @deprecated Use {@link #reports(Action)} instead
      * @param closure The configuration
      * @return The reports container
      */
-    @Deprecated
     public JDependReports reports(Closure closure) {
         return reports(new ClosureBackedAction<JDependReports>(closure));
     }

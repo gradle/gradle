@@ -67,6 +67,16 @@ public interface DaemonFixture {
     void assertBusy();
 
     /**
+     * Asserts that this daemon is in a canceled state.
+     */
+    void assertCanceled();
+
+    /**
+     * Asserts that this daemon becomes canceled within a short timeout. Blocks until this has happened.
+     */
+    void becomesCanceled();
+
+    /**
      * Asserts that this daemon has stopped and is no longer visible to any clients.
      */
     void assertStopped();

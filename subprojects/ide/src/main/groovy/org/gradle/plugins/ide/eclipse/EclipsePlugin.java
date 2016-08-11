@@ -45,11 +45,12 @@ import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
 import org.gradle.plugins.ide.eclipse.internal.EclipseNameDeduper;
 import org.gradle.plugins.ide.eclipse.internal.LinkedResourcesCreator;
 import org.gradle.plugins.ide.eclipse.model.BuildCommand;
@@ -134,7 +135,7 @@ public class EclipsePlugin extends IdePlugin {
         projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("classpath", projectId, projectName, project));
     }
 
-    private static ComponentArtifactMetadata createArtifact(String extension, ProjectComponentIdentifier projectId, String projectName, Project project) {
+    private static LocalComponentArtifactMetadata createArtifact(String extension, ProjectComponentIdentifier projectId, String projectName, Project project) {
         File projectFile = new File(project.getProjectDir(), "." + extension);
         String taskName = project.getPath().equals(":") ? ":eclipseProject" : project.getPath() + ":eclipseProject";
         Task byName = project.getTasks().getByPath(taskName);
@@ -240,7 +241,7 @@ public class EclipsePlugin extends IdePlugin {
                         task.getClasspath().setFile(new XmlFileContentMerger(task.getXmlTransformer()));
                         task.getClasspath().setSourceSets(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets());
 
-                        project.afterEvaluate(new Action<Project>() {
+                        AfterEvaluateHelper.afterEvaluateOrExecute(project, new Action<Project>() {
                             @Override
                             public void execute(Project p) {
                                 // keep the ordering we had in earlier gradle versions

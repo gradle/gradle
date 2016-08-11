@@ -19,9 +19,13 @@ import groovy.xml.MarkupBuilder
 import org.apache.tools.ant.Target
 import org.apache.tools.ant.Task
 import org.gradle.api.AntBuilder.AntMessagePriority
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileCollection.AntType
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.tasks.ant.AntTarget
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import spock.lang.Issue
+import spock.lang.Unroll
 
 import java.lang.reflect.Field
 
@@ -228,6 +232,41 @@ class DefaultAntBuilderTest extends AbstractProjectBuilderSpec {
         and:
         level == AntMessagePriority.DEBUG
     }
+
+    @Unroll
+    @Issue('GRADLE-3511')
+    def 'Filename #filename is properly masked when adding it as #antType to an ant task'(String filename, antType) {
+        given:
+        def dirname = 'somedir$$with'
+        def dirAndFile = "${dirname}/${filename}"
+        project.file(dirname).mkdir()
+        File fileWithDollars = project.file(dirAndFile)
+        fileWithDollars << "Some Text"
+        FileCollection files = project.files(dirAndFile)
+
+        when:
+        ant.property(name: "my.property", value: "doesNotExist")
+        ant.delete {
+            files.addToAntBuilder(delegate, null, antType)
+        }
+
+        then:
+        !fileWithDollars.exists()
+
+        where:
+
+        [filename, antType] << [[
+            'f1$$SomeOtherText',
+            'f1$$$$$$Some$OtherText',
+            'f1$${Some}OtherText',
+            'f1$${SomeOther$$$Text',
+            'f1$$${my.property}Text',
+            '${my.property}'],
+            [AntType.FileSet, AntType.ResourceCollection]
+        ].combinations()
+    }
+
+
 }
 
 public class TestTask extends Task {

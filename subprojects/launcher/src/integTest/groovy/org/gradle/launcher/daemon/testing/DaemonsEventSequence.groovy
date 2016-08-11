@@ -92,7 +92,7 @@ class DaemonsEventSequence implements Stoppable, Runnable {
     }
 
     private checkForDaemonsStateChange() {
-        def busy = registry.busy.size()
+        def busy = registry.notIdle.size()
         def idle = registry.idle.size()
 
         def currentState = new DaemonsState(busy, idle)

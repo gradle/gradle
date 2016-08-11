@@ -39,7 +39,6 @@ public class GradleConnectionFactory {
         this.loggingProvider = loggingProvider;
     }
 
-    // TODO:DAZ Clean this up: we should not be providing an ignored 'distribution' when using the inline coordinator
     public DefaultGradleConnection create(Distribution distribution, CompositeConnectionParameters parameters, boolean useDaemonCoordinator) {
         ConsumerActionExecutor lazyConnection;
         if (useDaemonCoordinator) {

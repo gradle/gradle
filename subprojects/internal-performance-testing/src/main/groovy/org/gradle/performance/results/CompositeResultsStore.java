@@ -16,7 +16,14 @@
 
 package org.gradle.performance.results;
 
-import java.util.*;
+import org.gradle.internal.concurrent.CompositeStoppable;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class CompositeResultsStore implements ResultsStore {
     private final List<ResultsStore> stores;
@@ -65,4 +72,8 @@ public class CompositeResultsStore implements ResultsStore {
         }
     }
 
+    @Override
+    public void close() throws IOException {
+        CompositeStoppable.stoppable(stores).stop();
+    }
 }

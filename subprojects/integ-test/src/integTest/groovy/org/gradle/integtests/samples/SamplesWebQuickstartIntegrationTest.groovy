@@ -36,7 +36,7 @@ class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
         sample sample
 
         when:
-        run 'clean', 'build'
+        executer.withTasks('clean', 'build').expectDeprecationWarning().run()
 
         then:
         // Check contents of War
@@ -90,14 +90,14 @@ task sayHearthyGoodbye << {
 
         //starting jetty
         sample sample
-        def runJetty = executer.withTasks(jettyStartTask, "sayHearthyGoodbye").withArgument("-i").start()
+        def runJetty = executer.withTasks(jettyStartTask, "sayHearthyGoodbye").withArgument("-i").expectDeprecationWarning().start()
 
         //jetty is started
         available("http://localhost:$httpPort/quickstart", "jetty")
 
         //running web test then stopping jetty
         sample sample
-        def jettyStop = executer.withTasks('runTest', 'jettyStop').withArgument("-i").run()
+        def jettyStop = executer.withTasks('runTest', 'jettyStop').withArgument("-i").expectDeprecationWarning().run()
 
         //test has completed
         assert jettyStop.output.contains('hello Gradle')

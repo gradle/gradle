@@ -18,6 +18,7 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
+import org.gradle.performance.results.BuildDisplayInfo
 
 @CompileStatic
 @EqualsAndHashCode
@@ -25,8 +26,8 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
 
     final MavenInvocationSpec invocation
 
-    MavenBuildExperimentSpec(String displayName, String projectName, MavenInvocationSpec mavenInvocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener) {
-        super(displayName, projectName, warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
+    MavenBuildExperimentSpec(String displayName, String projectName, File workingDirectory, MavenInvocationSpec mavenInvocation, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener) {
+        super(displayName, projectName, workingDirectory, warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
         this.invocation = mavenInvocation
     }
 
@@ -42,6 +43,7 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
     static class MavenBuilder implements BuildExperimentSpec.Builder {
         String displayName
         String projectName
+        File workingDirectory
         MavenInvocationSpec.InvocationBuilder invocation = MavenInvocationSpec.builder()
 
         Integer warmUpCount
@@ -95,7 +97,7 @@ class MavenBuildExperimentSpec extends BuildExperimentSpec {
             assert displayName != null
             assert invocation != null
 
-            new MavenBuildExperimentSpec(displayName, projectName, invocation.build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
+            new MavenBuildExperimentSpec(displayName, projectName, workingDirectory, invocation.build(), warmUpCount, invocationCount, sleepAfterWarmUpMillis, sleepAfterTestRoundMillis, listener)
         }
 
     }

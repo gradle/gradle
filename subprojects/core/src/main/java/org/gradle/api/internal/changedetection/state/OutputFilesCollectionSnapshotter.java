@@ -29,13 +29,11 @@ import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,8 +60,8 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, boolean allowReuse, TaskFilePropertyCompareType compareType) {
-        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, allowReuse, compareType));
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType) {
+        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, compareType));
     }
 
     private Map<String, Boolean> getRoots(FileCollection files) {
@@ -79,28 +77,27 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
      */
     public OutputFilesSnapshot createOutputSnapshot(FileCollectionSnapshot afterPreviousExecution, FileCollectionSnapshot beforeExecution, FileCollectionSnapshot afterExecution, FileCollection roots) {
         FileCollectionSnapshot filesSnapshot;
-        if (!beforeExecution.getSnapshots().isEmpty() && !afterExecution.getSnapshots().isEmpty()) {
+        Map<String, IncrementalFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
+        if (!beforeExecution.getSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
             Map<String, IncrementalFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
             Map<String, IncrementalFileSnapshot> previousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : new HashMap<String, IncrementalFileSnapshot>();
-            List<Map.Entry<String, IncrementalFileSnapshot>> newEntries = new ArrayList<Map.Entry<String, IncrementalFileSnapshot>>(afterExecution.getSnapshots().size());
+            int newEntryCount = 0;
+            ImmutableMap.Builder<String, IncrementalFileSnapshot> newEntries = ImmutableMap.builder();
 
-            for (Map.Entry<String, IncrementalFileSnapshot> entry : afterExecution.getSnapshots().entrySet()) {
+            for (Map.Entry<String, IncrementalFileSnapshot> entry : afterSnapshots.entrySet()) {
                 final String path = entry.getKey();
                 IncrementalFileSnapshot otherFile = beforeSnapshots.get(path);
                 if (otherFile == null
                     || !entry.getValue().isContentAndMetadataUpToDate(otherFile)
                     || previousSnapshots.containsKey(path)) {
-                    newEntries.add(entry);
+                    newEntries.put(entry.getKey(), entry.getValue());
+                    newEntryCount++;
                 }
             }
-            if (newEntries.size() == afterExecution.getSnapshots().size()) {
+            if (newEntryCount == afterSnapshots.size()) {
                 filesSnapshot = afterExecution;
             } else {
-                ImmutableMap.Builder<String, IncrementalFileSnapshot> newSnapshots = ImmutableMap.builder();
-                for (Map.Entry<String, IncrementalFileSnapshot> entry : newEntries) {
-                    newSnapshots.put(entry.getKey(), entry.getValue());
-                }
-                filesSnapshot = new FileCollectionSnapshotImpl(newSnapshots.build(), TaskFilePropertyCompareType.OUTPUT);
+                filesSnapshot = new FileCollectionSnapshotImpl(newEntries.build(), TaskFilePropertyCompareType.OUTPUT);
             }
         } else {
             filesSnapshot = afterExecution;
@@ -129,15 +126,6 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             return filesSnapshot.getSnapshots();
         }
 
-        public FilesSnapshotSet getSnapshot() {
-            return filesSnapshot.getSnapshot();
-        }
-
-        @Override
-        public Collection<Long> getTreeSnapshotIds() {
-            return filesSnapshot.getTreeSnapshotIds();
-        }
-
         @Override
         public boolean isEmpty() {
             return filesSnapshot.isEmpty();
@@ -164,7 +152,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             for (Map.Entry<String, Boolean> current : roots.entrySet()) {
                 Boolean otherValue = other.roots.get(current.getKey());
                 // Only care about roots that used to exist and have been removed
-                if (otherValue != null && otherValue.booleanValue() && !otherValue.equals(current.getValue())) {
+                if (otherValue != null && otherValue && !otherValue.equals(current.getValue())) {
                     changed.add(current.getKey());
                 }
             }

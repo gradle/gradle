@@ -15,47 +15,35 @@
  */
 package org.gradle.internal.component.external.model;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Map;
-import java.util.Set;
 
 public class DefaultIvyModuleResolveMetadata extends AbstractModuleComponentResolveMetadata implements IvyModuleResolveMetadata {
-    private final Map<NamespaceId, String> extraInfo;
-    private final String branch;
-
-    public DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(componentIdentifier, createModuleDescriptor(componentIdentifier, artifacts));
+    DefaultIvyModuleResolveMetadata(MutableIvyModuleResolveMetadata metadata) {
+        super(metadata);
     }
 
-    public DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor) {
-        this(componentIdentifier, DefaultModuleVersionIdentifier.newId(componentIdentifier), moduleDescriptor);
-    }
-
-    private DefaultIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier identifier, ModuleDescriptorState moduleDescriptor) {
-        super(componentIdentifier, identifier, moduleDescriptor);
-        this.extraInfo = moduleDescriptor.getExtraInfo();
-        this.branch = moduleDescriptor.getBranch();
+    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {
+        super(metadata, source);
     }
 
     @Override
-    public DefaultIvyModuleResolveMetadata copy() {
-        // TODO:ADAM - need to make a copy of the descriptor (it's effectively immutable at this point so it's not a problem yet)
-        DefaultIvyModuleResolveMetadata copy = new DefaultIvyModuleResolveMetadata(getComponentId(), getId(), getDescriptor());
-        copyTo(copy);
-        return copy;
+    public DefaultIvyModuleResolveMetadata withSource(ModuleSource source) {
+        return new DefaultIvyModuleResolveMetadata(this, source);
+    }
+
+    @Override
+    public MutableIvyModuleResolveMetadata asMutable() {
+        return new DefaultMutableIvyModuleResolveMetadata(this);
     }
 
     public String getBranch() {
-        return branch;
+        return getDescriptor().getBranch();
     }
 
     public Map<NamespaceId, String> getExtraInfo() {
-        return extraInfo;
+        return getDescriptor().getExtraInfo();
     }
 }

@@ -24,7 +24,14 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
 class DaemonStateCoordinatorTest extends ConcurrentSpec {
     final Runnable onStartCommand = Mock(Runnable)
     final Runnable onFinishCommand = Mock(Runnable)
-    final coordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand, 2000)
+    boolean canceled = false
+    final Runnable onCancelCommand = new Runnable() {
+        @Override
+        void run() {
+            canceled = true;
+        }
+    }
+    final coordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand, onCancelCommand, 2000)
 
     def "can stop multiple times"() {
         expect:
@@ -548,22 +555,33 @@ class DaemonStateCoordinatorTest extends ConcurrentSpec {
         !stopped
 
         when:
-        operation.run {
+        start {
             coordinator.runCommand(command, "command")
+        }
+        start {
+            instant.awaitRunning
+            coordinator.awaitStop()
+        }
+        async {
+            thread.blockUntil.commandRunning
+            thread.blockUntil.awaitRunning
+            thread.block()
+            coordinator.cancelBuild()
         }
 
         then:
         DaemonStoppedException e = thrown()
 
         and:
+        canceled
         coordinator.willRefuseNewCommands
         stopped
 
         and:
         1 * onStartCommand.run()
         1 * command.run() >> {
-            coordinator.cancelBuild()
-            thread.blockUntil.run
+            instant.commandRunning
+            thread.blockUntil.never
         }
         0 * _._
     }

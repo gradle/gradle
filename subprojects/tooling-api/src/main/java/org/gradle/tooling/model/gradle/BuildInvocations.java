@@ -30,7 +30,7 @@ import org.gradle.tooling.model.*;
  * @since 1.12
  */
 @Incubating
-public interface BuildInvocations extends Model {
+public interface BuildInvocations extends Model, ProjectModel {
 
     /**
      * Returns the identifier for the Gradle project that these invocations originate from.

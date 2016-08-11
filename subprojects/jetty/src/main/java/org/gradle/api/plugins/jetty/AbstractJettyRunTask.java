@@ -45,7 +45,10 @@ import java.util.*;
 
 /**
  * Base class for all tasks which deploy a web application to an embedded Jetty web container.
+ *
+ * @deprecated The Jetty plugin has been deprecated
  */
+@Deprecated
 public abstract class AbstractJettyRunTask extends ConventionTask {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractJettyRunTask.class);
 

@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.api.JavaVersion
 import org.gradle.performance.categories.NativePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.junit.experimental.categories.Category
@@ -27,7 +28,10 @@ import spock.lang.Unroll
 class NativeScenarioPerformanceTest extends AbstractCrossBuildPerformanceTest {
     @Override
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
-        builder.invocation.gradleOpts("-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m")
+        builder.invocation.gradleOpts("-Xms1g", "-Xmx1g")
+        if (!JavaVersion.current().java8Compatible) {
+            builder.invocation.gradleOpts("-XX:MaxPermSize=256m")
+        }
         super.defaultSpec(builder)
     }
 

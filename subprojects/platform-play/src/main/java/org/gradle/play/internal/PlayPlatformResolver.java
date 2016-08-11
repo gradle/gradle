@@ -75,10 +75,10 @@ public class PlayPlatformResolver implements PlatformResolver<PlayPlatform> {
 
     private ScalaPlatform createScalaPlatform(String compatibilityVersion) {
         if ("2.10".equals(compatibilityVersion)) {
-            return new DefaultScalaPlatform("2.10.4");
+            return new DefaultScalaPlatform("2.10.6");
         }
         if ("2.11".equals(compatibilityVersion)) {
-            return new DefaultScalaPlatform("2.11.4");
+            return new DefaultScalaPlatform("2.11.8");
         }
         throw new InvalidUserDataException(String.format("Not a supported Scala platform identifier %s. Supported values are: ['2.10', '2.11'].", compatibilityVersion));
     }

@@ -23,9 +23,12 @@ import org.gradle.internal.TrueTimeProvider;
 import org.gradle.internal.remote.Address;
 import org.gradle.launcher.daemon.context.DaemonConnectDetails;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.server.api.DaemonStateControl.State;
 
 import java.io.Serializable;
 import java.util.Date;
+
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
 
 /**
  * Provides information about a daemon that is potentially available to do some work.
@@ -37,28 +40,28 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
     private final byte[] token;
     private final TimeProvider timeProvider;
 
-    private boolean idle;
+    private State state;
     private long lastBusy;
 
-    public DaemonInfo(Address address, DaemonContext context, byte[] token, boolean idle) {
-        this(address, context, token, idle, new TrueTimeProvider());
+    public DaemonInfo(Address address, DaemonContext context, byte[] token, State state) {
+        this(address, context, token, state, new TrueTimeProvider());
     }
 
     @VisibleForTesting
-    DaemonInfo(Address address, DaemonContext context, byte[] token, boolean idle, TimeProvider busyClock) {
+    DaemonInfo(Address address, DaemonContext context, byte[] token, State state, TimeProvider busyClock) {
         this.address = Preconditions.checkNotNull(address);
         this.context = Preconditions.checkNotNull(context);
         this.token = Preconditions.checkNotNull(token);
         this.timeProvider = Preconditions.checkNotNull(busyClock);
         this.lastBusy = -1; // Will be overwritten by setIdle if not idle.
-        setIdle(idle);
+        setState(state);
     }
 
-    public DaemonInfo setIdle(boolean idle) {
-        this.idle = idle;
-        if (!idle) {
+    public DaemonInfo setState(State state) {
+        if ((this.state == Idle || this.state == null) && state == Busy) {
             lastBusy = timeProvider.getCurrentTime();
         }
+        this.state = state;
         return this;
     }
 
@@ -78,8 +81,8 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
         return context;
     }
 
-    public boolean isIdle() {
-        return idle;
+    public State getState() {
+        return state;
     }
 
     public byte[] getToken() {
@@ -93,7 +96,7 @@ public class DaemonInfo implements Serializable, DaemonConnectDetails {
 
     @Override
     public String toString() {
-        return String.format("DaemonInfo{pid=%s, address=%s, idle=%s, lastBusy=%s, context=%s}", context.getPid(), address, idle, lastBusy, context);
+        return String.format("DaemonInfo{pid=%s, address=%s, state=%s, lastBusy=%s, context=%s}", context.getPid(), address, state, lastBusy, context);
     }
 
 }

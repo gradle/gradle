@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.remote.MessagingServer;
 import org.gradle.process.internal.JavaExecHandleFactory;
 import org.gradle.process.internal.worker.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
@@ -38,13 +39,13 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private int connectTimeoutSeconds = 120;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
-                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory) {
+                                       File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.idGenerator = idGenerator;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.execHandleFactory = execHandleFactory;
-        workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider);
+        workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(classPathRegistry, temporaryFileProvider, jvmVersionDetector);
     }
 
     public void setConnectTimeoutSeconds(int connectTimeoutSeconds) {

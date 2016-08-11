@@ -75,7 +75,7 @@ buildTypes {
     }
 
     // Run the performance tests
-    performanceTest {
+    performanceTests {
         tasks "performance:performanceTest"
         projectProperties useIncomingDistributions: true
     }
@@ -83,6 +83,12 @@ buildTypes {
     // Run the performance experiments
     performanceExperiments {
         tasks "performance:performanceExperiments"
+        projectProperties useIncomingDistributions: true
+    }
+
+    // Run a single performance scenario
+    fullPerformanceTests {
+        tasks "performance:fullPerformanceTest"
         projectProperties useIncomingDistributions: true
     }
 
@@ -157,7 +163,7 @@ ext {
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders'
+        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders', 'compositeBuilds', 'taskCacheHttp'
     ].collect {
         project(it)
     }

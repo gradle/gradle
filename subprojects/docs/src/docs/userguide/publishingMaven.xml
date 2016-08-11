@@ -188,9 +188,9 @@
                 See <apilink class="org.gradle.api.publish.maven.MavenPom" method="withXml(org.gradle.api.Action)" /> in the API documentation for more information.
             </para>
             <para>
-                It is possible to modify virtually any aspect of the created POM should you need to.
+                It is possible to modify virtually any aspect of the created POM.
                 This means that it is also possible to modify the POM in such a way that it is no longer a valid
-                Maven Pom, so care must be taken when using this feature.
+                Maven POM, so care must be taken when using this feature.
             </para>
             <para>
                 The identifier (groupId, artifactId, version) of the published module is an exception; these values cannot be modified in the POM using the `withXML` hook.
@@ -243,7 +243,7 @@
         </sample>
         <para>
         	In this example, a task named “<literal>publishMavenJavaPublicationToMavenRepository</literal>” is created, which is of type
-            <apilink class="org.gradle.api.publish.maven.tasks.PublishToMavenRepository" />. 
+            <apilink class="org.gradle.api.publish.maven.tasks.PublishToMavenRepository" />.
             This task is wired into the <literal>publish</literal> lifecycle task.
             Executing “<literal>gradle publish</literal>” builds the POM file and all of the artifacts to be published, and transfers them to the repository.
         </para>
@@ -285,7 +285,7 @@
             <output args="generatePomFileForMavenCustomPublication"/>
         </sample>
         <para>
-            All details of the publishing model are still considered in POM generation, including <literal>components</literal>`, custom <literal>artifacts</literal>,
+            All details of the publishing model are still considered in POM generation, including <literal>components</literal>, custom <literal>artifacts</literal>,
             and any modifications made via <literal>pom.withXml</literal>.
         </para>
         <note>

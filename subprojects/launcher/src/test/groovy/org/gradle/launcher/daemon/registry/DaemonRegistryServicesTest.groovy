@@ -29,6 +29,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+
 class DaemonRegistryServicesTest extends Specification {
     @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
     def parent = Mock(ServiceRegistry) {
@@ -55,7 +57,7 @@ class DaemonRegistryServicesTest extends Specification {
             concurrent.start {
                 def context = new DefaultDaemonContext("$idx", new File("$idx"), new File("$idx"), idx, 5000, [])
                 registry.store(new DaemonInfo(
-                    new SocketInetAddress(new Inet6Address(), 8888 + idx), context, "foo-$idx".bytes, true))
+                    new SocketInetAddress(new Inet6Address(), 8888 + idx), context, "foo-$idx".bytes, Idle))
             }
         }
         concurrent.finished()

@@ -16,18 +16,18 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.resolve.result.ResourceAwareResolveResult
-import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.internal.resolve.result.ResourceAwareResolveResult
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource
 import spock.lang.Specification
 
 class MavenUniqueSnapshotExternalResourceArtifactResolverTest extends Specification {
 
     def delegate = Mock(ExternalResourceArtifactResolver)
-    def resolver = new MavenUniqueSnapshotExternalResourceArtifactResolver(delegate, "timestamp")
+    def resolver = new MavenUniqueSnapshotExternalResourceArtifactResolver(delegate, new MavenUniqueSnapshotModuleSource("timestamp"))
 
     def "creates timestamped artifact"() {
         when:

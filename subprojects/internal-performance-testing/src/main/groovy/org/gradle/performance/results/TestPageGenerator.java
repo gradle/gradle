@@ -16,9 +16,11 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
-import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.DataSeries;
 import org.gradle.performance.measure.Duration;
@@ -28,6 +30,7 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory> {
     @Override
@@ -43,59 +46,52 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             head();
             headSection(this);
             title().text(String.format("Performance test %s", testHistory.getDisplayName())).end();
-            script();
-            text("$(function() {\n");
-            text("$.ajax({ url:'" + testHistory.getId() + ".json\', dataType: 'json',");
-            text("  success: function(data) {\n");
-            text("    var labels = data.labels;\n");
-            text("    var options = { series: { points: { show: true }, lines: { show: true } }, legend: { noColumns: 0, margin: 1 }, grid: { hoverable: true, clickable: true }, xaxis: { tickFormatter: function(index, value) { return labels[index]; } }, selection: { mode: 'x' } };\n");
-            text("    var executionChart = $.plot('#executionTimeChart', data.totalTime, options);\n");
-            text("    var heapChart = $.plot('#heapUsageChart', data.heapUsage, options);\n");
-            text("    var zoomFunction = function(plot, reset) {\n");
-            text("      var reset = reset || false;\n");
-            text("      return function (event, ranges) {\n");
-            text("        $.each(plot.getXAxes(), function(_, axis) {\n");
-            text("          var opts = axis.options;\n");
-            text("          opts.min = reset ? null : ranges.xaxis.from;\n");
-            text("          opts.max = reset ? null : ranges.xaxis.to;\n");
-            text("        });\n");
-            text("        plot.setupGrid();\n");
-            text("        plot.draw();\n");
-            text("        plot.clearSelection();\n");
-            text("      };\n");
-            text("    };\n");
-            text("    $('#executionTimeChart').bind('plothover', function (event, pos, item) {\n");
-            text("      if (!item) {\n");
-            text("        $('#tooltip').hide();\n");
-            text("      } else {\n");
-            text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', execution time: ' + item.datapoint[1] + 's';\n");
-            text("        $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();\n");
-            text("      }\n");
-            text("    }).bind('plotselected', zoomFunction(executionChart)).bind('dblclick', zoomFunction(executionChart, true));\n");
-            text("    $('#heapUsageChart').bind('plothover', function (event, pos, item) {\n");
-            text("      if (!item) {\n");
-            text("        $('#tooltip').hide();\n");
-            text("      } else {\n");
-            text("        var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', heap usage: ' + item.datapoint[1] + 'mb';\n");
-            text("        $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();\n");
-            text("      }\n");
-            text("    }).bind('plotselected', zoomFunction(heapChart)).bind('dblclick', zoomFunction(heapChart, true));\n");
-            text("  }\n");
-            text("});\n");
-            text("});");
-            end();
             end();
             body();
             div().id("content");
             h2().text(String.format("Test: %s", testHistory.getDisplayName())).end();
+            text(getReproductionInstructions(testHistory));
+
+            h3().text("Average total time").end();
+            div().id("totalTimeChart").classAttr("chart");
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.totalTime }, 'total time', 's', 'totalTimeChart');");
+                end();
+            end();
+
+            h3().text("Average configuration time").end();
+            div().id("configurationTimeChart").classAttr("chart");
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.configurationTime }, 'configuration time', 's', 'configurationTimeChart');");
+                end();
+            end();
+
             h3().text("Average execution time").end();
             div().id("executionTimeChart").classAttr("chart");
-            p().text("Loading...").end();
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.executionTime }, 'execution time', 's', 'executionTimeChart');");
+                end();
             end();
+
+            h3().text("Average setup/teardown time").end();
+            div().id("miscTimeChart").classAttr("chart");
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.miscTime }, 'setup/teardown time', 's', 'miscTimeChart');");
+                end();
+            end();
+
             h3().text("Average heap usage").end();
             div().id("heapUsageChart").classAttr("chart");
-            p().text("Loading...").end();
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.heapUsage }, 'heap usage', 'mb', 'heapUsageChart');");
+                end();
             end();
+
             div().id("tooltip").end();
             div().id("controls").end();
 
@@ -224,6 +220,23 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             footer(this);
             endAll();
         }};
+    }
+
+    private String getReproductionInstructions(PerformanceTestHistory history) {
+        Set<String> templates = Sets.newHashSet();
+        Set<String> cleanTasks = Sets.newHashSet();
+        for (ScenarioDefinition scenario : history.getScenarios()) {
+            templates.add(scenario.getTestProject());
+            cleanTasks.add("clean" + StringUtils.capitalize(scenario.getTestProject()));
+        }
+
+        return "To reproduce, run ./gradlew "
+            + Joiner.on(' ').join(cleanTasks)
+            + " "
+            + Joiner.on(' ').join(templates)
+            + " cleanPerformanceTest performanceTest --scenarios "
+            + "'" + history.getDisplayName() + "'"
+            + " -x prepareSamples";
     }
 
     private static class Link {

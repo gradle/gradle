@@ -87,9 +87,9 @@ project(":other") {
 
         where:
         label                                  | dependencyNotation                      | description                                                | useCauseDescription
-        "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown'."                      | false
+        "does not exist"                       | "library: 'unknown'"                    | "Could not locate library 'unknown' required by 'main' in project ':exe'."                      | false
         "project that does not exist"          | "project: ':unknown', library: 'hello'" | "Project with path ':unknown' not found."                  | true
-        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' for project ':other'." | false
+        "does not exist in referenced project" | "project: ':other', library: 'unknown'" | "Could not locate library 'unknown' in project ':other' required by 'main' in project ':exe'." | false
     }
 
     @Unroll

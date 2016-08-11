@@ -21,18 +21,18 @@ import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.FlatDirectoryArtifactRepository;
 import org.gradle.api.artifacts.repositories.IvyArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
-import org.gradle.authentication.Authentication;
 import org.gradle.api.internal.artifacts.BaseRepositoryFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
+import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
-import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.authentication.Authentication;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
-import org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata;
+import org.gradle.internal.authentication.DefaultAuthenticationContainer;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
@@ -47,7 +47,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactMetadata> artifactFileStore;
-    private final MetaDataParser<DefaultMavenModuleResolveMetadata> pomParser;
+    private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
     private final AuthenticationSchemeRegistry authenticationSchemeRegistry;
     private final IvyContextManager ivyContextManager;
 
@@ -56,7 +56,7 @@ public class DefaultBaseRepositoryFactory implements BaseRepositoryFactory {
                                         Instantiator instantiator,
                                         RepositoryTransportFactory transportFactory,
                                         LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                        FileStore<ModuleComponentArtifactMetadata> artifactFileStore, MetaDataParser<DefaultMavenModuleResolveMetadata> pomParser,
+                                        FileStore<ModuleComponentArtifactMetadata> artifactFileStore, MetaDataParser<MutableMavenModuleResolveMetadata> pomParser,
                                         AuthenticationSchemeRegistry authenticationSchemeRegistry, IvyContextManager ivyContextManager) {
         this.localMavenRepositoryLocator = localMavenRepositoryLocator;
         this.fileResolver = fileResolver;

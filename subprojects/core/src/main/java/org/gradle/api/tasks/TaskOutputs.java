@@ -29,7 +29,7 @@ import org.gradle.internal.HasInternalProtocol;
  * <p>You can obtain a {@code TaskOutputs} instance using {@link org.gradle.api.Task#getOutputs()}.</p>
  */
 @HasInternalProtocol
-public interface TaskOutputs {
+public interface TaskOutputs extends CompatibilityAdapterForTaskOutputs {
     /**
      * <p>Adds a predicate to determine whether the outputs of this task are up-to-date. The given closure is executed
      * at task execution time. The closure is passed the task as a parameter. If the closure returns false, the task
@@ -53,18 +53,6 @@ public interface TaskOutputs {
      * @param upToDateSpec The spec to use to determine whether the task outputs are up-to-date.
      */
     void upToDateWhen(Spec<? super Task> upToDateSpec);
-
-    /**
-     * <p>Cache the results of the task only if the given closure returns true.  The closure will be evaluated at task execution
-     * time, not during configuration.  The closure will be passed a single parameter, this task. If the closure returns
-     * false, the results of the task will not be cached.</p>
-     *
-     * <p>You may add multiple such predicates. The results of the task are not cached if any of the predicates return false.</p>
-     *
-     * @param closure code to execute to determine if the results of the task should be cached.
-     */
-    @Incubating
-    void cacheIf(Closure closure);
 
     /**
      * <p>Cache the results of the task only if the given spec is satisfied. The spec will be evaluated at task execution time, not
@@ -96,7 +84,7 @@ public interface TaskOutputs {
      * Registers some output files for this task.
      *
      * @param paths The output files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * @return this
+     * @return a property builder to further configure this property.
      */
     TaskOutputFilePropertyBuilder files(Object... paths);
 
@@ -104,7 +92,7 @@ public interface TaskOutputs {
      * Registers some output file for this task.
      *
      * @param path The output file. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * @return this
+     * @return a property builder to further configure this property.
      */
     TaskOutputFilePropertyBuilder file(Object path);
 
@@ -112,7 +100,7 @@ public interface TaskOutputs {
      * Registers an output directory for this task.
      *
      * @param path The output directory. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * @return this
+     * @return a property builder to further configure this property.
      */
     TaskOutputFilePropertyBuilder dir(Object path);
 }

@@ -38,7 +38,7 @@ public class GradleBuildAdapterProducer implements ModelProducer {
         if (type.equals(GradleBuild.class)) {
             GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);
             final DefaultGradleBuild convert = new GradleBuildConverter().convert(gradleProject);
-            return adapter.adapt(type, convert, mappingProvider.getCompatibilityMapping(operationParameters));
+            return mappingProvider.applyCompatibilityMapping(adapter.builder(type), operationParameters).build(convert);
         }
         return delegate.produceModel(type, operationParameters);
     }

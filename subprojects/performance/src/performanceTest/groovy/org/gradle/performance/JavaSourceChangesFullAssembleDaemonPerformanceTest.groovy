@@ -16,14 +16,14 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.JavaPerformanceTest
+import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([JavaPerformanceTest])
+@Category([Experiment])
 class JavaSourceChangesFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("incremental full assemble Java build - #testProject")
     def "incremental full assemble Java build"() {
@@ -34,9 +34,9 @@ class JavaSourceChangesFullAssembleDaemonPerformanceTest extends AbstractCrossVe
         runner.tasksToRun = ['assemble']
         runner.maxExecutionTimeRegression = maxTimeRegression
         runner.maxMemoryRegression = maxMemoryRegression
-        runner.targetVersions = ['2.10', '2.11', 'last']
+        runner.targetVersions = ['2.11', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
         runner.buildExperimentListener = new JavaSoftwareModelSourceFileUpdater(10, 0, 0)
 
         when:

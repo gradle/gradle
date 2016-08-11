@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.util.AntUtil;
 
 import java.io.File;
 import java.util.Collections;
@@ -38,7 +39,7 @@ public class AntFileCollectionBuilder implements AntBuilderAware {
         dynamicObject.invokeMethod(childNodeName == null ? "resources" : childNodeName, new Closure(this) {
             public Object doCall(Object ignore) {
                 for (File file : files) {
-                    dynamicObject.invokeMethod("file", Collections.singletonMap("file", file.getAbsolutePath()));
+                    dynamicObject.invokeMethod("file", Collections.singletonMap("file", AntUtil.maskFilename(file.getAbsolutePath())));
                 }
                 return null;
             }

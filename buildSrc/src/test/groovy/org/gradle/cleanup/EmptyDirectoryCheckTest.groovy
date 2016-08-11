@@ -82,7 +82,7 @@ class EmptyDirectoryCheckTest extends Specification {
 
         then:
         TaskExecutionException tee = thrown()
-        tee.getCause().getMessage().contains(targetDir.path)
+        tee.getCause().getMessage().contains(targetDir.canonicalPath)
         leftoverReport.exists()
         def output = leftoverReport.getText("UTF-8")
         files.each {

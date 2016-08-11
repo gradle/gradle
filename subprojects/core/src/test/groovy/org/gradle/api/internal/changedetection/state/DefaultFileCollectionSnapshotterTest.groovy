@@ -33,14 +33,13 @@ import spock.lang.Specification
 
 import static TaskFilePropertyCompareType.OUTPUT
 import static TaskFilePropertyCompareType.UNORDERED
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.ORDERED
 
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
-    def treeVisitor = new CachingTreeVisitor()
     def stringInterner = new StringInterner()
-    def treeSnapshotCache = new TreeSnapshotRepository(cacheAccess, stringInterner)
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.resolver(), treeVisitor, treeSnapshotCache)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.resolver())
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -68,7 +67,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile noExist = tmpDir.file('file3')
 
         when:
-        def snapshot = snapshotter.snapshot(files(file, dir, noExist), true, UNORDERED)
+        def snapshot = snapshotter.snapshot(files(file, dir, noExist), UNORDERED)
 
         then:
         snapshot.files as List == [file]
@@ -80,8 +79,8 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile file2 = tmpDir.createFile('file2')
 
         when:
-        def snapshot = snapshotter.snapshot(files(file1), true, UNORDERED)
-        changes(snapshotter.snapshot(files(file1, file2), true, UNORDERED), snapshot, listener)
+        def snapshot = snapshotter.snapshot(files(file1), UNORDERED)
+        changes(snapshotter.snapshot(files(file1, file2), UNORDERED), snapshot, listener)
 
         then:
         1 * listener.added(file2.path)
@@ -96,9 +95,9 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile file4 = tmpDir.createDir('file4')
 
         when:
-        def snapshot = snapshotter.snapshot(files(file1, file2), true, UNORDERED)
+        def snapshot = snapshotter.snapshot(files(file1, file2), UNORDERED)
         file2.createFile()
-        def target = snapshotter.snapshot(files(file1, file2, file3, file4), true, OUTPUT)
+        def target = snapshotter.snapshot(files(file1, file2, file3, file4), OUTPUT)
         Iterators.size(target.iterateContentChangesSince(snapshot, "TYPE")) == 0
 
         then:
@@ -111,8 +110,8 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile file2 = tmpDir.createFile('file2')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2), true, UNORDERED)
-        changes(snapshotter.snapshot(files(file1), true, UNORDERED), snapshot, listener)
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2), UNORDERED)
+        changes(snapshotter.snapshot(files(file1), UNORDERED), snapshot, listener)
 
         then:
         1 * listener.removed(file2.path)
@@ -125,10 +124,10 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         file.setLastModified(1234L)
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), true, UNORDERED)
-        changes(snapshotter.snapshot(files(file), true, UNORDERED), snapshot, listener)
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), UNORDERED)
+        changes(snapshotter.snapshot(files(file), UNORDERED), snapshot, listener)
         file.setLastModified(45600L)
-        changes(snapshotter.snapshot(files(file), true, UNORDERED), snapshot, listener)
+        changes(snapshotter.snapshot(files(file), UNORDERED), snapshot, listener)
 
         then:
         0 * listener._
@@ -141,11 +140,10 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         def fileCollection = files(root)
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true, UNORDERED)
-        treeVisitor.clearCache()
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED)
         file.delete()
         file.createDir()
-        changes(snapshotter.snapshot(fileCollection, true, UNORDERED), snapshot, listener)
+        changes(snapshotter.snapshot(fileCollection, UNORDERED), snapshot, listener)
 
         then:
         1 * listener.changed(file.path)
@@ -156,9 +154,9 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile file = tmpDir.createFile('file')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), true, UNORDERED)
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), UNORDERED)
         file.write('new content')
-        changes(snapshotter.snapshot(files(file), true, UNORDERED), snapshot, listener)
+        changes(snapshotter.snapshot(files(file), UNORDERED), snapshot, listener)
 
         then:
         1 * listener.changed(file.path)
@@ -169,9 +167,9 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile dir = tmpDir.createDir('dir')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(dir), true, UNORDERED)
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(dir), UNORDERED)
 
-        changes(snapshotter.snapshot(files(dir), true, UNORDERED), snapshot, listener)
+        changes(snapshotter.snapshot(files(dir), UNORDERED), snapshot, listener)
 
         then:
         0 * _
@@ -183,11 +181,10 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile dir = root.createDir('dir')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true, UNORDERED)
-        treeVisitor.clearCache()
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED)
         dir.deleteDir()
         dir.createFile()
-        changes(snapshotter.snapshot(fileCollection, true, UNORDERED), snapshot, listener)
+        changes(snapshotter.snapshot(fileCollection, UNORDERED), snapshot, listener)
 
         then:
         1 * listener.changed(dir.path)
@@ -198,8 +195,8 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile file = tmpDir.file('unknown')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), true, UNORDERED)
-        changes(snapshotter.snapshot(files(file), true, UNORDERED), snapshot, listener)
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file), UNORDERED)
+        changes(snapshotter.snapshot(files(file), UNORDERED), snapshot, listener)
 
         then:
         0 * _
@@ -211,10 +208,9 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile file = root.file('newfile')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true, UNORDERED)
-        treeVisitor.clearCache()
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED)
         file.createFile()
-        changes(snapshotter.snapshot(fileCollection, true, UNORDERED), snapshot, listener)
+        changes(snapshotter.snapshot(fileCollection, UNORDERED), snapshot, listener)
 
         then:
         1 * listener.added(file.path)
@@ -226,10 +222,9 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile file = root.createFile('file')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, true, UNORDERED)
-        treeVisitor.clearCache()
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(fileCollection, UNORDERED)
         file.delete()
-        changes(snapshotter.snapshot(fileCollection, true, UNORDERED), snapshot, listener)
+        changes(snapshotter.snapshot(fileCollection, UNORDERED), snapshot, listener)
 
         then:
         1 * listener.removed(file.path)
@@ -240,8 +235,8 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         TestFile file2 = tmpDir.createFile('file')
 
         when:
-        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2), true, UNORDERED)
-        changes(snapshotter.snapshot(files(file1), true, UNORDERED), snapshot, listener)
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2), UNORDERED)
+        changes(snapshotter.snapshot(files(file1), UNORDERED), snapshot, listener)
 
         then:
         0 * _
@@ -252,13 +247,25 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
 
         when:
         FileCollectionSnapshot snapshot = snapshotter.emptySnapshot()
-        FileCollectionSnapshot newSnapshot = snapshotter.snapshot(files(file), true, UNORDERED)
+        FileCollectionSnapshot newSnapshot = snapshotter.snapshot(files(file), UNORDERED)
         changes(newSnapshot, snapshot, listener)
 
         then:
         snapshot.files.empty
         1 * listener.added(file.path)
         0 * listener._
+    }
+
+    def "retains order of files in the snapshot"() {
+        given:
+        def testfiles = [*10..1].collect { tmpDir.createFile("file$it") }
+        def testfileNames = testfiles.collect { it.name }
+
+        when:
+        def snapshot = snapshotter.snapshot(files(testfiles as File[]), ORDERED)
+
+        then:
+        snapshot.files.collect { it.name } == testfileNames
     }
 
     private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {

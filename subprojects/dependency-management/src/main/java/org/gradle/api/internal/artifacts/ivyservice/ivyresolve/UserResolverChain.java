@@ -65,8 +65,7 @@ public class UserResolverChain implements ComponentResolvers {
     private static class ModuleTransformer implements Transformer<ModuleComponentResolveMetadata, RepositoryChainModuleResolution> {
         public ModuleComponentResolveMetadata transform(RepositoryChainModuleResolution original) {
             RepositoryChainModuleSource moduleSource = new RepositoryChainModuleSource(original.repository.getId(), original.module.getSource());
-            original.module.setSource(moduleSource);
-            return original.module;
+            return original.module.withSource(moduleSource);
         }
     }
 }

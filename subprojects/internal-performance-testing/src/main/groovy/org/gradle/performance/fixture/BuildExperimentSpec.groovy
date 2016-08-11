@@ -19,6 +19,7 @@ package org.gradle.performance.fixture
 import groovy.transform.CompileStatic
 import groovy.transform.EqualsAndHashCode
 import org.gradle.api.Nullable
+import org.gradle.performance.results.BuildDisplayInfo
 
 @CompileStatic
 @EqualsAndHashCode
@@ -26,6 +27,7 @@ abstract class BuildExperimentSpec {
 
     String displayName
     String projectName
+    File workingDirectory
     @Nullable
     Integer warmUpCount
     @Nullable
@@ -34,9 +36,10 @@ abstract class BuildExperimentSpec {
     Long sleepAfterTestRoundMillis
     BuildExperimentListener listener
 
-    BuildExperimentSpec(String displayName, String projectName, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener) {
+    BuildExperimentSpec(String displayName, String projectName, File workingDirectory, Integer warmUpCount, Integer invocationCount, Long sleepAfterWarmUpMillis, Long sleepAfterTestRoundMillis, BuildExperimentListener listener) {
         this.displayName = displayName
         this.projectName = projectName
+        this.workingDirectory = workingDirectory
         this.warmUpCount = warmUpCount
         this.invocationCount = invocationCount
         this.sleepAfterWarmUpMillis = sleepAfterWarmUpMillis
@@ -52,6 +55,9 @@ abstract class BuildExperimentSpec {
         String getDisplayName()
         String getProjectName()
         void setProjectName(String projectName)
+
+        File getWorkingDirectory()
+        void setWorkingDirectory(File workingDirectory)
 
         BuildExperimentListener getListener()
         void setListener(BuildExperimentListener listener)

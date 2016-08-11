@@ -28,7 +28,7 @@ import java.util.Map;
 
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public OutputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, OutputFilesCollectionSnapshotter snapshotter) {
-        super(task.getName(), previous, current, snapshotter, false, "Output", task.getOutputs().getFileProperties());
+        super(task.getName(), previous, current, snapshotter, "Output", task.getOutputs().getFileProperties());
     }
 
     @Override
@@ -38,7 +38,7 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
 
     @Override
     public void saveCurrent() {
-        final Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotter(), getTitle(), getFileProperties(), isAllowSnapshotReuse());
+        final Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotter(), getTitle(), getFileProperties());
 
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {

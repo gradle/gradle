@@ -58,6 +58,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
                 ${blockUntilAllCompilersAreReady('$path')}
                 $userProvidedZincDirSystemProperty
             }
+            $lockTimeoutLoggerListenerSource
         """
         expectTasksWithParallelExecuter()
 
@@ -95,6 +96,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         buildFile << isolatedZincCacheHome
         buildFile << blockUntilAllCompilersAreReady('$path')
         buildFile << userProvidedZincDirSystemProperty
+        buildFile << lockTimeoutLoggerListenerSource
         expectTasksWithIntraProjectParallelExecuter()
 
         when:
@@ -121,6 +123,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             projectBuildFile(projectName) << isolatedZincCacheHome
             projectBuildFile(projectName) << blockUntilAllCompilersAreReady(':$project.name:$name')
             projectBuildFile(projectName) << userProvidedZincDirSystemProperty
+            projectBuildFile(projectName) << lockTimeoutLoggerListenerSource
 
             buildFile << gradleBuildTask(projectName)
 
@@ -154,6 +157,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
                 $isolatedZincCacheHome
                 ${blockUntilAllCompilersAreReady('$path')}
             }
+            $lockTimeoutLoggerListenerSource
         """
         expectTasksWithParallelExecuter()
 
@@ -190,6 +194,49 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             }
 
         """
+    }
+
+    def getLockTimeoutLoggerListenerSource() {
+        return '''
+            class LockTimeoutLoggerListener extends TaskExecutionAdapter {
+                void afterExecute(Task task, TaskState state) {
+                    if(state.failure) {
+                        def lockTimeoutException = resolveCausalChain(state.failure).find { it.getClass().name == 'org.gradle.cache.internal.LockTimeoutException' }
+                        if (lockTimeoutException?.ownerPid && lockTimeoutException.ownerPid.toString().isNumber()) {
+                            def jstackOutput = dumpStacks(lockTimeoutException.ownerPid)
+                            if (jstackOutput) {
+                                println "jstack for lock owner pid ${lockTimeoutException.ownerPid}"
+                                println "-------------------------------------------"
+                                println jstackOutput
+                                println "-------------------------------------------"
+                            }
+                        }
+                    }
+                }
+
+                def resolveCausalChain(throwable) {
+                    def causes = []
+                    while (throwable != null) {
+                        causes.add(throwable);
+                        throwable = throwable.getCause();
+                    }
+                    causes
+                }
+
+                def dumpStacks(pid) {
+                    try {
+                        def jstackExecutable = org.gradle.internal.jvm.Jvm.current().getExecutable("jstack")
+                        if (jstackExecutable.isFile()) {
+                            return [jstackExecutable.getAbsolutePath(), pid].execute().text
+                        }
+                    } catch (Exception e) {
+                        // ignore
+                    }
+                    null
+                }
+            }
+            gradle.addListener(new LockTimeoutLoggerListener())
+        '''
     }
 
     def jvmComponent(String componentName) {

@@ -22,8 +22,8 @@ import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.execution.TaskExecutionGraph;
-import org.gradle.internal.HasInternalProtocol;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
 

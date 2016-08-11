@@ -16,14 +16,14 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.JavaPerformanceTest
+import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
 import static org.gradle.performance.measure.DataAmount.mbytes
 import static org.gradle.performance.measure.Duration.millis
 
-@Category([JavaPerformanceTest])
+@Category([Experiment])
 class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Checking overhead of API stubbing when #cardinality.description")
     def "checks overhead of API stubbing when some files are updated"() {
@@ -35,7 +35,7 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms2g", "-Xmx2g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
         def updater = new JavaSoftwareModelSourceFileUpdater(100, 0, 0, cardinality)
         runner.buildExperimentListener = updater
 

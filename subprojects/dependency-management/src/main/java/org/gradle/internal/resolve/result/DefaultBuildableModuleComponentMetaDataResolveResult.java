@@ -15,13 +15,13 @@
  */
 package org.gradle.internal.resolve.result;
 
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 public class DefaultBuildableModuleComponentMetaDataResolveResult extends DefaultResourceAwareResolveResult implements BuildableModuleComponentMetaDataResolveResult {
     private State state = State.Unknown;
     private ModuleVersionResolveException failure;
-    private MutableModuleComponentResolveMetadata metaData;
+    private ModuleComponentResolveMetadata metaData;
     private boolean authoritative;
 
     private void reset(State state) {
@@ -35,46 +35,61 @@ public class DefaultBuildableModuleComponentMetaDataResolveResult extends Defaul
         reset(State.Unknown);
     }
 
-    public void resolved(MutableModuleComponentResolveMetadata metaData) {
+    @Override
+    public void resolved(ModuleComponentResolveMetadata metaData) {
         reset(State.Resolved);
         this.metaData = metaData;
         authoritative = true;
     }
 
+    @Override
+    public void setMetadata(ModuleComponentResolveMetadata metaData) {
+        assertResolved();
+        this.metaData = metaData;
+    }
+
+    @Override
     public void missing() {
         reset(State.Missing);
         authoritative = true;
     }
 
+    @Override
     public void failed(ModuleVersionResolveException failure) {
         reset(State.Failed);
         this.failure = failure;
         authoritative = true;
     }
 
+    @Override
     public State getState() {
         return state;
     }
 
+    @Override
     public boolean hasResult() {
         return state != State.Unknown;
     }
 
+    @Override
     public ModuleVersionResolveException getFailure() {
         assertHasResult();
         return failure;
     }
 
-    public MutableModuleComponentResolveMetadata getMetaData() throws ModuleVersionResolveException {
+    @Override
+    public ModuleComponentResolveMetadata getMetaData() throws ModuleVersionResolveException {
         assertResolved();
         return metaData;
     }
 
+    @Override
     public boolean isAuthoritative() {
         assertHasResult();
         return authoritative;
     }
 
+    @Override
     public void setAuthoritative(boolean authoritative) {
         assertHasResult();
         this.authoritative = authoritative;

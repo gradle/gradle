@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.Incubating;
 import org.gradle.api.internal.changedetection.changes.IncrementalTaskInputsInternal;
+import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
@@ -129,9 +130,14 @@ public class JavaCompile extends AbstractCompile {
             }
         };
         IncrementalCompilerFactory factory = new IncrementalCompilerFactory(
-                getFileOperations(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs);
+            getFileOperations(), getCachingFileSnapshotter().createThreadSafeWrapper(), getPath(), createCompiler(spec), source, compileCaches, (IncrementalTaskInputsInternal) inputs);
         Compiler<JavaCompileSpec> compiler = factory.createCompiler();
         performCompilation(spec, compiler);
+    }
+
+    @Inject
+    protected CachingFileSnapshotter getCachingFileSnapshotter() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject protected FileOperations getFileOperations() {

@@ -35,9 +35,9 @@ public class RoutesCompilerAdapterV24X extends DefaultVersionedRoutesCompilerAda
     private final List<String> defaultScalaImports = Lists.newArrayList("controllers.Assets.Asset");
     private final List<String> defaultJavaImports = Lists.newArrayList("controllers.Assets.Asset", "play.libs.F");
 
-    public RoutesCompilerAdapterV24X(String playVersion) {
+    public RoutesCompilerAdapterV24X(String playVersion, String scalaVersion) {
         // No 2.11 version of routes compiler published
-        super(playVersion, "2.10");
+        super(playVersion, scalaVersion);
     }
 
     @Override

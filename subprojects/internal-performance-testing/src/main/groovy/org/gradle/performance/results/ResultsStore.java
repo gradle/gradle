@@ -16,9 +16,10 @@
 
 package org.gradle.performance.results;
 
+import java.io.Closeable;
 import java.util.List;
 
-public interface ResultsStore {
+public interface ResultsStore extends Closeable {
     /**
      * Returns the names of the test cases known to this store, in display order.
      */

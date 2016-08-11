@@ -36,7 +36,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
+public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     private final CompositeBuildContext compositeBuildContext;
     private final GradleLauncherFactory gradleLauncherFactory;
     private final StartParameter requestedStartParameter;
@@ -83,7 +83,6 @@ class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     }
 
     private void doBuild(ProjectComponentIdentifier project, Iterable<String> taskPaths) {
-        // TODO:DAZ This is actually the project directory, not the build dir. Doesn't matter if the tasks are fully qualified.
         File buildDirectory = determineBuildDirectory(project);
         List<String> tasksToExecute = Lists.newArrayList();
         for (String taskPath : taskPaths) {
@@ -95,11 +94,12 @@ class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
             return;
         }
 
-        StartParameter param = requestedStartParameter.newInstance();
+        StartParameter param = requestedStartParameter.newBuild();
         param.setProjectDir(buildDirectory);
+        param.setSearchUpwards(false);
         param.setTaskNames(tasksToExecute);
 
-        GradleLauncher launcher = gradleLauncherFactory.newInstance(param, serviceRegistry);
+        GradleLauncher launcher = gradleLauncherFactory.nestedInstance(param, serviceRegistry);
         try {
             launcher.run();
         } finally {
@@ -108,7 +108,7 @@ class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     }
 
     private File determineBuildDirectory(ProjectComponentIdentifier project) {
-        // TODO:DAZ There are too many places that this sort of thing is required
+        // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
         String buildName = project.getProjectPath().split("::", 2)[0];
         ProjectComponentIdentifier rootProjectIdentifier = DefaultProjectComponentIdentifier.newId(buildName + "::");
 

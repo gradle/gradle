@@ -27,8 +27,6 @@ public interface ConfigurationMetadata {
 
     String getName();
 
-    ComponentResolveMetadata getComponent();
-
     List<DependencyMetadata> getDependencies();
 
     Set<ComponentArtifactMetadata> getArtifacts();

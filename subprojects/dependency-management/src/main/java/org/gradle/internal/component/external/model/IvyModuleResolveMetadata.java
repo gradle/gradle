@@ -16,6 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Map;
 
@@ -23,6 +24,18 @@ import java.util.Map;
  * Meta-data for a module version resolved from an Ivy repository.
  */
 public interface IvyModuleResolveMetadata extends ModuleComponentResolveMetadata {
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    MutableIvyModuleResolveMetadata asMutable();
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    IvyModuleResolveMetadata withSource(ModuleSource source);
+
     /***
      * Returns the branch attribute for the module.
      *

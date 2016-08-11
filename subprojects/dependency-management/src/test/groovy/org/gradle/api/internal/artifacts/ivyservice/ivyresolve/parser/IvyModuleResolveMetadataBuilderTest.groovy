@@ -37,7 +37,7 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
         when: meta.addArtifact(a, newHashSet("runtime"))
 
         then:
-        def artifacts = meta.build().getConfiguration("runtime").artifacts
+        def artifacts = meta.build().asImmutable().getConfiguration("runtime").artifacts
         artifacts.size() == 1
         artifacts[0].name.name == "foo"
         artifacts[0].name.type == "jar"
@@ -72,7 +72,7 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
         meta.addArtifact(a2, newHashSet("testUtil"))
 
         then:
-        def resolveMetaData = meta.build()
+        def resolveMetaData = meta.build().asImmutable()
         def runtimeArtifacts = resolveMetaData.getConfiguration("runtime").artifacts
         def testArtifacts = resolveMetaData.getConfiguration("testUtil").artifacts
 
@@ -93,7 +93,7 @@ class IvyModuleResolveMetadataBuilderTest extends Specification {
         meta.addArtifact(a2, newHashSet("runtime"))
 
         then:
-        def resolveMetaData = meta.build()
+        def resolveMetaData = meta.build().asImmutable()
         def runtimeArtifacts = resolveMetaData.getConfiguration("runtime").artifacts
         def archivesArtifacts = resolveMetaData.getConfiguration("archives").artifacts
 

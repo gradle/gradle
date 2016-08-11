@@ -43,6 +43,11 @@ public interface DaemonStateControl {
     State getState();
 
     /**
+     * Requests that a running build be canceled.  Note that this method does NOT block until the operation has been cancelled.
+     */
+    void requestCancel();
+
+    /**
      * Communicates a request for build cancellation. Note that this method blocks until the operation has been cancelled.
      *
      * <p>If any long running command is currently running, this method does block for certain time to give chance to perform cancellation, and if the command
@@ -70,5 +75,5 @@ public interface DaemonStateControl {
      */
     void runCommand(Runnable command, String commandDisplayName) throws DaemonUnavailableException, DaemonStoppedException;
 
-    enum State {Idle, Busy, StopRequested, Stopped, Broken}
+    enum State {Idle, Busy, Canceled, StopRequested, Stopped, Broken}
 }

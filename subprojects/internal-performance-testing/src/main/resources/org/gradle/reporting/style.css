@@ -86,6 +86,10 @@ td.more-detail {
     cursor: pointer;
 }
 
+.charts {
+    display: inline-block;
+}
+
 .chart {
     width: 1000px;
     height: 280px;

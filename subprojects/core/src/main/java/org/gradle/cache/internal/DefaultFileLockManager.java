@@ -261,8 +261,7 @@ public class DefaultFileLockManager implements FileLockManager {
             java.nio.channels.FileLock stateRegionLock = lockStateRegion(lockMode, waitUntil);
             if (stateRegionLock == null) {
                 LockInfo lockInfo = readInformationRegion(System.currentTimeMillis() + shortTimeoutMs);
-                throw new LockTimeoutException(String.format("Timeout waiting to lock %s. It is currently in use by another Gradle instance.%nOwner PID: %s%nOur PID: %s%nOwner Operation: %s%nOur operation: %s%nLock file: %s",
-                        displayName, lockInfo.pid, metaDataProvider.getProcessIdentifier(), lockInfo.operation, operationDisplayName, lockFile));
+                throw new LockTimeoutException(displayName, lockInfo.pid, metaDataProvider.getProcessIdentifier(), lockInfo.operation, operationDisplayName, lockFile);
             }
 
             try {

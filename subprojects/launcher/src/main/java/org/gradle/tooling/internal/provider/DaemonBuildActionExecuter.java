@@ -22,15 +22,15 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.composite.CompositeParameters;
-import org.gradle.internal.composite.DefaultGradleParticipantBuild;
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.DefaultIncludedBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.DefaultBuildActionParameters;
-import org.gradle.launcher.exec.DefaultCompositeBuildActionParameters;
+import org.gradle.launcher.composite.DefaultCompositeBuildActionParameters;
 import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
@@ -59,19 +59,16 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         }
         ClassPath classPath = DefaultClassPath.of(parameters.getInjectedPluginClasspath(Collections.<File>emptyList()));
 
-        BuildActionParameters actionParameters;
-        List<GradleParticipantBuild> compositeParticipants = parameters.getBuilds(null);
-        if (compositeParticipants != null) {
-            List<GradleParticipantBuild> clonedCompositeParticipants = new ArrayList<GradleParticipantBuild>();
-            for (GradleParticipantBuild build : compositeParticipants) {
-                clonedCompositeParticipants.add(new DefaultGradleParticipantBuild(build));
+        List<IncludedBuild> includedBuilds = parameters.getBuilds(null);
+        BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
+            System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, false, classPath);
+        if (includedBuilds != null) {
+            List<IncludedBuild> includedBuildsCopy = new ArrayList<IncludedBuild>();
+            for (IncludedBuild build : includedBuilds) {
+                includedBuildsCopy.add(new DefaultIncludedBuild(build));
             }
-            CompositeParameters compositeParameters = new CompositeParameters(clonedCompositeParticipants);
-            actionParameters = new DefaultCompositeBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-                System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, false, classPath, compositeParameters);
-        } else {
-            actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
-                System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, false, classPath);
+            CompositeParameters compositeParameters = new CompositeParameters(includedBuildsCopy);
+            actionParameters = new DefaultCompositeBuildActionParameters(actionParameters, compositeParameters);
         }
         try {
             return executer.execute(action, buildRequestContext, actionParameters, contextServices);

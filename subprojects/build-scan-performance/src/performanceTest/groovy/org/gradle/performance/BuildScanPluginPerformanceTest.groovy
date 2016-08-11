@@ -17,11 +17,18 @@
 package org.gradle.performance
 
 import groovy.json.JsonSlurper
+import org.apache.commons.io.output.NullOutputStream
+import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.performance.categories.GradleCorePerformanceTest
+import org.gradle.performance.fixture.BuildExperimentInvocationInfo
+import org.gradle.performance.fixture.BuildExperimentListener
+import org.gradle.performance.fixture.BuildExperimentListenerAdapter
 import org.gradle.performance.fixture.BuildExperimentRunner
+import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.BuildScanPerformanceTestRunner
 import org.gradle.performance.fixture.CrossBuildPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.BuildScanResultsStore
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -48,8 +55,11 @@ class BuildScanPluginPerformanceTest extends Specification {
 
     CrossBuildPerformanceTestRunner runner
 
+    PrintStream originalSystemErr
+    PrintStream originalSystemOut
+
     void setup() {
-        def incomingDir = System.getProperty('incomingArtifactDir')
+        def incomingDir = "../../incoming" // System.getProperty('incomingArtifactDir')
         assert incomingDir: "'incomingArtifactDir' system property is not set"
         def versionJsonFile = new File(incomingDir, "version.json")
         assert versionJsonFile.exists()
@@ -58,32 +68,70 @@ class BuildScanPluginPerformanceTest extends Specification {
         assert versionJsonData.commitId
         def pluginCommitId = versionJsonData.commitId as String
 
-        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId)
+        runner = new BuildScanPerformanceTestRunner(new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, pluginCommitId) {
+            @Override
+            protected void defaultSpec(BuildExperimentSpec.Builder builder) {
+                super.defaultSpec(builder)
+                builder.workingDirectory = tmpDir.testDirectory
+            }
+        }
+
+        // Loading this classes messes with the standard streams.
+        // Do it now so that we can replace them
+        //noinspection GroovyUnusedAssignment
+        InProcessGradleExecuter.COMMON_TMP
+
+        // The Gradle test fixtures implicitly forward the output from executed builds (see ForkingGradleHandle)
+        // The builds have a lot of output, and this freaks TeamCity out.
+        // Null these out to stop this happening
+        originalSystemOut = System.out
+        originalSystemErr = System.err
+        System.out = new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM)
+        System.err = new PrintStream(NullOutputStream.NULL_OUTPUT_STREAM)
+    }
+
+    void cleanup() {
+        if (originalSystemErr) {
+            System.err = originalSystemErr
+        }
+        if (originalSystemOut) {
+            System.out = originalSystemOut
+        }
     }
 
     def "build scan plugin comparison"() {
         given:
         def sourceProject = "largeJavaProjectWithBuildScanPlugin"
         def tasks = ['clean', 'build']
-        def opts = ['-Xms4g', '-Xmx4g', '-XX:MaxPermSize=512m'] as String[]
+        def jobArgs = ['--continue', '--parallel', '--max-workers=2']
+        def opts = ['-Xms1g', '-Xmx1g']
 
         runner.testGroup = "build scan plugin"
         runner.testId = "large java project with and without build scan"
 
+
         runner.baseline {
-            projectName(sourceProject).displayName(WITHOUT_PLUGIN_LABEL).invocation {
+            projectName(sourceProject)
+            displayName(WITHOUT_PLUGIN_LABEL)
+            invocation {
+                args(*jobArgs)
                 tasksToRun(*tasks)
-                gradleOpts(opts)
+                gradleOpts(*opts)
                 expectFailure()
+                listener(new Listener())
             }
         }
 
         runner.buildSpec {
-            projectName(sourceProject).displayName(WITH_PLUGIN_LABEL).invocation {
+            projectName(sourceProject)
+            displayName(WITH_PLUGIN_LABEL)
+            invocation {
+                args(*jobArgs)
                 args("-Dscan", "-Dscan.dump")
                 tasksToRun(*tasks)
-                gradleOpts(opts)
+                gradleOpts(*opts)
                 expectFailure()
+                listener(new Listener())
             }
         }
 
@@ -93,11 +141,22 @@ class BuildScanPluginPerformanceTest extends Specification {
         then:
         def (with, without) = [results.buildResult(WITH_PLUGIN_LABEL), results.buildResult(WITHOUT_PLUGIN_LABEL)]
 
-        // cannot be more than one second slower
-        with.totalTime.average - without.totalTime.average < millis(1500)
+        // cannot be more than 1s slower
+        with.totalTime.average - without.totalTime.average < millis(1000)
 
-        // cannot use 40MB more “memory”
-        with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(40)
+        // cannot use 10MB more
+        with.totalMemoryUsed.average - without.totalMemoryUsed.average < mbytes(10)
     }
 
+    class Listener extends BuildExperimentListenerAdapter {
+        @Override
+        void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
+            originalSystemOut.println("$invocationInfo.buildExperimentSpec.displayName - $invocationInfo.phase: beginning $invocationInfo.iterationNumber of $invocationInfo.iterationMax")
+        }
+
+        @Override
+        void afterInvocation(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation, BuildExperimentListener.MeasurementCallback measurementCallback) {
+            originalSystemOut.println("$invocationInfo.buildExperimentSpec.displayName - $invocationInfo.phase: finished $invocationInfo.iterationNumber of $invocationInfo.iterationMax")
+        }
+    }
 }

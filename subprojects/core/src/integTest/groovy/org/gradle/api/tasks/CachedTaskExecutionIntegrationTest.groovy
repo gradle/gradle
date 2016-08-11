@@ -34,7 +34,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-    def cacheDir = testDirectoryProvider.createDir("task-cache")
 
     def setup() {
         buildFile << """
@@ -207,6 +206,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private GradleExecuter enableCache() {
-        executer.withArguments "-Dorg.gradle.cache.tasks=true", "-Dorg.gradle.cache.tasks.directory=" + cacheDir
+        executer.withArgument "-Dorg.gradle.cache.tasks=true"
     }
 }

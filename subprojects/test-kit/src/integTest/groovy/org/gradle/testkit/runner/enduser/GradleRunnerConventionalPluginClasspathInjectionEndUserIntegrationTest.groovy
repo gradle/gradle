@@ -118,7 +118,9 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
 
         when:
         // Changes source but not class file
-        plugin.pluginClassSourceFile() << "                       "
+        plugin.pluginClassSourceFile() << """
+            // Comment
+        """.stripIndent()
 
         then:
         succeeds 'functionalTest'

@@ -166,3 +166,18 @@ This story adds a commandline property `--gradle-version` to the `wrapper` task 
 
 * Running `gradle wrapper --gradle-version 1.6` generates valid `wrapper.properties` with correct URL.
 
+# Story: User specifies target gradle distribution type when generating the wrapper
+
+This story adds a command line option called `--distribution-type` to the `wrapper` task to specify the desired Gradle distribution type:
+
+* Add `--distribution-type` command-line option to `wrapper`.
+* Update the documentation accordingly.
+
+Being able to set the distibution type to `all` instead of the default of `bin` is useful if the source code is required for IDEs to offer proper auto-completion for the DSL.
+
+## Test coverage
+
+* Running `gradle wrapper --gradle-version 2.13 --distribution-type all` generates valid `wrapper.properties` with the expected URL.
+* Running `gradle wrapper --gradle-version 2.13 --distribution-type bin` generates valid `wrapper.properties` with the expected URL.
+* Running `gradle wrapper --gradle-version 2.13` defaults to `bin` as the distribution type.
+* Running `gradle wrapper --gradle-version 2.13 --distribution-type invalid_distribution_name` generates an error.

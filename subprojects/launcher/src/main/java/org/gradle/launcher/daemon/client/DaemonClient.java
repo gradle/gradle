@@ -140,7 +140,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
     protected Object executeBuild(Build build, DaemonClientConnection connection, BuildCancellationToken cancellationToken, BuildEventConsumer buildEventConsumer) throws DaemonInitialConnectException {
         Object result;
         try {
-            LOGGER.info("Connected to daemon {}. Dispatching request {}.", connection.getDaemon(), build);
+            LOGGER.debug("Connected to daemon {}. Dispatching request {}.", connection.getDaemon(), build);
             connection.dispatch(build);
             result = connection.receive();
         } catch (StaleDaemonAddressException e) {
@@ -154,7 +154,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             throw new DaemonInitialConnectException("The first result from the daemon was empty. Most likely the process died immediately after connection.");
         }
 
-        LOGGER.info("Received result {} from daemon {} (build should be starting).", result, connection.getDaemon());
+        LOGGER.debug("Received result {} from daemon {} (build should be starting).", result, connection.getDaemon());
 
         DaemonDiagnostics diagnostics = null;
         if (result instanceof BuildStarted) {
@@ -162,7 +162,7 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             result = monitorBuild(build, diagnostics, connection, cancellationToken, buildEventConsumer);
         }
 
-        LOGGER.info("Received result {} from daemon {} (build should be done).", result, connection.getDaemon());
+        LOGGER.debug("Received result {} from daemon {} (build should be done).", result, connection.getDaemon());
 
         connection.dispatch(new Finished());
 

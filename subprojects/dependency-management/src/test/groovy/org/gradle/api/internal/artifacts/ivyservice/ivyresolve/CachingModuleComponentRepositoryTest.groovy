@@ -25,9 +25,17 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCa
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
-import org.gradle.internal.component.model.*
-import org.gradle.internal.resolve.result.*
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentUsage
+import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider
@@ -107,7 +115,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         then:
         realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, result) >> {
-            result.resolved(Mock(MutableModuleComponentResolveMetadata))
+            result.resolved(Mock(ModuleComponentResolveMetadata))
         }
         0 * _
     }

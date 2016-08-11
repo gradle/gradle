@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-import com.google.common.io.ByteSink;
-
 import java.io.IOException;
+import java.io.OutputStream;
 
 public interface TaskOutputWriter {
-    void writeTo(ByteSink output) throws IOException;
+    void writeTo(OutputStream output) throws IOException;
 }

@@ -20,6 +20,8 @@ import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.testing.performance.generator.*
@@ -44,11 +46,19 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     int numberOfExternalDependencies = 0
     MavenJarCreator mavenJarCreator = new MavenJarCreator()
 
+    @InputDirectory
+    File templateDirectory
+    @Optional
+    @InputDirectory
+    File sharedTemplateDirectory
+
+
     Callable<String> buildScanPluginVersionProvider
 
     def ProjectGeneratorTask() {
         setProjects(1)
         destDir = project.file("${project.buildDir}/${name}")
+        templateDirectory = project.file("src/templates")
     }
 
     int getTestSourceFiles() {
@@ -136,7 +146,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     def generateRootProject() {
         def templates = [] + (subprojectNames.empty ? subProjectTemplates : rootProjectTemplates)
         if (!templates.empty) {
-            templates.addAll(['build-event-timestamps', 'heap-capture'])
+            templates.addAll(['measurement-plugin'])
         }
         generateProject(rootProject,
             subprojects: subprojectNames,
@@ -146,7 +156,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             includeSource: subprojectNames.empty)
 
         project.copy {
-            from "src/templates/init.gradle"
+            from resolveTemplate("init.gradle")
             into(getDestDir())
         }
     }
@@ -176,7 +186,8 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             repository: testProject.repository,
             dependencies: testProject.dependencies,
             testProject: testProject,
-            buildScanPluginVersion: buildScanPluginVersionProvider?.call()
+            buildScanPluginVersion: buildScanPluginVersionProvider?.call(),
+            gradleTask: this
         ]
 
         args += templateArgs
@@ -192,15 +203,15 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     }
 
     void generateWithTemplate(File projectDir, String name, String templateName, Map templateArgs) {
-        File destFile = new File(projectDir, name)
-        File baseFile = project.file("src/templates/$templateName")
+        File destFile = new File(projectDir, name).absoluteFile
+        File baseFile = resolveTemplate(templateName)
 
         List<File> templateFiles = []
         if (baseFile.exists()) {
             templateFiles << baseFile
         }
         List<String> templates = templateArgs.templates
-        templateFiles.addAll templates.collect { project.file("src/templates/$it/$templateName") }.findAll { it.exists() }
+        templateFiles.addAll templates.collect { new File(resolveTemplate(it), templateName) }.findAll { it.exists() }
         if (templateFiles.empty) {
             return
         }
@@ -217,6 +228,16 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             }
             getTemplate(templateFiles.last()).make(templateArgs).writeTo(writer)
         }
+    }
+
+    protected File resolveTemplate(String templateName) {
+        File templateFile = new File(templateDirectory, templateName)
+        if (!templateFile.exists()) {
+            if (sharedTemplateDirectory?.exists()) {
+                templateFile = new File(sharedTemplateDirectory, templateName)
+            }
+        }
+        templateFile
     }
 
     def getTemplate(File srcTemplate) {

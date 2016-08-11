@@ -23,7 +23,6 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.FilesSnapshotSet
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
@@ -61,9 +60,7 @@ class TaskUpToDateStateTest extends Specification {
 
     def "constructor invokes snapshots" () {
         setup:
-        FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot) {
-            _ * getSnapshot() >> Stub(FilesSnapshotSet)
-        }
+        FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot)
         OutputFilesCollectionSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         FileCollectionSnapshotter mockDiscoveredInputFileSnapshotter = Mock(FileCollectionSnapshotter)
@@ -76,15 +73,15 @@ class TaskUpToDateStateTest extends Specification {
         1 * mockInputs.getProperties() >> [:]
         1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        1 * mockOutputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
-        1 * mockInputFileSnapshotter.snapshot(_, _, _) >> stubSnapshot
+        1 * mockOutputFileSnapshotter.snapshot(_, _) >> stubSnapshot
+        1 * mockInputFileSnapshotter.snapshot(_, _) >> stubSnapshot
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when input snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        _ * stubInputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
+        _ * stubInputFileSnapshotter.snapshot(_, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
@@ -110,7 +107,7 @@ class TaskUpToDateStateTest extends Specification {
             }
         }
         def cause = new UncheckedIOException("thrown from stub")
-        _ * stubOutputFileSnapshotter.snapshot(_, _, _) >> { throw cause }
+        _ * stubOutputFileSnapshotter.snapshot(_, _) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)

@@ -43,9 +43,6 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
 
         static {
             DEFAULT_CAP_SIZES.put("fileSnapshots", 10000);
-            DEFAULT_CAP_SIZES.put("fileSnapshotsToTreeSnapshotsIndex", 10000);
-            DEFAULT_CAP_SIZES.put("treeSnapshots", 20000);
-            DEFAULT_CAP_SIZES.put("treeSnapshotUsage", 20000);
             DEFAULT_CAP_SIZES.put("taskArtifacts", 2000);
             DEFAULT_CAP_SIZES.put("fileHashes", 400000);
             DEFAULT_CAP_SIZES.put("compilationState", 1000);
@@ -111,14 +108,18 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             }
 
             public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
-                boolean outOfDate;
+                boolean outOfDate = false;
                 synchronized (lock) {
                     FileLock.State previousState = states.get(cacheId);
-                    outOfDate = previousState == null || currentCacheState.hasBeenUpdatedSince(previousState);
+                    if (previousState == null) {
+                        outOfDate = true;
+                    } else if (currentCacheState.hasBeenUpdatedSince(previousState)) {
+                        LOG.info("Invalidating in-memory cache of {}", cacheId);
+                        outOfDate = true;
+                    }
                 }
 
                 if (outOfDate) {
-                    LOG.info("Invalidating in-memory cache of {}", cacheId);
                     data.invalidateAll();
                 }
             }
@@ -136,11 +137,11 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         synchronized (lock) {
             theData = this.cache.getIfPresent(cacheId);
             if (theData != null) {
-                LOG.info("In-memory cache of {}: Size{{}}, {}", cacheId, theData.size() , theData.stats());
+                LOG.debug("In-memory cache of {}: Size{{}}, {}", cacheId, theData.size() , theData.stats());
             } else {
                 Integer maxSize = CACHE_CAPS.get(cacheName);
                 assert maxSize != null : "Unknown cache.";
-                LOG.info("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
+                LOG.debug("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
                 LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
                 theData = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener).build();
                 evictionListener.setCache(theData);
@@ -173,7 +174,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         public void onRemoval(RemovalNotification<Object, Object> notification) {
             if (notification.getCause() == RemovalCause.SIZE) {
                 if (evictionCounter % logInterval == 0) {
-                    logger.log(LogLevel.INFO, "Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
+                    logger.log(LogLevel.DEBUG, "Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
                 }
                 evictionCounter++;
             }

@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -26,6 +27,7 @@ import static org.gradle.performance.measure.Duration.millis
 @Category([JavaPerformanceTest])
 class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
+    @Category([Experiment])
     @Unroll("partial assemble Java software model build - #testProject")
     def "partial assemble Java software model"() {
         given:
@@ -36,7 +38,7 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = targetVersions
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
         def result = runner.run()
@@ -63,7 +65,7 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = ['2.11', 'last']
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
         def result = runner.run()

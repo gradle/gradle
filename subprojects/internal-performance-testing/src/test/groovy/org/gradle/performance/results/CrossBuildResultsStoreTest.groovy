@@ -17,8 +17,8 @@
 package org.gradle.performance.results
 
 import org.gradle.performance.ResultSpecification
-import org.gradle.performance.fixture.BuildDisplayInfo
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
 import static org.gradle.performance.measure.DataAmount.kbytes
@@ -27,7 +27,10 @@ import static org.gradle.performance.measure.Duration.minutes
 class CrossBuildResultsStoreTest extends ResultSpecification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    final dbFile = tmpDir.file("results")
+    @Rule
+    SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)
+
+    final dbName = "cross-build-results"
 
     def "persists results"() {
         given:
@@ -60,16 +63,16 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         results2.buildResult(new BuildDisplayInfo("simple", "simple display", ["build"], ["-i"], [], true))
 
         when:
-        def writeStore = new BaseCrossBuildResultsStore(dbFile)
+        def writeStore = new BaseCrossBuildResultsStore(dbName)
         writeStore.report(results1)
         writeStore.report(results2)
         writeStore.close()
 
         then:
-        tmpDir.file("results.h2.db").exists()
+        tmpDir.file("${dbName}.mv.db").exists()
 
         when:
-        def readStore = new BaseCrossBuildResultsStore(dbFile)
+        def readStore = new BaseCrossBuildResultsStore(dbName)
         def tests = readStore.testNames
 
         then:
@@ -147,15 +150,15 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         buildResults1 << operation()
 
         when:
-        def writeStore = new BaseCrossBuildResultsStore(dbFile)
+        def writeStore = new BaseCrossBuildResultsStore(dbName)
         writeStore.report(results1)
         writeStore.close()
 
         then:
-        tmpDir.file("results.h2.db").exists()
+        tmpDir.file("${dbName}.mv.db").exists()
 
         when:
-        def readStore = new BaseCrossBuildResultsStore(dbFile)
+        def readStore = new BaseCrossBuildResultsStore(dbName)
         def history = readStore.getTestResults("test1")
 
         then:
@@ -247,17 +250,17 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         buildResults6 << operation()
 
         when:
-        def writeStore = new BaseCrossBuildResultsStore(dbFile)
+        def writeStore = new BaseCrossBuildResultsStore(dbName)
         writeStore.report(results1)
         writeStore.report(results2)
         writeStore.report(results3)
         writeStore.close()
 
         then:
-        tmpDir.file("results.h2.db").exists()
+        tmpDir.file("${dbName}.mv.db").exists()
 
         when:
-        def readStore = new BaseCrossBuildResultsStore(dbFile)
+        def readStore = new BaseCrossBuildResultsStore(dbName)
         def history = readStore.getTestResults("test1")
 
         then:
@@ -355,17 +358,17 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         buildResults5 << operation()
 
         when:
-        def writeStore = new BaseCrossBuildResultsStore(dbFile)
+        def writeStore = new BaseCrossBuildResultsStore(dbName)
         writeStore.report(results1)
         writeStore.report(results2)
         writeStore.report(results3)
         writeStore.close()
 
         then:
-        tmpDir.file("results.h2.db").exists()
+        tmpDir.file("${dbName}.mv.db").exists()
 
         when:
-        def readStore = new BaseCrossBuildResultsStore(dbFile)
+        def readStore = new BaseCrossBuildResultsStore(dbName)
         def history = readStore.getTestResults("test1")
 
         then:
@@ -414,14 +417,14 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         results3.buildResult(new BuildDisplayInfo("simple3", "simple 3", ["build"], ["-i"], [], true))
 
         and:
-        def writeStore = new BaseCrossBuildResultsStore(dbFile)
+        def writeStore = new BaseCrossBuildResultsStore(dbName)
         writeStore.report(results2)
         writeStore.report(results3)
         writeStore.report(results1)
         writeStore.close()
 
         when:
-        def readStore = new BaseCrossBuildResultsStore(dbFile)
+        def readStore = new BaseCrossBuildResultsStore(dbName)
         def history = readStore.getTestResults("test1")
 
         then:

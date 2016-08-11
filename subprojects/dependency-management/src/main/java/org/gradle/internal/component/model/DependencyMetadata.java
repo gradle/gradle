@@ -18,6 +18,7 @@ package org.gradle.internal.component.model;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 
 import java.util.Collection;
 import java.util.List;
@@ -60,6 +61,12 @@ public interface DependencyMetadata {
      * @return Component selector
      */
     ComponentSelector getSelector();
+
+    /**
+     * Returns the exclusions to apply when traversing this dependency from the given configuration
+     */
+    // TODO:ADAM - fromConfiguration should be implicit in this metadata
+    ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration);
 
     // The following methods all wrap an underlying method on DependencyDescriptor that we use, to help migrate away from using Ivy types.
     String[] getModuleConfigurations();

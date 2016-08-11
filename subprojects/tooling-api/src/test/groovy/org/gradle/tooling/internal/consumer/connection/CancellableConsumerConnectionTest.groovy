@@ -16,13 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.connection
 
-import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.GradleException
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
-import org.gradle.tooling.internal.adapter.SourceObjectMapping
+import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
 import org.gradle.tooling.internal.protocol.*
@@ -126,12 +125,13 @@ class CancellableConsumerConnectionTest extends Specification {
     def "runs build using connection's getModel() method"() {
         def parameters = Stub(ConsumerOperationParameters)
         def modelIdentifier = Stub(ModelIdentifier)
+        def builder = Mock(ViewBuilder)
 
         when:
         def result = connection.run(Void.class, parameters)
 
         then:
-        result == 'result'
+        result == 'the result'
 
         and:
         1 * modelMapping.getModelIdentifierFromModelType(Void) >> modelIdentifier
@@ -140,9 +140,8 @@ class CancellableConsumerConnectionTest extends Specification {
                 getModel() >> 'result'
             }
         }
-        1 * adapter.adapt(Void, 'result', _) >> { Class type, Object source, Action<? super SourceObjectMapping> mapper ->
-            return source
-        }
+        1 * adapter.builder(Void) >> builder
+        1 * builder.build('result') >> 'the result'
     }
 
     def "adapts implementation-specific cancellation failure when fetching model"() {

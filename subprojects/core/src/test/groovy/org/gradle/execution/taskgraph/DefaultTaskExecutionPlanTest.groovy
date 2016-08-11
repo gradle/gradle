@@ -223,6 +223,26 @@ public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
         executes(b, a, c, d)
     }
 
+    def "cyclic should run after ordering is ignored in complex task graph"() {
+        given:
+
+        Task e = createTask("e")
+        Task x = task("x", dependsOn: [e])
+        Task f = task("f", dependsOn: [x])
+        Task a = task("a", shouldRunAfter: [x])
+        Task b = task("b", shouldRunAfter: [a])
+        Task c = task("c", shouldRunAfter: [b])
+        Task d = task("d", dependsOn: [f], shouldRunAfter: [c])
+        relationships(e, shouldRunAfter: [d])
+        Task build = task("build", dependsOn: [x, a, b, c, d, e])
+
+        when:
+        addToGraphAndPopulate([build])
+
+        then:
+        executes(e, x, a, b, c, f, d, build)
+    }
+
     @Unroll
     def "#orderingRule does not pull in tasks that are not in the graph"() {
         Task a = task("a")

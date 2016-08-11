@@ -20,6 +20,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.util.AntUtil;
 
 import java.util.Collections;
 
@@ -39,7 +40,7 @@ public class AntFileSetBuilder implements AntBuilderAware {
                 continue;
             }
 
-            dynamicObject.invokeMethod(nodeName == null ? "fileset" : nodeName, Collections.singletonMap("dir", tree.getDir()), new Closure<Void>(this) {
+            dynamicObject.invokeMethod(nodeName == null ? "fileset" : nodeName, Collections.singletonMap("dir", AntUtil.maskFilename(tree.getDir().getAbsolutePath())), new Closure<Void>(this) {
                 public Object doCall(Object ignore) {
                     return tree.getPatternSet().addToAntBuilder(node, null);
                 }

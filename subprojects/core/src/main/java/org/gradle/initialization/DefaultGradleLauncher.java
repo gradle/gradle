@@ -25,9 +25,9 @@ import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.service.scopes.BuildScopeServices;
-import org.gradle.internal.logging.LoggingManagerInternal;
 
 public class DefaultGradleLauncher extends GradleLauncher {
 
@@ -74,6 +74,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         loggingManager.start();
     }
 
+    @Override
     public GradleInternal getGradle() {
         return gradle;
     }
@@ -114,7 +115,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         // Evaluate init scripts
         initScriptHandler.executeScripts(gradle);
 
-        // Calculate projects
+        // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
         settingsLoader.findAndLoadSettings(gradle);
 
         // Configure build

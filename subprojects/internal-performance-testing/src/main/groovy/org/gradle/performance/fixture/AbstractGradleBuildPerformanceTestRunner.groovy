@@ -18,6 +18,10 @@ package org.gradle.performance.fixture
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
+import org.gradle.performance.results.DataReporter
+import org.gradle.performance.results.MeasuredOperationList
+import org.gradle.performance.results.PerformanceTestResult
+import org.gradle.performance.results.ResultsStore
 import org.junit.Assume
 
 abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTestResult> {
@@ -65,7 +69,8 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
 
     protected void finalizeSpec(BuildExperimentSpec.Builder builder) {
         assert builder.projectName
-        builder.invocation.workingDirectory = testProjectLocator.findProjectDir(builder.projectName)
+        assert builder.workingDirectory
+        builder.invocation.workingDirectory = builder.workingDirectory
     }
 
     abstract R newResult()
@@ -77,7 +82,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         assert testId
 
         def scenarioSelector = new TestScenarioSelector()
-        Assume.assumeTrue(scenarioSelector.shouldRun(testId))
+        Assume.assumeTrue(scenarioSelector.shouldRun(testId, specs.projectName.toSet(), (ResultsStore) reporter))
 
         def results = newResult()
 

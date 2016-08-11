@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnknownModelException;
+import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
@@ -38,6 +39,7 @@ import java.io.File;
 class BuildControllerAdapter implements BuildController {
     private final InternalBuildController buildController;
     private final ProtocolToModelAdapter adapter;
+    private final ObjectGraphAdapter resultAdapter;
     private final ModelMapping modelMapping;
     private final File rootDir;
 
@@ -46,6 +48,8 @@ class BuildControllerAdapter implements BuildController {
         this.buildController = buildController;
         this.modelMapping = modelMapping;
         this.rootDir = rootDir;
+        // Treat all models returned to the action as part of the same object graph
+        resultAdapter = adapter.newGraph();
     }
 
     public <T> T getModel(Class<T> modelType) throws UnknownModelException {
@@ -86,10 +90,10 @@ class BuildControllerAdapter implements BuildController {
         }
 
         if (rootDir != null) {
-            DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(rootDir, getProjectPath(target));
-            return adapter.adapt(modelType, result.getModel(), new FixedBuildIdentifierProvider(projectIdentifier));
+            FixedBuildIdentifierProvider identifierProvider = new FixedBuildIdentifierProvider(new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
+            return identifierProvider.applyTo(resultAdapter.builder(modelType)).build(result.getModel());
         }
-        return adapter.adapt(modelType, result.getModel());
+        return resultAdapter.adapt(modelType, result.getModel());
     }
 
     private String getProjectPath(Model target) {

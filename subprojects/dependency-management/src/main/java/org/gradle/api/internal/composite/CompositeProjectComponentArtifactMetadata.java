@@ -18,14 +18,13 @@ package org.gradle.api.internal.composite;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.internal.component.local.model.LocalComponentArtifactIdentifier;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 import java.util.Set;
 
-class CompositeProjectComponentArtifactMetadata implements ComponentArtifactMetadata, LocalComponentArtifactIdentifier {
+class CompositeProjectComponentArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
     private final ProjectComponentIdentifier componentIdentifier;
     private final IvyArtifactName ivyArtifactName;
     private final File artifactFile;

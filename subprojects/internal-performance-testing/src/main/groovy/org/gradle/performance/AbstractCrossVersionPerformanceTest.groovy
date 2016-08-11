@@ -22,10 +22,10 @@ import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentRunner
 import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
 import org.gradle.performance.fixture.GradleSessionProvider
+import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.CrossVersionResultsStore
-import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.experimental.categories.Category
@@ -35,13 +35,14 @@ import spock.lang.Specification
 class AbstractCrossVersionPerformanceTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    static def resultStore = ResultsStoreHelper.maybeUseResultStore { new CrossVersionResultsStore() }
+    TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
+    static def resultStore = new CrossVersionResultsStore()
 
     final def runner = new CrossVersionPerformanceTestRunner(
-        new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, new ReleasedVersionDistributions(), ResultsStoreHelper.ADHOC_RUN)
+        new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, new ReleasedVersionDistributions())
 
     def setup() {
+        runner.workingDir = tmpDir.testDirectory
         runner.current = new UnderDevelopmentGradleDistribution()
         runner.maxExecutionTimeRegression = Duration.millis(500)
         runner.maxMemoryRegression = DataAmount.mbytes(25)

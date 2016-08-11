@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.connection;
 
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
@@ -33,6 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implements BuildLauncher, CompositeBuildLauncher {
+
+    private ProtocolToModelAdapter modelAdapter = new ProtocolToModelAdapter();
 
     public GradleConnectionBuildLauncher(AsyncConsumerActionExecutor connection, CompositeConnectionParameters parameters) {
         super(connection, parameters);
@@ -65,20 +68,21 @@ public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implemen
 
     @Override
     public BuildLauncher forTasks(File buildDirectory, String... tasks) {
+        FixedBuildIdentifierProvider buildIdentifierProvider = new FixedBuildIdentifierProvider(new DefaultProjectIdentifier(new DefaultBuildIdentifier(buildDirectory), ":"));
+        ViewBuilder<Task> viewBuilder = buildIdentifierProvider.applyTo(modelAdapter.builder(Task.class));
         List<Task> taskList = new ArrayList<Task>(tasks.length);
         for (String task : tasks) {
-            taskList.add(targetTask(task, buildDirectory));
+            taskList.add(targetTask(task, viewBuilder));
         }
         return forTasks(taskList);
     }
 
-    private Task targetTask(String task, File buildDirectory) {
+    private Task targetTask(String task, ViewBuilder<Task> viewBuilder) {
         ConsumerProvidedTask taskObject = new ConsumerProvidedTask()
             .setName(task)
             .setPath(task)
             .setDescription("Task " + task)
             .setDisplayName("Task " + task);
-        FixedBuildIdentifierProvider buildIdentifierProvider = new FixedBuildIdentifierProvider(new DefaultProjectIdentifier(new DefaultBuildIdentifier(buildDirectory), ":"));
-        return new ProtocolToModelAdapter().adapt(Task.class, taskObject, buildIdentifierProvider);
+        return viewBuilder.build(taskObject);
     }
 }

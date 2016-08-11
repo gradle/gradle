@@ -16,6 +16,6 @@
 
 package org.gradle.tooling.internal.adapter;
 
-public interface MethodInvoker {
+interface MethodInvoker {
     void invoke(MethodInvocation invocation) throws Throwable;
 }

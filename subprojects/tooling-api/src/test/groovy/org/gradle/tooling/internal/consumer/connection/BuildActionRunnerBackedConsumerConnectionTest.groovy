@@ -20,6 +20,7 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
+import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.CustomModel
@@ -86,6 +87,7 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
     def "builds model using connection's run() method"() {
         BuildResult<String> result = Stub()
         GradleProject adapted = Stub()
+        ViewBuilder<GradleProject> builder = Mock()
 
         when:
         def model = connection.run(GradleProject.class, parameters)
@@ -97,12 +99,16 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         _ * modelMapping.getProtocolType(GradleProject.class) >> Integer.class
         1 * target.run(Integer.class, parameters) >> result
         _ * result.model >> 12
-        1 * adapter.adapt(GradleProject.class, 12, _) >> adapted
+        1 * adapter.builder(GradleProject.class) >> builder
+        1 * builder.build(12) >> adapted
         0 * target._
     }
 
     def "builds GradleBuild model by converting GradleProject"() {
         BuildResult<GradleProject> result = Stub()
+        ViewBuilder<GradleProject> viewBuilder1 = Mock()
+        ViewBuilder<GradleBuild> viewBuilder2 = Mock()
+        GradleProject original = Stub()
         GradleProject adapted = Stub()
         GradleBuild adaptedGradleBuild = Stub()
 
@@ -114,9 +120,11 @@ class BuildActionRunnerBackedConsumerConnectionTest extends Specification {
         and:
         _ * modelMapping.getProtocolType(GradleProject.class) >> GradleProject.class
         1 * target.run(GradleProject.class, parameters) >> result
-        _ * result.model >> Stub(GradleProject.class)
-        1 * adapter.adapt(GradleProject.class, _, _) >> adapted
-        1 * adapter.adapt(GradleBuild.class, _, _) >> adaptedGradleBuild
+        _ * result.model >> original
+        1 * adapter.builder(GradleProject.class) >> viewBuilder1
+        1 * viewBuilder1.build(original) >> adapted
+        1 * adapter.builder(GradleBuild.class) >> viewBuilder2
+        1 * viewBuilder2.build( _) >> adaptedGradleBuild
         0 * target._
     }
 

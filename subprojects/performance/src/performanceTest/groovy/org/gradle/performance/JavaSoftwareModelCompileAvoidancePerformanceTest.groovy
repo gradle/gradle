@@ -16,11 +16,11 @@
 
 package org.gradle.performance
 
-import org.gradle.performance.categories.JavaPerformanceTest
+import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category([JavaPerformanceTest])
+@Category([Experiment])
 class JavaSoftwareModelCompileAvoidancePerformanceTest extends AbstractCrossBuildPerformanceTest {
 
     @Unroll("Compile avoidance for #size project")

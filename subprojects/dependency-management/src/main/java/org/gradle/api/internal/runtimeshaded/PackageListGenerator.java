@@ -100,7 +100,7 @@ public class PackageListGenerator extends DefaultTask {
 
     @TaskAction
     public void generate() {
-        IoActions.writeTextFile(outputFile, new ErroringAction<BufferedWriter>() {
+        IoActions.writeTextFile(getOutputFile(), new ErroringAction<BufferedWriter>() {
             @Override
             public void doExecute(final BufferedWriter bufferedWriter) throws Exception {
                 Trie packages = collectPackages();
@@ -117,7 +117,7 @@ public class PackageListGenerator extends DefaultTask {
 
     private Trie collectPackages() throws IOException {
         Trie.Builder builder = new Trie.Builder();
-        for (File file : classpath) {
+        for (File file : getClasspath()) {
             if (file.exists()) {
                 if (file.getName().endsWith(".jar")) {
                     processJarFile(file, builder);

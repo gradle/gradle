@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.MeasuredOperation;
+import org.gradle.performance.results.MeasuredOperationList;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -70,16 +72,22 @@ public class BuildExperimentRunner {
             }
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
-            File projectDir = buildSpec.getWorkingDirectory();
+            copyTemplateTo(experiment, workingDirectory);
             GradleSession session = executerProvider.session(buildSpec);
 
             session.prepare();
             try {
-                performMeasurements(session, experiment, results, projectDir);
+                performMeasurements(session, experiment, results, workingDirectory);
             } finally {
                 session.cleanup();
             }
         }
+    }
+
+    private void copyTemplateTo(BuildExperimentSpec experiment, File workingDir) {
+        File templateDir = new TestProjectLocator().findProjectDir(experiment.getProjectName());
+        GFileUtils.cleanDirectory(workingDir);
+        GFileUtils.copyDirectory(templateDir, workingDir);
     }
 
     protected <S extends InvocationSpec, T extends InvocationCustomizer<S>> void performMeasurements(final InvocationExecutorProvider<T> session, BuildExperimentSpec experiment, MeasuredOperationList results, File projectDir) {
@@ -127,21 +135,30 @@ public class BuildExperimentRunner {
         }
     }
 
+    private static String getExperimentOverride(String key) {
+        String value = System.getProperty("org.gradle.performance.execution." + key);
+        if (value != null && !"defaults".equals(value)) {
+            return value;
+        }
+        return null;
+    }
+
     protected Integer invocationsForExperiment(BuildExperimentSpec experiment) {
+        String overridenInvocationCount = getExperimentOverride("runs");
+        if (overridenInvocationCount != null) {
+            return Integer.valueOf(overridenInvocationCount);
+        }
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
         }
-        // Take more samples when using the daemon, as execution time tends to be spiky
-        InvocationSpec invocation = experiment.getInvocation();
-        if (invocation instanceof GradleInvocationSpec) {
-            if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon()) {
-                return 8;
-            }
-        }
-        return 5;
+        return 10;
     }
 
     protected int warmupsForExperiment(BuildExperimentSpec experiment) {
+        String overridenWarmUpCount = getExperimentOverride("warmups");
+        if (overridenWarmUpCount != null) {
+            return Integer.valueOf(overridenWarmUpCount);
+        }
         if (experiment.getWarmUpCount() != null) {
             return experiment.getWarmUpCount();
         }
@@ -149,7 +166,7 @@ public class BuildExperimentRunner {
         InvocationSpec invocation = experiment.getInvocation();
         if (invocation instanceof GradleInvocationSpec) {
             if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon()) {
-                return 3;
+                return 5;
             }
         }
         return 1;

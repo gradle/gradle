@@ -19,8 +19,6 @@ package org.gradle.performance.results;
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
-import org.gradle.performance.fixture.CrossVersionPerformanceResults;
-import org.gradle.performance.fixture.MeasuredOperationList;
 
 import java.util.ArrayList;
 import java.util.Collections;

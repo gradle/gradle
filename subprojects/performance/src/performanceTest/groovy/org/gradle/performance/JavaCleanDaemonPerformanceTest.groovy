@@ -16,6 +16,7 @@
 
 package org.gradle.performance
 
+import org.gradle.performance.categories.Experiment
 import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
@@ -25,6 +26,8 @@ import static org.gradle.performance.measure.Duration.millis
 
 @Category([JavaPerformanceTest])
 class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
+
+    @Category([Experiment])
     @Unroll("clean Java software model build - #testProject")
     def "clean Java software model build"() {
         given:
@@ -35,7 +38,7 @@ class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest
         runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = targetVersions
         runner.useDaemon = true
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
         def result = runner.run()
@@ -61,7 +64,7 @@ class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = targetVersions
-        runner.gradleOpts = ["-Xms1g", "-Xmx1g", "-XX:MaxPermSize=256m"]
+        runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
         def result = runner.run()

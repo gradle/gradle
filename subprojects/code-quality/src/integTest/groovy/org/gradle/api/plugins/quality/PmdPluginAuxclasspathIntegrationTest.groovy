@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
@@ -25,7 +24,6 @@ import static org.gradle.util.Matchers.containsLine
 import static org.gradle.util.Matchers.containsText
 import static org.hamcrest.Matchers.containsString
 
-@LeaksFileHandles
 class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
 
     static boolean supportsAuxclasspath() {
@@ -73,7 +71,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
     }
 
     def "auxclasspath configured for rule-using project"() {
-        Assume.assumeTrue(supportsAuxclasspath())
+        Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
         expect:
         fails ":rule-using:pmdMain"
@@ -84,7 +82,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
     }
 
     def "auxclasspath not configured properly for rule-using project"() {
-        Assume.assumeTrue(supportsAuxclasspath())
+        Assume.assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
         given:
         buildFile << """

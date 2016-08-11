@@ -27,6 +27,7 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
     private final Amount<Q> max;
     private final Amount<Q> min;
     private final Amount<Q> stddev;
+    private final Amount<Q> sdom;
 
     public DataSeries(Iterable<? extends Amount<Q>> values) {
         for (Amount<Q> value : values) {
@@ -40,6 +41,7 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
             max = null;
             min = null;
             stddev = null;
+            sdom = null;
             return;
         }
 
@@ -70,6 +72,7 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
         BigDecimal result = BigDecimal.valueOf(Math.sqrt(sumSquares.divide(BigDecimal.valueOf(size()), BigDecimal.ROUND_HALF_UP).doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
 
         stddev = Amount.valueOf(result, baseUnits);
+        sdom = stddev.div(BigDecimal.valueOf(Math.sqrt(size())));
     }
 
     public Amount<Q> getAverage() {
@@ -86,5 +89,9 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
 
     public Amount<Q> getStddev() {
         return stddev;
+    }
+
+    public Amount<Q> getSdom() {
+        return sdom;
     }
 }

@@ -27,16 +27,26 @@ import org.gradle.integtests.tooling.fixture.ToolingApiDistributionResolver
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.performance.fixture.*
+import org.gradle.performance.fixture.BuildExperimentSpec
+import org.gradle.performance.fixture.CrossVersionPerformanceTestRunner
+import org.gradle.performance.fixture.Git
+import org.gradle.performance.fixture.InvocationSpec
+import org.gradle.performance.fixture.OperationTimer
+import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
+import org.gradle.performance.fixture.TestProjectLocator
+import org.gradle.performance.fixture.TestScenarioSelector
 import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
+import org.gradle.performance.results.BuildDisplayInfo
+import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.CrossVersionResultsStore
-import org.gradle.performance.results.ResultsStoreHelper
+import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.tooling.ProjectConnection
+import org.gradle.util.GFileUtils
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 import spock.lang.Specification
@@ -46,8 +56,8 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     protected final static ReleasedVersionDistributions RELEASES = new ReleasedVersionDistributions()
     protected final static UnderDevelopmentGradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
 
-    static def resultStore = ResultsStoreHelper.maybeUseResultStore { new CrossVersionResultsStore() }
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    static def resultStore = new CrossVersionResultsStore()
+    final TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
 
 
     protected ToolingApiExperimentSpec experimentSpec
@@ -62,7 +72,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     }
 
     void experiment(String projectName, String displayName, @DelegatesTo(ToolingApiExperimentSpec) Closure<?> spec) {
-        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, 3, 10, 5000L, 500L, null)
+        experimentSpec = new ToolingApiExperimentSpec(displayName, projectName, temporaryFolder.testDirectory, 3, 10, 5000L, 500L, null)
         def clone = spec.rehydrate(experimentSpec, this, this)
         clone.resolveStrategy = Closure.DELEGATE_FIRST
         clone.call(experimentSpec)
@@ -109,7 +119,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
         private CrossVersionPerformanceResults run() {
             def testId = experimentSpec.displayName
             def scenarioSelector = new TestScenarioSelector()
-            Assume.assumeTrue(scenarioSelector.shouldRun(testId))
+            Assume.assumeTrue(scenarioSelector.shouldRun(testId, [experimentSpec.projectName].toSet(), resultStore))
 
             def testProjectLocator = new TestProjectLocator()
             def projectDir = testProjectLocator.findProjectDir(experimentSpec.projectName)
@@ -129,10 +139,10 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 gradleOpts: [],
                 daemon: true)
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
-            def tplDir = copyTemplateToDir(projectDir)
             try {
-                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions, ResultsStoreHelper.ADHOC_RUN).toList()
+                List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions).toList()
                 [*baselines, 'current'].each { String version ->
+                    def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
                     if ('current' != version) {
@@ -147,7 +157,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     tapiClassLoader = getTestClassLoader(testClassLoaders, toolingApiDistribution, testClassPath) {
                     }
                     def tapiClazz = tapiClassLoader.loadClass(ToolingApi.name)
-                    def toolingApi = tapiClazz.newInstance(dist, tplDir)
+                    def toolingApi = tapiClazz.newInstance(dist, workingDirProvider)
                     assert toolingApi != ToolingApi
                     warmup(toolingApi)
                     println "Waiting ${experimentSpec.sleepAfterWarmUpMillis}ms before measurements"
@@ -164,13 +174,13 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             results
         }
 
-        private TestDirectoryProvider copyTemplateToDir(File templateDir) {
-            def directory = temporaryFolder.getTestDirectory()
-            directory.copyFrom(templateDir)
-            new TestDirectoryProvider() {
+        private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir) {
+            GFileUtils.cleanDirectory(workingDir)
+            GFileUtils.copyDirectory(templateDir, workingDir)
+            return new TestDirectoryProvider() {
                 @Override
                 TestFile getTestDirectory() {
-                    directory
+                    workingDir
                 }
 
                 @Override

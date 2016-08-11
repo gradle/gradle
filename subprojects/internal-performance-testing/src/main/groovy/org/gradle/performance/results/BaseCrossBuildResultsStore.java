@@ -20,17 +20,17 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.performance.fixture.BuildDisplayInfo;
-import org.gradle.performance.fixture.CrossBuildPerformanceResults;
-import org.gradle.performance.fixture.DataReporter;
-import org.gradle.performance.fixture.MeasuredOperationList;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.Closeable;
-import java.io.File;
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -40,12 +40,12 @@ import static org.gradle.performance.results.ResultsStoreHelper.splitVcsCommits;
 
 public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> implements ResultsStore, DataReporter<R>, Closeable {
 
-    private final File dbFile;
-    private final H2FileDb db;
+    private final PerformanceDatabase db;
+    private final String resultType;
 
-    public BaseCrossBuildResultsStore(File dbFile) {
-        this.dbFile = dbFile;
-        this.db = new H2FileDb(dbFile, new CrossBuildResultsSchemaInitializer());
+    public BaseCrossBuildResultsStore(String resultType) {
+        this.db = new PerformanceDatabase("cross-build-results", new CrossBuildResultsSchemaInitializer());
+        this.resultType = resultType;
     }
 
     public void report(final R results) {
@@ -53,7 +53,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             db.withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws Exception {
                     long executionId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup) values (?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getTestTime()));
@@ -63,6 +63,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         statement.setString(6, results.getVcsBranch());
                         statement.setString(7, Joiner.on(",").join(results.getVcsCommits()));
                         statement.setString(8, results.getTestGroup());
+                        statement.setString(9, resultType);
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -82,7 +83,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 }
             });
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not open results datastore '%s'.", dbFile), e);
+            throw new RuntimeException(String.format("Could not open results datastore '%s'.", db.getUrl()), e);
         }
     }
 
@@ -121,9 +122,10 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 public List<String> execute(Connection connection) throws Exception {
                     List<String> testNames = new ArrayList<String>();
                     ResultSet testGroups = connection.createStatement().executeQuery("select distinct testGroup from testExecution order by testGroup");
-                    PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId from testExecution where testGroup = ? order by testId");
+                    PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId from testExecution where testGroup = ? and resultType = ? order by testId");
                     while (testGroups.next()) {
                         testIdsStatement.setString(1, testGroups.getString(1));
+                        testIdsStatement.setString(2, resultType);
                         ResultSet testExecutions = testIdsStatement.executeQuery();
                         while (testExecutions.next()) {
                             testNames.add(testExecutions.getString(1));
@@ -136,7 +138,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 }
             });
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load test history from datastore '%s'.", dbFile), e);
+            throw new RuntimeException(String.format("Could not load test history from datastore '%s'.", db.getUrl()), e);
         }
     }
 
@@ -214,7 +216,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 }
             });
         } catch (Exception e) {
-            throw new RuntimeException(String.format("Could not load results from datastore '%s'.", dbFile), e);
+            throw new RuntimeException(String.format("Could not load results from datastore '%s'.", db.getUrl()), e);
         }
     }
 
@@ -256,6 +258,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             }
             statement.execute("alter table testOperation add column if not exists gradleOpts array");
             statement.execute("alter table testOperation add column if not exists daemon boolean");
+            statement.execute("alter table testExecution add column if not exists resultType varchar not null default 'cross-build'");
             statement.close();
             return null;
         }

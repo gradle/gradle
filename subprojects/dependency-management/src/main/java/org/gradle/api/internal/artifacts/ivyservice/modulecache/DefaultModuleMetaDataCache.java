@@ -20,8 +20,8 @@ import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.local.LocallyAvailableResource;
 import org.gradle.internal.resource.local.PathKeyFileStore;
@@ -38,56 +38,55 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
     private final BuildCommencedTimeProvider timeProvider;
     private final CacheLockingManager cacheLockingManager;
 
-    private final ModuleDescriptorStore moduleDescriptorStore;
-    private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> cache;
+    private final ModuleMetadataStore moduleMetadataStore;
+    private PersistentIndexedCache<RevisionKey, ModuleMetadataCacheEntry> cache;
 
     public DefaultModuleMetaDataCache(BuildCommencedTimeProvider timeProvider, CacheLockingManager cacheLockingManager) {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
 
-        moduleDescriptorStore = new ModuleDescriptorStore(new PathKeyFileStore(cacheLockingManager.createMetaDataStore()), new ModuleDescriptorSerializer());
+        moduleMetadataStore = new ModuleMetadataStore(new PathKeyFileStore(cacheLockingManager.createMetaDataStore()), new ModuleMetadataSerializer());
     }
 
-    private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> getCache() {
+    private PersistentIndexedCache<RevisionKey, ModuleMetadataCacheEntry> getCache() {
         if (cache == null) {
             cache = initCache();
         }
         return cache;
     }
 
-    private PersistentIndexedCache<RevisionKey, ModuleDescriptorCacheEntry> initCache() {
-        return cacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleDescriptorCacheEntrySerializer());
+    private PersistentIndexedCache<RevisionKey, ModuleMetadataCacheEntry> initCache() {
+        return cacheLockingManager.createCache("module-metadata", new RevisionKeySerializer(), new ModuleMetadataCacheEntrySerializer());
     }
 
     public CachedMetaData getCachedModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier componentId) {
-        ModuleDescriptorCacheEntry entry = getCache().get(createKey(repository, componentId));
+        ModuleMetadataCacheEntry entry = getCache().get(createKey(repository, componentId));
         if (entry == null) {
             return null;
         }
         if (entry.isMissing()) {
             return new DefaultCachedMetaData(entry, null, timeProvider);
         }
-        ModuleDescriptorState descriptor = moduleDescriptorStore.getModuleDescriptor(repository, componentId);
-        if (descriptor == null) {
+        MutableModuleComponentResolveMetadata metadata = moduleMetadataStore.getModuleDescriptor(repository, componentId);
+        if (metadata == null) {
             // Descriptor file has been deleted - ignore the entry
             return null;
         }
-        return new DefaultCachedMetaData(entry, entry.createMetaData(componentId, descriptor), timeProvider);
+        return new DefaultCachedMetaData(entry, entry.configure(metadata), timeProvider);
     }
 
     public CachedMetaData cacheMissing(ModuleComponentRepository repository, ModuleComponentIdentifier id) {
         LOGGER.debug("Recording absence of module descriptor in cache: {} [changing = {}]", id, false);
-        ModuleDescriptorCacheEntry entry = ModuleDescriptorCacheEntry.forMissingModule(timeProvider.getCurrentTime());
+        ModuleMetadataCacheEntry entry = ModuleMetadataCacheEntry.forMissingModule(timeProvider.getCurrentTime());
         getCache().put(createKey(repository, id), entry);
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
-    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetadata metaData) {
-        ModuleDescriptorState moduleDescriptor = metaData.getDescriptor();
-        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", moduleDescriptor.getComponentIdentifier(), metaData.isChanging());
-        LocallyAvailableResource resource = moduleDescriptorStore.putModuleDescriptor(repository, metaData.getComponentId(), moduleDescriptor);
-        ModuleDescriptorCacheEntry entry = createEntry(metaData, resource.getSha1());
-        getCache().put(createKey(repository, metaData.getComponentId()), entry);
+    public CachedMetaData cacheMetaData(ModuleComponentRepository repository, ModuleComponentResolveMetadata metadata) {
+        LOGGER.debug("Recording module descriptor in cache: {} [changing = {}]", metadata.getComponentId(), metadata.isChanging());
+        LocallyAvailableResource resource = moduleMetadataStore.putModuleDescriptor(repository, metadata);
+        ModuleMetadataCacheEntry entry = createEntry(metadata, resource.getSha1());
+        getCache().put(createKey(repository, metadata.getComponentId()), entry);
         return new DefaultCachedMetaData(entry, null, timeProvider);
     }
 
@@ -95,8 +94,8 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         return new RevisionKey(repository.getId(), id);
     }
 
-    private ModuleDescriptorCacheEntry createEntry(ModuleComponentResolveMetadata metaData, HashValue moduleDescriptorHash) {
-        return ModuleDescriptorCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger());
+    private ModuleMetadataCacheEntry createEntry(ModuleComponentResolveMetadata metaData, HashValue moduleDescriptorHash) {
+        return ModuleMetadataCacheEntry.forMetaData(metaData, timeProvider.getCurrentTime(), moduleDescriptorHash.asBigInteger());
     }
 
     private static class RevisionKey {

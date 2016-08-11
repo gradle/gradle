@@ -20,6 +20,7 @@ package org.gradle.api.publish.ivy
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.test.fixtures.ivy.IvyDescriptorDependencyExclusion
 import org.gradle.test.fixtures.ivy.RemoteIvyModule
 import org.gradle.test.fixtures.ivy.RemoteIvyRepository
 import org.gradle.test.fixtures.server.RepositoryServer
@@ -104,15 +105,15 @@ uploadArchives {
             dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasConf("runtime->default")
             dependencies["commons-io:commons-io:1.4"].hasConf("runtime->default")
 
-            assert dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasExclude('commons-logging','*','*', '*', '*', 'compile', 'exact')
-            assert dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasExclude('com.fasterxml.jackson.core','jackson-annotations','*', '*', '*', 'runtime', 'exact')
-            assert dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasExclude('com.fasterxml.jackson.core','jackson-core','*', '*', '*', 'runtime', 'exact')
-            assert dependencies["org.apache.camel:camel-jackson:2.15.3"].hasExclude('*','camel-core','*', '*', '*', 'compile', 'exact')
+            dependencies["commons-beanutils:commons-beanutils:1.8.3"].hasExclude(new IvyDescriptorDependencyExclusion('commons-logging','*','*', '*', '*', 'compile', 'exact'))
+            dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasExclude(new IvyDescriptorDependencyExclusion('com.fasterxml.jackson.core','jackson-annotations','*', '*', '*', 'runtime', 'exact'))
+            dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].hasExclude(new IvyDescriptorDependencyExclusion('com.fasterxml.jackson.core','jackson-core','*', '*', '*', 'runtime', 'exact'))
+            dependencies["org.apache.camel:camel-jackson:2.15.3"].hasExclude(new IvyDescriptorDependencyExclusion('*','camel-core','*', '*', '*', 'compile', 'exact'))
 
-            assert dependencies["commons-beanutils:commons-beanutils:1.8.3"].transitiveEnabled()
-            assert dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].transitiveEnabled()
-            assert dependencies["org.apache.camel:camel-jackson:2.15.3"].transitiveEnabled()
-            assert !dependencies["commons-dbcp:commons-dbcp:1.4"].transitiveEnabled()
+            dependencies["commons-beanutils:commons-beanutils:1.8.3"].transitiveEnabled()
+            dependencies["com.fasterxml.jackson.core:jackson-databind:2.2.3"].transitiveEnabled()
+            dependencies["org.apache.camel:camel-jackson:2.15.3"].transitiveEnabled()
+            !dependencies["commons-dbcp:commons-dbcp:1.4"].transitiveEnabled()
         }
 
         and:

@@ -66,7 +66,7 @@ public class DaemonGradleExecuter extends ForkingGradleExecuter {
         // Add JVM heap settings only for shared daemons
         List<String> buildJvmOpts = new ArrayList<String>(super.getImplicitBuildJvmArgs());
 
-        if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_9) < 0) {
+        if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
             buildJvmOpts.add("-XX:MaxPermSize=320m");
         }
 

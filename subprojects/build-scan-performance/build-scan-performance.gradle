@@ -16,7 +16,7 @@
 
 apply from: 'templates.gradle'
 
-report {
+performanceReport {
     resultStoreClass = "org.gradle.performance.results.BuildScanResultsStore"
 }
 

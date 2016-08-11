@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.specs.Specs
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -319,7 +319,7 @@ class DefaultVersionedComponentChooserTest extends Specification {
     }
 
     def resolvedWithStatus(String status) {
-        def meta = Stub(MutableModuleComponentResolveMetadata) {
+        def meta = Stub(ModuleComponentResolveMetadata) {
             getStatusScheme() >> ["integration", "milestone", "release"]
             getStatus() >> status
         }

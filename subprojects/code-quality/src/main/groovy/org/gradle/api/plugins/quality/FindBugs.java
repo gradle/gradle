@@ -133,8 +133,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
      * }
      * </pre>
      *
-     * @deprecated Use {@link #reports(Action)} instead
-     *
      * @param closure The configuration
      * @return The reports container
      */

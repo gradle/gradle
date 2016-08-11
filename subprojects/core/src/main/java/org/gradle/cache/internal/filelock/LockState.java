@@ -24,6 +24,8 @@ import org.gradle.cache.internal.FileLock;
 public interface LockState extends FileLock.State {
     boolean isDirty();
 
+    boolean isInInitialState();
+
     /**
      * Called after an update is complete, returns a new clean state based on this state.
      */

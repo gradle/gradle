@@ -218,6 +218,8 @@
                 <td>-</td>
                 <td>
                     <para>Deploys your web application to a Jetty web container embedded in the build. See also <xref linkend="web_project_tutorial"/>.
+                        This plugin is deprecated and will be removed in Gradle 4.0.
+                        Consider using the more feature-rich <ulink url="https://github.com/akhikhl/gretty">Gretty plugin</ulink> instead.
                     </para>
                 </td>
             </tr>

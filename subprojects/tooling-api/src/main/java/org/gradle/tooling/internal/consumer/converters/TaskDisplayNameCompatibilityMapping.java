@@ -17,22 +17,21 @@
 package org.gradle.tooling.internal.consumer.converters;
 
 import org.gradle.api.Action;
-import org.gradle.tooling.internal.adapter.SourceObjectMapping;
+import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.model.GradleTask;
 
-import java.io.Serializable;
-
-public class TaskDisplayNameCompatibilityMapping implements Action<SourceObjectMapping>, Serializable {
+public class TaskDisplayNameCompatibilityMapping implements Action<ViewBuilder<?>> {
     private final boolean supportsTaskDisplayName;
 
     public TaskDisplayNameCompatibilityMapping(VersionDetails versionDetails) {
         supportsTaskDisplayName = versionDetails.supportsTaskDisplayName();
     }
 
-    public void execute(SourceObjectMapping mapping) {
-        if (GradleTask.class.isAssignableFrom(mapping.getTargetType()) && !supportsTaskDisplayName) {
-            mapping.mixIn(TaskDisplayNameMixin.class);
+    @Override
+    public void execute(ViewBuilder<?> viewBuilder) {
+        if (!supportsTaskDisplayName) {
+            viewBuilder.mixInTo(GradleTask.class, TaskDisplayNameMixin.class);
         }
     }
 }
