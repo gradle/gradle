@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-import org.gradle.testing.PerformanceTest
+
 import org.gradle.testing.DistributedPerformanceTest
+import org.gradle.testing.PerformanceTest
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
-
 
 apply plugin: 'java'
 
@@ -230,4 +230,8 @@ class PerformanceReport extends JavaExec {
         args = [resultStoreClass, reportDir.path]
         super.exec();
     }
+}
+
+tasks.withType(JvmProjectGeneratorTask) {
+    dependsOn ':internalPerformanceTesting:measurementPluginJar'
 }

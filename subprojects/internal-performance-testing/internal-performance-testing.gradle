@@ -49,3 +49,28 @@ useTestFixtures(project: ':toolingApi', sourceSet: 'main')
 useClassycle()
 
 apply from: "$rootDir/gradle/ideaTestSourcesWorkaround.gradle"
+
+apply plugin: 'groovy'
+
+sourceSets {
+    measurementPlugin
+}
+
+dependencies {
+    measurementPluginCompile project(":core"), project(":dependencyManagement"), project(":pluginUse"), project(":toolingApi") // mimic gradleApi()
+}
+
+task measurementPluginJar(type: org.gradle.jvm.tasks.Jar) {
+    from sourceSets.measurementPlugin.output
+    dependsOn measurementPluginClasses
+    archiveName = 'measurement-plugin.jar'
+}
+
+plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
+    idea {
+        module {
+            sourceDirs += sourceSets.measurementPlugin.allSource.srcDirs
+            scopes.COMPILE.plus.add(configurations.measurementPluginCompile)
+        }
+    }
+}
