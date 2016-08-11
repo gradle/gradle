@@ -31,15 +31,22 @@ import java.math.RoundingMode
 class MeasurementPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
-        project.getGradle().addBuildListener(new BuildAdapter() {
+        def gradle = project.gradle
+
+        gradle.addBuildListener(new BuildAdapter() {
             @Override
             void buildFinished(BuildResult result) {
+                BuildEventTimeStamps.buildFinished(result)
                 def rootProject = result.gradle.rootProject
                 handleHeapDump(rootProject, rootProject.logger)
                 handleHeapMeasurement(rootProject, rootProject.logger)
                 handleExternalResourcesStats()
             }
         })
+
+        gradle.getTaskGraph().whenReady {
+            BuildEventTimeStamps.configurationEvaluated()
+        }
     }
 
     @CompileDynamic
