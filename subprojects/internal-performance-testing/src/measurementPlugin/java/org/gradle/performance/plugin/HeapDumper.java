@@ -36,36 +36,46 @@ import java.util.Date;
 class HeapDumper {
     static void handle(final Project project, Logger logger) {
         if (project.hasProperty("heapdump")) {
-            boolean skipHeapDump = false;
-
-            if (project.hasProperty("buildExperimentPhase") && project.hasProperty("buildExperimentIterationNumber") && project.hasProperty("buildExperimentIterationMax")) {
-                // only dump heap automaticly on the last iteration of the testrun (not in warmup)
-                if (!"measurement".equals(project.property("buildExperimentPhase")) || !project.property("buildExperimentIterationNumber").equals(project.property("buildExperimentIterationMax"))) {
-                    skipHeapDump = true;
-                }
+            if (shouldDumpHeap(project)) {
+                dumpHeap(logger, createFileName(project), !"all".equals(project.property("heapdump")));
             }
+        }
+    }
 
-            if (!skipHeapDump) {
-                PlatformManagedObject hotspotDiagnosticMXBean = null;
-                try {
-                    Class<? extends PlatformManagedObject> hotspotDiagnosticMXBeanClass = (Class<? extends PlatformManagedObject>) Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
-                    hotspotDiagnosticMXBean = ManagementFactory.getPlatformMXBeans(hotspotDiagnosticMXBeanClass).get(0);
-                } catch (Exception e) {
-                    logger.error("Couldn't locate MBean for doing heap dump.", e);
-                }
-
-                if (hotspotDiagnosticMXBean != null) {
-                    logger.lifecycle("Creating heap dump...");
-                    final String dumpDescription = (project.hasProperty("buildExperimentDisplayName") ? (project.getName() + "_" + project.property("buildExperimentDisplayName")) : project.getName()).replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_");
-                    final File dumpFile = new File(System.getProperty("java.io.tmpdir"), "heapdump-" + dumpDescription + "-" + new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()) + ".hprof");
-                    final boolean liveObjectsOnly = !"all".equals(project.property("heapdump"));
-                    DefaultGroovyMethods.invokeMethod(hotspotDiagnosticMXBean, "dumpHeap", new Object[]{dumpFile.getAbsolutePath(), liveObjectsOnly});
-                    logger.lifecycle("Dumped to " + dumpFile.getAbsolutePath() + ".");
-                }
-
-            }
-
+    private static void dumpHeap(Logger logger, File dumpFile, boolean liveObjectsOnly) {
+        PlatformManagedObject hotspotDiagnosticMXBean = null;
+        try {
+            Class<? extends PlatformManagedObject> hotspotDiagnosticMXBeanClass = (Class<? extends PlatformManagedObject>) Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
+            hotspotDiagnosticMXBean = ManagementFactory.getPlatformMXBean(hotspotDiagnosticMXBeanClass);
+        } catch (Exception e) {
+            logger.error("Couldn't locate MBean for doing heap dump.", e);
         }
 
+        if (hotspotDiagnosticMXBean != null) {
+            logger.lifecycle("Creating heap dump...");
+            DefaultGroovyMethods.invokeMethod(hotspotDiagnosticMXBean, "dumpHeap", new Object[]{dumpFile.getAbsolutePath(), liveObjectsOnly});
+            logger.lifecycle("Dumped to " + dumpFile.getAbsolutePath() + ".");
+        }
+    }
+
+    private static File createFileName(Project project) {
+        final String dumpDescription = (project.hasProperty("buildExperimentDisplayName") ? (project.getName() + "_" + project.property("buildExperimentDisplayName")) : project.getName()).replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_");
+        return new File(System.getProperty("java.io.tmpdir"), "heapdump-" + dumpDescription + "-" + new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()) + ".hprof");
+    }
+
+    private static boolean shouldDumpHeap(Project project) {
+        if (isRunningInPerformanceTest(project) && isNotLastIterationOfMeasurementPhase(project)) {
+            // only dump heap automaticly on the last iteration of the testrun (not in warmup)
+            return false;
+        }
+        return true;
+    }
+
+    private static boolean isNotLastIterationOfMeasurementPhase(Project project) {
+        return !"measurement".equals(project.property("buildExperimentPhase")) || !project.property("buildExperimentIterationNumber").equals(project.property("buildExperimentIterationMax"));
+    }
+
+    private static boolean isRunningInPerformanceTest(Project project) {
+        return project.hasProperty("buildExperimentPhase") && project.hasProperty("buildExperimentIterationNumber") && project.hasProperty("buildExperimentIterationMax");
     }
 }
