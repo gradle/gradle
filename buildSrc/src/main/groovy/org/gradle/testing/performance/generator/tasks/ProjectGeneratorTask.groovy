@@ -192,8 +192,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             repository: testProject.repository,
             dependencies: testProject.dependencies,
             testProject: testProject,
-            buildScanPluginVersion: buildScanPluginVersionProvider?.call(),
-            gradleTask: this
+            buildScanPluginVersion: buildScanPluginVersionProvider?.call()
         ]
 
         args += templateArgs
