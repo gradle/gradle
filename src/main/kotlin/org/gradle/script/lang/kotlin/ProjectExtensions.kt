@@ -60,7 +60,7 @@ inline fun <reified T : Any> Project.configure(configuration: T.() -> Unit) =
     configure(T::class, configuration)
 
 inline fun <T : Any> Project.configure(extensionType: KClass<T>, configuration: T.() -> Unit) =
-    configuration(the(extensionType))
+    the(extensionType).configuration()
 
 /**
  * Returns the plugin convention or extension of the specified type.
