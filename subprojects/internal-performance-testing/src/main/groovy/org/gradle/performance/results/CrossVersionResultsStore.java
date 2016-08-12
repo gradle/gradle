@@ -17,6 +17,8 @@
 package org.gradle.performance.results;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
@@ -36,6 +38,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
 import java.util.TreeSet;
@@ -179,23 +182,25 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         try {
             return db.withConnection(new ConnectionAction<CrossVersionPerformanceTestHistory>() {
                 public CrossVersionPerformanceTestHistory execute(Connection connection) throws SQLException {
-                    System.out.println("Fetching " + mostRecentN + " most recent results for " + testName);
-                    List<CrossVersionPerformanceResults> results = new ArrayList<CrossVersionPerformanceResults>();
+                    Map<Long, CrossVersionPerformanceResults> results = Maps.newLinkedHashMap();
                     Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
                         public int compare(String o1, String o2) {
                             return GradleVersion.version(o1).compareTo(GradleVersion.version(o2));
                         }
                     });
                     Set<String> allBranches = new TreeSet<String>();
+
                     PreparedStatement executionsForName = null;
                     PreparedStatement operationsForExecution = null;
                     ResultSet testExecutions = null;
+                    ResultSet operations = null;
 
                     try {
                         executionsForName = connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
-                        operationsForExecution = connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+                        executionsForName.setFetchSize(mostRecentN);
                         executionsForName.setInt(1, mostRecentN);
                         executionsForName.setString(2, testName);
+
                         testExecutions = executionsForName.executeQuery();
                         while (testExecutions.next()) {
                             long id = testExecutions.getLong(1);
@@ -213,44 +218,49 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             performanceResults.setVcsBranch(testExecutions.getString(11).trim());
                             performanceResults.setVcsCommits(ResultsStoreHelper.splitVcsCommits(testExecutions.getString(12)));
 
-                            results.add(performanceResults);
+                            results.put(id, performanceResults);
                             allBranches.add(performanceResults.getVcsBranch());
-
-                            operationsForExecution.setLong(1, id);
-                            ResultSet builds = operationsForExecution.executeQuery();
-                            while (builds.next()) {
-                                String version = builds.getString(1);
-                                if ("1.7".equals(version) && performanceResults.getTestTime() <= ignoreV17Before) {
-                                    // Ignore some broken samples
-                                    continue;
-                                }
-                                MeasuredOperation operation = new MeasuredOperation();
-                                operation.setTotalTime(Duration.millis(builds.getBigDecimal(2)));
-                                operation.setConfigurationTime(Duration.millis(builds.getBigDecimal(3)));
-                                operation.setExecutionTime(Duration.millis(builds.getBigDecimal(4)));
-                                operation.setTotalMemoryUsed(DataAmount.bytes(builds.getBigDecimal(5)));
-                                operation.setTotalHeapUsage(DataAmount.bytes(builds.getBigDecimal(6)));
-                                operation.setMaxHeapUsage(DataAmount.bytes(builds.getBigDecimal(7)));
-                                operation.setMaxUncollectedHeap(DataAmount.bytes(builds.getBigDecimal(8)));
-                                operation.setMaxCommittedHeap(DataAmount.bytes(builds.getBigDecimal(9)));
-
-                                if (version == null) {
-                                    performanceResults.getCurrent().add(operation);
-                                } else {
-                                    BaselineVersion baselineVersion = performanceResults.baseline(version);
-                                    baselineVersion.getResults().add(operation);
-                                    allVersions.add(version);
-                                }
-                            }
-                            closeResultSet(builds);
                         }
+
+                        operationsForExecution = connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, testExecution from testOperation where testExecution in (select * from table(x int = ?))");
+                        operationsForExecution.setFetchSize(10 * results.size());
+                        operationsForExecution.setObject(1, results.keySet().toArray());
+
+                        operations = operationsForExecution.executeQuery();
+                        while (operations.next()) {
+                            CrossVersionPerformanceResults result = results.get(operations.getLong(10));
+                            String version = operations.getString(1);
+                            if ("1.7".equals(version) && result.getTestTime() <= ignoreV17Before) {
+                                // Ignore some broken samples
+                                continue;
+                            }
+                            MeasuredOperation operation = new MeasuredOperation();
+                            operation.setTotalTime(Duration.millis(operations.getBigDecimal(2)));
+                            operation.setConfigurationTime(Duration.millis(operations.getBigDecimal(3)));
+                            operation.setExecutionTime(Duration.millis(operations.getBigDecimal(4)));
+                            operation.setTotalMemoryUsed(DataAmount.bytes(operations.getBigDecimal(5)));
+                            operation.setTotalHeapUsage(DataAmount.bytes(operations.getBigDecimal(6)));
+                            operation.setMaxHeapUsage(DataAmount.bytes(operations.getBigDecimal(7)));
+                            operation.setMaxUncollectedHeap(DataAmount.bytes(operations.getBigDecimal(8)));
+                            operation.setMaxCommittedHeap(DataAmount.bytes(operations.getBigDecimal(9)));
+
+                            if (version == null) {
+                                result.getCurrent().add(operation);
+                            } else {
+                                BaselineVersion baselineVersion = result.baseline(version);
+                                baselineVersion.getResults().add(operation);
+                                allVersions.add(version);
+                            }
+                        }
+
                     } finally {
+                        closeResultSet(operations);
                         closeStatement(operationsForExecution);
-                        closeStatement(executionsForName);
                         closeResultSet(testExecutions);
+                        closeStatement(executionsForName);
                     }
 
-                    return new CrossVersionPerformanceTestHistory(testName, new ArrayList<String>(allVersions), new ArrayList<String>(allBranches), results);
+                    return new CrossVersionPerformanceTestHistory(testName, new ArrayList<String>(allVersions), new ArrayList<String>(allBranches), Lists.newArrayList(results.values()));
                 }
             });
         } catch (Exception e) {
