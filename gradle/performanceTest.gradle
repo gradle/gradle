@@ -192,9 +192,7 @@ task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
     }
 }
 
-task distributedHistoricalPerformanceTest(type: DistributedPerformanceTest) {
-    // for the first iteration(s?) we'll use a tmp database
-    systemProperty "org.gradle.performance.db.url", "jdbc:h2:./build/database"
+task distributedFullPerformanceTest(type: DistributedPerformanceTest) {
 }
 
 configure([performanceTest, performanceExperiment, fullPerformanceTest, performanceAdhocTest]) {
