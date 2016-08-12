@@ -76,6 +76,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         for (BuildDisplayInfo displayInfo : results.getBuilds()) {
                             addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
                         }
+                        statement.executeBatch();
                     } finally {
                         statement.close();
                     }
@@ -104,7 +105,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.setBigDecimal(13, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(14, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(15, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
-            statement.execute();
+            statement.addBatch();
         }
     }
 

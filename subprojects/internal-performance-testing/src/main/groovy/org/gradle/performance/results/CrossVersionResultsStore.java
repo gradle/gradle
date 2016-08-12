@@ -103,6 +103,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
                             addOperations(statement, testId, baselineVersion.getVersion(), baselineVersion.getResults());
                         }
+                        statement.executeBatch();
                     } finally {
                         closeStatement(statement);
                     }
@@ -136,7 +137,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             statement.setBigDecimal(8, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(9, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(10, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
-            statement.execute();
+            statement.addBatch();
         }
     }
 
