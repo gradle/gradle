@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
 import java.lang.management.PlatformManagedObject;
 import java.math.BigDecimal;
@@ -96,20 +97,24 @@ public class MeasurementPlugin implements Plugin<Project> {
     }
 
     private void handleHeapMeasurement(Project project, Logger logger) {
-        MemoryUsage heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-        MemoryUsage nonHeap = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
+        final MemoryMXBean memoryMXBean = ManagementFactory.getMemoryMXBean();
+
+        MemoryUsage heap = memoryMXBean.getHeapMemoryUsage();
+        MemoryUsage nonHeap = memoryMXBean.getNonHeapMemoryUsage();
         logger.lifecycle("BEFORE GC");
-        logger.lifecycle("heap: " + formatBytes(heap.getUsed()) + " (initial " + formatBytes(heap.getInit()) + ", committed " + formatBytes(heap.getCommitted()) + ", max " + formatBytes(heap.getMax()));
-        logger.lifecycle("nonHeap: " + formatBytes(nonHeap.getUsed()) + " (initial " + formatBytes(nonHeap.getInit()) + ", committed " + formatBytes(nonHeap.getCommitted()) + ", max " + formatBytes(nonHeap.getMax()));
+        logHeap(logger, heap, nonHeap);
 
-        ManagementFactory.getMemoryMXBean().gc();
+        memoryMXBean.gc();
 
-        heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-        nonHeap = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
+        heap = memoryMXBean.getHeapMemoryUsage();
+        nonHeap = memoryMXBean.getNonHeapMemoryUsage();
         logger.lifecycle("AFTER GC");
-        logger.lifecycle("heap: " + formatBytes(heap.getUsed()) + " (initial " + formatBytes(heap.getInit()) + ", committed " + formatBytes(heap.getCommitted()) + ", max " + formatBytes(heap.getMax()));
-        logger.lifecycle("nonHeap: " + formatBytes(nonHeap.getUsed()) + " (initial " + formatBytes(nonHeap.getInit()) + ", committed " + formatBytes(nonHeap.getCommitted()) + ", max " + formatBytes(nonHeap.getMax()));
+        logHeap(logger, heap, nonHeap);
 
+        storeTotalMemoryUsed(project, heap);
+    }
+
+    private void storeTotalMemoryUsed(Project project, MemoryUsage heap) {
         project.getBuildDir().mkdirs();
         File totalMemoryUsedFile = new File(project.getBuildDir(), "totalMemoryUsed.txt");
         try {
@@ -122,6 +127,11 @@ public class MeasurementPlugin implements Plugin<Project> {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void logHeap(Logger logger, MemoryUsage heap, MemoryUsage nonHeap) {
+        logger.lifecycle("heap: " + formatBytes(heap.getUsed()) + " (initial " + formatBytes(heap.getInit()) + ", committed " + formatBytes(heap.getCommitted()) + ", max " + formatBytes(heap.getMax()));
+        logger.lifecycle("nonHeap: " + formatBytes(nonHeap.getUsed()) + " (initial " + formatBytes(nonHeap.getInit()) + ", committed " + formatBytes(nonHeap.getCommitted()) + ", max " + formatBytes(nonHeap.getMax()));
     }
 
     private String formatBytes(long bytesValue) {
