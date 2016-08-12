@@ -23,7 +23,8 @@ public abstract class PerformanceTestResult {
     String testId;
     String jvm;
     String operatingSystem;
-    long testTime;
+    long startTime;
+    long endTime;
     String vcsBranch;
     List<String> vcsCommits;
     List<String> previousTestIds;
@@ -54,12 +55,20 @@ public abstract class PerformanceTestResult {
         this.previousTestIds = previousTestIds;
     }
 
-    public long getTestTime() {
-        return testTime;
+    public long getStartTime() {
+        return startTime;
     }
 
-    public void setTestTime(long testTime) {
-        this.testTime = testTime;
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
     }
 
     public String getVersionUnderTest() {

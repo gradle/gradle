@@ -42,7 +42,7 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
             if (i > 0) {
                 out.print(", ");
             }
-            out.print("\"" + format.date(new Date(results.getTestTime())) + "\"");
+            out.print("\"" + format.date(new Date(results.getStartTime())) + "\"");
         }
         out.println("],");
         out.print("\"totalTime\":");

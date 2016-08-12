@@ -49,7 +49,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     for (String testName : testNames) {
                         PerformanceTestHistory testHistory = store.getTestResults(testName, 5);
                         List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
-                        if (results.isEmpty() || results.get(0).getTestTime() < expiry) {
+                        if (results.isEmpty() || results.get(0).getStartTime() < expiry) {
                             archived.put(testHistory.getId(), testHistory.getDisplayName());
                             continue;
                         }
@@ -74,7 +74,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         end();
                         for (PerformanceTestExecution performanceTestExecution : results) {
                             tr();
-                                td().text(format.timestamp(new Date(performanceTestExecution.getTestTime()))).end();
+                                td().text(format.timestamp(new Date(performanceTestExecution.getStartTime()))).end();
                                 td().text(performanceTestExecution.getVcsBranch()).end();
                                 renderSamplesForExperiment(performanceTestExecution.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     @Override

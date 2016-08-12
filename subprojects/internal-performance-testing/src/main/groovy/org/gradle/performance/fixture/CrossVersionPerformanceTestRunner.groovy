@@ -97,7 +97,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId],
-            testTime: System.currentTimeMillis())
+            startTime: System.currentTimeMillis())
 
         LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions)
 
@@ -109,6 +109,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
 
         runVersion(current, workingDir, results.current)
+
+        results.endTime = System.currentTimeMillis()
 
         results.assertEveryBuildSucceeds()
 

@@ -78,20 +78,21 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     ResultSet keys = null;
 
                     try {
-                        statement = connection.prepareStatement("insert into testExecution(testId, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         statement.setString(1, results.getTestId());
-                        statement.setTimestamp(2, new Timestamp(results.getTestTime()));
-                        statement.setString(3, results.getVersionUnderTest());
-                        statement.setString(4, results.getTestProject());
-                        statement.setObject(5, toArray(results.getTasks()));
-                        statement.setObject(6, toArray(results.getArgs()));
-                        statement.setObject(7, toArray(results.getGradleOpts()));
-                        statement.setObject(8, results.getDaemon());
-                        statement.setString(9, results.getOperatingSystem());
-                        statement.setString(10, results.getJvm());
-                        statement.setString(11, results.getVcsBranch());
+                        statement.setTimestamp(2, new Timestamp(results.getStartTime()));
+                        statement.setTimestamp(3, new Timestamp(results.getEndTime()));
+                        statement.setString(4, results.getVersionUnderTest());
+                        statement.setString(5, results.getTestProject());
+                        statement.setObject(6, toArray(results.getTasks()));
+                        statement.setObject(7, toArray(results.getArgs()));
+                        statement.setObject(8, toArray(results.getGradleOpts()));
+                        statement.setObject(9, results.getDaemon());
+                        statement.setString(10, results.getOperatingSystem());
+                        statement.setString(11, results.getJvm());
+                        statement.setString(12, results.getVcsBranch());
                         String vcs = results.getVcsCommits() == null ? null :  Joiner.on(",").join(results.getVcsCommits());
-                        statement.setString(12, vcs);
+                        statement.setString(13, vcs);
                         statement.execute();
                         keys = statement.getGeneratedKeys();
                         keys.next();
@@ -196,7 +197,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     ResultSet operations = null;
 
                     try {
-                        executionsForName = connection.prepareStatement("select top ? id, executionTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by executionTime desc");
+                        executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by startTime desc");
                         executionsForName.setFetchSize(mostRecentN);
                         executionsForName.setInt(1, mostRecentN);
                         executionsForName.setString(2, testName);
@@ -206,17 +207,18 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             long id = testExecutions.getLong(1);
                             CrossVersionPerformanceResults performanceResults = new CrossVersionPerformanceResults();
                             performanceResults.setTestId(testName);
-                            performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
-                            performanceResults.setVersionUnderTest(testExecutions.getString(3));
-                            performanceResults.setTestProject(testExecutions.getString(4));
-                            performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(5)));
-                            performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(6)));
-                            performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(7)));
-                            performanceResults.setDaemon((Boolean) testExecutions.getObject(8));
-                            performanceResults.setOperatingSystem(testExecutions.getString(9));
-                            performanceResults.setJvm(testExecutions.getString(10));
-                            performanceResults.setVcsBranch(testExecutions.getString(11).trim());
-                            performanceResults.setVcsCommits(ResultsStoreHelper.splitVcsCommits(testExecutions.getString(12)));
+                            performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
+                            performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
+                            performanceResults.setVersionUnderTest(testExecutions.getString(4));
+                            performanceResults.setTestProject(testExecutions.getString(5));
+                            performanceResults.setTasks(ResultsStoreHelper.toList(testExecutions.getObject(6)));
+                            performanceResults.setArgs(ResultsStoreHelper.toList(testExecutions.getObject(7)));
+                            performanceResults.setGradleOpts(ResultsStoreHelper.toList(testExecutions.getObject(8)));
+                            performanceResults.setDaemon((Boolean) testExecutions.getObject(9));
+                            performanceResults.setOperatingSystem(testExecutions.getString(10));
+                            performanceResults.setJvm(testExecutions.getString(11));
+                            performanceResults.setVcsBranch(testExecutions.getString(12).trim());
+                            performanceResults.setVcsCommits(ResultsStoreHelper.splitVcsCommits(testExecutions.getString(13)));
 
                             results.put(id, performanceResults);
                             allBranches.add(performanceResults.getVcsBranch());
@@ -230,7 +232,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         while (operations.next()) {
                             CrossVersionPerformanceResults result = results.get(operations.getLong(10));
                             String version = operations.getString(1);
-                            if ("1.7".equals(version) && result.getTestTime() <= ignoreV17Before) {
+                            if ("1.7".equals(version) && result.getStartTime() <= ignoreV17Before) {
                                 // Ignore some broken samples
                                 continue;
                             }
@@ -300,6 +302,14 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 }
                 statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
                 statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
+                if (columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {
+                    statement.execute("alter table testExecution alter column executionTime rename to startTime");
+                }
+                if (!columnExists(connection, "TESTEXECUTION", "ENDTIME")) {
+                    statement.execute("alter table testExecution add column endTime timestamp");
+                    statement.execute("update testExecution set endTime = startTime");
+                    statement.execute("alter table testExecution alter column endTime set not null");
+                }
             } finally {
                 closeStatement(statement);
             }

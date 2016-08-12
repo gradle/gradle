@@ -43,7 +43,7 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 for (String testName : testNames) {
                     PerformanceTestHistory testHistory = store.getTestResults(testName, 5);
                     List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
-                    if (results.isEmpty() || results.get(0).getTestTime() < expiry) {
+                    if (results.isEmpty() || results.get(0).getStartTime() < expiry) {
                         continue;
                     }
                     h2().classAttr("test-execution");

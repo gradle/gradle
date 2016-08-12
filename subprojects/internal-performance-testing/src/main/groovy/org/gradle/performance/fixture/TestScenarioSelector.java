@@ -22,16 +22,12 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import org.gradle.performance.measure.Amount;
-import org.gradle.performance.measure.Duration;
-import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
@@ -58,10 +54,10 @@ public class TestScenarioSelector {
 
     private void addToScenarioList(String testId, Set<String> templates, File scenarioList, ResultsStore resultsStore) {
         try {
-            BigDecimal estimatedRuntime = getEstimatedRuntime(testId, resultsStore);
+            long estimatedRuntime = getEstimatedRuntime(testId, resultsStore);
             List<String> args = Lists.newArrayList();
             args.add(testId);
-            args.add(estimatedRuntime.toString());
+            args.add(String.valueOf(estimatedRuntime));
             args.addAll(templates);
             Files.touch(scenarioList);
             Files.append(Joiner.on(';').join(args) + '\n', scenarioList, Charsets.UTF_8);
@@ -70,19 +66,13 @@ public class TestScenarioSelector {
         }
     }
 
-    private BigDecimal getEstimatedRuntime(String testId, ResultsStore resultsStore) {
+    private long getEstimatedRuntime(String testId, ResultsStore resultsStore) {
         PerformanceTestHistory history = resultsStore.getTestResults(testId, 1);
         PerformanceTestExecution lastRun = Iterables.getFirst(history.getExecutions(), null);
         if (lastRun == null) {
-            return BigDecimal.ZERO;
+            return 0;
         } else {
-            BigDecimal sum = BigDecimal.ZERO;
-            for (MeasuredOperationList operation : lastRun.getScenarios()) {
-                for (Amount<Duration> duration : operation.getTotalTime()) {
-                    sum = sum.add(duration.toUnits(Duration.MILLI_SECONDS).getValue());
-                }
-            }
-            return sum;
+            return lastRun.getEndTime() - lastRun.getStartTime();
         }
     }
 }

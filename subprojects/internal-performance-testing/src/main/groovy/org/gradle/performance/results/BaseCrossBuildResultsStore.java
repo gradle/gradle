@@ -52,17 +52,18 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             db.withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws SQLException {
                     long executionId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         statement.setString(1, results.getTestId());
-                        statement.setTimestamp(2, new Timestamp(results.getTestTime()));
-                        statement.setString(3, results.getVersionUnderTest());
-                        statement.setString(4, results.getOperatingSystem());
-                        statement.setString(5, results.getJvm());
-                        statement.setString(6, results.getVcsBranch());
-                        statement.setString(7, Joiner.on(",").join(results.getVcsCommits()));
-                        statement.setString(8, results.getTestGroup());
-                        statement.setString(9, resultType);
+                        statement.setTimestamp(2, new Timestamp(results.getStartTime()));
+                        statement.setTimestamp(3, new Timestamp(results.getEndTime()));
+                        statement.setString(4, results.getVersionUnderTest());
+                        statement.setString(5, results.getOperatingSystem());
+                        statement.setString(6, results.getJvm());
+                        statement.setString(7, results.getVcsBranch());
+                        statement.setString(8, Joiner.on(",").join(results.getVcsCommits()));
+                        statement.setString(9, results.getTestGroup());
+                        statement.setString(10, resultType);
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -153,7 +154,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                             return o1.getDisplayName().compareTo(o2.getDisplayName());
                         }
                     });
-                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by executionTime desc");
+                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by startTime desc");
                     PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
                     executionsForName.setInt(1, mostRecentN);
                     executionsForName.setString(2, testName);
@@ -162,13 +163,14 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         long id = testExecutions.getLong(1);
                         CrossBuildPerformanceResults performanceResults = new CrossBuildPerformanceResults();
                         performanceResults.setTestId(testName);
-                        performanceResults.setTestTime(testExecutions.getTimestamp(2).getTime());
-                        performanceResults.setVersionUnderTest(testExecutions.getString(3));
-                        performanceResults.setOperatingSystem(testExecutions.getString(4));
-                        performanceResults.setJvm(testExecutions.getString(5));
-                        performanceResults.setVcsBranch(testExecutions.getString(6).trim());
-                        performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(7)));
-                        performanceResults.setTestGroup(testExecutions.getString(8));
+                        performanceResults.setStartTime(testExecutions.getTimestamp(2).getTime());
+                        performanceResults.setEndTime(testExecutions.getTimestamp(3).getTime());
+                        performanceResults.setVersionUnderTest(testExecutions.getString(4));
+                        performanceResults.setOperatingSystem(testExecutions.getString(5));
+                        performanceResults.setJvm(testExecutions.getString(6));
+                        performanceResults.setVcsBranch(testExecutions.getString(7).trim());
+                        performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(8)));
+                        performanceResults.setTestGroup(testExecutions.getString(9));
 
                         if (ignore(performanceResults)) {
                             continue;
@@ -256,6 +258,14 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.execute("alter table testExecution add column if not exists resultType varchar not null default 'cross-build'");
             statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
             statement.execute("create index if not exists testExecution_testGroup on testExecution (testGroup)");
+            if (columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {
+                statement.execute("alter table testExecution alter column executionTime rename to startTime");
+            }
+            if (!columnExists(connection, "TESTEXECUTION", "ENDTIME")) {
+                statement.execute("alter table testExecution add column endTime timestamp");
+                statement.execute("update testExecution set endTime = startTime");
+                statement.execute("alter table testExecution alter column endTime set not null");
+            }
             statement.close();
             return null;
         }

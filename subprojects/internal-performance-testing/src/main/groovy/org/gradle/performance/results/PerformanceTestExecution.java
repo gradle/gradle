@@ -27,7 +27,8 @@ public interface PerformanceTestExecution {
 
     String getVersionUnderTest();
     String getVcsBranch();
-    long getTestTime();
+    long getStartTime();
+    long getEndTime();
 
     List<String> getVcsCommits();
 
