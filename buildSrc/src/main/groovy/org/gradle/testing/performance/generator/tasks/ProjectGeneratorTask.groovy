@@ -52,6 +52,8 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     @InputDirectory
     File sharedTemplateDirectory
 
+    Map<String, Object> sharedTemplateArgs = [:]
+
 
     Callable<String> buildScanPluginVersionProvider
 
@@ -170,7 +172,11 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             includeSource: true)
     }
 
-    def generateProject(Map args, TestProject testProject) {
+    def generateProject(Map parameterArgs, TestProject testProject) {
+        def args = [:]
+        args += sharedTemplateArgs
+        args += parameterArgs
+
         File projectDir = args.projectDir
         logger.lifecycle "Generating test project '$testProject.name' into $projectDir"
 
