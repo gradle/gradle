@@ -35,4 +35,17 @@ public class MeasuredOperation {
     Amount<DataAmount> maxHeapUsage
     /** The largest amount of committed heap (that is heap requested from the OS). Does not include the perm gen. */
     Amount<DataAmount> maxCommittedHeap
+
+    boolean isValid() {
+        start!=null &&
+            end != null &&
+            totalTime != null &&
+            configurationTime != null &&
+            executionTime != null &&
+            totalMemoryUsed != null &&
+            totalHeapUsage != null &&
+            maxUncollectedHeap != null &&
+            maxHeapUsage != null &&
+            maxCommittedHeap != null
+    }
 }

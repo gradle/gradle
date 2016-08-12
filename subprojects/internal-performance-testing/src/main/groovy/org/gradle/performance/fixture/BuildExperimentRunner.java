@@ -216,6 +216,10 @@ public class BuildExperimentRunner {
             });
         }
 
+        if (!operation.isValid()) {
+            omitMeasurement.set(true);
+        }
+
         if (!omitMeasurement.get()) {
             if (operation.getException() == null) {
                 dataCollector.collect(invocationInfo, operation);

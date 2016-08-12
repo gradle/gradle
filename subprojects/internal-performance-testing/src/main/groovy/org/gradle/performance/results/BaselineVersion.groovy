@@ -40,45 +40,54 @@ class BaselineVersion implements VersionResults {
         def sb = new StringBuilder()
         def thisVersionAverage = results.totalTime.average
         def currentVersionAverage = current.totalTime.average
-        if (currentVersionAverage > thisVersionAverage) {
-            sb.append "Speed $displayName: we're slower than $version.\n"
+        if (currentVersionAverage) {
+            if (currentVersionAverage > thisVersionAverage) {
+                sb.append "Speed $displayName: we're slower than $version.\n"
+            } else {
+                sb.append "Speed $displayName: AWESOME! we're faster than $version :D\n"
+            }
+
+            def diff = currentVersionAverage - thisVersionAverage
+            def desc = diff > Duration.millis(0) ? "slower" : "faster"
+            sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxExecutionTimeRegression(current).format()}\n")
+            sb.append(current.speedStats)
+            sb.append(results.speedStats)
+            sb.append("\n")
+            sb.toString()
         } else {
-            sb.append "Speed $displayName: AWESOME! we're faster than $version :D\n"
+            sb.append("Speed measurement is not available (probably due to a build failure)")
         }
-        def diff = currentVersionAverage - thisVersionAverage
-        def desc = diff > Duration.millis(0) ? "slower" : "faster"
-        sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxExecutionTimeRegression(current).format()}\n")
-        sb.append(current.speedStats)
-        sb.append(results.speedStats)
-        sb.append("\n")
-        sb.toString()
     }
 
     String getMemoryStatsAgainst(String displayName, MeasuredOperationList current) {
         def sb = new StringBuilder()
         def currentVersionAverage = current.totalMemoryUsed.average
-        assert currentVersionAverage != null
-        def thisVersionAverage = results.totalMemoryUsed.average
-        if (currentVersionAverage > thisVersionAverage) {
-            sb.append("Memory $displayName: we need more memory than $version.\n")
+        if (currentVersionAverage) {
+            def thisVersionAverage = results.totalMemoryUsed.average
+            if (currentVersionAverage > thisVersionAverage) {
+                sb.append("Memory $displayName: we need more memory than $version.\n")
+            } else {
+                sb.append("Memory $displayName: AWESOME! we need less memory than $version :D\n")
+            }
+
+            def diff = currentVersionAverage - thisVersionAverage
+            def desc = diff > DataAmount.bytes(0) ? "more" : "less"
+            sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxMemoryRegression(current).format()}\n")
+            sb.append(current.memoryStats)
+            sb.append(results.memoryStats)
+            sb.append("\n")
+            sb.toString()
         } else {
-            sb.append("Memory $displayName: AWESOME! we need less memory than $version :D\n")
+            sb.append("Memory measurement is not available (probably due to a build failure)")
         }
-        def diff = currentVersionAverage - thisVersionAverage
-        def desc = diff > DataAmount.bytes(0) ? "more" : "less"
-        sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxMemoryRegression(current).format()}\n")
-        sb.append(current.memoryStats)
-        sb.append(results.memoryStats)
-        sb.append("\n")
-        sb.toString()
     }
 
     boolean fasterThan(MeasuredOperationList current) {
-        current.totalTime.average - results.totalTime.average > getMaxExecutionTimeRegression(current)
+        results.totalTime && current.totalTime.average - results.totalTime.average > getMaxExecutionTimeRegression(current)
     }
 
     boolean usesLessMemoryThan(MeasuredOperationList current) {
-        current.totalMemoryUsed.average - results.totalMemoryUsed.average > getMaxMemoryRegression(current)
+        results.totalMemoryUsed && current.totalMemoryUsed.average - results.totalMemoryUsed.average > getMaxMemoryRegression(current)
     }
 
     Amount<Duration> getMaxExecutionTimeRegression(MeasuredOperationList current) {

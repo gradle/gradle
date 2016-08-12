@@ -19,6 +19,7 @@ package org.gradle.performance.results;
 import java.util.List;
 
 public abstract class PerformanceTestResult {
+
     String testId;
     String jvm;
     String operatingSystem;
@@ -27,6 +28,15 @@ public abstract class PerformanceTestResult {
     List<String> vcsCommits;
     List<String> previousTestIds;
     String versionUnderTest;
+
+    protected static Checks whatToCheck() {
+        Checks result = Checks.ALL;
+        String override = System.getProperty("org.gradle.performance.execution.checks");
+        if (override != null) {
+            result = Checks.valueOf(override.toUpperCase());
+        }
+        return result;
+    }
 
     public String getTestId() {
         return testId;
