@@ -26,8 +26,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.testing.performance.generator.*
 
-import java.util.concurrent.Callable
-
 abstract class ProjectGeneratorTask extends DefaultTask {
     @OutputDirectory
     File destDir
@@ -53,9 +51,6 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     File sharedTemplateDirectory
 
     Map<String, Object> sharedTemplateArgs = [:]
-
-
-    Callable<String> buildScanPluginVersionProvider
 
     def ProjectGeneratorTask() {
         setProjects(1)
@@ -191,8 +186,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
             repository: testProject.repository,
             dependencies: testProject.dependencies,
-            testProject: testProject,
-            buildScanPluginVersion: buildScanPluginVersionProvider?.call()
+            testProject: testProject
         ]
 
         args += templateArgs
