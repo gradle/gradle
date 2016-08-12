@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.resolve
+
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleVersionSelector
@@ -26,9 +27,13 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
-import org.gradle.internal.component.model.*
+import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
 import org.gradle.jvm.JarBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
@@ -188,38 +193,44 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         !result.hasResult()
     }
 
-    @Unroll
-    def "handles library module artifacts for #type"() {
+    def "handles library module artifacts"() {
         given:
         def component = Mock(ComponentResolveMetadata)
         def result = new DefaultBuildableArtifactSetResolveResult()
         component.componentId >> Mock(LibraryBinaryIdentifier)
 
         when:
-        resolver.resolveModuleArtifacts(component, type, result)
+        resolver.resolveArtifactsWithType(component, ArtifactType.SOURCES, result)
 
         then:
         result.hasResult()
 
-        where:
-        type << [Mock(ComponentUsage), ArtifactType.SOURCES]
+        when:
+        result = new DefaultBuildableComponentArtifactsResolveResult()
+        resolver.resolveArtifacts(component, result)
+
+        then:
+        result.hasResult()
     }
 
-    @Unroll
-    def "ignores non library module artifacts for #type"() {
+    def "ignores non library module artifacts"() {
         given:
         def component = Mock(ComponentResolveMetadata)
         def result = new DefaultBuildableArtifactSetResolveResult()
         component.componentId >> Mock(ModuleComponentIdentifier)
 
         when:
-        resolver.resolveModuleArtifacts(component, type, result)
+        resolver.resolveArtifactsWithType(component, ArtifactType.SOURCES, result)
 
         then:
         !result.hasResult()
 
-        where:
-        type << [Mock(ComponentUsage), ArtifactType.SOURCES]
+        when:
+        result = new DefaultBuildableComponentArtifactsResolveResult()
+        resolver.resolveArtifacts(component, result)
+
+        then:
+        !result.hasResult()
     }
 
     private ModelMap<? extends LibrarySpec> mockLibraries(Project project, List<String> libraries) {
