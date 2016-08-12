@@ -51,7 +51,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     public void report(final R results) {
         try {
             db.withConnection(new ConnectionAction<Void>() {
-                public Void execute(Connection connection) throws Exception {
+                public Void execute(Connection connection) throws SQLException {
                     long executionId;
                     PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, executionTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType) values (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
@@ -119,7 +119,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     public List<String> getTestNames() {
         try {
             return db.withConnection(new ConnectionAction<List<String>>() {
-                public List<String> execute(Connection connection) throws Exception {
+                public List<String> execute(Connection connection) throws SQLException {
                     List<String> testNames = new ArrayList<String>();
                     ResultSet testGroups = connection.createStatement().executeQuery("select distinct testGroup from testExecution order by testGroup");
                     PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId from testExecution where testGroup = ? and resultType = ? order by testId");
@@ -150,7 +150,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     public CrossBuildPerformanceTestHistory getTestResults(final String testName, final int mostRecentN) {
         try {
             return db.withConnection(new ConnectionAction<CrossBuildPerformanceTestHistory>() {
-                public CrossBuildPerformanceTestHistory execute(Connection connection) throws Exception {
+                public CrossBuildPerformanceTestHistory execute(Connection connection) throws SQLException {
                     List<CrossBuildPerformanceResults> results = Lists.newArrayList();
                     Set<BuildDisplayInfo> builds = Sets.newTreeSet(new Comparator<BuildDisplayInfo>() {
                         @Override
@@ -238,7 +238,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
 
     private class CrossBuildResultsSchemaInitializer implements ConnectionAction<Void> {
         @Override
-        public Void execute(Connection connection) throws Exception {
+        public Void execute(Connection connection) throws SQLException {
             Statement statement = connection.createStatement();
             statement.execute("create table if not exists testExecution (id bigint identity not null, testId varchar not null, executionTime timestamp not null, versionUnderTest varchar not null, operatingSystem varchar not null, jvm varchar not null, vcsBranch varchar not null, vcsCommit varchar)");
             statement.execute("create table if not exists testOperation (testExecution bigint not null, testProject varchar not null, displayName varchar not null, tasks array not null, args array not null, executionTimeMs decimal not null, heapUsageBytes decimal not null, totalHeapUsageBytes decimal, maxHeapUsageBytes decimal, maxUncollectedHeapBytes decimal, maxCommittedHeapBytes decimal, foreign key(testExecution) references testExecution(id))");

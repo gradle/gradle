@@ -69,7 +69,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     public void report(final CrossVersionPerformanceResults results) {
         try {
             db.withConnection(new ConnectionAction<Void>() {
-                public Void execute(Connection connection) throws Exception {
+                public Void execute(Connection connection) throws SQLException {
                     long testId;
                     PreparedStatement statement = null;
                     ResultSet keys = null;
@@ -144,7 +144,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     public List<String> getTestNames() {
         try {
             return db.withConnection(new ConnectionAction<List<String>>() {
-                public List<String> execute(Connection connection) throws Exception {
+                public List<String> execute(Connection connection) throws SQLException {
                     List<String> testNames = new ArrayList<String>();
                     Statement statement = null;
                     ResultSet testExecutions = null;
@@ -177,7 +177,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     public CrossVersionPerformanceTestHistory getTestResults(final String testName, final int mostRecentN) {
         try {
             return db.withConnection(new ConnectionAction<CrossVersionPerformanceTestHistory>() {
-                public CrossVersionPerformanceTestHistory execute(Connection connection) throws Exception {
+                public CrossVersionPerformanceTestHistory execute(Connection connection) throws SQLException {
                     List<CrossVersionPerformanceResults> results = new ArrayList<CrossVersionPerformanceResults>();
                     Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
                         public int compare(String o1, String o2) {
@@ -261,7 +261,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
 
     private class CrossVersionResultsSchemaInitializer implements ConnectionAction<Void> {
         @Override
-        public Void execute(Connection connection) throws Exception {
+        public Void execute(Connection connection) throws SQLException {
             Statement statement = null;
 
             try {
