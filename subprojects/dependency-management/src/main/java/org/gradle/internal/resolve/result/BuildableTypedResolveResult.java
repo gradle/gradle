@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.Nullable;
-import org.gradle.internal.resolve.ArtifactResolveException;
 
-import java.io.File;
-
-/**
- * The result of resolving an artifact id to a file.
- */
-public interface ArtifactResolveResult extends ResolveResult {
+public interface BuildableTypedResolveResult<T, E extends Throwable> extends ResolveResult {
     /**
-     * Returns the resolve failure, if any.
+     * Returns the result.
+     *
+     * @throws E if resolution was not successful.
+     */
+    T getResult() throws E;
+
+    /**
+     * {@inheritDoc}
      */
     @Nullable
-    ArtifactResolveException getFailure();
+    @Override
+    E getFailure();
 
     /**
-     * @throws ArtifactResolveException If the resolution was unsuccessful.
+     * Marks the resolution as completed with the given value.
      */
-    File getFile() throws ArtifactResolveException;
+    void resolved(T result);
+
+    /**
+     * Marks the resolution as failed with the given failure.
+     */
+    void failed(E failure);
 }

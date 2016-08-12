@@ -91,7 +91,7 @@ public class DefaultArtifactSet implements ArtifactSet {
         public File create() {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(artifact, moduleSource, result);
-            return result.getFile();
+            return result.getResult();
         }
     }
 }

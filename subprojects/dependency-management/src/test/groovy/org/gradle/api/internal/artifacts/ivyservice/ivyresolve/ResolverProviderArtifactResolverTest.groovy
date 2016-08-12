@@ -66,7 +66,7 @@ class ResolverProviderArtifactResolverTest extends Specification {
         0 * _._
 
         and:
-        artifactSetResult.artifacts == [artifact] as Set
+        artifactSetResult.result == [artifact] as Set
     }
 
     def "uses module artifacts from remote access to repository defined by module source"() {
@@ -87,7 +87,7 @@ class ResolverProviderArtifactResolverTest extends Specification {
         0 * _._
 
         and:
-        artifactSetResult.artifacts == [artifact] as Set
+        artifactSetResult.result == [artifact] as Set
     }
 
     def "locates artifact with local access in repository defined by module source"() {
@@ -104,7 +104,7 @@ class ResolverProviderArtifactResolverTest extends Specification {
         0 * _._
 
         and:
-        result.file == artifactFile
+        result.result == artifactFile
     }
 
     def "locates artifact with remote access in repository defined by module source"() {
@@ -123,6 +123,6 @@ class ResolverProviderArtifactResolverTest extends Specification {
         0 * _._
 
         and:
-        result.file == artifactFile
+        result.result == artifactFile
     }
 }

@@ -106,7 +106,7 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private Set<ComponentArtifactMetadata> doResolve(ComponentResolveMetadata component, ResolvedConfigurationIdentifier configurationId) {
         BuildableArtifactSetResolveResult result = new DefaultBuildableArtifactSetResolveResult();
         artifactResolver.resolveModuleArtifacts(component, new DefaultComponentUsage(configurationId.getConfiguration()), result);
-        return result.getArtifacts();
+        return result.getResult();
     }
 
 }
