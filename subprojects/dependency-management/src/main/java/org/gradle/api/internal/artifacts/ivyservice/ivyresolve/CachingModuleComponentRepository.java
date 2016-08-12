@@ -37,7 +37,6 @@ import org.gradle.internal.component.external.model.ModuleComponentResolveMetada
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ComponentUsage;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ArtifactNotFoundException;
@@ -375,10 +374,6 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
 
     private String cacheKey(ArtifactType artifactType) {
         return "artifacts:" + artifactType.name();
-    }
-
-    private String cacheKey(ComponentUsage context) {
-        return "configuration:" + context.getConfigurationName();
     }
 
     private ArtifactAtRepositoryKey artifactCacheKey(ComponentArtifactMetadata artifact) {
