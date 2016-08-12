@@ -20,6 +20,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.Project;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.util.Clock;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -32,6 +33,7 @@ import static org.gradle.performance.plugin.ReflectionUtil.*;
 public class BuildEventTimeStamps {
     private static long settingsEvaluatedTimestampIfNotAvailable;
     private static long configurationEndTimestamp;
+    private static Clock buildTimeClock;
 
     public static void settingsEvaluated() {
         settingsEvaluatedTimestampIfNotAvailable = System.nanoTime();
@@ -41,9 +43,14 @@ public class BuildEventTimeStamps {
         configurationEndTimestamp = System.nanoTime();
     }
 
+    public static void projectsEvaluated(Gradle gradle) {
+        buildTimeClock = resolveBuildTimeClock(gradle);
+    }
+
     public static void buildFinished(BuildResult buildResult) {
         long buildEndTimestamp = System.nanoTime();
         long buildTime = resolveBuildTime(buildResult);
+        buildTimeClock = null;
 
         Project project = buildResult.getGradle().getRootProject();
         final long settingsEvaluatedTimeStamp = resolveSettingsEvaluatedTimeStamp(project);
@@ -57,6 +64,13 @@ public class BuildEventTimeStamps {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static long resolveBuildTime(BuildResult buildResult) {
+        if (buildTimeClock != null) {
+            return buildTimeClock.getTimeInMs();
+        }
+        return 0;
     }
 
     private static void writeTimeStamps(File timestampsFile, long settingsEvaluatedTimeStamp, long buildEndTimestamp, long buildTime) throws IOException {
@@ -75,13 +89,13 @@ public class BuildEventTimeStamps {
         return project.hasProperty("settingsEvaluatedTimestamp") ? (Long) project.property("settingsEvaluatedTimestamp") : settingsEvaluatedTimestampIfNotAvailable;
     }
 
-    private static long resolveBuildTime(BuildResult buildResult) {
+    private static Clock resolveBuildTimeClock(Gradle gradle) {
         try {
-            return getService(buildResult.getGradle(), BuildRequestMetaData.class).getBuildTimeClock().getTimeInMs();
+            return getService(gradle, BuildRequestMetaData.class).getBuildTimeClock();
         } catch (Exception e) {
             System.err.println("Exception in getting build time " + e.getMessage());
             e.printStackTrace(System.err);
-            return 0;
+            return null;
         }
     }
 
@@ -90,4 +104,5 @@ public class BuildEventTimeStamps {
         Object serviceFactory = invokeMethod(gradle, findMethodByName(gradle.getClass(), "getServices"));
         return (T) invokeMethod(serviceFactory, findMethod(serviceFactory.getClass(), "get", Class.class), serviceType);
     }
+
 }
