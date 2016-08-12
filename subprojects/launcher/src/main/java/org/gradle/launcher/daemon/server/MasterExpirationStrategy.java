@@ -39,7 +39,6 @@ public class MasterExpirationStrategy implements DaemonExpirationStrategy {
         ImmutableList.Builder<DaemonExpirationStrategy> strategies = ImmutableList.<DaemonExpirationStrategy>builder();
 
         strategies.add(healthExpirationStrategy);
-        strategies.add(new DuplicateIdleDaemonExpirationStrategy(daemon));
         strategies.add(new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout(), TimeUnit.MILLISECONDS));
 
         addLowMemoryDaemonExpirationStrategyWhenSupported(daemon, params.getIdleTimeout(), strategies);
