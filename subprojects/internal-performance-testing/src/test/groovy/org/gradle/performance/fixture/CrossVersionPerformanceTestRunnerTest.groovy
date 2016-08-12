@@ -210,6 +210,20 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         ['2.11', 'last'] | ['last', 'defaults', 'nightly'] | [MOST_RECENT_RELEASE, '2.11', MOST_RECENT_SNAPSHOT]
     }
 
+    def "can use a snapshot version in baselines"() {
+        def runner = runner()
+        runner.targetVersions = [MOST_RECENT_RELEASE, '3.1-20160801000011+0000']
+
+        when:
+        experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        def results = runner.run()
+
+        then:
+        results.baselineVersions*.version == [MOST_RECENT_RELEASE, '3.1-20160801000011+0000']
+    }
+
     def "can skip speed or memory checks"() {
         given:
         def runner = runner()

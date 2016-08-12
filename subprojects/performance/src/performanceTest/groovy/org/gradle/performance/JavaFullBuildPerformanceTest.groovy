@@ -43,7 +43,7 @@ class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         where:
         testProject       | maxExecutionTimeRegression | targetVersions
         "small"           | millis(1000)               | ['1.1', '2.2.1', '2.4', '2.8', 'last']
-        "multi"           | millis(1300)               | ['2.8', 'last']
+        "multi"           | millis(1300)               | ['3.1-20160801000011+0000']
         "lotDependencies" | millis(1000)               | ['2.4', '2.8', 'last']
     }
 }
