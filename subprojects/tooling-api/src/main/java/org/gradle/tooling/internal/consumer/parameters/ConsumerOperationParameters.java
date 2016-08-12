@@ -308,7 +308,13 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
      * @since 1.0-milestone-3
      */
     public File getProjectDir() {
-        return parameters instanceof ProjectConnectionParameters ? ((ProjectConnectionParameters) parameters).getProjectDir() : null;
+        if (parameters instanceof ProjectConnectionParameters) {
+            return ((ProjectConnectionParameters) parameters).getProjectDir();
+        } else if (parameters instanceof CompositeConnectionParameters) {
+            return ((CompositeConnectionParameters) parameters).getBuilds().get(0).getProjectDir();
+        } else {
+            return null;
+        }
     }
 
     /**

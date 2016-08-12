@@ -49,6 +49,13 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
     private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
 
+    public Set<? extends IncludedBuild> getIncludedBuilds() {
+        for (IncludedBuildInternal build : builds.values()) {
+            ensureRegistered(build);
+        }
+        return Sets.newHashSet(builds.values());
+    }
+
     @Override
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier project) {
         ensureRegistered(project);

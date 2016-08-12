@@ -216,7 +216,7 @@ class ContinuousBuildActionExecuterTest extends Specification {
     }
 
     private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), OperatingSystem.current(), executorFactory, waiterFactory, null)
+        new ContinuousBuildActionExecuter(delegate, listenerManager, new TestStyledTextOutputFactory(), OperatingSystem.current(), executorFactory, waiterFactory)
     }
 
 }

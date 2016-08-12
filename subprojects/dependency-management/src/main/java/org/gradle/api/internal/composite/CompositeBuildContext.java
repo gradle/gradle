@@ -35,6 +35,7 @@ public interface CompositeBuildContext extends LocalComponentProvider, Dependenc
 
     IncludedBuild getBuild(ProjectComponentIdentifier project);
     void registerBuild(String name, IncludedBuild build);
+    Set<? extends IncludedBuild> getIncludedBuilds();
 
     void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project);
     void registerSubstitution(Action<DependencySubstitution> substitutions);

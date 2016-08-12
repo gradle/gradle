@@ -59,17 +59,8 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         }
         ClassPath classPath = DefaultClassPath.of(parameters.getInjectedPluginClasspath(Collections.<File>emptyList()));
 
-        List<GradleParticipantBuild> builds = parameters.getBuilds(null);
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
             System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, false, classPath);
-        if (builds != null) {
-            List<GradleParticipantBuild> buildsCopy = new ArrayList<GradleParticipantBuild>();
-            for (GradleParticipantBuild build : builds) {
-                buildsCopy.add(new DefaultGradleParticipantBuild(build));
-            }
-            CompositeParameters compositeParameters = new CompositeParameters(buildsCopy);
-            actionParameters = new DefaultCompositeBuildActionParameters(actionParameters, compositeParameters);
-        }
         try {
             return executer.execute(action, buildRequestContext, actionParameters, contextServices);
         } catch (ReportedException e) {

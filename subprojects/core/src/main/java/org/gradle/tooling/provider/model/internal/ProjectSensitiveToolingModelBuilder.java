@@ -24,7 +24,12 @@ import java.util.Map;
 /**
  * {@link ToolingModelBuilder} that can behave differently when called from
  * a simple {@code ProjectConnection.getModel(Class)} and when called inside
- * {@code BuildAction} with a passed Project parameter
+ * {@code BuildAction} with a passed Project parameter.
+ *
+ * For instance, the BuildInvocations model should always be fetched from
+ * the root project, even when connected to a subproject.
+ *
+ * TODO why?
  */
 public abstract class ProjectSensitiveToolingModelBuilder implements ToolingModelBuilder, ProjectToolingModelBuilder {
 

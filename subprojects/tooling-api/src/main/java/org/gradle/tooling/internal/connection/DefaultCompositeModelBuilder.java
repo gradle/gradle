@@ -46,6 +46,7 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
         this.modelType = modelType;
         this.connection = connection;
         operationParamsBuilder.setEntryPoint("CompositeModelBuilder API");
+        operationParamsBuilder.setRootDirectory(parameters.getBuilds().get(0).getProjectDir());
     }
 
     @Override

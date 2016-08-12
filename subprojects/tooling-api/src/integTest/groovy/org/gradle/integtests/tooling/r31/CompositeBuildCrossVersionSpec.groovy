@@ -19,7 +19,7 @@ package org.gradle.integtests.tooling.r31
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.connection.GradleConnectionBuilder
+import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.GradleProject
 
 @ToolingApiVersion('>=3.1')
@@ -37,7 +37,7 @@ class CompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
         """
 
         when:
-        def models = withCompositeConnection(rootDir) { composite ->
+        def models = withCompositeConnection(rootDir) { GradleConnection composite ->
             composite.getModels(GradleProject)
         }
 

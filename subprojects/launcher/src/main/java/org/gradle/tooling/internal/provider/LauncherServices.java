@@ -18,8 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.GradleLauncherFactory;
-import org.gradle.internal.composite.CompositeBuildActionParameters;
-import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.filewatch.FileWatcherFactory;
@@ -28,7 +26,6 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
-import org.gradle.launcher.composite.CompositeBuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildExecuter;
@@ -60,15 +57,7 @@ public class LauncherServices implements PluginServiceRegistry {
         BuildExecuter createBuildExecuter(GradleLauncherFactory gradleLauncherFactory, ServiceRegistry globalServices, ListenerManager listenerManager, FileWatcherFactory fileWatcherFactory, ExecutorFactory executorFactory, StyledTextOutputFactory styledTextOutputFactory) {
             List<BuildActionRunner> buildActionRunners = globalServices.getAll(BuildActionRunner.class);
             BuildActionExecuter<BuildActionParameters> delegate = new InProcessBuildActionExecuter(gradleLauncherFactory, new ChainingBuildActionRunner(buildActionRunners));
-
-            BuildActionExecuter<CompositeBuildActionParameters> compositeDelegate;
-            List<CompositeBuildActionRunner> compositeBuildActionRunners = globalServices.getAll(CompositeBuildActionRunner.class);
-            if (compositeBuildActionRunners.size() > 0) {
-                compositeDelegate = new CompositeBuildActionExecuter(compositeBuildActionRunners);
-            } else {
-                compositeDelegate = null;
-            }
-            return new ContinuousBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, styledTextOutputFactory, executorFactory, compositeDelegate);
+            return new ContinuousBuildActionExecuter(delegate, fileWatcherFactory, listenerManager, styledTextOutputFactory, executorFactory);
         }
 
         ExecuteBuildActionRunner createExecuteBuildActionRunner() {

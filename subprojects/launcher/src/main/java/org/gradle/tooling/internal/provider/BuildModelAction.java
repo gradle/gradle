@@ -21,12 +21,14 @@ public class BuildModelAction extends SubscribableBuildAction {
     private final StartParameter startParameter;
     private final String modelName;
     private final boolean runTasks;
+    private final boolean allModels;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
+    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, boolean allModels, BuildClientSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.modelName = modelName;
         this.runTasks = runTasks;
+        this.allModels = allModels;
     }
 
     @Override
@@ -42,4 +44,7 @@ public class BuildModelAction extends SubscribableBuildAction {
         return runTasks;
     }
 
+    public boolean isAllModels() {
+        return allModels;
+    }
 }

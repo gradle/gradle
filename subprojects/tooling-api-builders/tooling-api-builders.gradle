@@ -3,6 +3,7 @@ dependencies {
     compile project(':testingJvm')
     compile project(':launcher')
     compile project(':toolingApi')
+    compile project(':compositeBuilds')
 }
 
 useClassycle()

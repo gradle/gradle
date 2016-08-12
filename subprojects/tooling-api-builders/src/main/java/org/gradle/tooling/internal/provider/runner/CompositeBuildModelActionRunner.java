@@ -90,16 +90,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     private List<Object> fetchCompositeModelsInProcess(BuildModelAction modelAction, BuildRequestContext buildRequestContext,
                                                        CompositeParameters compositeParameters, ServiceRegistry sharedServices) {
 
-        try {
-            registerParticipantsInContext(compositeParameters, buildRequestContext, sharedServices);
-        } catch (Exception e) {
-            // Currently we are ignoring exceptions when configuring the included builds to construct the context
-            // This allows us to catch the same exception when constructing the models, below.
-            // This is a cludge, at best.
-            LOGGER.debug("Ignoring exception thrown when constructing composite context: " + e.getMessage(), e);
-        }
-
-        BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelsActionRunner());
+        BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelActionRunner());
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(sharedServices.get(GradleLauncherFactory.class), runner);
         // TODO Need to consider how to handle builds in parallel when sharing event consumers/output streams
 
@@ -110,7 +101,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
             StartParameter startParameter = modelAction.getStartParameter().newInstance();
             startParameter.setProjectDir(build.getProjectDir());
 
-            BuildModelAction participantAction = new BuildModelAction(startParameter, modelAction.getModelName(), false, modelAction.getClientSubscriptions());
+            BuildModelAction participantAction = new BuildModelAction(startParameter, modelAction.getModelName(), false, true, modelAction.getClientSubscriptions());
             try {
                 Map<String, Object> result = Cast.uncheckedCast(buildActionExecuter.execute(participantAction, buildRequestContext, actionParameters, sharedServices));
                 for (Map.Entry<String, Object> e : result.entrySet()) {
@@ -146,7 +137,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
     }
 
     private void executeTasksInProcess(BuildModelAction compositeAction, CompositeParameters compositeParameters, BuildRequestContext buildRequestContext, ServiceRegistry sharedServices) {
-        registerParticipantsInContext(compositeParameters, buildRequestContext, sharedServices);
+
 
         StartParameter startParameter = compositeAction.getStartParameter().newInstance();
         GradleParticipantBuild targetBuild = compositeParameters.getTargetBuild();
@@ -159,7 +150,7 @@ public class CompositeBuildModelActionRunner implements CompositeBuildActionRunn
         BuildActionRunner runner = new SubscribableBuildActionRunner(new BuildModelActionRunner());
         GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
         BuildActionExecuter<BuildActionParameters> buildActionExecuter = new InProcessBuildActionExecuter(gradleLauncherFactory, runner);
-        BuildModelAction participantAction = new BuildModelAction(startParameter, ModelIdentifier.NULL_MODEL, true, compositeAction.getClientSubscriptions());
+        BuildModelAction participantAction = new BuildModelAction(startParameter, ModelIdentifier.NULL_MODEL, true, true, compositeAction.getClientSubscriptions());
 
         buildActionExecuter.execute(participantAction, buildRequestContext, null, sharedServices);
     }
