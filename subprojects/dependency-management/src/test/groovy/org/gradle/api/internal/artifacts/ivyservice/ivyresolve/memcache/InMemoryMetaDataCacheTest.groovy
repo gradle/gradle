@@ -88,7 +88,6 @@ class InMemoryMetaDataCacheTest extends Specification {
 
         then:
         !differentSelector
-        stats.metadataServed == 0
         0 * result._
 
         when:
@@ -96,7 +95,6 @@ class InMemoryMetaDataCacheTest extends Specification {
 
         then:
         match
-        stats.metadataServed == 1
         1 * result.resolved(metadata)
     }
 
@@ -119,7 +117,6 @@ class InMemoryMetaDataCacheTest extends Specification {
 
         then:
         found
-        stats.metadataServed == 1
         1 * result.resolved(moduleMetaData)
     }
 
