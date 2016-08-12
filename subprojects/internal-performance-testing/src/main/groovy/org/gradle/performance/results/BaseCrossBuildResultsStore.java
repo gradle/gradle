@@ -120,21 +120,16 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         try {
             return db.withConnection(new ConnectionAction<List<String>>() {
                 public List<String> execute(Connection connection) throws SQLException {
-                    List<String> testNames = new ArrayList<String>();
-                    ResultSet testGroups = connection.createStatement().executeQuery("select distinct testGroup from testExecution order by testGroup");
-                    PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId from testExecution where testGroup = ? and resultType = ? order by testId");
-                    while (testGroups.next()) {
-                        testIdsStatement.setString(1, testGroups.getString(1));
-                        testIdsStatement.setString(2, resultType);
-                        ResultSet testExecutions = testIdsStatement.executeQuery();
-                        while (testExecutions.next()) {
-                            testNames.add(testExecutions.getString(1));
-                        }
-                        testExecutions.close();
-                    }
-                    testIdsStatement.close();
-                    testGroups.close();
-                    return testNames;
+                List<String> testNames = new ArrayList<String>();
+                PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId from testExecution where resultType = ? group by testGroup order by testId");
+                testIdsStatement.setString(1, resultType);
+                ResultSet testExecutions = testIdsStatement.executeQuery();
+                while (testExecutions.next()) {
+                    testNames.add(testExecutions.getString(1));
+                }
+                testExecutions.close();
+                testIdsStatement.close();
+                return testNames;
                 }
             });
         } catch (Exception e) {
@@ -259,6 +254,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.execute("alter table testOperation add column if not exists gradleOpts array");
             statement.execute("alter table testOperation add column if not exists daemon boolean");
             statement.execute("alter table testExecution add column if not exists resultType varchar not null default 'cross-build'");
+            statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
             statement.close();
             return null;
         }
