@@ -60,7 +60,7 @@ public class ExternalResourceResolverDescriptorParseContext implements Descripto
         componentResolver.resolve(moduleComponentIdentifier, new DefaultComponentOverrideMetadata(), moduleVersionResolveResult);
 
         BuildableArtifactSetResolveResult moduleArtifactsResolveResult = new DefaultBuildableArtifactSetResolveResult();
-        artifactResolver.resolveModuleArtifacts(moduleVersionResolveResult.getMetaData(), artifactType, moduleArtifactsResolveResult);
+        artifactResolver.resolveArtifactsWithType(moduleVersionResolveResult.getMetaData(), artifactType, moduleArtifactsResolveResult);
 
         BuildableArtifactResolveResult artifactResolveResult = new DefaultBuildableArtifactResolveResult();
         ComponentArtifactMetadata artifactMetaData = moduleArtifactsResolveResult.getResult().iterator().next();

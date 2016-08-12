@@ -35,16 +35,6 @@ public interface BuildableArtifactResolveResult extends ResolveResult, Buildable
     File getResult() throws ArtifactResolveException;
 
     /**
-     * Marks the artifact as resolved to the given file.
-     */
-    void resolved(File file);
-
-    /**
-     * Marks the resolve as failed with the given exception.
-     */
-    void failed(ArtifactResolveException failure);
-
-    /**
      * Marks the artifact as not found.
      */
     void notFound(ComponentArtifactIdentifier artifact);

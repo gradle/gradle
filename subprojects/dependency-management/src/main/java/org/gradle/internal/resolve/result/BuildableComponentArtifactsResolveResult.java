@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
  */
 package org.gradle.internal.resolve.result;
 
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifacts;
 import org.gradle.internal.resolve.ArtifactResolveException;
 
-import java.util.Set;
-
-public class DefaultBuildableArtifactSetResolveResult extends DefaultBuildableTypedResolveResult<Set<? extends ComponentArtifactMetadata>, ArtifactResolveException> implements BuildableArtifactSetResolveResult {
+public interface BuildableComponentArtifactsResolveResult extends ResolveResult, BuildableTypedResolveResult<ComponentArtifacts, ArtifactResolveException> {
 }

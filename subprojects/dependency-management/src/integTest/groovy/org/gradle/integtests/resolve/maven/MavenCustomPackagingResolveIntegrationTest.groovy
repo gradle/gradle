@@ -118,9 +118,6 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         consumer.artifact.expectGet()
         customPackaging.pom.expectGet()
         customPackaging.artifact.expectHead()
-        // TODO - too many requests!
-        customPackaging.artifact.expectHead()
-        customPackaging.artifact.expectHead()
         customPackaging.artifact.expectGet()
 
         run("remote")

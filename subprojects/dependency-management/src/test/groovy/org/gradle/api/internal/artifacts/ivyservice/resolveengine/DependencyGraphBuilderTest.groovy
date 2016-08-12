@@ -14,8 +14,14 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
+
 import org.apache.ivy.core.module.id.ModuleRevisionId
-import org.gradle.api.artifacts.*
+import org.gradle.api.artifacts.LenientConfiguration
+import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.ResolveException
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
@@ -46,17 +52,22 @@ import org.gradle.api.specs.Spec
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper
-import org.gradle.internal.component.model.*
+import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.internal.component.model.LocalComponentDependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver
 import org.gradle.internal.resolve.resolver.ResolveContextToComponentResolver
-import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
+import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
@@ -82,8 +93,8 @@ class DependencyGraphBuilderTest extends Specification {
         _ * configuration.name >> 'root'
         _ * configuration.path >> 'root'
         _ * moduleResolver.resolve(_, _) >> { it[1].resolved(root) }
-        _ * artifactResolver.resolveModuleArtifacts(_, _, _,) >> { ComponentResolveMetadata module, ComponentUsage context, BuildableArtifactSetResolveResult result ->
-            result.resolved(module.getConfiguration(context.configurationName).artifacts)
+        _ * artifactResolver.resolveArtifacts(_, _,) >> { ComponentResolveMetadata module, BuildableComponentArtifactsResolveResult result ->
+            result.resolved(new MetadataSourcedComponentArtifacts())
         }
 
         builder = new DependencyGraphBuilder(idResolver, metaDataResolver, moduleResolver, dependencyToConfigurationResolver, new DefaultConflictHandler(conflictResolver, moduleReplacements))
@@ -945,10 +956,6 @@ class DependencyGraphBuilderTest extends Specification {
         def metaData = new DefaultLocalComponentMetadata(id, DefaultModuleComponentIdentifier.newId(id), "release")
         metaData.addConfiguration("default", "defaultConfig", [] as Set<String>, ["default"] as Set<String>, true, true, new DefaultTaskDependency())
         metaData.addArtifacts("default", [new DefaultPublishArtifact("art1", "zip", "art", null, new Date(), new File("art1.zip"))])
-//        def descriptor = new DefaultModuleDescriptor(createModuleRevisionId("group", name, revision), "release", new Date())
-//        def metadata = new MutableModuleMetaData(descriptor)
-//        metadata.descriptor.addConfiguration(new org.apache.ivy.core.module.descriptor.Configuration('default', org.apache.ivy.core.module.descriptor.Configuration.Visibility.PUBLIC, null, [] as String[], true, null))
-//        descriptor.addArtifact('default', new DefaultArtifact(descriptor.moduleRevisionId, new Date(), "art1", "art", "zip"))
         return metaData
     }
 

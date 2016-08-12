@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.resolve.result;
 
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.resolve.ArtifactResolveException;
+package org.gradle.internal.component.model;
 
 import java.util.Set;
 
-public class DefaultBuildableArtifactSetResolveResult extends DefaultBuildableTypedResolveResult<Set<? extends ComponentArtifactMetadata>, ArtifactResolveException> implements BuildableArtifactSetResolveResult {
+public interface ComponentArtifacts {
+    Set<? extends ComponentArtifactMetadata> getArtifactsFor(ConfigurationMetadata configuration);
 }

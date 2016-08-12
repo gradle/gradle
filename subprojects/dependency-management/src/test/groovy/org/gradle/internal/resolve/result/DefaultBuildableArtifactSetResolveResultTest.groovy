@@ -56,7 +56,7 @@ class DefaultBuildableArtifactSetResolveResultTest extends Specification {
     def "has result when artifacts set"() {
         when:
         def artifact = Mock(ComponentArtifactMetadata)
-        result.resolved([artifact])
+        result.resolved([artifact] as Set)
 
         then:
         result.hasResult()

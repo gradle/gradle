@@ -41,9 +41,9 @@ public class DefaultArtifactSet implements ArtifactSet {
     private final ArtifactResolver artifactResolver;
     private final Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts;
     private final long id;
-    private final Set<ComponentArtifactMetadata> artifacts;
+    private final Set<? extends ComponentArtifactMetadata> artifacts;
 
-    public DefaultArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<ComponentArtifactMetadata> artifacts,
+    public DefaultArtifactSet(ModuleVersionIdentifier ownerId, ModuleSource moduleSource, ModuleExclusion exclusions, Set<? extends ComponentArtifactMetadata> artifacts,
                               ArtifactResolver artifactResolver, Map<ComponentArtifactIdentifier, ResolvedArtifact> allResolvedArtifacts, long id) {
         this.moduleVersionIdentifier = ownerId;
         this.moduleSource = moduleSource;

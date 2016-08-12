@@ -26,6 +26,7 @@ import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.external.model.FixedComponentArtifacts;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -33,11 +34,11 @@ import org.gradle.internal.component.external.model.MutableMavenModuleResolveMet
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
-import org.gradle.internal.component.model.ComponentUsage;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
@@ -232,10 +233,10 @@ public class MavenResolver extends ExternalResourceResolver {
 
     private class MavenLocalRepositoryAccess extends LocalRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetadata module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        protected void resolveModuleArtifacts(ModuleComponentResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
             if (mavenMetaData(module).isKnownJarPackaging()) {
                 ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);
-                result.resolved(ImmutableSet.of(artifact));
+                result.resolved(new FixedComponentArtifacts(ImmutableSet.of((ComponentArtifactMetadata) artifact)));
             }
         }
 
@@ -252,20 +253,20 @@ public class MavenResolver extends ExternalResourceResolver {
 
     private class MavenRemoteRepositoryAccess extends RemoteRepositoryAccess {
         @Override
-        protected void resolveConfigurationArtifacts(ModuleComponentResolveMetadata module, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+        protected void resolveModuleArtifacts(ModuleComponentResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
             MavenModuleResolveMetadata mavenMetaData = mavenMetaData(module);
             if (mavenMetaData.isPomPackaging()) {
                 Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
                 artifacts.addAll(findOptionalArtifacts(module, "jar", null));
-                result.resolved(artifacts);
+                result.resolved(new FixedComponentArtifacts(artifacts));
             } else {
                 ModuleComponentArtifactMetadata artifactMetaData = module.artifact(mavenMetaData.getPackaging(), mavenMetaData.getPackaging(), null);
 
                 if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData, new DefaultResourceAwareResolveResult())) {
-                    result.resolved(ImmutableSet.of(artifactMetaData));
+                    result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifactMetaData)));
                 } else {
                     ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);
-                    result.resolved(ImmutableSet.of(artifact));
+                    result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifact)));
                 }
             }
         }

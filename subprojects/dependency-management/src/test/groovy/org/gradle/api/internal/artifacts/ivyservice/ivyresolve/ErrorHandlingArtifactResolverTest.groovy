@@ -21,12 +21,12 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.model.ComponentArtifactMetadata
 import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.resolve.resolver.ArtifactResolver
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
+import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import spock.lang.Specification
 
 class ErrorHandlingArtifactResolverTest extends Specification {
@@ -64,32 +64,32 @@ class ErrorHandlingArtifactResolverTest extends Specification {
         def component = Stub(ComponentResolveMetadata) {
             getComponentId() >> componentId
         }
-        def result = Mock(BuildableArtifactSetResolveResult)
+        def result1 = Mock(BuildableArtifactSetResolveResult)
+        def result2 = Mock(BuildableComponentArtifactsResolveResult)
         def failure = new RuntimeException("foo")
 
         when:
         def artifactType = ArtifactType.JAVADOC
-        delegate.resolveModuleArtifacts(component, artifactType, result) >> { throw failure }
+        delegate.resolveArtifactsWithType(component, artifactType, result1) >> { throw failure }
 
         and:
-        artifactResolver.resolveModuleArtifacts(component, artifactType, result)
+        artifactResolver.resolveArtifactsWithType(component, artifactType, result1)
 
         then:
-        1 * result.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
+        1 * result1.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
             assert e.message == "Could not determine artifacts for <component>"
             assert e.cause == failure
         }
         0 * _._
 
         when:
-        def componentUsage = Mock(ComponentUsage)
-        delegate.resolveModuleArtifacts(component, componentUsage, result) >> { throw failure }
+        delegate.resolveArtifacts(component, result2) >> { throw failure }
 
         and:
-        artifactResolver.resolveModuleArtifacts(component, componentUsage, result)
+        artifactResolver.resolveArtifacts(component, result2)
 
         then:
-        1 * result.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
+        1 * result2.failed(_ as ArtifactResolveException) >> { ArtifactResolveException e ->
             assert e.message == "Could not determine artifacts for <component>"
             assert e.cause == failure
         }

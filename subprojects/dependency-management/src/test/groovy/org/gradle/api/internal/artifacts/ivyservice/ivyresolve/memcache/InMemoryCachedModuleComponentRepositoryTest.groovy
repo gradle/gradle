@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
+
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepositoryAccess
@@ -22,18 +23,18 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactIdent
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
-import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
+import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
+class InMemoryCachedModuleComponentRepositoryTest extends Specification {
 
     def stats = new InMemoryCacheStats()
     def localArtifactsCache = Mock(InMemoryArtifactsCache)
@@ -151,37 +152,36 @@ class   InMemoryCachedModuleComponentRepositoryTest extends Specification {
         def result = Mock(BuildableArtifactSetResolveResult)
 
         when:
-        repo.localAccess.resolveModuleArtifacts(moduleMetaData, artifactType, result)
+        repo.localAccess.resolveArtifactsWithType(moduleMetaData, artifactType, result)
 
         then:
-        1 * localDelegate.resolveModuleArtifacts(moduleMetaData, artifactType, result)
+        1 * localDelegate.resolveArtifactsWithType(moduleMetaData, artifactType, result)
         0 * _
 
         when:
-        repo.remoteAccess.resolveModuleArtifacts(moduleMetaData, artifactType, result)
+        repo.remoteAccess.resolveArtifactsWithType(moduleMetaData, artifactType, result)
 
         then:
-        1 * remoteDelegate.resolveModuleArtifacts(moduleMetaData, artifactType, result)
+        1 * remoteDelegate.resolveArtifactsWithType(moduleMetaData, artifactType, result)
         0 * _
     }
 
-    def "delegates request for module artifacts for usage"() {
+    def "delegates request for module artifacts"() {
         def moduleMetaData = Stub(ModuleComponentResolveMetadata)
-        def componentUsage = Stub(ComponentUsage)
-        def result = Mock(BuildableArtifactSetResolveResult)
+        def result = Mock(BuildableComponentArtifactsResolveResult)
 
         when:
-        repo.localAccess.resolveModuleArtifacts(moduleMetaData, componentUsage, result)
+        repo.localAccess.resolveArtifacts(moduleMetaData, result)
 
         then:
-        1 * localDelegate.resolveModuleArtifacts(moduleMetaData, componentUsage, result)
+        1 * localDelegate.resolveArtifacts(moduleMetaData, result)
         0 * _
 
         when:
-        repo.remoteAccess.resolveModuleArtifacts(moduleMetaData, componentUsage, result)
+        repo.remoteAccess.resolveArtifacts(moduleMetaData, result)
 
         then:
-        1 * remoteDelegate.resolveModuleArtifacts(moduleMetaData, componentUsage, result)
+        1 * remoteDelegate.resolveArtifacts(moduleMetaData, result)
         0 * _
     }
 
