@@ -256,6 +256,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.execute("alter table testOperation add column if not exists daemon boolean");
             statement.execute("alter table testExecution add column if not exists resultType varchar not null default 'cross-build'");
             statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
+            statement.execute("create index if not exists testExecution_testGroup on testExecution (testGroup)");
             statement.close();
             return null;
         }
