@@ -24,12 +24,14 @@ public class DefaultBuildableTypedResolveResult<T, E extends Throwable> extends 
 
     @Override
     public void failed(E failure) {
+        this.result = null;
         this.failure = failure;
     }
 
     @Override
     public void resolved(T result) {
         this.result = result;
+        this.failure = null;
     }
 
     @Override
@@ -46,6 +48,10 @@ public class DefaultBuildableTypedResolveResult<T, E extends Throwable> extends 
     public E getFailure() {
         assertHasResult();
         return failure;
+    }
+
+    public boolean isSuccessful() {
+        return result != null;
     }
 
     @Override

@@ -21,4 +21,5 @@ import org.gradle.internal.resolve.ArtifactResolveException;
 import java.util.Set;
 
 public interface BuildableArtifactSetResolveResult extends ResolveResult, BuildableTypedResolveResult<Set<? extends ComponentArtifactMetadata>, ArtifactResolveException> {
+    boolean isSuccessful();
 }

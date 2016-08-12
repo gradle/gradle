@@ -27,6 +27,7 @@ class DefaultBuildableTypedResolveResultTest extends Specification {
 
         expect:
         result.hasResult()
+        result.successful
         result.result == "result"
         result.failure == null
     }
@@ -38,6 +39,7 @@ class DefaultBuildableTypedResolveResultTest extends Specification {
 
         expect:
         result.hasResult()
+        !result.successful
         result.failure == failure
     }
 
@@ -54,9 +56,42 @@ class DefaultBuildableTypedResolveResultTest extends Specification {
         e == failure
     }
 
+    def "can mark as failed after resolved"() {
+        given:
+        def failure = new RuntimeException()
+        result.resolved("result")
+        result.failed(failure)
+
+        expect:
+        result.hasResult()
+        !result.successful
+        result.failure == failure
+
+        when:
+        result.result
+
+        then:
+        def e = thrown(RuntimeException)
+        e == failure
+    }
+
+    def "can mark as successful after failed"() {
+        given:
+        def failure = new RuntimeException()
+        result.failed(failure)
+        result.resolved("result")
+
+        expect:
+        result.hasResult()
+        result.successful
+        result.failure == null
+        result.result == "result"
+    }
+
     def "cannot query result or failure when no result"() {
         expect:
         !result.hasResult()
+        !result.successful
 
         when:
         result.result

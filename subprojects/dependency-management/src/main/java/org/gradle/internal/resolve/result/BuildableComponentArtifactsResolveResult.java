@@ -19,4 +19,5 @@ import org.gradle.internal.component.model.ComponentArtifacts;
 import org.gradle.internal.resolve.ArtifactResolveException;
 
 public interface BuildableComponentArtifactsResolveResult extends ResolveResult, BuildableTypedResolveResult<ComponentArtifacts, ArtifactResolveException> {
+    boolean isSuccessful();
 }

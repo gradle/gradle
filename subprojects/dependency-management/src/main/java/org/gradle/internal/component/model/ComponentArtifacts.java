@@ -18,6 +18,9 @@ package org.gradle.internal.component.model;
 
 import java.util.Set;
 
+/**
+ * Represents the artifacts associated with each configuration of a particular component. Implementations must be immutable.
+ */
 public interface ComponentArtifacts {
     Set<? extends ComponentArtifactMetadata> getArtifactsFor(ConfigurationMetadata configuration);
 }

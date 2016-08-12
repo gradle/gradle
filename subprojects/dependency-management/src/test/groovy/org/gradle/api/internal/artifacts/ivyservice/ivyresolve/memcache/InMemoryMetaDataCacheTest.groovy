@@ -26,9 +26,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class InMemoryMetaDataCacheTest extends Specification {
-
-    def stats = new InMemoryCacheStats()
-    def cache = new InMemoryMetaDataCache(stats)
+    def cache = new InMemoryMetaDataCache()
 
     static componentId(String group, String module, String version) {
         return DefaultModuleComponentIdentifier.newId(group, module, version)

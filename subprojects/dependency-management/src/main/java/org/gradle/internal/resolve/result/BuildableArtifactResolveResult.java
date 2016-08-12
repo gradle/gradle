@@ -23,6 +23,8 @@ import org.gradle.internal.resolve.ArtifactResolveException;
 import java.io.File;
 
 public interface BuildableArtifactResolveResult extends ResolveResult, BuildableTypedResolveResult<File, ArtifactResolveException>, ResourceAwareResolveResult {
+    boolean isSuccessful();
+
     /**
      * Returns the resolve failure, if any.
      */

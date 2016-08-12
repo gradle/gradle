@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifacts;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -26,18 +27,18 @@ import java.util.Set;
  * Uses a fixed set of artifacts for all configurations.
  */
 public class FixedComponentArtifacts implements ComponentArtifacts {
-    private final Set<? extends ComponentArtifactMetadata> artifacts;
+    private final Set<ComponentArtifactMetadata> artifacts;
 
-    public FixedComponentArtifacts(Set<? extends ComponentArtifactMetadata> artifacts) {
-        this.artifacts = artifacts;
+    public FixedComponentArtifacts(Iterable<? extends ComponentArtifactMetadata> artifacts) {
+        this.artifacts = ImmutableSet.copyOf(artifacts);
     }
 
-    public Set<? extends ComponentArtifactMetadata> getArtifacts() {
+    public Set<ComponentArtifactMetadata> getArtifacts() {
         return artifacts;
     }
 
     @Override
-    public Set<? extends ComponentArtifactMetadata> getArtifactsFor(ConfigurationMetadata configuration) {
+    public Set<ComponentArtifactMetadata> getArtifactsFor(ConfigurationMetadata configuration) {
         return artifacts;
     }
 }
