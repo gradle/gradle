@@ -122,7 +122,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             return db.withConnection(new ConnectionAction<List<String>>() {
                 public List<String> execute(Connection connection) throws SQLException {
                 List<String> testNames = new ArrayList<String>();
-                PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId from testExecution where resultType = ? group by testGroup order by testId");
+                PreparedStatement testIdsStatement = connection.prepareStatement("select distinct testId, testGroup from testExecution where resultType = ? order by testGroup, testId");
                 testIdsStatement.setString(1, resultType);
                 ResultSet testExecutions = testIdsStatement.executeQuery();
                 while (testExecutions.next()) {
