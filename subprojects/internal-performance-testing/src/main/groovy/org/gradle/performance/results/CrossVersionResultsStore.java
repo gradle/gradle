@@ -240,6 +240,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                                     allVersions.add(version);
                                 }
                             }
+                            closeResultSet(builds);
                         }
                     } finally {
                         closeStatement(operationsForExecution);
@@ -286,6 +287,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     statement.execute("alter table testOperation alter column configurationTime set not null");
                 }
                 statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
+                statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
             } finally {
                 closeStatement(statement);
             }
