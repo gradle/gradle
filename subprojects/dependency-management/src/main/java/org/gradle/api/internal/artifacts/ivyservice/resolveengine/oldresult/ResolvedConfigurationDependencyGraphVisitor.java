@@ -31,8 +31,11 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 
 import java.util.*;
 
+/**
+ * Adapts a {@link ResolvedConfigurationBuilder}, which is responsible for assembling the resolved configuration result, to a {@link DependencyGraphVisitor} and
+ * {@link DependencyArtifactsVisitor}.
+ */
 public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGraphVisitor, DependencyArtifactsVisitor {
-
     private final ResolvedConfigurationBuilder builder;
     private final Map<ModuleVersionSelector, BrokenDependency> failuresByRevisionId = new LinkedHashMap<ModuleVersionSelector, BrokenDependency>();
     private DependencyGraphNode root;

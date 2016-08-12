@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 
+/**
+ * Collects all artifacts.
+ */
 public class DefaultResolvedArtifactsBuilder implements ResolvedArtifactsBuilder {
     private final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
 
@@ -27,7 +30,6 @@ public class DefaultResolvedArtifactsBuilder implements ResolvedArtifactsBuilder
 
     @Override
     public void finishArtifacts() {
-
     }
 
     @Override

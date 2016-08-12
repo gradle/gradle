@@ -19,6 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 
+/**
+ * Adapts {@link ResolutionResultBuilder}, which takes care of assembling the resolution result, to a {@link DependencyGraphVisitor}.
+ */
 public class ResolutionResultDependencyGraphVisitor implements DependencyGraphVisitor {
     private final ResolutionResultBuilder newModelBuilder;
 

@@ -36,7 +36,9 @@ import java.util.Map;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-//TODO SF unit coverage
+/**
+ * Serializes the transient parts of the resolved configuration results.
+ */
 public class TransientConfigurationResultsBuilder {
 
     private final static Logger LOG = Logging.getLogger(TransientConfigurationResultsBuilder.class);

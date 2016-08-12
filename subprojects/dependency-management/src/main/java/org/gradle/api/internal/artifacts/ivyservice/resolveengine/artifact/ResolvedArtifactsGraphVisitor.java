@@ -36,6 +36,9 @@ import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsReso
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Adapts a {@link DependencyArtifactsVisitor} to a {@link DependencyGraphVisitor}. Calculates the artifacts contributed by each edge in the graph and forwards the results to the artifact visitor.
+ */
 public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private final IdGenerator<Long> idGenerator = new LongIdGenerator();
     private final Map<ResolvedConfigurationIdentifier, ArtifactSet> artifactSetsByConfiguration = Maps.newHashMap();
@@ -51,12 +54,10 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     @Override
     public void start(DependencyGraphNode root) {
-
     }
 
     @Override
     public void visitNode(DependencyGraphNode resolvedConfiguration) {
-
     }
 
     public void visitEdge(DependencyGraphNode resolvedConfiguration) {
