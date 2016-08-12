@@ -26,6 +26,13 @@ import java.lang.management.PlatformManagedObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+/**
+ * Add -Pheapdump parameter to build parameters to trigger heapdump at the end of the build.
+ *
+ * The heapdump gets triggered once, on the last iteration of the measurement phase.
+ *
+ * Use -Pheapdump=all to capture all objects on the heap. By default, it captures only the live objects.
+ */
 class HeapDumper {
     static void handle(final Project project, Logger logger) {
         if (project.hasProperty("heapdump")) {
@@ -51,7 +58,8 @@ class HeapDumper {
                     logger.lifecycle("Creating heap dump...");
                     final String dumpDescription = (project.hasProperty("buildExperimentDisplayName") ? (project.getName() + "_" + project.property("buildExperimentDisplayName")) : project.getName()).replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_");
                     final File dumpFile = new File(System.getProperty("java.io.tmpdir"), "heapdump-" + dumpDescription + "-" + new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()) + ".hprof");
-                    DefaultGroovyMethods.invokeMethod(hotspotDiagnosticMXBean, "dumpHeap", new Object[]{dumpFile.getAbsolutePath(), true});
+                    final boolean liveObjectsOnly = !"all".equals(project.property("heapdump"));
+                    DefaultGroovyMethods.invokeMethod(hotspotDiagnosticMXBean, "dumpHeap", new Object[]{dumpFile.getAbsolutePath(), liveObjectsOnly});
                     logger.lifecycle("Dumped to " + dumpFile.getAbsolutePath() + ".");
                 }
 
