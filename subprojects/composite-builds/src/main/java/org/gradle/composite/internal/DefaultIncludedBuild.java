@@ -48,7 +48,11 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     public DependencySubstitutionsInternal getDependencySubstitution() {
         if (dependencySubstitutions == null) {
             GradleLauncher gradleLauncher = createGradleLauncher();
-            gradleLauncher.load();
+            try {
+                gradleLauncher.load();
+            } finally {
+                gradleLauncher.stop();
+            }
             SettingsInternal settings = gradleLauncher.getSettings();
             String buildName = settings.getRootProject().getName();
             dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(buildName);

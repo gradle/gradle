@@ -55,23 +55,33 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
 
             DependencySubstitutionsInternal substitutions = ((IncludedBuildInternal) build).getDependencySubstitution();
             if (!substitutions.hasRules()) {
-                configureBuildToDetermineSubstitutions(buildInternal.createGradleLauncher(), context, includedBuildStartParam);
+                configureBuildToDetermineSubstitutions(buildInternal, context, includedBuildStartParam);
             } else {
                 context.registerSubstitution(substitutions.getRuleAction());
             }
 
-            configureBuildToRegisterDependencyMetadata(buildInternal.createGradleLauncher(), context, includedBuildStartParam);
+            configureBuildToRegisterDependencyMetadata(buildInternal, context, includedBuildStartParam);
         }
     }
 
-    private void configureBuildToDetermineSubstitutions(GradleLauncher gradleLauncher, CompositeBuildContext context, StartParameter includedBuildStartParam) {
+    private void configureBuildToDetermineSubstitutions(IncludedBuildInternal build, CompositeBuildContext context, StartParameter includedBuildStartParam) {
         LOGGER.lifecycle("[composite-build] Configuring build: " + includedBuildStartParam.getProjectDir());
         CompositeSubstitutionsActionRunner contextBuilder = new CompositeSubstitutionsActionRunner(context);
-        contextBuilder.run(new GradleBuildController(gradleLauncher));
+        GradleLauncher gradleLauncher = build.createGradleLauncher();
+        try {
+            contextBuilder.run(new GradleBuildController(gradleLauncher));
+        } finally {
+            gradleLauncher.stop();
+        }
     }
 
-    private void configureBuildToRegisterDependencyMetadata(GradleLauncher gradleLauncher, CompositeBuildContext context, StartParameter includedBuildStartParam) {
+    private void configureBuildToRegisterDependencyMetadata(IncludedBuildInternal build, CompositeBuildContext context, StartParameter includedBuildStartParam) {
         CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context);
-        contextBuilder.run(new GradleBuildController(gradleLauncher));
+        GradleLauncher gradleLauncher = build.createGradleLauncher();
+        try {
+            contextBuilder.run(new GradleBuildController(gradleLauncher));
+        } finally {
+            gradleLauncher.stop();
+        }
     }
 }
