@@ -24,7 +24,7 @@ tasks.withType(JvmProjectGeneratorTask) {
 
 task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
     doFirst {
-        sharedTemplateArgs.buildScanPluginVersion = {
+        templateArgs.buildScanPluginVersion = {
             def pluginInfo = file("$rootDir/incoming/plugin.json")
             assert pluginInfo.exists()
             def json = new JsonSlurper().parse(pluginInfo) as Map<String, ?>

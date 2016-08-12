@@ -50,8 +50,6 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     @InputDirectory
     File sharedTemplateDirectory
 
-    Map<String, Object> sharedTemplateArgs = [:]
-
     def ProjectGeneratorTask() {
         setProjects(1)
         destDir = project.file("${project.buildDir}/${name}")
@@ -169,7 +167,6 @@ abstract class ProjectGeneratorTask extends DefaultTask {
 
     def generateProject(Map parameterArgs, TestProject testProject) {
         def args = [:]
-        args += sharedTemplateArgs
         args += parameterArgs
 
         File projectDir = args.projectDir

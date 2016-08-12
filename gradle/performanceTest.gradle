@@ -239,6 +239,6 @@ tasks.withType(ProjectGeneratorTask) {
     sharedTemplateDirectory = project.findProject(':internalPerformanceTesting').file('src/templates')
     dependsOn ':internalPerformanceTesting:measurementPluginJar'
     doFirst {
-        sharedTemplateArgs.measurementPluginJarFile = project.tasks.findByPath(':internalPerformanceTesting:measurementPluginJar')?.archivePath
+        templateArgs.measurementPluginJarFile = project.tasks.findByPath(':internalPerformanceTesting:measurementPluginJar')?.archivePath
     }
 }
