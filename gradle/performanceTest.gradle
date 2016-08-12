@@ -192,6 +192,11 @@ task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
     }
 }
 
+task distributedHistoricalPerformanceTest(type: DistributedPerformanceTest) {
+    // for the first iteration(s?) we'll use a tmp database
+    systemProperty "org.gradle.performance.db.url", "jdbc:h2:./build/database"
+}
+
 configure([performanceTest, performanceExperiment, fullPerformanceTest, performanceAdhocTest]) {
     if (project.hasProperty('org.gradle.performance.use_yourkit')) {
         testLogging.showStandardStreams = true
