@@ -16,17 +16,17 @@
 
 package org.gradle.performance.plugin;
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import static org.gradle.performance.plugin.ReflectionUtil.*;
+
 
 class ExternalResources {
     static void printAndResetStats() {
         if (System.getProperty("gradle.externalresources.recordstats") != null) {
-            try {
-                Object statistics = DefaultGroovyMethods.invokeMethod(Class.forName("org.gradle.internal.resource.transfer.DefaultExternalResourceConnector"), "getStatistics", new Object[0]);
+            Class clazz = loadClassIfAvailable("org.gradle.internal.resource.transfer.DefaultExternalResourceConnector");
+            if (clazz != null) {
+                Object statistics = invokeMethod(null, findMethodByName(clazz, "getStatistics"));
                 System.out.println(statistics);
-                DefaultGroovyMethods.invokeMethod(statistics, "reset", new Object[0]);
-            } catch (ClassNotFoundException e) {
-                // ignore
+                invokeMethod(statistics, findMethodByName(statistics.getClass(), "reset"));
             }
         }
     }

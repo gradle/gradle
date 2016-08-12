@@ -16,7 +16,6 @@
 
 package org.gradle.performance.plugin;
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Project;
 import org.gradle.api.logging.Logger;
 
@@ -25,6 +24,9 @@ import java.lang.management.ManagementFactory;
 import java.lang.management.PlatformManagedObject;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import static org.gradle.performance.plugin.ReflectionUtil.getMethodByName;
+import static org.gradle.performance.plugin.ReflectionUtil.invokeMethod;
 
 /**
  * Add -Pheapdump parameter to build parameters to trigger heapdump at the end of the build.
@@ -53,7 +55,7 @@ class HeapDumper {
 
         if (hotspotDiagnosticMXBean != null) {
             logger.lifecycle("Creating heap dump...");
-            DefaultGroovyMethods.invokeMethod(hotspotDiagnosticMXBean, "dumpHeap", new Object[]{dumpFile.getAbsolutePath(), liveObjectsOnly});
+            invokeMethod(hotspotDiagnosticMXBean, getMethodByName(hotspotDiagnosticMXBean.getClass(), "dumpHeap"), dumpFile.getAbsolutePath(), liveObjectsOnly);
             logger.lifecycle("Dumped to " + dumpFile.getAbsolutePath() + ".");
         }
     }
