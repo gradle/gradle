@@ -18,6 +18,8 @@ package org.gradle.nativeplatform
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 import spock.lang.Unroll
 
 class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
@@ -195,7 +197,7 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
         !output.contains('main')
         output.contains('Some non-buildable components were not shown, use --non-buildable or --all to show them.')
     }
-    
+
     @NotYetImplemented
     def "always show component if requested even with no buildable binaries"() {
         given:
@@ -248,6 +250,17 @@ class NativeDependentComponentsReportIntegrationTest extends AbstractIntegration
             |    \\--- :extensions:bazar:staticLibrary
             \\--- :libraries:foo:staticLibrary
         '''.stripIndent()
+    }
+
+    @NotYetImplemented
+    @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    def "can show dependent components in parallel"() {
+        given:
+        settingsFile.text = multiProjectSettings()
+        buildScript multiProjectBuild()
+
+        expect:
+        succeeds('--parallel', '--max-workers=4', 'libraries:dependentComponents', 'extensions:dependentComponents')
     }
 
     def "don't fail with prebuilt libraries"() {
