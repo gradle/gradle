@@ -32,7 +32,6 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -50,7 +49,6 @@ import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -236,7 +234,7 @@ public class MavenResolver extends ExternalResourceResolver {
         protected void resolveModuleArtifacts(ModuleComponentResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
             if (mavenMetaData(module).isKnownJarPackaging()) {
                 ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);
-                result.resolved(new FixedComponentArtifacts(ImmutableSet.of((ComponentArtifactMetadata) artifact)));
+                result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifact)));
             }
         }
 
@@ -256,9 +254,7 @@ public class MavenResolver extends ExternalResourceResolver {
         protected void resolveModuleArtifacts(ModuleComponentResolveMetadata module, BuildableComponentArtifactsResolveResult result) {
             MavenModuleResolveMetadata mavenMetaData = mavenMetaData(module);
             if (mavenMetaData.isPomPackaging()) {
-                Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
-                artifacts.addAll(findOptionalArtifacts(module, "jar", null));
-                result.resolved(new FixedComponentArtifacts(artifacts));
+                result.resolved(new FixedComponentArtifacts(findOptionalArtifacts(module, "jar", null)));
             } else {
                 ModuleComponentArtifactMetadata artifactMetaData = module.artifact(mavenMetaData.getPackaging(), mavenMetaData.getPackaging(), null);
 
