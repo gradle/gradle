@@ -179,6 +179,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
         try {
             return db.withConnection(new ConnectionAction<CrossVersionPerformanceTestHistory>() {
                 public CrossVersionPerformanceTestHistory execute(Connection connection) throws SQLException {
+                    System.out.println("Fetching " + mostRecentN + " most recent results for " + testName);
                     List<CrossVersionPerformanceResults> results = new ArrayList<CrossVersionPerformanceResults>();
                     Set<String> allVersions = new TreeSet<String>(new Comparator<String>() {
                         public int compare(String o1, String o2) {
