@@ -22,19 +22,25 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
-import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.Clock;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
@@ -52,6 +58,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     private final Store<ResolvedComponentResult> cache;
     private final InternalDependencyResultSerializer internalDependencyResultSerializer = new InternalDependencyResultSerializer();
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
+    private final Set<ModuleVersionIdentifier> visitedModules = new HashSet<ModuleVersionIdentifier>();
 
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache) {
         this.store = store;
@@ -79,8 +86,6 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
         });
         return this;
     }
-
-    Set<ModuleVersionIdentifier> visitedModules = new HashSet<ModuleVersionIdentifier>();
 
     public void resolvedModuleVersion(final ModuleVersionSelection moduleVersion) {
         if (visitedModules.add(moduleVersion.getId())) {
@@ -177,7 +182,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                         case DEPENDENCY:
                             id = moduleVersionIdentifierSerializer.read(decoder);
                             int size = decoder.readSmallInt();
-                            List<InternalDependencyResult> deps = new LinkedList<InternalDependencyResult>();
+                            List<InternalDependencyResult> deps = new ArrayList<InternalDependencyResult>(size);
                             for (int i = 0; i < size; i++) {
                                 deps.add(internalDependencyResultSerializer.read(decoder, failures));
                             }
