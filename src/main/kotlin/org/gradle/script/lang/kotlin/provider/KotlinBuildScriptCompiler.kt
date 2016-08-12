@@ -18,10 +18,12 @@ package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
-import org.gradle.script.lang.kotlin.support.isKotlinJar
 import org.gradle.script.lang.kotlin.support.kotlinScriptClassPath
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 
@@ -43,28 +45,41 @@ import java.net.URLClassLoader
 import kotlin.reflect.KClass
 
 class KotlinBuildScriptCompiler(
-    val scriptSource: ScriptSource,
+    classPathRegistry: ClassPathRegistry,
+    scriptSource: ScriptSource,
     val topLevelScript: Boolean,
     val scriptHandler: ScriptHandlerInternal,
     val targetScope: ClassLoaderScope,
     val baseScope: ClassLoaderScope,
-    val gradleJars: List<File>,
     val logger: Logger) {
 
     val scriptResource = scriptSource.resource!!
     val scriptFile = scriptResource.file!!
     val script = scriptResource.text!!
 
-    val gradleApi: ClassPath = DefaultClassPath.of(gradleJars)
+    /**
+     * Generated Gradle API jar plus supporting libraries such as groovy-all.jar.
+     */
+    val gradleApi: ClassPath = DefaultClassPath.of(gradleApiFiles())
+
+    /**
+     * gradle-script-kotlin.jar plus kotlin libraries.
+     */
+    val gradleScriptKotlinJars = gradleScriptKotlinJarsFrom(classPathRegistry)
+
+    /**
+     * buildSrc output directories.
+     */
     val buildSrc: ClassPath = exportClassPathOf(baseScope)
-    val defaultClassPath: ClassPath = gradleApi + buildSrc
+
+    val buildScriptSectionCompilationClassPath: ClassPath = gradleApi + gradleScriptKotlinJars + buildSrc
 
     val scriptClassPath: ClassPath by lazy {
         scriptHandler.scriptClassPath
     }
 
     val compilationClassPath: ClassPath by lazy {
-        val classPath = scriptClassPath + defaultClassPath
+        val classPath = scriptClassPath + buildScriptSectionCompilationClassPath
         logger.info("Kotlin compilation classpath: {}", classPath)
         classPath
     }
@@ -140,7 +155,7 @@ class KotlinBuildScriptCompiler(
      * standard library types.
      */
     private fun isolatedKotlinClassLoaderFor(parentClassLoader: ClassLoader): PostDelegatingClassLoader {
-        val isolatedClassPath = scriptClassPath + gradleScriptKotlinJars() + buildSrc
+        val isolatedClassPath = scriptClassPath + gradleScriptKotlinJars + buildSrc
         val isolatedClassLoader = PostDelegatingClassLoader(parentClassLoader, isolatedClassPath)
         exportTo(targetScope, isolatedClassLoader)
         return isolatedClassLoader
@@ -152,12 +167,6 @@ class KotlinBuildScriptCompiler(
             lock()
         }
     }
-
-    private fun gradleScriptKotlinJars() =
-        gradleJars.filter { jar ->
-            val name = jar.name
-            name.startsWith("gradle-script-kotlin-") || isKotlinJar(name)
-        }
 
     private fun buildscriptClassLoaderFrom(baseScope: ClassLoaderScope) =
         defaultClassLoaderFor(baseScope.createChild("buildscript"))
@@ -172,7 +181,7 @@ class KotlinBuildScriptCompiler(
     private fun compileBuildscriptSection(buildscriptRange: IntRange, classLoader: ClassLoader) =
         compileKotlinScript(
             tempBuildscriptFileFor(script.substring(buildscriptRange)),
-            scriptDefinitionFromTemplate(KotlinBuildScriptSection::class, defaultClassPath),
+            scriptDefinitionFromTemplate(KotlinBuildScriptSection::class, buildScriptSectionCompilationClassPath),
             classLoader, logger)
 
     private fun compileScriptFile(classLoader: ClassLoader) =
@@ -210,7 +219,27 @@ class KotlinBuildScriptCompiler(
     private fun shareKotlinScriptClassPathOn(target: Project) {
         target.kotlinScriptClassPath = compilationClassPath
     }
+
+    /**
+     * Returns the generated Gradle API jar plus supporting files such as groovy-all.jar.
+     */
+    private fun gradleApiFiles() =
+        (scriptHandler.dependencies.gradleApi() as SelfResolvingDependency).resolve()
 }
+
+fun gradleScriptKotlinJarsFrom(classPathRegistry: ClassPathRegistry): List<File> =
+    classPathRegistry.gradleJars().filter {
+        it.name.let { isKotlinJar(it) || it.startsWith("gradle-script-kotlin-") }
+    }
+
+fun ClassPathRegistry.gradleJars(): Collection<File> =
+    getClassPath(DependencyFactory.ClassPathNotation.GRADLE_API.name).asFiles
+
+// TODO: make the predicate more precise
+fun isKotlinJar(name: String): Boolean =
+    name.startsWith("kotlin-stdlib-")
+        || name.startsWith("kotlin-reflect-")
+        || name.startsWith("kotlin-runtime-")
 
 inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {
     val currentThread = Thread.currentThread()

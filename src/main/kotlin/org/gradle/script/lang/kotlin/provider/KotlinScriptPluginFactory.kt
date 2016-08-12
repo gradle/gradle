@@ -17,7 +17,6 @@
 package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.script.lang.kotlin.loggerFor
-import org.gradle.script.lang.kotlin.support.KotlinScriptDefinitionProvider.selectGradleApiJars
 
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
@@ -30,11 +29,7 @@ import org.gradle.api.internal.initialization.ScriptHandlerInternal
 
 import org.gradle.groovy.scripts.ScriptSource
 
-import java.io.File
-
-class KotlinScriptPluginFactory(classPathRegistry: ClassPathRegistry) : ScriptPluginFactory {
-
-    private val gradleApiJars: List<File> = selectGradleApiJars(classPathRegistry)
+class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : ScriptPluginFactory {
 
     private val logger = loggerFor<KotlinScriptPluginFactory>()
 
@@ -42,8 +37,8 @@ class KotlinScriptPluginFactory(classPathRegistry: ClassPathRegistry) : ScriptPl
                         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
                         topLevelScript: Boolean): ScriptPlugin =
         KotlinBuildScriptCompiler(
-            scriptSource, topLevelScript, scriptHandler as ScriptHandlerInternal,
-            targetScope, baseScope, gradleApiJars, logger).run {
+            classPathRegistry, scriptSource, topLevelScript, scriptHandler as ScriptHandlerInternal,
+            targetScope, baseScope, logger).run {
 
             val script = if (topLevelScript && inClassPathMode()) compileForClassPath() else compile()
             KotlinScriptPlugin(scriptSource, script)
