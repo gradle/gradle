@@ -40,7 +40,7 @@ class BaselineVersion implements VersionResults {
         def sb = new StringBuilder()
         def thisVersionAverage = results.totalTime.average
         def currentVersionAverage = current.totalTime.average
-        if (currentVersionAverage) {
+        if (currentVersionAverage && thisVersionAverage) {
             if (currentVersionAverage > thisVersionAverage) {
                 sb.append "Speed $displayName: we're slower than $version.\n"
             } else {
@@ -62,8 +62,8 @@ class BaselineVersion implements VersionResults {
     String getMemoryStatsAgainst(String displayName, MeasuredOperationList current) {
         def sb = new StringBuilder()
         def currentVersionAverage = current.totalMemoryUsed.average
-        if (currentVersionAverage) {
-            def thisVersionAverage = results.totalMemoryUsed.average
+        def thisVersionAverage = results.totalMemoryUsed.average
+        if (currentVersionAverage && thisVersionAverage) {
             if (currentVersionAverage > thisVersionAverage) {
                 sb.append("Memory $displayName: we need more memory than $version.\n")
             } else {

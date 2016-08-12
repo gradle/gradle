@@ -22,6 +22,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.util.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,6 +31,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildExperimentRunner {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildExperimentRunner.class);
+
     private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
     private final OperationTimer timer = new OperationTimer();
@@ -216,16 +220,15 @@ public class BuildExperimentRunner {
             });
         }
 
-        if (!operation.isValid()) {
-            omitMeasurement.set(true);
-        }
-
         if (!omitMeasurement.get()) {
             if (operation.getException() == null) {
                 dataCollector.collect(invocationInfo, operation);
             }
-
-            results.add(operation);
+            if (operation.isValid()) {
+                results.add(operation);
+            } else {
+                LOGGER.error("Discarding invalid operation record {}", operation);
+            }
         }
     }
 
