@@ -82,6 +82,10 @@ task prepareSamples {
     description = "Generates all sample projects for automated performance tests"
 }
 
+task cleanSamples(type: Delete) {
+    delete {tasks.withType(ProjectGeneratorTask)*.destDir}
+}
+
 def withPerformanceDb = { task ->
     def urlProperty = "org.gradle.performance.db.url"
     def url = project.findProperty(urlProperty)
