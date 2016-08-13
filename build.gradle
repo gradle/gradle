@@ -95,7 +95,7 @@ buildTypes {
     }
 
     distributedPerformanceExperiments {
-        tasks "performance:distributedPerformanceExperiments"
+        tasks "performance:distributedPerformanceExperiment"
         projectProperties useIncomingDistributions: true
     }
 
