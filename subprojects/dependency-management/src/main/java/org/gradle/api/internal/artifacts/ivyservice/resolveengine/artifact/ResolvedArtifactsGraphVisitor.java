@@ -79,8 +79,8 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
     private ArtifactSet getArtifacts(DependencyGraphEdge dependency, DependencyGraphNode childConfiguration) {
         long id = idGenerator.generateId();
         ResolvedConfigurationIdentifier configurationIdentifier = childConfiguration.getNodeId();
-        ConfigurationMetadata configuration = childConfiguration.getMetaData();
-        ComponentResolveMetadata component = childConfiguration.getComponent();
+        ConfigurationMetadata configuration = childConfiguration.getMetadata();
+        ComponentResolveMetadata component = childConfiguration.getOwner().getMetadata();
 
         Set<? extends ComponentArtifactMetadata> artifacts = dependency.getArtifacts(configuration);
         if (!artifacts.isEmpty()) {

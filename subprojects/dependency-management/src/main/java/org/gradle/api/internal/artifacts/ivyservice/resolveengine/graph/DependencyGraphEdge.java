@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
@@ -25,6 +26,9 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Set;
 
+/**
+ * An edge in the dependency graph, between 2 configurations.
+ */
 public interface DependencyGraphEdge extends InternalDependencyResult {
     DependencyGraphNode getFrom();
 
@@ -35,5 +39,6 @@ public interface DependencyGraphEdge extends InternalDependencyResult {
 
     Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata metaData);
 
+    @Nullable
     ModuleDependency getModuleDependency();
 }

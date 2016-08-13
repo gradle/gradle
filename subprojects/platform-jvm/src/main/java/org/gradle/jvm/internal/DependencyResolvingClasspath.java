@@ -123,7 +123,7 @@ public class DependencyResolvingClasspath extends AbstractFileCollection {
 
         @Override
         public void visitNode(DependencyGraphNode resolvedConfiguration) {
-            ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetaData();
+            ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
             if (configurationMetadata instanceof LocalConfigurationMetadata) {
                 TaskDependency directBuildDependencies = ((LocalConfigurationMetadata) configurationMetadata).getDirectBuildDependencies();
                 taskDependency.add(directBuildDependencies);

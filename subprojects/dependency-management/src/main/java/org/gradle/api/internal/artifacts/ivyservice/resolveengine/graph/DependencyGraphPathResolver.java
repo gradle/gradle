@@ -19,7 +19,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DependencyGraphPathResolver {
 
@@ -28,8 +36,8 @@ public class DependencyGraphPathResolver {
 
         Map<ModuleVersionSelection, List<ModuleVersionIdentifier>> shortestPaths = new LinkedHashMap<ModuleVersionSelection, List<ModuleVersionIdentifier>>();
         List<ModuleVersionIdentifier> rootPath = new ArrayList<ModuleVersionIdentifier>();
-        rootPath.add(toNode.toId());
-        shortestPaths.put(toNode.getSelection(), rootPath);
+        rootPath.add(toNode.getOwner().getId());
+        shortestPaths.put(toNode.getOwner(), rootPath);
 
         Set<DependencyGraphBuilder.ModuleVersionResolveState> directDependees = new LinkedHashSet<DependencyGraphBuilder.ModuleVersionResolveState>();
         for (DependencyGraphNode node : fromNodes) {
@@ -42,7 +50,7 @@ public class DependencyGraphPathResolver {
         queue.addAll(directDependees);
         while (!queue.isEmpty()) {
             DependencyGraphBuilder.ModuleVersionResolveState version = queue.getFirst();
-            if (version == toNode.getSelection()) {
+            if (version == toNode.getOwner()) {
                 queue.removeFirst();
             } else if (seen.add(version)) {
                 for (DependencyGraphBuilder.ModuleVersionResolveState incomingVersion : version.getIncoming()) {

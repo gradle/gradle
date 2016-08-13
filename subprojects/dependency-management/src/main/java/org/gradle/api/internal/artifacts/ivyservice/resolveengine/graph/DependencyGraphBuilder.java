@@ -513,7 +513,7 @@ public class DependencyGraphBuilder {
     /**
      * Resolution state for a given module version.
      */
-    public static class ModuleVersionResolveState implements ComponentResolutionState, ModuleVersionSelection {
+    public static class ModuleVersionResolveState implements ComponentResolutionState, ModuleVersionSelection, DependencyGraphComponent {
         public final ModuleVersionIdentifier id;
         private final ComponentMetaDataResolver resolver;
         private final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();
@@ -545,6 +545,11 @@ public class DependencyGraphBuilder {
 
         public ModuleVersionResolveException getFailure() {
             return failure;
+        }
+
+        @Override
+        public ComponentResolveMetadata getMetadata() {
+            return metaData;
         }
 
         public void restart(ModuleVersionResolveState selected) {
@@ -649,22 +654,7 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public ModuleVersionIdentifier toId() {
-            return moduleRevision.id;
-        }
-
-        @Override
-        public ComponentIdentifier getComponentId() {
-            return moduleRevision.getComponentId();
-        }
-
-        @Override
-        public ComponentResolveMetadata getComponent() {
-            return moduleRevision.metaData;
-        }
-
-        @Override
-        public ModuleVersionSelection getSelection() {
+        public DependencyGraphComponent getOwner() {
             return moduleRevision;
         }
 
@@ -679,7 +669,7 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public ConfigurationMetadata getMetaData() {
+        public ConfigurationMetadata getMetadata() {
             return metaData;
         }
 
