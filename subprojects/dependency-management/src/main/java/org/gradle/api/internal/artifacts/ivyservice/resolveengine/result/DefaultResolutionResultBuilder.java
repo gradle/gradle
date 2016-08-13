@@ -19,8 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.*;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.InternalDependencyResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ModuleVersionSelection;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.internal.Factory;
@@ -47,14 +47,14 @@ public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
         return new DefaultResolutionResult(new RootFactory(rootModule));
     }
 
-    public void resolvedModuleVersion(ModuleVersionSelection moduleVersion) {
+    public void resolvedModuleVersion(ComponentResult moduleVersion) {
         createOrGet(moduleVersion.getId(), moduleVersion.getSelectionReason(), moduleVersion.getComponentId());
     }
 
-    public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
-        for (InternalDependencyResult d : dependencies) {
+    public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends DependencyResult> dependencies) {
+        for (DependencyResult d : dependencies) {
             DefaultResolvedComponentResult from = modules.get(id);
-            DependencyResult dependency;
+            org.gradle.api.artifacts.result.DependencyResult dependency;
             if (d.getFailure() != null) {
                 dependency = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getReason(), d.getFailure());
             } else {

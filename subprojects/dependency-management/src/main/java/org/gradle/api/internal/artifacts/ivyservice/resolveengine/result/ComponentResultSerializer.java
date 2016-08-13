@@ -20,27 +20,27 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ModuleVersionSelection;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-public class ModuleVersionSelectionSerializer implements Serializer<ModuleVersionSelection> {
+public class ComponentResultSerializer implements Serializer<ComponentResult> {
 
     private final ModuleVersionIdentifierSerializer idSerializer = new ModuleVersionIdentifierSerializer();
     private final ComponentSelectionReasonSerializer reasonSerializer = new ComponentSelectionReasonSerializer();
     private final ComponentIdentifierSerializer componentIdSerializer = new ComponentIdentifierSerializer();
 
-    public ModuleVersionSelection read(Decoder decoder) throws IOException {
+    public ComponentResult read(Decoder decoder) throws IOException {
         ModuleVersionIdentifier id = idSerializer.read(decoder);
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
         ComponentIdentifier componentId = componentIdSerializer.read(decoder);
-        return new DefaultModuleVersionSelection(id, reason, componentId);
+        return new DefaultComponentResult(id, reason, componentId);
     }
 
-    public void write(Encoder encoder, ModuleVersionSelection value) throws IOException {
+    public void write(Encoder encoder, ComponentResult value) throws IOException {
         idSerializer.write(encoder, value.getId());
         reasonSerializer.write(encoder, value.getSelectionReason());
         componentIdSerializer.write(encoder, value.getComponentId());

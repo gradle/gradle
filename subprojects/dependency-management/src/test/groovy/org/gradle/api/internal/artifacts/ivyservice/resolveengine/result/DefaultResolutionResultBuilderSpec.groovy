@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.InternalDependencyResult
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ModuleVersionSelection
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -247,11 +247,11 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         builder.resolvedModuleVersion(moduleVersion)
     }
 
-    private void resolvedConf(String module, List<InternalDependencyResult> deps) {
+    private void resolvedConf(String module, List<DependencyResult> deps) {
         builder.resolvedConfiguration(confId(module), deps)
     }
 
-    private InternalDependencyResult dep(String requested, Exception failure = null, String selected = requested) {
+    private DependencyResult dep(String requested, Exception failure = null, String selected = requested) {
         def selection = newId("x", selected, "1")
         def selector = new DefaultModuleComponentSelector("x", requested, "1")
         def moduleVersionSelector = newSelector("x", requested, "1")
@@ -267,13 +267,13 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         new DefaultModuleComponentIdentifier("x", module, "1")
     }
 
-    class DummyModuleVersionSelection implements ModuleVersionSelection {
+    class DummyModuleVersionSelection implements ComponentResult {
         ModuleVersionIdentifier id
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
     }
 
-    class DummyInternalDependencyResult implements InternalDependencyResult {
+    class DummyInternalDependencyResult implements DependencyResult {
         ComponentSelector requested
         ModuleVersionIdentifier selected
         ModuleVersionResolveException failure

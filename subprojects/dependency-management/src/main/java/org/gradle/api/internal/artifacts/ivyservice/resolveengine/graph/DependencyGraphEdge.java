@@ -28,7 +28,7 @@ import java.util.Set;
 /**
  * An edge in the dependency graph, between 2 configurations.
  */
-public interface DependencyGraphEdge extends InternalDependencyResult {
+public interface DependencyGraphEdge extends DependencyResult {
     DependencyGraphNode getFrom();
 
     // TODO This should be replaced by getRequested()

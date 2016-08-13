@@ -21,6 +21,6 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 /**
  * A component in the dependency graph.
  */
-public interface DependencyGraphComponent extends ModuleVersionSelection {
+public interface DependencyGraphComponent extends ComponentResult {
     ComponentResolveMetadata getMetadata();
 }

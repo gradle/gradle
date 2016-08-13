@@ -33,7 +33,7 @@ public class DependencyGraphPathResolver {
     public static Collection<List<ModuleVersionIdentifier>> calculatePaths(List<DependencyGraphNode> fromNodes, DependencyGraphNode toNode) {
         // Include the shortest path from each version that has a direct dependency on the broken dependency, back to the root
 
-        Map<ModuleVersionSelection, List<ModuleVersionIdentifier>> shortestPaths = new LinkedHashMap<ModuleVersionSelection, List<ModuleVersionIdentifier>>();
+        Map<ComponentResult, List<ModuleVersionIdentifier>> shortestPaths = new LinkedHashMap<ComponentResult, List<ModuleVersionIdentifier>>();
         List<ModuleVersionIdentifier> rootPath = new ArrayList<ModuleVersionIdentifier>();
         rootPath.add(toNode.getOwner().getId());
         shortestPaths.put(toNode.getOwner(), rootPath);

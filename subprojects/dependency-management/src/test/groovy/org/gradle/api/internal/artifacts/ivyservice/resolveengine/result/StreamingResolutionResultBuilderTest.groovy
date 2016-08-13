@@ -52,8 +52,8 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", CONFLICT_RESOLUTION))
         builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), CONFLICT_RESOLUTION, null),
-                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "3.0"), null, CONFLICT_RESOLUTION, new ModuleVersionResolveException(newSelector("org", "dep2", "3.0"), new RuntimeException("Boo!")))
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), CONFLICT_RESOLUTION, null),
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "3.0"), null, CONFLICT_RESOLUTION, new ModuleVersionResolveException(newSelector("org", "dep2", "3.0"), new RuntimeException("Boo!")))
         ])
 
         when:
@@ -74,7 +74,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED)) //will be ignored
 
         builder.resolvedConfiguration(newId("org", "root", "1.0"),
-                [new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), CONFLICT_RESOLUTION, null)])
+                [new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), CONFLICT_RESOLUTION, null)])
 
         when:
         def result = builder.complete()
@@ -92,10 +92,10 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
 
         builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), REQUESTED, null),
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), REQUESTED, null),
         ])
         builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), newId("org", "dep2", "2.0"), REQUESTED, null),
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), newId("org", "dep2", "2.0"), REQUESTED, null),
         ])
 
         when:
@@ -115,11 +115,11 @@ class StreamingResolutionResultBuilderTest extends Specification {
         builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
 
         builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-            new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "1.0"), new RuntimeException())),
-            new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), newId("org", "dep2", "2.0"), REQUESTED, null),
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "1.0"), new RuntimeException())),
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), newId("org", "dep2", "2.0"), REQUESTED, null),
         ])
         builder.resolvedConfiguration(newId("org", "dep2", "2.0"), [
-            new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "5.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "5.0"), new RuntimeException())),
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "5.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "5.0"), new RuntimeException())),
         ])
 
         when:
@@ -133,7 +133,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
 """
     }
 
-    private DefaultModuleVersionSelection sel(String org, String name, String ver, ComponentSelectionReason reason) {
-        new DefaultModuleVersionSelection(newId(org, name, ver), reason, new DefaultModuleComponentIdentifier(org, name, ver))
+    private DefaultComponentResult sel(String org, String name, String ver, ComponentSelectionReason reason) {
+        new DefaultComponentResult(newId(org, name, ver), reason, new DefaultModuleComponentIdentifier(org, name, ver))
     }
 }

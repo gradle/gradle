@@ -19,14 +19,14 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ModuleVersionSelection;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 
-class DefaultModuleVersionSelection implements ModuleVersionSelection {
+class DefaultComponentResult implements ComponentResult {
     private ModuleVersionIdentifier id;
     private ComponentSelectionReason reason;
     private ComponentIdentifier componentIdentifier;
 
-    public DefaultModuleVersionSelection(ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier) {
+    public DefaultComponentResult(ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier) {
         this.id = id;
         this.reason = reason;
         this.componentIdentifier = componentIdentifier;

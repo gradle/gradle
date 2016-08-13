@@ -512,7 +512,7 @@ public class DependencyGraphBuilder {
     /**
      * Resolution state for a given module version.
      */
-    public static class ModuleVersionResolveState implements ComponentResolutionState, ModuleVersionSelection, DependencyGraphComponent {
+    public static class ModuleVersionResolveState implements ComponentResolutionState, ComponentResult, DependencyGraphComponent {
         public final ModuleVersionIdentifier id;
         private final ComponentMetaDataResolver resolver;
         private final Set<ConfigurationNode> configurations = new LinkedHashSet<ConfigurationNode>();

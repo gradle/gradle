@@ -16,15 +16,25 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.internal.resolve.ModuleVersionResolveException;
 
-public interface ModuleVersionSelection {
+public interface DependencyResult {
 
-    ModuleVersionIdentifier getId();
+    ComponentSelector getRequested();
 
-    ComponentSelectionReason getSelectionReason();
+    @Nullable
+    ModuleVersionResolveException getFailure();
 
-    ComponentIdentifier getComponentId();
+    @Nullable
+    ModuleVersionIdentifier getSelected();
+
+    /**
+     * Not null only when failure is not null.
+     */
+    @Nullable
+    ComponentSelectionReason getReason();
 }
