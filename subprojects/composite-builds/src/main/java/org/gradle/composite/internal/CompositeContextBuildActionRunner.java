@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.composite;
+package org.gradle.composite.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Buildable;
@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;

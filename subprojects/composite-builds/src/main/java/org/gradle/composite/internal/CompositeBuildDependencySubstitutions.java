@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.composite;
+package org.gradle.composite.internal;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;

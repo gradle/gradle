@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.composite;
+package org.gradle.composite.internal;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
@@ -24,6 +24,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
+import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;

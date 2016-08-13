@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.composite;
+package org.gradle.composite.internal;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -24,6 +24,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;

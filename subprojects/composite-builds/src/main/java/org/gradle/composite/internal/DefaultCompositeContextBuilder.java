@@ -20,8 +20,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.composite.CompositeContextBuildActionRunner;
-import org.gradle.api.internal.composite.CompositeSubstitutionsActionRunner;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.composite.CompositeContextBuilder;

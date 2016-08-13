@@ -19,8 +19,6 @@ package org.gradle.composite.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.composite.CompositeProjectArtifactBuilder;
-import org.gradle.api.internal.composite.DefaultBuildableCompositeBuildContext;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
