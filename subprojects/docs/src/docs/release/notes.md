@@ -16,6 +16,10 @@ Add-->
 
 Gradle now recognizes changes in the order of files for classpath properties as a reason to mark a task like `JavaCompile` out-of-date. The new `@OrderSensitive` annotation can be used on task input properties to turn this feature on in custom tasks.
 
+### Generate `gradle-plugin` template project with `init`
+
+The [Build Init plugin](userguide/build_init_plugin.html) can now generate a complete Gradle plugin template project.  The generated project has a custom Gradle plugin, task and uses Gradle TestKit and Spock.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
