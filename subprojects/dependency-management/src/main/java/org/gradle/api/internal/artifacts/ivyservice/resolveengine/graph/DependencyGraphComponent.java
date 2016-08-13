@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
 /**

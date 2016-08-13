@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ModuleVersionSelection;
 
 class DefaultModuleVersionSelection implements ModuleVersionSelection {
     private ModuleVersionIdentifier id;

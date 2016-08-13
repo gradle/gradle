@@ -19,6 +19,8 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.*;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.InternalDependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ModuleVersionSelection;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.internal.Factory;

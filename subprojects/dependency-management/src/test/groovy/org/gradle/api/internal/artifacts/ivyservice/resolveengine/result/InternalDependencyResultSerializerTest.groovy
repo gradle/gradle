@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.InternalDependencyResult
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.serialize.InputStreamBackedDecoder

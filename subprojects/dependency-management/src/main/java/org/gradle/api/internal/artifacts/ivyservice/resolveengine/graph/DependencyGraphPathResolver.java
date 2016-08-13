@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
 
 import java.util.ArrayList;
 import java.util.Collection;
