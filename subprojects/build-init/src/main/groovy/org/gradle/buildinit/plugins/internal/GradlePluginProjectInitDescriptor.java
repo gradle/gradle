@@ -39,10 +39,10 @@ public class GradlePluginProjectInitDescriptor extends LanguageLibraryProjectIni
         templateOperationFactory.newTemplateOperation()
             .withTemplate(gradleBuildTemplate(testFramework))
             .withTarget("build.gradle")
-            .withDocumentationBindings(GUtil.map("ref_userguide_java_tutorial", "tutorial_java_projects")) // TODO:
+            .withDocumentationBindings(GUtil.map("ref_userguide_testkit", "test_kit"))
             .withBindings(GUtil.map("spockVersion", libraryVersionProvider.getVersion("spock")))
             .create().generate();
-        whenNoSourcesAvailable(getPluginSourceTemplate(), getPluginTaskSourceTemplate(), getPluginIdTemplate(), testTemplateOperation(testFramework)).generate();
+        whenNoSourcesAvailable(getPluginSourceTemplate(), getPluginTaskSourceTemplate(), testTemplateOperation(testFramework)).generate();
     }
 
     private TemplateOperation getPluginSourceTemplate() {
@@ -52,14 +52,6 @@ public class GradlePluginProjectInitDescriptor extends LanguageLibraryProjectIni
     private TemplateOperation getPluginTaskSourceTemplate() {
         return fromClazzTemplate("gradleplugin/HelloWorld.java.template", "main");
     }
-
-    private TemplateOperation getPluginIdTemplate() {
-        return templateOperationFactory.newTemplateOperation()
-            .withTemplate("gradleplugin/helloworld.properties")
-            .withTarget("src/main/resources/META-INF/gradle-plugins/helloworld.properties")
-            .create();
-    }
-
     private String gradleBuildTemplate(BuildInitTestFramework testFramework) {
         return "gradleplugin/build.gradle.template";
     }

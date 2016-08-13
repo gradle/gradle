@@ -28,7 +28,6 @@ class GradlePluginInitIntegrationTest extends AbstractIntegrationSpec {
     public static final String SAMPLE_PLUGIN_CLASS = "src/main/java/HelloWorldPlugin.java"
     public static final String SAMPLE_PLUGIN_TASK_CLASS = "src/main/java/HelloWorld.java"
     public static final String SAMPLE_PLUGIN_TEST_CLASS = "src/functionalTest/groovy/FunctionalTest.groovy"
-    public static final String SAMPLE_PLUGIN_ID = "src/main/resources/META-INF/gradle-plugins/helloworld.properties"
 
     final wrapper = new WrapperTestFixture(testDirectory)
 
@@ -42,7 +41,6 @@ class GradlePluginInitIntegrationTest extends AbstractIntegrationSpec {
         file(SAMPLE_PLUGIN_CLASS).exists()
         file(SAMPLE_PLUGIN_TASK_CLASS).exists()
         file(SAMPLE_PLUGIN_TEST_CLASS).exists()
-        file(SAMPLE_PLUGIN_ID).exists()
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()
@@ -77,7 +75,6 @@ class GradlePluginInitIntegrationTest extends AbstractIntegrationSpec {
         !file(SAMPLE_PLUGIN_CLASS).exists()
         !file(SAMPLE_PLUGIN_TASK_CLASS).exists()
         !file(SAMPLE_PLUGIN_TEST_CLASS).exists()
-        !file(SAMPLE_PLUGIN_ID).exists()
         buildFile.exists()
         settingsFile.exists()
         wrapper.generated()
