@@ -74,21 +74,33 @@ buildTypes {
         projectProperties useIncomingDistributions: true
     }
 
-    // Run the performance tests
     performanceTests {
         tasks "performance:performanceTest"
         projectProperties useIncomingDistributions: true
     }
 
-    // Run the performance experiments
     performanceExperiments {
         tasks "performance:performanceExperiments"
         projectProperties useIncomingDistributions: true
     }
 
-    // Run a single performance scenario
     fullPerformanceTests {
         tasks "performance:fullPerformanceTest"
+        projectProperties useIncomingDistributions: true
+    }
+
+    distributedPerformanceTests {
+        tasks "performance:distributedPerformanceTest"
+        projectProperties useIncomingDistributions: true
+    }
+
+    distributedPerformanceExperiments {
+        tasks "performance:distributedPerformanceExperiments"
+        projectProperties useIncomingDistributions: true
+    }
+
+    distributedFullPerformanceTests {
+        tasks "performance:distributedFullPerformanceTest"
         projectProperties useIncomingDistributions: true
     }
 
