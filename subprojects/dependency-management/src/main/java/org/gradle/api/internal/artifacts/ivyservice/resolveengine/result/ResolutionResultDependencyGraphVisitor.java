@@ -30,15 +30,15 @@ public class ResolutionResultDependencyGraphVisitor implements DependencyGraphVi
     }
 
     public void start(DependencyGraphNode root) {
-        newModelBuilder.start(root.getOwner().getId(), root.getOwner().getComponentId());
+        newModelBuilder.start(root.getOwner());
     }
 
     public void visitNode(DependencyGraphNode resolvedConfiguration) {
-        newModelBuilder.resolvedModuleVersion(resolvedConfiguration.getOwner());
+        newModelBuilder.visitComponent(resolvedConfiguration.getOwner());
     }
 
     public void visitEdge(DependencyGraphNode resolvedConfiguration) {
-        newModelBuilder.resolvedConfiguration(resolvedConfiguration.getOwner().getId(), resolvedConfiguration.getOutgoingEdges());
+        newModelBuilder.visitOutgoingEdges(resolvedConfiguration.getOwner().getResultId(), resolvedConfiguration.getOutgoingEdges());
     }
 
     public void finish(DependencyGraphNode root) {

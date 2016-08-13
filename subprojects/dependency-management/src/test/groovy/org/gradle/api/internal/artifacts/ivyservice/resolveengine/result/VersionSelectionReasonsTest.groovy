@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
+import org.gradle.api.artifacts.result.ComponentSelectionReason
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*
@@ -29,14 +30,17 @@ class VersionSelectionReasonsTest extends Specification {
         withConflictResolution(SELECTED_BY_RULE) == CONFLICT_RESOLUTION_BY_RULE
         withConflictResolution(CONFLICT_RESOLUTION) == CONFLICT_RESOLUTION
         withConflictResolution(CONFLICT_RESOLUTION_BY_RULE) == CONFLICT_RESOLUTION_BY_RULE
+        withConflictResolution(ROOT) == ROOT
     }
 
     def "does not decorate unsupported reasons"() {
+        def reason = Stub(ComponentSelectionReason)
+
         when:
-        withConflictResolution(ROOT)
+        withConflictResolution(reason)
 
         then:
         def ex = thrown(IllegalArgumentException)
-        ex.message.contains ROOT.toString()
+        ex.message == "Cannot create conflict resolution selection reason for input: $reason"
     }
 }

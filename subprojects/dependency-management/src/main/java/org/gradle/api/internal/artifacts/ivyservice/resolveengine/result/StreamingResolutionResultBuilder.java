@@ -16,14 +16,12 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.cache.BinaryStore;
 import org.gradle.api.internal.cache.Store;
@@ -49,18 +47,16 @@ import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 public class StreamingResolutionResultBuilder implements ResolutionResultBuilder {
 
     private final static byte ROOT = 1;
-    private final static byte MODULE = 2;
+    private final static byte COMPONENT = 2;
     private final static byte DEPENDENCY = 3;
     private final static byte DONE = 4;
 
     private final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<ComponentSelector, ModuleVersionResolveException>();
     private final BinaryStore store;
-    private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
     private final ComponentResultSerializer componentResultSerializer = new ComponentResultSerializer();
     private final Store<ResolvedComponentResult> cache;
     private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
-    private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
-    private final Set<ModuleVersionIdentifier> visitedModules = new HashSet<ModuleVersionIdentifier>();
+    private final Set<Long> visitedComponents = new HashSet<Long>();
 
     public StreamingResolutionResultBuilder(BinaryStore store, Store<ResolvedComponentResult> cache) {
         this.store = store;
@@ -78,34 +74,35 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
         return new DefaultResolutionResult(rootSource);
     }
 
-    public ResolutionResultBuilder start(final ModuleVersionIdentifier root, final ComponentIdentifier componentIdentifier) {
+    @Override
+    public ResolutionResultBuilder start(final ComponentResult rootComponent) {
         store.write(new BinaryStore.WriteAction() {
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(ROOT);
-                moduleVersionIdentifierSerializer.write(encoder, root);
-                componentIdentifierSerializer.write(encoder, componentIdentifier);
+                componentResultSerializer.write(encoder, rootComponent);
             }
         });
         return this;
     }
 
-    public void resolvedModuleVersion(final ComponentResult moduleVersion) {
-        if (visitedModules.add(moduleVersion.getId())) {
+    public void visitComponent(final ComponentResult component) {
+        if (visitedComponents.add(component.getResultId())) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {
-                    encoder.writeByte(MODULE);
-                    componentResultSerializer.write(encoder, moduleVersion);
+                    encoder.writeByte(COMPONENT);
+                    componentResultSerializer.write(encoder, component);
                 }
             });
         }
     }
 
-    public void resolvedConfiguration(final ModuleVersionIdentifier from, final Collection<? extends DependencyResult> dependencies) {
+    @Override
+    public void visitOutgoingEdges(final Long fromComponent, final Collection<? extends DependencyResult> dependencies) {
         if (!dependencies.isEmpty()) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {
                     encoder.writeByte(DEPENDENCY);
-                    moduleVersionIdentifierSerializer.write(encoder, from);
+                    encoder.writeSmallLong(fromComponent);
                     encoder.writeSmallInt(dependencies.size());
                     for (DependencyResult dependency : dependencies) {
                         dependencyResultSerializer.write(encoder, dependency);
@@ -173,22 +170,21 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                     valuesRead++;
                     switch (type) {
                         case ROOT:
-                            ModuleVersionIdentifier id = moduleVersionIdentifierSerializer.read(decoder);
-                            ComponentIdentifier componentIdentifier = componentIdentifierSerializer.read(decoder);
-                            builder.start(id, componentIdentifier);
+                            ComponentResult component = componentResultSerializer.read(decoder);
+                            builder.start(component);
                             break;
-                        case MODULE:
-                            ComponentResult sel = componentResultSerializer.read(decoder);
-                            builder.resolvedModuleVersion(sel);
+                        case COMPONENT:
+                            component = componentResultSerializer.read(decoder);
+                            builder.visitComponent(component);
                             break;
                         case DEPENDENCY:
-                            id = moduleVersionIdentifierSerializer.read(decoder);
+                            Long fromId = decoder.readSmallLong();
                             int size = decoder.readSmallInt();
                             List<DependencyResult> deps = new ArrayList<DependencyResult>(size);
                             for (int i = 0; i < size; i++) {
                                 deps.add(dependencyResultSerializer.read(decoder, failures));
                             }
-                            builder.resolvedConfiguration(id, deps);
+                            builder.visitOutgoingEdges(fromId, deps);
                             break;
                         case DONE:
                             ResolvedComponentResult root = builder.complete().getRoot();

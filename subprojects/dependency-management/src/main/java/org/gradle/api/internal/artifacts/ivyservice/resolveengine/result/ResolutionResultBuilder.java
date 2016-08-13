@@ -16,18 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 
 import java.util.Collection;
 
 //builds new dependency graph model based on result events
 public interface ResolutionResultBuilder {
-    ResolutionResultBuilder start(ModuleVersionIdentifier root, ComponentIdentifier componentIdentifier);
-    void resolvedModuleVersion(ComponentResult moduleVersion);
-    void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends DependencyResult> dependencies);
+    ResolutionResultBuilder start(ComponentResult rootComponent);
+
+    void visitComponent(ComponentResult component);
+
+    void visitOutgoingEdges(Long fromComponent, Collection<? extends DependencyResult> dependencies);
+
     ResolutionResult complete();
 }

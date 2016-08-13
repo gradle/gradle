@@ -34,13 +34,15 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
     private final ComponentIdentifierSerializer componentIdSerializer = new ComponentIdentifierSerializer();
 
     public ComponentResult read(Decoder decoder) throws IOException {
+        long resultId = decoder.readSmallLong();
         ModuleVersionIdentifier id = idSerializer.read(decoder);
         ComponentSelectionReason reason = reasonSerializer.read(decoder);
         ComponentIdentifier componentId = componentIdSerializer.read(decoder);
-        return new DefaultComponentResult(id, reason, componentId);
+        return new DefaultComponentResult(resultId, id, reason, componentId);
     }
 
     public void write(Encoder encoder, ComponentResult value) throws IOException {
+        encoder.writeSmallLong(value.getResultId());
         idSerializer.write(encoder, value.getId());
         reasonSerializer.write(encoder, value.getSelectionReason());
         componentIdSerializer.write(encoder, value.getComponentId());

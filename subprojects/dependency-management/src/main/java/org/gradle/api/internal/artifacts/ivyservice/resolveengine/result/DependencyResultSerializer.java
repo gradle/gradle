@@ -16,10 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
-import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.serialize.Decoder;
@@ -33,14 +31,13 @@ public class DependencyResultSerializer {
     private final static byte FAILED = 1;
     private final ComponentSelectorSerializer componentSelectorSerializer = new ComponentSelectorSerializer();
     private final ComponentSelectionReasonSerializer componentSelectionReasonSerializer = new ComponentSelectionReasonSerializer();
-    private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
 
     public DependencyResult read(Decoder decoder, Map<ComponentSelector, ModuleVersionResolveException> failures) throws IOException {
         ComponentSelector requested = componentSelectorSerializer.read(decoder);
         byte resultByte = decoder.readByte();
         if (resultByte == SUCCESSFUL) {
-            ModuleVersionIdentifier selected = moduleVersionIdentifierSerializer.read(decoder);
-            return new DefaultDependencyResult(requested, selected, null, null);
+            Long selectedId = decoder.readSmallLong();
+            return new DefaultDependencyResult(requested, selectedId, null, null);
         } else if (resultByte == FAILED) {
             ComponentSelectionReason reason = componentSelectionReasonSerializer.read(decoder);
             ModuleVersionResolveException failure = failures.get(requested);
@@ -54,7 +51,7 @@ public class DependencyResultSerializer {
         componentSelectorSerializer.write(encoder, value.getRequested());
         if (value.getFailure() == null) {
             encoder.writeByte(SUCCESSFUL);
-            moduleVersionIdentifierSerializer.write(encoder, value.getSelected());
+            encoder.writeSmallLong(value.getSelected());
         } else {
             encoder.writeByte(FAILED);
             componentSelectionReasonSerializer.write(encoder, value.getReason());

@@ -25,6 +25,12 @@ import java.util.Set;
  * A node in the dependency graph. Represents a configuration.
  */
 public interface DependencyGraphNode {
+    /**
+     * Returns a simple id for this configuration, unique across configurations in the same graph.
+     * This id cannot be used across graphs.
+     */
+    Long getResultId();
+
     ResolvedConfigurationIdentifier getNodeId();
 
     DependencyGraphComponent getOwner();

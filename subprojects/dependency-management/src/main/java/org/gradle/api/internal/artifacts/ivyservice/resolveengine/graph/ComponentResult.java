@@ -21,6 +21,11 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
 public interface ComponentResult {
+    /**
+     * Returns a simple id for this component, unique across components in the same graph.
+     * This id cannot be used across graphs.
+     */
+    Long getResultId();
 
     ModuleVersionIdentifier getId();
 

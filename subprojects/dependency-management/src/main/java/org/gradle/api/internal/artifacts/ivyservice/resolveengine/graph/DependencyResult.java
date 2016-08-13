@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -29,8 +28,11 @@ public interface DependencyResult {
     @Nullable
     ModuleVersionResolveException getFailure();
 
+    /**
+     * Returns the simple id of the selected component.
+     */
     @Nullable
-    ModuleVersionIdentifier getSelected();
+    Long getSelected();
 
     /**
      * Not null only when failure is not null.

@@ -24,7 +24,6 @@ import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class DependencyResultSerializerTest extends Specification {
@@ -35,7 +34,7 @@ class DependencyResultSerializerTest extends Specification {
         def successful = Mock(DependencyResult) {
             getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
             getFailure() >> null
-            getSelected() >> newId("org", "foo", "1.0")
+            getSelected() >> 12L
             getReason() >> VersionSelectionReasons.REQUESTED
         }
 
@@ -49,7 +48,7 @@ class DependencyResultSerializerTest extends Specification {
         then:
         out.requested == DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
         out.failure == null
-        out.selected == newId("org", "foo", "1.0")
+        out.selected == 12L
     }
 
     def "serializes failed dependency result"() {

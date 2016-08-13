@@ -38,7 +38,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "builds basic graph"() {
         given:
-        builder.start(confId("root"), createComponentIdentifier("root"))
+        builder.start(comp("root"))
 
         node("root")
         node("mid1")
@@ -74,7 +74,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "graph with multiple dependents"() {
         given:
-        builder.start(confId("a"), createComponentIdentifier("a"))
+        builder.start(comp("a"))
 
         node("a")
         node("b1")
@@ -103,7 +103,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "builds graph with cycles"() {
         given:
-        builder.start(confId("a"), createComponentIdentifier("a"))
+        builder.start(comp("a"))
         node("a")
         node("b")
         node("c")
@@ -124,7 +124,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "includes selection reason"() {
         given:
-        builder.start(confId("a"), createComponentIdentifier("a"))
+        builder.start(comp("a"))
         node("b", VersionSelectionReasons.FORCED)
         node("c", VersionSelectionReasons.CONFLICT_RESOLUTION)
         node("d")
@@ -146,7 +146,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "links dependents correctly"() {
         given:
-        builder.start(confId("a"), createComponentIdentifier("a"))
+        builder.start(comp("a"))
         node("a")
         node("b")
         node("c")
@@ -175,7 +175,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "accumulates and avoids duplicate dependencies"() {
         given:
-        builder.start(confId("root"), createComponentIdentifier("root"))
+        builder.start(comp("root"))
         node("root")
         node("mid1")
         node("leaf1")
@@ -203,7 +203,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "accumulates and avoids duplicate unresolved dependencies"() {
         given:
-        builder.start(confId("root"), createComponentIdentifier("root"))
+        builder.start(comp("root"))
         node("mid1")
         node("leaf1")
         node("leaf2")
@@ -224,7 +224,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "graph includes unresolved deps"() {
         given:
-        builder.start(confId("a"), createComponentIdentifier("a"))
+        builder.start(comp("a"))
         node("b")
         node("c")
         resolvedConf("a", [dep("b"), dep("c"), dep("U", new RuntimeException("unresolved!"))])
@@ -243,20 +243,24 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     private void node(String module, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
-        def moduleVersion = new DummyModuleVersionSelection(id: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
-        builder.resolvedModuleVersion(moduleVersion)
+        DummyModuleVersionSelection moduleVersion = comp(module, reason)
+        builder.visitComponent(moduleVersion)
+    }
+
+    private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
+        def moduleVersion = new DummyModuleVersionSelection(resultId: module.hashCode(), id: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
+        moduleVersion
     }
 
     private void resolvedConf(String module, List<DependencyResult> deps) {
-        builder.resolvedConfiguration(confId(module), deps)
+        builder.visitOutgoingEdges(module.hashCode(), deps)
     }
 
     private DependencyResult dep(String requested, Exception failure = null, String selected = requested) {
-        def selection = newId("x", selected, "1")
         def selector = new DefaultModuleComponentSelector("x", requested, "1")
         def moduleVersionSelector = newSelector("x", requested, "1")
         failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
-        new DummyInternalDependencyResult(requested: selector, selected: selection, failure: failure)
+        new DummyInternalDependencyResult(requested: selector, selected: selected.hashCode(), failure: failure)
     }
 
     private ModuleVersionIdentifier confId(String module) {
@@ -268,6 +272,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     class DummyModuleVersionSelection implements ComponentResult {
+        Long resultId
         ModuleVersionIdentifier id
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
@@ -275,7 +280,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     class DummyInternalDependencyResult implements DependencyResult {
         ComponentSelector requested
-        ModuleVersionIdentifier selected
+        Long selected
         ModuleVersionResolveException failure
         ComponentSelectionReason reason
     }

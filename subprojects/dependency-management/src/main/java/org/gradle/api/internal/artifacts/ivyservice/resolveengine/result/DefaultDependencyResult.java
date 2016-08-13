@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
@@ -25,12 +24,12 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 public class DefaultDependencyResult implements DependencyResult {
 
     private final ComponentSelector requested;
-    private final ModuleVersionIdentifier selected;
+    private final Long selected;
     private final ComponentSelectionReason reason;
     private ModuleVersionResolveException failure;
 
     public DefaultDependencyResult(ComponentSelector requested,
-                                   ModuleVersionIdentifier selected,
+                                   Long selected,
                                    ComponentSelectionReason reason,
                                    ModuleVersionResolveException failure) {
         assert requested != null;
@@ -46,7 +45,7 @@ public class DefaultDependencyResult implements DependencyResult {
         return requested;
     }
 
-    public ModuleVersionIdentifier getSelected() {
+    public Long getSelected() {
         return selected;
     }
 

@@ -25,15 +25,14 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONFLICT_RESOLUTION
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.REQUESTED
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*
 
 class StreamingResolutionResultBuilderTest extends Specification {
 
     StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore())
 
     def "result can be read multiple times"() {
-        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
+        builder.start(sel(1, "org", "root", "1.0", ROOT))
 
         when:
         def result = builder.complete()
@@ -41,18 +40,18 @@ class StreamingResolutionResultBuilderTest extends Specification {
         then:
         with(result) {
             root.id == DefaultModuleComponentIdentifier.newId("org", "root", "1.0")
-            root.selectionReason == VersionSelectionReasons.ROOT
+            root.selectionReason == ROOT
         }
         printGraph(result.root) == """org:root:1.0
 """
     }
 
     def "maintains graph in byte stream"() {
-        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
+        builder.start(sel(1, "org", "root", "1.0", ROOT))
 
-        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", CONFLICT_RESOLUTION))
-        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), CONFLICT_RESOLUTION, null),
+        builder.visitComponent(sel(2, "org", "dep1", "2.0", CONFLICT_RESOLUTION))
+        builder.visitOutgoingEdges(1, [
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), 2, CONFLICT_RESOLUTION, null),
             new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "3.0"), null, CONFLICT_RESOLUTION, new ModuleVersionResolveException(newSelector("org", "dep2", "3.0"), new RuntimeException("Boo!")))
         ])
 
@@ -67,14 +66,14 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "visiting resolved module version again has no effect"() {
-        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
-        builder.resolvedModuleVersion(sel("org", "root", "1.0", REQUESTED)) //it's fine
+        builder.start(sel(1, "org", "root", "1.0"))
+        builder.visitComponent(sel(1, "org", "root", "1.0", REQUESTED)) //it's fine
 
-        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", CONFLICT_RESOLUTION))
-        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED)) //will be ignored
+        builder.visitComponent(sel(2, "org", "dep1", "2.0", CONFLICT_RESOLUTION))
+        builder.visitComponent(sel(2, "org", "dep1", "2.0", REQUESTED)) //will be ignored
 
-        builder.resolvedConfiguration(newId("org", "root", "1.0"),
-                [new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), CONFLICT_RESOLUTION, null)])
+        builder.visitOutgoingEdges(1,
+                [new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), 2, CONFLICT_RESOLUTION, null)])
 
         when:
         def result = builder.complete()
@@ -86,16 +85,16 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "visiting resolved configuration again accumulates dependencies"() {
-        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
+        builder.start(sel(1, "org", "root", "1.0"))
 
-        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED))
-        builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
+        builder.visitComponent(sel(2, "org", "dep1", "2.0"))
+        builder.visitComponent(sel(3, "org", "dep2", "2.0"))
 
-        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), REQUESTED, null),
+        builder.visitOutgoingEdges(1, [
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), 2, REQUESTED, null),
         ])
-        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), newId("org", "dep2", "2.0"), REQUESTED, null),
+        builder.visitOutgoingEdges(1, [
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), 3, REQUESTED, null),
         ])
 
         when:
@@ -109,16 +108,16 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "dependency failures are remembered"() {
-        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
+        builder.start(sel(1, "org", "root", "1.0"))
 
-        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED))
-        builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
+        builder.visitComponent(sel(2, "org", "dep1", "2.0"))
+        builder.visitComponent(sel(3, "org", "dep2", "2.0"))
 
-        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
+        builder.visitOutgoingEdges(1, [
             new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "1.0"), new RuntimeException())),
-            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), newId("org", "dep2", "2.0"), REQUESTED, null),
+            new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), 3, REQUESTED, null),
         ])
-        builder.resolvedConfiguration(newId("org", "dep2", "2.0"), [
+        builder.visitOutgoingEdges(3, [
             new DefaultDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "5.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "5.0"), new RuntimeException())),
         ])
 
@@ -133,7 +132,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
 """
     }
 
-    private DefaultComponentResult sel(String org, String name, String ver, ComponentSelectionReason reason) {
-        new DefaultComponentResult(newId(org, name, ver), reason, new DefaultModuleComponentIdentifier(org, name, ver))
+    private DefaultComponentResult sel(Long resultId, String org, String name, String ver, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
+        new DefaultComponentResult(resultId, newId(org, name, ver), reason, new DefaultModuleComponentIdentifier(org, name, ver))
     }
 }

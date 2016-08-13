@@ -21,15 +21,22 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
 
-class DefaultComponentResult implements ComponentResult {
-    private ModuleVersionIdentifier id;
-    private ComponentSelectionReason reason;
-    private ComponentIdentifier componentIdentifier;
+public class DefaultComponentResult implements ComponentResult {
+    private final Long resultId;
+    private final ModuleVersionIdentifier id;
+    private final ComponentSelectionReason reason;
+    private final ComponentIdentifier componentIdentifier;
 
-    public DefaultComponentResult(ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier) {
+    public DefaultComponentResult(Long resultId, ModuleVersionIdentifier id, ComponentSelectionReason reason, ComponentIdentifier componentIdentifier) {
+        this.resultId = resultId;
         this.id = id;
         this.reason = reason;
         this.componentIdentifier = componentIdentifier;
+    }
+
+    @Override
+    public Long getResultId() {
+        return resultId;
     }
 
     public ModuleVersionIdentifier getId() {
