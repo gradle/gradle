@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -25,6 +26,7 @@ import org.gradle.test.fixtures.maven.MavenFileRepository
 class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildA
     BuildTestFile buildB
+    BuildTestFile buildC
     MavenFileRepository mavenRepo
     ResolveTestFixture resolve
     def buildArgs = []
@@ -59,24 +61,23 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
                 }
 """
         }
+
+        buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
     }
 
     def "will only make declared substitutions when defined for included build"() {
         given:
-        buildA.buildFile << """
-            dependencies {
-                compile "org.test:buildB:1.0"
-                compile "org.test:b1:1.0"
-                compile "org.test:b2:1.0"
-            }
-"""
-        buildA.settingsFile << """
-            includeBuild('${buildB.toURI()}') {
-                dependencySubstitution {
-                    substitute module("org.test:buildB") with project(":")
-                    substitute module("org.test:b1:1.0") with project(":b1")
-                }
-            }
+        dependency "org.test:buildB:1.0"
+        dependency "org.test:b1:1.0"
+        dependency "org.test:b2:1.0"
+
+        includeBuild buildB, """
+            substitute module("org.test:buildB") with project(":")
+            substitute module("org.test:b1:1.0") with project(":b1")
 """
 
         expect:
@@ -91,24 +92,37 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    def "can substitute arbitrary coordinates for included build"() {
+    def "can combine included builds with declared and discovered substitutions"() {
         given:
-        buildB.settingsFile << """
-"""
-        buildA.buildFile << """
-            dependencies {
-                compile "org.test:buildX:1.0"
-            }
-"""
-        buildA.settingsFile << """
-            includeBuild('${buildB.toURI()}') {
-                dependencySubstitution {
-                    substitute module("org.test:buildX") with project(":b1")
-                }
-            }
+        dependency "org.test:b1:1.0"
+        dependency "org.test:XXX:1.0"
+
+        includeBuild buildB
+        includeBuild buildC, """
+            substitute module("org.test:XXX") with project(":")
 """
 
         expect:
+        resolvedGraph {
+            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
+                compositeSubstitute()
+            }
+            edge("org.test:XXX:1.0", "project buildC::", "org.test:buildC:1.0") {
+                compositeSubstitute()
+            }
+        }
+    }
+
+    def "can substitute arbitrary coordinates for included build"() {
+        given:
+        dependency "org.test:buildX:1.0"
+
+        when:
+        includeBuild buildB, """
+            substitute module("org.test:buildX") with project(":b1")
+"""
+
+        then:
         resolvedGraph {
             edge("org.test:buildX:1.0", "project buildB::b1", "org.test:b1:2.0") {
                 compositeSubstitute()
@@ -118,35 +132,73 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
 
     def "resolves project substitution for build based on rootProject name"() {
         given:
-        def buildC = rootDir.file("hierarchy", "buildB");
-        buildC.file('settings.gradle') << """
-            rootProject.name = 'buildC'
+        def buildB2 = rootDir.file("hierarchy", "buildB");
+        buildB2.file('settings.gradle') << """
+            rootProject.name = 'buildB2'
 """
-        buildC.file('build.gradle') << """
+        buildB2.file('build.gradle') << """
             apply plugin: 'java'
             group = 'org.test'
             version = '1.0'
 """
 
+        dependency "org.gradle:buildX:1.0"
+
+        when:
+        // The project path ':' is resolved using the rootProject.name of buildB2
+        includeBuild buildB2, """
+            substitute module("org.gradle:buildX") with project(":")
+"""
+
+        then:
+        resolvedGraph {
+            edge("org.gradle:buildX:1.0", "project buildB2::", "org.test:buildB2:1.0") {
+                compositeSubstitute()
+            }
+        }
+    }
+
+    @NotYetImplemented // Currently we are eagerly configuring all included builds
+    def "does not configure build with declared substitutions that is not required for dependency substitution"() {
+        given:
+        dependency "org.test:buildB:1.0"
+
+        includeBuild buildB
+
+        when:
+        buildC.buildFile << """
+            throw new RuntimeException('Configuration fails')
+"""
+
+        includeBuild buildC, """
+            substitute module("org.gradle:buildX") with project(":") // Not used
+"""
+
+        then:
+        resolvedGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
+        }
+    }
+
+    def dependency(String notation) {
         buildA.buildFile << """
             dependencies {
-                compile "org.gradle:buildC:1.0"
+                compile '${notation}'
             }
 """
+    }
+
+    def includeBuild(File build, def mappings = "") {
         buildA.settingsFile << """
-            includeBuild('${buildC.toURI()}') {
+            includeBuild('${build.toURI()}') {
                 dependencySubstitution {
-                    substitute module("org.gradle:buildC") with project(":")
+                    $mappings
                 }
             }
 """
 
-        expect:
-        resolvedGraph {
-            edge("org.gradle:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
-                compositeSubstitute()
-            }
-        }
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
