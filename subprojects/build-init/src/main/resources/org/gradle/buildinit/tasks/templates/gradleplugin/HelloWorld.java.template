@@ -1,0 +1,9 @@
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.DefaultTask;
+
+public class HelloWorld extends DefaultTask {
+    @TaskAction
+    public void sayHello() {
+        System.out.println("Hello world!");
+    }
+}
