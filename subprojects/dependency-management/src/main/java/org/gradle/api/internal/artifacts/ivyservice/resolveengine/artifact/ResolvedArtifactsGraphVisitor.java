@@ -62,11 +62,9 @@ public class ResolvedArtifactsGraphVisitor implements DependencyGraphVisitor {
 
     public void visitEdge(DependencyGraphNode resolvedConfiguration) {
         for (DependencyGraphEdge dependency : resolvedConfiguration.getIncomingEdges()) {
-            ResolvedConfigurationIdentifier parent = dependency.getFrom().getNodeId();
-            ResolvedConfigurationIdentifier child = resolvedConfiguration.getNodeId();
-
+            DependencyGraphNode parent = dependency.getFrom();
             ArtifactSet artifacts = getArtifacts(dependency, resolvedConfiguration);
-            artifactResults.visitArtifacts(parent, child, artifacts);
+            artifactResults.visitArtifacts(parent, resolvedConfiguration, artifacts);
         }
     }
 

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactResults;
 import org.gradle.internal.Factory;
 
@@ -47,7 +46,7 @@ public class TransientConfigurationResultsLoader implements Factory<TransientCon
         }
 
         @Override
-        public ModuleDependency getModuleDependency(ResolvedConfigurationIdentifier id) {
+        public ModuleDependency getModuleDependency(long id) {
             return graphResults.getModuleDependency(id);
         }
     }
