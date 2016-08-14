@@ -35,9 +35,9 @@ public interface DependencyGraphNode {
 
     DependencyGraphComponent getOwner();
 
-    Set<DependencyGraphEdge> getIncomingEdges();
+    Set<? extends DependencyGraphEdge> getIncomingEdges();
 
-    Set<DependencyGraphEdge> getOutgoingEdges();
+    Set<? extends DependencyGraphEdge> getOutgoingEdges();
 
     ConfigurationMetadata getMetadata();
 }

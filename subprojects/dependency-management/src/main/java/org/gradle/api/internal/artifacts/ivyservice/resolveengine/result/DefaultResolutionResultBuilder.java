@@ -32,31 +32,24 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
+public class DefaultResolutionResultBuilder {
     private final Map<Long, DefaultResolvedComponentResult> modules = new HashMap<Long, DefaultResolvedComponentResult>();
     private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
-    private DefaultResolvedComponentResult rootModule;
 
-    public DefaultResolutionResultBuilder start(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
-        start(new DefaultComponentResult(0L, id, VersionSelectionReasons.ROOT, componentIdentifier));
-        return this;
+    public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
+        DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
+        builder.visitComponent(new DefaultComponentResult(0L, id, VersionSelectionReasons.ROOT, componentIdentifier));
+        return builder.complete(0L);
     }
 
-    @Override
-    public DefaultResolutionResultBuilder start(ComponentResult rootComponent) {
-        rootModule = create(rootComponent.getResultId(), rootComponent.getId(), rootComponent.getSelectionReason(), rootComponent.getComponentId());
-        return this;
-    }
-
-    public ResolutionResult complete() {
-        return new DefaultResolutionResult(new RootFactory(rootModule));
+    public ResolutionResult complete(Long rootId) {
+        return new DefaultResolutionResult(new RootFactory(modules.get(rootId)));
     }
 
     public void visitComponent(ComponentResult component) {
         create(component.getResultId(), component.getId(), component.getSelectionReason(), component.getComponentId());
     }
 
-    @Override
     public void visitOutgoingEdges(Long fromComponent, Collection<? extends DependencyResult> dependencies) {
         for (DependencyResult d : dependencies) {
             DefaultResolvedComponentResult from = modules.get(fromComponent);
@@ -72,11 +65,10 @@ public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
         }
     }
 
-    private DefaultResolvedComponentResult create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
+    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
         if (!modules.containsKey(id)) {
             modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId));
         }
-        return modules.get(id);
     }
 
     private static class RootFactory implements Factory<ResolvedComponentResult> {

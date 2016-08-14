@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.artifacts.result.ComponentSelectionReason
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -38,8 +38,6 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "builds basic graph"() {
         given:
-        builder.start(comp("root"))
-
         node("root")
         node("mid1")
         node("mid2")
@@ -59,7 +57,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("leaf4", [])
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(id("root"))
 
         then:
         printGraph(result.root) == """x:root:1
@@ -74,8 +72,6 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "graph with multiple dependents"() {
         given:
-        builder.start(comp("a"))
-
         node("a")
         node("b1")
         node("b2")
@@ -88,7 +84,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("b3", [])
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(id("a"))
 
         then:
         printGraph(result.root) == """x:a:1
@@ -103,7 +99,6 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "builds graph with cycles"() {
         given:
-        builder.start(comp("a"))
         node("a")
         node("b")
         node("c")
@@ -112,7 +107,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("c", [dep("a")])
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(id("a"))
 
         then:
         printGraph(result.root) == """x:a:1
@@ -124,7 +119,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "includes selection reason"() {
         given:
-        builder.start(comp("a"))
+        node("a")
         node("b", VersionSelectionReasons.FORCED)
         node("c", VersionSelectionReasons.CONFLICT_RESOLUTION)
         node("d")
@@ -134,7 +129,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("d", [])
 
         when:
-        def deps = builder.complete().root.dependencies
+        def deps = builder.complete(id("a")).root.dependencies
 
         then:
         def b = deps.find { it.selected.id.module == 'b' }
@@ -146,7 +141,6 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "links dependents correctly"() {
         given:
-        builder.start(comp("a"))
         node("a")
         node("b")
         node("c")
@@ -155,7 +149,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("c", [dep("a")])
 
         when:
-        def a = builder.complete().root
+        def a = builder.complete(id("a")).root
 
         then:
         def b  = first(a.dependencies).selected
@@ -175,7 +169,6 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "accumulates and avoids duplicate dependencies"() {
         given:
-        builder.start(comp("root"))
         node("root")
         node("mid1")
         node("leaf1")
@@ -191,7 +184,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("leaf2", [])
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(id("root"))
 
         then:
         printGraph(result.root) == """x:root:1
@@ -203,7 +196,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "accumulates and avoids duplicate unresolved dependencies"() {
         given:
-        builder.start(comp("root"))
+        node("root")
         node("mid1")
         node("leaf1")
         node("leaf2")
@@ -214,7 +207,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("mid1", [dep("leaf2", new RuntimeException("baz!"))])
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(id("root"))
 
         then:
         def mid1 = first(result.root.dependencies)
@@ -224,7 +217,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     def "graph includes unresolved deps"() {
         given:
-        builder.start(comp("a"))
+        node("a")
         node("b")
         node("c")
         resolvedConf("a", [dep("b"), dep("c"), dep("U", new RuntimeException("unresolved!"))])
@@ -232,7 +225,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
         resolvedConf("c", [])
 
         when:
-        def result = builder.complete()
+        def result = builder.complete(id("a"))
 
         then:
         printGraph(result.root) == """x:a:1
@@ -248,27 +241,23 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
-        def moduleVersion = new DummyModuleVersionSelection(resultId: module.hashCode(), id: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
+        def moduleVersion = new DummyModuleVersionSelection(resultId: id(module), id: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
         moduleVersion
     }
 
     private void resolvedConf(String module, List<DependencyResult> deps) {
-        builder.visitOutgoingEdges(module.hashCode(), deps)
+        builder.visitOutgoingEdges(id(module), deps)
     }
 
     private DependencyResult dep(String requested, Exception failure = null, String selected = requested) {
         def selector = new DefaultModuleComponentSelector("x", requested, "1")
         def moduleVersionSelector = newSelector("x", requested, "1")
         failure = failure == null ? null : new ModuleVersionResolveException(moduleVersionSelector, failure)
-        new DummyInternalDependencyResult(requested: selector, selected: selected.hashCode(), failure: failure)
+        new DummyInternalDependencyResult(requested: selector, selected: id(selected), failure: failure)
     }
 
-    private ModuleVersionIdentifier confId(String module) {
-        newId("x", module, "1")
-    }
-
-    private ComponentIdentifier createComponentIdentifier(String module) {
-        new DefaultModuleComponentIdentifier("x", module, "1")
+    private Long id(String module) {
+        return module.hashCode()
     }
 
     class DummyModuleVersionSelection implements ComponentResult {

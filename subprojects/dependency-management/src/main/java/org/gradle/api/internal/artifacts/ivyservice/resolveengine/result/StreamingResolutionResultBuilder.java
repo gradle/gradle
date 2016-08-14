@@ -19,8 +19,11 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.artifacts.result.ResolvedComponentResult;
-import org.gradle.api.internal.artifacts.ModuleVersionIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.cache.BinaryStore;
@@ -35,7 +38,6 @@ import org.gradle.util.Clock;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -44,12 +46,10 @@ import java.util.Set;
 
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-public class StreamingResolutionResultBuilder implements ResolutionResultBuilder {
-
+public class StreamingResolutionResultBuilder implements DependencyGraphVisitor {
     private final static byte ROOT = 1;
     private final static byte COMPONENT = 2;
     private final static byte DEPENDENCY = 3;
-    private final static byte DONE = 4;
 
     private final Map<ComponentSelector, ModuleVersionResolveException> failures = new HashMap<ComponentSelector, ModuleVersionResolveException>();
     private final BinaryStore store;
@@ -64,28 +64,28 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     }
 
     public ResolutionResult complete() {
-        store.write(new BinaryStore.WriteAction() {
-            public void write(Encoder encoder) throws IOException {
-                encoder.writeByte(DONE);
-            }
-        });
         BinaryStore.BinaryData data = store.done();
         RootFactory rootSource = new RootFactory(data, failures, cache);
         return new DefaultResolutionResult(rootSource);
     }
 
     @Override
-    public ResolutionResultBuilder start(final ComponentResult rootComponent) {
+    public void start(final DependencyGraphNode root) {
+    }
+
+    @Override
+    public void finish(final DependencyGraphNode root) {
         store.write(new BinaryStore.WriteAction() {
             public void write(Encoder encoder) throws IOException {
                 encoder.writeByte(ROOT);
-                componentResultSerializer.write(encoder, rootComponent);
+                encoder.writeSmallLong(root.getOwner().getResultId());
             }
         });
-        return this;
     }
 
-    public void visitComponent(final ComponentResult component) {
+    @Override
+    public void visitNode(DependencyGraphNode resolvedConfiguration) {
+        final DependencyGraphComponent component = resolvedConfiguration.getOwner();
         if (visitedComponents.add(component.getResultId())) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {
@@ -97,7 +97,9 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
     }
 
     @Override
-    public void visitOutgoingEdges(final Long fromComponent, final Collection<? extends DependencyResult> dependencies) {
+    public void visitEdge(DependencyGraphNode resolvedConfiguration) {
+        final Long fromComponent = resolvedConfiguration.getOwner().getResultId();
+        final Set<? extends DependencyGraphEdge> dependencies = resolvedConfiguration.getOutgoingEdges();
         if (!dependencies.isEmpty()) {
             store.write(new BinaryStore.WriteAction() {
                 public void write(Encoder encoder) throws IOException {
@@ -126,9 +128,7 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
         private final Map<ComponentSelector, ModuleVersionResolveException> failures;
         private final Store<ResolvedComponentResult> cache;
         private final Object lock = new Object();
-        private final ModuleVersionIdentifierSerializer moduleVersionIdentifierSerializer = new ModuleVersionIdentifierSerializer();
         private final DependencyResultSerializer dependencyResultSerializer = new DependencyResultSerializer();
-        private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
         public RootFactory(BinaryStore.BinaryData data, Map<ComponentSelector, ModuleVersionResolveException> failures,
                            Store<ResolvedComponentResult> cache) {
@@ -170,11 +170,13 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                     valuesRead++;
                     switch (type) {
                         case ROOT:
-                            ComponentResult component = componentResultSerializer.read(decoder);
-                            builder.start(component);
-                            break;
+                            // Last entry, complete the result
+                            Long rootId = decoder.readSmallLong();
+                            ResolvedComponentResult root = builder.complete(rootId).getRoot();
+                            LOG.debug("Loaded resolution results ({}) from {}", clock.getTime(), data);
+                            return root;
                         case COMPONENT:
-                            component = componentResultSerializer.read(decoder);
+                            ComponentResult component = componentResultSerializer.read(decoder);
                             builder.visitComponent(component);
                             break;
                         case DEPENDENCY:
@@ -186,10 +188,6 @@ public class StreamingResolutionResultBuilder implements ResolutionResultBuilder
                             }
                             builder.visitOutgoingEdges(fromId, deps);
                             break;
-                        case DONE:
-                            ResolvedComponentResult root = builder.complete().getRoot();
-                            LOG.debug("Loaded resolution results ({}) from {}", clock.getTime(), data);
-                            return root;
                         default:
                             throw new IOException("Unknown value type read from stream: " + type);
                     }
