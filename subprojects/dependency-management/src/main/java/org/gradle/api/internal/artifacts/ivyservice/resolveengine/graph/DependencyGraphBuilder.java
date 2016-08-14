@@ -93,6 +93,7 @@ public class DependencyGraphBuilder {
         conflictHandler.registerResolver(new DirectDependencyForcingResolver(resolveState.root.moduleRevision));
 
         traverseGraph(resolveState, conflictHandler);
+        resolveState.root.moduleRevision.setSelectionReason(VersionSelectionReasons.ROOT);
 
         assembleResult(resolveState, modelVisitor);
     }
@@ -354,7 +355,6 @@ public class DependencyGraphBuilder {
             this.metaDataResolver = metaDataResolver;
             this.dependencyToConfigurationResolver = dependencyToConfigurationResolver;
             ModuleVersionResolveState rootVersion = getRevision(rootResult.getId());
-            rootVersion.setSelectionReason(VersionSelectionReasons.ROOT);
             rootVersion.setMetaData(rootResult.getMetaData());
             root = new RootConfigurationNode(idGenerator.generateId(), rootVersion, new ResolvedConfigurationIdentifier(rootVersion.id, rootConfigurationName), this);
             nodes.put(root.id, root);
