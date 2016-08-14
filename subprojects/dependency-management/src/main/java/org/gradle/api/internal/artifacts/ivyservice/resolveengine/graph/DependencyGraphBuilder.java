@@ -36,7 +36,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.PotentialConflict;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
-import org.gradle.internal.Cast;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -211,7 +210,7 @@ public class DependencyGraphBuilder {
         private final Set<ConfigurationNode> targetConfigurations = new LinkedHashSet<ConfigurationNode>();
         private ModuleVersionResolveState targetModuleRevision;
 
-        public DependencyEdge(ConfigurationNode from, DependencyMetadata dependencyMetadata, ModuleExclusion moduleExclusion, ResolveState resolveState) {
+        DependencyEdge(ConfigurationNode from, DependencyMetadata dependencyMetadata, ModuleExclusion moduleExclusion, ResolveState resolveState) {
             this.from = from;
             this.dependencyMetadata = dependencyMetadata;
             this.moduleExclusion = moduleExclusion;
@@ -268,6 +267,7 @@ public class DependencyGraphBuilder {
         }
 
         public void restart(ModuleVersionResolveState selected) {
+            removeFromTargetConfigurations();
             targetModuleRevision = selected;
             attachToTargetConfigurations();
         }
@@ -680,13 +680,13 @@ public class DependencyGraphBuilder {
         }
 
         @Override
-        public Set<DependencyGraphEdge> getIncomingEdges() {
-            return Cast.uncheckedCast(incomingEdges);
+        public Set<DependencyEdge> getIncomingEdges() {
+            return incomingEdges;
         }
 
         @Override
-        public Set<DependencyGraphEdge> getOutgoingEdges() {
-            return Cast.uncheckedCast(outgoingEdges);
+        public Set<DependencyEdge> getOutgoingEdges() {
+            return outgoingEdges;
         }
 
         @Override
@@ -739,7 +739,7 @@ public class DependencyGraphBuilder {
             if (previousTraversalExclusions != null) {
                 if (previousTraversalExclusions.excludesSameModulesAs(resolutionFilter)) {
                     LOGGER.debug("Changed edges for {} selects same versions as previous traversal. ignoring", this);
-                    // Don't need to traverse again, but hang on to the new filter as the set of artifact may have changed
+                    // Don't need to traverse again, but hang on to the new filter as the set of artifacts may have changed
                     previousTraversalExclusions = resolutionFilter;
                     return;
                 }
@@ -778,7 +778,7 @@ public class DependencyGraphBuilder {
         }
 
         public boolean isSelected() {
-            return moduleRevision.state == ModuleState.Selected;
+            return !incomingEdges.isEmpty();
         }
 
         private ModuleExclusion getModuleResolutionFilter(List<DependencyEdge> transitiveEdges) {
@@ -811,7 +811,7 @@ public class DependencyGraphBuilder {
             if (moduleRevision == selected) {
                 resolveState.onMoreSelected(this);
             } else {
-                for (DependencyEdge dependency : incomingEdges) {
+                for (DependencyEdge dependency : new ArrayList<DependencyEdge>(incomingEdges)) {
                     dependency.restart(selected);
                 }
                 incomingEdges.clear();

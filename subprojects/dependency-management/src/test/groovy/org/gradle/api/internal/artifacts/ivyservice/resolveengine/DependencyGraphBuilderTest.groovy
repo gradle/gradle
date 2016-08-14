@@ -148,7 +148,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.components == ids(root, a, b, c, d)
     }
 
-    def "does not include evicted module when selected module already traversed before conflict detected"() {
+    def "does not include evicted module or dependencies when selected module already traversed before conflict detected"() {
         given:
         def selected = revision('a', '1.2')
         def evicted = revision('a', '1.1')
@@ -179,7 +179,7 @@ class DependencyGraphBuilderTest extends Specification {
         result.components == ids(root, selected, b, c, d)
     }
 
-    def "does not include evicted module when evicted module already traversed before conflict detected"() {
+    def "does not include evicted module or dependencies when evicted module already traversed before conflict detected"() {
         given:
         def selected = revision('a', '1.2')
         def evicted = revision('a', '1.1')
@@ -239,6 +239,103 @@ class DependencyGraphBuilderTest extends Specification {
 
         and:
         result.components == ids(root, selected, b, e)
+    }
+
+    def "includes dependencies of evicted module another path to dependency"() {
+        given:
+        def selected = revision('a', '1.2')
+        def evicted = revision('a', '1.1')
+        def b = revision('b')
+        def c = revision('c')
+        def d = revision('d')
+        traverses root, evicted
+        traverses evicted, c
+        traverses evicted, d
+        traverses root, b
+        traverses b, selected
+        doesNotResolve selected, c
+
+        when:
+        def result = resolve()
+        result.rethrowFailure()
+
+        then:
+        1 * conflictResolver.select(!null) >> {
+            Collection<ComponentResolutionState> candidates = it[0]
+            assert candidates*.version as Set == ['1.2', '1.1'] as Set
+            return candidates.find { it.version == '1.2' }
+        }
+        0 * conflictResolver._
+
+        and:
+        result.components == ids(root, selected, b, c)
+    }
+
+    def "does not include evicted module with multiple incoming paths"() {
+        given:
+        def selected = revision('a', '1.2')
+        def evicted = revision('a', '1.1')
+        def b = revision('b')
+        def c = revision('c')
+        def d = revision('d')
+        traverses root, evicted
+        traverses root, b
+        doesNotResolve b, evicted
+        traverses root, c
+        traverses c, selected
+        traverses selected, d
+
+        when:
+        def result = resolve()
+        result.rethrowFailure()
+
+        then:
+        1 * conflictResolver.select(!null) >> {
+            Collection<ComponentResolutionState> candidates = it[0]
+            assert candidates*.version == ['1.1', '1.2']
+            return candidates.find { it.version == '1.2' }
+        }
+        0 * conflictResolver._
+
+        and:
+        result.components == ids(root, selected, b, c, d)
+    }
+
+    def "does not include evicted module required by another evicted module"() {
+        given:
+        def selectedA = revision('a', '1.2')
+        def evictedA = revision('a', '1.1')
+        def selectedB = revision('b', '2.2')
+        def evictedB = revision('b', '2.1')
+        def c = revision('c')
+        def d = revision('d')
+        traverses root, evictedA
+        traverses evictedA, evictedB
+        traverses root, c
+        doesNotResolve c, evictedB
+        traverses root, d
+        traverses d, selectedA
+        traverses selectedA, selectedB
+
+        when:
+        def result = resolve()
+        result.rethrowFailure()
+
+        then:
+        1 * conflictResolver.select(!null) >> {
+            Collection<ComponentResolutionState> candidates = it[0]
+            assert candidates*.version == ['1.1', '1.2']
+            return candidates.find { it.version == '1.2' }
+        }
+        1 * conflictResolver.select(!null) >> {
+            Collection<ComponentResolutionState> candidates = it[0]
+            assert candidates*.version == ['2.1', '2.2']
+            return candidates.find { it.version == '2.2' }
+        }
+        0 * conflictResolver._
+
+        and:
+        result.components == ids(root, selectedA, selectedB, c, d)
     }
 
     def "resolves when path through selected module is queued for traversal when conflict detected"() {
@@ -900,7 +997,7 @@ class DependencyGraphBuilderTest extends Specification {
             excludeRules << new DefaultExclude(excluded.id.group, excluded.id.name)
         }
         def dependencyMetaData = new LocalComponentDependencyMetadata(componentSelector, selector, "default", "default", [] as Set<IvyArtifactName>,
-                                                                      excludeRules, force, false, transitive)
+            excludeRules, force, false, transitive)
         dependencyMetaData = new DslOriginDependencyMetadataWrapper(dependencyMetaData, Stub(ModuleDependency))
         from.getDependencies().add(dependencyMetaData)
         return dependencyMetaData
