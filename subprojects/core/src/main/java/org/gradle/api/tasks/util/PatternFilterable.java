@@ -145,13 +145,10 @@ public interface PatternFilterable {
      * If includes are not provided, then all files in this container will be included. If includes are provided, then a
      * file must match at least one of the include patterns or specs to be included.
      *
-     * @deprecated Use {@link #include(Spec)} instead
-     *
      * @param includeSpec the spec to add
      * @return this
      * @see PatternFilterable Pattern Format
      */
-    @Deprecated
     PatternFilterable include(Closure includeSpec);
 
     /**
@@ -208,12 +205,9 @@ public interface PatternFilterable {
      * If excludes are not provided, then no files will be excluded. If excludes are provided, then files must not match
      * any exclude pattern to be processed.
      *
-     * @deprecated Use {@link #exclude(Spec)} instead
-     *
      * @param excludeSpec the spec to add
      * @return this
      * @see FileTreeElement
      */
-    @Deprecated
     PatternFilterable exclude(Closure excludeSpec);
 }

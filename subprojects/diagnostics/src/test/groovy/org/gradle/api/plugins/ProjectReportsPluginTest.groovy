@@ -16,20 +16,17 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.reporting.dependencies.HtmlDependencyReportTask
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
 import org.gradle.api.tasks.diagnostics.PropertyReportTask
 import org.gradle.api.tasks.diagnostics.TaskReportTask
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.instanceOf
 
-public class ProjectReportsPluginTest extends Specification {
-    private final Project project = TestUtil.createRootProject()
+public class ProjectReportsPluginTest extends AbstractProjectBuilderSpec {
     private final ProjectReportsPlugin plugin = new ProjectReportsPlugin()
 
     def appliesBaseReportingPluginAndAddsConventionObject() {

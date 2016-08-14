@@ -88,7 +88,6 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
         return dependency;
     }
 
-    // TODO:DAZ Should deprecate the ability to overwrite the file for a previously configured artifact
     @Override
     public void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts) {
         for (PublishArtifact artifact : artifacts) {

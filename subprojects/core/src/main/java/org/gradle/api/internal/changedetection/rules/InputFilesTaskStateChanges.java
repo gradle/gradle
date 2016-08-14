@@ -21,13 +21,11 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 
 public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
     public InputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, FileCollectionSnapshotter snapshotter) {
-        super(task.getName(), previous, current, snapshotter, true, "Input", task.getInputs().getFileProperties());
+        super(task.getName(), previous, current, snapshotter, "Input", task.getInputs().getFileProperties());
         // Inputs are considered to be unchanged during task execution
         current.setInputFilesSnapshot(getCurrent());
     }
@@ -40,10 +38,5 @@ public class InputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSta
     @Override
     public void saveCurrent() {
         // Inputs have already been saved in constructor
-    }
-
-    @Override
-    protected Set<FileCollectionSnapshot.ChangeFilter> getFileChangeFilters() {
-        return Collections.emptySet();
     }
 }

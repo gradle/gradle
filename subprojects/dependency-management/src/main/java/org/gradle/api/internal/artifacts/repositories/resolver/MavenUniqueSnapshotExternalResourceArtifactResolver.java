@@ -17,16 +17,22 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 
 class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalResourceArtifactResolver {
     private final ExternalResourceArtifactResolver delegate;
-    private final String timestamp;
+    private final MavenUniqueSnapshotModuleSource snapshot;
 
-    public MavenUniqueSnapshotExternalResourceArtifactResolver(ExternalResourceArtifactResolver delegate, String timestamp) {
+    public MavenUniqueSnapshotExternalResourceArtifactResolver(ExternalResourceArtifactResolver delegate, MavenUniqueSnapshotModuleSource snapshot) {
         this.delegate = delegate;
-        this.timestamp = timestamp;
+        this.snapshot = snapshot;
+    }
+
+    @Override
+    public ModuleSource getSource() {
+        return snapshot;
     }
 
     public boolean artifactExists(ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {
@@ -39,7 +45,7 @@ class MavenUniqueSnapshotExternalResourceArtifactResolver implements ExternalRes
 
     protected ModuleComponentArtifactMetadata timestamp(ModuleComponentArtifactMetadata artifact) {
         MavenUniqueSnapshotComponentIdentifier snapshotComponentIdentifier =
-                new MavenUniqueSnapshotComponentIdentifier(artifact.getId().getComponentIdentifier(), timestamp);
+                new MavenUniqueSnapshotComponentIdentifier(artifact.getId().getComponentIdentifier(), snapshot.getTimestamp());
         return new DefaultModuleComponentArtifactMetadata(snapshotComponentIdentifier, artifact.getName());
     }
 }

@@ -20,6 +20,7 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.Transformer;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
@@ -65,6 +66,20 @@ public class ClassLoaderCache {
             classLoaderDetails.put(classLoader, details);
             classLoaderIds.put(details.uuid, classLoader);
             return details;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /** Clears all entries in the cache. */
+    public void clear() {
+        lock.lock();
+        try {
+            for (ClassLoader classLoader : classLoaderDetails.asMap().keySet()) {
+                ClassLoaderUtils.tryClose(classLoader);
+            }
+            classLoaderDetails.invalidateAll();
+            classLoaderIds.invalidateAll();
         } finally {
             lock.unlock();
         }

@@ -17,9 +17,11 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.util.TestUtil;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestTask;
+import org.gradle.util.TestUtil;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
@@ -38,8 +40,11 @@ public class ConventionAwareHelperTest {
 
     TestTask testTask;
 
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+
     @Before public void setUp() {
-        testTask = TestUtil.createTask(TestTask.class);
+        testTask = TestUtil.create(temporaryFolder).task(TestTask.class);
         conventionAware = new ConventionAwareHelper(testTask);
     }
 
@@ -66,13 +71,13 @@ public class ConventionAwareHelperTest {
         conventionAware.map("list1", callable);
         assertThat(conventionAware.getConventionValue(null, "list1", false), equalTo((Object) toList("a")));
     }
-    
+
     @Test
     public void canSetMappingUsingDynamicProperty() {
         TestUtil.call("{ it.list1 = { ['a'] } }", conventionAware);
         assertThat(conventionAware.getConventionValue(null, "list1", false), equalTo((Object) toList("a")));
     }
-    
+
     @Test (expected = InvalidUserDataException.class) public void cannotMapUnknownProperty() {
         conventionAware.map("unknownProp", new Callable<Object>() {
             public Object call() throws Exception {

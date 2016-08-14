@@ -26,6 +26,8 @@ import org.gradle.launcher.daemon.server.DaemonServices;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle;
+
 public class ForegroundDaemonAction implements Runnable {
 
     private final ServiceRegistry loggingRegistry;
@@ -48,7 +50,7 @@ public class ForegroundDaemonAction implements Runnable {
         daemon.start();
 
         try {
-            daemonRegistry.markIdle(daemon.getAddress());
+            daemonRegistry.markState(daemon.getAddress(), Idle);
             daemon.stopOnExpiration(expirationStrategy, configuration.getPeriodicCheckIntervalMs());
         } finally {
             daemon.stop();

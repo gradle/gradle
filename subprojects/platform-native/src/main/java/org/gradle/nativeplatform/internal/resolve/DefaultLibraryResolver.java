@@ -49,8 +49,12 @@ class DefaultLibraryResolver {
 
     private String getFailureMessage(NativeLibraryRequirement requirement) {
         return requirement.getProjectPath() == null
-            ? String.format("Could not locate library '%s'.", requirement.getLibraryName())
-            : String.format("Could not locate library '%s' for project '%s'.", requirement.getLibraryName(), requirement.getProjectPath());
+            ? String.format("Could not locate library '%s' required by %s.", requirement.getLibraryName(), getContextMessage())
+            : String.format("Could not locate library '%s' in project '%s' required by %s.", requirement.getLibraryName(), requirement.getProjectPath(), getContextMessage());
+    }
+
+    private String getContextMessage() {
+        return String.format("'%s' in project '%s'", context.getComponent().getName(), context.getProjectPath());
     }
 
     private class LibraryResolution {

@@ -27,10 +27,11 @@ public interface ConfigurationMetadata {
 
     String getName();
 
-    ComponentResolveMetadata getComponent();
-
     List<DependencyMetadata> getDependencies();
 
+    /**
+     * Returns the artifacts associated with this configuration, if known.
+     */
     Set<ComponentArtifactMetadata> getArtifacts();
 
     Set<Exclude> getExcludes();

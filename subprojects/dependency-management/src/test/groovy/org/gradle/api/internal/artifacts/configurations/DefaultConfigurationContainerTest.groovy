@@ -29,82 +29,77 @@ import org.gradle.initialization.ProjectAccessListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Specification
 
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.assertThat
+class DefaultConfigurationContainerTest extends Specification {
 
-@RunWith(JMock)
-class DefaultConfigurationContainerTest {
-    private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-
-    private ConfigurationResolver resolver = context.mock(ConfigurationResolver)
-    private ListenerManager listenerManager = context.mock(ListenerManager.class)
-    private DependencyMetaDataProvider metaDataProvider = context.mock(DependencyMetaDataProvider.class)
-    private ProjectAccessListener projectAccessListener = context.mock(ProjectAccessListener.class)
-    private ProjectFinder projectFinder = context.mock(ProjectFinder)
-    private ConfigurationComponentMetaDataBuilder metaDataBuilder = context.mock(ConfigurationComponentMetaDataBuilder)
+    private ConfigurationResolver resolver = Mock(ConfigurationResolver)
+    private ListenerManager listenerManager = Stub(ListenerManager.class)
+    private DependencyMetaDataProvider metaDataProvider = Mock(DependencyMetaDataProvider.class)
+    private ProjectAccessListener projectAccessListener = Mock(ProjectAccessListener.class)
+    private ProjectFinder projectFinder = Mock(ProjectFinder)
+    private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, { name -> name } as DomainObjectContext,
             listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory())
 
-    @Before
-    public void setup() {
-        context.checking {
-            ignoring(listenerManager)
-        }
-    }
-
-    @Test
-    void addsNewConfigurationWhenConfiguringSelf() {
+    def addsNewConfigurationWhenConfiguringSelf() {
+        when:
         configurationContainer.configure {
             newConf
         }
-        assertThat(configurationContainer.findByName('newConf'), notNullValue())
-        assertThat(configurationContainer.newConf, notNullValue())
+
+        then:
+        configurationContainer.findByName('newConf') != null
+        configurationContainer.newConf != null
     }
 
-    @Test(expected = UnknownConfigurationException)
-    void doesNotAddNewConfigurationWhenNotConfiguringSelf() {
+    def doesNotAddNewConfigurationWhenNotConfiguringSelf() {
+        when:
         configurationContainer.getByName('unknown')
+
+        then:
+        thrown(UnknownConfigurationException)
     }
 
-    @Test
-    void makesExistingConfigurationAvailableAsProperty() {
+    def makesExistingConfigurationAvailableAsProperty() {
+        when:
         Configuration configuration = configurationContainer.create('newConf')
-        assertThat(configuration, notNullValue())
-        assertThat(configurationContainer.getByName("newConf"), sameInstance(configuration))
-        assertThat(configurationContainer.newConf, sameInstance(configuration))
+
+        then:
+        configuration != null
+        configurationContainer.getByName("newConf").is(configuration)
+        configurationContainer.newConf.is(configuration)
     }
 
-    @Test
-    void addsNewConfigurationWithClosureWhenConfiguringSelf() {
+    def addsNewConfigurationWithClosureWhenConfiguringSelf() {
+        when:
         String someDesc = 'desc1'
         configurationContainer.configure {
             newConf {
                 description = someDesc
             }
         }
-        assertThat(configurationContainer.newConf.getDescription(), equalTo(someDesc))
+
+        then:
+        configurationContainer.newConf.getDescription() == someDesc
     }
 
-    @Test
-    void makesExistingConfigurationAvailableAsConfigureMethod() {
+    def makesExistingConfigurationAvailableAsConfigureMethod() {
+        when:
         String someDesc = 'desc1'
         configurationContainer.create('newConf')
         Configuration configuration = configurationContainer.newConf {
             description = someDesc
         }
-        assertThat(configuration.getDescription(), equalTo(someDesc))
+
+        then:
+        configuration.getDescription() == someDesc
     }
 
-    @Test
-    void makesExistingConfigurationAvailableAsConfigureMethodWhenConfiguringSelf() {
+    def makesExistingConfigurationAvailableAsConfigureMethodWhenConfiguringSelf() {
+        when:
         String someDesc = 'desc1'
         Configuration configuration = configurationContainer.create('newConf')
         configurationContainer.configure {
@@ -112,11 +107,16 @@ class DefaultConfigurationContainerTest {
                 description = someDesc
             }
         }
-        assertThat(configuration.getDescription(), equalTo(someDesc))
+
+        then:
+        configuration.getDescription() == someDesc
     }
 
-    @Test(expected = MissingMethodException)
-    void newConfigurationWithNonClosureParametersShouldThrowMissingMethodEx() {
+    def newConfigurationWithNonClosureParametersShouldThrowMissingMethodEx() {
+        when:
         configurationContainer.newConf('a', 'b')
+
+        then:
+        thrown MissingMethodException
     }
 }

@@ -65,7 +65,7 @@ public class Daemon implements Stoppable {
     private final Lock lifecycleLock = new ReentrantLock();
 
     private Address connectorAddress;
-    private DomainRegistryUpdater registryUpdater;
+    private DaemonRegistryUpdater registryUpdater;
     private DefaultIncomingConnectionHandler connectionHandler;
 
     /**
@@ -118,7 +118,7 @@ public class Daemon implements Stoppable {
             byte[] token = new byte[16];
             secureRandom.nextBytes(token);
 
-            registryUpdater = new DomainRegistryUpdater(daemonRegistry, daemonContext, token);
+            registryUpdater = new DaemonRegistryUpdater(daemonRegistry, daemonContext, token);
 
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 @Override
@@ -145,13 +145,21 @@ public class Daemon implements Stoppable {
                 }
             };
 
+            Runnable onCancelCommand = new Runnable() {
+                @Override
+                public void run() {
+                    LOGGER.warn(DaemonMessages.CANCELED_BUILD);
+                    registryUpdater.onCancel();
+                }
+            };
+
             // Start the pipeline in reverse order:
             // 1. mark daemon as running
             // 2. start handling incoming commands
             // 3. start accepting incoming connections
             // 4. advertise presence in registry
 
-            stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand);
+            stateCoordinator = new DaemonStateCoordinator(executorFactory, onStartCommand, onFinishCommand, onCancelCommand);
             connectionHandler = new DefaultIncomingConnectionHandler(commandExecuter, daemonContext, stateCoordinator, executorFactory, token);
             Runnable connectionErrorHandler = new Runnable() {
                 @Override
@@ -280,9 +288,9 @@ public class Daemon implements Stoppable {
 
     private static class DefaultDaemonExpirationListener implements DaemonExpirationListener {
         private final DaemonStateControl stateControl;
-        private final DomainRegistryUpdater registryUpdater;
+        private final DaemonRegistryUpdater registryUpdater;
 
-        public DefaultDaemonExpirationListener(DaemonStateControl stateControl, DomainRegistryUpdater registryUpdater) {
+        public DefaultDaemonExpirationListener(DaemonStateControl stateControl, DaemonRegistryUpdater registryUpdater) {
             this.stateControl = stateControl;
             this.registryUpdater = registryUpdater;
         }
@@ -292,22 +300,16 @@ public class Daemon implements Stoppable {
             final DaemonExpirationStatus expirationCheck = result.getStatus();
 
             if (expirationCheck != DO_NOT_EXPIRE) {
+                if (expirationCheck != QUIET_EXPIRE) {
+                    registryUpdater.onExpire(result.getReason(), expirationCheck);
+                }
+
                 if (expirationCheck == IMMEDIATE_EXPIRE) {
                     stateControl.requestForcefulStop(result.getReason());
                 } else {
                     stateControl.requestStop(result.getReason());
                 }
-
-                // Store DaemonStopEvent if not quiet expire
-                if (expirationCheck != QUIET_EXPIRE && !isStopping()) {
-                    registryUpdater.onExpire(result.getReason());
-                }
             }
-        }
-
-        private boolean isStopping() {
-            DaemonStateControl.State state = stateControl.getState();
-            return state == DaemonStateControl.State.StopRequested || state == DaemonStateControl.State.Stopped;
         }
     }
 }

@@ -16,8 +16,8 @@
 package org.gradle.play.integtest
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.integtest.fixtures.PlayApp
+import org.gradle.play.integtest.fixtures.app.BasicPlayApp
 import org.gradle.play.internal.DefaultPlayPlatform
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
@@ -102,7 +102,9 @@ model {
         platform                       | playVersion | scalaPlatform
         "play: '2.4.0'"                | '2.4.0'     | '2.11'
         "play: '2.4.0', scala: '2.10'" | '2.4.0'     | '2.10'
-        "play: '2.4.0', scala: '2.11'" | '2.4.0'     | '2.11'
+        "play: '2.4.5', scala: '2.11'" | '2.4.5'     | '2.11'
+        "play: '2.4.8', scala: '2.11'" | '2.4.8'     | '2.11'
+        "play: '2.5.4', scala: '2.11'" | '2.5.4'     | '2.11'
     }
 
 
@@ -141,7 +143,7 @@ model {
         fails "assemble"
 
         and:
-        failure.assertHasCause "Not a supported Play version: 2.1.0. This plugin is compatible with: [2.4.x, 2.3.x, 2.2.x]."
+        failure.assertHasCause "Not a supported Play version: 2.1.0. This plugin is compatible with: [2.5.x, 2.4.x, 2.3.x, 2.2.x]."
     }
 
     def "fails when trying to build for an invalid scala platform"() {

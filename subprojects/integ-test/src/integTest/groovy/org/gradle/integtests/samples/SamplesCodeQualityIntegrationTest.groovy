@@ -31,7 +31,7 @@ class SamplesCodeQualityIntegrationTest extends AbstractIntegrationSpec {
         executer.inDirectory(projectDir).requireGradleDistribution().withTasks('check').run()
 
         then:
-        buildDir.file('reports/checkstyle/main.xml').assertIsFile()
+        buildDir.file('reports/checkstyle/main.xml').assertDoesNotExist()
         buildDir.file('reports/checkstyle/main.html').assertIsFile()
         buildDir.file('reports/codenarc/main.html').assertIsFile()
         buildDir.file('reports/codenarc/test.html').assertIsFile()

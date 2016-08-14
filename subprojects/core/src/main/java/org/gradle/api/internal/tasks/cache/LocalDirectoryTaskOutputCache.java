@@ -16,13 +16,13 @@
 
 package org.gradle.api.internal.tasks.cache;
 
-import com.google.common.hash.HashCode;
-import com.google.common.io.ByteSource;
-import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 public class LocalDirectoryTaskOutputCache implements TaskOutputCache {
     private final File directory;
@@ -47,26 +47,33 @@ public class LocalDirectoryTaskOutputCache implements TaskOutputCache {
     }
 
     @Override
-    public TaskOutputReader get(TaskCacheKey key) throws IOException {
+    public boolean load(TaskCacheKey key, TaskOutputReader reader) throws IOException {
         final File file = getFile(key.getHashCode());
         if (file.isFile()) {
-            return new TaskOutputReader() {
-                @Override
-                public ByteSource read() throws IOException {
-                    return Files.asByteSource(file);
-                }
-            };
+            FileInputStream stream = new FileInputStream(file);
+            try {
+                reader.readFrom(stream);
+                return true;
+            } finally {
+                stream.close();
+            }
         }
-        return null;
+        return false;
     }
 
     @Override
-    public void put(TaskCacheKey key, TaskOutputWriter result) throws IOException {
-        result.writeTo(Files.asByteSink(getFile(key.getHashCode())));
+    public void store(TaskCacheKey key, TaskOutputWriter result) throws IOException {
+        File file = getFile(key.getHashCode());
+        OutputStream output = new FileOutputStream(file);
+        try {
+            result.writeTo(output);
+        } finally {
+            output.close();
+        }
     }
 
-    private File getFile(HashCode key) {
-        return new File(directory, key.toString());
+    private File getFile(String key) {
+        return new File(directory, key);
     }
 
     @Override

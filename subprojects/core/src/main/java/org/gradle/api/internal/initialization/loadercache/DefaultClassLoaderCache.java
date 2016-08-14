@@ -23,14 +23,20 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import org.gradle.api.Nullable;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClassPathSnapshot;
 import org.gradle.internal.classloader.ClassPathSnapshotter;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.concurrent.Stoppable;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-public class DefaultClassLoaderCache implements ClassLoaderCache {
+public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
 
     private final Object lock = new Object();
     private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
@@ -96,6 +102,70 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
     public int size() {
         synchronized (lock) {
             return bySpec.size();
+        }
+    }
+
+    @Override
+    public void stop() {
+        synchronized (lock) {
+            for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : sortClassLoadersLeafsFirst()) {
+                ClassLoaderUtils.tryClose(entry.getValue().classLoader);
+            }
+            byId.clear();
+            bySpec.clear();
+        }
+    }
+
+    private List<Map.Entry<ClassLoaderId, CachedClassLoader>> sortClassLoadersLeafsFirst() {
+        /* http://en.wikipedia.org/wiki/Topological_sorting
+         *
+        * L ← Empty list that will contain the sorted nodes
+         S ← Set of all nodes
+
+        function visit(node n)
+            if n has not been visited yet then
+                mark n as visited
+                for each node m with an edge from n to m do
+                    visit(m)
+                add n to L
+
+        for each node n in S do
+            visit(n)
+
+         */
+        List<Map.Entry<ClassLoaderId, CachedClassLoader>> sortedEntries = new ArrayList<Map.Entry<ClassLoaderId, CachedClassLoader>>(byId.size());
+        Set<ClassLoaderId> visitedEntries = new HashSet<ClassLoaderId>();
+
+        for (Map.Entry<ClassLoaderId, CachedClassLoader> entry : byId.entrySet()) {
+            visitTopologicalSort(entry, sortedEntries, visitedEntries);
+        }
+
+        return sortedEntries;
+    }
+
+    private void visitTopologicalSort(Map.Entry<ClassLoaderId, CachedClassLoader> entry, List<Map.Entry<ClassLoaderId, CachedClassLoader>> sortedEntries, Set<ClassLoaderId> visitedEntries) {
+        if (!visitedEntries.contains(entry.getKey())) {
+            visitedEntries.add(entry.getKey());
+            for (final ClassLoaderId usedBy : entry.getValue().usedBy) {
+                final CachedClassLoader cachedClassLoader = byId.get(usedBy);
+                visitTopologicalSort(new Map.Entry<ClassLoaderId, CachedClassLoader>() {
+                    @Override
+                    public ClassLoaderId getKey() {
+                        return usedBy;
+                    }
+
+                    @Override
+                    public CachedClassLoader getValue() {
+                        return cachedClassLoader;
+                    }
+
+                    @Override
+                    public CachedClassLoader setValue(CachedClassLoader value) {
+                        throw new UnsupportedOperationException();
+                    }
+                }, sortedEntries, visitedEntries);
+            }
+            sortedEntries.add(entry);
         }
     }
 
@@ -168,10 +238,15 @@ public class DefaultClassLoaderCache implements ClassLoaderCache {
                         parent.release(loaderId);
                     }
                     bySpec.remove(spec);
+                    close();
                 }
             } else {
                 throw new IllegalStateException("Classloader '" + this + "' not used by '" + loaderId + "'");
             }
+        }
+
+        private void close() {
+            ClassLoaderUtils.tryClose(classLoader);
         }
     }
 

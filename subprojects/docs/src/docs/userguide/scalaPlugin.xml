@@ -158,7 +158,6 @@
                 <sourcefile file="build.gradle" snippet="custom-source-locations"/>
             </sample>
         </section>
-
     </section>
 
     <section id="sec:scala_dependency_management">
@@ -199,7 +198,7 @@
             from the task's <literal>classpath</literal>. This is done as follows:
             <itemizedlist>
                 <listitem>
-                    If a <literal>scala-library</literal> Jar is found on <literal>classpath</literal>, and the project has at least one repository declared,
+                    If a <literal>scala-library</literal> jar is found on <literal>classpath</literal>, and the project has at least one repository declared,
                     a corresponding <literal>scala-compiler</literal> repository dependency will be added to <literal>scalaClasspath</literal>.
                 </listitem>
                 <listitem>
@@ -207,6 +206,49 @@
                 </listitem>
             </itemizedlist>
         </para>
+    </section>
+
+    <section id="sec:configure_zinc_compiler">
+        <title>Configuring the Zinc compiler</title>
+        <para>
+            The Scala plugin uses a configuration named <literal>zinc</literal> to resolve the <link linkend="https://github.com/typesafehub/zinc">Zinc compiler</link> and its dependencies.
+            Gradle will provide a default version of Zinc, but if you need to use a particular Zinc version, you can add an explicit dependency like <literal>“com.typesafe.zinc:zinc:0.3.6”</literal>
+            to the <literal>zinc</literal> configuration. Gradle supports version 0.3.0 of Zinc and above; however, due to a regression in the Zinc compiler, versions 0.3.2 through 0.3.5.2 cannot be used.
+        </para>
+        <sample id="declareZincDependency" dir="userguide/scala/zincDependency" title="Declaring a version of the Zinc compiler to use">
+            <sourcefile file="build.gradle" snippet="zinc-dependency"/>
+        </sample>
+        <note>
+            <para>
+                It is important to take care when declaring your <literal>scala-library</literal> dependency.  The Zinc compiler itself needs a compatible
+                version of <literal>scala-library</literal> that may be different from the version required by your application.  Gradle takes care
+                of adding a compatible version of <literal>scala-library</literal> for you, but over-broad dependency resolution rules could force an
+                incompatible version to be used instead.
+            </para>
+            <para>
+                For example, using <literal>configurations.all</literal> to force a particular version of <literal>scala-library</literal> would also override
+                the version used by the Zinc compiler:
+            </para>
+
+            <sample id="allScalaLibraryDependency" dir="userguide/scala/zincOverride" title="Forcing a scala-library dependency for all configurations">
+                <sourcefile file="build.gradle" snippet="all-dependency"/>
+            </sample>
+
+            <para>
+                The best way to avoid this problem is to be more selective when configuring the <literal>scala-library</literal> dependency (such as not using a
+                <literal>configuration.all</literal> rule or using a conditional to prevent the rule from being applied to the <literal>zinc</literal>
+                configuration). Sometimes this rule may come from a plugin or other code that you do not have control over.  In such a case, you can
+                force a correct version of the library on the <literal>zinc</literal> configuration only:
+            </para>
+
+            <sample id="zincScalaLibraryDependency" dir="userguide/scala/zincOverride" title="Forcing a scala-library dependency for the zinc configuration">
+                <sourcefile file="build.gradle" snippet="zinc-dependency"/>
+            </sample>
+            <para>
+                You can diagnose problems with the version of the Zinc compiler selected by running <link linkend="sec:dependency_insight">dependencyInsight</link> for the
+                <literal>zinc</literal> configuration.
+            </para>
+        </note>
     </section>
 
     <section id="sec:scala_convention_properties">
@@ -334,14 +376,6 @@
         </para>
 
         <para>
-            The Scala plugin adds a configuration named <literal>zinc</literal> to resolve the Zinc library and its dependencies.
-            Gradle will have a default version of the Zinc library, but if you want to override the
-            Zinc version that Gradle uses, add an explicit dependency like <literal>“com.typesafe.zinc:zinc:0.3.6”</literal>.  Gradle will support
-            version 0.3.0 of Zinc and above, although due to a regression in the Zinc library, versions 0.3.2 through 0.3.5.2 cannot be used.
-            Regardless of which Zinc version is used, Zinc will always use the Scala compiler found on the <literal>scalaTools</literal> configuration.
-        </para>
-
-        <para>
             The Zinc-based Scala Compiler supports joint compilation of Java and Scala code. By default, all Java and Scala code
             under <literal>src/main/scala</literal> will participate in joint compilation. Even Java code will be compiled incrementally.
         </para>
@@ -366,9 +400,10 @@
     <section id='sec:scala_cross_compilation'>
         <title>Compiling and testing for Java 6</title>
         <para>
-            Since Scala 2.11 compiles Scala files to Bytecode for Java 6 regardless of the compatibility setting and Scala 2.12 compiles them to
-            Bytecode for Java 8 there is nothing you can do for Scala.
-            If you also have Java sources follow the same steps as for the <link linkend="sec:java_cross_compilation">Java plugin</link>.
+            The Scala compiler ignores Gradle's <literal>targetCompatibility</literal> and <literal>sourceCompatibility</literal> settings.
+            In Scala 2.11, the Scala compiler always compiles to Java 6 compatible bytecode.
+            In Scala 2.12, the Scala compiler always compiles to Java 8 compatible bytecode.
+            If you also have Java sources, you can follow the same steps as for the <link linkend="sec:java_cross_compilation">Java plugin</link> to ensure the correct Java compiler is used.
             <sample id="scalaCrossCompilation" dir="scala/crossCompilation" title="Configure Java 6 build for Scala">
                 <sourcefile file="gradle.properties" />
                 <sourcefile file="build.gradle" snippet="scala-cross-compilation" />

@@ -80,14 +80,39 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
 
         when:
-        def delayResult = executer.withArguments(continuous ? ['delay', '--continuous'] : ['delay']).run()
+        result = executer.withArguments(continuous ? ['delay', '--continuous'] : ['delay']).run()
 
         then:
-        delayResult.assertOutputContains('onExpirationEvent fired with: expiring daemon with TestExpirationStrategy')
+        output.findAll('onExpirationEvent fired with: expiring daemon with TestExpirationStrategy').size() == 1
 
         where:
         continuous << [true, false]
+    }
 
+    def "daemon expiration listener is implicitly for the current build only"() {
+        given:
+        buildFile << """
+           ${imports()}
+               ${registerTestExpirationStrategy(5_000)}
+           ${registerExpirationListener()}
+           task foo
+        """
+
+        when:
+        def delayResult = executer.withArguments('foo').run()
+
+        then:
+        !delayResult.output.contains('onExpirationEvent fired with: expiring daemon with TestExpirationStrategy')
+
+        when:
+        buildFile.text = """
+           ${imports()}
+           ${delayTask(7_000)}
+        """
+        delayResult = executer.withArguments('delay').run()
+
+        then:
+        !delayResult.output.contains('onExpirationEvent fired with: expiring daemon with TestExpirationStrategy')
     }
 
     def "a daemon expiration listener receives expiration reasons when daemons run in the foreground"() {

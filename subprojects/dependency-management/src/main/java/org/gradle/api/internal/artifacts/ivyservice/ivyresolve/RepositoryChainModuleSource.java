@@ -26,6 +26,11 @@ class RepositoryChainModuleSource implements ModuleSource {
         this.delegate = delegate;
     }
 
+    @Override
+    public String toString() {
+        return "{repo: " + repositoryId + ", source: " + delegate + "}";
+    }
+
     public String getRepositoryId() {
         return repositoryId;
     }

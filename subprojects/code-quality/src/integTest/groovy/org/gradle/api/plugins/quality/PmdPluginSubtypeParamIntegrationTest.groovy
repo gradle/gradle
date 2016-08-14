@@ -15,12 +15,10 @@
  */
 package org.gradle.api.plugins.quality
 
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.VersionNumber
 
 import static org.junit.Assume.assumeTrue
 
-@LeaksFileHandles
 class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionIntegrationTest {
 
     static boolean supportsAuxclasspath() {

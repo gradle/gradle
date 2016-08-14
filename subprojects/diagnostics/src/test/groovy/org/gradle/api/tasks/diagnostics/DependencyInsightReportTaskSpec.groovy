@@ -19,13 +19,15 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.specs.Spec
 import org.gradle.internal.typeconversion.UnsupportedNotationException
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class DependencyInsightReportTaskSpec extends Specification {
+class DependencyInsightReportTaskSpec extends AbstractProjectBuilderSpec {
+    def task
 
-    def project = TestUtil.createRootProject()
-    def task = TestUtil.createTask(DependencyInsightReportTask, project)
+    def setup() {
+        task = TestUtil.createTask(DependencyInsightReportTask, project)
+    }
 
     def "fails if configuration missing"() {
         when:

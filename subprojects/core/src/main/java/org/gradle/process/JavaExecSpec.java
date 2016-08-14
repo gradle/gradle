@@ -19,6 +19,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OrderSensitive;
 
 import java.util.List;
 
@@ -86,6 +87,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
     /**
      * Returns the classpath for executing the main class.
      */
+    @OrderSensitive
     @InputFiles
     FileCollection getClasspath();
 

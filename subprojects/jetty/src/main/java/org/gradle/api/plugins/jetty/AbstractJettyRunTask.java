@@ -26,6 +26,7 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -44,7 +45,10 @@ import java.util.*;
 
 /**
  * Base class for all tasks which deploy a web application to an embedded Jetty web container.
+ *
+ * @deprecated The Jetty plugin has been deprecated
  */
+@Deprecated
 public abstract class AbstractJettyRunTask extends ConventionTask {
     private final static Logger LOGGER = LoggerFactory.getLogger(AbstractJettyRunTask.class);
 
@@ -570,6 +574,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * Returns the classpath to make available to the web application.
      */
+    @OrderSensitive
     @InputFiles
     public Iterable<File> getAdditionalRuntimeJars() {
         return additionalRuntimeJars;

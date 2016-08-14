@@ -40,12 +40,9 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * The closure should return a String object with a new target name. The closure may return null,
      * in which case the original name will be used.
      *
-     * @deprecated Use {@link #rename(Transformer)} instead
-     *
      * @param closure rename closure
      * @return this
      */
-    @Deprecated
     CopyProcessingSpec rename(Closure closure);
 
     /**
@@ -137,11 +134,8 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * called with a {@link org.gradle.api.file.FileCopyDetails} as its parameter. Actions are executed in the order
      * added, and are inherited from the parent spec.
      *
-     * @deprecated Use {@link #eachFile(Action)} instead
-     *
      * @param closure The action to execute.
      * @return this
      */
-    @Deprecated
     CopyProcessingSpec eachFile(@DelegatesTo(value=FileCopyDetails.class, strategy = Closure.DELEGATE_FIRST) Closure closure);
 }

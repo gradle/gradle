@@ -32,12 +32,13 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class AntTargetTest {
-    private final Target antTarget = new Target();
-    private final ProjectInternal project = TestUtil.createRootProject();
-    private final AntTarget task = TestUtil.createTask(AntTarget.class, project);
     @Rule
     public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
+
+    private final Target antTarget = new Target();
     private final File baseDir = testDir.getTestDirectory();
+    private final ProjectInternal project = TestUtil.create(testDir).rootProject();
+    private final AntTarget task = TestUtil.createTask(AntTarget.class, project);
 
     @Before
     public void setUp() {

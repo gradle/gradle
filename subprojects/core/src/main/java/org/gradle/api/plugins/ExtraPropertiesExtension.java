@@ -71,7 +71,7 @@ import java.util.Map;
 public interface ExtraPropertiesExtension {
 
     /**
-     * The name of this extension in all {@link ExtensionContainer ExtensnionContainers}, {@value}.
+     * The name of this extension in all {@link ExtensionContainer ExtensionContainers}, {@value}.
      */
     String EXTENSION_NAME = "ext";
 

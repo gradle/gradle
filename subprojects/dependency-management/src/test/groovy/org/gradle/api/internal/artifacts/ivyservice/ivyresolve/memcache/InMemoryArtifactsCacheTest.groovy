@@ -15,17 +15,20 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
+
+import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
-import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
-import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
-import org.gradle.internal.resolve.ArtifactResolveException
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
+import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.model.ComponentArtifacts
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
+import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult
 import spock.lang.Specification
 
 class InMemoryArtifactsCacheTest extends Specification {
-
-    def stats = new InMemoryCacheStats()
-    def cache = new InMemoryArtifactsCache(stats)
+    def cache = new InMemoryArtifactsCache()
 
     static componentId(String group, String module, String version) {
         return DefaultModuleComponentIdentifier.newId(group, module, version)
@@ -36,38 +39,138 @@ class InMemoryArtifactsCacheTest extends Specification {
         def artifactFile = new File("foo")
 
         given:
-        def originalResult = new DefaultBuildableArtifactResolveResult()
-        originalResult.resolved(artifactFile)
+        def originalResult = Stub(BuildableArtifactResolveResult)
+        originalResult.successful >> true
+        originalResult.result >> artifactFile
+
         cache.newArtifact(artifactId, originalResult)
 
-        def differentIdResult = Mock(BuildableArtifactResolveResult)
-        def sameIdResult = Mock(BuildableArtifactResolveResult)
+        def result = Mock(BuildableArtifactResolveResult)
+        def differentId = Stub(ModuleComponentArtifactIdentifier)
 
         when:
-        def differentId = Stub(ModuleComponentArtifactIdentifier)
-        def differentIdFound = cache.supplyArtifact(differentId, differentIdResult)
+        def differentIdFound = cache.supplyArtifact(differentId, result)
 
         then:
         !differentIdFound
-        0 * differentIdResult._
+        0 * result._
 
         when:
-        def sameIdFound = cache.supplyArtifact(artifactId, sameIdResult)
+        def sameIdFound = cache.supplyArtifact(artifactId, result)
 
         then:
         sameIdFound
-        1 * sameIdResult.resolved(artifactFile)
+        1 * result.resolved(artifactFile)
     }
 
     def "does not cache failed artifact resolves"() {
         def artifactId = Stub(ModuleComponentArtifactIdentifier)
-        def failedResult = Stub(BuildableArtifactResolveResult) { getFailure() >> new ArtifactResolveException("bad") }
-        cache.newArtifact(artifactId, failedResult)
-
+        def failedResult = Stub(BuildableArtifactResolveResult)
         def result = Mock(BuildableArtifactResolveResult)
+
+        given:
+        cache.newArtifact(artifactId, failedResult)
 
         when:
         def fromCache = cache.supplyArtifact(artifactId, result)
+
+        then:
+        !fromCache
+        0 * result._
+    }
+
+    def "caches and supplies component artifacts"() {
+        def artifacts = Stub(ComponentArtifacts)
+        def component = Stub(ComponentIdentifier)
+
+        given:
+        def originalResult = Stub(BuildableComponentArtifactsResolveResult)
+        originalResult.successful >> true
+        originalResult.result >> artifacts
+
+        cache.newArtifacts(component, originalResult)
+
+        def result = Mock(BuildableComponentArtifactsResolveResult)
+        def differentId = Stub(ComponentIdentifier)
+
+        when:
+        def differentIdFound = cache.supplyArtifacts(differentId, result)
+
+        then:
+        !differentIdFound
+        0 * result._
+
+        when:
+        def sameIdFound = cache.supplyArtifacts(component, result)
+
+        then:
+        sameIdFound
+        1 * result.resolved(artifacts)
+    }
+
+    def "does not cache failed component artifact resolves"() {
+        def component = Stub(ComponentIdentifier)
+        def failedResult = Stub(BuildableComponentArtifactsResolveResult)
+        def result = Mock(BuildableComponentArtifactsResolveResult)
+
+        given:
+        cache.newArtifacts(component, failedResult)
+
+        when:
+        def fromCache = cache.supplyArtifacts(component, result)
+
+        then:
+        !fromCache
+        0 * result._
+    }
+
+    def "caches and supplies component typed artifacts"() {
+        def artifacts = [Stub(ComponentArtifactMetadata)] as Set
+        def component = Stub(ComponentIdentifier)
+
+        given:
+        def originalResult = Stub(BuildableArtifactSetResolveResult)
+        originalResult.successful >> true
+        originalResult.result >> artifacts
+
+        cache.newArtifacts(component, ArtifactType.JAVADOC, originalResult)
+
+        def result = Mock(BuildableArtifactSetResolveResult)
+        def differentId = Stub(ComponentIdentifier)
+
+        when:
+        def differentIdFound = cache.supplyArtifacts(differentId, ArtifactType.JAVADOC, result)
+
+        then:
+        !differentIdFound
+        0 * result._
+
+
+        when:
+        def differentTypeFound = cache.supplyArtifacts(component, ArtifactType.SOURCES, result)
+
+        then:
+        !differentTypeFound
+        0 * result._
+
+        when:
+        def sameIdFound = cache.supplyArtifacts(component, ArtifactType.JAVADOC, result)
+
+        then:
+        sameIdFound
+        1 * result.resolved(artifacts)
+    }
+
+    def "does not cache failed component typed artifact resolves"() {
+        def component = Stub(ComponentIdentifier)
+        def failedResult = Stub(BuildableArtifactSetResolveResult)
+        def result = Mock(BuildableArtifactSetResolveResult)
+
+        given:
+        cache.newArtifacts(component, ArtifactType.JAVADOC, failedResult)
+
+        when:
+        def fromCache = cache.supplyArtifacts(component, ArtifactType.JAVADOC, result)
 
         then:
         !fromCache

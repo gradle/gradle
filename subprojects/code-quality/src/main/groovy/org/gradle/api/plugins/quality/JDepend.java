@@ -27,6 +27,7 @@ import org.gradle.api.reporting.Reporting;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
@@ -87,11 +88,9 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
      * }
      * </pre>
      *
-     * @deprecated Use {@link #reports(Action)} instead
      * @param closure The configuration
      * @return The reports container
      */
-    @Deprecated
     public JDependReports reports(Closure closure) {
         return reports(new ClosureBackedAction<JDependReports>(closure));
     }
@@ -128,6 +127,7 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
     /**
      * The class path containing the JDepend library to be used.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getJdependClasspath() {
         return jdependClasspath;

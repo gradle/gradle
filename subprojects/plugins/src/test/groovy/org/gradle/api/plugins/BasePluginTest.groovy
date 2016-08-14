@@ -21,20 +21,17 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.plugins.DefaultArtifactPublicationSet
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
 import static org.hamcrest.Matchers.instanceOf
 
-class BasePluginTest extends Specification {
-    private final ProjectInternal project = TestUtil.createRootProject()
+class BasePluginTest extends AbstractProjectBuilderSpec {
 
     public void addsConventionObjects() {
         when:

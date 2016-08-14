@@ -15,36 +15,73 @@
  */
 package org.gradle.internal.component.external.model;
 
+import org.gradle.api.Nullable;
+import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.List;
 
-public interface MutableModuleComponentResolveMetadata extends ModuleComponentResolveMetadata {
+public interface MutableModuleComponentResolveMetadata {
     /**
-     * Creates a deep copy of this meta-data.
+     * The identifier for this component
      */
-    MutableModuleComponentResolveMetadata copy();
+    ModuleComponentIdentifier getComponentId();
 
     /**
-     * Also sets the {@link #getId()} based on the provided component id.
+     * The module version associated with this module.
+     */
+    ModuleVersionIdentifier getId();
+
+    /**
+     * Creates an immutable copy of this meta-data.
+     */
+    ModuleComponentResolveMetadata asImmutable();
+
+    /**
+     * Sets the component id and legacy module version id
      */
     void setComponentId(ModuleComponentIdentifier componentId);
 
+    boolean isChanging();
     void setChanging(boolean changing);
+
+    String getStatus();
     void setStatus(String status);
+
+    List<String> getStatusScheme();
     void setStatusScheme(List<String> statusScheme);
 
+    ModuleSource getSource();
     void setSource(ModuleSource source);
+
+    /**
+     * Returns this module version as an Ivy ModuleDescriptor. This method is here to allow us to migrate away from the Ivy types
+     * and will be removed.
+     *
+     * <p>You should avoid using this method.
+     */
+    ModuleDescriptorState getDescriptor();
+
+    List<DependencyMetadata> getDependencies();
 
     /**
      * Replaces the dependencies of this module version.
      */
     void setDependencies(Iterable<? extends DependencyMetadata> dependencies);
 
+    @Nullable
+    List<ModuleComponentArtifactMetadata> getArtifacts();
+
     /**
      * Replaces the artifacts of this module version.
      */
     void setArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts);
+
+    /**
+     * Creates an artifact for this module. Does not mutate this metadata.
+     */
+    ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
 }

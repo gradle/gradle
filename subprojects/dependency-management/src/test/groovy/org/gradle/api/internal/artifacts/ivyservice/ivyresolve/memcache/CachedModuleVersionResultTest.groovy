@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache
 
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import spock.lang.Specification
 
@@ -25,7 +25,7 @@ class CachedModuleVersionResultTest extends Specification {
     def "knows if result is cachable"() {
         def resolved = Mock(BuildableModuleComponentMetaDataResolveResult) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
-            getMetaData() >> Stub(MutableModuleComponentResolveMetadata)
+            getMetaData() >> Stub(ModuleComponentResolveMetadata)
         }
         def missing = Mock(BuildableModuleComponentMetaDataResolveResult) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Missing
@@ -61,13 +61,11 @@ class CachedModuleVersionResultTest extends Specification {
 
         then:
         1 * resolved.state >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
-        1 * resolved.metaData >> Stub(MutableModuleComponentResolveMetadata)
+        1 * resolved.metaData >> Stub(ModuleComponentResolveMetadata)
     }
 
     def "supplies cached data"() {
-        def suppliedMetaData = Mock(MutableModuleComponentResolveMetadata)
-        def cachedMetaData = Mock(MutableModuleComponentResolveMetadata)
-        def metaData = Mock(MutableModuleComponentResolveMetadata)
+        def metaData = Mock(ModuleComponentResolveMetadata)
         def resolved = Mock(BuildableModuleComponentMetaDataResolveResult) {
             getState() >> BuildableModuleComponentMetaDataResolveResult.State.Resolved
             getMetaData() >> metaData
@@ -83,21 +81,16 @@ class CachedModuleVersionResultTest extends Specification {
 
         def result = Mock(BuildableModuleComponentMetaDataResolveResult)
 
-        when:
+        given:
         def cached = new CachedModuleVersionResult(resolved)
-
-        then:
-        1 * metaData.copy() >> cachedMetaData
 
         when:
         cached.supply(result)
 
         then:
-        1 * cachedMetaData.copy() >> suppliedMetaData
-        1 * result.resolved(suppliedMetaData)
+        1 * result.resolved(metaData)
         1 * result.setAuthoritative(false)
         0 * result._
-
 
         when:
         new CachedModuleVersionResult(missing).supply(result)

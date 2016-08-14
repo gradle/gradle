@@ -27,9 +27,9 @@ import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.TaskFailureHandler
 import org.gradle.initialization.BuildCancellationToken
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TextUtil
 import spock.lang.Issue
-import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.util.TestUtil.createChildProject
@@ -37,14 +37,14 @@ import static org.gradle.util.TestUtil.createRootProject
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 import static org.gradle.util.WrapUtil.toList
 
-public class DefaultTaskExecutionPlanTest extends Specification {
+public class DefaultTaskExecutionPlanTest extends AbstractProjectBuilderSpec {
 
     DefaultTaskExecutionPlan executionPlan
     ProjectInternal root;
     def cancellationHandler = Mock(BuildCancellationToken)
 
     def setup() {
-        root = createRootProject();
+        root = createRootProject(temporaryFolder.testDirectory);
         executionPlan = new DefaultTaskExecutionPlan(cancellationHandler)
     }
 
@@ -221,6 +221,26 @@ public class DefaultTaskExecutionPlanTest extends Specification {
 
         then:
         executes(b, a, c, d)
+    }
+
+    def "cyclic should run after ordering is ignored in complex task graph"() {
+        given:
+
+        Task e = createTask("e")
+        Task x = task("x", dependsOn: [e])
+        Task f = task("f", dependsOn: [x])
+        Task a = task("a", shouldRunAfter: [x])
+        Task b = task("b", shouldRunAfter: [a])
+        Task c = task("c", shouldRunAfter: [b])
+        Task d = task("d", dependsOn: [f], shouldRunAfter: [c])
+        relationships(e, shouldRunAfter: [d])
+        Task build = task("build", dependsOn: [x, a, b, c, d, e])
+
+        when:
+        addToGraphAndPopulate([build])
+
+        then:
+        executes(e, x, a, b, c, f, d, build)
     }
 
     @Unroll

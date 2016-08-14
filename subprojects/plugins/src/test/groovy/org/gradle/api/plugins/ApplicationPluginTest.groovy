@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.Project
 import org.gradle.api.distribution.plugins.DistributionPlugin
 import org.gradle.api.file.CopySpec
 import org.gradle.api.tasks.JavaExec
@@ -24,11 +23,9 @@ import org.gradle.api.tasks.TaskDependencyMatchers
 import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.bundling.Tar
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.util.TestUtil
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-class ApplicationPluginTest extends Specification {
-    private final Project project = TestUtil.createRootProject();
+class ApplicationPluginTest extends AbstractProjectBuilderSpec {
     private final ApplicationPlugin plugin = new ApplicationPlugin();
 
     def "applies JavaPlugin and adds convention object with default values"() {

@@ -433,7 +433,7 @@
                 <sourcefile file="consumer/build.gradle"/>
                 <output args="-q consume"/>
             </sample>
-            <para>The use of the 
+            <para>The use of the
                 “<literal>evaluationDependsOn</literal>” command
                 results in the evaluation of
                 the “<literal>producer</literal>” project
@@ -640,6 +640,20 @@
             Task dependencies are fully supported and parallel workers will start executing upstream tasks first.
             Bear in mind that the alphabetical scheduling of decoupled tasks, known from the sequential execution, does not really work in parallel mode.
             You need to make sure the task dependencies are declared correctly to avoid ordering issues.
+        </para>
+        <para>
+            <emphasis>Warning:</emphasis> Be aware that task ordering is not strictly enforced when using parallel execution and can lead to unexpected results. A common case that surfaces this
+            limitation is the use of the <literal>clean</literal> task provided by the <literal>base</literal> plugin in combination with any other task producing an output for a multi-project build
+            if executed in parallel. For example let us assume a multi-project build with project A and project B where B depends on A. Running <literal>gradle clean build --parallel</literal>
+            could lead to the following situation:
+            <itemizedlist>
+                <listitem><literal>A:clean</literal> is executed after <literal>A:jar</literal>.</listitem>
+                <listitem>B depends on A and needs the JAR file of A. However, <literal>B:classes</literal> fails as it was executed after <literal>A:clean</literal> which deleted the JAR
+                    file B depends on for compilation.
+                </listitem>
+            </itemizedlist>
+            Furthermore, the tasks <literal>clean</literal> and <literal>classes</literal> could run at the same time and delete files that are needed for compilation across project boundaries. Gradle
+            emits a warning for those situations. Future versions of Gradle will provide an appropriate fix.
         </para>
     </section>
     <section id="sec:decoupled_projects">

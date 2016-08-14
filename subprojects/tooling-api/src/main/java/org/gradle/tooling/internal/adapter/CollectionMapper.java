@@ -18,10 +18,15 @@ package org.gradle.tooling.internal.adapter;
 
 import org.gradle.tooling.model.DomainObjectSet;
 
-import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
-public class CollectionMapper implements Serializable {
+class CollectionMapper {
     Collection<Object> createEmptyCollection(Class<?> collectionType) {
         if (collectionType.equals(DomainObjectSet.class)) {
             return new ArrayList<Object>();

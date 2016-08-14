@@ -75,7 +75,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String MAPPING_FIELD = "__mapping__";
         private static final String META_CLASS_FIELD = "__meta_class__";
         private static final String CONVENTION_MAPPING_FIELD_DESCRIPTOR = Type.getDescriptor(ConventionMapping.class);
-        private static final String METACLASS_TYPE_DESCRIPTOR = Type.getDescriptor(MetaClass.class);
+        private static final String META_CLASS_TYPE_DESCRIPTOR = Type.getDescriptor(MetaClass.class);
+        private final static Type META_CLASS_TYPE = Type.getType(MetaClass.class);
         private final static Type CONVENTION_AWARE_TYPE = Type.getType(IConventionAware.class);
         private final static Type CONVENTION_AWARE_HELPER_TYPE = Type.getType(ConventionAwareHelper.class);
         private final static Type DYNAMIC_OBJECT_AWARE_TYPE = Type.getType(DynamicObjectAware.class);
@@ -237,20 +238,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             //      }
             //      return dynamicObjectHelper;
             // }
-            addGetter(getAsDynamicObject, new MethodCodeBody() {
+
+            addLazyGetter(getAsDynamicObject, DYNAMIC_OBJECT_HELPER_FIELD, ABSTRACT_DYNAMIC_OBJECT_TYPE, new MethodCodeBody() {
                 public void add(MethodVisitor visitor) {
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), DYNAMIC_OBJECT_HELPER_FIELD, fieldSignature);
-                    Label returnValue = new Label();
-                    visitor.visitInsn(Opcodes.DUP);
-                    visitor.visitJumpInsn(Opcodes.IFNONNULL, returnValue);
-                    visitor.visitInsn(Opcodes.POP);
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
                     generateCreateDynamicObject(visitor);
-                    visitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), DYNAMIC_OBJECT_HELPER_FIELD, fieldSignature);
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), DYNAMIC_OBJECT_HELPER_FIELD, fieldSignature);
-                    visitor.visitLabel(returnValue);
                 }
             });
 
@@ -301,16 +292,23 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return;
             }
 
-            // GENERATE private ConventionMapping mapping = new ConventionAwareHelper(this, getConvention())
+            // GENERATE private ConventionMapping mapping
 
             visitor.visitField(Opcodes.ACC_PRIVATE, MAPPING_FIELD, CONVENTION_MAPPING_FIELD_DESCRIPTOR, null, null);
             hasMappingField = true;
 
+            // END
+
+            // GENERATE public ConventionMapping getConventionMapping() {
+            //     if (mapping == null) {
+            //         mapping = new ConventionAwareHelper(this, getConvention());
+            //     }
+            //     return mapping;
+            // }
+
             final MethodCodeBody initConventionAwareHelper = new MethodCodeBody() {
                 public void add(MethodVisitor visitor) throws Exception {
-
-                    // GENERATE mapping = new ConventionAwareHelper(this, getConvention())
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                    // GENERATE new ConventionAwareHelper(this, getConvention())
 
                     visitor.visitTypeInsn(Opcodes.NEW, CONVENTION_AWARE_HELPER_TYPE.getInternalName());
                     visitor.visitInsn(Opcodes.DUP);
@@ -325,48 +323,30 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
                     visitor.visitMethodInsn(Opcodes.INVOKESPECIAL, CONVENTION_AWARE_HELPER_TYPE.getInternalName(), "<init>", RETURN_VOID_FROM_CONVENTION_AWARE_CONVENTION, false);
 
-                    visitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), MAPPING_FIELD,
-                        CONVENTION_MAPPING_FIELD_DESCRIPTOR);
-
                     // END
                 }
             };
 
+            addLazyGetter(IConventionAware.class.getDeclaredMethod("getConventionMapping"), MAPPING_FIELD, CONVENTION_MAPPING_TYPE, initConventionAwareHelper);
+
             // END
-
-            // GENERATE public ConventionMapping getConventionMapping() {
-            //     if (mapping == null) {
-            //         mapping = new ConventionAwareHelper(this, getConvention);
-            //     }
-            //     return mapping;
-            // }
-
-            addGetter(IConventionAware.class.getDeclaredMethod("getConventionMapping"), new MethodCodeBody() {
-                public void add(MethodVisitor visitor) throws Exception {
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), MAPPING_FIELD, CONVENTION_MAPPING_FIELD_DESCRIPTOR);
-                    visitor.visitInsn(Opcodes.DUP);
-                    Label returnValue = new Label();
-                    visitor.visitJumpInsn(Opcodes.IFNONNULL, returnValue);
-                    visitor.visitInsn(Opcodes.POP);
-                    initConventionAwareHelper.add(visitor);
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), MAPPING_FIELD, CONVENTION_MAPPING_FIELD_DESCRIPTOR);
-                    visitor.visitLabel(returnValue);
-                }
-            });
         }
 
         public void mixInGroovyObject() throws Exception {
 
             // GENERATE private MetaClass metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass())
 
-            visitor.visitField(Opcodes.ACC_PRIVATE, META_CLASS_FIELD, METACLASS_TYPE_DESCRIPTOR, null, null);
+            visitor.visitField(Opcodes.ACC_PRIVATE, META_CLASS_FIELD, META_CLASS_TYPE_DESCRIPTOR, null, null);
+
+            // GENERATE public MetaClass getMetaClass() {
+            //     if (metaClass == null) {
+            //         metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass());
+            //     }
+            //     return metaClass;
+            // }
 
             final MethodCodeBody initMetaClass = new MethodCodeBody() {
                 public void add(MethodVisitor visitor) throws Exception {
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-
                     // GroovySystem.getMetaClassRegistry()
                     String getMetaClassRegistryDesc = Type.getMethodDescriptor(GroovySystem.class.getDeclaredMethod(
                             "getMetaClassRegistry"));
@@ -381,33 +361,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     String getMetaClassDesc = Type.getMethodDescriptor(MetaClassRegistry.class.getDeclaredMethod(
                             "getMetaClass", Class.class));
                     visitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, META_CLASS_REGISTRY_TYPE.getInternalName(), "getMetaClass", getMetaClassDesc, true);
-
-                    visitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), META_CLASS_FIELD,
-                        METACLASS_TYPE_DESCRIPTOR);
                 }
             };
 
-            // GENERATE public MetaClass getMetaClass() {
-            //     if (metaClass == null) {
-            //         metaClass = GroovySystem.getMetaClassRegistry().getMetaClass(getClass());
-            //     }
-            //     return metaClass;
-            // }
+            addLazyGetter(GroovyObject.class.getDeclaredMethod("getMetaClass"), META_CLASS_FIELD, META_CLASS_TYPE, initMetaClass);
 
-            addGetter(GroovyObject.class.getDeclaredMethod("getMetaClass"), new MethodCodeBody() {
-                public void add(MethodVisitor visitor) throws Exception {
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), META_CLASS_FIELD, METACLASS_TYPE_DESCRIPTOR);
-                    visitor.visitInsn(Opcodes.DUP);
-                    Label returnValue = new Label();
-                    visitor.visitJumpInsn(Opcodes.IFNONNULL, returnValue);
-                    visitor.visitInsn(Opcodes.POP);
-                    initMetaClass.add(visitor);
-                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
-                    visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), META_CLASS_FIELD, METACLASS_TYPE_DESCRIPTOR);
-                    visitor.visitLabel(returnValue);
-                }
-            });
+            // END
 
             // GENERATE public void setMetaClass(MetaClass class) { this.metaClass = class; }
 
@@ -415,7 +374,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 public void add(MethodVisitor visitor) throws Exception {
                     visitor.visitVarInsn(Opcodes.ALOAD, 0);
                     visitor.visitVarInsn(Opcodes.ALOAD, 1);
-                    visitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), META_CLASS_FIELD, METACLASS_TYPE_DESCRIPTOR);
+                    visitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), META_CLASS_FIELD, META_CLASS_TYPE_DESCRIPTOR);
                 }
             });
         }
@@ -428,6 +387,32 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitInsn(Opcodes.RETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
+        }
+
+        /**
+         * Adds a getter that returns the value of the given field, initializing it if null.
+         */
+        private void addLazyGetter(Method method, final String fieldName, final Type fieldType, final MethodCodeBody initializer) throws Exception {
+            String methodDescriptor = Type.getMethodDescriptor(method);
+            String methodName = method.getName();
+            addGetter(methodName, methodDescriptor, new MethodCodeBody() {
+                @Override
+                public void add(MethodVisitor visitor) throws Exception {
+                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                    visitor.visitFieldInsn(Opcodes.GETFIELD, generatedType.getInternalName(), fieldName, fieldType.getDescriptor());
+                    visitor.visitVarInsn(Opcodes.ASTORE, 1);
+                    visitor.visitVarInsn(Opcodes.ALOAD, 1);
+                    Label returnValue = new Label();
+                    visitor.visitJumpInsn(Opcodes.IFNONNULL, returnValue);
+                    initializer.add(visitor);
+                    visitor.visitVarInsn(Opcodes.ASTORE, 1);
+                    visitor.visitVarInsn(Opcodes.ALOAD, 0);
+                    visitor.visitVarInsn(Opcodes.ALOAD, 1);
+                    visitor.visitFieldInsn(Opcodes.PUTFIELD, generatedType.getInternalName(), fieldName, fieldType.getDescriptor());
+                    visitor.visitLabel(returnValue);
+                    visitor.visitVarInsn(Opcodes.ALOAD, 1);
+                }
+            });
         }
 
         private void addGetter(Method method, MethodCodeBody body) throws Exception {

@@ -25,12 +25,11 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
     final PersistentIndexedCache<Object, Object> indexedCache = Mock()
     final IdGenerator<Long> idGenerator = Mock()
     final Serializer<FileCollectionSnapshot> serializer = Mock()
-    final TreeSnapshotRepository treeSnapshotRepository = Mock()
     FileSnapshotRepository repository
 
     def setup() {
         1 * cacheAccess.createCache("fileSnapshots", _, _) >> indexedCache
-        repository = new CacheBackedFileSnapshotRepository(cacheAccess, serializer, idGenerator, treeSnapshotRepository)
+        repository = new CacheBackedFileSnapshotRepository(cacheAccess, serializer, idGenerator)
     }
 
     def "assigns an id when a snapshot is added"() {
@@ -43,7 +42,6 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
         id == 15
         1 * idGenerator.generateId() >> 15L
         1 * indexedCache.put(15, snapshot)
-        1 * treeSnapshotRepository.addTreeSnapshotUsage(snapshot, 15)
         0 * _._
     }
 
@@ -65,7 +63,6 @@ class CacheBackedFileSnapshotRepositoryTest extends Specification {
 
         then:
         1 * indexedCache.remove(4)
-        1 * treeSnapshotRepository.removeTreeSnapshotUsage(4)
         0 * _._
     }
 }

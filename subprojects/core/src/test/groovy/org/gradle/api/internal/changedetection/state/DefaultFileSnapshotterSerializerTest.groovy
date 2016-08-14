@@ -16,23 +16,22 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import com.google.common.base.Charsets
+import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.cache.internal.MapBackedInMemoryStore
-import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.serialize.SerializerSpec
 
 class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
-    def treeSnapshotRepository = new TreeSnapshotRepository(new InMemoryCache(), stringInterner)
-    def serializer = new DefaultFileSnapshotterSerializer(stringInterner, treeSnapshotRepository)
+    def serializer = new DefaultFileSnapshotterSerializer(stringInterner)
 
     def "reads and writes the snapshot"() {
         when:
-        def hash = HashUtil.createHash("foo", "md5")
+        def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
         FileCollectionSnapshotImpl out = serialize(new FileCollectionSnapshotImpl([
             "1": DirSnapshot.getInstance(),
             "2": MissingFileSnapshot.getInstance(),
-            "3": new FileHashSnapshot(hash)]), serializer)
+            "3": new FileHashSnapshot(hash)], TaskFilePropertyCompareType.UNORDERED), serializer)
 
         then:
         out.snapshots.size() == 3
@@ -41,7 +40,15 @@ class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
         ((FileHashSnapshot) out.snapshots['3']).hash == hash
     }
 
-    private static class InMemoryCache extends MapBackedInMemoryStore implements TaskArtifactStateCacheAccess {
+    def "should retain order in serialization"() {
+        when:
+        def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
+        FileCollectionSnapshotImpl out = serialize(new FileCollectionSnapshotImpl([
+            "3": DirSnapshot.getInstance(),
+            "2": MissingFileSnapshot.getInstance(),
+            "1": new FileHashSnapshot(hash)], TaskFilePropertyCompareType.ORDERED), serializer)
 
+        then:
+        out.snapshots.keySet() as List == ['3', '2', '1']
     }
 }

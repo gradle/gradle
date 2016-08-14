@@ -33,6 +33,7 @@ public class TwirlCompilerFactory {
             case PLAY_2_3_X:
                 return new TwirlCompilerAdapterV10X("1.0.4", scalaCompatibilityVersion);
             case PLAY_2_4_X:
+            case PLAY_2_5_X:
                 return new TwirlCompilerAdapterV10X("1.1.1", scalaCompatibilityVersion);
             default:
                 throw new RuntimeException("Could not create Twirl compile spec for Play version: " + playVersion);

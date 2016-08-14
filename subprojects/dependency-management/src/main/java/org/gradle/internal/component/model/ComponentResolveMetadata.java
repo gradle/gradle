@@ -26,6 +26,8 @@ import java.util.Set;
 
 /**
  * The meta-data for a component instance that is required during dependency resolution.
+ *
+ * <p>Implementations of this type should be immutable and thread safe.</p>
  */
 public interface ComponentResolveMetadata {
     List<String> DEFAULT_STATUS_SCHEME = Arrays.asList("integration", "milestone", "release");
@@ -50,7 +52,7 @@ public interface ComponentResolveMetadata {
     ModuleSource getSource();
 
     /**
-     * Makes a copy of this meta-data with the given source.
+     * Creates a copy of this meta-data with the given source.
      */
     ComponentResolveMetadata withSource(ModuleSource source);
 

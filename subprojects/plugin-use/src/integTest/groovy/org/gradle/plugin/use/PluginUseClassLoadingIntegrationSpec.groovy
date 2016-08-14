@@ -23,6 +23,7 @@ import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.junit.Rule
+import spock.lang.Issue
 
 @LeaksFileHandles
 class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
@@ -155,6 +156,20 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         succeeds "verify"
+    }
+
+    @Issue("GRADLE-3503")
+    def "Context classloader contains plugin classpath during application"() {
+        publishPlugin("""
+            def className = getClass().getName()
+            Thread.currentThread().getContextClassLoader().loadClass(className)
+            project.task("verify")
+        """)
+
+        buildScript USE
+
+        expect:
+        succeeds("verify")
     }
 
     void publishPlugin() {

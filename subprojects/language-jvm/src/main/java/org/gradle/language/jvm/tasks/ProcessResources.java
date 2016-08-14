@@ -29,8 +29,7 @@ public class ProcessResources extends Copy {
 
     @Override
     protected void copy() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-        cleaner.setDestinationDir(getDestinationDir());
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs(), "destinationDir");
         cleaner.execute();
         super.copy();
     }

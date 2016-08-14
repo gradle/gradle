@@ -17,13 +17,19 @@ package org.gradle.api.internal.artifacts.publish
 
 import org.gradle.api.internal.file.copy.CopyAction
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
+import org.junit.Rule
 import spock.lang.Specification
 
 public class ArchivePublishArtifactTest extends Specification {
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+
+    def TestUtil testUtil = TestUtil.create(temporaryFolder)
 
     def "provides sensible default values for quite empty archive tasks"() {
-        def quiteEmptyJar = TestUtil.createTask(DummyJar)
+        def quiteEmptyJar = testUtil.task(DummyJar)
 
         when:
         def a = new ArchivePublishArtifact(quiteEmptyJar)
@@ -38,11 +44,11 @@ public class ArchivePublishArtifactTest extends Specification {
     }
 
     def "configures name correctly"() {
-        def noName = TestUtil.createTask(DummyJar)
-        def withArchiveName = TestUtil.createTask(DummyJar, [archiveName: "hey"])
-        def withBaseName = TestUtil.createTask(DummyJar, [baseName: "foo"])
-        def withAppendix = TestUtil.createTask(DummyJar, [baseName: "foo", appendix: "javadoc"])
-        def withAppendixOnly = TestUtil.createTask(DummyJar, [appendix: "javadoc"])
+        def noName = testUtil.task(DummyJar)
+        def withArchiveName = testUtil.task(DummyJar, [archiveName: "hey"])
+        def withBaseName = testUtil.task(DummyJar, [baseName: "foo"])
+        def withAppendix = testUtil.task(DummyJar, [baseName: "foo", appendix: "javadoc"])
+        def withAppendixOnly = testUtil.task(DummyJar, [appendix: "javadoc"])
 
         expect:
         new ArchivePublishArtifact(noName).name == null

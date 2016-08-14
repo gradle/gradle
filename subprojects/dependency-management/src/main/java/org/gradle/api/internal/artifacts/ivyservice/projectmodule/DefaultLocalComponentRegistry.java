@@ -17,8 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 import java.util.Collections;
 import java.util.List;
@@ -50,9 +50,9 @@ public class DefaultLocalComponentRegistry implements LocalComponentRegistry {
     }
 
     @Override
-    public Iterable<ComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
+    public Iterable<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier project) {
         for (LocalComponentProvider provider : providers) {
-            Iterable<ComponentArtifactMetadata> artifacts = provider.getAdditionalArtifacts(project);
+            Iterable<LocalComponentArtifactMetadata> artifacts = provider.getAdditionalArtifacts(project);
             if (artifacts != null) {
                 return artifacts;
             }

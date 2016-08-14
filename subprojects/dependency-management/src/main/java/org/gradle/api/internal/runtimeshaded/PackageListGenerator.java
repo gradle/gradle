@@ -23,6 +23,7 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.ErroringAction;
@@ -69,6 +70,7 @@ public class PackageListGenerator extends DefaultTask {
         excludes = DEFAULT_EXCLUDES;
     }
 
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
@@ -98,7 +100,7 @@ public class PackageListGenerator extends DefaultTask {
 
     @TaskAction
     public void generate() {
-        IoActions.writeTextFile(outputFile, new ErroringAction<BufferedWriter>() {
+        IoActions.writeTextFile(getOutputFile(), new ErroringAction<BufferedWriter>() {
             @Override
             public void doExecute(final BufferedWriter bufferedWriter) throws Exception {
                 Trie packages = collectPackages();
@@ -115,7 +117,7 @@ public class PackageListGenerator extends DefaultTask {
 
     private Trie collectPackages() throws IOException {
         Trie.Builder builder = new Trie.Builder();
-        for (File file : classpath) {
+        for (File file : getClasspath()) {
             if (file.exists()) {
                 if (file.getName().endsWith(".jar")) {
                     processJarFile(file, builder);

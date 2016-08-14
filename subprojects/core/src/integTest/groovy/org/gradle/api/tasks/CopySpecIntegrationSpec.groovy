@@ -33,10 +33,10 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildScript """
             task ($taskName, type:$taskType) {
-               from 'src'
-               into 'dest'
-               expand(one: 1)
-               ${filteringCharset ? "filteringCharset = '$filteringCharset'" : ''}
+                from 'src'
+                into 'dest'
+                expand(one: 1)
+                ${filteringCharset ? "filteringCharset = '$filteringCharset'" : ''}
             }
         """.stripIndent()
 
@@ -82,10 +82,10 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
             task ($operation) {
                 doLast {
                     project.$operation {
-                       from 'src'
-                       into 'dest'
-                       expand(one: 1)
-                       ${filteringCharset ? "filteringCharset = '$filteringCharset'" : ''}
+                        from 'src'
+                        into 'dest'
+                        expand(one: 1)
+                        ${filteringCharset ? "filteringCharset = '$filteringCharset'" : ''}
                     }
                 }
             }
@@ -123,5 +123,47 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         charsetDescription = filteringCharset ?: "platform default ${platformDefaultCharset ?: Charset.defaultCharset().name()}"
         isSetDescription = filteringCharset ? 'set' : 'unset'
         readCharset = filteringCharset ?: platformDefaultCharset
+    }
+
+    def "can use filesMatching with List"() {
+        given:
+        buildScript """
+            task (copy, type: Copy) {
+                from 'src'
+                into 'dest'
+                filesMatching(['**/ignore/**', '**/sub/**']) {
+                    name = "matched\${name}"
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'copy'
+
+        then:
+        file('dest/one/ignore/matchedbad.file').exists()
+        file('dest/two/ignore/matchedbad.file').exists()
+        !file('dest/one/matchedone.a').exists()
+    }
+
+    def "can use filesNotMatching with List"() {
+        given:
+        buildScript """
+            task (copy, type: Copy) {
+                from 'src'
+                into 'dest'
+                filesNotMatching(['**/ignore/**', '**/sub/**']) {
+                    name = "matched\${name}"
+                }
+            }
+        """.stripIndent()
+
+        when:
+        succeeds 'copy'
+
+        then:
+        !file('dest/one/ignore/matchedbad.file').exists()
+        !file('dest/two/ignore/matchedbad.file').exists()
+        file('dest/one/matchedone.a').exists()
     }
 }

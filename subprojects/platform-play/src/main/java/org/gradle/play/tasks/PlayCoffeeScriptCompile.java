@@ -48,8 +48,7 @@ public class PlayCoffeeScriptCompile extends CoffeeScriptCompile {
 
     @Override
     public void doCompile() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-        cleaner.setDestinationDir(getDestinationDir());
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs(), "destinationDir");
         cleaner.execute();
         super.doCompile();
     }

@@ -25,7 +25,11 @@ public class DistributionLocator {
     private static final String SNAPSHOT_REPOSITORY = "https://services.gradle.org/distributions-snapshots";
 
     public URI getDistributionFor(GradleVersion version) {
-        return getDistribution(getDistributionRepository(version), version, "gradle", "bin");
+        return getDistributionFor(version, "bin");
+    }
+
+    public URI getDistributionFor(GradleVersion version, String type) {
+        return getDistribution(getDistributionRepository(version), version, "gradle", type);
     }
 
     private String getDistributionRepository(GradleVersion version) {

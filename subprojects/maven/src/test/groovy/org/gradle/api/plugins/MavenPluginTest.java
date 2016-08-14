@@ -23,7 +23,9 @@ import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.Upload;
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
+import org.junit.Rule;
 
 import java.io.File;
 import java.util.Set;
@@ -34,7 +36,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class MavenPluginTest {
-    private final ProjectInternal project = TestUtil.createRootProject();
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance();
+
+    private final ProjectInternal project = TestUtil.create(temporaryFolder).rootProject();
 
     @org.junit.Test
     public void addsConventionToProject() {

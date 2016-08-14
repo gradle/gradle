@@ -88,9 +88,7 @@ public class FileContentMerger {
      * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
      *
      * @param closure The closure to execute.
-     * @deprecated use {@link #beforeMerged(Action)}
      */
-    @Deprecated
     public void beforeMerged(Closure closure) {
         beforeMerged.add(ConfigureUtil.configureUsing(closure));
     }
@@ -105,9 +103,7 @@ public class FileContentMerger {
      * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
      *
      * @param closure The closure to execute.
-     * @deprecated use {@link #whenMerged(Action)}
      */
-    @Deprecated
     public void whenMerged(Closure closure) {
         whenMerged.add(ConfigureUtil.configureUsing(closure));
     }

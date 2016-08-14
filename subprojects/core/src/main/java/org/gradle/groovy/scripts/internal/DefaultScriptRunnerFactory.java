@@ -84,18 +84,15 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
             ClassLoader originalLoader = Thread.currentThread().getContextClassLoader();
             T script = getScript();
             script.init(target, scriptServices);
-            GradleScriptException failure = null;
             Thread.currentThread().setContextClassLoader(script.getContextClassloader());
             script.getStandardOutputCapture().start();
             try {
                 script.run();
             } catch (Throwable e) {
-                failure = new GradleScriptException(String.format("A problem occurred evaluating %s.", script), e);
-            }
-            script.getStandardOutputCapture().stop();
-            Thread.currentThread().setContextClassLoader(originalLoader);
-            if (failure != null) {
-                throw failure;
+                throw new GradleScriptException(String.format("A problem occurred evaluating %s.", script), e);
+            } finally {
+                script.getStandardOutputCapture().stop();
+                Thread.currentThread().setContextClassLoader(originalLoader);
             }
         }
     }

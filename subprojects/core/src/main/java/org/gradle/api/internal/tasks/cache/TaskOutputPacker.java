@@ -19,9 +19,11 @@ package org.gradle.api.internal.tasks.cache;
 import org.gradle.api.internal.TaskOutputsInternal;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public interface TaskOutputPacker {
-    TaskOutputWriter createWriter(TaskOutputsInternal taskOutputs) throws IOException;
+    void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException;
 
-    void unpack(TaskOutputsInternal taskOutputs, TaskOutputReader result) throws IOException;
+    void unpack(TaskOutputsInternal taskOutputs, InputStream input) throws IOException;
 }

@@ -26,6 +26,8 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
@@ -120,7 +122,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
 
     @Override
     public String toString() {
-        return "dependency: " + requested;
+        return "dependency: " + requested + ", confs: " + confs;
     }
 
     public ModuleVersionSelector getRequested() {
@@ -176,6 +178,11 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         return mappedConfigs.toArray(new String[mappedConfigs.size()]);
     }
 
+    @Override
+    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
+        return excludes.isEmpty() ? ModuleExclusions.excludeNone() : ModuleExclusions.excludeAny(getExcludes(fromConfiguration.getHierarchy()));
+    }
+
     public List<Exclude> getExcludes(Collection<String> configurations) {
         List<Exclude> rules = Lists.newArrayList();
         for (Map.Entry<Exclude, Set<String>> entry : excludes.entrySet()) {
@@ -205,6 +212,10 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     }
 
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
+        if (dependencyArtifacts.isEmpty()) {
+            return Collections.emptySet();
+        }
+
         Set<String> includedConfigurations = fromConfiguration.getHierarchy();
         Set<ComponentArtifactMetadata> artifacts = Sets.newLinkedHashSet();
 

@@ -19,6 +19,9 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
+import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
+
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-3152")
@@ -87,5 +90,64 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("b/build/classes/main/Bar.class").exists()
         file("b/build/classes/main/Foo.class").exists()
+    }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-3508")
+    def "detects change in classpath order"() {
+        file("lib1.jar") << jarWithContents("data.txt": "data1")
+        file("lib2.jar") << jarWithContents("data.txt": "data2")
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")
+
+        when:
+        run "compile"
+        then:
+        nonSkippedTasks.contains ":compile"
+
+        when:
+        run "compile"
+        then:
+        skippedTasks.contains ":compile"
+
+        // Need to wait for build script cache to be able to recognize change
+        sleep(1000L)
+
+        buildFile.delete()
+        buildFile << buildScriptWithClasspath("lib2.jar", "lib1.jar")
+
+        when:
+        run "compile"
+        then:
+        nonSkippedTasks.contains ":compile"
+    }
+
+    def buildScriptWithClasspath(String... dependencies) {
+        """
+            task compile(type: JavaCompile) {
+                sourceCompatibility = JavaVersion.current()
+                targetCompatibility = JavaVersion.current()
+                destinationDir = file("build/classes")
+                dependencyCacheDir = file("build/dependency-cache")
+                source "src/main/java"
+                classpath = files('${dependencies.join("', '")}')
+            }
+        """
+    }
+
+    def jarWithContents(Map<String, String> contents) {
+        def out = new ByteArrayOutputStream()
+        def jarOut = new JarOutputStream(out)
+        try {
+            contents.each { file, fileContents ->
+                def zipEntry = new ZipEntry(file)
+                zipEntry.setTime(0)
+                jarOut.putNextEntry(zipEntry)
+                jarOut << fileContents
+            }
+        } finally {
+            jarOut.close()
+        }
+        return out.toByteArray()
     }
 }

@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactResolver;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.clientmodule.ClientModuleResolver;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -63,7 +62,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     private final VersionComparator versionComparator;
 
     public DefaultArtifactDependencyResolver(ServiceRegistry serviceRegistry, ResolveIvyFactory ivyFactory, DependencyDescriptorFactory dependencyDescriptorFactory,
-                                             CacheLockingManager cacheLockingManager, IvyContextManager ivyContextManager, VersionComparator versionComparator) {
+                                             CacheLockingManager cacheLockingManager, VersionComparator versionComparator) {
         this.serviceRegistry = serviceRegistry;
         this.ivyFactory = ivyFactory;
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
@@ -72,8 +71,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
     }
 
     @Override
-    public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler,
-                        final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor) {
+    public void resolve(final ResolveContext resolveContext, final List<? extends ResolutionAwareRepository> repositories, final GlobalDependencyResolutionRules metadataHandler, final DependencyGraphVisitor graphVisitor, final DependencyArtifactsVisitor artifactsVisitor) {
         LOGGER.debug("Resolving {}", resolveContext);
         ComponentResolvers componentSource = createComponentSource(resolveContext, repositories, metadataHandler);
         DependencyGraphBuilder builder = createDependencyGraphBuilder(componentSource, resolveContext.getResolutionStrategy(), metadataHandler);

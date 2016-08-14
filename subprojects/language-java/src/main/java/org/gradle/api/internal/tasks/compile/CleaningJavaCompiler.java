@@ -45,10 +45,12 @@ public class CleaningJavaCompiler extends CleaningJavaCompilerSupport<JavaCompil
         //but the latter has been removed in 2.* Either we need to fix the the docs or deprecate useDepend
         if (spec.getCompileOptions().isUseDepend()) {
             AntDependsStaleClassCleaner cleaner = new AntDependsStaleClassCleaner(antBuilderFactory, spec.getCompileOptions());
+            cleaner.setDestinationDir(spec.getDestinationDir());
+            cleaner.setSource(spec.getSource());
             cleaner.setDependencyCacheDir(spec.getDependencyCacheDir());
             return cleaner;
         } else {
-            return new SimpleStaleClassCleaner(taskOutputs);
+            return new SimpleStaleClassCleaner(taskOutputs, "destinationDir");
         }
     }
 }

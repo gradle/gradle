@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -42,6 +41,8 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleArtifactsC
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCache;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.AggregatingProjectArtifactBuilder;
+import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CacheLockReleasingProjectArtifactBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultLocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectLocalComponentProvider;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.DefaultProjectPublicationRegistry;
@@ -234,7 +235,6 @@ class DependencyManagementBuildScopeServices {
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 CacheLockingManager cacheLockingManager,
-                                                                IvyContextManager ivyContextManager,
                                                                 VersionComparator versionComparator,
                                                                 ServiceRegistry serviceRegistry) {
         ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
@@ -242,7 +242,6 @@ class DependencyManagementBuildScopeServices {
             resolveIvyFactory,
             dependencyDescriptorFactory,
             cacheLockingManager,
-            ivyContextManager,
             versionComparator
         );
         return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);
@@ -265,8 +264,13 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalComponentRegistry(providers);
     }
 
-    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ServiceRegistry serviceRegistry) {
-        return new ProjectDependencyResolver(localComponentRegistry, serviceRegistry.getAll(ProjectArtifactBuilder.class));
+    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ServiceRegistry serviceRegistry, CacheLockingManager cacheLockingManager) {
+        // This doesn't seem to consistently load all ProjectArtifactBuilder instances provided by modules.
+        // For embedded integration tests, I'm not convinced that the CompositeProjectArtifactBuilder will always be registered.
+        List<ProjectArtifactBuilder> delegateBuilders = serviceRegistry.getAll(ProjectArtifactBuilder.class);
+        ProjectArtifactBuilder artifactBuilder = new AggregatingProjectArtifactBuilder(delegateBuilders);
+        artifactBuilder = new CacheLockReleasingProjectArtifactBuilder(artifactBuilder, cacheLockingManager);
+        return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder);
     }
 
     ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {

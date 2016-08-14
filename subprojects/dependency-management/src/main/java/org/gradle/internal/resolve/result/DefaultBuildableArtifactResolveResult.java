@@ -22,46 +22,8 @@ import org.gradle.internal.resolve.ArtifactResolveException;
 
 import java.io.File;
 
-public class DefaultBuildableArtifactResolveResult extends DefaultResourceAwareResolveResult implements BuildableArtifactResolveResult {
-    private ArtifactResolveException failure;
-    private File file;
-
-    public void failed(ArtifactResolveException failure) {
-        this.failure = failure;
-    }
-
-    public void resolved(File file) {
-        this.file = file;
-    }
-
+public class DefaultBuildableArtifactResolveResult extends DefaultBuildableTypedResolveResult<File, ArtifactResolveException> implements BuildableArtifactResolveResult {
     public void notFound(ComponentArtifactIdentifier artifact) {
         failed(new ArtifactNotFoundException(artifact, getAttempted()));
-    }
-
-    public ArtifactResolveException getFailure() {
-        assertHasResult();
-        return failure;
-    }
-
-    public File getFile() throws ArtifactResolveException {
-        assertResolved();
-        return file;
-    }
-
-    public boolean hasResult() {
-        return failure != null || file != null;
-    }
-
-    private void assertResolved() {
-        assertHasResult();
-        if (failure != null) {
-            throw failure;
-        }
-    }
-
-    private void assertHasResult() {
-        if (!hasResult()) {
-            throw new IllegalStateException("No result has been specified.");
-        }
     }
 }

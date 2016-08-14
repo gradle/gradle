@@ -28,6 +28,8 @@ import java.util.Collections;
 import static java.lang.ClassLoader.getSystemClassLoader;
 
 public class DefaultClassLoaderFactory implements ClassLoaderFactory {
+    // This uses the system classloader and will not release any loaded classes for the life of the daemon process.
+    // Do not use this to load any classes which are part of the build; it will not release them when the build is complete.
     private final CachingServiceLocator systemClassLoaderServiceLocator = CachingServiceLocator.of(new DefaultServiceLocator(getSystemClassLoader()));
 
     @Override

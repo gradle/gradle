@@ -18,8 +18,8 @@ package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
-import org.gradle.internal.composite.DefaultGradleParticipantBuild;
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.DefaultIncludedBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.GradleConnection;
 import org.gradle.tooling.connection.GradleConnectionBuilder;
@@ -74,14 +74,14 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
     }
 
     private GradleConnection createGradleConnection() {
-        Set<GradleParticipantBuild> participants = CollectionUtils.collect(participantBuilders, new Transformer<GradleParticipantBuild, DefaultGradleConnectionParticipantBuilder>() {
+        Set<IncludedBuild> builds = CollectionUtils.collect(participantBuilders, new Transformer<IncludedBuild, DefaultGradleConnectionParticipantBuilder>() {
             @Override
-            public GradleParticipantBuild transform(DefaultGradleConnectionParticipantBuilder participantBuilder) {
+            public IncludedBuild transform(DefaultGradleConnectionParticipantBuilder participantBuilder) {
                 return participantBuilder.build();
             }
         });
         DefaultCompositeConnectionParameters.Builder compositeConnectionParametersBuilder = DefaultCompositeConnectionParameters.builder();
-        compositeConnectionParametersBuilder.setBuilds(participants);
+        compositeConnectionParametersBuilder.setBuilds(builds);
         compositeConnectionParametersBuilder.setGradleUserHomeDir(gradleUserHomeDir);
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeValue(daemonMaxIdleTimeValue);
         compositeConnectionParametersBuilder.setDaemonMaxIdleTimeUnits(daemonMaxIdleTimeUnits);
@@ -194,8 +194,8 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
             return this;
         }
 
-        public GradleParticipantBuild build() {
-            return new DefaultGradleParticipantBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
+        public IncludedBuild build() {
+            return new DefaultIncludedBuild(projectDir, gradleHome, gradleDistribution, gradleVersion);
         }
 
         private void resetDistribution() {

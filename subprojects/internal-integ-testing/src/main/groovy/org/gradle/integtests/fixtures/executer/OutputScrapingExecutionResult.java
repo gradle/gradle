@@ -19,6 +19,8 @@ import com.google.common.io.CharSource;
 import org.apache.commons.collections.CollectionUtils;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.launcher.daemon.client.DaemonStartupMessage;
+import org.gradle.launcher.daemon.server.DaemonStateCoordinator;
 import org.gradle.util.TextUtil;
 import org.hamcrest.core.StringContains;
 
@@ -33,7 +35,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.gradle.launcher.daemon.client.DaemonStartupMessage.STARTING_DAEMON_MESSAGE;
 import static org.gradle.util.TextUtil.normaliseLineSeparators;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -47,10 +48,10 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     private static final String TASK_LOGGER_DEBUG_PATTERN = "(?:.*\\s+\\[LIFECYCLE\\]\\s+\\[class org\\.gradle\\.TaskExecutionLogger\\]\\s+)?";
 
     //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
-    private final Pattern skippedTaskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(CACHED))");
+    private final Pattern skippedTaskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE)|(FROM-CACHE))");
 
     //for example: ':hey' or ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a FOO'
-    private final Pattern taskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+CACHED)|(\\s+FAILED)|(\\s*))");
+    private final Pattern taskPattern = Pattern.compile(TASK_LOGGER_DEBUG_PATTERN + "(:\\S+?(:\\S+?)*)((\\s+SKIPPED)|(\\s+UP-TO-DATE)|(\\s+FROM-CACHE)|(\\s+FAILED)|(\\s*))");
 
     public OutputScrapingExecutionResult(String output, String error) {
         this.output = TextUtil.normaliseLineSeparators(output);
@@ -77,8 +78,11 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         int i = 0;
         while (i < lines.size()) {
             String line = lines.get(i);
-            if (line.contains(STARTING_DAEMON_MESSAGE)) {
+            if (line.contains(DaemonStartupMessage.STARTING_DAEMON_MESSAGE)) {
                 // Remove the "daemon starting" message
+                i++;
+            } else if (line.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE)) {
+                // Remove the "Daemon will be shut down" message
                 i++;
             } else if (i == lines.size() - 1 && line.matches("Total time: [\\d\\.]+ secs")) {
                 result.append("Total time: 1 secs");

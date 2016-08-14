@@ -71,7 +71,7 @@ public class DefaultLockStateSerializer implements LockStateSerializer {
 
         public LockState completeUpdate() {
             long newSequenceNumber;
-            if (originalSequenceNumber <= 0) {
+            if (isInInitialState()) {
                 newSequenceNumber = 1;
             } else {
                 newSequenceNumber = originalSequenceNumber + 1;
@@ -81,6 +81,10 @@ public class DefaultLockStateSerializer implements LockStateSerializer {
 
         public boolean isDirty() {
             return sequenceNumber == 0 || sequenceNumber != originalSequenceNumber;
+        }
+
+        public boolean isInInitialState() {
+            return originalSequenceNumber <= 0;
         }
 
         public boolean hasBeenUpdatedSince(FileLock.State state) {

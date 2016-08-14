@@ -21,12 +21,14 @@ import org.gradle.internal.nativeintegration.filesystem.Chmod
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.gradle.internal.remote.Address
+import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.createDefaultFileLockManager
 import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockUncleanly
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
 
 class PersistentDaemonRegistryTest extends Specification {
 
@@ -39,7 +41,7 @@ class PersistentDaemonRegistryTest extends Specification {
 
     def "corrupt registry file is ignored"() {
         given:
-        registry.store(new DaemonInfo(address(), daemonContext(), "password".bytes, true))
+        registry.store(new DaemonInfo(address(), daemonContext(), "password".bytes, Idle))
 
         expect:
         registry.all.size() == 1
@@ -56,7 +58,7 @@ class PersistentDaemonRegistryTest extends Specification {
         def address = address()
 
         and:
-        registry.store(new DaemonInfo(address, daemonContext(), "password".bytes, true))
+        registry.store(new DaemonInfo(address, daemonContext(), "password".bytes, Idle))
 
         when:
         registry.remove(address)
@@ -84,7 +86,7 @@ class PersistentDaemonRegistryTest extends Specification {
         def address = address()
 
         when:
-        registry.markBusy(address)
+        registry.markState(address, Busy)
 
         then:
         registry.all.empty
@@ -95,7 +97,7 @@ class PersistentDaemonRegistryTest extends Specification {
         def address = address()
 
         when:
-        registry.markIdle(address)
+        registry.markState(address, Idle)
 
         then:
         registry.all.empty
@@ -111,7 +113,7 @@ class PersistentDaemonRegistryTest extends Specification {
 
     def "clears single stop event when non-empty"() {
         given:
-        def stopEvent = new DaemonStopEvent(new Date(1L), "STOP_REASON")
+        def stopEvent = new DaemonStopEvent(new Date(1L), new Random().nextLong(), DaemonExpirationStatus.GRACEFUL_EXPIRE, "STOP_REASON")
         registry.storeStopEvent(stopEvent)
 
         when:
@@ -124,8 +126,8 @@ class PersistentDaemonRegistryTest extends Specification {
     def "clears multiple stop events when non-empty"() {
         given:
         def stopEvents = [
-            new DaemonStopEvent(new Date(1L), "STOP_REASON"),
-            new DaemonStopEvent(new Date(42L), "ANOTHER_STOP_REASON")
+            new DaemonStopEvent(new Date(1L), new Random().nextLong(), DaemonExpirationStatus.GRACEFUL_EXPIRE, "STOP_REASON"),
+            new DaemonStopEvent(new Date(42L), new Random().nextLong(), DaemonExpirationStatus.IMMEDIATE_EXPIRE, "ANOTHER_STOP_REASON")
         ]
         stopEvents.each { registry.storeStopEvent(it) }
 

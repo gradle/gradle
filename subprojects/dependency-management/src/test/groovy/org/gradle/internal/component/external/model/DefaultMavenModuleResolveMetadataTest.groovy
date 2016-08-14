@@ -19,39 +19,31 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
-import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.ModuleSource
 
 class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
 
     AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
-        return new DefaultMavenModuleResolveMetadata(id, moduleDescriptor, "pom", false)
+        return new DefaultMavenModuleResolveMetadata(new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "pom", false))
     }
 
-    def "can make a copy"() {
-        def dependency1 = Stub(DependencyMetadata)
-        def dependency2 = Stub(DependencyMetadata)
-
+    def "copy with different source"() {
         given:
-        def metadata = getMetadata()
-        metadata.changing = true
-        metadata.dependencies = [dependency1, dependency2]
-        metadata.status = 'a'
-        metadata.statusScheme = ['a', 'b', 'c']
-        metadata.snapshotTimestamp = '123'
+        def source = Stub(ModuleSource)
+        def mutable = new DefaultMutableMavenModuleResolveMetadata(id, [] as Set)
+        mutable.packaging = "other"
+        mutable.relocated = true
+        mutable.snapshotTimestamp = "123"
+        def metadata = mutable.asImmutable()
 
         when:
-        def copy = metadata.copy()
+        def copy = metadata.withSource(source)
 
         then:
-        copy != metadata
-        copy.descriptor == moduleDescriptor
-        copy.changing
-        copy.dependencies == [dependency1, dependency2]
-        copy.status == 'a'
-        copy.statusScheme == ['a', 'b', 'c']
-        copy.packaging == "pom"
-        !copy.relocated
-        copy.snapshotTimestamp == '123'
+        copy.source == source
+        copy.packaging == "other"
+        copy.relocated
+        copy.snapshotTimestamp == "123"
     }
 
     def "recognises pom packaging"() {

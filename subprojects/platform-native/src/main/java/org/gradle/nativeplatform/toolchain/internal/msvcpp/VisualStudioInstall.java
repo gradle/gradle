@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.Named;
 import org.gradle.util.VersionNumber;
 
@@ -25,9 +26,9 @@ public class VisualStudioInstall implements Named {
     private final VisualCppInstall visualCppInstall;
     private final File baseDir;
 
-    public VisualStudioInstall(File baseDir,  VisualCppInstall visualCppInstall) {
+    public VisualStudioInstall(File baseDir, VisualCppInstall visualCppInstall) {
         this.baseDir = baseDir;
-        this.visualCppInstall = visualCppInstall;
+        this.visualCppInstall = Preconditions.checkNotNull(visualCppInstall);
     }
 
     @Override

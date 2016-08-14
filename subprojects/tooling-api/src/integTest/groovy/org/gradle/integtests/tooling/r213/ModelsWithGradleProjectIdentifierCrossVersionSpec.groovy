@@ -16,6 +16,7 @@
 
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
@@ -118,6 +119,23 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
 
         where:
         modelType << modelsHavingGradleProjectIdentifier
+    }
+
+    @TargetGradleVersion('>=1.2 <1.12')
+    def "decent error message for Gradle version that doesn't expose publications"() {
+        when:
+        def modelResults = withCompositeConnection([rootMulti, rootSingle]) { GradleConnection connection ->
+            def modelBuilder = connection.models(ProjectPublications)
+            modelBuilder.get()
+        }.asList()
+
+        then:
+        modelResults.size() == 2
+        modelResults.each {
+            def e = it.failure
+            assert e.message.contains('does not support building a model of type \'ProjectPublications\'.')
+            assert e.message.contains('Support for building \'ProjectPublications\' models was added in Gradle 1.12 and is available in all later versions.')
+        }
     }
 
     private static void assertSameIdentifiers(def gradleProject, def model) {

@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.rules;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
-import org.gradle.api.internal.changedetection.state.FilesSnapshotSet;
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
@@ -81,10 +80,6 @@ public class TaskUpToDateState {
 
     public TaskStateChanges getRebuildChanges() {
         return rebuildChanges;
-    }
-
-    public FilesSnapshotSet getInputFilesSnapshot() {
-        return directInputFileChanges.getUnifiedSnapshot();
     }
 
     public void newInputs(Set<File> discoveredInputs) {

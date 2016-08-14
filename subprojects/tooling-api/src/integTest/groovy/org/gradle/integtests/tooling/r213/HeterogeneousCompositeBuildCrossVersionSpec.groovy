@@ -156,7 +156,6 @@ class CustomPlugin implements Plugin<Project> {
         varyingResult.model.value == 'greetings'
         varyingResult.model.things.find { it instanceof CustomModel.Thing }
         varyingResult.model.thingsByName.thing instanceof CustomModel.Thing
-
     }
 
     ModelResult findFailureResult(Iterable<ModelResult> modelResults, File rootDir) {

@@ -22,8 +22,6 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationListener;
-import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
-import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 
 public class WatchForDisconnection implements DaemonCommandAction {
     private static final Logger LOGGER = Logging.getLogger(WatchForDisconnection.class);
@@ -40,8 +38,8 @@ public class WatchForDisconnection implements DaemonCommandAction {
         // Watch for the client disconnecting before we call stop()
         execution.getConnection().onDisconnect(new Runnable() {
             public void run() {
-                LOGGER.warn("client disconnection detected, stopping the daemon");
-                listenerBroadcast.getSource().onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.IMMEDIATE_EXPIRE, EXPIRATION_REASON));
+                LOGGER.warn("client disconnection detected, canceling the build");
+                execution.getDaemonStateControl().requestCancel();
             }
         });
 

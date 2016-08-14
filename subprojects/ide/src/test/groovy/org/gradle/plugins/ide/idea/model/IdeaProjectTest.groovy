@@ -20,11 +20,11 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class IdeaProjectTest extends Specification {
-    private final ProjectInternal project = TestUtil.createRootProject()
+class IdeaProjectTest extends AbstractProjectBuilderSpec {
+    private final ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private final ProjectInternal childProject = TestUtil.createChildProject(project, "child", new File("."))
     private final ProjectInternal anotherChildProject = TestUtil.createChildProject(project, "child2", new File("."))
 

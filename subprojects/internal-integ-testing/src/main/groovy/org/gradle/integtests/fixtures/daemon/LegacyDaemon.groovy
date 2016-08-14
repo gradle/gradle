@@ -18,6 +18,8 @@ package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.util.GradleVersion
 
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
+
 class LegacyDaemon extends AbstractDaemonFixture {
     private final DaemonLogFileStateProbe logFileProbe
 

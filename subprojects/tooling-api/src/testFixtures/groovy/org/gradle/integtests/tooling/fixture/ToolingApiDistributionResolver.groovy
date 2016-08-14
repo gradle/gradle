@@ -20,6 +20,7 @@ import org.gradle.StartParameter
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
+import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.concurrent.CompositeStoppable
@@ -30,6 +31,7 @@ import org.gradle.internal.service.ServiceRegistryBuilder
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.internal.service.scopes.GlobalScopeServices
 import org.gradle.internal.service.scopes.ProjectScopeServices
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TestUtil
 
@@ -82,12 +84,14 @@ class ToolingApiDistributionResolver {
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new IntegrationTestBuildContext().gradleUserHomeDir
         BuildScopeServices topLevelRegistry = BuildScopeServices.singleSession(globalRegistry, startParameter)
-        ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.createRootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
+        ProjectScopeServices projectRegistry = new ProjectScopeServices(topLevelRegistry, TestUtil.create(TestNameTestDirectoryProvider.newInstance()).rootProject(), topLevelRegistry.getFactory(LoggingManagerInternal))
 
         stopLater.add(projectRegistry)
         stopLater.add(topLevelRegistry)
         stopLater.add(globalRegistry)
 
+        // Need to load this early, since listener is registered in construction: otherwise it will be loaded in the middle of resolve
+        projectRegistry.get(GradleLauncherFactory)
         return projectRegistry.get(DependencyResolutionServices)
     }
 

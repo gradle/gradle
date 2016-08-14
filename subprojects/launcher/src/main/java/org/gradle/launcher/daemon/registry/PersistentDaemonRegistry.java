@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon.registry;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.specs.Spec;
 import org.gradle.cache.PersistentStateCache;
 import org.gradle.cache.internal.FileIntegrityViolationSuppressingPersistentStateCacheDecorator;
 import org.gradle.cache.internal.FileLockManager;
@@ -34,6 +35,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*;
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
 
 /**
  * Access to daemon registry files. Useful also for testing.
@@ -74,28 +78,39 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
     }
 
     public List<DaemonInfo> getIdle() {
-        lock.lock();
-        try {
-            List<DaemonInfo> out = new LinkedList<DaemonInfo>();
-            List<DaemonInfo> all = getAll();
-            for (DaemonInfo d : all) {
-                if (d.isIdle()) {
-                    out.add(d);
-                }
+        return getDaemonsMatching(new Spec<DaemonInfo>() {
+            @Override
+            public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
+                return daemonInfo.getState() == Idle;
             }
-            return out;
-        } finally {
-            lock.unlock();
-        }
+        });
     }
 
-    public List<DaemonInfo> getBusy() {
+    public List<DaemonInfo> getNotIdle() {
+        return getDaemonsMatching(new Spec<DaemonInfo>() {
+            @Override
+            public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
+                return daemonInfo.getState() != Idle;
+            }
+        });
+    }
+
+    public List<DaemonInfo> getCanceled() {
+        return getDaemonsMatching(new Spec<DaemonInfo>() {
+            @Override
+            public boolean isSatisfiedBy(DaemonInfo daemonInfo) {
+                return daemonInfo.getState() == Canceled;
+            }
+        });
+    }
+
+    private List<DaemonInfo> getDaemonsMatching(Spec<DaemonInfo> spec) {
         lock.lock();
         try {
             List<DaemonInfo> out = new LinkedList<DaemonInfo>();
             List<DaemonInfo> all = getAll();
             for (DaemonInfo d : all) {
-                if (!d.isIdle()) {
+                if (spec.isSatisfiedBy(d)) {
                     out.add(d);
                 }
             }
@@ -123,7 +138,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         }
     }
 
-    public void markBusy(final Address address) {
+    public void markState(final Address address, final State state) {
         lock.lock();
         LOGGER.debug("Marking busy by address: {}", address);
         try {
@@ -131,30 +146,11 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                 public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
                     DaemonInfo daemonInfo = oldValue != null ? oldValue.getInfo(address) : null;
                     if (daemonInfo != null) {
-                        daemonInfo.setIdle(false);
+                        daemonInfo.setState(state);
                     }
                     // Else, has been removed by something else - ignore
                     return oldValue;
                 }});
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public void markIdle(final Address address) {
-        lock.lock();
-        LOGGER.debug("Marking idle by address: {}", address);
-        try {
-            cache.update(new PersistentStateCache.UpdateAction<DaemonRegistryContent>() {
-                public DaemonRegistryContent update(DaemonRegistryContent oldValue) {
-                    DaemonInfo daemonInfo = oldValue != null ? oldValue.getInfo(address) : null;
-                    if (daemonInfo != null) {
-                        daemonInfo.setIdle(true);
-                    }
-                    // Else, has been removed by something else - ignore
-                    return oldValue;
-                }
-            });
         } finally {
             lock.unlock();
         }
@@ -216,7 +212,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
         final Address address = info.getAddress();
         final DaemonContext daemonContext = info.getContext();
         final byte[] token = info.getToken();
-        final boolean idle = info.isIdle();
+        final State state = info.getState();
 
         lock.lock();
         LOGGER.debug("Storing daemon address: {}, context: {}", address, daemonContext);
@@ -227,7 +223,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                         //it means the registry didn't exist yet
                         oldValue = new DaemonRegistryContent();
                     }
-                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, token, idle);
+                    DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, token, state);
                     oldValue.setStatus(address, daemonInfo);
                     return oldValue;
                 }

@@ -25,9 +25,18 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleMetaDataCa
 import org.gradle.api.internal.component.ArtifactType
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
-import org.gradle.internal.component.model.*
-import org.gradle.internal.resolve.result.*
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
+import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.model.ComponentArtifacts
+import org.gradle.internal.component.model.ComponentOverrideMetadata
+import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.ModuleSource
+import org.gradle.internal.resolve.result.BuildableArtifactResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleComponentMetaDataResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableModuleVersionListingResolveResult
 import org.gradle.internal.resource.cached.CachedArtifactIndex
 import org.gradle.internal.resource.cached.ivy.ArtifactAtRepositoryKey
 import org.gradle.util.BuildCommencedTimeProvider
@@ -107,7 +116,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         then:
         realLocalAccess.resolveComponentMetaData(componentId, prescribedMetaData, result) >> {
-            result.resolved(Mock(MutableModuleComponentResolveMetadata))
+            result.resolved(Mock(ModuleComponentResolveMetadata))
         }
         0 * _
     }
@@ -120,32 +129,31 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def result = new DefaultBuildableArtifactSetResolveResult()
 
         when:
-        repo.localAccess.resolveModuleArtifacts(component, artifactType, result)
+        repo.localAccess.resolveArtifactsWithType(component, artifactType, result)
 
         then:
         1 * component.getSource() >> cachingSource
         1 * component.withSource(source) >> component
-        realLocalAccess.resolveModuleArtifacts(component, artifactType, result) >> {
+        realLocalAccess.resolveArtifactsWithType(component, artifactType, result) >> {
             result.resolved([Mock(ComponentArtifactMetadata)])
         }
         0 * _
     }
 
-    def "does not use cache when artifacts for usage can be determined locally"() {
+    def "does not use cache when component artifacts can be determined locally"() {
         def component = Mock(ComponentResolveMetadata)
         def source = Mock(ModuleSource)
         def cachingSource = new CachingModuleComponentRepository.CachingModuleSource(BigInteger.ONE, false, source)
-        def componentUsage = Mock(ComponentUsage)
-        def result = new DefaultBuildableArtifactSetResolveResult()
+        def result = new DefaultBuildableComponentArtifactsResolveResult()
 
         when:
-        repo.localAccess.resolveModuleArtifacts(component, componentUsage, result)
+        repo.localAccess.resolveArtifacts(component, result)
 
         then:
         1 * component.getSource() >> cachingSource
         1 * component.withSource(source) >> component
-        realLocalAccess.resolveModuleArtifacts(component, componentUsage, result) >> {
-            result.resolved([Mock(ComponentArtifactMetadata)])
+        realLocalAccess.resolveArtifacts(component, result) >> {
+            result.resolved(Stub(ComponentArtifacts))
         }
         0 * _
     }

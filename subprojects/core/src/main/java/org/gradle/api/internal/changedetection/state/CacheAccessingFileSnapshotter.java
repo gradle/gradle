@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.hash.HashCode;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.Factory;
-import org.gradle.internal.hash.HashValue;
 import org.gradle.internal.resource.TextResource;
 
 import java.io.File;
@@ -64,10 +64,10 @@ public class CacheAccessingFileSnapshotter implements FileSnapshotter {
     }
 
     @Override
-    public HashValue hash(final File file) {
-        return cacheAccess.useCache("hash(File)", new Factory<HashValue>() {
+    public HashCode hash(final File file) {
+        return cacheAccess.useCache("hash(File)", new Factory<HashCode>() {
             @Override
-            public HashValue create() {
+            public HashCode create() {
                 return delegate.hash(file);
             }
         });

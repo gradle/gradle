@@ -33,9 +33,7 @@ public class InMemoryCachedRepositoryFactory implements Stoppable {
 
     private final static Logger LOG = Logging.getLogger(InMemoryCachedRepositoryFactory.class);
 
-    Map<String, InMemoryModuleComponentRepositoryCaches> cachePerRepo = new MapMaker().makeMap();
-
-    final InMemoryCacheStats stats = new InMemoryCacheStats();
+    private final Map<String, InMemoryModuleComponentRepositoryCaches> cachePerRepo = new MapMaker().makeMap();
 
     public ModuleComponentRepository cached(ModuleComponentRepository input) {
         if ("false".equalsIgnoreCase(System.getProperty(TOGGLE_PROPERTY))) {
@@ -43,11 +41,9 @@ public class InMemoryCachedRepositoryFactory implements Stoppable {
         }
 
         InMemoryModuleComponentRepositoryCaches caches = cachePerRepo.get(input.getId());
-        stats.reposWrapped++;
         if (caches == null) {
             LOG.debug("Creating new in-memory cache for repo '{}' [{}].", input.getName(), input.getId());
-            caches = new InMemoryModuleComponentRepositoryCaches(stats);
-            stats.cacheInstances++;
+            caches = new InMemoryModuleComponentRepositoryCaches();
             cachePerRepo.put(input.getId(), caches);
         } else {
             LOG.debug("Reusing in-memory cache for repo '{}' [{}].", input.getName(), input.getId());
@@ -57,6 +53,5 @@ public class InMemoryCachedRepositoryFactory implements Stoppable {
 
     public void stop() {
         cachePerRepo.clear();
-        LOG.debug("In-memory dependency metadata cache closed. {}", stats);
     }
 }

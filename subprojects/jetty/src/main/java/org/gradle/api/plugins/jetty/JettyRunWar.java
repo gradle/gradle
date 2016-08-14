@@ -31,7 +31,10 @@ import java.util.List;
  * <p>Deploys a WAR to an embedded Jetty web container.</p>
  *
  * <p> Once started, the web container can be configured to run continuously, scanning for changes to the war file and automatically performing a hot redeploy when necessary. </p>
+ *
+ * @deprecated The Jetty plugin has been deprecated
  */
+@Deprecated
 public class JettyRunWar extends AbstractJettyRunTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(JettyRunWar.class);
 

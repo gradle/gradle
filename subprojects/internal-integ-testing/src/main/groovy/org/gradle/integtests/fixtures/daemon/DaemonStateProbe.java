@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.daemon;
 
+import org.gradle.launcher.daemon.server.api.DaemonStateControl;
+
 public interface DaemonStateProbe {
-    TestableDaemon.State getCurrentState();
+    DaemonStateControl.State getCurrentState();
 }

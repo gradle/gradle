@@ -16,7 +16,15 @@
 
 package org.gradle.test.fixtures.ivy
 
+import groovy.transform.Canonical
+
+@Canonical
 class IvyDescriptorDependencyExclusion {
     String org
     String module
+    String name
+    String type
+    String ext
+    String conf
+    String matcher
 }

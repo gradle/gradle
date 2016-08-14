@@ -32,6 +32,7 @@ import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
@@ -101,11 +102,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * }
      * </pre>
      *
-     * @deprecated Use {@link Checkstyle#reports(Action)} instead
      * @param closure The configuration
      * @return The reports container
      */
-    @Deprecated
     public CheckstyleReports reports(@DelegatesTo(value=CheckstyleReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
         return reports(new ClosureBackedAction<CheckstyleReports>(closure));
     }
@@ -142,6 +141,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * The class path containing the Checkstyle library to be used.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getCheckstyleClasspath() {
         return checkstyleClasspath;
@@ -154,6 +154,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * The class path containing the compiled classes for the source files to be analyzed.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
@@ -228,15 +229,6 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @return true if violations should be displayed on console
      */
     @Console
-    public boolean getShowViolations() {
-        return showViolations;
-    }
-
-    /**
-     * Whether or not rule violations are to be displayed on the console.
-     *
-     * @return true if violations should be displayed on console
-     */
     public boolean isShowViolations() {
         return showViolations;
     }

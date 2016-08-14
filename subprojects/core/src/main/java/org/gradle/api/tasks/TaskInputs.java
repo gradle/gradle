@@ -27,7 +27,7 @@ import java.util.Map;
  * <p>You can obtain a {@code TaskInputs} instance using {@link org.gradle.api.Task#getInputs()}.</p>
  */
 @HasInternalProtocol
-public interface TaskInputs {
+public interface TaskInputs extends CompatibilityAdapterForTaskInputs {
     /**
      * Returns true if this task has declared the inputs that it consumes.
      *
@@ -46,7 +46,7 @@ public interface TaskInputs {
      * Registers some input files for this task.
      *
      * @param paths The input files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * @return this
+     * @return a property builder to further configure the property.
      */
     TaskInputFilePropertyBuilder files(Object... paths);
 
@@ -54,7 +54,7 @@ public interface TaskInputs {
      * Registers some input file for this task.
      *
      * @param path The input file. The given path is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
-     * @return this
+     * @return a property builder to further configure the property.
      */
     TaskInputFilePropertyBuilder file(Object path);
 
@@ -63,7 +63,7 @@ public interface TaskInputs {
      * this task.
      *
      * @param dirPath The directory. The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
-     * @return this
+     * @return a property builder to further configure the property.
      */
     TaskInputFilePropertyBuilder dir(Object dirPath);
 

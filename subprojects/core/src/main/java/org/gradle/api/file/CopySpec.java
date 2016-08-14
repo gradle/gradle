@@ -148,6 +148,17 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     CopySpec filesMatching(String pattern, Action<? super FileCopyDetails> action);
 
     /**
+     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path matches any of the specified Ant-style patterns.
+     * This is equivalent to using eachFile() and selectively applying a configuration based on the file's path.
+     *
+     * @param patterns Ant-style patterns used to match against files' relative paths
+     * @param action action called for the FileCopyDetails of each file matching pattern
+     * @return this
+     */
+    @Incubating
+    CopySpec filesMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action);
+
+    /**
      * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match the specified
      * Ant-style pattern. This is equivalent to using eachFile() and selectively applying a configuration based on the
      * file's path.
@@ -158,6 +169,18 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      */
     @Incubating
     CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action);
+
+    /**
+     * Configure the {@link org.gradle.api.file.FileCopyDetails} for each file whose path does not match any of the specified
+     * Ant-style patterns. This is equivalent to using eachFile() and selectively applying a configuration based on the
+     * file's path.
+     *
+     * @param patterns Ant-style patterns used to match against files' relative paths
+     * @param action action called for the FileCopyDetails of each file that does not match any pattern
+     * @return this
+     */
+    @Incubating
+    CopySpec filesNotMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action);
 
     /**
      * Adds the given specs as a child of this spec.
@@ -195,7 +218,7 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      */
-    CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction);
+    CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction);
 
     // PatternFilterable overrides to broaden return type
 
@@ -280,13 +303,10 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * Creates and configures a child {@code CopySpec} with the given destination path.
      * The destination is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
-     * @deprecated Use {@link #into(Object, Action)} instead
-     *
      * @param destPath Path to the destination directory for a Copy
      * @param configureClosure The closure to use to configure the child {@code CopySpec}.
      * @return this
      */
-    @Deprecated
     CopySpec into(Object destPath, Closure configureClosure);
 
     /**

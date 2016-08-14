@@ -292,6 +292,7 @@ public class DefaultTaskExecutionPlan implements TaskExecutionPlan {
             } else {
                 // Have visited this task's dependencies - add it to the end of the plan
                 nodeQueue.remove(0);
+                maybeRemoveProcessedShouldRunAfterEdge(walkedShouldRunAfterEdges, taskNode);
                 visitingNodes.remove(taskNode, currentSegment);
                 path.pop();
                 executionPlan.put(taskNode.getTask(), taskNode);

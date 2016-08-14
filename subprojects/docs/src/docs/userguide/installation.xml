@@ -45,7 +45,7 @@
     <listitem><para>The Gradle binaries.</para></listitem>
     <listitem><para>The user guide (HTML and PDF).</para></listitem>
     <listitem><para>The DSL reference guide.</para></listitem>
-    <listitem><para>The API documentation (Javadoc and Groovydoc).</para></listitem>
+    <listitem><para>The API documentation (Javadoc).</para></listitem>
     <listitem>
         <para>Extensive samples, including the examples referenced in the user guide, along with some complete and more
             complex builds you can use as a starting point for your own build.

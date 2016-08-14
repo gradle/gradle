@@ -16,18 +16,21 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 
+/**
+ * Collects all artifacts.
+ */
 public class DefaultResolvedArtifactsBuilder implements ResolvedArtifactsBuilder {
     private final DefaultResolvedArtifactResults artifactResults = new DefaultResolvedArtifactResults();
 
-    public void visitArtifacts(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, ArtifactSet artifactSet) {
-        artifactResults.addArtifactSet(artifactSet);
+    @Override
+    public void visitArtifacts(DependencyGraphNode parent, DependencyGraphNode child, ArtifactSet artifacts) {
+        artifactResults.addArtifactSet(artifacts);
     }
 
     @Override
     public void finishArtifacts() {
-
     }
 
     @Override

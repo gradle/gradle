@@ -25,7 +25,6 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -571,7 +570,7 @@ class ResolverProviderComponentMetaDataResolverTest extends Specification {
     }
 
     def metaData(String version) {
-        return Stub(MutableModuleComponentResolveMetadata) {
+        return Stub(ModuleComponentResolveMetadata) {
             toString() >> version
             getId() >> DefaultModuleVersionIdentifier.newId("org", "module", version)
             getDescriptor() >> descriptor(version)

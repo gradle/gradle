@@ -47,7 +47,7 @@ buildTypes {
 
     // Used by the first phase of the build pipeline, running only last version on multiversion - tests
     quickTest {
-        tasks "runtimeTests", "runtimeIntegTests", "performance:test"
+        tasks "runtimeTests", "runtimeIntegTests"
     }
 
     // Used for builds to run all tests, but not necessarily on all platforms
@@ -58,7 +58,7 @@ buildTypes {
 
     // Used for builds to test the code on certain platforms
     platformTest {
-        tasks "runtimeTests", "runtimeForkingIntegTests", "performance:test"
+        tasks "runtimeTests", "runtimeForkingIntegTests"
         projectProperties useIncomingDistributions: true, testAllVersions: true, testAllPlatforms: true
     }
 
@@ -74,15 +74,33 @@ buildTypes {
         projectProperties useIncomingDistributions: true
     }
 
-    // Run the performance tests
-    performanceTest {
+    performanceTests {
         tasks "performance:performanceTest"
         projectProperties useIncomingDistributions: true
     }
 
-    // Run the performance experiments
     performanceExperiments {
         tasks "performance:performanceExperiments"
+        projectProperties useIncomingDistributions: true
+    }
+
+    fullPerformanceTests {
+        tasks "performance:fullPerformanceTest"
+        projectProperties useIncomingDistributions: true
+    }
+
+    distributedPerformanceTests {
+        tasks "performance:distributedPerformanceTest"
+        projectProperties useIncomingDistributions: true
+    }
+
+    distributedPerformanceExperiments {
+        tasks "performance:distributedPerformanceExperiment"
+        projectProperties useIncomingDistributions: true
+    }
+
+    distributedFullPerformanceTests {
+        tasks "performance:distributedFullPerformanceTest"
         projectProperties useIncomingDistributions: true
     }
 
@@ -147,7 +165,7 @@ ext {
         }
     }
 
-    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance"] }
+    internalProjects = subprojects.findAll { it.name.startsWith("internal") || it.name in ["integTest", "distributions", "performance", "buildScanPerformance"] }
     groovyProjects = subprojects
     publicGroovyProjects = groovyProjects - internalProjects
     pluginProjects = [
@@ -157,7 +175,7 @@ ext {
         'platformJvm', 'languageJvm', 'languageJava', 'languageGroovy', 'languageScala',
         'platformNative', 'platformPlay', 'idePlay', 'languageNative', 'ideNative', 'testingBase',
         'testingNative', 'testingJvm', 'pluginDevelopment', 'pluginUse', 'resourcesHttp',
-        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders'
+        'resourcesSftp', 'resourcesS3', 'toolingApiBuilders', 'compositeBuilds', 'taskCacheHttp'
     ].collect {
         project(it)
     }
@@ -189,6 +207,7 @@ apply from: "gradle/testSetup.gradle"
 apply from: "gradle/taskOrdering.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 apply from: 'gradle/customM2Check.gradle'
+apply from: 'gradle/buildTagging.gradle'
 
 allprojects {
     group = 'org.gradle'
@@ -254,7 +273,7 @@ def patchedExternalModules = fileTree(patchedExternalModulesDir) {
 }
 
 dependencies {
-    externalModules 'org.gradle:gradle-script-kotlin:0.2.1'
+    externalModules 'org.gradle:gradle-script-kotlin:0.3.0'
     coreRuntime project(':launcher')
     runtime project(':wrapper')
     runtime project(":installationBeacon")

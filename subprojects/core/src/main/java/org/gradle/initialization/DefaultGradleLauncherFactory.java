@@ -27,6 +27,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.internal.composite.CompositeBuildSettingsLoader;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.progress.BuildOperationExecutor;
@@ -71,46 +72,55 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     @Override
-    public GradleLauncher newInstance(StartParameter startParameter) {
-        return newInstance(startParameter, sharedServices);
+    public GradleLauncher nestedInstance(StartParameter startParameter) {
+        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(sharedServices, startParameter);
+        return createChildInstance(startParameter, buildScopeServices);
     }
 
-    public GradleLauncher newInstance(StartParameter startParameter, ServiceRegistry parentRegistry) {
-        BuildRequestMetaData requestMetaData;
-        BuildCancellationToken cancellationToken;
-        BuildEventConsumer buildEventConsumer;
-        if (tracker.getCurrentBuild() != null) {
-            ServiceRegistry services = tracker.getCurrentBuild().getServices();
-            requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class), System.currentTimeMillis());
-            cancellationToken = services.get(BuildCancellationToken.class);
-            buildEventConsumer = services.get(BuildEventConsumer.class);
-        } else {
-            requestMetaData = new DefaultBuildRequestMetaData(System.currentTimeMillis());
-            cancellationToken = new DefaultBuildCancellationToken();
-            buildEventConsumer = new NoOpBuildEventConsumer();
+    public GradleLauncher nestedInstance(StartParameter startParameter, ServiceRegistry buildSessionServices) {
+        final BuildScopeServices buildScopeServices = createBuildScopeServices(buildSessionServices);
+
+        return createChildInstance(startParameter, buildScopeServices);
+    }
+
+    private GradleLauncher createChildInstance(StartParameter startParameter, BuildScopeServices buildScopeServices) {
+        if (tracker.getCurrentBuild() == null) {
+            throw new IllegalStateException("Must have a current build");
         }
 
-        final BuildScopeServices buildScopeServices = BuildScopeServices.singleSession(parentRegistry, startParameter);
-        return doNewInstance(startParameter, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
+        ServiceRegistry services = tracker.getCurrentBuild().getServices();
+        BuildRequestMetaData requestMetaData = new DefaultBuildRequestMetaData(services.get(BuildClientMetaData.class), System.currentTimeMillis());
+        BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
+        BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
+
+        return doNewInstance(startParameter, false, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 
     @Override
     public GradleLauncher newInstance(StartParameter startParameter, BuildRequestContext requestContext, ServiceRegistry parentRegistry) {
         // This should only be used for top-level builds
-        assert tracker.getCurrentBuild() == null;
-
-        if (!(parentRegistry instanceof BuildSessionScopeServices)) {
-            throw new IllegalArgumentException("Service registry must be of build session scope");
+        if (tracker.getCurrentBuild() != null) {
+            throw new IllegalStateException("Cannot have a current build");
         }
 
-        BuildScopeServices buildScopeServices = BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
-        DefaultGradleLauncher launcher = doNewInstance(startParameter, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
+        BuildScopeServices buildScopeServices = createBuildScopeServices(parentRegistry);
+
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, true, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
         return launcher;
     }
 
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry) {
+    private BuildScopeServices createBuildScopeServices(ServiceRegistry parentRegistry) {
+        if (!(parentRegistry instanceof BuildSessionScopeServices)) {
+            throw new IllegalArgumentException("Service registry must be of build session scope");
+        }
+
+        return BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
+    }
+
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, boolean processComposite,
+                                                BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry) {
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         serviceRegistry.add(BuildEventConsumer.class, buildEventConsumer);
@@ -138,11 +148,16 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(usageLocationReporter);
         DeprecationLogger.useLocationReporter(usageLocationReporter);
 
+        SettingsLoader settingsLoader = serviceRegistry.get(SettingsLoader.class);
+        if (processComposite) {
+            settingsLoader = new CompositeBuildSettingsLoader(settingsLoader, serviceRegistry);
+        }
+
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
         return new DefaultGradleLauncher(
             gradle,
             serviceRegistry.get(InitScriptHandler.class),
-            serviceRegistry.get(SettingsLoader.class),
+            settingsLoader,
             serviceRegistry.get(BuildConfigurer.class),
             serviceRegistry.get(ExceptionAnalyser.class),
             loggingManager,

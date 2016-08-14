@@ -12,6 +12,7 @@ dependencies {
 
 // START SNIPPET groovy-cross-compilation
 sourceCompatibility = 1.6
+targetCompatibility = 1.6
 
 assert hasProperty('java6Home') : "Set the property 'java6Home' in your your gradle.properties pointing to a Java 6 installation"
 def javaExecutablesPath = new File(java6Home, 'bin')

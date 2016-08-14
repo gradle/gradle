@@ -45,6 +45,10 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         this.dynamicTarget = DynamicObjectUtil.asDynamicObject(target);
     }
 
+    protected DynamicObject getDynamicTarget() {
+        return dynamicTarget;
+    }
+
     public StandardOutputCapture getStandardOutputCapture() {
         return standardOutputCapture;
     }
@@ -55,7 +59,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         } else if ("scriptTarget".equals(property)) {
             setScriptTarget(newValue);
         } else {
-            dynamicTarget.setProperty(property, newValue);
+            getDynamicTarget().setProperty(property, newValue);
         }
     }
 
@@ -63,20 +67,20 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         if ("out".equals(property)) {
             return System.out;
         } else {
-            return dynamicTarget.getProperty(property);
+            return getDynamicTarget().getProperty(property);
         }
     }
 
     public Map<String, ?> getProperties() {
-        return dynamicTarget.getProperties();
+        return getDynamicTarget().getProperties();
     }
 
     public boolean hasProperty(String property) {
-        return dynamicTarget.hasProperty(property);
+        return getDynamicTarget().hasProperty(property);
     }
 
     public Object methodMissing(String name, Object params) {
-        return dynamicTarget.invokeMethod(name, (Object[])params);
+        return getDynamicTarget().invokeMethod(name, (Object[])params);
     }
 }
 

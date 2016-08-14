@@ -66,7 +66,7 @@ public class VisualStudioProjectConfiguration {
 
     private String taskPath(final String taskName) {
         final String projectPath = binary.getComponent().getProjectPath();
-        if (projectPath.equals(":")) {
+        if (":".equals(projectPath)) {
             return ":" + taskName;
         }
 
@@ -78,7 +78,7 @@ public class VisualStudioProjectConfiguration {
     }
 
     public boolean isDebug() {
-        return !binary.getBuildType().getName().equals("release");
+        return !"release".equals(binary.getBuildType().getName());
     }
 
     public List<String> getCompilerDefines() {

@@ -78,7 +78,10 @@
         </para>
         <para>
             You install the Wrapper into your project by running the <literal>wrapper</literal> task. (This task is always available, even if
-            you don't add it to your build). To specify a Gradle version use <literal>--gradle-version</literal> on the command-line.
+            you don't add it to your build).
+            To specify a Gradle version use <literal>--gradle-version</literal> on the command-line. By default, the Wrapper will use a <literal>bin</literal> distribution.
+            This is the smallest Gradle distribution. Some tools, like Android Studio and Intellij IDEA, provide additional context information when used with the <literal>all</literal> distribution.
+            You may select a different Gradle distribution type by using <literal>--distribution-type</literal>.
             You can also set the URL to download Gradle from directly via <literal>--gradle-distribution-url</literal>. If no version or distribution
             URL is specified, the Wrapper will be configured to use the gradle version the <literal>wrapper</literal> task is executed with.
             So if you run the <literal>wrapper</literal> task with Gradle 2.4, then the Wrapper configuration will default to version 2.4.

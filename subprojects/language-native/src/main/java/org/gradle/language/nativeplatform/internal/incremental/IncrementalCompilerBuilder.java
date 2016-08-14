@@ -33,7 +33,7 @@ public class IncrementalCompilerBuilder {
         this.compilationStateCacheFactory = compilationStateCacheFactory;
     }
 
-    public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain) {
-        return new IncrementalNativeCompiler<T>(task, cacheAccess, fileSnapshotter, compilationStateCacheFactory, compiler, toolchain);
+    public <T extends NativeCompileSpec> Compiler<T> createIncrementalCompiler(TaskInternal task, Compiler<T> compiler, NativeToolChain toolchain, String outputDirProperty) {
+        return new IncrementalNativeCompiler<T>(task, cacheAccess, fileSnapshotter, compilationStateCacheFactory, compiler, toolchain, outputDirProperty);
     }
 }

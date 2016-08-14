@@ -16,19 +16,20 @@
 
 
 package org.gradle.api.publish.maven.internal.artifact
+
 import org.gradle.api.Task
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.internal.typeconversion.NotationParser
 import org.gradle.api.publish.maven.MavenArtifact
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.typeconversion.NotationParser
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-public class MavenArtifactNotationParserFactoryTest extends Specification {
+public class MavenArtifactNotationParserFactoryTest extends AbstractProjectBuilderSpec {
     Instantiator instantiator = DirectInstantiator.INSTANCE
     def taskDependency = Mock(TaskDependency)
     def fileNotationParser = Mock(NotationParser)
@@ -119,7 +120,7 @@ public class MavenArtifactNotationParserFactoryTest extends Specification {
 
     def "creates MavenArtifact for ArchivePublishArtifact"() {
         when:
-        def rootProject = TestUtil.createRootProject()
+        def rootProject = TestUtil.createRootProject(temporaryFolder.testDirectory)
         def archive = rootProject.task('foo', type: Jar, {})
         archive.setBaseName("baseName")
         archive.setExtension(archiveExtension)

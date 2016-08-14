@@ -36,7 +36,9 @@ import java.util.Map;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.gradle.internal.UncheckedException.throwAsUncheckedException;
 
-//TODO SF unit coverage
+/**
+ * Serializes the transient parts of the resolved configuration results.
+ */
 public class TransientConfigurationResultsBuilder {
 
     private final static Logger LOG = Logging.getLogger(TransientConfigurationResultsBuilder.class);
@@ -58,36 +60,46 @@ public class TransientConfigurationResultsBuilder {
         this.cache = cache;
     }
 
-    private void writeId(final byte type, final ResolvedConfigurationIdentifier... ids) {
+    public void resolvedDependency(final Long id, final ResolvedConfigurationIdentifier details) {
         binaryStore.write(new BinaryStore.WriteAction() {
+            @Override
             public void write(Encoder encoder) throws IOException {
-                encoder.writeByte(type);
-                for (ResolvedConfigurationIdentifier id : ids) {
-                    resolvedConfigurationIdentifierSerializer.write(encoder, id);
-                }
+                encoder.writeByte(NEW_DEP);
+                encoder.writeSmallLong(id);
+                resolvedConfigurationIdentifierSerializer.write(encoder, details);
             }
         });
     }
 
-    public void resolvedDependency(ResolvedConfigurationIdentifier id) {
-        writeId(NEW_DEP, id);
-    }
-
-    public void done(ResolvedConfigurationIdentifier id) {
-        writeId(ROOT, id);
+    public void done(final Long id) {
+        binaryStore.write(new BinaryStore.WriteAction() {
+            @Override
+            public void write(Encoder encoder) throws IOException {
+                encoder.writeByte(ROOT);
+                encoder.writeSmallLong(id);
+            }
+        });
         LOG.debug("Flushing resolved configuration data in {}. Wrote root {}.", binaryStore, id);
         binaryData = binaryStore.done();
     }
 
-    public void firstLevelDependency(ResolvedConfigurationIdentifier id) {
-        writeId(FIRST_LVL, id);
+    public void firstLevelDependency(final Long id) {
+        binaryStore.write(new BinaryStore.WriteAction() {
+            @Override
+            public void write(Encoder encoder) throws IOException {
+                encoder.writeByte(FIRST_LVL);
+                encoder.writeSmallLong(id);
+            }
+        });
     }
 
-    public void parentChildMapping(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, final long artifactId) {
-        writeId(PARENT_CHILD, parent, child);
+    public void parentChildMapping(final Long parent, final Long child, final long artifactId) {
         binaryStore.write(new BinaryStore.WriteAction() {
             public void write(Encoder encoder) throws IOException {
-                encoder.writeLong(artifactId);
+                encoder.writeByte(PARENT_CHILD);
+                encoder.writeSmallLong(parent);
+                encoder.writeSmallLong(child);
+                encoder.writeSmallLong(artifactId);
             }
         });
     }
@@ -116,22 +128,23 @@ public class TransientConfigurationResultsBuilder {
 
     private TransientConfigurationResults deserialize(Decoder decoder, ResolvedContentsMapping mapping) {
         Clock clock = new Clock();
-        Map<ResolvedConfigurationIdentifier, DefaultResolvedDependency> allDependencies = new HashMap<ResolvedConfigurationIdentifier, DefaultResolvedDependency>();
+        Map<Long, DefaultResolvedDependency> allDependencies = new HashMap<Long, DefaultResolvedDependency>();
         DefaultTransientConfigurationResults results = new DefaultTransientConfigurationResults();
         int valuesRead = 0;
         byte type = -1;
         try {
             while (true) {
                 type = decoder.readByte();
-                ResolvedConfigurationIdentifier id;
+                long id;
                 valuesRead++;
                 switch (type) {
                     case NEW_DEP:
-                        id = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        allDependencies.put(id, new DefaultResolvedDependency(id.getId(), id.getConfiguration()));
+                        id = decoder.readSmallLong();
+                        ResolvedConfigurationIdentifier details = resolvedConfigurationIdentifierSerializer.read(decoder);
+                        allDependencies.put(id, new DefaultResolvedDependency(details.getId(), details.getConfiguration()));
                         break;
                     case ROOT:
-                        id = resolvedConfigurationIdentifierSerializer.read(decoder);
+                        id = decoder.readSmallLong();
                         results.root = allDependencies.get(id);
                         if (results.root == null) {
                             throw new IllegalStateException(String.format("Unexpected root id %s. Seen ids: %s", id, allDependencies.keySet()));
@@ -140,7 +153,7 @@ public class TransientConfigurationResultsBuilder {
                         LOG.debug("Loaded resolved configuration results ({}) from {}", clock.getTime(), binaryStore);
                         return results;
                     case FIRST_LVL:
-                        id = resolvedConfigurationIdentifierSerializer.read(decoder);
+                        id = decoder.readSmallLong();
                         DefaultResolvedDependency dependency = allDependencies.get(id);
                         if (dependency == null) {
                             throw new IllegalStateException(String.format("Unexpected first level id %s. Seen ids: %s", id, allDependencies.keySet()));
@@ -148,8 +161,8 @@ public class TransientConfigurationResultsBuilder {
                         results.firstLevelDependencies.put(mapping.getModuleDependency(id), dependency);
                         break;
                     case PARENT_CHILD:
-                        ResolvedConfigurationIdentifier parentId = resolvedConfigurationIdentifierSerializer.read(decoder);
-                        ResolvedConfigurationIdentifier childId = resolvedConfigurationIdentifierSerializer.read(decoder);
+                        long parentId = decoder.readSmallLong();
+                        long childId = decoder.readSmallLong();
                         DefaultResolvedDependency parent = allDependencies.get(parentId);
                         DefaultResolvedDependency child = allDependencies.get(childId);
                         if (parent == null) {
@@ -159,7 +172,7 @@ public class TransientConfigurationResultsBuilder {
                             throw new IllegalStateException(String.format("Unexpected child dependency id %s. Seen ids: %s", childId, allDependencies.keySet()));
                         }
                         parent.addChild(child);
-                        child.addParentSpecificArtifacts(parent, newHashSet(mapping.getArtifacts(decoder.readLong())));
+                        child.addParentSpecificArtifacts(parent, newHashSet(mapping.getArtifacts(decoder.readSmallLong())));
                         break;
                     default:
                         throw new IOException("Unknown value type read from stream: " + type);

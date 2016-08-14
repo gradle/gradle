@@ -23,12 +23,13 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.FilesSnapshotSet
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.SimpleFileCollection
 import org.gradle.api.internal.tasks.TaskFilePropertySpec
+import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
 import spock.lang.Issue
@@ -59,9 +60,7 @@ class TaskUpToDateStateTest extends Specification {
 
     def "constructor invokes snapshots" () {
         setup:
-        FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot) {
-            _ * getSnapshot() >> Stub(FilesSnapshotSet)
-        }
+        FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot)
         OutputFilesCollectionSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
         FileCollectionSnapshotter mockDiscoveredInputFileSnapshotter = Mock(FileCollectionSnapshotter)
@@ -127,14 +126,16 @@ class TaskUpToDateStateTest extends Specification {
         return props.collect { entry ->
             return new PropertySpec(
                 propertyName: entry.key,
-                propertyFiles: new SimpleFileCollection([new File(entry.value)])
+                propertyFiles: new SimpleFileCollection([new File(entry.value)]),
+                compareType: TaskFilePropertyCompareType.UNORDERED
             )
         } as SortedSet
     }
 
-    private static class PropertySpec implements TaskFilePropertySpec {
+    private static class PropertySpec implements TaskInputFilePropertySpec {
         String propertyName
         FileCollection propertyFiles
+        TaskFilePropertyCompareType compareType
 
         @Override
         int compareTo(TaskPropertySpec o) {

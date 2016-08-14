@@ -18,22 +18,26 @@ package org.gradle.tooling.internal.adapter;
 
 import java.lang.reflect.Type;
 
-public class MethodInvocation {
+class MethodInvocation {
     private final Object[] parameters;
     private final Class returnType;
     private final Type genericReturnType;
     private final String name;
     private final Class<?>[] parameterTypes;
+    private final Object view;
+    private final Class<?> viewType;
+    private final Object delegate;
 
     private Object result;
     private boolean found;
-    private Object delegate;
 
-    MethodInvocation(String name, Class returnType, Type genericReturnType, Class<?>[] parameterTypes, Object delegate, Object[] parameters) {
+    MethodInvocation(String name, Class returnType, Type genericReturnType, Class<?>[] parameterTypes, Object view, Class<?> viewType, Object delegate, Object[] parameters) {
         this.name = name;
         this.returnType = returnType;
         this.genericReturnType = genericReturnType;
         this.parameterTypes = parameterTypes;
+        this.view = view;
+        this.viewType = viewType;
         this.delegate = delegate;
         this.parameters = parameters;
     }
@@ -80,6 +84,14 @@ public class MethodInvocation {
 
     public boolean found() {
         return found;
+    }
+
+    public Class<?> getViewType() {
+        return viewType;
+    }
+
+    public Object getView() {
+        return view;
     }
 
     public Object getDelegate() {

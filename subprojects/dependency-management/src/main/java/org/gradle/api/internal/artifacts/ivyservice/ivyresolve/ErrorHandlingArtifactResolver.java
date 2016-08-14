@@ -15,15 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ComponentUsage;
-import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 
 public class ErrorHandlingArtifactResolver implements ArtifactResolver {
     private final ArtifactResolver resolver;
@@ -32,22 +32,25 @@ public class ErrorHandlingArtifactResolver implements ArtifactResolver {
         this.resolver = resolver;
     }
 
-    public void resolveModuleArtifacts(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    @Override
+    public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         try {
-            resolver.resolveModuleArtifacts(component, artifactType, result);
+            resolver.resolveArtifactsWithType(component, artifactType, result);
         } catch (Throwable t) {
             result.failed(new ArtifactResolveException(component.getComponentId(), t));
         }
     }
 
-    public void resolveModuleArtifacts(ComponentResolveMetadata component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+    @Override
+    public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
         try {
-            resolver.resolveModuleArtifacts(component, usage, result);
+            resolver.resolveArtifacts(component, result);
         } catch (Throwable t) {
             result.failed(new ArtifactResolveException(component.getComponentId(), t));
         }
     }
 
+    @Override
     public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSource moduleSource, BuildableArtifactResolveResult result) {
         try {
             resolver.resolveArtifact(artifact, moduleSource, result);

@@ -42,8 +42,8 @@ import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
-import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
@@ -135,7 +135,7 @@ public class IdeaPlugin extends IdePlugin {
         }
     }
 
-    private static ComponentArtifactMetadata createImlArtifact(ProjectComponentIdentifier projectId, Project project) {
+    private static LocalComponentArtifactMetadata createImlArtifact(ProjectComponentIdentifier projectId, Project project) {
         String moduleName = project.getExtensions().getByType(IdeaModel.class).getModule().getName();
         File imlFile = new File(project.getProjectDir(), moduleName + ".iml");
         String taskName = project.getPath().equals(":") ? ":ideaModule" : project.getPath() + ":ideaModule";

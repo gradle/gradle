@@ -17,11 +17,11 @@ package org.gradle.api.tasks.application
 
 import org.gradle.api.internal.plugins.UnixStartScriptGenerator
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class CreateStartScriptsTest extends Specification {
-    final CreateStartScripts task = TestUtil.createTask(CreateStartScripts.class)
+class CreateStartScriptsTest extends AbstractProjectBuilderSpec {
+    final CreateStartScripts task = TestUtil.create(temporaryFolder).task(CreateStartScripts.class)
 
     def "uses default start script generators"() {
         expect:
@@ -39,7 +39,7 @@ class CreateStartScriptsTest extends Specification {
         task.unixScript == new File(task.outputDir, 'myApp')
         task.windowsScript == new File(task.outputDir, 'myApp.bat')
     }
-    
+
     def optsEnvironmentVariableNameDefaultsToApplicationName() {
         when:
         task.applicationName = null

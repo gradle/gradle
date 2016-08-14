@@ -82,7 +82,7 @@ public class Upload extends ConventionTask {
     /**
      * Returns the path to generate the dependency descriptor to.
      */
-    @Optional @OutputFile
+    @Internal
     public File getDescriptorDestination() {
         return descriptorDestination;
     }

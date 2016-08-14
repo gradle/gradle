@@ -21,17 +21,13 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.FileTreeElementComparator;
-import org.gradle.api.internal.file.FileTreeElementHasher;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.options.Option;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
@@ -70,6 +66,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.ParallelizableTask;
 import org.gradle.api.tasks.TaskAction;
@@ -102,9 +99,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.concurrent.Callable;
 
 /**
  * Executes JUnit (3.8.x or 4.x) or TestNG tests. Test are always run in (one or more) separate JVMs.
@@ -191,8 +185,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         reports.getHtml().setEnabled(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
-
-        addCandidateClassFilesHashProperty();
     }
 
     @Inject
@@ -1037,6 +1029,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Returns the classpath to use to execute the tests.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
@@ -1113,32 +1106,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return getProject().fileTree(getTestClassesDir()).matching(patternSet);
     }
 
-    private void addCandidateClassFilesHashProperty() {
-        // force tests to run when the set of candidate class files changes
-        getInputs().property("candidateClassFilesHash", new Callable<Integer>() {
-            Integer candidateClassFilesHash;
-
-            @Override
-            public Integer call() throws Exception {
-                if (candidateClassFilesHash == null) {
-                    candidateClassFilesHash = calculateCandidateClassFilesHash();
-                }
-                return candidateClassFilesHash;
-            }
-        });
-    }
-
-    private Integer calculateCandidateClassFilesHash() {
-        final SortedSet<FileTreeElement> sortedFiles = new TreeSet<FileTreeElement>(FileTreeElementComparator.INSTANCE);
-        getCandidateClassFiles().visit(new EmptyFileVisitor() {
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                sortedFiles.add(fileDetails);
-            }
-        });
-        return FileTreeElementHasher.calculateHashForFilePaths(sortedFiles);
-    }
-
     /**
      * Allows to set options related to which test events are logged to the console, and on which detail level. For example, to show more information about exceptions use:
      *
@@ -1181,13 +1148,10 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Configures the reports that this task potentially produces.
      *
-     * @deprecated Use {@link #reports(Action)} instead
-     *
      * @param closure The configuration
      * @return The reports that this task potentially produces
      */
     @Override
-    @Deprecated
     public TestTaskReports reports(Closure closure) {
         return reports(new ClosureBackedAction<TestTaskReports>(closure));
     }

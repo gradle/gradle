@@ -78,7 +78,7 @@ public class CompositeAwareModelProducer extends HasCompatibilityMapping impleme
                     GradleConnectionException failure = exceptionTransformer.transform((Throwable) modelValue);
                     models.add(new DefaultFailedModelResult<T>(projectIdentifier, failure));
                 } else {
-                    T modelResult = adapter.adapt(elementType, modelValue, getCompatibilityMapping(projectIdentifier));
+                    T modelResult = applyCompatibilityMapping(adapter.builder(elementType), projectIdentifier).build(modelValue);
                     models.add(new DefaultModelResult<T>(modelResult));
                 }
             }

@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.connection;
 
-import org.gradle.internal.composite.GradleParticipantBuild;
+import org.gradle.internal.composite.IncludedBuild;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -33,13 +33,13 @@ public class ToolingClientCompositeBuildLauncher {
     }
 
     public void run() {
-        for (GradleParticipantBuild gradleBuildInternal : operationParameters.getBuilds()) {
-            BuildIdentifier participantIdentifier = new DefaultBuildIdentifier(gradleBuildInternal.getProjectDir());
+        for (IncludedBuild build : operationParameters.getBuilds()) {
+            BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getProjectDir());
             if (operationParameters.getBuildIdentifier() == null
-                || operationParameters.getBuildIdentifier().equals(participantIdentifier)) {
+                || operationParameters.getBuildIdentifier().equals(buildIdentifier)) {
                 ProjectConnection connection = null;
                 try {
-                    connection = util.createParticipantConnector(gradleBuildInternal).connect();
+                    connection = util.createParticipantConnector(build).connect();
                     BuildLauncher buildLauncher = connection.newBuild();
                     util.configureRequest(buildLauncher);
                     buildLauncher.run();

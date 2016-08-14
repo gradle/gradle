@@ -19,11 +19,11 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
-import spock.lang.Specification
 
-class BuildEnvironmentReportTaskTest extends Specification {
-    private ProjectInternal project = TestUtil.createRootProject()
+class BuildEnvironmentReportTaskTest extends AbstractProjectBuilderSpec {
+    private ProjectInternal project = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private BuildEnvironmentReportTask task = TestUtil.createTask(BuildEnvironmentReportTask.class, project)
     private DependencyReportRenderer renderer = Mock(DependencyReportRenderer)
     private Configuration conf1 = project.buildscript.configurations.create("conf1")

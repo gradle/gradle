@@ -80,14 +80,10 @@ public class JacocoTaskExtension {
         this.task = task;
     }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
     /**
      * Whether or not the task should generate execution data. Defaults to {@code true}.
      */
-    public boolean getEnabled() {
+    public boolean isEnabled() {
         return enabled;
     }
 
@@ -106,14 +102,10 @@ public class JacocoTaskExtension {
         this.destinationFile = destinationFile;
     }
 
-    public boolean isAppend() {
-        return append;
-    }
-
     /**
      * Whether or not data should be appended if the {@code destinationFile} already exists. Defaults to {@code true}.
      */
-    public boolean getAppend() {
+    public boolean isAppend() {
         return append;
     }
 
@@ -154,16 +146,12 @@ public class JacocoTaskExtension {
         this.excludeClassLoaders = excludeClassLoaders;
     }
 
-    public boolean isIncludeNoLocationClasses() {
-        return includeNoLocationClasses;
-    }
-
     /**
      * Whether or not classes without source location should be instrumented. Defaults to {@code false}.
      *
      * This property is only taken into account if the used JaCoCo version supports this option (JaCoCo version >= 0.7.6)
      */
-    public boolean getIncludeNoLocationClasses() {
+    public boolean isIncludeNoLocationClasses() {
         return includeNoLocationClasses;
     }
 
@@ -182,14 +170,10 @@ public class JacocoTaskExtension {
         this.sessionId = sessionId;
     }
 
-    public boolean isDumpOnExit() {
-        return dumpOnExit;
-    }
-
     /**
      * Whether or not to dump the coverage data at VM shutdown. Defaults to {@code true}.
      */
-    public boolean getDumpOnExit() {
+    public boolean isDumpOnExit() {
         return dumpOnExit;
     }
 
@@ -241,16 +225,12 @@ public class JacocoTaskExtension {
         this.classDumpFile = classDumpFile;
     }
 
-    public boolean isJmx() {
-        return jmx;
-    }
-
     /**
      * Whether or not to expose functionality via JMX under {@code org.jacoco:type=Runtime}. Defaults to {@code false}.
      *
      * The configuration of the jmx property is only taken into account if the used JaCoCo version supports this option (JaCoCo version >= 0.6.2)
      */
-    public boolean getJmx() {
+    public boolean isJmx() {
         return jmx;
     }
 
@@ -288,22 +268,22 @@ public class JacocoTaskExtension {
         builder.append(GFileUtils.relativePath(task.getWorkingDir(), agent.getJar()));
         builder.append('=');
         argument.append("destfile", getDestinationFile());
-        argument.append("append", getAppend());
+        argument.append("append", isAppend());
         argument.append("includes", getIncludes());
         argument.append("excludes", getExcludes());
         argument.append("exclclassloader", getExcludeClassLoaders());
         if (agent.supportsInclNoLocationClasses()) {
-            argument.append("inclnolocationclasses", getIncludeNoLocationClasses());
+            argument.append("inclnolocationclasses", isIncludeNoLocationClasses());
         }
         argument.append("sessionid", getSessionId());
-        argument.append("dumponexit", getDumpOnExit());
+        argument.append("dumponexit", isDumpOnExit());
         argument.append("output", getOutput().getAsArg());
         argument.append("address", getAddress());
         argument.append("port", getPort());
         argument.append("classdumpdir", getClassDumpFile());
 
         if (agent.supportsJmx()) {
-            argument.append("jmx", getJmx());
+            argument.append("jmx", isJmx());
         }
 
         return builder.toString();

@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentSelectionInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.rules.SpecRuleAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,10 +97,6 @@ public class ComponentSelectionRulesProcessor {
 
         List<Object> inputs = new ArrayList<Object>(inputTypes.size());
         for (Class<?> inputType : inputTypes) {
-            if (inputType == ModuleComponentResolveMetadata.class) {
-                inputs.add(metadataProvider.getMetaData());
-                continue;
-            }
             if (inputType == ComponentMetadata.class) {
                 inputs.add(metadataProvider.getComponentMetadata());
                 continue;

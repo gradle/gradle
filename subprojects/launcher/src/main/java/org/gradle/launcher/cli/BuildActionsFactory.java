@@ -33,8 +33,8 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
-import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
+import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
 import org.gradle.launcher.daemon.configuration.BuildProcess;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
@@ -152,13 +152,17 @@ class BuildActionsFactory implements CommandLineAction {
     }
 
     private Runnable runBuild(StartParameter startParameter, DaemonParameters daemonParameters, BuildActionExecuter<BuildActionParameters> executer, ServiceRegistry sharedServices) {
-        BuildActionParameters parameters = new DefaultBuildActionParameters(
+        BuildActionParameters parameters = createBuildActionParamters(startParameter, daemonParameters);
+        return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices);
+    }
+
+    private BuildActionParameters createBuildActionParamters(StartParameter startParameter, DaemonParameters daemonParameters) {
+        return new DefaultBuildActionParameters(
                 daemonParameters.getEffectiveSystemProperties(),
                 System.getenv(),
                 SystemProperties.getInstance().getCurrentDir(),
                 startParameter.getLogLevel(),
                 daemonParameters.isEnabled(), startParameter.isContinuous(), daemonParameters.isInteractive(), ClassPath.EMPTY);
-        return new RunBuildAction(executer, startParameter, clientMetaData(), getBuildStartTime(), parameters, sharedServices);
     }
 
     private long getBuildStartTime() {

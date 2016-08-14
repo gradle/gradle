@@ -49,13 +49,6 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
     }
 
     @Override
-    public TaskCacheKeyBuilder putHashCode(HashCode hashCode) {
-        log("hash code", hashCode);
-        hasher.putBytes(hashCode.asBytes());
-        return this;
-    }
-
-    @Override
     public TaskCacheKeyBuilder putInt(int i) {
         log("int", i);
         hasher.putInt(i);
@@ -106,8 +99,8 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
         }
 
         @Override
-        public HashCode getHashCode() {
-            return hashCode;
+        public String getHashCode() {
+            return hashCode.toString();
         }
     }
 

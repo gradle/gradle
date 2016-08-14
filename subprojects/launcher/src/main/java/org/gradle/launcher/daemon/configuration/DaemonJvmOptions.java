@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.configuration;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.process.internal.CurrentProcess;
@@ -38,7 +39,7 @@ public class DaemonJvmOptions extends JvmOptions {
     public static final String SSL_TRUSTSTORETYPE_KEY = "javax.net.ssl.trustStoreType";
 
     public static final Set<String> IMMUTABLE_DAEMON_SYSTEM_PROPERTIES = ImmutableSet.of(
-        SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY
+        SSL_KEYSTORE_KEY, SSL_KEYSTOREPASSWORD_KEY, SSL_KEYSTORETYPE_KEY, SSL_TRUSTPASSWORD_KEY, SSL_TRUSTSTORE_KEY, SSL_TRUSTSTORETYPE_KEY, HeapProportionalCacheSizer.CACHE_RESERVED_SYSTEM_PROPERTY
     );
 
     public DaemonJvmOptions(PathToFileResolver resolver) {

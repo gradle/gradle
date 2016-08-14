@@ -20,20 +20,15 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
-import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot.ChangeFilter;
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 
-import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
 
 public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskStateChanges {
-    private static final EnumSet<ChangeFilter> IGNORE_ADDED_FILES = EnumSet.of(ChangeFilter.IgnoreAddedFiles);
-
     public OutputFilesTaskStateChanges(TaskExecution previous, TaskExecution current, TaskInternal task, OutputFilesCollectionSnapshotter snapshotter) {
-        super(task.getName(), previous, current, snapshotter, false, "Output", task.getOutputs().getFileProperties());
+        super(task.getName(), previous, current, snapshotter, "Output", task.getOutputs().getFileProperties());
     }
 
     @Override
@@ -42,13 +37,8 @@ public class OutputFilesTaskStateChanges extends AbstractNamedFileSnapshotTaskSt
     }
 
     @Override
-    protected Set<ChangeFilter> getFileChangeFilters() {
-        return IGNORE_ADDED_FILES;
-    }
-
-    @Override
     public void saveCurrent() {
-        final Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotter(), getTitle(), getFileProperties(), isAllowSnapshotReuse());
+        final Map<String, FileCollectionSnapshot> outputFilesAfter = buildSnapshots(getTaskName(), getSnapshotter(), getTitle(), getFileProperties());
 
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {

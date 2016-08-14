@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.CopyProcessingSpec;
-import org.gradle.api.file.CopySourceSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
@@ -69,8 +68,16 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
         return getDelegateCopySpec().filesMatching(pattern, action);
     }
 
+    public CopySpec filesMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        return getDelegateCopySpec().filesMatching(patterns, action);
+    }
+
     public CopySpec filesNotMatching(String pattern, Action<? super FileCopyDetails> action) {
         return getDelegateCopySpec().filesNotMatching(pattern, action);
+    }
+
+    public CopySpec filesNotMatching(Iterable<String> patterns, Action<? super FileCopyDetails> action) {
+        return getDelegateCopySpec().filesNotMatching(patterns, action);
     }
 
     public CopySpec with(CopySpec... sourceSpecs) {
@@ -82,10 +89,10 @@ public abstract class DelegatingCopySpecInternal implements CopySpecInternal {
     }
 
     public CopySpec from(Object sourcePath, final Closure c) {
-        return getDelegateCopySpec().from(sourcePath, new ClosureBackedAction<CopySourceSpec>(c));
+        return getDelegateCopySpec().from(sourcePath, new ClosureBackedAction<CopySpec>(c));
     }
 
-    public CopySpec from(Object sourcePath, Action<? super CopySourceSpec> configureAction) {
+    public CopySpec from(Object sourcePath, Action<? super CopySpec> configureAction) {
         return getDelegateCopySpec().from(sourcePath, configureAction);
     }
 

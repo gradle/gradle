@@ -16,9 +16,16 @@
 
 package org.gradle.tooling.internal.provider;
 
-public interface DeserializeMap {
+import java.io.Closeable;
+
+public interface DeserializeMap extends Closeable {
     /**
      * Loads a serialized Class.
      */
     Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException;
+
+    /**
+     * Cleans up classloader references retained in this map.
+     */
+    void close();
 }

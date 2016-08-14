@@ -160,7 +160,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         if (eclipseClasspath.getFile() == null) {
             classpathEntries = eclipseClasspath.resolveDependencies();
         } else {
-            Classpath classpath = new Classpath();
+            Classpath classpath = new Classpath(eclipseClasspath.getFileReferenceFactory());
             eclipseClasspath.mergeXmlClasspath(classpath);
             classpathEntries = classpath.getEntries();
         }
@@ -202,7 +202,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 sourceDirectories.add(new DefaultEclipseSourceDirectory(path, sourceFolder.getDir(), excludes, includes, output, createAttributes(sourceFolder), createAccessRules(sourceFolder)));
             } else if (entry instanceof Container) {
                 final Container container = (Container) entry;
-                classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(), createAttributes(container), createAccessRules(container)));
+                classpathContainers.add(new DefaultEclipseClasspathContainer(container.getPath(), container.isExported(), createAttributes(container), createAccessRules(container)));
             } else if (entry instanceof Output) {
                 outputLocation = new DefaultEclipseOutputLocation(((Output)entry).getPath());
             }

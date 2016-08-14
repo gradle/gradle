@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resolve.result
 
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
@@ -56,7 +56,7 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
     }
 
     def "can mark as resolved using meta-data"() {
-        def metaData = Stub(MutableModuleComponentResolveMetadata)
+        def metaData = Stub(ModuleComponentResolveMetadata)
 
         when:
         descriptor.resolved(metaData)
@@ -65,6 +65,23 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
         descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Resolved
         descriptor.failure == null
         descriptor.metaData == metaData
+        descriptor.authoritative
+        descriptor.hasResult()
+    }
+
+    def "can replace meta-data when resolved"() {
+        def metaData = Stub(ModuleComponentResolveMetadata)
+        def metaData2 = Stub(ModuleComponentResolveMetadata)
+
+        descriptor.resolved(metaData)
+
+        when:
+        descriptor.setMetadata(metaData2)
+
+        then:
+        descriptor.state == BuildableModuleComponentMetaDataResolveResult.State.Resolved
+        descriptor.failure == null
+        descriptor.metaData == metaData2
         descriptor.authoritative
         descriptor.hasResult()
     }
@@ -104,5 +121,20 @@ class DefaultBuildableModuleComponentMetaDataResolveResultTest extends Specifica
         then:
         ModuleVersionResolveException e = thrown()
         e == failure
+    }
+
+    def "cannot set metadata when not resolved"() {
+        when:
+        descriptor.metadata = Stub(ModuleComponentResolveMetadata)
+
+        then:
+        thrown(IllegalStateException)
+
+        when:
+        descriptor.missing()
+        descriptor.metadata = Stub(ModuleComponentResolveMetadata)
+
+        then:
+        thrown(IllegalStateException)
     }
 }

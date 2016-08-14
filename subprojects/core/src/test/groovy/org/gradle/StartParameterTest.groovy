@@ -50,6 +50,7 @@ class StartParameterTest extends Specification {
         parameter.refreshDependencies = true
         parameter.recompileScripts = true
         parameter.configureOnDemand = true
+        parameter.includeBuild(new File('participant'))
 
         when:
         def newInstance = parameter.newInstance()
@@ -71,6 +72,7 @@ class StartParameterTest extends Specification {
         parameter.projectProperties = [a: 'a']
         parameter.systemPropertiesArgs = [b: 'b']
         parameter.initScripts = [new File('init script'), new File("/path/to/another init script")]
+        parameter.includedBuilds = [new File('participant'), new File("/path/to/another/participant")]
 
         when:
         def newInstance = parameter.newInstance()
@@ -81,6 +83,7 @@ class StartParameterTest extends Specification {
         !parameter.excludedTaskNames.is(newInstance.excludedTaskNames)
         !parameter.projectProperties.is(newInstance.projectProperties)
         !parameter.systemPropertiesArgs.is(newInstance.systemPropertiesArgs)
+        !parameter.includedBuilds.is(newInstance.includedBuilds)
 
         and:
         parameter.initScripts == newInstance.initScripts
@@ -88,6 +91,7 @@ class StartParameterTest extends Specification {
         parameter.excludedTaskNames == newInstance.excludedTaskNames
         parameter.projectProperties == newInstance.projectProperties
         parameter.systemPropertiesArgs == newInstance.systemPropertiesArgs
+        parameter.includedBuilds == newInstance.includedBuilds
     }
 
     void "default values"() {

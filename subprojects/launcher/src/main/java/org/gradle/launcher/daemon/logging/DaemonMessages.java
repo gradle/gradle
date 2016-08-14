@@ -25,6 +25,7 @@ public abstract class DaemonMessages {
     public final static String FINISHED_EXECUTING_COMMAND = "Finishing executing command: ";
     public final static String STARTED_BUILD = "The daemon has started executing the build.";
     public final static String FINISHED_BUILD = "The daemon has finished executing the build.";
+    public final static String CANCELED_BUILD = "The daemon will cancel the build.";
     public final static String NO_DAEMONS_RUNNING = "No Gradle daemons are running.";
     public final static String ABOUT_TO_START_RELAYING_LOGS = "About to start relaying all logs to the client via the connection.";
     public final static String DAEMON_VM_SHUTTING_DOWN = "Daemon vm is shutting down... The daemon has exited normally or was terminated in response to a user interrupt.";
@@ -32,4 +33,5 @@ public abstract class DaemonMessages {
     public static final String ADVERTISING_DAEMON = "Advertising the daemon address to the clients: ";
     public static final String REMOVING_DAEMON_ADDRESS_ON_FAILURE = "Removing daemon from the registry due to communication failure. Daemon information: ";
     public static final String UNABLE_TO_STOP_DAEMON = "Unable to stop one of the daemons. The daemon may have crashed.";
+    public static final String WAITING_ON_CANCELED = "Waiting for daemons with canceled builds to become available";
 }

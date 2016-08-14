@@ -18,10 +18,12 @@ package org.gradle.integtests.fixtures.daemon
 
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.logging.DaemonMessages
-import org.gradle.integtests.fixtures.daemon.AbstractDaemonFixture.State
 
 import java.util.regex.Matcher
 import java.util.regex.Pattern
+
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.*
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
 
 class DaemonLogFileStateProbe implements DaemonStateProbe {
     private final DaemonContext context
@@ -51,14 +53,16 @@ class DaemonLogFileStateProbe implements DaemonStateProbe {
 
     List<State> getStates() {
         def states = new LinkedList<State>()
-        states << State.idle
+        states << Idle
         log.eachLine {
             if (it.contains(startBuildMessage)) {
-                states << State.busy
+                states << Busy
             } else if (it.contains(finishBuildMessage)) {
-                states << State.idle
+                states << Idle
+            } else if (it.contains(DaemonMessages.CANCELED_BUILD)) {
+                states << Canceled
             } else if (it.contains(DaemonMessages.DAEMON_VM_SHUTTING_DOWN)) {
-                states << State.stopped
+                states << Stopped
             }
         }
         states

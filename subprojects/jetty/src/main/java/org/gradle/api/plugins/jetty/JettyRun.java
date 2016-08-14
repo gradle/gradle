@@ -27,6 +27,7 @@ import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.OrderSensitive;
 import org.mortbay.jetty.Handler;
 import org.mortbay.jetty.Server;
 import org.mortbay.jetty.handler.ContextHandler;
@@ -54,7 +55,10 @@ import java.util.Set;
  * automatically performing a hot redeploy when necessary. This allows the developer to concentrate on coding changes to
  * the project using their IDE of choice and have those changes immediately and transparently reflected in the running
  * web container, eliminating development time that is wasted on rebuilding, reassembling and redeploying. </p>
+ *
+ * @deprecated The Jetty plugin has been deprecated
  */
+@Deprecated
 public class JettyRun extends AbstractJettyRunTask {
     private static final Logger LOGGER = LoggerFactory.getLogger(JettyRun.class);
 
@@ -462,6 +466,7 @@ public class JettyRun extends AbstractJettyRunTask {
     /**
      * Returns the classpath for the web application.
      */
+    @OrderSensitive
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;

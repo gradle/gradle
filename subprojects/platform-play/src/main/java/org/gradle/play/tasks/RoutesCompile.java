@@ -104,7 +104,7 @@ public class RoutesCompile extends SourceTask {
     @TaskAction
     void compile() {
         RoutesCompileSpec spec = new DefaultRoutesCompileSpec(getSource().getFiles(), getOutputDirectory(), getForkOptions(), isJavaProject(), isNamespaceReverseRouter(), isGenerateReverseRoutes(), getInjectedRoutesGenerator(), getAdditionalImports());
-        new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs()).execute(spec);
+        new CleaningPlayToolCompiler<RoutesCompileSpec>(getCompiler(), getOutputs(), "outputDirectory").execute(spec);
     }
 
     @Internal

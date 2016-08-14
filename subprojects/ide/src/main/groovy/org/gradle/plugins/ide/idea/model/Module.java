@@ -127,10 +127,6 @@ public class Module extends XmlPersistableConfigurationObject {
         return inheritOutputDirs;
     }
 
-    public boolean getInheritOutputDirs() {
-        return inheritOutputDirs;
-    }
-
     public void setInheritOutputDirs(boolean inheritOutputDirs) {
         this.inheritOutputDirs = inheritOutputDirs;
     }

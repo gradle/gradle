@@ -55,7 +55,7 @@ public class ShortCircuitEmptyConfigurationResolver implements ConfigurationReso
             Module module = configuration.getModule();
             ModuleVersionIdentifier id = DefaultModuleVersionIdentifier.newId(module);
             ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
-            ResolutionResult emptyResult = new DefaultResolutionResultBuilder().start(id, componentIdentifier).complete();
+            ResolutionResult emptyResult = DefaultResolutionResultBuilder.empty(id, componentIdentifier);
             ResolvedLocalComponentsResult emptyProjectResult = new DefaultResolvedLocalComponentsResultBuilder(false).complete();
             results.resolved(emptyResult, emptyProjectResult);
         } else {
