@@ -51,7 +51,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
             includedBuildStartParam.setSearchUpwards(false);
             includedBuildStartParam.setConfigureOnDemand(false);
 
-            DependencySubstitutionsInternal substitutions = ((IncludedBuildInternal) build).getDependencySubstitution();
+            DependencySubstitutionsInternal substitutions = ((IncludedBuildInternal) build).resolveDependencySubstitutions();
             if (!substitutions.hasRules()) {
                 configureBuildToDetermineSubstitutions(buildInternal, context, includedBuildStartParam);
             } else {

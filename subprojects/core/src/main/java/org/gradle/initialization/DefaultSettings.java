@@ -15,7 +15,6 @@
  */
 package org.gradle.initialization;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
@@ -35,13 +34,11 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
-import org.gradle.internal.Pair;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 
 public class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
@@ -61,8 +58,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope rootClassLoaderScope;
     private final ServiceRegistry services;
-    private final List<Pair<Object, Action<IncludedBuild>>> includedBuildConfig = Lists.newArrayList();
-    private Map<File, IncludedBuild> includedBuilds;
+    private final Map<File, IncludedBuild> includedBuilds = Maps.newLinkedHashMap();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
@@ -251,28 +247,17 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public void includeBuild(Object rootProject, Action<IncludedBuild> configuration) {
-        includedBuildConfig.add(Pair.of(rootProject, configuration));
-    }
-
-    @Override
-    public Map<File, IncludedBuild> getIncludedBuilds() {
-        if (includedBuilds == null) {
-            includedBuilds = Maps.newLinkedHashMap();
-            for (Pair<Object, Action<IncludedBuild>> pair : includedBuildConfig) {
-                IncludedBuild includedBuild = doIncludeBuild(pair.getLeft());
-                pair.getRight().execute(includedBuild);
-            }
-        }
-        return includedBuilds;
-    }
-
-    private IncludedBuild doIncludeBuild(Object projectPath) {
-        File projectDir = getFileResolver().resolve(projectPath);
+        File projectDir = getFileResolver().resolve(rootProject);
         IncludedBuild build = includedBuilds.get(projectDir);
         if (build == null) {
             build = getIncludedBuildFactory().createBuild(projectDir);
             includedBuilds.put(projectDir, build);
         }
-        return build;
+        configuration.execute(build);
+    }
+
+    @Override
+    public Map<File, IncludedBuild> getIncludedBuilds() {
+        return includedBuilds;
     }
 }

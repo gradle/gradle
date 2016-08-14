@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.SettingsInternal;
@@ -25,10 +26,12 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
 
 import java.io.File;
+import java.util.List;
 
 public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
     private final Factory<GradleLauncher> gradleLauncherFactory;
+    private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
     private DefaultDependencySubstitutions dependencySubstitutions;
 
     public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> gradleLauncherFactory) {
@@ -42,22 +45,33 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public void dependencySubstitution(Action<? super DependencySubstitutions> action) {
-        action.execute(getDependencySubstitution());
+        if (dependencySubstitutions != null) {
+            throw new IllegalStateException("Cannot configure included build after dependency substitutions are resolved.");
+        }
+        dependencySubstitutionActions.add(action);
     }
 
-    public DependencySubstitutionsInternal getDependencySubstitution() {
+    public DependencySubstitutionsInternal resolveDependencySubstitutions() {
         if (dependencySubstitutions == null) {
-            GradleLauncher gradleLauncher = createGradleLauncher();
-            try {
-                gradleLauncher.load();
-            } finally {
-                gradleLauncher.stop();
-            }
-            SettingsInternal settings = gradleLauncher.getSettings();
-            String buildName = settings.getRootProject().getName();
+            String buildName = loadBuildToDetermineRootProjectName();
             dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(buildName);
+
+            for (Action<? super DependencySubstitutions> action : dependencySubstitutionActions) {
+                action.execute(dependencySubstitutions);
+            }
         }
         return dependencySubstitutions;
+    }
+
+    public String loadBuildToDetermineRootProjectName() {
+        GradleLauncher gradleLauncher = createGradleLauncher();
+        try {
+            gradleLauncher.load();
+        } finally {
+            gradleLauncher.stop();
+        }
+        SettingsInternal settings = gradleLauncher.getSettings();
+        return settings.getRootProject().getName();
     }
 
     @Override
