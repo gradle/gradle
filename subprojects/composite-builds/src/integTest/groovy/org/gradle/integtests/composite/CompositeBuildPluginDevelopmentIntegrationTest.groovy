@@ -72,14 +72,13 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
                 compile "org.test:buildB:1.0"
             }
 """
-        // TODO:DAZ The order of included builds is important here. This should go away when we build dependency metadata on-demand.
         buildA.settingsFile << """
-            includeBuild('${pluginBuild.toURI()}')
             includeBuild('${buildB.toURI()}') {
                 dependencySubstitution { // By declaring substitutions, don't need to pre-configure
                     substitute module("org.test:buildB") with project("buildB::")
                 }
             }
+            includeBuild('${pluginBuild.toURI()}')
 """
 
         when:
