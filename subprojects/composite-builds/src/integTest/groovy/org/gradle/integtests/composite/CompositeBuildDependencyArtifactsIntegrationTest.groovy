@@ -490,6 +490,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 assert executedTasks.indexOf(beforeTask) < executedTasks.indexOf(task) : "task ${beforeTask} must be executed before ${task}"
             }
             beforeTask = task
+
+            // Task must only be executed once
             assert executedTasks.findAll({ it == task }).size() == 1
         }
     }

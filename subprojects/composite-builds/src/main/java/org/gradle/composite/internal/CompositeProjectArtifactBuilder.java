@@ -74,20 +74,22 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     @Override
     public void willBuild(ComponentArtifactMetadata artifact) {
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
-            CompositeProjectComponentArtifactMetadata artifactMetaData = (CompositeProjectComponentArtifactMetadata) artifact;
-            ProjectComponentIdentifier buildId = getBuildIdentifier(artifactMetaData.getComponentId());
-            tasksForBuild.putAll(buildId, artifactMetaData.getTasks());
+            findBuildAndRegisterTasks((CompositeProjectComponentArtifactMetadata) artifact);
         }
     }
 
     @Override
     public void build(ComponentArtifactMetadata artifact) {
-        willBuild(artifact);
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
-            CompositeProjectComponentArtifactMetadata artifactMetaData = (CompositeProjectComponentArtifactMetadata) artifact;
-            ProjectComponentIdentifier buildId = getBuildIdentifier(artifactMetaData.getComponentId());
+            ProjectComponentIdentifier buildId = findBuildAndRegisterTasks((CompositeProjectComponentArtifactMetadata) artifact);
             build(buildId, tasksForBuild.get(buildId));
         }
+    }
+
+    public ProjectComponentIdentifier findBuildAndRegisterTasks(CompositeProjectComponentArtifactMetadata artifact) {
+        ProjectComponentIdentifier buildId = getBuildIdentifier(artifact.getComponentId());
+        tasksForBuild.putAll(buildId, artifact.getTasks());
+        return buildId;
     }
 
     private void build(ProjectComponentIdentifier buildId, Iterable<String> taskNames) {
