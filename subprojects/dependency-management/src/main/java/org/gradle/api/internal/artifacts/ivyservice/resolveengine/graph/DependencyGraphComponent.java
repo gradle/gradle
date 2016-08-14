@@ -18,9 +18,13 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 
+import java.util.Set;
+
 /**
  * A component in the dependency graph.
  */
 public interface DependencyGraphComponent extends ComponentResult {
     ComponentResolveMetadata getMetadata();
+
+    Set<? extends DependencyGraphComponent> getDependents();
 }

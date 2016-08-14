@@ -651,8 +651,9 @@ public class DependencyGraphBuilder {
             return getMetaData().getComponentId();
         }
 
-        public List<ModuleVersionResolveState> getIncoming() {
-            List<ModuleVersionResolveState> incoming = new ArrayList<ModuleVersionResolveState>();
+        @Override
+        public Set<ModuleVersionResolveState> getDependents() {
+            Set<ModuleVersionResolveState> incoming = new LinkedHashSet<ModuleVersionResolveState>();
             for (DependencyGraphBuilder.ConfigurationNode configuration : configurations) {
                 for (DependencyGraphBuilder.DependencyEdge dependencyEdge : configuration.incomingEdges) {
                     incoming.add(dependencyEdge.from.moduleRevision);
