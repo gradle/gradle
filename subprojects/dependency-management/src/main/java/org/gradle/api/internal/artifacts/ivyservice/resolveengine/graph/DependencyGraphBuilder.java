@@ -287,31 +287,38 @@ public class DependencyGraphBuilder {
             }
         }
 
+        @Override
         public ModuleExclusion getExclusions() {
             ModuleExclusion edgeExclusions = dependencyMetadata.getExclusions(from.metaData);
             return ModuleExclusions.intersect(edgeExclusions, moduleExclusion);
         }
 
+        @Override
         public ComponentSelector getRequested() {
             return dependencyMetadata.getSelector();
         }
 
+        @Override
         public ModuleVersionSelector getRequestedModuleVersion() {
             return dependencyMetadata.getRequested();
         }
 
+        @Override
         public ModuleVersionResolveException getFailure() {
             return selector.getFailure();
         }
 
+        @Override
         public Long getSelected() {
             return selector.getSelected().getResultId();
         }
 
+        @Override
         public ComponentSelectionReason getReason() {
             return selector.getSelectionReason();
         }
 
+        @Override
         public ModuleDependency getModuleDependency() {
             if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
                 return ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
@@ -319,6 +326,7 @@ public class DependencyGraphBuilder {
             return null;
         }
 
+        @Override
         public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata metaData1) {
             return dependencyMetadata.getArtifacts(from.metaData, metaData1);
         }
@@ -454,10 +462,12 @@ public class DependencyGraphBuilder {
             return id.toString();
         }
 
+        @Override
         public ModuleIdentifier getId() {
             return id;
         }
 
+        @Override
         public Collection<ModuleVersionResolveState> getVersions() {
             return versions.values();
         }
@@ -544,6 +554,7 @@ public class DependencyGraphBuilder {
             return id.toString();
         }
 
+        @Override
         public String getVersion() {
             return id.getVersion();
         }
@@ -553,7 +564,13 @@ public class DependencyGraphBuilder {
             return resultId;
         }
 
+        @Override
         public ModuleVersionIdentifier getId() {
+            return id;
+        }
+
+        @Override
+        public ModuleVersionIdentifier getModuleVersion() {
             return id;
         }
 
@@ -602,6 +619,7 @@ public class DependencyGraphBuilder {
             metaData = result.getMetaData();
         }
 
+        @Override
         public ComponentResolveMetadata getMetaData() {
             if (metaData == null) {
                 resolve();
@@ -618,14 +636,17 @@ public class DependencyGraphBuilder {
             configurations.add(configurationNode);
         }
 
+        @Override
         public ComponentSelectionReason getSelectionReason() {
             return selectionReason;
         }
 
+        @Override
         public void setSelectionReason(ComponentSelectionReason reason) {
             this.selectionReason = reason;
         }
 
+        @Override
         public ComponentIdentifier getComponentId() {
             return getMetaData().getComponentId();
         }

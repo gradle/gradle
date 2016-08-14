@@ -35,7 +35,7 @@ public class DependencyGraphPathResolver {
 
         Map<ComponentResult, List<ModuleVersionIdentifier>> shortestPaths = new LinkedHashMap<ComponentResult, List<ModuleVersionIdentifier>>();
         List<ModuleVersionIdentifier> rootPath = new ArrayList<ModuleVersionIdentifier>();
-        rootPath.add(toNode.getOwner().getId());
+        rootPath.add(toNode.getOwner().getModuleVersion());
         shortestPaths.put(toNode.getOwner(), rootPath);
 
         Set<DependencyGraphBuilder.ModuleVersionResolveState> directDependees = new LinkedHashSet<DependencyGraphBuilder.ModuleVersionResolveState>();

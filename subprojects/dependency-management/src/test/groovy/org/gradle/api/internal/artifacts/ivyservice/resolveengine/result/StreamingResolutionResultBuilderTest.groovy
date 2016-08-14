@@ -191,7 +191,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private DependencyGraphNode node(Long resultId, String org, String name, String ver, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
         def component = Stub(DependencyGraphComponent)
         _ * component.resultId >> resultId
-        _ * component.id >> DefaultModuleVersionIdentifier.newId(org, name, ver)
+        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(org, name, ver)
         _ * component.componentId >> DefaultModuleComponentIdentifier.newId(org, name, ver)
         _ * component.selectionReason >> reason
 

@@ -63,7 +63,7 @@ public class ResolvedConfigurationDependencyGraphVisitor implements DependencyGr
 
     public void visitEdge(DependencyGraphNode resolvedConfiguration) {
         for (DependencyGraphEdge dependency : resolvedConfiguration.getIncomingEdges()) {
-            if (dependency.getFrom().getNodeId() == root.getNodeId()) {
+            if (dependency.getFrom() == root) {
                 ModuleDependency moduleDependency = dependency.getModuleDependency();
                 builder.addFirstLevelDependency(moduleDependency, resolvedConfiguration);
             }

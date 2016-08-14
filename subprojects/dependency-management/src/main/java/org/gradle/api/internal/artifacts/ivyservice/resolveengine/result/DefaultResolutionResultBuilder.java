@@ -47,7 +47,7 @@ public class DefaultResolutionResultBuilder {
     }
 
     public void visitComponent(ComponentResult component) {
-        create(component.getResultId(), component.getId(), component.getSelectionReason(), component.getComponentId());
+        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId());
     }
 
     public void visitOutgoingEdges(Long fromComponent, Collection<? extends DependencyResult> dependencies) {

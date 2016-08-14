@@ -35,7 +35,7 @@ class ComponentResultSerializerTest extends SerializerSpec {
         then:
         result.resultId == 12L
         result.selectionReason == VersionSelectionReasons.REQUESTED
-        result.id == newId("org", "foo", "2.0")
+        result.moduleVersion == newId("org", "foo", "2.0")
         result.componentId == componentIdentifier
     }
 }

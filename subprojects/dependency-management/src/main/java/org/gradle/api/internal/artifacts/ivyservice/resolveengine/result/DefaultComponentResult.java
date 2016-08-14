@@ -39,7 +39,7 @@ public class DefaultComponentResult implements ComponentResult {
         return resultId;
     }
 
-    public ModuleVersionIdentifier getId() {
+    public ModuleVersionIdentifier getModuleVersion() {
         return id;
     }
 

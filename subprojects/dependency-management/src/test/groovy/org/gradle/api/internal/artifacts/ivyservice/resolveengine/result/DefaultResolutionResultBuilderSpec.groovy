@@ -241,7 +241,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
     }
 
     private DummyModuleVersionSelection comp(String module, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
-        def moduleVersion = new DummyModuleVersionSelection(resultId: id(module), id: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
+        def moduleVersion = new DummyModuleVersionSelection(resultId: id(module), moduleVersion: newId("x", module, "1"), selectionReason: reason, componentId: new DefaultModuleComponentIdentifier("x", module, "1"))
         moduleVersion
     }
 
@@ -262,7 +262,7 @@ class DefaultResolutionResultBuilderSpec extends Specification {
 
     class DummyModuleVersionSelection implements ComponentResult {
         Long resultId
-        ModuleVersionIdentifier id
+        ModuleVersionIdentifier moduleVersion
         ComponentSelectionReason selectionReason
         ComponentIdentifier componentId
     }

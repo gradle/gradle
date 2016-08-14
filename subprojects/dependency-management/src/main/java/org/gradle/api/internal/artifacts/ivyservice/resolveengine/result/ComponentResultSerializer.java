@@ -43,7 +43,7 @@ public class ComponentResultSerializer implements Serializer<ComponentResult> {
 
     public void write(Encoder encoder, ComponentResult value) throws IOException {
         encoder.writeSmallLong(value.getResultId());
-        idSerializer.write(encoder, value.getId());
+        idSerializer.write(encoder, value.getModuleVersion());
         reasonSerializer.write(encoder, value.getSelectionReason());
         componentIdSerializer.write(encoder, value.getComponentId());
     }

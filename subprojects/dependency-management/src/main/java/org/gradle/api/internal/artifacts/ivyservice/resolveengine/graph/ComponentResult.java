@@ -27,9 +27,15 @@ public interface ComponentResult {
      */
     Long getResultId();
 
-    ModuleVersionIdentifier getId();
+    /**
+     * Returns the module version for this component.
+     */
+    ModuleVersionIdentifier getModuleVersion();
 
     ComponentSelectionReason getSelectionReason();
 
+    /**
+     * Returns a unique id for this component.
+     */
     ComponentIdentifier getComponentId();
 }

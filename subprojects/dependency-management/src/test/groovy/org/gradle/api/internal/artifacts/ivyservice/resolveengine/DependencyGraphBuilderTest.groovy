@@ -1029,7 +1029,7 @@ class DependencyGraphBuilderTest extends Specification {
 
         @Override
         void visitNode(DependencyGraphNode resolvedConfiguration) {
-            components.add(resolvedConfiguration.owner.id)
+            components.add(resolvedConfiguration.owner.moduleVersion)
         }
 
         @Override
