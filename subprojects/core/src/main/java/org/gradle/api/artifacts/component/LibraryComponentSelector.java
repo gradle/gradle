@@ -21,7 +21,6 @@ import org.gradle.api.Nullable;
 
 /**
  * Criteria for selecting a library instance that is built as part of the current build.
- *
  */
 @Incubating
 public interface LibraryComponentSelector extends ComponentSelector {
