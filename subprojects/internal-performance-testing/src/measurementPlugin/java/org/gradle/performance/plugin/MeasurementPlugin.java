@@ -33,6 +33,9 @@ public class MeasurementPlugin implements Plugin<Project> {
     public void apply(Project project) {
         Gradle gradle = project.getGradle();
 
+        final PerformanceCounterMeasurement performanceCounterMeasurement = new PerformanceCounterMeasurement(project.getRootProject().getBuildDir());
+        performanceCounterMeasurement.recordStart();
+
         gradle.addBuildListener(new BuildAdapter() {
             @Override
             public void projectsEvaluated(Gradle gradle) {
@@ -42,6 +45,7 @@ public class MeasurementPlugin implements Plugin<Project> {
             @Override
             public void buildFinished(BuildResult result) {
                 BuildEventTimeStamps.buildFinished(result);
+                performanceCounterMeasurement.recordFinish();
                 Project rootProject = result.getGradle().getRootProject();
                 HeapDumper.handle(rootProject, rootProject.getLogger());
                 new HeapMeasurement().handle(rootProject, rootProject.getLogger());
