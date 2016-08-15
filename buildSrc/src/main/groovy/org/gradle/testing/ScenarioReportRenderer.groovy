@@ -13,7 +13,7 @@ class ScenarioReportRenderer {
                 meta("http-equiv": "Content-Type", content: "text/html; charset=utf-8")
                 link(rel: "stylesheet", type: "text/css", href: "scenario-report-style.css")
             }
-            def buildsSuccessOrNot = finishedBuilds.groupBy { build -> build.@status.toString() == 'SUCCESS' }
+            def buildsSuccessOrNot = finishedBuilds.sort(false) { build -> getScenarioId(build)?:'' }.groupBy { build -> build.@status.toString() == 'SUCCESS' }
             def successfullBuilds = buildsSuccessOrNot.get(true)
             def otherBuilds = buildsSuccessOrNot.get(false)
             if (otherBuilds) {
@@ -84,7 +84,7 @@ class ScenarioReportRenderer {
 
     private String getScenarioId(Object build) {
         NodeChildren properties = build.properties.children()
-        properties.find { it.@name == 'scenario' }.@value
+        properties.find { it.@name == 'scenario' }.@value.text()
     }
 
     void writeCss(File directory) {
