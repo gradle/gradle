@@ -251,30 +251,32 @@ tasks.withType(ProjectGeneratorTask) {
 // add task that zips the junit xml test report files to a zip file
 // this file can be used to combine the test reports of the distributed test runs into a single report in the coordinator
 tasks.withType(PerformanceTest) { task ->
-    def junitXmlDir = task.reports.junitXml.destination
-    def testResultsZipTask = tasks.create(name: "${task.name}ResultsZip", type: org.gradle.api.tasks.bundling.Zip) {
-        from(junitXmlDir) {
-            include '**/TEST-*.xml'
-            includeEmptyDirs = false
-            eachFile { copyDetails ->
-                try {
-                    def testsuite = new groovy.util.XmlSlurper().parse(copyDetails.file)
-                    // skip files where all tests were skipped
-                    if (testsuite.@tests.text() == testsuite.@skipped.text()) {
+    if(!(task instanceof DistributedPerformanceTest)) {
+        def junitXmlDir = task.reports.junitXml.destination
+        def testResultsZipTask = tasks.create(name: "${task.name}ResultsZip", type: org.gradle.api.tasks.bundling.Zip) {
+            from(junitXmlDir) {
+                include '**/TEST-*.xml'
+                includeEmptyDirs = false
+                eachFile { copyDetails ->
+                    try {
+                        def testsuite = new groovy.util.XmlSlurper().parse(copyDetails.file)
+                        // skip files where all tests were skipped
+                        if (testsuite.@tests.text() == testsuite.@skipped.text()) {
+                            copyDetails.exclude()
+                        }
+                    } catch (e) {
                         copyDetails.exclude()
                     }
-                } catch (e) {
-                    copyDetails.exclude()
                 }
             }
+            destinationDir = buildDir
+            archiveName = "test-results-${junitXmlDir.name}.zip"
         }
-        destinationDir = buildDir
-        archiveName = "test-results-${junitXmlDir.name}.zip"
-    }
-    task.finalizedBy testResultsZipTask
+        task.finalizedBy testResultsZipTask
 
-    def cleanTestResultsZipTask = tasks.create(name: "clean${testResultsZipTask.name.capitalize()}", type: Delete) {
-        delete testResultsZipTask.archivePath
+        def cleanTestResultsZipTask = tasks.create(name: "clean${testResultsZipTask.name.capitalize()}", type: Delete) {
+            delete testResultsZipTask.archivePath
+        }
+        tasks.getByName("clean${task.name.capitalize()}").finalizedBy cleanTestResultsZipTask
     }
-    tasks.getByName("clean${task.name.capitalize()}").finalizedBy cleanTestResultsZipTask
 }
