@@ -366,6 +366,45 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
+    def "builds multiple configurations for the same project via separate dependency paths"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile group: 'org.test', name: 'buildB', version: '1.0'
+                compile group: 'org.test', name: 'buildC', version: '1.0'
+            }
+"""
+
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+                dependencies {
+                    compile group: 'org.test', name: 'buildB', version: '1.0', configuration: 'other'
+                }
+"""
+        }
+        builds << buildC
+
+        buildB.buildFile << """
+            configurations {
+                other
+            }
+            task myJar(type: Jar) {
+                classifier 'my'
+            }
+            artifacts {
+                other myJar
+            }
+"""
+
+        when:
+        resolveArtifacts()
+
+        then:
+        executed ":buildB:jar", ":buildB:myJar", ":buildC:jar"
+        assertResolved buildB.file('build/libs/buildB-1.0.jar'), buildB.file('build/libs/buildB-1.0-my.jar'), buildC.file("build/libs/buildC-1.0.jar")
+    }
+
     def "reports failure to build artifacts with cycle involving substituted other-build dependency"() {
         given:
         dependency "org.test:buildB:1.0"
