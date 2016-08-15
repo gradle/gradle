@@ -27,7 +27,7 @@ _Note: the specific version of the Kotlin plugin matters. Follow the instruction
 
 All the samples should work against the latest Kotlin plugin from the _Early Access Preview 1.1_ channel accessible via the _Configure Kotlin Plugin Updates_ action in IDEA but for the latest and greatest support please install the development version by following these instructions:
 
- 1. Download the plugin from https://teamcity.jetbrains.com/guestAuth/repository/download/bt345/832964:id/kotlin-plugin-1.1.0-dev-2091.zip
+ 1. Download the plugin from https://teamcity.jetbrains.com/guestAuth/repository/download/bt345/837716:id/kotlin-plugin-1.1.0-dev-2222.zip
  2. In IDEA, Go to `Preferences->Plugins->Install from disk`
  3. Install the plugin and restart IDEA
 
