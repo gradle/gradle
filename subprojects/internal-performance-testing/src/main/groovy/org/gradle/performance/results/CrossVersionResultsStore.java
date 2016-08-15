@@ -236,32 +236,32 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             allBranches.add(performanceResults.getVcsBranch());
                         }
 
-                        operationsForExecution = connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, testExecution, compileTotalTime, gcTotalTime from testOperation where testExecution in (select * from table(x int = ?))");
+                        operationsForExecution = connection.prepareStatement("select version, testExecution, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation where testExecution in (select * from table(x int = ?))");
                         operationsForExecution.setFetchSize(10 * results.size());
                         operationsForExecution.setObject(1, results.keySet().toArray());
 
                         operations = operationsForExecution.executeQuery();
                         while (operations.next()) {
-                            CrossVersionPerformanceResults result = results.get(operations.getLong(10));
+                            CrossVersionPerformanceResults result = results.get(operations.getLong(2));
                             String version = operations.getString(1);
                             if ("1.7".equals(version) && result.getStartTime() <= ignoreV17Before) {
                                 // Ignore some broken samples
                                 continue;
                             }
                             MeasuredOperation operation = new MeasuredOperation();
-                            operation.setTotalTime(Duration.millis(operations.getBigDecimal(2)));
-                            operation.setConfigurationTime(Duration.millis(operations.getBigDecimal(3)));
-                            operation.setExecutionTime(Duration.millis(operations.getBigDecimal(4)));
-                            operation.setTotalMemoryUsed(DataAmount.bytes(operations.getBigDecimal(5)));
-                            operation.setTotalHeapUsage(DataAmount.bytes(operations.getBigDecimal(6)));
-                            operation.setMaxHeapUsage(DataAmount.bytes(operations.getBigDecimal(7)));
-                            operation.setMaxUncollectedHeap(DataAmount.bytes(operations.getBigDecimal(8)));
-                            operation.setMaxCommittedHeap(DataAmount.bytes(operations.getBigDecimal(9)));
-                            BigDecimal compileTotalTime = operations.getBigDecimal(10);
+                            operation.setTotalTime(Duration.millis(operations.getBigDecimal(3)));
+                            operation.setConfigurationTime(Duration.millis(operations.getBigDecimal(4)));
+                            operation.setExecutionTime(Duration.millis(operations.getBigDecimal(5)));
+                            operation.setTotalMemoryUsed(DataAmount.bytes(operations.getBigDecimal(6)));
+                            operation.setTotalHeapUsage(DataAmount.bytes(operations.getBigDecimal(7)));
+                            operation.setMaxHeapUsage(DataAmount.bytes(operations.getBigDecimal(8)));
+                            operation.setMaxUncollectedHeap(DataAmount.bytes(operations.getBigDecimal(9)));
+                            operation.setMaxCommittedHeap(DataAmount.bytes(operations.getBigDecimal(10)));
+                            BigDecimal compileTotalTime = operations.getBigDecimal(11);
                             if (compileTotalTime != null) {
                                 operation.setCompileTotalTime(Duration.millis(compileTotalTime));
                             }
-                            BigDecimal gcTotalTime = operations.getBigDecimal(11);
+                            BigDecimal gcTotalTime = operations.getBigDecimal(12);
                             if (gcTotalTime != null) {
                                 operation.setGcTotalTime(Duration.millis(gcTotalTime));
                             }
