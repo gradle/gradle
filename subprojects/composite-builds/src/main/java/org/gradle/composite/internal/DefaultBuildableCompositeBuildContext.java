@@ -172,7 +172,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
 
     private void configureBuildToRegisterDependencyMetadata(IncludedBuildInternal build, CompositeBuildContext context) {
-        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context);
-        contextBuilder.run(build);
+        IncludedBuildDependencyMetadataBuilder contextBuilder = new IncludedBuildDependencyMetadataBuilder(context);
+        contextBuilder.build(build);
     }
 }

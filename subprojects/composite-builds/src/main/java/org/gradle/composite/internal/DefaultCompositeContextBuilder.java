@@ -36,7 +36,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     }
 
     private void doAddToCompositeContext(Iterable<IncludedBuild> includedBuilds) {
-        CompositeSubstitutionsActionRunner contextBuilder = new CompositeSubstitutionsActionRunner(context);
+        IncludedBuildDependencySubstitutionsBuilder contextBuilder = new IncludedBuildDependencySubstitutionsBuilder(context);
 
         for (IncludedBuild build : includedBuilds) {
             IncludedBuildInternal buildInternal = (IncludedBuildInternal) build;
@@ -46,7 +46,7 @@ public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
             if (!substitutions.hasRules()) {
                 // Configure the included build to discover substitutions
                 LOGGER.lifecycle("[composite-build] Configuring build: " + buildInternal.getProjectDir());
-                contextBuilder.run(buildInternal);
+                contextBuilder.build(buildInternal);
             } else {
                 // Register the defined substitutions for included build
                 context.registerSubstitution(substitutions.getRuleAction());

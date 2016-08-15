@@ -26,14 +26,14 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 
-public class CompositeSubstitutionsActionRunner {
+public class IncludedBuildDependencySubstitutionsBuilder {
     private final CompositeBuildContext context;
 
-    public CompositeSubstitutionsActionRunner(CompositeBuildContext context) {
+    public IncludedBuildDependencySubstitutionsBuilder(CompositeBuildContext context) {
         this.context = context;
     }
 
-    public void run(IncludedBuildInternal build) {
+    public void build(IncludedBuildInternal build) {
         GradleLauncher gradleLauncher = build.createGradleLauncher();
         try {
             Gradle gradle = gradleLauncher.getBuildAnalysis().getGradle();

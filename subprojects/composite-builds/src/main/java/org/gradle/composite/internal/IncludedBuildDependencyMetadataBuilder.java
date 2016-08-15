@@ -41,14 +41,14 @@ import org.gradle.internal.component.model.Exclude;
 import java.io.File;
 import java.util.Set;
 
-public class CompositeContextBuildActionRunner {
+public class IncludedBuildDependencyMetadataBuilder {
     private final CompositeBuildContext context;
 
-    public CompositeContextBuildActionRunner(CompositeBuildContext context) {
+    public IncludedBuildDependencyMetadataBuilder(CompositeBuildContext context) {
         this.context = context;
     }
 
-    public void run(IncludedBuildInternal build) {
+    public void build(IncludedBuildInternal build) {
         GradleLauncher gradleLauncher = build.createGradleLauncher();
         try {
             Gradle gradle = gradleLauncher.getBuildAnalysis().getGradle();
