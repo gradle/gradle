@@ -485,14 +485,12 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         def executedTasks = result.executedTasks
         def beforeTask
         for (String task : tasks) {
-            assert executedTasks.contains(task)
+            executedOnce(task)
+
             if (beforeTask != null) {
                 assert executedTasks.indexOf(beforeTask) < executedTasks.indexOf(task) : "task ${beforeTask} must be executed before ${task}"
             }
             beforeTask = task
-
-            // Task must only be executed once
-            assert executedTasks.findAll({ it == task }).size() == 1
         }
     }
 }
