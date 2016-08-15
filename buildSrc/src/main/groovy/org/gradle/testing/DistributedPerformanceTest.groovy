@@ -50,9 +50,6 @@ class DistributedPerformanceTest extends PerformanceTest {
     @Input
     String workerTestTaskName
 
-    @OutputDirectory
-    File workerTestResultsDir
-
     @Input
     String teamCityUrl
 
@@ -75,6 +72,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     List<Object> finishedBuilds = Lists.newArrayList()
 
     Map<String, List<File>> testResultFilesForBuild = [:]
+    private File workerTestResultsTempDir
 
     void setScenarioList(File scenarioList) {
         systemProperty "org.gradle.performance.scenario.list", scenarioList
@@ -83,6 +81,25 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TaskAction
     void executeTests() {
+        createWorkerTestResultsTempDir()
+        try {
+            doExecuteTests()
+        } finally {
+            cleanTempFiles()
+        }
+    }
+
+    private void createWorkerTestResultsTempDir() {
+        workerTestResultsTempDir = File.createTempFile("worker-test-results", "")
+        workerTestResultsTempDir.delete()
+        workerTestResultsTempDir.mkdir()
+    }
+
+    private void cleanTempFiles() {
+        workerTestResultsTempDir.deleteDir()
+    }
+
+    private void doExecuteTests() {
         scenarioList.delete()
 
         fillScenarioList()
@@ -185,7 +202,7 @@ class DistributedPerformanceTest extends PerformanceTest {
                     it.@name.text() == zipName
                 }
                 if (fileNode) {
-                    def resultsDirectory = new File(workerTestResultsDir, jobId)
+                    def resultsDirectory = new File(workerTestResultsTempDir, jobId)
                     def contentUri = fileNode.content.@href.text()
                     client.get(path: contentUri, contentType: ContentType.BINARY) {
                         resp, inputStream ->
