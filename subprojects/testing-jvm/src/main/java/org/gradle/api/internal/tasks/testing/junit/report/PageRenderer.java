@@ -184,6 +184,6 @@ abstract class PageRenderer<T extends CompositeTestResults> extends TabbedPageRe
     }
 
     protected String asHtmlLinkEncoded(String rawLink) {
-        return rawLink.replaceAll("#", "%23");
+        return rawLink.replace("#", "%23");
     }
 }
