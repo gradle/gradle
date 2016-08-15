@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
@@ -174,11 +173,6 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     private void configureBuildToRegisterDependencyMetadata(IncludedBuildInternal build, CompositeBuildContext context) {
         CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context);
-        GradleLauncher gradleLauncher = build.createGradleLauncher();
-        try {
-            contextBuilder.run(gradleLauncher);
-        } finally {
-            gradleLauncher.stop();
-        }
+        contextBuilder.run(build);
     }
 }

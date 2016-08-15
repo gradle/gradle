@@ -22,11 +22,11 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
@@ -48,13 +48,15 @@ public class CompositeContextBuildActionRunner {
         this.context = context;
     }
 
-    public void run(GradleLauncher launcher) {
-        GradleInternal gradle = (GradleInternal) launcher.getBuildAnalysis().getGradle();
-        ProjectInternal rootProject = gradle.getRootProject();
-
-        String participantName = rootProject.getName();
-        for (Project project : rootProject.getAllprojects()) {
-            registerProject(participantName, (ProjectInternal) project);
+    public void run(IncludedBuildInternal build) {
+        GradleLauncher gradleLauncher = build.createGradleLauncher();
+        try {
+            Gradle gradle = gradleLauncher.getBuildAnalysis().getGradle();
+            for (Project project : gradle.getRootProject().getAllprojects()) {
+                registerProject(build.getName(), (ProjectInternal) project);
+            }
+        } finally {
+            gradleLauncher.stop();
         }
     }
 

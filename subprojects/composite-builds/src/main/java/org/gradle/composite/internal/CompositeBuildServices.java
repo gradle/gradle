@@ -53,8 +53,8 @@ public class CompositeBuildServices implements PluginServiceRegistry {
             return new DefaultBuildableCompositeBuildContext();
         }
 
-        public CompositeContextBuilder createCompositeContextBuilder(StartParameter startParameter, ServiceRegistry serviceRegistry) {
-            return new DefaultCompositeContextBuilder(startParameter, serviceRegistry);
+        public CompositeContextBuilder createCompositeContextBuilder(CompositeBuildContext context) {
+            return new DefaultCompositeContextBuilder(context);
         }
 
         public ProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext, GradleLauncherFactory gradleLauncherFactory, StartParameter startParameter, ServiceRegistry compositeServices) {
