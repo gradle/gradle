@@ -17,34 +17,36 @@
 package org.gradle.internal.xml;
 
 public class XmlValidation {
-    public static boolean isValidXmlName(String name) {
+    public static boolean isValidXmlName(CharSequence name) {
         // element names can only contain 0 or 1 colon
         // See http://www.w3.org/TR/2004/REC-xml-names11-20040204/#Conformance
-        if (name.indexOf(':') != name.lastIndexOf(':')) {
-            return false;
-        }
-
         // If the name has a prefix, evaluate both prefix and name
-        if (name.indexOf(':') != -1 && name.charAt(0) != ':') {
-            return isValidXmlName(name.substring(0, name.indexOf(':')))
-                    && isValidXmlName(name.substring(name.indexOf(':')+1));
-        }
-
-        int length = name.length();
-        if (length == 0) {
-            return false;
-        }
-        char ch = name.charAt(0);
-        if (!isValidNameStartChar(ch)) {
-            return false;
-        }
-        for (int i = 1; i < length; i++) {
-            ch = name.charAt(i);
-            if (!isValidNameChar(ch)) {
-                return false;
+        int pos = 0;
+        int nsPos = 0;
+        int nsCount = 0;
+        for (; pos < name.length(); pos++) {
+            char ch = name.charAt(pos);
+            if (ch == ':') {
+                nsCount++;
+                if (nsCount > 1) {
+                    return false;
+                }
+                if (pos > 0) {
+                    // non leading ':'
+                    nsPos = pos + 1;
+                }
+                // else leading ':', this is ok
+            } else if (pos == nsPos) {
+                if (!isValidNameStartChar(ch)) {
+                    return false;
+                }
+            } else {
+                if (!isValidNameChar(ch)) {
+                    return false;
+                }
             }
         }
-        return true;
+        return pos != nsPos;
     }
 
     private static boolean isValidNameChar(char ch) {
