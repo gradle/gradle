@@ -198,7 +198,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private def unzipToDirectory(InputStream inputStream, File destination) {
+    def unzipToDirectory(inputStream, destination) {
         def unzippedFiles = []
         new ZipInputStream(inputStream).withStream { zipInput ->
             def entry
