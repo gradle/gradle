@@ -98,13 +98,17 @@ public class PerformanceCounterCollector implements DataCollector {
             Map<String, String> parsedValues = new HashMap<String, String>();
             String line;
             BufferedReader reader = new BufferedReader(new FileReader(file));
-            while ((line = reader.readLine()) != null) {
-                String[] parts = line.split("=", 2);
-                String key = parts[0];
-                String value = parts[1];
-                if (USED_KEYS.contains(key)) {
-                    parsedValues.put(key, value);
+            try {
+                while ((line = reader.readLine()) != null) {
+                    String[] parts = line.split("=", 2);
+                    String key = parts[0];
+                    String value = parts[1];
+                    if (USED_KEYS.contains(key)) {
+                        parsedValues.put(key, value);
+                    }
                 }
+            } finally {
+                reader.close();
             }
             return parsedValues;
         }
