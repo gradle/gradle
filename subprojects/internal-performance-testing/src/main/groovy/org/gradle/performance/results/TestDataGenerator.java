@@ -66,6 +66,20 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
             }
         }, out);
         out.println(",");
+        out.print("\"compileTotalTime\":");
+        render(testHistory, new Transformer<String, MeasuredOperationList>() {
+            public String transform(MeasuredOperationList original) {
+                return format.seconds(original.getCompileTotalTime().getAverage());
+            }
+        }, out);
+        out.println(",");
+        out.print("\"gcTotalTime\":");
+        render(testHistory, new Transformer<String, MeasuredOperationList>() {
+            public String transform(MeasuredOperationList original) {
+                return format.seconds(original.getGcTotalTime().getAverage());
+            }
+        }, out);
+        out.println(",");
         out.print("\"miscTime\":");
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {

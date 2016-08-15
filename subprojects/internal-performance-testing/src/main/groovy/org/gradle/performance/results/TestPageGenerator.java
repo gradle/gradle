@@ -92,6 +92,22 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 end();
             end();
 
+            h3().text("Total compile time").end();
+            div().id("compileTotalTimeChart").classAttr("chart");
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.compileTotalTime }, 'compile time', 's', 'compileTotalTimeChart');");
+                end();
+            end();
+
+            h3().text("Total GC time").end();
+            div().id("gcTotalTimeChart").classAttr("chart");
+                p().text("Loading...").end();
+                script();
+                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.gcTotalTime }, 'GC time', 's', 'gcTotalTimeChart');");
+                end();
+            end();
+
             div().id("tooltip").end();
             div().id("controls").end();
 
@@ -124,6 +140,8 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average build time").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average configuration time").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average execution time").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average compile time").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average gc time").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average heap usage (old measurement)").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average total heap usage").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average max heap usage").end();
@@ -178,6 +196,16 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                         return original.getExecutionTime();
+                    }
+                });
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                    public DataSeries<Duration> transform(MeasuredOperationList original) {
+                        return original.getCompileTotalTime();
+                    }
+                });
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                    public DataSeries<Duration> transform(MeasuredOperationList original) {
+                        return original.getGcTotalTime();
                     }
                 });
                 renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
