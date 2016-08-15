@@ -24,13 +24,11 @@ import groovy.transform.TypeCheckingMode
 import groovyx.net.http.ContentType
 import groovyx.net.http.RESTClient
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.internal.IoActions
 
 import java.util.concurrent.TimeUnit
+import java.util.zip.ZipInputStream
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -48,6 +46,12 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @Input
     String buildTypeId
+
+    @Input
+    String workerTestTaskName
+
+    @OutputDirectory
+    File workerTestResultsDir
 
     @Input
     String teamCityUrl
@@ -69,6 +73,8 @@ class DistributedPerformanceTest extends PerformanceTest {
     List<String> scheduledBuilds = Lists.newArrayList()
 
     List<Object> finishedBuilds = Lists.newArrayList()
+
+    Map<String, List<File>> testResultFilesForBuild = [:]
 
     void setScenarioList(File scenarioList) {
         systemProperty "org.gradle.performance.scenario.list", scenarioList
@@ -159,12 +165,61 @@ class DistributedPerformanceTest extends PerformanceTest {
             }
         }
         finishedBuilds += response.data
+
+        try {
+            testResultFilesForBuild.put(jobId, fetchTestResults(jobId, response.data))
+        } catch (e) {
+            e.printStackTrace(System.err)
+        }
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private def fetchTestResults(String jobId, buildData) {
+        def unzippedFiles = []
+        def artifactsUri = buildData?.artifacts?.@href?.text()
+        if (artifactsUri) {
+            def resultArtifacts = client.get(path: "${artifactsUri}/results/${project.name}/build/")
+            if (resultArtifacts.success) {
+                def zipName = "test-results-${workerTestTaskName}.zip".toString()
+                def fileNode = resultArtifacts.data.file.find {
+                    it.@name.text() == zipName
+                }
+                if (fileNode) {
+                    def resultsDirectory = new File(workerTestResultsDir, jobId)
+                    def contentUri = fileNode.content.@href.text()
+                    client.get(path: contentUri, contentType: ContentType.BINARY) {
+                        resp, inputStream ->
+                            unzippedFiles = unzipToDirectory(inputStream, resultsDirectory)
+                    }
+                }
+            }
+        }
+        unzippedFiles
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private def unzipToDirectory(InputStream inputStream, File destination) {
+        def unzippedFiles = []
+        new ZipInputStream(inputStream).withStream { zipInput ->
+            def entry
+            while (entry = zipInput.nextEntry) {
+                if (!entry.isDirectory()) {
+                    def file = new File(destination, entry.name)
+                    file.parentFile?.mkdirs()
+                    new FileOutputStream(file).withStream {
+                        it << zipInput
+                    }
+                    unzippedFiles << file
+                }
+            }
+        }
+        unzippedFiles
     }
 
     private void writeScenarioReport() {
         def renderer = new ScenarioReportRenderer()
         IoActions.writeTextFile(scenarioReport) { Writer writer ->
-            renderer.render(project.name, finishedBuilds, writer)
+            renderer.render(writer, project.name, finishedBuilds, testResultFilesForBuild)
         }
         renderer.writeCss(scenarioReport.getParentFile())
     }
