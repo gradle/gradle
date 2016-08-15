@@ -39,6 +39,8 @@ public class MeasuredOperation {
     Amount<DataAmount> maxHeapUsage
     /** The largest amount of committed heap (that is heap requested from the OS). Does not include the perm gen. */
     Amount<DataAmount> maxCommittedHeap
+    Amount<Duration> compileTotalTime
+    Amount<Duration> gcTotalTime
 
     boolean isValid() {
         start!=null &&

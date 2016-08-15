@@ -25,12 +25,14 @@ import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 
 import java.io.Closeable;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -71,7 +73,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                     } finally {
                         statement.close();
                     }
-                    statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         for (BuildDisplayInfo displayInfo : results.getBuilds()) {
                             addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
@@ -105,6 +107,16 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.setBigDecimal(13, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(14, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(15, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
+            if (operation.getCompileTotalTime() != null) {
+                statement.setBigDecimal(16, operation.getCompileTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            } else {
+                statement.setNull(16, Types.DECIMAL);
+            }
+            if (operation.getGcTotalTime() != null) {
+                statement.setBigDecimal(17, operation.getGcTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            } else {
+                statement.setNull(17, Types.DECIMAL);
+            }
             statement.addBatch();
         }
     }
@@ -155,7 +167,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         }
                     });
                     PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by startTime desc");
-                    PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+                    PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation where testExecution = ?");
                     executionsForName.setInt(1, mostRecentN);
                     executionsForName.setString(2, testName);
                     ResultSet testExecutions = executionsForName.executeQuery();
@@ -199,7 +211,14 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                             operation.setMaxHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(12)));
                             operation.setMaxUncollectedHeap(DataAmount.bytes(resultSet.getBigDecimal(13)));
                             operation.setMaxCommittedHeap(DataAmount.bytes(resultSet.getBigDecimal(14)));
-
+                            BigDecimal compileTotalTime = resultSet.getBigDecimal(15);
+                            if (compileTotalTime != null) {
+                                operation.setCompileTotalTime(Duration.millis(compileTotalTime));
+                            }
+                            BigDecimal gcTotalTime = resultSet.getBigDecimal(16);
+                            if (gcTotalTime != null) {
+                                operation.setGcTotalTime(Duration.millis(gcTotalTime));
+                            }
                             performanceResults.buildResult(displayInfo).add(operation);
                             builds.add(displayInfo);
                         }
@@ -256,6 +275,8 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.execute("alter table testOperation add column if not exists gradleOpts array");
             statement.execute("alter table testOperation add column if not exists daemon boolean");
             statement.execute("alter table testExecution add column if not exists resultType varchar not null default 'cross-build'");
+            statement.execute("alter table testOperation add column if not exists compileTotalTime decimal");
+            statement.execute("alter table testOperation add column if not exists gcTotalTime decimal");
             statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
             statement.execute("create index if not exists testExecution_testGroup on testExecution (testGroup)");
             if (columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {

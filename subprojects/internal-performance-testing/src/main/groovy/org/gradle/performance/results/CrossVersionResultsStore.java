@@ -26,12 +26,14 @@ import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GradleVersion;
 
 import java.io.Closeable;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -102,7 +104,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         closeResultSet(keys);
                     }
                     try {
-                        statement = connection.prepareStatement("insert into testOperation(testExecution, version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        statement = connection.prepareStatement("insert into testOperation(testExecution, version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         addOperations(statement, testId, null, results.getCurrent());
                         for (BaselineVersion baselineVersion : results.getBaselineVersions()) {
                             addOperations(statement, testId, baselineVersion.getVersion(), baselineVersion.getResults());
@@ -141,6 +143,16 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
             statement.setBigDecimal(8, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(9, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(10, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
+            if (operation.getCompileTotalTime() != null) {
+                statement.setBigDecimal(11, operation.getCompileTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            } else {
+                statement.setNull(11, Types.DECIMAL);
+            }
+            if (operation.getGcTotalTime() != null) {
+                statement.setBigDecimal(12, operation.getGcTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            } else {
+                statement.setNull(12, Types.DECIMAL);
+            }
             statement.addBatch();
         }
     }
@@ -224,7 +236,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             allBranches.add(performanceResults.getVcsBranch());
                         }
 
-                        operationsForExecution = connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, testExecution from testOperation where testExecution in (select * from table(x int = ?))");
+                        operationsForExecution = connection.prepareStatement("select version, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, testExecution, compileTotalTime, gcTotalTime from testOperation where testExecution in (select * from table(x int = ?))");
                         operationsForExecution.setFetchSize(10 * results.size());
                         operationsForExecution.setObject(1, results.keySet().toArray());
 
@@ -245,6 +257,14 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             operation.setMaxHeapUsage(DataAmount.bytes(operations.getBigDecimal(7)));
                             operation.setMaxUncollectedHeap(DataAmount.bytes(operations.getBigDecimal(8)));
                             operation.setMaxCommittedHeap(DataAmount.bytes(operations.getBigDecimal(9)));
+                            BigDecimal compileTotalTime = operations.getBigDecimal(10);
+                            if (compileTotalTime != null) {
+                                operation.setCompileTotalTime(Duration.millis(compileTotalTime));
+                            }
+                            BigDecimal gcTotalTime = operations.getBigDecimal(11);
+                            if (gcTotalTime != null) {
+                                operation.setGcTotalTime(Duration.millis(gcTotalTime));
+                            }
 
                             if (version == null) {
                                 result.getCurrent().add(operation);
@@ -291,6 +311,8 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 statement.execute("alter table testOperation add column if not exists maxHeapUsageBytes decimal");
                 statement.execute("alter table testOperation add column if not exists maxUncollectedHeapBytes decimal");
                 statement.execute("alter table testOperation add column if not exists maxCommittedHeapBytes decimal");
+                statement.execute("alter table testOperation add column if not exists compileTotalTime decimal");
+                statement.execute("alter table testOperation add column if not exists gcTotalTime decimal");
                 if (columnExists(connection, "TESTOPERATION", "EXECUTIONTIMEMS")) {
                     statement.execute("alter table testOperation alter column executionTimeMs rename to totalTime");
                     statement.execute("alter table testOperation add column executionTime decimal");
