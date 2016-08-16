@@ -41,7 +41,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
             html();
                 head();
                     headSection(this);
-                    title().text("Profile report").end();
+                    title().text("Profile report for channel " + ResultsStoreHelper.determineChannel()).end();
                 end();
                 body();
 

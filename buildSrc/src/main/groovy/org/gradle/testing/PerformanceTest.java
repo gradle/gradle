@@ -30,6 +30,7 @@ public class PerformanceTest extends DistributionTest {
     private String warmups;
     private String runs;
     private String checks;
+    private String channel;
 
     @Option(option = "scenarios", description = "A semicolon-separated list of performance test scenario ids to run.")
     public void setScenarios(String scenarios) {
@@ -76,9 +77,19 @@ public class PerformanceTest extends DistributionTest {
         systemProperty("org.gradle.performance.execution.checks", checks);
     }
 
-
     @Input @Optional
     public String getChecks() {
         return checks;
+    }
+
+    @Input @Optional
+    public String getChannel() {
+        return channel;
+    }
+
+    @Option(option = "channel", description = "Channel to use when running the performance test. By default, 'commits'.")
+    public void setChannel(String channel) {
+        this.channel = channel;
+        systemProperty("org.gradle.performance.execution.channel", channel);
     }
 }

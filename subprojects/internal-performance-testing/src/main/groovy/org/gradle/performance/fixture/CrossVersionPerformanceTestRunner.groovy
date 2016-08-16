@@ -30,6 +30,7 @@ import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.ResultsStore
+import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
@@ -97,7 +98,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId],
-            startTime: System.currentTimeMillis())
+            startTime: System.currentTimeMillis(),
+            channel: ResultsStoreHelper.determineChannel()
+        )
 
         LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions)
 

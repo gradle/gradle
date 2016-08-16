@@ -30,6 +30,11 @@ public abstract class PerformanceTestResult {
     List<String> previousTestIds;
     String versionUnderTest;
     String channel;
+    Throwable whereAmI;
+
+    public  PerformanceTestResult() {
+        whereAmI = new Throwable();
+    }
 
     protected static Checks whatToCheck() {
         Checks result = Checks.ALL;

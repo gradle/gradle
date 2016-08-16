@@ -142,6 +142,7 @@ class DistributedPerformanceTest extends PerformanceTest {
                         <property name="warmups" value="${warmups!=null?:'defaults'}"/>
                         <property name="runs" value="${runs!=null?:'defaults'}"/>
                         <property name="checks" value="${checks?:'all'}"/>
+                        <property name="channel" value="${channel?:'commits'}"/>
                     </properties>
                     ${getLastChange()}
                 </build>

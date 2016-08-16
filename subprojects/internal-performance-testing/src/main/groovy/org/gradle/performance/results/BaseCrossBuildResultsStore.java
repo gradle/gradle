@@ -285,6 +285,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.execute("alter table testOperation add column if not exists gcTotalTime decimal");
             statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
             statement.execute("create index if not exists testExecution_testGroup on testExecution (testGroup)");
+            statement.execute("create index if not exists testExecution_channel on testExecution (channel)");
             if (columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {
                 statement.execute("alter table testExecution alter column executionTime rename to startTime");
             }
