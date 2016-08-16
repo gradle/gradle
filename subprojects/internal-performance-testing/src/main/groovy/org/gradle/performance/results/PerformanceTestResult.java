@@ -29,6 +29,7 @@ public abstract class PerformanceTestResult {
     List<String> vcsCommits;
     List<String> previousTestIds;
     String versionUnderTest;
+    String channel;
 
     protected static Checks whatToCheck() {
         Checks result = Checks.ALL;
@@ -109,6 +110,14 @@ public abstract class PerformanceTestResult {
 
     public void setJvm(String jvm) {
         this.jvm = jvm;
+    }
+
+    public String getChannel() {
+        return channel;
+    }
+
+    public void setChannel(String channel) {
+        this.channel = channel;
     }
 
     public abstract void assertEveryBuildSucceeds();

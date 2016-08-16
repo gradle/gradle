@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildExperimentRunner {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildExperimentRunner.class);
     public static final String HEAP_DUMP_PROPERTY = "org.gradle.performance.heapdump";
 

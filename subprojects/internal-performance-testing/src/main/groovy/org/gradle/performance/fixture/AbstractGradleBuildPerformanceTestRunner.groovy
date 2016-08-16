@@ -22,6 +22,7 @@ import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.PerformanceTestResult
 import org.gradle.performance.results.ResultsStore
+import org.gradle.performance.results.ResultsStoreHelper
 import org.junit.Assume
 
 abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTestResult> {
@@ -103,4 +104,7 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
         }
     }
 
+    protected static String determineChannel() {
+        ResultsStoreHelper.determineChannel()
+    }
 }

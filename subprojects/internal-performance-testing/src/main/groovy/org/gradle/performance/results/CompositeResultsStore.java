@@ -40,13 +40,13 @@ public class CompositeResultsStore implements ResultsStore {
     }
 
     @Override
-    public PerformanceTestHistory getTestResults(String testName) {
-        return getStoreForTest(testName).getTestResults(testName);
+    public PerformanceTestHistory getTestResults(String testName, String channel) {
+        return getStoreForTest(testName).getTestResults(testName, channel);
     }
 
     @Override
-    public PerformanceTestHistory getTestResults(String testName, int mostRecentN) {
-        return getStoreForTest(testName).getTestResults(testName, mostRecentN);
+    public PerformanceTestHistory getTestResults(String testName, int mostRecentN, int maxDaysOld, String channel) {
+        return getStoreForTest(testName).getTestResults(testName, mostRecentN, maxDaysOld, channel);
     }
 
     private ResultsStore getStoreForTest(String testName) {

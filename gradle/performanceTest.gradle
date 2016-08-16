@@ -161,6 +161,7 @@ task fullPerformanceTest(type: PerformanceTest) {
 
 task performanceAdhocTest(type: PerformanceTest) {
     systemProperty "org.gradle.performance.db.url", "jdbc:h2:./build/database"
+    systemProperty "org.gradle.performance.execution.channel", "adhoc"
 }
 
 tasks.withType(DistributedPerformanceTest) {

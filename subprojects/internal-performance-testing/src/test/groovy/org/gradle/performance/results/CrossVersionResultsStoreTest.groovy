@@ -20,6 +20,7 @@ import org.gradle.performance.ResultSpecification
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Shared
 
 import static org.gradle.performance.measure.DataAmount.kbytes
 import static org.gradle.performance.measure.Duration.minutes
@@ -28,6 +29,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     @Rule SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)
     final dbFile = tmpDir.file("results")
+
+    @Shared long now = Calendar.getInstance().time.time
 
     def "persists results"() {
         def result1 = crossVersionResults(testId: "test1",
@@ -38,7 +41,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
                 daemon: true,
                 operatingSystem: "some-os",
                 jvm: "java 6",
-                startTime: 10000,
+                startTime: now + 10000,
                 versionUnderTest: "1.7-rc-1",
                 vcsBranch: "master",
                 vcsCommits: ["1234567", "abcdefg"])
@@ -57,7 +60,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         baseline2.results << operation()
         baseline2.results << operation()
 
-        def result2 = crossVersionResults(testId: "test2", startTime: 20000, versionUnderTest: "1.7-rc-2")
+        def result2 = crossVersionResults(testId: "test2", startTime: now + 20000, versionUnderTest: "1.7-rc-2", channel: 'commits')
         result2.current << operation()
         result2.current << operation()
         def baseline3 = result2.baseline("1.0")
@@ -80,7 +83,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         tests == ["test1", "test2"]
 
         when:
-        def history = readStore.getTestResults("test1")
+        def history = readStore.getTestResults("test1", channel)
 
         then:
         history.id == "test1"
@@ -110,7 +113,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results[0].daemon
         results[0].operatingSystem == "some-os"
         results[0].jvm == "java 6"
-        results[0].startTime == 10000
+        results[0].startTime == now + 10000
         results[0].versionUnderTest == '1.7-rc-1'
         results[0].vcsBranch == 'master'
         results[0].vcsCommits == ['1234567', 'abcdefg']
@@ -128,7 +131,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results[0].baseline("1.5").results.size() == 3
 
         when:
-        history = readStore.getTestResults("test2")
+        history = readStore.getTestResults("test2", channel)
         results = history.results
         readStore.close()
 
@@ -138,11 +141,12 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         and:
         results.size() == 1
         results[0].testId == "test2"
-        results[0].startTime == 20000
+        results[0].startTime == now + 20000
         results[0].versionUnderTest == '1.7-rc-2'
         results[0].current.size() == 2
         results[0].baselineVersions*.version == ["1.0"]
         results[0].baseline("1.0").results.size() == 1
+        results[0].channel == 'commits'
 
         cleanup:
         writeStore?.close()
@@ -152,7 +156,9 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
     def "handles null for details that have not been collected for older test executions"() {
         def result1 = crossVersionResults(testId: "test1",
                 gradleOpts: null,
-                daemon: null)
+                daemon: null,
+                startTime: now,
+        )
         result1.current << operation()
 
         when:
@@ -165,7 +171,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
 
         when:
         def readStore = new CrossVersionResultsStore(dbFile.name)
-        def history = readStore.getTestResults("test1")
+        def history = readStore.getTestResults("test1", channel)
 
         then:
         history.id == "test1"
@@ -177,6 +183,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results.size() == 1
         results[0].gradleOpts == null
         results[0].daemon == null
+        results[0].channel == []
 
         cleanup:
         writeStore?.close()
@@ -206,14 +213,14 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
     def "returns top n test executions in descending date order"() {
         given:
         def writeStore = new CrossVersionResultsStore(dbFile.name)
-        writeStore.report(crossVersionResults(testId: "some test", startTime: 30000, versionUnderTest: "1.7-rc-3"))
-        writeStore.report(crossVersionResults(testId: "some test", startTime: 10000, versionUnderTest: "1.7-rc-1"))
-        writeStore.report(crossVersionResults(testId: "some test", startTime: 20000, versionUnderTest: "1.7-rc-2"))
+        writeStore.report(crossVersionResults(testId: "some test", startTime: now + 30000, versionUnderTest: "1.7-rc-3"))
+        writeStore.report(crossVersionResults(testId: "some test", startTime: now + 10000, versionUnderTest: "1.7-rc-1"))
+        writeStore.report(crossVersionResults(testId: "some test", startTime: now + 20000, versionUnderTest: "1.7-rc-2"))
         writeStore.close()
 
         when:
         def readStore = new CrossVersionResultsStore(dbFile.name)
-        def results = readStore.getTestResults("some test")
+        def results = readStore.getTestResults("some test", channel)
 
         then:
         results.results.size() == 3
@@ -221,7 +228,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results.resultsOldestFirst*.versionUnderTest == ["1.7-rc-1", "1.7-rc-2", "1.7-rc-3"]
 
         when:
-        results = readStore.getTestResults("some test", 2)
+        results = readStore.getTestResults("some test", 2, Integer.MAX_VALUE, channel)
 
         then:
         results.results.size() == 2
@@ -255,7 +262,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
 
         when:
         def readStore = new CrossVersionResultsStore(dbFile.name)
-        def results = readStore.getTestResults("test-id")
+        def results = readStore.getTestResults("test-id", channel)
 
         then:
         results.baselineVersions == ["1.0", "1.8-rc-1", "1.8-rc-2", "1.8", "1.10"]
@@ -306,12 +313,12 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         readStore.testNames == ["current", "previous 2"]
 
         and:
-        def results = readStore.getTestResults("current")
+        def results = readStore.getTestResults("current", channel)
         results.results.size() == 2
 
         and:
-        readStore.getTestResults("previous 1").results.empty
-        readStore.getTestResults("previous 2").results.size() == 1
+        readStore.getTestResults("previous 1", channel).results.empty
+        readStore.getTestResults("previous 2", channel).results.size() == 1
 
         cleanup:
         writeStore?.close()
@@ -323,8 +330,8 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         def store = new CrossVersionResultsStore(dbFile.name)
 
         expect:
-        store.getTestResults("unknown").baselineVersions.empty
-        store.getTestResults("unknown").results.empty
+        store.getTestResults("unknown", channel).baselineVersions.empty
+        store.getTestResults("unknown", channel).results.empty
 
         cleanup:
         store?.close()

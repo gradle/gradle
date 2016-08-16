@@ -24,6 +24,7 @@ import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.util.GradleVersion;
+import org.joda.time.LocalDate;
 
 import java.io.Closeable;
 import java.math.BigDecimal;
@@ -80,7 +81,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     ResultSet keys = null;
 
                     try {
-                        statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                        statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getStartTime()));
                         statement.setTimestamp(3, new Timestamp(results.getEndTime()));
@@ -95,6 +96,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                         statement.setString(12, results.getVcsBranch());
                         String vcs = results.getVcsCommits() == null ? null :  Joiner.on(",").join(results.getVcsCommits());
                         statement.setString(13, vcs);
+                        statement.setString(14, results.getChannel());
                         statement.execute();
                         keys = statement.getGeneratedKeys();
                         keys.next();
@@ -186,12 +188,12 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
     }
 
     @Override
-    public CrossVersionPerformanceTestHistory getTestResults(String testName) {
-        return getTestResults(testName, Integer.MAX_VALUE);
+    public CrossVersionPerformanceTestHistory getTestResults(String testName, String channel) {
+        return getTestResults(testName, Integer.MAX_VALUE, Integer.MAX_VALUE, channel);
     }
 
     @Override
-    public CrossVersionPerformanceTestHistory getTestResults(final String testName, final int mostRecentN) {
+    public CrossVersionPerformanceTestHistory getTestResults(final String testName, final int mostRecentN, final int maxDaysOld, final String channel) {
         try {
             return db.withConnection(new ConnectionAction<CrossVersionPerformanceTestHistory>() {
                 public CrossVersionPerformanceTestHistory execute(Connection connection) throws SQLException {
@@ -209,10 +211,13 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     ResultSet operations = null;
 
                     try {
-                        executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit from testExecution where testId = ? order by startTime desc");
+                        executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, targetVersion, testProject, tasks, args, gradleOpts, daemon, operatingSystem, jvm, vcsBranch, vcsCommit, channel from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
                         executionsForName.setFetchSize(mostRecentN);
                         executionsForName.setInt(1, mostRecentN);
                         executionsForName.setString(2, testName);
+                        Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
+                        executionsForName.setTimestamp(3, minDate);
+                        executionsForName.setString(4, channel);
 
                         testExecutions = executionsForName.executeQuery();
                         while (testExecutions.next()) {
@@ -230,8 +235,8 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                             performanceResults.setOperatingSystem(testExecutions.getString(10));
                             performanceResults.setJvm(testExecutions.getString(11));
                             performanceResults.setVcsBranch(testExecutions.getString(12).trim());
-                            performanceResults.setVcsCommits(ResultsStoreHelper.splitVcsCommits(testExecutions.getString(13)));
-
+                            performanceResults.setVcsCommits(ResultsStoreHelper.split(testExecutions.getString(13)));
+                            performanceResults.setChannel(testExecutions.getString(14));
                             results.put(id, performanceResults);
                             allBranches.add(performanceResults.getVcsBranch());
                         }
@@ -331,6 +336,11 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     statement.execute("alter table testExecution add column endTime timestamp");
                     statement.execute("update testExecution set endTime = startTime");
                     statement.execute("alter table testExecution alter column endTime set not null");
+                }
+                if (!columnExists(connection, "TESTEXECUTION", "CHANNEL")) {
+                    statement.execute("alter table testExecution add column if not exists channel varchar");
+                    statement.execute("update testExecution set channel='commits'");
+                    statement.execute("alter table testExecution alter column channel set not null");
                 }
             } finally {
                 closeStatement(statement);

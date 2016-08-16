@@ -38,9 +38,9 @@ class CompositeResultsStoreTest extends Specification {
         store2.testNames >> ['c', 'd']
 
         when:
-        store.getTestResults('c')
+        store.getTestResults('c', channel)
 
         then:
-        1 * store2.getTestResults('c')
+        1 * store2.getTestResults('c', channel)
     }
 }
