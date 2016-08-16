@@ -18,32 +18,21 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.maven.MavenFileRepository
+import spock.lang.Unroll
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
-class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildA
     BuildTestFile buildB
     BuildTestFile buildC
-    MavenFileRepository mavenRepo
     ResolveTestFixture resolve
     def buildArgs = []
 
     def setup() {
-        mavenRepo = new MavenFileRepository(file("maven-repo"))
-        mavenRepo.module("org.test", "buildB", "1.0").publish()
-        mavenRepo.module("org.test", "b2", "1.0").publish()
-
-        buildA = multiProjectBuild("buildA", ['a1', 'a2']) {
+        buildA = singleProjectBuild("buildA") {
             buildFile << """
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                allprojects {
-                    apply plugin: 'java'
-                    configurations { compile }
-                }
+                apply plugin: 'java'
 """
         }
         resolve = new ResolveTestFixture(buildA.buildFile)
@@ -53,10 +42,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
                 allprojects {
                     apply plugin: 'java'
                     version "2.0"
-
-                    repositories {
-                        maven { url "${mavenRepo.uri}" }
-                    }
                 }
 """
         }
@@ -68,18 +53,114 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    def "will only make declared substitutions when defined for included build"() {
+    def "does not configure build with declared substitutions that is not required for dependency substitution"() {
+        given:
+        dependency "org.test:buildB:1.0"
+
+        includeBuild buildB
+        includeBuild buildC, """
+            substitute module("org.gradle:buildX") with project(":") // Not used
+"""
+
+        when:
+        buildC.buildFile << """
+            throw new RuntimeException('Configuration fails')
+"""
+
+
+        then:
+        resolvedGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
+        }
+    }
+
+    def "build with discovered substitutions that is not required for dependency substitution is configured only once"() {
+        given:
+        dependency "org.test:buildB:1.0"
+
+        includeBuild buildB
+        includeBuild buildC
+
+        when:
+        buildC.buildFile << """
+            println 'Configured buildC'
+"""
+
+
+        then:
+        resolvedGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
+        }
+
+        and:
+        output.count('Configured buildC') == 1
+    }
+
+    @Unroll
+    def "configures included build only once when #action"() {
+        given:
+        dependency "org.test:buildB:1.0"
+        dependency "org.test:buildC:1.0"
+
+        includeBuild buildB
+        includeBuild buildC, """
+            substitute module("org.test:buildC") with project(":")
+"""
+
+        when:
+        buildB.buildFile << """
+            println 'Configured buildB'
+"""
+        buildC.buildFile << """
+            println 'Configured buildC'
+"""
+
+        and:
+        if (!buildArtifacts) {
+            resolve.withoutBuildingArtifacts()
+        }
+
+        then:
+        resolvedGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+            }
+            edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
+                compositeSubstitute()
+            }
+        }
+
+        and:
+        if (buildArtifacts) {
+            executed(":buildB:jar", ":buildC:jar")
+        }
+        def expectedCount = buildArtifacts ? 3 : 2 // TODO:DAZ Should be 1
+        output.count('Configured buildB') == expectedCount
+        output.count('Configured buildC') == (expectedCount - 1)
+
+        where:
+        action      | buildArtifacts
+        "resolving" | false
+        "building"  | true
+    }
+
+    def "configures included build only once when building multiple artifacts"() {
         given:
         dependency "org.test:buildB:1.0"
         dependency "org.test:b1:1.0"
-        dependency "org.test:b2:1.0"
 
-        includeBuild buildB, """
-            substitute module("org.test:buildB") with project(":")
-            substitute module("org.test:b1:1.0") with project(":b1")
+        includeBuild buildB
+
+        when:
+        buildB.buildFile << """
+            println 'Configured buildB'
 """
 
-        expect:
+        then:
         resolvedGraph {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
                 compositeSubstitute()
@@ -87,74 +168,11 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
             edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
                 compositeSubstitute()
             }
-            module("org.test:b2:1.0")
         }
-    }
 
-    def "can combine included builds with declared and discovered substitutions"() {
-        given:
-        dependency "org.test:b1:1.0"
-        dependency "org.test:XXX:1.0"
-
-        includeBuild buildB
-        includeBuild buildC, """
-            substitute module("org.test:XXX") with project(":")
-"""
-
-        expect:
-        resolvedGraph {
-            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
-                compositeSubstitute()
-            }
-            edge("org.test:XXX:1.0", "project buildC::", "org.test:buildC:1.0") {
-                compositeSubstitute()
-            }
-        }
-    }
-
-    def "can substitute arbitrary coordinates for included build"() {
-        given:
-        dependency "org.test:buildX:1.0"
-
-        when:
-        includeBuild buildB, """
-            substitute module("org.test:buildX") with project(":b1")
-"""
-
-        then:
-        resolvedGraph {
-            edge("org.test:buildX:1.0", "project buildB::b1", "org.test:b1:2.0") {
-                compositeSubstitute()
-            }
-        }
-    }
-
-    def "resolves project substitution for build based on rootProject name"() {
-        given:
-        def buildB2 = rootDir.file("hierarchy", "buildB");
-        buildB2.file('settings.gradle') << """
-            rootProject.name = 'buildB2'
-"""
-        buildB2.file('build.gradle') << """
-            apply plugin: 'java'
-            group = 'org.test'
-            version = '1.0'
-"""
-
-        dependency "org.gradle:buildX:1.0"
-
-        when:
-        // The project path ':' is resolved using the rootProject.name of buildB2
-        includeBuild buildB2, """
-            substitute module("org.gradle:buildX") with project(":")
-"""
-
-        then:
-        resolvedGraph {
-            edge("org.gradle:buildX:1.0", "project buildB2::", "org.test:buildB2:1.0") {
-                compositeSubstitute()
-            }
-        }
+        and:
+        executed(":buildB:jar", ":buildB:b1:jar")
+        output.count('Configured buildB') == 3 // TODO:DAZ Should be 1
     }
 
     def dependency(String notation) {
@@ -173,7 +191,6 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
                 }
             }
 """
-
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
