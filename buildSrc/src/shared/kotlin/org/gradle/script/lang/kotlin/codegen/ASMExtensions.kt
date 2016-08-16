@@ -14,21 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.provider
+package org.gradle.script.lang.kotlin.codegen
 
-import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.configuration.ScriptPluginFactoryProvider
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.tree.ClassNode
+import java.io.InputStream
 
-import javax.inject.Inject
-
-class KotlinScriptPluginFactoryProvider @Inject constructor(
-    val classPathProvider: KotlinScriptClassPathProvider) : ScriptPluginFactoryProvider {
-
-    override fun getFor(fileName: String): ScriptPluginFactory? {
-        return when {
-            fileName.endsWith(".kts") -> KotlinScriptPluginFactory(classPathProvider)
-            else -> null
-        }
+fun classNodeFor(input: InputStream) =
+    ClassNode().apply {
+        ClassReader(input).accept(this, ClassReader.SKIP_DEBUG + ClassReader.SKIP_FRAMES)
     }
-}
-

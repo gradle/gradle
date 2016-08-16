@@ -14,21 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.provider
+package org.gradle.script.lang.kotlin.codegen
 
-import org.gradle.configuration.ScriptPluginFactory
-import org.gradle.configuration.ScriptPluginFactoryProvider
+import org.objectweb.asm.Opcodes
 
-import javax.inject.Inject
+data class MethodDescriptor(val name: String, val signatureOrDesc: String, val access: Int) {
 
-class KotlinScriptPluginFactoryProvider @Inject constructor(
-    val classPathProvider: KotlinScriptClassPathProvider) : ScriptPluginFactoryProvider {
-
-    override fun getFor(fileName: String): ScriptPluginFactory? {
-        return when {
-            fileName.endsWith(".kts") -> KotlinScriptPluginFactory(classPathProvider)
-            else -> null
-        }
+    val signature by lazy {
+        MethodSignature.from(signatureOrDesc)
     }
+
+    val isPublic: Boolean
+        get() = access.hasFlag(Opcodes.ACC_PUBLIC)
+
+    val isSynthetic: Boolean
+        get() = access.hasFlag(Opcodes.ACC_SYNTHETIC)
 }
 
+fun Int.hasFlag(flag: Int) =
+    this.and(flag) == flag

@@ -1,6 +1,9 @@
 package org.gradle.script.lang.kotlin.support
 
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.OutputStream
+
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -19,7 +22,11 @@ fun zipTo(zipFile: File, baseDir: File, files: Sequence<File>) {
 }
 
 fun zipTo(zipFile: File, entries: Sequence<Pair<String, ByteArray>>) {
-    ZipOutputStream(zipFile.outputStream()).use { zos ->
+    zipTo(zipFile.outputStream(), entries)
+}
+
+fun zipTo(outputStream: OutputStream, entries: Sequence<Pair<String, ByteArray>>) {
+    ZipOutputStream(outputStream).use { zos ->
         entries.forEach { entry ->
             val (path, bytes) = entry
             zos.putNextEntry(ZipEntry(path).apply { size = bytes.size.toLong() })
@@ -28,3 +35,15 @@ fun zipTo(zipFile: File, entries: Sequence<Pair<String, ByteArray>>) {
         }
     }
 }
+
+fun zipOf(entries: Sequence<Pair<String, ByteArray>>): ByteArray =
+    ByteArrayOutputStream().run {
+        zipTo(this, entries)
+        toByteArray()
+    }
+
+fun classEntriesFor(vararg classes: Class<*>): Sequence<Pair<String, ByteArray>> =
+    classes.asSequence().map {
+        val classFilePath = it.name.replace('.', '/') + ".class"
+        classFilePath to it.getResource("/$classFilePath").readBytes()
+    }

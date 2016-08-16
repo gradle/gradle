@@ -23,6 +23,7 @@ dependencies {
     compile("org.codehaus.groovy:groovy-all:2.4.7")
     compile("org.slf4j:slf4j-api:1.7.10")
     compile("javax.inject:javax.inject:1")
+    compile("org.ow2.asm:asm-all:5.1")
 
     compile(kotlin("stdlib"))
     compile(kotlin("reflect"))

@@ -3,6 +3,7 @@ package org.gradle.script.lang.kotlin.integration
 import org.gradle.script.lang.kotlin.embeddedKotlinVersion
 import org.gradle.script.lang.kotlin.integration.fixture.DeepThought
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModel
+import org.gradle.script.lang.kotlin.support.classEntriesFor
 import org.gradle.script.lang.kotlin.support.retrieveKotlinBuildScriptModelFrom
 import org.gradle.script.lang.kotlin.support.zipTo
 
@@ -272,12 +273,8 @@ class GradleScriptKotlinIntegrationTest {
     }
 
     private fun withClassJar(fileName: String, vararg classes: Class<*>) =
-        zipTo(
-            file(fileName),
-            classes.asSequence().map {
-                val classFilePath = it.name.replace('.', '/') + ".class"
-                classFilePath to it.getResource("/$classFilePath").readBytes()
-            })
+        zipTo(file(fileName), classEntriesFor(*classes))
+
 
     private fun file(fileName: String) =
         projectDir.run {
