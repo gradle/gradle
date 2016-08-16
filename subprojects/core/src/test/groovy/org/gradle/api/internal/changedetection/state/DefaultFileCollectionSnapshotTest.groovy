@@ -20,14 +20,15 @@ import com.google.common.hash.HashCode
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder
 import spock.lang.Specification
 
-class FileCollectionSnapshotImplTest extends Specification {
+class DefaultFileCollectionSnapshotTest extends Specification {
+
     def "order-insensitive collection snapshot ignores order when hashing"() {
         def builder = Mock(TaskCacheKeyBuilder)
-        def oldSnapshot = new FileCollectionSnapshotImpl([
+        def oldSnapshot = new DefaultFileCollectionSnapshot([
             "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
             "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
         ], TaskFilePropertyCompareType.UNORDERED)
-        def newSnapshot = new FileCollectionSnapshotImpl([
+        def newSnapshot = new DefaultFileCollectionSnapshot([
             "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
             "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
         ], TaskFilePropertyCompareType.UNORDERED)
@@ -52,11 +53,11 @@ class FileCollectionSnapshotImplTest extends Specification {
 
     def "order-sensitive collection snapshot considers order when hashing"() {
         def builder = Mock(TaskCacheKeyBuilder)
-        def oldSnapshot = new FileCollectionSnapshotImpl([
+        def oldSnapshot = new DefaultFileCollectionSnapshot([
             "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
             "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
         ], TaskFilePropertyCompareType.ORDERED)
-        def newSnapshot = new FileCollectionSnapshotImpl([
+        def newSnapshot = new DefaultFileCollectionSnapshot([
             "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
             "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
         ], TaskFilePropertyCompareType.ORDERED)

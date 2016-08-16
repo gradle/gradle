@@ -79,7 +79,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
         tests == ["test1", "test2"]
 
         when:
-        def history = readStore.getTestResults("test1")
+        def history = readStore.getTestResults("test1", channel)
 
         then:
         history.id == "test1"
@@ -159,7 +159,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         when:
         def readStore = new BaseCrossBuildResultsStore(dbName)
-        def history = readStore.getTestResults("test1")
+        def history = readStore.getTestResults("test1", channel)
 
         then:
         history.id == "test1"
@@ -261,7 +261,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         when:
         def readStore = new BaseCrossBuildResultsStore(dbName)
-        def history = readStore.getTestResults("test1")
+        def history = readStore.getTestResults("test1", channel)
 
         then:
         history.id == "test1"
@@ -369,7 +369,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         when:
         def readStore = new BaseCrossBuildResultsStore(dbName)
-        def history = readStore.getTestResults("test1")
+        def history = readStore.getTestResults("test1", channel)
 
         then:
         history.id == "test1"
@@ -425,13 +425,13 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
 
         when:
         def readStore = new BaseCrossBuildResultsStore(dbName)
-        def history = readStore.getTestResults("test1")
+        def history = readStore.getTestResults("test1", channel)
 
         then:
         history.results*.startTime == [3000, 2000, 1000]
 
         when:
-        history = readStore.getTestResults("test1", 2)
+        history = readStore.getTestResults("test1", 2, Integer.MAX_VALUE, channel)
 
         then:
         history.results*.startTime == [3000, 2000]

@@ -88,7 +88,7 @@ public class DefaultGradleLauncherTest {
     @Before
     public void setUp() {
         initScriptHandlerMock = context.mock(InitScriptHandler.class);
-        settingsLoaderMock = context.mock(SettingsHandler.class);
+        settingsLoaderMock = context.mock(DefaultSettingsLoader.class);
         settingsMock = context.mock(SettingsInternal.class);
         taskExecuterMock = context.mock(TaskGraphExecuter.class);
         buildConfigurerMock = context.mock(BuildConfigurer.class);

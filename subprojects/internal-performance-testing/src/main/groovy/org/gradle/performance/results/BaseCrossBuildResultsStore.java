@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
+import org.joda.time.LocalDate;
 
 import java.io.Closeable;
 import java.math.BigDecimal;
@@ -37,7 +38,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.performance.results.ResultsStoreHelper.splitVcsCommits;
+import static org.gradle.performance.results.ResultsStoreHelper.split;
 
 public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> implements ResultsStore, DataReporter<R>, Closeable {
 
@@ -54,7 +55,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             db.withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws SQLException {
                     long executionId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getStartTime()));
@@ -66,6 +67,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         statement.setString(8, Joiner.on(",").join(results.getVcsCommits()));
                         statement.setString(9, results.getTestGroup());
                         statement.setString(10, resultType);
+                        statement.setString(11, results.getChannel());
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -151,11 +153,11 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     @Override
-    public CrossBuildPerformanceTestHistory getTestResults(String testName) {
-        return getTestResults(testName, Integer.MAX_VALUE);
+    public CrossBuildPerformanceTestHistory getTestResults(String testName, String channel) {
+        return getTestResults(testName, Integer.MAX_VALUE, Integer.MAX_VALUE, channel);
     }
 
-    public CrossBuildPerformanceTestHistory getTestResults(final String testName, final int mostRecentN) {
+    public CrossBuildPerformanceTestHistory getTestResults(final String testName, final int mostRecentN, final int maxDaysOld, final String channel) {
         try {
             return db.withConnection(new ConnectionAction<CrossBuildPerformanceTestHistory>() {
                 public CrossBuildPerformanceTestHistory execute(Connection connection) throws SQLException {
@@ -166,10 +168,13 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                             return o1.getDisplayName().compareTo(o2.getDisplayName());
                         }
                     });
-                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by startTime desc");
+                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
                     PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation where testExecution = ?");
                     executionsForName.setInt(1, mostRecentN);
                     executionsForName.setString(2, testName);
+                    Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
+                    executionsForName.setTimestamp(3, minDate);
+                    executionsForName.setString(4, channel);
                     ResultSet testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);
@@ -181,8 +186,9 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         performanceResults.setOperatingSystem(testExecutions.getString(5));
                         performanceResults.setJvm(testExecutions.getString(6));
                         performanceResults.setVcsBranch(testExecutions.getString(7).trim());
-                        performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(8)));
+                        performanceResults.setVcsCommits(split(testExecutions.getString(8)));
                         performanceResults.setTestGroup(testExecutions.getString(9));
+                        performanceResults.setChannel(testExecutions.getString(10));
 
                         if (ignore(performanceResults)) {
                             continue;
@@ -286,6 +292,12 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 statement.execute("alter table testExecution add column endTime timestamp");
                 statement.execute("update testExecution set endTime = startTime");
                 statement.execute("alter table testExecution alter column endTime set not null");
+            }
+            if (!columnExists(connection, "TESTEXECUTION", "CHANNEL")) {
+                statement.execute("alter table testExecution add column if not exists channel varchar");
+                statement.execute("update testExecution set channel='commits'");
+                statement.execute("alter table testExecution alter column channel set not null");
+                statement.execute("create index if not exists testExecution_channel on testExecution (channel)");
             }
             statement.close();
             return null;

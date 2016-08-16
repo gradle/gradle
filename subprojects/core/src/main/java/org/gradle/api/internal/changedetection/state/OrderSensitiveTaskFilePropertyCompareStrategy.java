@@ -46,7 +46,7 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
                                     return new FileChange(current.getKey(), ChangeType.MODIFIED, fileType);
                                 }
                             } else {
-                                return new FileChange(current.getKey(), ChangeType.MODIFIED, fileType);
+                                return new FileChange(current.getKey(), ChangeType.REPLACED, fileType);
                             }
                         } else {
                             return new FileChange(current.getKey(), ChangeType.ADDED, fileType);

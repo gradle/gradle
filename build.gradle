@@ -207,7 +207,6 @@ apply from: "gradle/testSetup.gradle"
 apply from: "gradle/taskOrdering.gradle"
 apply from: "gradle/fix-GRADLE-2492.gradle"
 apply from: 'gradle/customM2Check.gradle'
-apply from: 'gradle/buildTagging.gradle'
 
 allprojects {
     group = 'org.gradle'

@@ -18,12 +18,15 @@ package org.gradle.performance.results;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Calendar;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
+    private final List<NavigationItem> navigationItems;
+
+    public GraphIndexPageGenerator(List<NavigationItem> navigationItems) {
+        this.navigationItems = navigationItems;
+    }
+
     @Override
     public void render(final ResultsStore store, Writer writer) throws IOException {
         new MetricsHtml(writer) {{
@@ -33,17 +36,17 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 title().text("Performance test graphs").end();
             end();
             body();
+
+            navigation(navigationItems);
+
             div().id("content");
-                Calendar calendar = Calendar.getInstance();
-                calendar.add(Calendar.DAY_OF_YEAR, -14);
-                long expiry = calendar.getTime().getTime();
-                Map<String, String> archived = new LinkedHashMap<String, String>();
                 List<String> testNames = store.getTestNames();
                 div().id("controls").end();
                 for (String testName : testNames) {
-                    PerformanceTestHistory testHistory = store.getTestResults(testName, 5);
+                    String channel = ResultsStoreHelper.determineChannel();
+                    PerformanceTestHistory testHistory = store.getTestResults(testName, 5, 14, channel);
                     List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
-                    if (results.isEmpty() || results.get(0).getStartTime() < expiry) {
+                    if (results.isEmpty()) {
                         continue;
                     }
                     h2().classAttr("test-execution");

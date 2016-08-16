@@ -23,33 +23,39 @@ import org.gradle.performance.measure.Duration;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
+    private final List<NavigationItem> navigationItems;
+
+    public IndexPageGenerator(List<NavigationItem> navigationItems) {
+        this.navigationItems = navigationItems;
+    }
+
     @Override
     public void render(final ResultsStore store, Writer writer) throws IOException {
         new MetricsHtml(writer) {{
             html();
                 head();
                     headSection(this);
-                    title().text("Profile report").end();
+                    title().text("Profile report for channel " + ResultsStoreHelper.determineChannel()).end();
                 end();
                 body();
+
+                navigation(navigationItems);
+
                 div().id("content");
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.add(Calendar.DAY_OF_YEAR, -14);
-                    long expiry = calendar.getTime().getTime();
+
                     Map<String, String> archived = new LinkedHashMap<String, String>();
                     List<String> testNames = store.getTestNames();
                     div().id("controls").end();
                     for (String testName : testNames) {
-                        PerformanceTestHistory testHistory = store.getTestResults(testName, 5);
+                        PerformanceTestHistory testHistory = store.getTestResults(testName, 5, 14, ResultsStoreHelper.determineChannel());
                         List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
-                        if (results.isEmpty() || results.get(0).getStartTime() < expiry) {
+                        if (results.isEmpty()) {
                             archived.put(testHistory.getId(), testHistory.getDisplayName());
                             continue;
                         }

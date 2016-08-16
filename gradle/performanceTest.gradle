@@ -141,6 +141,9 @@ performanceTestTasks.all { PerformanceTest task ->
         } else {
             println "not increasing JVM heap size due to use of 32bit JVM"
         }
+        if (task.channel) {
+            performanceReport.systemProperty 'org.gradle.performance.execution.channel', task.channel
+        }
     }
 }
 
@@ -161,6 +164,7 @@ task fullPerformanceTest(type: PerformanceTest) {
 
 task performanceAdhocTest(type: PerformanceTest) {
     systemProperty "org.gradle.performance.db.url", "jdbc:h2:./build/database"
+    channel = "adhoc"
 }
 
 tasks.withType(DistributedPerformanceTest) {
@@ -187,6 +191,9 @@ task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
 }
 
 task distributedFullPerformanceTest(type: DistributedPerformanceTest) {
+    baselines = ['1.1', '1.12', '2.0', '2.1', '2.4', '2.9', '2.12', '2.14.1', 'last']
+    checks = 'none'
+    channel = 'historical'
 }
 
 configure([performanceTest, performanceExperiment, fullPerformanceTest, performanceAdhocTest]) {
@@ -196,7 +203,7 @@ configure([performanceTest, performanceExperiment, fullPerformanceTest, performa
         outputs.upToDateWhen { false }
     }
     if (project.hasProperty('org.gradle.performance.heapdump')) {
-        systemProperties['org.gradle.performance.heapdump'] = '1'
+        systemProperties['org.gradle.performance.heapdump'] = project.property('org.gradle.performance.heapdump')?:'1'
     }
     if (project.hasProperty('org.gradle.performance.hotspotlog')) {
         systemProperties['org.gradle.performance.hotspotlog'] = '1'

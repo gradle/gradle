@@ -26,6 +26,8 @@ import org.gradle.performance.measure.MeasuredOperation
 import spock.lang.Specification
 
 abstract class ResultSpecification extends Specification {
+    final String channel = 'commits'
+
     CrossVersionPerformanceResults crossVersionResults(Map<String, ?> options = [:]) {
         def results = new CrossVersionPerformanceResults()
         results.testId = "test-id"
@@ -40,6 +42,7 @@ abstract class ResultSpecification extends Specification {
         results.versionUnderTest = "1.7-rc-1"
         results.vcsBranch = "master"
         results.vcsCommits = ['123456']
+        results.channel = channel
         options.each { key, value -> results."$key" = value }
         return results
     }
@@ -53,7 +56,8 @@ abstract class ResultSpecification extends Specification {
                 operatingSystem: "windows",
                 startTime: 100,
                 vcsBranch: "master",
-                vcsCommits: ["abcdef"]
+                vcsCommits: ["abcdef"],
+                channel: channel
         )
         options.each { key, value -> results."$key" = value }
         return results

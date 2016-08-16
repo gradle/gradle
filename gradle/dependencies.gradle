@@ -153,7 +153,7 @@ libraries.jmock = [
     libraries.objenesis,
     'cglib:cglib-nodep:2.2'
 ]
-libraries.gson = "com.google.code.gson:gson:2.2.4"
+libraries.gson = "com.google.code.gson:gson:2.4"
 libraries.sshd = dependencies.module("org.apache.sshd:sshd-core:0.13.0") {
     dependency libraries.slf4j_api
     dependency "org.apache.mina:mina-core:2.0.8"

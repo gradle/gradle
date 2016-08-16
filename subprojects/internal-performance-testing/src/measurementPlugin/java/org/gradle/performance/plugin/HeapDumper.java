@@ -29,17 +29,18 @@ import static org.gradle.performance.plugin.ReflectionUtil.getMethodByName;
 import static org.gradle.performance.plugin.ReflectionUtil.invokeMethod;
 
 /**
- * Add -Pheapdump parameter to build parameters to trigger heapdump at the end of the build.
+ * Add -Porg.gradle.performance.heapdump parameter to build parameters to trigger heapdump at the end of the build.
  *
  * The heapdump gets triggered once, on the last iteration of the measurement phase.
  *
- * Use -Pheapdump=all to capture all objects on the heap. By default, it captures only the live objects.
+ * Use -Porg.gradle.performance.heapdump=all to capture all objects on the heap. By default, it captures only the live objects.
  */
 class HeapDumper {
+    public static final String HEAP_DUMP_PROPERTY = "org.gradle.performance.heapdump";
     static void handle(final Project project, Logger logger) {
-        if (project.hasProperty("heapdump")) {
+        if (project.hasProperty(HEAP_DUMP_PROPERTY)) {
             if (shouldDumpHeap(project)) {
-                dumpHeap(logger, createFileName(project), !"all".equals(project.property("heapdump")));
+                dumpHeap(logger, createFileName(project), !"all".equals(project.property(HEAP_DUMP_PROPERTY)));
             }
         }
     }

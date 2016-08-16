@@ -25,6 +25,7 @@ import com.google.common.io.Files;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
+import org.gradle.performance.results.ResultsStoreHelper;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +37,7 @@ import java.util.Set;
  * or be added to the list of scenarios to run in distributed mode.
  */
 public class TestScenarioSelector {
+
     public boolean shouldRun(String testId, Set<String> templates, ResultsStore resultsStore) {
         if (testId.contains(";")) {
             throw new IllegalArgumentException("Test ID cannot contain ';', but was '" + testId + "'");
@@ -67,7 +69,8 @@ public class TestScenarioSelector {
     }
 
     private long getEstimatedRuntime(String testId, ResultsStore resultsStore) {
-        PerformanceTestHistory history = resultsStore.getTestResults(testId, 1);
+        String channel = ResultsStoreHelper.determineChannel();
+        PerformanceTestHistory history = resultsStore.getTestResults(testId, 1, 365, channel);
         PerformanceTestExecution lastRun = Iterables.getFirst(history.getExecutions(), null);
         if (lastRun == null) {
             return 0;

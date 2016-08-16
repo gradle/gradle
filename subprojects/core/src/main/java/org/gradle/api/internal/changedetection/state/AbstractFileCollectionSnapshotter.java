@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.serialize.SerializerRegistry;
 
@@ -47,11 +48,11 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
 
     @Override
     public FileCollectionSnapshot emptySnapshot() {
-        return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap(), UNORDERED);
+        return new DefaultFileCollectionSnapshot(Collections.<String, IncrementalFileSnapshot>emptyMap(), UNORDERED);
     }
 
     public void registerSerializers(SerializerRegistry registry) {
-        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer(stringInterner));
+        registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
     }
 
     @Override
@@ -86,7 +87,12 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
                 }
             }
         });
-        return new FileCollectionSnapshotImpl(snapshots, compareType);
+        return new DefaultFileCollectionSnapshot(snapshots, compareType);
+    }
+
+    @Override
+    public FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec) {
+        return snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareType());
     }
 
     private String getInternedAbsolutePath(File file) {

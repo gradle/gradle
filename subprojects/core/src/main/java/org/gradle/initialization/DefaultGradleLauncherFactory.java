@@ -16,9 +16,7 @@
 
 package org.gradle.initialization;
 
-import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.StartParameter;
-import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logging;
@@ -27,9 +25,13 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
-import org.gradle.internal.composite.CompositeBuildSettingsLoader;
+import org.gradle.internal.buildevents.BuildLogger;
+import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
+import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.progress.BuildOperationExecutor;
 import org.gradle.internal.progress.BuildProgressFilter;
 import org.gradle.internal.progress.BuildProgressLogger;
@@ -40,9 +42,6 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.service.scopes.BuildSessionScopeServices;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
 import org.gradle.util.DeprecationLogger;
@@ -93,7 +92,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         BuildCancellationToken cancellationToken = services.get(BuildCancellationToken.class);
         BuildEventConsumer buildEventConsumer = services.get(BuildEventConsumer.class);
 
-        return doNewInstance(startParameter, false, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
+        return doNewInstance(startParameter, true, cancellationToken, requestMetaData, buildEventConsumer, buildScopeServices);
     }
 
     @Override
@@ -105,7 +104,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         BuildScopeServices buildScopeServices = createBuildScopeServices(parentRegistry);
 
-        DefaultGradleLauncher launcher = doNewInstance(startParameter, true, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
+        DefaultGradleLauncher launcher = doNewInstance(startParameter, false, requestContext.getCancellationToken(), requestContext, requestContext.getEventConsumer(), buildScopeServices);
         DeploymentRegistry deploymentRegistry = parentRegistry.get(DeploymentRegistry.class);
         deploymentRegistry.onNewBuild(launcher.getGradle());
         return launcher;
@@ -119,7 +118,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         return BuildScopeServices.forSession((BuildSessionScopeServices) parentRegistry);
     }
 
-    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, boolean processComposite,
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, boolean nestedInstance,
                                                 BuildCancellationToken cancellationToken, BuildRequestMetaData requestMetaData, BuildEventConsumer buildEventConsumer, BuildScopeServices serviceRegistry) {
         serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
         serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
@@ -148,10 +147,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(usageLocationReporter);
         DeprecationLogger.useLocationReporter(usageLocationReporter);
 
-        SettingsLoader settingsLoader = serviceRegistry.get(SettingsLoader.class);
-        if (processComposite) {
-            settingsLoader = new CompositeBuildSettingsLoader(settingsLoader, serviceRegistry);
-        }
+        SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);
+        SettingsLoader settingsLoader = nestedInstance ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
         return new DefaultGradleLauncher(

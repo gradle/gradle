@@ -28,10 +28,10 @@ public interface ResultsStore extends Closeable {
     /**
      * Returns the full history of the given test.
      */
-    PerformanceTestHistory getTestResults(String testName);
+    PerformanceTestHistory getTestResults(String testName, String channel);
 
     /**
-     * Returns the n most recent instances of the given test.
+     * Returns the n most recent instances of the given test which are younger than the max age.
      */
-    PerformanceTestHistory getTestResults(String testName, int mostRecentN);
+    PerformanceTestHistory getTestResults(String testName, int mostRecentN, int maxDaysOld, String channel);
 }

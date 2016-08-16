@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.rules;
+package org.gradle.initialization;
 
-public enum ChangeType {
-    ADDED("has been added"),
-    MODIFIED("has changed"),
-    REMOVED("has been removed"),
-    REPLACED("has been replaced");
+public interface SettingsLoaderFactory {
+    /**
+     * Create a SettingsLoader for a top-level build: this loader will process `includeBuild` statements.
+     */
+    SettingsLoader forTopLevelBuild();
 
-    private final String description;
-
-    ChangeType(String description) {
-        this.description = description;
-    }
-
-    public String describe() {
-        return description;
-    }
+    /**
+     * Create a SettingsLoader for a nested build: this loader will NOT process any `includeBuild` statements.
+     */
+    SettingsLoader forNestedBuild();
 }

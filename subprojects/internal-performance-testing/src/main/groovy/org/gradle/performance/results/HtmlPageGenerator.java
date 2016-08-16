@@ -70,6 +70,24 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                 .end();
     }
 
+    public static class NavigationItem {
+        private final String text;
+        private final String link;
+
+        public NavigationItem(String text, String link) {
+            this.text = text;
+            this.link = link;
+        }
+
+        public String getLink() {
+            return link;
+        }
+
+        public String getText() {
+            return text;
+        }
+    }
+
     protected static class MetricsHtml extends Html {
         public MetricsHtml(Writer writer) {
             super(writer);
@@ -100,6 +118,21 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                     text(Joiner.on(" ").join(obj));
                 }
             }
+            end();
+        }
+
+        protected Html nav() {
+            return start("nav");
+        }
+
+
+        protected void navigation(List<NavigationItem> navigationItems) {
+            nav().id("navigation");
+            ul();
+            for (NavigationItem navigationItem : navigationItems) {
+                li().a().href(navigationItem.getLink()).text(navigationItem.getText()).end().end();
+            }
+            end();
             end();
         }
 

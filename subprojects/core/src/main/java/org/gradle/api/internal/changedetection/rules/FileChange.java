@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.rules;
 
+import com.google.common.base.Objects;
 import org.gradle.api.tasks.incremental.InputFileDetails;
 
 import java.io.File;
@@ -62,5 +63,24 @@ public class FileChange implements TaskStateChange, InputFileDetails {
 
     public boolean isRemoved() {
         return change == ChangeType.REMOVED;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        FileChange that = (FileChange) o;
+        return Objects.equal(path, that.path)
+            && change == that.change
+            && Objects.equal(fileType, that.fileType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(path, change, fileType);
     }
 }

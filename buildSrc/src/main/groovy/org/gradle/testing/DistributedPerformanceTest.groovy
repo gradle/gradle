@@ -132,11 +132,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void schedule(Scenario scenario) {
-        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime")
-        def response = client.post(
-            path: "buildQueue",
-            requestContentType: ContentType.XML,
-            body: """
+        def buildRequest = """
                 <build>
                     <buildType id="${buildTypeId}"/>
                     <properties>
@@ -146,27 +142,32 @@ class DistributedPerformanceTest extends PerformanceTest {
                         <property name="warmups" value="${warmups!=null?:'defaults'}"/>
                         <property name="runs" value="${runs!=null?:'defaults'}"/>
                         <property name="checks" value="${checks?:'all'}"/>
+                        <property name="channel" value="${channel?:'commits'}"/>
                     </properties>
                     ${getLastChange()}
                 </build>
             """
+        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $coordinatorBuildId, build request: $buildRequest")
+        def response = client.post(
+            path: "buildQueue",
+            requestContentType: ContentType.XML,
+            body: buildRequest
         )
-
         scheduledBuilds += response.data.@id
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void getLastChange() {
+    private String getLastChange() {
         if (coordinatorBuildId) {
             def response = client.get(path: "builds/id:$coordinatorBuildId")
             def id = response.data.lastChanges.change[0].@id
-            """
+            return """
                 <lastChanges>
                     <change id="$id"/>
                 </lastChanges>
             """
         } else {
-            ""
+            return ""
         }
     }
 
