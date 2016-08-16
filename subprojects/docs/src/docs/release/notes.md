@@ -92,6 +92,7 @@ We would like to thank the following community members for making contributions 
 - [Martin Mosegaard Amdisen](https://github.com/martinmosegaard) - Checkstyle should not output XML report when only the HTML report is enabled (GRADLE-3490)
 - [Stefan Neuhaus](https://github.com/stefanneuhaus) - Copy task: filesMatching and filesNotMatching should support multiple patterns
 - [Johnny Lim](https://github.com/izeye) - Fix typos in documentation for Maven Publishing plugin
+- [Vladislav Bauer](https://github.com/vbauer) - Update Gson library from 2.2.4 to 2.4
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
