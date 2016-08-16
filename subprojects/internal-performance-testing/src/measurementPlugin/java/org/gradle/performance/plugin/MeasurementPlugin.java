@@ -38,11 +38,6 @@ public class MeasurementPlugin implements Plugin<Project> {
 
         gradle.addBuildListener(new BuildAdapter() {
             @Override
-            public void projectsEvaluated(Gradle gradle) {
-                BuildEventTimeStamps.projectsEvaluated(gradle);
-            }
-
-            @Override
             public void buildFinished(BuildResult result) {
                 BuildEventTimeStamps.buildFinished(result);
                 performanceCounterMeasurement.recordFinish();
