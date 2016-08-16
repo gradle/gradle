@@ -97,6 +97,8 @@ import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultExceptionAnalyser;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultSettingsFinder;
+import org.gradle.initialization.DefaultSettingsLoader;
+import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
@@ -109,8 +111,8 @@ import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
-import org.gradle.initialization.DefaultSettingsLoader;
 import org.gradle.initialization.SettingsLoader;
+import org.gradle.initialization.SettingsLoaderFactory;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
@@ -314,6 +316,22 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                     cacheRepository,
                     buildOperationExecutor)),
             buildLoader);
+    }
+
+    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,
+                                                                ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
+                                                                BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor, ServiceRegistry serviceRegistry) {
+        return new DefaultSettingsLoaderFactory(
+            new DefaultSettingsFinder(new BuildLayoutFactory()),
+            settingsProcessor,
+            new BuildSourceBuilder(
+                gradleLauncherFactory,
+                classLoaderScopeRegistry.getCoreAndPluginsScope(),
+                cacheRepository,
+                buildOperationExecutor),
+            buildLoader,
+            serviceRegistry
+        );
     }
 
     protected InitScriptHandler createInitScriptHandler(ScriptPluginFactory scriptPluginFactory, ScriptHandlerFactory scriptHandlerFactory, BuildOperationExecutor buildOperationExecutor) {
