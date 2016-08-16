@@ -43,6 +43,7 @@ import org.gradle.invocation.DefaultGradle;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.profile.ReportAsJsonGeneratingProfileListener;
 import org.gradle.profile.ProfileEventAdapter;
 import org.gradle.profile.ReportGeneratingProfileListener;
 import org.gradle.util.DeprecationLogger;
@@ -143,6 +144,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(serviceRegistry.get(ProfileEventAdapter.class));
         if (startParameter.isProfile()) {
             listenerManager.addListener(new ReportGeneratingProfileListener());
+        }
+        if (ReportAsJsonGeneratingProfileListener.isEnabled()) {
+            listenerManager.addListener(new ReportAsJsonGeneratingProfileListener());
         }
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);

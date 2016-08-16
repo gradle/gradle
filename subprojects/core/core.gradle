@@ -48,6 +48,7 @@ dependencies {
     compile libraries.commons_io
     compile libraries.commons_lang
     compile libraries.guava
+    compile libraries.gson
     compile libraries.jcip
     compile libraries.inject
 
