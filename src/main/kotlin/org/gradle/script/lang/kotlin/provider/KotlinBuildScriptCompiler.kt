@@ -224,7 +224,10 @@ class KotlinBuildScriptCompiler(
      * Returns the generated Gradle API jar plus supporting files such as groovy-all.jar.
      */
     private fun gradleApiFiles() =
-        (scriptHandler.dependencies.gradleApi() as SelfResolvingDependency).resolve()
+        gradleApiDependency().resolve()
+
+    private fun gradleApiDependency() =
+        (scriptHandler.dependencies.gradleApi() as SelfResolvingDependency)
 }
 
 fun gradleScriptKotlinJarsFrom(classPathRegistry: ClassPathRegistry): List<File> =
