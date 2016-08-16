@@ -198,7 +198,7 @@ configure([performanceTest, performanceExperiment, fullPerformanceTest, performa
         outputs.upToDateWhen { false }
     }
     if (project.hasProperty('org.gradle.performance.heapdump')) {
-        systemProperties['org.gradle.performance.heapdump'] = '1'
+        systemProperties['org.gradle.performance.heapdump'] = project.property('org.gradle.performance.heapdump')?:'1'
     }
     if (project.hasProperty('org.gradle.performance.hotspotlog')) {
         systemProperties['org.gradle.performance.hotspotlog'] = '1'

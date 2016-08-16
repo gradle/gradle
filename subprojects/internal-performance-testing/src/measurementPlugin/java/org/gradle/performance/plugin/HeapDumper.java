@@ -34,6 +34,9 @@ import static org.gradle.performance.plugin.ReflectionUtil.invokeMethod;
  * The heapdump gets triggered once, on the last iteration of the measurement phase.
  *
  * Use -Pheapdump=all to capture all objects on the heap. By default, it captures only the live objects.
+ *
+ * Use -Porg.gradle.performance.heapdump[=all] when triggering a Gradle performance test build
+ *
  */
 class HeapDumper {
     static void handle(final Project project, Logger logger) {

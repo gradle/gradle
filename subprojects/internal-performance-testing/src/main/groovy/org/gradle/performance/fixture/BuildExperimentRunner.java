@@ -72,9 +72,7 @@ public class BuildExperimentRunner {
             final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
             final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
-            if (System.getProperty("org.gradle.performance.heapdump") != null) {
-                additionalArgs.add("-Pheapdump");
-            }
+            passHeapDumperParameter(additionalArgs);
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
             copyTemplateTo(experiment, workingDirectory);
@@ -86,6 +84,14 @@ public class BuildExperimentRunner {
             } finally {
                 session.cleanup();
             }
+        }
+    }
+
+    // activate org.gradle.performance.plugin.HeapDumper in the build
+    private void passHeapDumperParameter(List<String> additionalArgs) {
+        final String heapdumpProperty = System.getProperty("org.gradle.performance.heapdump");
+        if (heapdumpProperty != null) {
+            additionalArgs.add("-Pheapdump=${heapdumpProperty}".toString());
         }
     }
 
