@@ -132,11 +132,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void schedule(Scenario scenario) {
-        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime")
-        def response = client.post(
-            path: "buildQueue",
-            requestContentType: ContentType.XML,
-            body: """
+        def buildRequest = """
                 <build>
                     <buildType id="${buildTypeId}"/>
                     <properties>
@@ -150,8 +146,12 @@ class DistributedPerformanceTest extends PerformanceTest {
                     ${getLastChange()}
                 </build>
             """
+        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $coordinatorBuildId, build request: $buildRequest")
+        def response = client.post(
+            path: "buildQueue",
+            requestContentType: ContentType.XML,
+            body: $buildRequest
         )
-
         scheduledBuilds += response.data.@id
     }
 
