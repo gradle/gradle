@@ -160,13 +160,13 @@ class DistributedPerformanceTest extends PerformanceTest {
         if (coordinatorBuildId) {
             def response = client.get(path: "builds/id:$coordinatorBuildId")
             def id = response.data.lastChanges.change[0].@id
-            """
+            return """
                 <lastChanges>
                     <change id="$id"/>
                 </lastChanges>
             """
         } else {
-            ""
+            return ""
         }
     }
 
