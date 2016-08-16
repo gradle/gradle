@@ -183,7 +183,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results.size() == 1
         results[0].gradleOpts == null
         results[0].daemon == null
-        results[0].channel == []
+        results[0].channel == 'commits'
 
         cleanup:
         writeStore?.close()
