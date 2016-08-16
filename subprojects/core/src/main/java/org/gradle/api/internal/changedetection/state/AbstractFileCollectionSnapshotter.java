@@ -47,11 +47,11 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
 
     @Override
     public FileCollectionSnapshot emptySnapshot() {
-        return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap(), UNORDERED);
+        return new DefaultFileCollectionSnapshot(Collections.<String, IncrementalFileSnapshot>emptyMap(), UNORDERED);
     }
 
     public void registerSerializers(SerializerRegistry registry) {
-        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer(stringInterner));
+        registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
     }
 
     @Override
@@ -86,7 +86,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
                 }
             }
         });
-        return new FileCollectionSnapshotImpl(snapshots, compareType);
+        return new DefaultFileCollectionSnapshot(snapshots, compareType);
     }
 
     private String getInternedAbsolutePath(File file) {

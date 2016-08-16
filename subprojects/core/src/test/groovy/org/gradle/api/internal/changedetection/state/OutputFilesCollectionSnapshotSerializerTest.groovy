@@ -20,20 +20,20 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
 
-class OutputFilesSnapshotSerializerTest extends SerializerSpec {
+class OutputFilesCollectionSnapshotSerializerTest extends SerializerSpec {
     def targetSerializer = Mock(Serializer)
-    def serializer = new OutputFilesSnapshotSerializer(targetSerializer, new StringInterner())
+    def serializer = new OutputFilesCollectionSnapshot.SerializerImpl(targetSerializer, new StringInterner())
 
     def "reads and writes the snapshot"() {
         def snapshot = Stub(FileCollectionSnapshot)
-        def outputSnapshot = new OutputFilesCollectionSnapshotter.OutputFilesSnapshot([x: true, y: false], snapshot)
+        def outputSnapshot = new OutputFilesCollectionSnapshot([x: true, y: false], snapshot)
 
         given:
         1 * targetSerializer.write(_, snapshot)
         1 * targetSerializer.read(_) >> snapshot
 
         when:
-        OutputFilesCollectionSnapshotter.OutputFilesSnapshot out = serialize(outputSnapshot, serializer)
+        OutputFilesCollectionSnapshot out = serialize(outputSnapshot, serializer)
 
         then:
         out.roots == [x: true, y: false]
