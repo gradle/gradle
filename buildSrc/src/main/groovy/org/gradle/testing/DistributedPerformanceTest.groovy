@@ -156,7 +156,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void getLastChange() {
+    private String getLastChange() {
         if (coordinatorBuildId) {
             def response = client.get(path: "builds/id:$coordinatorBuildId")
             def id = response.data.lastChanges.change[0].@id
