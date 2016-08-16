@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
@@ -47,7 +48,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     @Override
     public synchronized String getName() {
         if (name == null) {
-            name = loadBuildToDetermineRootProjectName();
+            name = initialize().getRootProject().getName();
         }
         return name;
     }
@@ -71,19 +72,21 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         return dependencySubstitutions;
     }
 
-    public String loadBuildToDetermineRootProjectName() {
+    @Override
+    public SettingsInternal initialize() {
         GradleLauncher gradleLauncher = createGradleLauncher();
-        try {
-            gradleLauncher.load();
-        } finally {
-            gradleLauncher.stop();
-        }
-        SettingsInternal settings = gradleLauncher.getSettings();
-        return settings.getRootProject().getName();
+        gradleLauncher.load();
+        return gradleLauncher.getSettings();
     }
 
     @Override
-    public GradleLauncher createGradleLauncher() {
+    public GradleInternal configure() {
+        GradleLauncher gradleLauncher = createGradleLauncher();
+        gradleLauncher.getBuildAnalysis();
+        return gradleLauncher.getGradle();
+    }
+
+    private GradleLauncher createGradleLauncher() {
         return gradleLauncherFactory.create();
     }
 

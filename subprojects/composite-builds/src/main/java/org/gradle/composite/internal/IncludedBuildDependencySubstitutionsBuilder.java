@@ -22,7 +22,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponent
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 
@@ -34,14 +33,9 @@ public class IncludedBuildDependencySubstitutionsBuilder {
     }
 
     public void build(IncludedBuildInternal build) {
-        GradleLauncher gradleLauncher = build.createGradleLauncher();
-        try {
-            Gradle gradle = gradleLauncher.getBuildAnalysis().getGradle();
-            for (Project project : gradle.getRootProject().getAllprojects()) {
-                registerProject(build.getName(), (ProjectInternal) project);
-            }
-        } finally {
-            gradleLauncher.stop();
+        Gradle gradle = build.configure();
+        for (Project project : gradle.getRootProject().getAllprojects()) {
+            registerProject(build.getName(), (ProjectInternal) project);
         }
     }
 

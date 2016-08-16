@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.initialization.BuildRequestContext;
@@ -23,16 +24,20 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.CompositeStoppable;
+import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
+import java.util.Set;
 
-public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
+public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppable {
     private final Instantiator instantiator;
     private final StartParameter startParameter;
     private final GradleLauncherFactory gradleLauncherFactory;
     private final ServiceRegistry sharedServices;
+    private final Set<GradleLauncher> launchers = Sets.newHashSet();
 
     public DefaultIncludedBuildFactory(Instantiator instantiator, StartParameter startParameter,
                                        GradleLauncherFactory gradleLauncherFactory, ServiceRegistry sharedServices) {
@@ -53,7 +58,12 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
         return createBuild(buildDirectory, null);
     }
 
-    private static class ContextualGradleLauncherFactory implements Factory<GradleLauncher> {
+    @Override
+    public void stop() {
+        CompositeStoppable.stoppable(launchers).stop();
+    }
+
+    private class ContextualGradleLauncherFactory implements Factory<GradleLauncher> {
         private final File buildDirectory;
         private final GradleLauncherFactory gradleLauncherFactory;
         private final StartParameter buildStartParam;
@@ -71,13 +81,17 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory {
         @Override
         public GradleLauncher create() {
             StartParameter participantStartParam = createStartParameter(buildDirectory);
+
+            GradleLauncher gradleLauncher;
             if (requestContext == null) {
-                return gradleLauncherFactory.nestedInstance(participantStartParam, sharedServices);
+                gradleLauncher = gradleLauncherFactory.nestedInstance(participantStartParam, sharedServices);
+            } else {
+                gradleLauncher = gradleLauncherFactory.newInstance(participantStartParam, requestContext, sharedServices);
+                gradleLauncher.addStandardOutputListener(requestContext.getOutputListener());
+                gradleLauncher.addStandardErrorListener(requestContext.getErrorListener());
             }
 
-            GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(participantStartParam, requestContext, sharedServices);
-            gradleLauncher.addStandardOutputListener(requestContext.getOutputListener());
-            gradleLauncher.addStandardErrorListener(requestContext.getErrorListener());
+            launchers.add(gradleLauncher);
             return gradleLauncher;
         }
 

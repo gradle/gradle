@@ -17,11 +17,13 @@
 package org.gradle.composite.internal;
 
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
-import org.gradle.initialization.GradleLauncher;
 
 public interface IncludedBuildInternal extends IncludedBuild {
     String getName();
     DependencySubstitutionsInternal resolveDependencySubstitutions();
-    GradleLauncher createGradleLauncher();
+    SettingsInternal initialize();
+    GradleInternal configure();
 }
