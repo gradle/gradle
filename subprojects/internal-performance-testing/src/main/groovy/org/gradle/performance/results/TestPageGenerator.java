@@ -92,7 +92,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 end();
             end();
 
-            h3().text("Total compile time").end();
+            h3().text("Average compile cpu time").end();
             div().id("compileTotalTimeChart").classAttr("chart");
                 p().text("Loading...").end();
                 script();
@@ -100,7 +100,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 end();
             end();
 
-            h3().text("Total GC time").end();
+            h3().text("Average GC cpu time").end();
             div().id("gcTotalTimeChart").classAttr("chart");
                 p().text("Loading...").end();
                 script();
@@ -140,8 +140,8 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average build time").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average configuration time").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average execution time").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average compile time").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average gc time").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average compile cpu time").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average gc cpu time").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average heap usage (old measurement)").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average total heap usage").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average max heap usage").end();
