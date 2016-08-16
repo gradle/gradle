@@ -53,7 +53,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
         """
         buildFile << """
             dependencies {
-                playRun 'com.google.code.gson:gson:2.2.4'
+                playRun 'com.google.code.gson:gson:2.4'
                 playRun files('extralib.jar')
                 playRun project(":sub1:dependency")
                 playRun project(":sub2:dependency")
@@ -81,7 +81,7 @@ class PlayDistributionPluginIntegrationTest extends AbstractIntegrationSpec {
 
         archives()*.containsDescendants(
             "playBinary/lib/extralib.jar",
-            "playBinary/lib/com.google.code.gson-gson-2.2.4.jar",
+            "playBinary/lib/com.google.code.gson-gson-2.4.jar",
             "playBinary/lib/sub1.dependency-dependency-1.0.jar",
             "playBinary/lib/sub2.dependency-dependency-1.0.jar",
             "playBinary/lib/dependency-dependency-1.0.jar"
