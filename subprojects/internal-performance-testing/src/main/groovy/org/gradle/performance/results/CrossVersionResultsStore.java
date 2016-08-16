@@ -329,7 +329,6 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                 }
                 statement.execute("create index if not exists testExecution_testId on testExecution (testId)");
                 statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
-                statement.execute("create index if not exists testExecution_channel on testExecution (channel)");
                 if (columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {
                     statement.execute("alter table testExecution alter column executionTime rename to startTime");
                 }
@@ -342,6 +341,7 @@ public class CrossVersionResultsStore implements DataReporter<CrossVersionPerfor
                     statement.execute("alter table testExecution add column if not exists channel varchar");
                     statement.execute("update testExecution set channel='commits'");
                     statement.execute("alter table testExecution alter column channel set not null");
+                    statement.execute("create index if not exists testExecution_channel on testExecution (channel)");
                 }
             } finally {
                 closeStatement(statement);
