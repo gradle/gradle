@@ -15,9 +15,12 @@
  */
 
 package org.gradle.api.reporting.plugins
+
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import spock.lang.IgnoreIf
@@ -331,6 +334,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':subproject:test', 'junitXml')
     }
 
+    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
     void 'dashboard includes JaCoCo reports'() {
         given:
         goodCode()
