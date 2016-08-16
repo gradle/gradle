@@ -150,7 +150,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         def response = client.post(
             path: "buildQueue",
             requestContentType: ContentType.XML,
-            body: $buildRequest
+            body: buildRequest
         )
         scheduledBuilds += response.data.@id
     }
