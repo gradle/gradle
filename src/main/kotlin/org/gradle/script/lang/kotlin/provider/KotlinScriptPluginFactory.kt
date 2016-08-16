@@ -21,6 +21,8 @@ import org.gradle.script.lang.kotlin.loggerFor
 import org.gradle.configuration.ScriptPlugin
 import org.gradle.configuration.ScriptPluginFactory
 
+import org.gradle.api.Project
+
 import org.gradle.api.initialization.dsl.ScriptHandler
 
 import org.gradle.api.internal.ClassPathRegistry
@@ -36,13 +38,26 @@ class KotlinScriptPluginFactory(val classPathRegistry: ClassPathRegistry) : Scri
     override fun create(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
                         targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
                         topLevelScript: Boolean): ScriptPlugin =
+        KotlinScriptPlugin(
+            scriptSource,
+            compile(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript))
+
+    private fun compile(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
+                        targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
+                        topLevelScript: Boolean): (Project) -> Unit =
+        with(compilerFor(scriptSource, scriptHandler, targetScope, baseScope, topLevelScript)) {
+            if (topLevelScript && inClassPathMode())
+                compileForClassPath()
+            else
+                compile()
+        }
+
+    private fun compilerFor(scriptSource: ScriptSource, scriptHandler: ScriptHandler,
+                            targetScope: ClassLoaderScope, baseScope: ClassLoaderScope,
+                            topLevelScript: Boolean) =
         KotlinBuildScriptCompiler(
             classPathRegistry, scriptSource, topLevelScript, scriptHandler as ScriptHandlerInternal,
-            targetScope, baseScope, logger).run {
-
-            val script = if (topLevelScript && inClassPathMode()) compileForClassPath() else compile()
-            KotlinScriptPlugin(scriptSource, script)
-        }
+            targetScope, baseScope, logger)
 
     private fun inClassPathMode() =
         System.getProperty(modeSystemPropertyName) == classPathMode
