@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import org.gradle.BuildResult;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -26,4 +27,5 @@ public interface IncludedBuildInternal extends IncludedBuild {
     DependencySubstitutionsInternal resolveDependencySubstitutions();
     SettingsInternal initialize();
     GradleInternal configure();
+    BuildResult execute(Iterable<String> tasks);
 }

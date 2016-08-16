@@ -17,6 +17,7 @@
 package org.gradle.composite.internal;
 
 import com.google.common.collect.Lists;
+import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.GradleInternal;
@@ -32,15 +33,18 @@ import java.util.List;
 public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
     private final Factory<GradleLauncher> gradleLauncherFactory;
+    // TODO:DAZ Get rid of this once we remove the "old" TAPI-based composites
+    private final Factory<GradleLauncher> nestedLauncherFactory;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
 
     private GradleLauncher gradleLauncher;
     private DefaultDependencySubstitutions dependencySubstitutions;
     private String name;
 
-    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> gradleLauncherFactory) {
+    public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, Factory<GradleLauncher> nestedLauncherFactory) {
         this.projectDir = projectDir;
-        this.gradleLauncherFactory = gradleLauncherFactory;
+        this.gradleLauncherFactory = launcherFactory;
+        this.nestedLauncherFactory = nestedLauncherFactory;
     }
 
     public File getProjectDir() {
@@ -93,6 +97,13 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
             gradleLauncher = gradleLauncherFactory.create();
         }
         return gradleLauncher;
+    }
+
+    @Override
+    public BuildResult execute(Iterable<String> tasks) {
+        GradleLauncher gradleLauncher = nestedLauncherFactory.create();
+        gradleLauncher.getGradle().getStartParameter().setTaskNames(tasks);
+        return gradleLauncher.run();
     }
 
     @Override

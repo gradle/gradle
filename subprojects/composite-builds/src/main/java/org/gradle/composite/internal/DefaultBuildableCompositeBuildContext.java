@@ -153,7 +153,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         ensureRegistered(build);
     }
 
-    private IncludedBuildInternal getBuild(ProjectComponentIdentifier projectComponentIdentifier) {
+    public IncludedBuildInternal getBuild(ProjectComponentIdentifier projectComponentIdentifier) {
         String[] split = projectComponentIdentifier.getProjectPath().split("::", 2);
         if (split.length == 1) {
             return null;

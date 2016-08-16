@@ -20,44 +20,30 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import org.gradle.StartParameter;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
-import org.gradle.internal.service.ServiceRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
+class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeProjectArtifactBuilder.class);
 
     private final CompositeBuildContext compositeBuildContext;
-    private final GradleLauncherFactory gradleLauncherFactory;
-    private final StartParameter requestedStartParameter;
-    private final ServiceRegistry serviceRegistry;
     private final Multimap<ProjectComponentIdentifier, String> tasksForBuild = LinkedHashMultimap.create();
     private final Set<ProjectComponentIdentifier> executingBuilds = Sets.newHashSet();
     private final Multimap<ProjectComponentIdentifier, String> executedTasks = LinkedHashMultimap.create();
 
-    public CompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext,
-                                           GradleLauncherFactory gradleLauncherFactory,
-                                           StartParameter requestedStartParameter,
-                                           ServiceRegistry serviceRegistry) {
+    CompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext) {
         this.compositeBuildContext = compositeBuildContext;
-        this.gradleLauncherFactory = gradleLauncherFactory;
-        this.requestedStartParameter = requestedStartParameter;
-        this.serviceRegistry = serviceRegistry;
     }
 
     private synchronized void buildStarted(ProjectComponentIdentifier project) {
@@ -86,7 +72,7 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
         }
     }
 
-    public ProjectComponentIdentifier findBuildAndRegisterTasks(CompositeProjectComponentArtifactMetadata artifact) {
+    private ProjectComponentIdentifier findBuildAndRegisterTasks(CompositeProjectComponentArtifactMetadata artifact) {
         ProjectComponentIdentifier buildId = getBuildIdentifier(artifact.getComponentId());
         tasksForBuild.putAll(buildId, artifact.getTasks());
         return buildId;
@@ -102,7 +88,6 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     }
 
     private void doBuild(ProjectComponentIdentifier buildId, Iterable<String> taskPaths) {
-        File buildDirectory = compositeBuildContext.getProjectDirectory(buildId);
         List<String> tasksToExecute = Lists.newArrayList();
         for (String taskPath : taskPaths) {
             if (executedTasks.put(buildId, taskPath)) {
@@ -114,17 +99,8 @@ public class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
         }
         LOGGER.info("Executing " + buildId + " tasks " + taskPaths);
 
-        StartParameter param = requestedStartParameter.newBuild();
-        param.setProjectDir(buildDirectory);
-        param.setSearchUpwards(false);
-        param.setTaskNames(tasksToExecute);
-
-        GradleLauncher launcher = gradleLauncherFactory.nestedInstance(param, serviceRegistry);
-        try {
-            launcher.run();
-        } finally {
-            launcher.stop();
-        }
+        IncludedBuildInternal build = (IncludedBuildInternal) compositeBuildContext.getBuild(buildId);
+        build.execute(tasksToExecute);
     }
 
     private ProjectComponentIdentifier getBuildIdentifier(ProjectComponentIdentifier project) {

@@ -33,6 +33,7 @@ public interface CompositeBuildContext extends LocalComponentProvider, Dependenc
     File getProjectDirectory(ProjectComponentIdentifier project);
     Set<ProjectComponentIdentifier> getAllProjects();
 
+    IncludedBuild getBuild(ProjectComponentIdentifier project);
     void registerBuild(String name, IncludedBuild build);
 
     void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project);
