@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.serialize.SerializerRegistry;
 
@@ -87,6 +88,11 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
             }
         });
         return new DefaultFileCollectionSnapshot(snapshots, compareType);
+    }
+
+    @Override
+    public FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec) {
+        return snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareType());
     }
 
     private String getInternedAbsolutePath(File file) {
