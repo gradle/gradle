@@ -15,113 +15,111 @@
  */
 package org.gradle.api.internal.tasks.testing.processors
 
-import org.gradle.api.internal.tasks.testing.*
+import org.gradle.api.internal.tasks.testing.TestClassProcessor
+import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.internal.TimeProvider
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Specification
 
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.fail
-
-@RunWith(JMock.class)
-class TestMainActionTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final TestClassProcessor processor = context.mock(TestClassProcessor.class)
-    private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class)
-    private final Runnable detector = context.mock(Runnable.class)
-    private final TimeProvider timeProvider = context.mock(TimeProvider.class)
+class TestMainActionTest extends Specification {
+    private final TestClassProcessor processor = Mock()
+    private final TestResultProcessor resultProcessor = Mock()
+    private final Runnable detector = Mock()
+    private final TimeProvider timeProvider = Mock()
     private final TestMainAction action = new TestMainAction(detector, processor, resultProcessor, timeProvider, "taskOperationId123", "rootTestSuiteId456", "Test Run")
 
-    @Test
-    public void firesStartAndEndEventsAroundDetectorExecution() {
-        context.checking {
-            one(timeProvider).getCurrentTime()
-            will(returnValue(100L))
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite, TestStartEvent event ->
-                assertThat(suite.id as String, equalTo("rootTestSuiteId456"))
-                assertThat(event.startTime, equalTo(100L))
-            }
-            one(processor).startProcessing(withParam(notNullValue()))
-            one(detector).run()
-            one(processor).stop()
-            one(timeProvider).getCurrentTime()
-            will(returnValue(200L))
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { Object id, TestCompleteEvent event ->
-                assertThat(id as String, equalTo("rootTestSuiteId456"))
-                assertThat(event.endTime, equalTo(200L))
-                assertThat(event.resultType, nullValue())
-            }
-        }
+    def 'fires start and end events around detector execution'() {
+        when:
+        action.run()
 
-        action.run();
+        then:
+        1 * timeProvider.getCurrentTime() >> 100L
+        1 * resultProcessor.started({ it.id == 'rootTestSuiteId456' }, { it.startTime == 100L })
+        then:
+        1 * processor.startProcessing(!null)
+        then:
+        1* detector.run()
+        then:
+        1 * processor.stop()
+        then:
+        1 * timeProvider.getCurrentTime() >> 200L
+        1 * resultProcessor.completed({ it == "rootTestSuiteId456" }, { event ->
+            event.endTime == 200L && event.resultType == null
+        })
+        0 * _._
     }
 
-    @Test
-    public void firesEndEventsWhenDetectorFails() {
-        RuntimeException failure = new RuntimeException()
+    def 'fires end events when detector fails'() {
+        given:
+        def failure = new RuntimeException()
 
-        context.checking {
-            ignoring(timeProvider).getCurrentTime()
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            one(processor).startProcessing(withParam(notNullValue()))
-            one(detector).run()
-            will(throwException(failure))
-            one(processor).stop()
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-        }
+        when:
+        action.run()
 
-        try {
-            action.run()
-            fail()
-        } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure))
-        }
+        then:
+        1 * resultProcessor.started(!null, !null)
+        then:
+        1 * processor.startProcessing(!null)
+        then:
+        1 * detector.run() >> { throw failure }
+        then:
+        1 * processor.stop()
+        then:
+        1 * resultProcessor.completed(!null, !null)
+
+        0 * resultProcessor._
+        0 * detector._
+        0 * processor._
+
+        def exception = thrown(RuntimeException)
+        exception == failure
     }
 
-    @Test
-    public void firesEndEventsWhenStartProcessingFails() {
-        RuntimeException failure = new RuntimeException()
 
-        context.checking {
-            ignoring(timeProvider).getCurrentTime()
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            one(processor).startProcessing(withParam(notNullValue()))
-            will(throwException(failure))
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-        }
+    def 'fires end events when start processing fails'() {
+        given:
+        def failure = new RuntimeException()
 
-        try {
-            action.run()
-            fail()
-        } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure))
-        }
+        when:
+        action.run()
+
+        then:
+        1 * resultProcessor.started(!null, !null)
+        then:
+        1 * processor.startProcessing(!null) >> { throw failure }
+        then:
+        1 * resultProcessor.completed(!null, !null)
+
+        0 * resultProcessor._
+        0 * detector._
+        0 * processor._
+
+        def exception = thrown(RuntimeException)
+        exception == failure
     }
 
-    @Test
-    public void firesEndEventsWhenEndProcessingFails() {
-        RuntimeException failure = new RuntimeException()
+    def 'fires end events when end processing fails'() {
+        given:
+        def failure = new RuntimeException()
 
-        context.checking {
-            ignoring(timeProvider).getCurrentTime()
-            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            one(processor).startProcessing(withParam(notNullValue()))
-            one(detector).run()
-            one(processor).stop()
-            will(throwException(failure))
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-        }
+        when:
+        action.run()
 
-        try {
-            action.run()
-            fail()
-        } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure))
-        }
+        then:
+        1 * resultProcessor.started(!null, !null)
+        then:
+        1 * processor.startProcessing(!null)
+        then:
+        1 * detector.run()
+        then:
+        1 * processor.stop() >> { throw failure }
+        then:
+        1 * resultProcessor.completed(!null, !null)
+
+        0 * resultProcessor._
+        0 * detector._
+        0 * processor._
+
+        def exception = thrown(RuntimeException)
+        exception == failure
     }
 }
