@@ -165,8 +165,13 @@ public class CrossVersionPerformanceTestHistory implements PerformanceTestHistor
             return result.getVcsBranch();
         }
 
-        public long getTestTime() {
-            return result.getTestTime();
+        public long getStartTime() {
+            return result.getStartTime();
+        }
+
+        @Override
+        public long getEndTime() {
+            return result.getEndTime();
         }
 
         @Override

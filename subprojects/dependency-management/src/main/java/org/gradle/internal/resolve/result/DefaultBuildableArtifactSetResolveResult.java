@@ -18,47 +18,7 @@ package org.gradle.internal.resolve.result;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.resolve.ArtifactResolveException;
 
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultBuildableArtifactSetResolveResult implements BuildableArtifactSetResolveResult {
-    private ArtifactResolveException failure;
-    private Set<ComponentArtifactMetadata> artifacts;
-
-    public void resolved(Collection<? extends ComponentArtifactMetadata> artifacts) {
-        this.artifacts = new LinkedHashSet<ComponentArtifactMetadata>(artifacts);
-    }
-
-    public void failed(ArtifactResolveException failure) {
-        this.failure = failure;
-    }
-
-    public boolean hasResult() {
-        return artifacts != null || failure != null;
-    }
-
-    public ArtifactResolveException getFailure() {
-        assertHasResult();
-        return failure;
-    }
-
-    public Set<ComponentArtifactMetadata> getArtifacts() {
-        assertResolved();
-        return artifacts;
-    }
-
-    private void assertResolved() {
-        assertHasResult();
-        if (failure != null) {
-            throw failure;
-        }
-    }
-
-    private void assertHasResult() {
-        if (!hasResult()) {
-            throw new IllegalStateException("No result has been specified.");
-        }
-    }
-
+public class DefaultBuildableArtifactSetResolveResult extends DefaultBuildableTypedResolveResult<Set<? extends ComponentArtifactMetadata>, ArtifactResolveException> implements BuildableArtifactSetResolveResult {
 }

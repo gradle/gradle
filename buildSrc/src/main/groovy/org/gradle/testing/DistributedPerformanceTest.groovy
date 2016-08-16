@@ -24,13 +24,11 @@ import groovy.transform.TypeCheckingMode
 import groovyx.net.http.ContentType
 import groovyx.net.http.RESTClient
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Optional
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.*
 import org.gradle.internal.IoActions
 
 import java.util.concurrent.TimeUnit
+import java.util.zip.ZipInputStream
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -48,6 +46,9 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @Input
     String buildTypeId
+
+    @Input
+    String workerTestTaskName
 
     @Input
     String teamCityUrl
@@ -70,6 +71,9 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     List<Object> finishedBuilds = Lists.newArrayList()
 
+    Map<String, List<File>> testResultFilesForBuild = [:]
+    private File workerTestResultsTempDir
+
     void setScenarioList(File scenarioList) {
         systemProperty "org.gradle.performance.scenario.list", scenarioList
         this.scenarioList = scenarioList
@@ -77,6 +81,25 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TaskAction
     void executeTests() {
+        createWorkerTestResultsTempDir()
+        try {
+            doExecuteTests()
+        } finally {
+            cleanTempFiles()
+        }
+    }
+
+    private void createWorkerTestResultsTempDir() {
+        workerTestResultsTempDir = File.createTempFile("worker-test-results", "")
+        workerTestResultsTempDir.delete()
+        workerTestResultsTempDir.mkdir()
+    }
+
+    private void cleanTempFiles() {
+        workerTestResultsTempDir.deleteDir()
+    }
+
+    private void doExecuteTests() {
         scenarioList.delete()
 
         fillScenarioList()
@@ -159,12 +182,61 @@ class DistributedPerformanceTest extends PerformanceTest {
             }
         }
         finishedBuilds += response.data
+
+        try {
+            testResultFilesForBuild.put(jobId, fetchTestResults(jobId, response.data))
+        } catch (e) {
+            e.printStackTrace(System.err)
+        }
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private def fetchTestResults(String jobId, buildData) {
+        def unzippedFiles = []
+        def artifactsUri = buildData?.artifacts?.@href?.text()
+        if (artifactsUri) {
+            def resultArtifacts = client.get(path: "${artifactsUri}/results/${project.name}/build/")
+            if (resultArtifacts.success) {
+                def zipName = "test-results-${workerTestTaskName}.zip".toString()
+                def fileNode = resultArtifacts.data.file.find {
+                    it.@name.text() == zipName
+                }
+                if (fileNode) {
+                    def resultsDirectory = new File(workerTestResultsTempDir, jobId)
+                    def contentUri = fileNode.content.@href.text()
+                    client.get(path: contentUri, contentType: ContentType.BINARY) {
+                        resp, inputStream ->
+                            unzippedFiles = unzipToDirectory(inputStream, resultsDirectory)
+                    }
+                }
+            }
+        }
+        unzippedFiles
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    def unzipToDirectory(inputStream, destination) {
+        def unzippedFiles = []
+        new ZipInputStream(inputStream).withStream { zipInput ->
+            def entry
+            while (entry = zipInput.nextEntry) {
+                if (!entry.isDirectory()) {
+                    def file = new File(destination, entry.name)
+                    file.parentFile?.mkdirs()
+                    new FileOutputStream(file).withStream {
+                        it << zipInput
+                    }
+                    unzippedFiles << file
+                }
+            }
+        }
+        unzippedFiles
     }
 
     private void writeScenarioReport() {
         def renderer = new ScenarioReportRenderer()
         IoActions.writeTextFile(scenarioReport) { Writer writer ->
-            renderer.render(project.name, finishedBuilds, writer)
+            renderer.render(writer, project.name, finishedBuilds, testResultFilesForBuild)
         }
         renderer.writeCss(scenarioReport.getParentFile())
     }

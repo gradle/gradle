@@ -33,20 +33,20 @@ public class ResolvedLocalComponentsResultGraphVisitor implements DependencyGrap
 
     @Override
     public void start(DependencyGraphNode root) {
-        rootId = root.getComponentId();
+        rootId = root.getOwner().getComponentId();
     }
 
     @Override
     public void visitNode(DependencyGraphNode resolvedConfiguration) {
-        if (rootId.equals(resolvedConfiguration.getComponentId())) {
+        ComponentIdentifier componentId = resolvedConfiguration.getOwner().getComponentId();
+        if (rootId.equals(componentId)) {
             return;
         }
 
-        ComponentIdentifier componentId = resolvedConfiguration.getComponentId();
         if (componentId instanceof ProjectComponentIdentifier) {
             builder.projectConfigurationResolved((ProjectComponentIdentifier) componentId, resolvedConfiguration.getNodeId().getConfiguration());
         }
-        ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetaData();
+        ConfigurationMetadata configurationMetadata = resolvedConfiguration.getMetadata();
         if (configurationMetadata instanceof LocalConfigurationMetadata) {
             builder.localComponentResolved(componentId, ((LocalConfigurationMetadata) configurationMetadata).getDirectBuildDependencies());
         }

@@ -23,7 +23,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingManager;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheLockingManager;
-import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.ModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.dynamicversions.SingleFileBackedModuleVersionsCache;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
@@ -236,7 +235,6 @@ class DependencyManagementBuildScopeServices {
     ArtifactDependencyResolver createArtifactDependencyResolver(ResolveIvyFactory resolveIvyFactory,
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 CacheLockingManager cacheLockingManager,
-                                                                IvyContextManager ivyContextManager,
                                                                 VersionComparator versionComparator,
                                                                 ServiceRegistry serviceRegistry) {
         ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
@@ -244,7 +242,6 @@ class DependencyManagementBuildScopeServices {
             resolveIvyFactory,
             dependencyDescriptorFactory,
             cacheLockingManager,
-            ivyContextManager,
             versionComparator
         );
         return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);

@@ -15,24 +15,24 @@
  */
 package org.gradle.internal.resolve.resolver;
 
+import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
-import org.gradle.internal.component.model.ComponentUsage;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 
 public interface ArtifactResolver {
     /**
-     * Resolves a set of artifacts belonging to the given component, based on the supplied usage. Any failures are packaged up in the result.
+     * Resolves the set of artifacts belonging to the given component. Any failures are packaged up in the result.
      */
-    void resolveModuleArtifacts(ComponentResolveMetadata component, ComponentUsage usage, BuildableArtifactSetResolveResult result);
+    void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result);
 
     /**
      * Resolves a set of artifacts belonging to the given component, with the type specified. Any failures are packaged up in the result.
      */
-    void resolveModuleArtifacts(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
+    void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result);
 
     /**
      * Resolves the given artifact. Any failures are packaged up in the result.

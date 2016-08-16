@@ -16,16 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.InternalDependencyResult;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Set;
 
-public interface DependencyGraphEdge extends InternalDependencyResult {
+/**
+ * An edge in the dependency graph, between 2 configurations.
+ */
+public interface DependencyGraphEdge extends DependencyResult {
     DependencyGraphNode getFrom();
 
     // TODO This should be replaced by getRequested()
@@ -35,5 +38,6 @@ public interface DependencyGraphEdge extends InternalDependencyResult {
 
     Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata metaData);
 
+    @Nullable
     ModuleDependency getModuleDependency();
 }

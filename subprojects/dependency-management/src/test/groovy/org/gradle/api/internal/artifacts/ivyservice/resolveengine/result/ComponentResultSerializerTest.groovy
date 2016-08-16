@@ -21,20 +21,21 @@ import org.gradle.internal.serialize.SerializerSpec
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 
-class ModuleVersionSelectionSerializerTest extends SerializerSpec {
+class ComponentResultSerializerTest extends SerializerSpec {
 
-    def serializer = new ModuleVersionSelectionSerializer()
+    def serializer = new ComponentResultSerializer()
 
     def "serializes"() {
         def componentIdentifier = new DefaultModuleComponentIdentifier('group', 'module', 'version')
-        def selection = new DefaultModuleVersionSelection(newId("org", "foo", "2.0"), VersionSelectionReasons.REQUESTED, componentIdentifier)
+        def selection = new DefaultComponentResult(12L, newId("org", "foo", "2.0"), VersionSelectionReasons.REQUESTED, componentIdentifier)
 
         when:
         def result = serialize(selection, serializer)
 
         then:
+        result.resultId == 12L
         result.selectionReason == VersionSelectionReasons.REQUESTED
-        result.id == newId("org", "foo", "2.0")
+        result.moduleVersion == newId("org", "foo", "2.0")
         result.componentId == componentIdentifier
     }
 }

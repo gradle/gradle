@@ -60,6 +60,16 @@ dependencies {
     measurementPluginCompile project(":core"), project(":dependencyManagement"), project(":pluginUse"), project(":toolingApi") // mimic gradleApi()
 }
 
+compileMeasurementPluginJava {
+    try {
+        // check if performance counters is supported on the JVM
+        Class.forName('sun.management.counter.perf.PerfInstrumentation')
+    } catch (Exception e) {
+        // ignore exception, just exclude PerformanceCounterDumper class from compilation in this case
+        exclude('org/gradle/performance/plugin/PerformanceCounterDumper.java')
+    }
+}
+
 task measurementPluginJar(type: org.gradle.jvm.tasks.Jar) {
     from sourceSets.measurementPlugin.output
     dependsOn measurementPluginClasses

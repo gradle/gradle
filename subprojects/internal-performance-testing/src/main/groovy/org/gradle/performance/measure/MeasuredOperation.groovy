@@ -16,8 +16,12 @@
 
 package org.gradle.performance.measure
 
+import groovy.transform.CompileStatic
+import groovy.transform.ToString
 import org.joda.time.DateTime
 
+@ToString(includeNames = true)
+@CompileStatic
 public class MeasuredOperation {
     DateTime start
     DateTime end
@@ -35,4 +39,19 @@ public class MeasuredOperation {
     Amount<DataAmount> maxHeapUsage
     /** The largest amount of committed heap (that is heap requested from the OS). Does not include the perm gen. */
     Amount<DataAmount> maxCommittedHeap
+    Amount<Duration> compileTotalTime
+    Amount<Duration> gcTotalTime
+
+    boolean isValid() {
+        start!=null &&
+            end != null &&
+            totalTime != null &&
+            configurationTime != null &&
+            executionTime != null &&
+            totalMemoryUsed != null &&
+            totalHeapUsage != null &&
+            maxUncollectedHeap != null &&
+            maxHeapUsage != null &&
+            maxCommittedHeap != null
+    }
 }

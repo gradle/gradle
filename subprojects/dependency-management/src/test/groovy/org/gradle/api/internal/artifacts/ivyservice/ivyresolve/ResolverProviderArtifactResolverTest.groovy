@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.internal.component.model.ComponentArtifactMetadata
+import org.gradle.internal.component.model.ComponentArtifacts
 import org.gradle.internal.component.model.ComponentResolveMetadata
-import org.gradle.internal.component.model.ComponentUsage
 import org.gradle.internal.component.model.ModuleSource
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
-import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResult
+import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
 import spock.lang.Specification
 
 class ResolverProviderArtifactResolverTest extends Specification {
@@ -29,7 +29,7 @@ class ResolverProviderArtifactResolverTest extends Specification {
     final component = Mock(ComponentResolveMetadata)
     final originalSource = Mock(ModuleSource)
     final result = new DefaultBuildableArtifactResolveResult()
-    final artifactSetResult = new DefaultBuildableArtifactSetResolveResult()
+    final artifactSetResult = new DefaultBuildableComponentArtifactsResolveResult()
 
     def repo1 = Stub(ModuleComponentRepository) {
         getId() >> "repo1"
@@ -51,43 +51,43 @@ class ResolverProviderArtifactResolverTest extends Specification {
     }
 
     def "uses module artifacts from local access to repository defined by module source"() {
-        def usage = Mock(ComponentUsage)
-        def artifact = Mock(ComponentArtifactMetadata)
+        def artifacts = Mock(ComponentArtifacts)
+
         when:
-        resolver.resolveModuleArtifacts(component, usage, artifactSetResult)
+        resolver.resolveArtifacts(component, artifactSetResult)
 
         then:
         _ * component.getSource() >> repo2Source
         1 * component.withSource(originalSource) >> component
         1 * repo2.getLocalAccess() >> localAccess2
-        1 * localAccess2.resolveModuleArtifacts(component, usage, artifactSetResult) >> {
-            it[2].resolved([artifact])
+        1 * localAccess2.resolveArtifacts(component, artifactSetResult) >> {
+            it[1].resolved(artifacts)
         }
         0 * _._
 
         and:
-        artifactSetResult.artifacts == [artifact] as Set
+        artifactSetResult.result == artifacts
     }
 
     def "uses module artifacts from remote access to repository defined by module source"() {
-        def usage = Mock(ComponentUsage)
-        def artifact = Mock(ComponentArtifactMetadata)
+        def artifacts = Mock(ComponentArtifacts)
+
         when:
-        resolver.resolveModuleArtifacts(component, usage, artifactSetResult)
+        resolver.resolveArtifacts(component, artifactSetResult)
 
         then:
         _ * component.getSource() >> repo2Source
         1 * component.withSource(originalSource) >> component
         1 * repo2.getLocalAccess() >> localAccess2
-        1 * localAccess2.resolveModuleArtifacts(component, usage, artifactSetResult)
+        1 * localAccess2.resolveArtifacts(component, artifactSetResult)
         1 * repo2.getRemoteAccess() >> remoteAccess2
-        1 * remoteAccess2.resolveModuleArtifacts(component, usage, artifactSetResult) >> {
-            it[2].resolved([artifact])
+        1 * remoteAccess2.resolveArtifacts(component, artifactSetResult) >> {
+            it[1].resolved(artifacts)
         }
         0 * _._
 
         and:
-        artifactSetResult.artifacts == [artifact] as Set
+        artifactSetResult.result == artifacts
     }
 
     def "locates artifact with local access in repository defined by module source"() {
@@ -104,7 +104,7 @@ class ResolverProviderArtifactResolverTest extends Specification {
         0 * _._
 
         and:
-        result.file == artifactFile
+        result.result == artifactFile
     }
 
     def "locates artifact with remote access in repository defined by module source"() {
@@ -123,6 +123,6 @@ class ResolverProviderArtifactResolverTest extends Specification {
         0 * _._
 
         and:
-        result.file == artifactFile
+        result.result == artifactFile
     }
 }

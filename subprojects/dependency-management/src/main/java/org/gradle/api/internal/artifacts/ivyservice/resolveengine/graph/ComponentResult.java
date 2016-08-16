@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
 
-import java.util.Collection;
+public interface ComponentResult {
+    /**
+     * Returns a simple id for this component, unique across components in the same graph.
+     * This id cannot be used across graphs.
+     */
+    Long getResultId();
 
-//builds new dependency graph model based on result events
-public interface ResolutionResultBuilder {
-    ResolutionResultBuilder start(ModuleVersionIdentifier root, ComponentIdentifier componentIdentifier);
-    void resolvedModuleVersion(ModuleVersionSelection moduleVersion);
-    void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies);
-    ResolutionResult complete();
+    /**
+     * Returns the module version for this component.
+     */
+    ModuleVersionIdentifier getModuleVersion();
+
+    ComponentSelectionReason getSelectionReason();
+
+    /**
+     * Returns a unique id for this component.
+     */
+    ComponentIdentifier getComponentId();
 }

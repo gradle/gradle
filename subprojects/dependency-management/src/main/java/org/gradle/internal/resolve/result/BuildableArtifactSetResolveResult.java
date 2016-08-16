@@ -15,13 +15,11 @@
  */
 package org.gradle.internal.resolve.result;
 
-import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.resolve.ArtifactResolveException;
 
-import java.util.Collection;
+import java.util.Set;
 
-public interface BuildableArtifactSetResolveResult extends ArtifactSetResolveResult {
-    void resolved(Collection<? extends ComponentArtifactMetadata> artifacts);
-
-    void failed(ArtifactResolveException failure);
+public interface BuildableArtifactSetResolveResult extends ResolveResult, BuildableTypedResolveResult<Set<? extends ComponentArtifactMetadata>, ArtifactResolveException> {
+    boolean isSuccessful();
 }

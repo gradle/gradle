@@ -38,7 +38,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
                 daemon: true,
                 operatingSystem: "some-os",
                 jvm: "java 6",
-                testTime: 10000,
+                startTime: 10000,
                 versionUnderTest: "1.7-rc-1",
                 vcsBranch: "master",
                 vcsCommits: ["1234567", "abcdefg"])
@@ -57,7 +57,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         baseline2.results << operation()
         baseline2.results << operation()
 
-        def result2 = crossVersionResults(testId: "test2", testTime: 20000, versionUnderTest: "1.7-rc-2")
+        def result2 = crossVersionResults(testId: "test2", startTime: 20000, versionUnderTest: "1.7-rc-2")
         result2.current << operation()
         result2.current << operation()
         def baseline3 = result2.baseline("1.0")
@@ -110,7 +110,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         results[0].daemon
         results[0].operatingSystem == "some-os"
         results[0].jvm == "java 6"
-        results[0].testTime == 10000
+        results[0].startTime == 10000
         results[0].versionUnderTest == '1.7-rc-1'
         results[0].vcsBranch == 'master'
         results[0].vcsCommits == ['1234567', 'abcdefg']
@@ -138,7 +138,7 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
         and:
         results.size() == 1
         results[0].testId == "test2"
-        results[0].testTime == 20000
+        results[0].startTime == 20000
         results[0].versionUnderTest == '1.7-rc-2'
         results[0].current.size() == 2
         results[0].baselineVersions*.version == ["1.0"]
@@ -206,9 +206,9 @@ class CrossVersionResultsStoreTest extends ResultSpecification {
     def "returns top n test executions in descending date order"() {
         given:
         def writeStore = new CrossVersionResultsStore(dbFile.name)
-        writeStore.report(crossVersionResults(testId: "some test", testTime: 30000, versionUnderTest: "1.7-rc-3"))
-        writeStore.report(crossVersionResults(testId: "some test", testTime: 10000, versionUnderTest: "1.7-rc-1"))
-        writeStore.report(crossVersionResults(testId: "some test", testTime: 20000, versionUnderTest: "1.7-rc-2"))
+        writeStore.report(crossVersionResults(testId: "some test", startTime: 30000, versionUnderTest: "1.7-rc-3"))
+        writeStore.report(crossVersionResults(testId: "some test", startTime: 10000, versionUnderTest: "1.7-rc-1"))
+        writeStore.report(crossVersionResults(testId: "some test", startTime: 20000, versionUnderTest: "1.7-rc-2"))
         writeStore.close()
 
         when:

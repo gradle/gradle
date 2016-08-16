@@ -56,6 +56,14 @@ public class MeasuredOperationList extends LinkedList<MeasuredOperation> {
         return new DataSeries<Duration>(this.collect { it.executionTime })
     }
 
+    DataSeries<Duration> getCompileTotalTime() {
+        return new DataSeries<Duration>(this.collect { it.compileTotalTime ?: Duration.millis(0) })
+    }
+
+    DataSeries<Duration> getGcTotalTime() {
+        return new DataSeries<Duration>(this.collect { it.gcTotalTime ?: Duration.millis(0) })
+    }
+
     String getSpeedStats() {
         format(totalTime)
     }

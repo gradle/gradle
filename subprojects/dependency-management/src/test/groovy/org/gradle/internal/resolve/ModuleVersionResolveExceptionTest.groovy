@@ -17,8 +17,8 @@ package org.gradle.internal.resolve
 
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import static org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ModuleVersionResolveExceptionTest extends Specification {

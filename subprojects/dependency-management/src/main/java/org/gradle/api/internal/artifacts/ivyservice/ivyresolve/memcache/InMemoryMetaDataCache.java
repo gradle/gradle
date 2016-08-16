@@ -30,11 +30,6 @@ import static org.gradle.internal.resolve.result.BuildableModuleVersionListingRe
 class InMemoryMetaDataCache {
     private final Map<ModuleVersionSelector, Set<String>> moduleVersionListing = new HashMap<ModuleVersionSelector, Set<String>>();
     private final Map<ModuleComponentIdentifier, CachedModuleVersionResult> metaData = new HashMap<ModuleComponentIdentifier, CachedModuleVersionResult>();
-    private InMemoryCacheStats stats;
-
-    InMemoryMetaDataCache(InMemoryCacheStats stats) {
-        this.stats = stats;
-    }
 
     public boolean supplyModuleVersions(ModuleVersionSelector requested, BuildableModuleVersionListingResolveResult result) {
         Set<String> versions = moduleVersionListing.get(requested);
@@ -57,7 +52,6 @@ class InMemoryMetaDataCache {
             return false;
         }
         fromCache.supply(result);
-        stats.metadataServed++;
         return true;
     }
 

@@ -238,6 +238,10 @@ public class GlobalScopeServices {
         return messagingServices.get(MessagingServer.class);
     }
 
+    InetAddressFactory createInetAddressFactory(MessagingServices messagingServices) {
+        return messagingServices.get(InetAddressFactory.class);
+    }
+
     ClassGenerator createClassGenerator() {
         return new AsmBackedClassGenerator();
     }
@@ -261,11 +265,10 @@ public class GlobalScopeServices {
         return new InMemoryTaskArtifactCache();
     }
 
-    DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, MessagingServices messagingServices) {
+    DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
         return new DefaultFileLockContentionHandler(
             executorFactory,
-            messagingServices.get(InetAddressFactory.class)
-        );
+            inetAddressFactory);
     }
 
     FileResolver createFileResolver(FileLookup lookup) {

@@ -16,9 +16,29 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
+/**
+ * Receives the result of dependency graph resolution, as a series of events.
+ *
+ * Implementations should make copies of whatever state they need to retain.
+ */
 public interface DependencyGraphVisitor {
+    /**
+     * Starts traversal of the graph.
+     */
     void start(DependencyGraphNode root);
+
+    /**
+     * Visits a node of the graph. Includes the root. This method is called for all nodes before {@link #visitEdge(DependencyGraphNode)} is called.
+     */
     void visitNode(DependencyGraphNode resolvedConfiguration);
+
+    /**
+     * Visits edges to/from a node of the graph. Includes the root. This method is called for all nodes after {@link #visitNode(DependencyGraphNode)} has been called for all nodes.
+     */
     void visitEdge(DependencyGraphNode resolvedConfiguration);
+
+    /**
+     * Completes traversal of the graph.
+     */
     void finish(DependencyGraphNode root);
 }

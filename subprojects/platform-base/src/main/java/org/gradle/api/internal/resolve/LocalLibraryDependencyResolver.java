@@ -23,9 +23,14 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.internal.component.ArtifactType;
+import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
-import org.gradle.internal.component.model.*;
+import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
@@ -33,6 +38,7 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
+import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.language.base.internal.model.VariantAxisCompatibilityFactory;
@@ -51,7 +57,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class LocalLibraryDependencyResolver<T extends BinarySpec> implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     private static final ModelType<ModelMap<ComponentSpec>> COMPONENT_MAP_TYPE = ModelTypes.modelMap(ComponentSpec.class);
@@ -187,24 +192,17 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
     }
 
     @Override
-    public void resolveModuleArtifacts(ComponentResolveMetadata component, ComponentUsage usage, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
         ComponentIdentifier componentId = component.getComponentId();
         if (isLibrary(componentId)) {
-            ConfigurationMetadata configuration = component.getConfiguration(usage.getConfigurationName());
-            if (configuration != null) {
-                Set<ComponentArtifactMetadata> artifacts = configuration.getArtifacts();
-                result.resolved(artifacts);
-            }
-            if (!result.hasResult()) {
-                result.failed(new ArtifactResolveException(String.format("Unable to resolve artifact for %s", componentId)));
-            }
+            result.resolved(new MetadataSourcedComponentArtifacts());
         }
     }
 
     @Override
-    public void resolveModuleArtifacts(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
+    public void resolveArtifactsWithType(ComponentResolveMetadata component, ArtifactType artifactType, BuildableArtifactSetResolveResult result) {
         if (isLibrary(component.getComponentId())) {
-            result.resolved(Collections.<ComponentArtifactMetadata>emptyList());
+            result.resolved(Collections.<ComponentArtifactMetadata>emptySet());
         }
     }
 

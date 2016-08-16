@@ -22,33 +22,49 @@ import spock.lang.Issue
 class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2984")
-    def "can resolve dependency with custom packaging"() {
+    def "can resolve local module with custom packaging"() {
         using m2
-        def extension = "aar"
-        m2.mavenRepo().module("local", "local", "1.0").hasType(extension).hasPackaging(extension).publish()
-        def remote = mavenHttpRepo.module("remote", "remote", "1.0").hasType(extension).hasPackaging(extension).publish()
-        remote.pom.expectGet()
-        remote.artifact.expectHead()
-        remote.artifact.expectGet()
+        def local = m2.mavenRepo().module("local", "local", "1.0").hasType("aar").hasPackaging("aar").publish()
 
         when:
         buildScript """
             configurations {
                 local
-                remote
             }
             repositories {
-                mavenLocal() // there's a different code path for mavenLocal() so test it explicitly
-                maven { url "$mavenHttpRepo.uri" }
+                mavenLocal()
             }
             dependencies {
                 local "local:local:1.0"
-                remote "remote:remote:1.0"
             }
-
             task local(type: Sync) {
                 into 'local'
                 from configurations.local
+            }
+        """
+
+        then:
+        succeeds("local")
+
+        and:
+        file("local").assertHasDescendants("local-1.0.aar")
+        file('local/local-1.0.aar').assertIsCopyOf(local.artifactFile)
+    }
+
+    @Issue(['GRADLE-2188', "https://issues.gradle.org/browse/GRADLE-2984"])
+    def "can resolve remote module with custom packaging"() {
+        def remote = mavenHttpRepo.module("remote", "remote", "1.0").hasType("aar").hasPackaging("aar").publish()
+
+        given:
+        buildScript """
+            configurations {
+                remote
+            }
+            repositories {
+                maven { url "$mavenHttpRepo.uri" }
+            }
+            dependencies {
+                remote "remote:remote:1.0"
             }
             task remote(type: Sync) {
                 into 'remote'
@@ -56,12 +72,68 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
             }
         """
 
-        then:
-        succeeds("local", "remote")
+        when:
+        remote.pom.expectGet()
+        remote.artifact.expectHead()
+        remote.artifact.expectGet()
 
-        and:
-        file("local").assertHasDescendants("local-1.0.aar")
+        run("remote")
+
+        then:
         file("remote").assertHasDescendants("remote-1.0.aar")
+        file('remote/remote-1.0.aar').assertIsCopyOf(remote.artifactFile)
+
+        when:
+        server.resetExpectations()
+        run("remote")
+
+        then: // uses cached stuff
+        file("remote").assertHasDescendants("remote-1.0.aar")
+        file('remote/remote-1.0.aar').assertIsCopyOf(remote.artifactFile)
     }
 
+    def "can consume remote module with custom packaging from another module"() {
+        def customPackaging = mavenHttpRepo.module("remote", "remote", "1.0").hasType("aar").hasPackaging("aar").publish()
+        def consumer = mavenHttpRepo.module("consumer", "consumer", "1.0").dependsOn(customPackaging).publish()
+
+        given:
+        buildScript """
+            configurations {
+                remote
+            }
+            repositories {
+                maven { url "$mavenHttpRepo.uri" }
+            }
+            dependencies {
+                remote "consumer:consumer:1.0"
+            }
+            task remote(type: Sync) {
+                into 'remote'
+                from configurations.remote
+            }
+        """
+
+        when:
+        consumer.pom.expectGet()
+        consumer.artifact.expectGet()
+        customPackaging.pom.expectGet()
+        customPackaging.artifact.expectHead()
+        customPackaging.artifact.expectGet()
+
+        run("remote")
+
+        then:
+        file("remote").assertHasDescendants("consumer-1.0.jar", "remote-1.0.aar")
+        file('remote/consumer-1.0.jar').assertIsCopyOf(consumer.artifactFile)
+        file('remote/remote-1.0.aar').assertIsCopyOf(customPackaging.artifactFile)
+
+        when:
+        server.resetExpectations()
+        run("remote")
+
+        then: // uses cached stuff
+        file("remote").assertHasDescendants("consumer-1.0.jar", "remote-1.0.aar")
+        file('remote/consumer-1.0.jar').assertIsCopyOf(consumer.artifactFile)
+        file('remote/remote-1.0.aar').assertIsCopyOf(customPackaging.artifactFile)
+    }
 }

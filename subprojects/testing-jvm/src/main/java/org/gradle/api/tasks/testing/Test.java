@@ -86,6 +86,7 @@ import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationProcessor;
 import org.gradle.internal.operations.BuildOperationWorkerRegistry;
 import org.gradle.internal.reflect.Instantiator;
+import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -185,6 +186,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         reports.getHtml().setEnabled(true);
 
         filter = instantiator.newInstance(DefaultTestFilter.class);
+    }
+
+    @Inject
+    protected InetAddressFactory getInetAddressFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -625,7 +631,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
                         ? TestOutputAssociation.WITH_TESTCASE
                         : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationProcessor());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationProcessor(), getInetAddressFactory().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 

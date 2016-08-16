@@ -1128,7 +1128,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         failure.assertResolutionFailure(":conf")
                 .assertHasCause("Could not resolve org.utils:impl:1.3.")
                 .assertHasCause("Unhappy :(")
-                .assertFailedDependencyRequiredBy(":root:1.0")
+                .assertFailedDependencyRequiredBy("project :")
     }
 
     void "reasonable error message when attempting to substitute with an unversioned module selector"() {

@@ -42,16 +42,19 @@ public class PerformanceDatabase {
         }
     }
 
-    public <T> T withConnection(ConnectionAction<T> action) throws Exception {
+    public <T> T withConnection(ConnectionAction<T> action) throws SQLException {
         if (connection == null) {
-            Class.forName("org.h2.Driver");
             connection = DriverManager.getConnection(getUrl(), getUserName(), getPassword());
             try {
                 schemaInitializer.execute(connection);
-            } catch (Exception e) {
-                connection.close();
-                connection = null;
-                throw e;
+            } catch (SQLException e) {
+                if (e.getErrorCode() == 90096) {
+                    System.out.println("Not enough permissions to migrate the performance database. This is okay if you are only trying to read.");
+                } else {
+                    connection.close();
+                    connection = null;
+                    throw e;
+                }
             }
         }
         return action.execute(connection);

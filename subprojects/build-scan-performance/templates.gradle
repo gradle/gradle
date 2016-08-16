@@ -23,12 +23,14 @@ tasks.withType(JvmProjectGeneratorTask) {
 }
 
 task largeJavaProjectWithBuildScanPlugin(type: JvmProjectGeneratorTask) {
-    buildScanPluginVersionProvider = {
-        def pluginInfo = file("$rootDir/incoming/plugin.json")
-        assert pluginInfo.exists()
-        def json = new JsonSlurper().parse(pluginInfo) as Map<String, ?>
-        assert json.versionNumber
-        json.versionNumber
+    doFirst {
+        templateArgs.buildScanPluginVersion = {
+            def pluginInfo = file("$rootDir/incoming/plugin.json")
+            assert pluginInfo.exists()
+            def json = new JsonSlurper().parse(pluginInfo) as Map<String, ?>
+            assert json.versionNumber
+            json.versionNumber
+        }()
     }
 
     dependencyGraph {

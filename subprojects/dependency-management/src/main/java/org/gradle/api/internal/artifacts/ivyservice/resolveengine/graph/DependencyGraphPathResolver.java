@@ -16,43 +16,49 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DependencyGraphPathResolver {
 
-    public static Collection<List<ModuleVersionIdentifier>> calculatePaths(List<DependencyGraphNode> fromNodes, DependencyGraphNode toNode) {
+    public static Collection<List<ComponentIdentifier>> calculatePaths(List<DependencyGraphNode> fromNodes, DependencyGraphNode toNode) {
         // Include the shortest path from each version that has a direct dependency on the broken dependency, back to the root
 
-        Map<ModuleVersionSelection, List<ModuleVersionIdentifier>> shortestPaths = new LinkedHashMap<ModuleVersionSelection, List<ModuleVersionIdentifier>>();
-        List<ModuleVersionIdentifier> rootPath = new ArrayList<ModuleVersionIdentifier>();
-        rootPath.add(toNode.toId());
-        shortestPaths.put(toNode.getSelection(), rootPath);
+        Map<ComponentResult, List<ComponentIdentifier>> shortestPaths = new LinkedHashMap<ComponentResult, List<ComponentIdentifier>>();
+        List<ComponentIdentifier> rootPath = new ArrayList<ComponentIdentifier>();
+        rootPath.add(toNode.getOwner().getComponentId());
+        shortestPaths.put(toNode.getOwner(), rootPath);
 
-        Set<DependencyGraphBuilder.ModuleVersionResolveState> directDependees = new LinkedHashSet<DependencyGraphBuilder.ModuleVersionResolveState>();
+        Set<DependencyGraphComponent> directDependees = new LinkedHashSet<DependencyGraphComponent>();
         for (DependencyGraphNode node : fromNodes) {
-            DependencyGraphBuilder.ConfigurationNode rawNode = (DependencyGraphBuilder.ConfigurationNode) node;
-            directDependees.add(rawNode.moduleRevision);
+            directDependees.add(node.getOwner());
         }
 
-        Set<DependencyGraphBuilder.ModuleVersionResolveState> seen = new HashSet<DependencyGraphBuilder.ModuleVersionResolveState>();
-        LinkedList<DependencyGraphBuilder.ModuleVersionResolveState> queue = new LinkedList<DependencyGraphBuilder.ModuleVersionResolveState>();
+        Set<DependencyGraphComponent> seen = new HashSet<DependencyGraphComponent>();
+        LinkedList<DependencyGraphComponent> queue = new LinkedList<DependencyGraphComponent>();
         queue.addAll(directDependees);
         while (!queue.isEmpty()) {
-            DependencyGraphBuilder.ModuleVersionResolveState version = queue.getFirst();
-            if (version == toNode.getSelection()) {
+            DependencyGraphComponent version = queue.getFirst();
+            if (version == toNode.getOwner()) {
                 queue.removeFirst();
             } else if (seen.add(version)) {
-                for (DependencyGraphBuilder.ModuleVersionResolveState incomingVersion : version.getIncoming()) {
+                for (DependencyGraphComponent incomingVersion : version.getDependents()) {
                     queue.add(0, incomingVersion);
                 }
             } else {
                 queue.remove();
-                List<ModuleVersionIdentifier> shortest = null;
-                for (DependencyGraphBuilder.ModuleVersionResolveState incomingVersion : version.getIncoming()) {
-                    List<ModuleVersionIdentifier> candidate = shortestPaths.get(incomingVersion);
+                List<ComponentIdentifier> shortest = null;
+                for (DependencyGraphComponent incomingVersion : version.getDependents()) {
+                    List<ComponentIdentifier> candidate = shortestPaths.get(incomingVersion);
                     if (candidate == null) {
                         continue;
                     }
@@ -66,16 +72,16 @@ public class DependencyGraphPathResolver {
                 if (shortest == null) {
                     continue;
                 }
-                List<ModuleVersionIdentifier> path = new ArrayList<ModuleVersionIdentifier>();
+                List<ComponentIdentifier> path = new ArrayList<ComponentIdentifier>();
                 path.addAll(shortest);
-                path.add(version.id);
+                path.add(version.getComponentId());
                 shortestPaths.put(version, path);
             }
         }
 
-        List<List<ModuleVersionIdentifier>> paths = new ArrayList<List<ModuleVersionIdentifier>>();
-        for (DependencyGraphBuilder.ModuleVersionResolveState version : directDependees) {
-            List<ModuleVersionIdentifier> path = shortestPaths.get(version);
+        List<List<ComponentIdentifier>> paths = new ArrayList<List<ComponentIdentifier>>();
+        for (DependencyGraphComponent version : directDependees) {
+            List<ComponentIdentifier> path = shortestPaths.get(version);
             paths.add(path);
         }
         return paths;

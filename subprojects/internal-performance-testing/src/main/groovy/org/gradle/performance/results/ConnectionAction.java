@@ -17,7 +17,8 @@
 package org.gradle.performance.results;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 public interface ConnectionAction<T> {
-    T execute(Connection connection) throws Exception;
+    T execute(Connection connection) throws SQLException;
 }

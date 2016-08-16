@@ -15,6 +15,7 @@
  */
 package org.gradle.internal.resolve
 
+import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
@@ -116,9 +117,9 @@ Searched in the following locations:
     }
 
     def "can add incoming paths to exception"() {
-        def a = newId("org", "a", "1.2")
-        def b = newId("org", "b", "5")
-        def c = newId("org", "c", "1.0")
+        def a = DefaultModuleComponentIdentifier.newId("org", "a", "1.2")
+        def b = DefaultModuleComponentIdentifier.newId("org", "b", "5")
+        def c = DefaultModuleComponentIdentifier.newId("org", "c", "1.0")
 
         def exception = new ModuleVersionNotFoundException(newId("a", "b", "c"), ["http://somewhere"])
         def onePath = exception.withIncomingPaths([[a, b, c]])

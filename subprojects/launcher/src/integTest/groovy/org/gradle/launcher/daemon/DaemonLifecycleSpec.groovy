@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.daemon.registry.DaemonDir
+import org.gradle.launcher.daemon.server.DaemonStateCoordinator
 import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import spock.lang.IgnoreIf
@@ -121,7 +122,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     void waitForDaemonExpiration(buildNum = 0) {
         run {
-            poll(20) { assert builds[buildNum].standardOutput.contains("Daemon will be stopped at the end of the build") }
+            poll(20) { assert builds[buildNum].standardOutput.contains(DaemonStateCoordinator.DAEMON_WILL_STOP_MESSAGE) }
         }
     }
 
@@ -463,6 +464,42 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         daemonContext(1) {
             assert daemonOpts.contains("-Dfile.encoding=UTF-8")
         }
+    }
+
+    def "duplicate daemons expire quickly"() {
+        when:
+        startBuild()
+        waitForBuildToWait()
+
+        then:
+        busy()
+
+        when:
+        startBuild()
+        waitForBuildToWait(1)
+
+        then:
+        busy 2
+
+        when:
+        startBuild()
+        waitForBuildToWait(2)
+
+        then:
+        busy 3
+
+        when:
+        completeBuild()
+
+        then:
+        state 2, 1
+
+        when:
+        completeBuild(1)
+        completeBuild(2)
+
+        then:
+        state 0, 1
     }
 
     def cleanup() {

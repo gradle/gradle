@@ -77,8 +77,10 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     }
 
     void assertEveryBuildSucceeds() {
-        LOGGER.info("Asserting all builds have succeeded...");
-        assert failures.collect { it.exception }.empty: "Some builds have failed."
+        if (whatToCheck() != Checks.NONE) {
+            LOGGER.info("Asserting all builds have succeeded...");
+            assert failures.collect { it.exception }.empty: "Some builds have failed."
+        }
     }
 
     void assertCurrentVersionHasNotRegressed() {
@@ -95,16 +97,6 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
             throw new AssertionError(larger)
         }
     }
-
-    private static Checks whatToCheck() {
-        Checks result = Checks.ALL
-        String override = System.getProperty('org.gradle.performance.execution.checks')
-        if (override) {
-            result = Checks.valueOf(override.toUpperCase())
-        }
-        result
-    }
-
 
     private String checkBaselineVersion(Transformer<Boolean, BaselineVersion> fails, Transformer<String, BaselineVersion> provideMessage) {
         def failed = false
@@ -128,26 +120,4 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
         }
     }
 
-    private static enum Checks {
-        NONE(false, false),
-        ALL(true, true),
-        SPEED(false, true),
-        MEMORY(true, false)
-
-        private final boolean checkMemory
-        private final boolean checkSpeed
-
-        private Checks(boolean memory, boolean speed) {
-            checkMemory = memory
-            checkSpeed = speed
-        }
-
-        boolean speed() {
-            checkSpeed
-        }
-
-        boolean memory() {
-            checkMemory
-        }
-    }
 }

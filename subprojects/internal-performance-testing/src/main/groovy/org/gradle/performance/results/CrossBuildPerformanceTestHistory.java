@@ -134,8 +134,13 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
         }
 
         @Override
-        public long getTestTime() {
-            return results.getTestTime();
+        public long getStartTime() {
+            return results.getStartTime();
+        }
+
+        @Override
+        public long getEndTime() {
+            return results.getEndTime();
         }
 
         @Override

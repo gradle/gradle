@@ -29,8 +29,6 @@ import org.gradle.util.Clock;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 public class Binary2JUnitXmlReportGenerator {
 
@@ -40,10 +38,10 @@ public class Binary2JUnitXmlReportGenerator {
     private final BuildOperationProcessor buildOperationProcessor;
     private final static Logger LOG = Logging.getLogger(Binary2JUnitXmlReportGenerator.class);
 
-    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation, BuildOperationProcessor buildOperationProcessor) {
+    public Binary2JUnitXmlReportGenerator(File testResultsDir, TestResultsProvider testResultsProvider, TestOutputAssociation outputAssociation, BuildOperationProcessor buildOperationProcessor, String hostName) {
         this.testResultsDir = testResultsDir;
         this.testResultsProvider = testResultsProvider;
-        this.xmlWriter = new JUnitXmlResultWriter(getHostname(), testResultsProvider, outputAssociation);
+        this.xmlWriter = new JUnitXmlResultWriter(hostName, testResultsProvider, outputAssociation);
         this.buildOperationProcessor = buildOperationProcessor;
     }
 
@@ -67,14 +65,6 @@ public class Binary2JUnitXmlReportGenerator {
 
     private String getReportFileName(TestClassResult result) {
         return "TEST-" + FileUtils.toSafeFileName(result.getClassName()) + ".xml";
-    }
-
-    private static String getHostname() {
-        try {
-            return InetAddress.getLocalHost().getHostName();
-        } catch (UnknownHostException e) {
-            return "localhost";
-        }
     }
 
     private static class JUnitXmlReportFileGenerator implements RunnableBuildOperation {
