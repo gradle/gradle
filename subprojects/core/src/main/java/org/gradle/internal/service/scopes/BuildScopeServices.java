@@ -109,7 +109,7 @@ import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
-import org.gradle.initialization.SettingsHandler;
+import org.gradle.initialization.DefaultSettingsLoader;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.StackTraceSanitizingExceptionAnalyser;
@@ -304,7 +304,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                                                   ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
                                                   BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor) {
         return new NotifyingSettingsLoader(
-            new SettingsHandler(
+            new DefaultSettingsLoader(
                 new DefaultSettingsFinder(
                     new BuildLayoutFactory()),
                 settingsProcessor,
