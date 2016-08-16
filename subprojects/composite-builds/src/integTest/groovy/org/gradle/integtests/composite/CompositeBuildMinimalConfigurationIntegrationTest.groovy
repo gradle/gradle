@@ -135,13 +135,11 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         }
 
         and:
-        def expectedCount = 1
         if (buildArtifacts) {
             executed(":buildB:jar", ":buildC:jar")
-            expectedCount = 2 // TODO:DAZ Should be 1
         }
-        output.count('Configured buildB') == expectedCount
-        output.count('Configured buildC') == expectedCount
+        output.count('Configured buildB') == 1
+        output.count('Configured buildC') == 1
 
         where:
         action      | buildArtifacts
@@ -173,7 +171,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         and:
         executed(":buildB:jar", ":buildB:b1:jar")
-        output.count('Configured buildB') == 2 // TODO:DAZ Should be 1
+        output.count('Configured buildB') == 1
     }
 
     def dependency(String notation) {

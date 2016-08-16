@@ -36,7 +36,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
         Load, Configure, Build
     }
 
-    private final GradleInternal gradle;
     private final InitScriptHandler initScriptHandler;
     private final SettingsLoader settingsLoader;
     private final BuildConfigurer buildConfigurer;
@@ -49,6 +48,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
+    private GradleInternal gradle;
     private SettingsInternal settings;
     private Stage stage;
 
@@ -125,6 +125,10 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     private void doBuildStages(Stage upTo) {
+        if (stage == Stage.Build) {
+            throw new IllegalStateException("Cannot build with GradleLauncher multiple times");
+        }
+
         if (stage == null) {
             // Evaluate init scripts
             initScriptHandler.executeScripts(gradle);
@@ -161,6 +165,9 @@ public class DefaultGradleLauncher extends GradleLauncher {
             return;
         }
 
+        // After this point, the GradleLauncher cannot be reused
+        stage = Stage.Build;
+
         // Populate task graph
         buildOperationExecutor.run("Calculate task graph", new Runnable() {
             @Override
@@ -179,8 +186,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
                 buildExecuter.execute(gradle);
             }
         });
-
-        assert upTo == Stage.Build;
     }
 
     /**

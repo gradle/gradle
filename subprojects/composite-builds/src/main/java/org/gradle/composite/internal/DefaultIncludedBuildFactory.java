@@ -50,7 +50,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     @Override
     public IncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext) {
         Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, requestContext, sharedServices);
-        Factory<GradleLauncher> nestedFactory = requestContext == null ? factory : new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, null, sharedServices);
+        Factory<GradleLauncher> nestedFactory = requestContext == null ? null : new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, null, sharedServices);
         return instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, nestedFactory);
     }
 

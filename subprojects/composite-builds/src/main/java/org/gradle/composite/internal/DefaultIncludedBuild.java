@@ -36,7 +36,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     // TODO:DAZ Get rid of this once we remove the "old" TAPI-based composites
     private final Factory<GradleLauncher> nestedLauncherFactory;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
-
     private GradleLauncher gradleLauncher;
     private DefaultDependencySubstitutions dependencySubstitutions;
     private String name;
@@ -101,9 +100,19 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public BuildResult execute(Iterable<String> tasks) {
-        GradleLauncher gradleLauncher = nestedLauncherFactory.create();
-        gradleLauncher.getGradle().getStartParameter().setTaskNames(tasks);
-        return gradleLauncher.run();
+        // TODO:DAZ Get rid of this when we remove TAPI-composite
+        if (nestedLauncherFactory != null) {
+            gradleLauncher = nestedLauncherFactory.create();
+        }
+
+        GradleLauncher launcher = getGradleLauncher();
+        launcher.getGradle().getStartParameter().setTaskNames(tasks);
+        try {
+            return launcher.run();
+        } finally {
+            // Can no longer use a configured Gradle instance after tasks are executed.
+            gradleLauncher = null;
+        }
     }
 
     @Override
