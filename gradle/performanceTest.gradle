@@ -187,6 +187,8 @@ task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
 }
 
 task distributedFullPerformanceTest(type: DistributedPerformanceTest) {
+    baselines = ['1.1', '1.12', '2.0', '2.1', '2.4', '2.9', '2.12', '2.14.1', 'last']
+    checks = 'none'
 }
 
 configure([performanceTest, performanceExperiment, fullPerformanceTest, performanceAdhocTest]) {
