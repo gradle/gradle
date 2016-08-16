@@ -90,6 +90,11 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
         return dependsOn(module.groupId, module.artifactId, module.version)
     }
 
+    @Override
+    MavenModule dependsOn(Map<String, ?> attributes, MavenModule module) {
+        return dependsOn(module.groupId, module.artifactId, module.version, attributes.type, attributes.scope, attributes.classifier, [])
+    }
+
     MavenModule dependsOn(String group, String artifactId, String version, String type = null, String scope = null, String classifier = null, Collection<Map> exclusions = null) {
         this.dependencies << [groupId: group, artifactId: artifactId, version: version, type: type, scope: scope, classifier: classifier, exclusions: exclusions]
         return this

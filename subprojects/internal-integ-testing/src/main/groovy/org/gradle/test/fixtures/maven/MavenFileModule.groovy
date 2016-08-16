@@ -24,6 +24,24 @@ class MavenFileModule extends AbstractMavenModule {
         super(moduleDir, groupId, artifactId, version)
     }
 
+    @Override
+    MavenFileModule dependsOn(MavenModule module) {
+        super.dependsOn(module)
+        return this
+    }
+
+    @Override
+    MavenModule dependsOn(Map<String, ?> attributes, MavenModule module) {
+        super.dependsOn(attributes, module)
+        return this
+    }
+
+    @Override
+    MavenFileModule artifact(Map<String, ?> options) {
+        super.artifact(options)
+        return this
+    }
+
     boolean getUniqueSnapshots() {
         return uniqueSnapshots
     }

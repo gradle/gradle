@@ -15,13 +15,19 @@
  */
 
 package org.gradle.integtests.fixtures.resolve
+
+import com.google.common.base.Joiner
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
+import org.junit.Assert
+
 /**
  * A test fixture that injects a task into a build that resolves a dependency configuration and does some validation of the resulting graph, to
  * ensure that the old and new dependency graphs plus the artifacts and files are as expected and well-formed.
@@ -77,40 +83,46 @@ allprojects {
         def configDetails = configDetailsFile.text.readLines()
 
         def actualRoot = configDetails.find { it.startsWith('root:') }.substring(5)
-        def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]"
+        def expectedRoot = "[id:${graph.root.id}][mv:${graph.root.moduleVersionId}][reason:${graph.root.reason}]".toString()
         assert actualRoot == expectedRoot
 
         def actualFirstLevel = configDetails.findAll { it.startsWith('first-level:') }.collect { it.substring(12) }
-        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" }
-        assert actualFirstLevel as Set == expectedFirstLevel as Set
+        def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
+        compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
 
         def actualNodes = configDetails.findAll { it.startsWith('component:') }.collect { it.substring(10) }
         def expectedNodes = graph.nodes.values().collect { "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]" }
-        assert actualNodes as Set == expectedNodes as Set
+        compare("components in graph", actualNodes, expectedNodes)
 
         def actualEdges = configDetails.findAll { it.startsWith('dependency:') }.collect { it.substring(11) }
         def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
-        assert actualEdges as Set == expectedEdges as Set
+        compare("edges in graph", actualEdges, expectedEdges)
 
         def actualArtifacts = configDetails.findAll { it.startsWith('artifact:') }.collect { it.substring(9) }
-        def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.module}.jar]" }
-        assert actualArtifacts as Set == expectedArtifacts as Set
+        def expectedArtifacts = graph.artifactNodes.collect { "[${it.moduleVersionId}][${it.artifactName}]" }
+        compare("artifacts", actualArtifacts, expectedArtifacts)
 
         if (buildArtifacts) {
             def actualFiles = configDetails.findAll { it.startsWith('file:') }.collect { it.substring(5) }
             def expectedFiles = graph.artifactNodes.collect { it.fileName }
-            assert actualFiles as Set == expectedFiles as Set
+            compare("files", actualFiles, expectedFiles)
         }
     }
 
-    public static class GraphBuilder {
-        final Map<String, NodeBuilder> nodes = new LinkedHashMap<>()
-        NodeBuilder root
+    void compare(String compType, Collection<String> actual, Collection<String> expected) {
+        def actualFormatted = Joiner.on("\n").join(new ArrayList<String>(actual).sort())
+        def expectedFormatted = Joiner.on("\n").join(new ArrayList<String>(expected).sort())
+        Assert.assertEquals("Result contains unexpected $compType", expectedFormatted, actualFormatted)
+    }
 
-        private getArtifactNodes() {
+    public static class GraphBuilder {
+        private final Map<String, NodeBuilder> nodes = new LinkedHashMap<>()
+        private NodeBuilder root
+
+        Set<ExpectedArtifact> getArtifactNodes() {
             Set<NodeBuilder> result = new LinkedHashSet()
             visitNodes(root, result)
-            return result
+            return result.collect { it.artifacts }.flatten()
         }
 
         private void visitNodes(NodeBuilder node, Set<NodeBuilder> result) {
@@ -158,12 +170,15 @@ allprojects {
 
         /**
          * Defines the root node of the graph. The closure delegates to a {@link NodeBuilder} instance that represents the root node.
+         *
+         * @param projectPath The path of the project to which the graph belongs.
+         * @param moduleVersion The module version for this project.
          */
-        def root(String path, String value, @DelegatesTo(NodeBuilder) Closure cl) {
+        def root(String projectPath, String moduleVersion, @DelegatesTo(NodeBuilder) Closure cl) {
             if (root != null) {
                 throw new IllegalStateException("Root node is already defined")
             }
-            root = node("project $path", value)
+            root = node("project $projectPath", moduleVersion)
             cl.resolveStrategy = Closure.DELEGATE_ONLY
             cl.delegate = root
             cl.call()
@@ -188,7 +203,7 @@ allprojects {
             } else {
                 def parts = moduleVersionId.split(':')
                 assert parts.length == 3
-                attrs = [group: parts[1], module: parts[1], version: parts[2]]
+                attrs = [group: parts[0], module: parts[1], version: parts[2]]
             }
             return node(id, moduleVersionId, attrs)
         }
@@ -220,6 +235,30 @@ allprojects {
         }
     }
 
+    public static class ExpectedArtifact {
+        String group
+        String module
+        String version
+        String classifier
+        String type
+
+        String getType() {
+            return type ?: 'jar'
+        }
+
+        ModuleVersionIdentifier getModuleVersionId() {
+            return DefaultModuleVersionIdentifier.newId(group, module, version ?: 'unspecified')
+        }
+
+        String getArtifactName() {
+            return "$module${classifier ? '-' + classifier : ''}.${getType()}"
+        }
+
+        String getFileName() {
+            return "$module${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
+        }
+    }
+
     public static class NodeBuilder {
         final List<EdgeBuilder> deps = []
         private final GraphBuilder graph
@@ -229,7 +268,8 @@ allprojects {
         final String module
         final String version
         String configuration = "default"
-        private Set<String> reasons = new TreeSet<String>()
+        private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
+        private final Set<String> reasons = new TreeSet<String>()
 
         NodeBuilder(String id, String moduleVersionId, Map attrs, GraphBuilder graph) {
             this.graph = graph
@@ -240,12 +280,12 @@ allprojects {
             this.id = id
         }
 
-        def getReason() {
-            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join(',')
+        Set<ExpectedArtifact> getArtifacts() {
+            return artifacts.empty ? [new ExpectedArtifact(group: group, module: module, version: version)] : artifacts
         }
 
-        private def getFileName() {
-            "$module${version ? '-' + version : ''}.jar"
+        String getReason() {
+            reasons.empty ? (this == graph.root ? 'root' : 'requested') : reasons.join(',')
         }
 
         private NodeBuilder addNode(String id, String moduleVersionId = id) {
@@ -322,6 +362,15 @@ allprojects {
             def edge = new EdgeBuilder(this, "${requested.group}:${requested.module}:${requested.version}", null)
             deps << edge
             return edge
+        }
+
+        /**
+         * Specifies an artifact for this node. A default is assumed when none specified
+         */
+        NodeBuilder artifact(Map attributes) {
+            def artifact = new ExpectedArtifact(group: group, module: module, version: version, classifier: attributes.classifier, type: attributes.type)
+            artifacts << artifact
+            return this
         }
 
         /**
