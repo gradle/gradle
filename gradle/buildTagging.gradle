@@ -25,6 +25,7 @@ buildscript {
 }
 
 ext {
+    isCiServer = System.getenv().containsKey('TEAMCITY_VERSION')
     taggable = project.hasProperty('autoTaggable') ? Boolean.valueOf(project.getProperty('autoTaggable')) : false
 }
 
