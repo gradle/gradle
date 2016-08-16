@@ -50,6 +50,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
     private SettingsInternal settings;
+    private Stage stage;
 
     /**
      * Creates a new instance.
@@ -124,29 +125,37 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     private void doBuildStages(Stage upTo) {
-        // Evaluate init scripts
-        initScriptHandler.executeScripts(gradle);
+        if (stage == null) {
+            // Evaluate init scripts
+            initScriptHandler.executeScripts(gradle);
 
-        // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-        settings = settingsLoader.findAndLoadSettings(gradle);
+            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
+            settings = settingsLoader.findAndLoadSettings(gradle);
+
+            stage = Stage.Load;
+        }
 
         if (upTo == Stage.Load) {
             return;
         }
 
-        // Configure build
-        buildOperationExecutor.run("Configure build", new Runnable() {
-            @Override
-            public void run() {
-                buildConfigurer.configure(gradle);
+        if (stage == Stage.Load) {
+            // Configure build
+            buildOperationExecutor.run("Configure build", new Runnable() {
+                @Override
+                public void run() {
+                    buildConfigurer.configure(gradle);
 
-                if (!gradle.getStartParameter().isConfigureOnDemand()) {
-                    buildListener.projectsEvaluated(gradle);
+                    if (!gradle.getStartParameter().isConfigureOnDemand()) {
+                        buildListener.projectsEvaluated(gradle);
+                    }
+
+                    modelConfigurationListener.onConfigure(gradle);
                 }
+            });
 
-                modelConfigurationListener.onConfigure(gradle);
-            }
-        });
+            stage = Stage.Configure;
+        }
 
         if (upTo == Stage.Configure) {
             return;

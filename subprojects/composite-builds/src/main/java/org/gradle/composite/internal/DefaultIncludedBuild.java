@@ -33,6 +33,8 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     private final File projectDir;
     private final Factory<GradleLauncher> gradleLauncherFactory;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
+
+    private GradleLauncher gradleLauncher;
     private DefaultDependencySubstitutions dependencySubstitutions;
     private String name;
 
@@ -74,20 +76,23 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public SettingsInternal initialize() {
-        GradleLauncher gradleLauncher = createGradleLauncher();
+        GradleLauncher gradleLauncher = getGradleLauncher();
         gradleLauncher.load();
         return gradleLauncher.getSettings();
     }
 
     @Override
     public GradleInternal configure() {
-        GradleLauncher gradleLauncher = createGradleLauncher();
+        GradleLauncher gradleLauncher = getGradleLauncher();
         gradleLauncher.getBuildAnalysis();
         return gradleLauncher.getGradle();
     }
 
-    private GradleLauncher createGradleLauncher() {
-        return gradleLauncherFactory.create();
+    private GradleLauncher getGradleLauncher() {
+        if (gradleLauncher == null) {
+            gradleLauncher = gradleLauncherFactory.create();
+        }
+        return gradleLauncher;
     }
 
     @Override
