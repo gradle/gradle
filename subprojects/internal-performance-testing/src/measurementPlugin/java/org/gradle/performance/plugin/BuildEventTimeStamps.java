@@ -32,6 +32,7 @@ import static org.gradle.performance.plugin.ReflectionUtil.*;
 public class BuildEventTimeStamps {
     private static long settingsEvaluatedTimestampIfNotAvailable;
     private static long configurationEndTimestamp;
+    private static boolean useBuildTimeClock = true;
 
     public static void settingsEvaluated() {
         settingsEvaluatedTimestampIfNotAvailable = System.nanoTime();
@@ -76,11 +77,14 @@ public class BuildEventTimeStamps {
     }
 
     private static long resolveBuildTime(BuildResult buildResult) {
+        if (!useBuildTimeClock) {
+            return 0;
+        }
         try {
             return getService(buildResult.getGradle(), BuildRequestMetaData.class).getBuildTimeClock().getTimeInMs();
         } catch (Exception e) {
             System.err.println("Exception in getting build time " + e.getMessage());
-            e.printStackTrace(System.err);
+            useBuildTimeClock = false;
             return 0;
         }
     }
