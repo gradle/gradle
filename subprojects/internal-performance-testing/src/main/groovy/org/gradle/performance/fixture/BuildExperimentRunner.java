@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildExperimentRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildExperimentRunner.class);
+    public static final String HEAP_DUMP_PROPERTY = "org.gradle.performance.heapdump";
 
     private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
@@ -89,9 +90,13 @@ public class BuildExperimentRunner {
 
     // activate org.gradle.performance.plugin.HeapDumper in the build
     private void passHeapDumperParameter(List<String> additionalArgs) {
-        final String heapdumpProperty = System.getProperty("org.gradle.performance.heapdump");
-        if (heapdumpProperty != null) {
-            additionalArgs.add("-Pheapdump=${heapdumpProperty}".toString());
+        final String heapdumpValue = System.getProperty(HEAP_DUMP_PROPERTY);
+        if (heapdumpValue != null) {
+            if (heapdumpValue.equals("")) {
+                additionalArgs.add("-P" + HEAP_DUMP_PROPERTY);
+            } else {
+                additionalArgs.add("-P" + HEAP_DUMP_PROPERTY + "=" + heapdumpValue);
+            }
         }
     }
 
