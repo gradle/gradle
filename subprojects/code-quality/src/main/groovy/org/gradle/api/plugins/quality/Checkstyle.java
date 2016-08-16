@@ -54,7 +54,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     private TextResource config;
     private Map<String, Object> configProperties = new LinkedHashMap<String, Object>();
     private final CheckstyleReports reports;
-    private boolean ignoreFailures;
+    private booleana ignoreFailures;
     private boolean showViolations = true;
 
 
