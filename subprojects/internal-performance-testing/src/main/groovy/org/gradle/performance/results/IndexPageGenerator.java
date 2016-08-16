@@ -30,6 +30,12 @@ import java.util.List;
 import java.util.Map;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
+    private final List<NavigationItem> navigationItems;
+
+    public IndexPageGenerator(List<NavigationItem> navigationItems) {
+        this.navigationItems = navigationItems;
+    }
+
     @Override
     public void render(final ResultsStore store, Writer writer) throws IOException {
         new MetricsHtml(writer) {{
@@ -39,6 +45,9 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     title().text("Profile report").end();
                 end();
                 body();
+
+                navigation(navigationItems);
+
                 div().id("content");
                     Calendar calendar = Calendar.getInstance();
                     calendar.add(Calendar.DAY_OF_YEAR, -14);
