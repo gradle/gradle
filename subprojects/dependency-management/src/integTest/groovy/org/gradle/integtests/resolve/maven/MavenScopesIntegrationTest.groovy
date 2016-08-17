@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.maven
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
@@ -171,7 +170,6 @@ dependencies {
         }
     }
 
-    @NotYetImplemented
     def "can reference provided scope to include runtime dependencies of provided scoped dependencies of module"() {
         def notRequired = mavenRepo.module('test', 'dont-include-me', '1.0')
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()

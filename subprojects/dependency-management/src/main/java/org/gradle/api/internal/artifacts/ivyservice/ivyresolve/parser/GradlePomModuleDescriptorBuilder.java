@@ -89,9 +89,8 @@ public class GradlePomModuleDescriptorBuilder {
                     "contains all optional dependencies", new String[0], true, null)
     };
 
-    static final Map<String, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<String, ConfMapper>();
+    private static final Map<String, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<String, ConfMapper>();
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
-    private static final String EXTRA_ATTRIBUTE_CLASSIFIER = "m:classifier";
 
     interface ConfMapper {
         void addMappingConfs(Dependency dd, boolean isOptional);
@@ -102,12 +101,10 @@ public class GradlePomModuleDescriptorBuilder {
             public void addMappingConfs(Dependency dd, boolean isOptional) {
                 if (isOptional) {
                     dd.addDependencyConfiguration("optional", "compile(*)");
-                    //dd.addDependencyConfiguration("optional", "provided(*)");
                     dd.addDependencyConfiguration("optional", "master(*)");
 
                 } else {
                     dd.addDependencyConfiguration("compile", "compile(*)");
-                    //dd.addDependencyConfiguration("compile", "provided(*)");
                     dd.addDependencyConfiguration("compile", "master(*)");
                     dd.addDependencyConfiguration("runtime", "runtime(*)");
                 }
@@ -117,12 +114,10 @@ public class GradlePomModuleDescriptorBuilder {
             public void addMappingConfs(Dependency dd, boolean isOptional) {
                 if (isOptional) {
                     dd.addDependencyConfiguration("optional", "compile(*)");
-                    dd.addDependencyConfiguration("optional", "provided(*)");
                     dd.addDependencyConfiguration("optional", "runtime(*)");
                     dd.addDependencyConfiguration("optional", "master(*)");
                 } else {
                     dd.addDependencyConfiguration("provided", "compile(*)");
-                    dd.addDependencyConfiguration("provided", "provided(*)");
                     dd.addDependencyConfiguration("provided", "runtime(*)");
                     dd.addDependencyConfiguration("provided", "master(*)");
                 }
@@ -132,7 +127,7 @@ public class GradlePomModuleDescriptorBuilder {
             public void addMappingConfs(Dependency dd, boolean isOptional) {
                 if (isOptional) {
                     dd.addDependencyConfiguration("optional", "compile(*)");
-                    dd.addDependencyConfiguration("optional", "provided(*)");
+                    dd.addDependencyConfiguration("optional", "runtime(*)");
                     dd.addDependencyConfiguration("optional", "master(*)");
 
                 } else {
@@ -145,6 +140,7 @@ public class GradlePomModuleDescriptorBuilder {
         MAVEN2_CONF_MAPPING.put("test", new ConfMapper() {
             public void addMappingConfs(Dependency dd, boolean isOptional) {
                 //optional doesn't make sense in the test scope
+                dd.addDependencyConfiguration("test", "compile(*)");
                 dd.addDependencyConfiguration("test", "runtime(*)");
                 dd.addDependencyConfiguration("test", "master(*)");
             }
