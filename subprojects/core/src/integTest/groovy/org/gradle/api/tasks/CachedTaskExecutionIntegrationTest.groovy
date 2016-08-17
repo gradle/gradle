@@ -35,6 +35,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+    File cacheDir
+
     def setup() {
         buildFile << """
             apply plugin: "java"
@@ -44,6 +46,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         file("src/main/resources/resource.properties") << """
             test=true
         """
+
+        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
     }
 
     def "no task is re-executed when inputs are unchanged"() {
@@ -207,5 +211,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     private GradleExecuter enableCache() {
         executer.withArgument "-Dorg.gradle.cache.tasks=true"
+        executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
     }
 }
