@@ -21,11 +21,11 @@
 package org.gradle.integtests.tooling.r15
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import spock.lang.Issue
 
 @TargetGradleVersion(">=1.5")
-class CombiningCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecification {
+class CombiningCommandLineArgumentsCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
 
     @Issue("GRADLE-2635")
     def "can configure build file name and logging"() {

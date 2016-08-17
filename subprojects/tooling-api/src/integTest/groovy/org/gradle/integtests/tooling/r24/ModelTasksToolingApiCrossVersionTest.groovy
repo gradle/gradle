@@ -17,11 +17,11 @@
 package org.gradle.integtests.tooling.r24
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 
 @TargetGradleVersion(">=2.4")
-class ModelTasksToolingApiCrossVersionTest extends ToolingApiSpecification {
+class ModelTasksToolingApiCrossVersionTest extends ProjectConnectionToolingApiSpecification {
 
     def setup() {
         file('build.gradle') << '''

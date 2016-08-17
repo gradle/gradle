@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.connection;
 import org.gradle.tooling.BuildLauncher;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
-import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
@@ -37,7 +37,7 @@ public class GradleConnectionBuildLauncher extends DefaultBuildLauncher implemen
 
     private ProtocolToModelAdapter modelAdapter = new ProtocolToModelAdapter();
 
-    public GradleConnectionBuildLauncher(AsyncConsumerActionExecutor connection, CompositeConnectionParameters parameters) {
+    public GradleConnectionBuildLauncher(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(connection, parameters);
     }
 

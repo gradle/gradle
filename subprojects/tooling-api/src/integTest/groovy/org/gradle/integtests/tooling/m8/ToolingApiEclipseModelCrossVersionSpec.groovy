@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.tooling.m8
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
     def "can customize model late in the configuration phase"() {
         projectDir.file('build.gradle').text = """
 apply plugin: 'java'

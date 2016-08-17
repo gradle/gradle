@@ -15,13 +15,13 @@
  */
 package org.gradle.integtests.tooling.r214
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.eclipse.EclipseProjectDependency
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
 @ToolingApiVersion(">=2.14")
-class ToolingApiEclipseProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseProjectDependenciesCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
 
     def "can build the eclipse project dependencies for a java project"() {
         projectDir.file('settings.gradle').text = '''

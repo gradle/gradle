@@ -129,7 +129,7 @@ public class DefaultGradleConnector extends GradleConnector {
     public ProjectConnection connect() throws GradleConnectionException {
         LOGGER.debug("Connecting from tooling API consumer version {}", GradleVersion.current().getVersion());
 
-        ProjectConnectionParameters connectionParameters = connectionParamsBuilder.build();
+        ConnectionParameters connectionParameters = connectionParamsBuilder.build();
         if (connectionParameters.getProjectDir() == null) {
             throw new IllegalStateException("A project directory must be specified before creating a connection.");
         }

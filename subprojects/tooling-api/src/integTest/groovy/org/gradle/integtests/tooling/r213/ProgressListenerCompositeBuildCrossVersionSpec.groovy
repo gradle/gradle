@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.internal.reflect.DirectInstantiator
 import org.gradle.tooling.BuildLauncher
@@ -29,7 +29,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Tooling client provides progress listener for composite model request
  */
-class ProgressListenerCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class ProgressListenerCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     static final List<String> IGNORED_EVENTS = ['Validate distribution', '', 'Compiling script into cache', 'Build', 'Starting Gradle Daemon', 'Connecting to Gradle Daemon']
     AbstractCapturingProgressListener progressListenerForComposite
     AbstractCapturingProgressListener progressListenerForRegularBuild

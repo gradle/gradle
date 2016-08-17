@@ -16,16 +16,17 @@
 
 package org.gradle.tooling.internal.connection;
 
-import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.logging.progress.ProgressLoggerFactory;
-import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.async.DefaultAsyncConsumerActionExecutor;
-import org.gradle.tooling.internal.consumer.connection.*;
+import org.gradle.tooling.internal.consumer.connection.CancellableConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.LazyConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.ProgressLoggingConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.RethrowingErrorsConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 
 public class GradleConnectionFactory {
@@ -39,24 +40,12 @@ public class GradleConnectionFactory {
         this.loggingProvider = loggingProvider;
     }
 
-    public DefaultGradleConnection create(Distribution distribution, CompositeConnectionParameters parameters, boolean useDaemonCoordinator) {
-        ConsumerActionExecutor lazyConnection;
-        if (useDaemonCoordinator) {
-            lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, parameters);
-        } else {
-            lazyConnection = new LazyConsumerActionExecutor(distribution, new EmbeddedCoordinator(), loggingProvider, parameters);
-        }
+    public DefaultGradleConnection create(Distribution distribution, ConnectionParameters parameters) {
+        ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, parameters);
         ConsumerActionExecutor cancellableConnection = new CancellableConsumerActionExecutor(lazyConnection);
         ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(cancellableConnection, loggingProvider);
         ConsumerActionExecutor rethrowingErrorsConnection = new RethrowingErrorsConsumerActionExecutor(progressLoggingConnection);
         AsyncConsumerActionExecutor asyncConnection = new DefaultAsyncConsumerActionExecutor(rethrowingErrorsConnection, executorFactory);
         return new DefaultGradleConnection(asyncConnection, parameters);
-    }
-
-    private static class EmbeddedCoordinator implements ToolingImplementationLoader {
-        @Override
-        public ConsumerConnection create(Distribution distribution, ProgressLoggerFactory progressLoggerFactory, ConnectionParameters connectionParameters, BuildCancellationToken cancellationToken) {
-            return new ToolingClientConsumerConnection();
-        }
     }
 }

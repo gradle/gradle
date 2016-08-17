@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.connection.ModelResult
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
@@ -30,7 +30,7 @@ import spock.lang.Ignore
 /**
  * Tooling client can define a composite and execute tasks
  */
-class ExecuteBuildCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class ExecuteBuildCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
 
     def "executes tasks in composite containing one single-project build"() {
         given:
@@ -367,7 +367,7 @@ task hello {
 
     private static List<Class<?>> launchableSources() {
         List<Class<?>> launchableSources = [GradleProject]
-        if (targetDistVersion >= GradleVersion.version("1.12")) {
+        if (targetDist >= GradleVersion.version("1.12")) {
             // BuildInvocations returns InternalLauncher instances with accesses a different code path
             // TODO: We should support `BuildInvocations` back further than 1.12
             launchableSources += BuildInvocations

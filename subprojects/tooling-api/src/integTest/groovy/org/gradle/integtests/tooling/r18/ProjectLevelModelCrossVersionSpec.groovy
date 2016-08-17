@@ -17,10 +17,10 @@
 package org.gradle.integtests.tooling.r18
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.r16.CustomModel
 
-class ProjectLevelModelCrossVersionSpec extends ToolingApiSpecification {
+class ProjectLevelModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
     def setup() {
         file('settings.gradle') << '''
 include 'a'

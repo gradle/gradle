@@ -15,11 +15,11 @@
  */
 package org.gradle.integtests.tooling.m5
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.GradleTask
 
-class ToolingApiGradleProjectCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiGradleProjectCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
 
     def "provides tasks of a project"() {
         file('build.gradle') << '''
@@ -65,7 +65,7 @@ project (':a') { description = 'A rocks!' }
         a.children.size() == 2
         a.children.find { it.name == 'b' && it.path == ':a:b' }
         a.children.find { it.name == 'c' && it.path == ':a:c' }
-        
+
         a.children.find { it.name == 'c'}.children[0].name == 'd'
     }
 

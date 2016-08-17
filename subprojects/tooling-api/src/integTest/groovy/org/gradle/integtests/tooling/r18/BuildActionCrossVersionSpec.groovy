@@ -17,7 +17,7 @@
 package org.gradle.integtests.tooling.r18
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
@@ -26,7 +26,7 @@ import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.idea.IdeaProject
 
 @TargetGradleVersion('>=1.8')
-class BuildActionCrossVersionSpec extends ToolingApiSpecification {
+class BuildActionCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
     def "client receives the result of running a build action"() {
         given:
         file("settings.gradle") << 'rootProject.name="hello-world"'

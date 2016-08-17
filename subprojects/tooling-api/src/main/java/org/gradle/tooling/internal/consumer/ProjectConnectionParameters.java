@@ -15,13 +15,5 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import java.io.File;
-
 public interface ProjectConnectionParameters extends ConnectionParameters {
-    File getProjectDir();
-
-    /**
-     * Specifies whether to search for root project, or null to use default.
-     */
-    Boolean isSearchUpwards();
 }

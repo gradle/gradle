@@ -15,7 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r213
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.connection.FailedModelResult
 import org.gradle.tooling.connection.ModelResults
@@ -28,7 +28,7 @@ import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.util.CollectionUtils
 
-class ModelResultCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     private ModelResults<EclipseProject> modelResults
 
     def "can correlate exceptions in composite with multiple single-project participants"() {

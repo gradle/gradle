@@ -18,11 +18,11 @@ package org.gradle.integtests.tooling.m9
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.tooling.fixture.TextUtil
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.junit.Assume
 
-class GradlePropertiesToolingApiCrossVersionSpec extends ToolingApiSpecification {
+class GradlePropertiesToolingApiCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
 
     def setup() {
         //this test does not make any sense in embedded mode

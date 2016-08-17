@@ -17,10 +17,10 @@
 package org.gradle.integtests.tooling.r28
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiEclipseModelCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseModelCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
 
     @TargetGradleVersion(">=2.8")
     def "makes sure module names are unique in gradle"() {

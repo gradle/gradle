@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.tooling.BuildCancelledException
@@ -30,7 +30,7 @@ import org.junit.Rule
  * Tests cancellation of model requests in a composite build.
  */
 @TargetGradleVersion(">=2.1")
-class CancellationCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
     def cancellationHookText(File cancelledFile, File executedAfterCancellingFile) {

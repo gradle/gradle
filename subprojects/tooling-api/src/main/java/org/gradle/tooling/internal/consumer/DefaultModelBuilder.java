@@ -32,7 +32,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
     private final Class<T> modelType;
     private final AsyncConsumerActionExecutor connection;
 
-    public DefaultModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ProjectConnectionParameters parameters) {
+    public DefaultModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
         this.modelType = modelType;
         this.connection = connection;

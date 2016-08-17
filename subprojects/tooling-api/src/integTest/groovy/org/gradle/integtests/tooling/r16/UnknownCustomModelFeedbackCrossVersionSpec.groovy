@@ -17,12 +17,12 @@
 package org.gradle.integtests.tooling.r16
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnknownModelException
 
-class UnknownCustomModelFeedbackCrossVersionSpec extends ToolingApiSpecification {
+class UnknownCustomModelFeedbackCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
     @ToolingApiVersion("current")
     @TargetGradleVersion(">=1.6")
     def "fails gracefully when unknown model requested when custom models are supported by the target version"() {

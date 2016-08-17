@@ -16,7 +16,7 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -27,7 +27,7 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSepara
  */
 @TargetGradleVersion(">=1.4")
 // Dependencies task fails for missing dependencies with older Gradle versions
-class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeToolingApiSpecification {
+class DependencySubstitutionGradleConnectionCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     def stdErr = new ByteArrayOutputStream()
     def buildA

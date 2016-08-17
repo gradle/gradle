@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.connection
 import org.gradle.tooling.connection.GradleConnection
-import org.gradle.tooling.internal.consumer.CompositeConnectionParameters
+import org.gradle.tooling.internal.consumer.ConnectionParameters
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Specification
@@ -24,7 +24,7 @@ import spock.lang.Specification
 class DefaultGradleConnectionTest extends Specification {
 
     AsyncConsumerActionExecutor actionExecutor = Mock()
-    CompositeConnectionParameters connectionParameters = Mock()
+    ConnectionParameters connectionParameters = Mock()
     GradleConnection connection = new DefaultGradleConnection(actionExecutor, connectionParameters)
 
     def "can get model builder"() {

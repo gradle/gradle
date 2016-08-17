@@ -15,13 +15,13 @@
  */
 
 package org.gradle.integtests.tooling.r213
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.lang.Ignore
 
-class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def escapeHeader = "\u001b["
     def stdOutStream = new ByteArrayOutputStream()
     def stdErrStream = new ByteArrayOutputStream()

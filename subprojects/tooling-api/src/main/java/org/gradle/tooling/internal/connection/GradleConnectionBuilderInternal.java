@@ -27,14 +27,9 @@ public interface GradleConnectionBuilderInternal extends GradleConnectionBuilder
 
     GradleConnectionBuilderInternal daemonBaseDir(File daemonBaseDir);
 
-    GradleConnectionBuilderInternal integratedComposite(boolean integrated);
-
-    // The following only have an effect with `integratedComposite(true)
     GradleConnectionBuilderInternal embedded(boolean embedded);
 
-    GradleConnectionBuilder useInstallation(File gradleHome);
-
-    GradleConnectionBuilder useGradleVersion(String version);
-
     GradleConnectionBuilderInternal useClasspathDistribution();
+
+    GradleConnectionBuilderInternal setVerboseLogging(boolean verboseLogging);
 }

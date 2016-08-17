@@ -22,14 +22,14 @@ import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.connection.GradleConnection;
 import org.gradle.tooling.connection.ModelResults;
-import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 
 public class DefaultGradleConnection implements GradleConnection {
     private final AsyncConsumerActionExecutor asyncConnection;
-    private final CompositeConnectionParameters parameters;
+    private final ConnectionParameters parameters;
 
-    DefaultGradleConnection(AsyncConsumerActionExecutor asyncConnection, CompositeConnectionParameters parameters) {
+    DefaultGradleConnection(AsyncConsumerActionExecutor asyncConnection, ConnectionParameters parameters) {
         this.asyncConnection = asyncConnection;
         this.parameters = parameters;
     }

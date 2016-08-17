@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.tooling.r213
 import groovy.transform.NotYetImplemented
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Tests composites with multiple participants.  All participants have the same version.
  */
-class MultiProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def "can create composite of a two multi-project builds"() {
         given:
         def multiBuild1 = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])

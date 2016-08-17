@@ -16,13 +16,13 @@
 
 package org.gradle.integtests.tooling.r213
 import groovy.transform.NotYetImplemented
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Basic tests for building and retrieving models from a composite.
  */
-class SmokeCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class SmokeCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
 
     def "throws IllegalStateException when no participants are added"() {
         when:

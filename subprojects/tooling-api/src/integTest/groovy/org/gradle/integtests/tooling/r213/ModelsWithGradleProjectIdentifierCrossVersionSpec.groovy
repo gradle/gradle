@@ -17,7 +17,7 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
@@ -30,7 +30,7 @@ import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
-class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeToolingApiSpecification {
+class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     TestFile rootSingle
     TestFile rootMulti
 
@@ -174,7 +174,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
 
     private static getModelsHavingGradleProjectIdentifier() {
         List<Class<?>> models = [BuildInvocations]
-        if (targetDistVersion >= GradleVersion.version("1.12")) {
+        if (targetDist >= GradleVersion.version("1.12")) {
             models += ProjectPublications
         }
         return models

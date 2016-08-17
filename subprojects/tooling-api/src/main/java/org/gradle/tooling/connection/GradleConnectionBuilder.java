@@ -23,7 +23,7 @@ import java.io.File;
 import java.net.URI;
 
 /**
- * <p>Builds a new composite Gradle connection.</p>
+ * <p>Builds a new Gradle connection.</p>
  *
  * <pre autoTested=''>
  * GradleConnectionBuilder builder = GradleConnector.newGradleConnection();
@@ -44,6 +44,16 @@ import java.net.URI;
  */
 @Incubating
 public interface GradleConnectionBuilder {
+
+    /**
+     * Specifies the directory of the Gradle build to connect to.
+     *
+     * @param rootDirectory The root directory .
+     *
+     * @return this
+     */
+    GradleConnectionBuilder forRootDirectory(File rootDirectory);
+
     /**
      * Specifies the user's Gradle home directory to use. Defaults to {@code ~/.gradle}.
      *
@@ -53,56 +63,43 @@ public interface GradleConnectionBuilder {
     GradleConnectionBuilder useGradleUserHomeDir(File gradleUserHomeDir);
 
     /**
-     * Adds a new participant build to this connection, returning a build for further configuration.
+     * Specifies the Gradle distribution described in the build should be used.
      *
-     * @param projectDirectory The root project directory for the participant.
-     *
-     * @return The builder. Never returns null.
+     * @return this
      */
-    ParticipantBuilder addParticipant(File projectDirectory);
+    GradleConnectionBuilder useBuildDistribution();
+
+    /**
+     * Specifies the Gradle distribution to use.
+     *
+     * @param gradleHome The Gradle installation directory.
+     * @return this
+     */
+    GradleConnectionBuilder useInstallation(File gradleHome);
+
+    /**
+     * Specifies the version of Gradle to use.
+     *
+     * @param gradleVersion The version to use.
+     * @return this
+     */
+    GradleConnectionBuilder useGradleVersion(String gradleVersion);
+
+    /**
+     * Specifies the Gradle distribution to use.
+     *
+     * @param gradleDistribution The distribution to use.
+     *
+     * @return this
+     */
+    GradleConnectionBuilder useDistribution(URI gradleDistribution);
 
     /**
      * Builds the connection. You should call {@link GradleConnection#close()} when you are finished with the connection.
      *
      * @return The connection. Never returns null.
-     * @throws GradleConnectionException If the composite is invalid (e.g., no participants).
+     * @throws GradleConnectionException If the connection is invalid
      */
     GradleConnection build() throws GradleConnectionException;
 
-    /**
-     * Builds a new participant that will be included in the connection.
-     */
-    interface ParticipantBuilder {
-        /**
-         * Specifies the Gradle distribution described in the build should be used.
-         *
-         * @return this
-         */
-        ParticipantBuilder useBuildDistribution();
-
-        /**
-         * Specifies the Gradle distribution to use.
-         *
-         * @param gradleHome The Gradle installation directory.
-         * @return this
-         */
-        ParticipantBuilder useInstallation(File gradleHome);
-
-        /**
-         * Specifies the version of Gradle to use.
-         *
-         * @param gradleVersion The version to use.
-         * @return this
-         */
-        ParticipantBuilder useGradleVersion(String gradleVersion);
-
-        /**
-         * Specifies the Gradle distribution to use.
-         *
-         * @param gradleDistribution The distribution to use.
-         *
-         * @return this
-         */
-        ParticipantBuilder useDistribution(URI gradleDistribution);
-    }
 }

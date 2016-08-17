@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.IgnoreIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
@@ -35,7 +35,7 @@ import org.gradle.util.CollectionUtils
  * This test creates a composite combining a project for a fixed Gradle version (2.8) with the target gradle version for the test.
  */
 @IgnoreIntegratedComposite
-class HeterogeneousCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class HeterogeneousCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
 
     private final static GradleDistribution GRADLE_2_8 = new ReleasedVersionDistributions().getDistribution("2.8")
 

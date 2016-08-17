@@ -19,7 +19,11 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.async.DefaultAsyncConsumerActionExecutor;
-import org.gradle.tooling.internal.consumer.connection.*;
+import org.gradle.tooling.internal.consumer.connection.CancellableConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.ConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.LazyConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.ProgressLoggingConsumerActionExecutor;
+import org.gradle.tooling.internal.consumer.connection.RethrowingErrorsConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
 
 public class ConnectionFactory {
@@ -33,7 +37,7 @@ public class ConnectionFactory {
         this.loggingProvider = loggingProvider;
     }
 
-    public ProjectConnection create(Distribution distribution, ProjectConnectionParameters parameters) {
+    public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
         ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, parameters);
         ConsumerActionExecutor cancellableConnection = new CancellableConsumerActionExecutor(lazyConnection);
         ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(cancellableConnection, loggingProvider);

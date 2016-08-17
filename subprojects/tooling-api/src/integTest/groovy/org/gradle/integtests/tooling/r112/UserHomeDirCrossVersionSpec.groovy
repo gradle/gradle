@@ -15,10 +15,10 @@
  */
 package org.gradle.integtests.tooling.r112
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.tooling.BuildLauncher
 
-class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
+class UserHomeDirCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
     def "build is executed using specified user home directory"() {
         toolingApi.requireIsolatedDaemons()
         File userHomeDir = temporaryFolder.createDir('userhomedir')

@@ -16,11 +16,7 @@
 
 package org.gradle.tooling.internal.connection;
 
-import org.gradle.internal.composite.GradleParticipantBuild;
-import org.gradle.tooling.BuildLauncher;
-import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.model.BuildIdentifier;
 
 public class ToolingClientCompositeBuildLauncher {
 
@@ -33,23 +29,23 @@ public class ToolingClientCompositeBuildLauncher {
     }
 
     public void run() {
-        for (GradleParticipantBuild build : operationParameters.getBuilds()) {
-            BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getProjectDir());
-            if (operationParameters.getBuildIdentifier() == null
-                || operationParameters.getBuildIdentifier().equals(buildIdentifier)) {
-                ProjectConnection connection = null;
-                try {
-                    connection = util.createParticipantConnector(build).connect();
-                    BuildLauncher buildLauncher = connection.newBuild();
-                    util.configureRequest(buildLauncher);
-                    buildLauncher.run();
-                } finally {
-                    if (connection!=null) {
-                        connection.close();
-                    }
-
-                }
-            }
-        }
+//        for (GradleParticipantBuild build : operationParameters.getBuilds()) {
+//            BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getProjectDir());
+//            if (operationParameters.getBuildIdentifier() == null
+//                || operationParameters.getBuildIdentifier().equals(buildIdentifier)) {
+//                ProjectConnection connection = null;
+//                try {
+//                    connection = util.createParticipantConnector(build).connect();
+//                    BuildLauncher buildLauncher = connection.newBuild();
+//                    util.configureRequest(buildLauncher);
+//                    buildLauncher.run();
+//                } finally {
+//                    if (connection!=null) {
+//                        connection.close();
+//                    }
+//
+//                }
+//            }
+//        }
     }
 }

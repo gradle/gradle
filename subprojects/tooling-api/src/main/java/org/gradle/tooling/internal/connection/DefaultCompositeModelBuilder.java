@@ -24,7 +24,7 @@ import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.connection.ModelResults;
 import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
 import org.gradle.tooling.internal.consumer.BlockingResultHandler;
-import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
+import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.ExceptionTransformer;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
@@ -41,12 +41,12 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
     private final Class<T> modelType;
     private final AsyncConsumerActionExecutor connection;
 
-    protected DefaultCompositeModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, CompositeConnectionParameters parameters) {
+    protected DefaultCompositeModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
         this.modelType = modelType;
         this.connection = connection;
         operationParamsBuilder.setEntryPoint("CompositeModelBuilder API");
-        operationParamsBuilder.setRootDirectory(parameters.getBuilds().get(0).getProjectDir());
+        operationParamsBuilder.setRootDirectory(parameters.getProjectDir());
     }
 
     @Override

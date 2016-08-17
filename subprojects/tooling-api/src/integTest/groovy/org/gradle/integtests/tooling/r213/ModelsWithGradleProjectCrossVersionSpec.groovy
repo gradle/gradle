@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.integtests.tooling.r213
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.connection.GradleConnection
@@ -29,7 +29,7 @@ import org.gradle.tooling.model.gradle.GradleBuild
 import org.gradle.tooling.model.idea.BasicIdeaProject
 import org.gradle.tooling.model.idea.IdeaProject
 
-class ModelsWithGradleProjectCrossVersionSpec extends CompositeToolingApiSpecification {
+class ModelsWithGradleProjectCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     static projectScopedModels = [GradleProject, EclipseProject, HierarchicalEclipseProject]
     static buildScopedModels = [GradleBuild, IdeaProject, BasicIdeaProject]
     TestFile rootSingle

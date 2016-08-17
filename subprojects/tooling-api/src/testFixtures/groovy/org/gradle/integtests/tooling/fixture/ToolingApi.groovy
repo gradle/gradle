@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
+import org.gradle.tooling.connection.GradleConnection
+import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.internal.connection.GradleConnectionBuilderInternal
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
@@ -198,37 +200,42 @@ class ToolingApi implements TestRule {
         };
     }
 
-    def createCompositeBuilder() {
-        newCompositeBuilder(false)
+    public <T> T withGradleConnection(Closure<T> cl) {
+        GradleConnectionBuilder connector = gradleConnectionBuilder()
+        withGradleConnection(connector, cl)
     }
 
-    def createIntegratedCompositeBuilder() {
-        newCompositeBuilder(true)
+    public <T> T withGradleConnection(GradleConnectionBuilder connector, Closure<T> cl) {
+        return withGradleConnectionRaw(connector, cl)
     }
 
-    private newCompositeBuilder(boolean integrated) {
+    private <T> T withGradleConnectionRaw(GradleConnectionBuilder connector, Closure<T> cl) {
+        GradleConnection connection = connector.build()
+        try {
+            return connection.with(cl)
+        } catch (Throwable t) {
+            validate(t)
+            throw t
+        } finally {
+            connection.close()
+        }
+    }
+
+    GradleConnectionBuilder gradleConnectionBuilder() {
         GradleConnectionBuilderInternal builder = GradleConnector.newGradleConnection()
         builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
-        builder.daemonBaseDir(new File(daemonBaseDir.path))
-        builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)
-
-        if (integrated) {
-            builder.integratedComposite(integrated)
-            builder.useInstallation(dist.gradleHomeDir.absoluteFile)
-
-/*
-            if (builder.class.getMethod("embedded", Boolean.TYPE) != null) {
-                builder.embedded(embedded)
-                if (useClasspathImplementation) {
-                    builder.useClasspathDistribution()
-                }
-            }
-*/
+        if (useSeparateDaemonBaseDir) {
+            builder.daemonBaseDir(new File(daemonBaseDir.path))
         }
+        builder.forRootDirectory(testWorkDirProvider.testDirectory)
+        builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)
+        builder.verboseLogging = verboseLogging
+        if (useClasspathImplementation) {
+            builder.useClasspathDistribution()
+        } else {
+            builder.useInstallation(dist.gradleHomeDir.absoluteFile)
+        }
+        builder.embedded(embedded)
         builder
-    }
-
-    void addCompositeParticipant(def builder, File rootDir) {
-        builder.addParticipant(rootDir.absoluteFile).useInstallation(dist.gradleHomeDir.absoluteFile)
     }
 }

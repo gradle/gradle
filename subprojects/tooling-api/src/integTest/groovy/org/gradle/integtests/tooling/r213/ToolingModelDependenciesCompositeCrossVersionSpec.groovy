@@ -15,7 +15,7 @@
  */
 
 package org.gradle.integtests.tooling.r213
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
@@ -32,7 +32,7 @@ import static org.gradle.util.CollectionUtils.single
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
-class ToolingModelDependenciesCompositeCrossVersionSpec extends CompositeToolingApiSpecification {
+class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     TestFile buildA
     TestFile buildB

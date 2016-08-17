@@ -16,10 +16,10 @@
 
 package org.gradle.integtests.tooling.m4
 
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject
 
-class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ToolingApiSpecification {
+class ToolingApiEclipseLinkedResourcesCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
     def "can build linked resources"() {
 
         file('build.gradle').text = '''

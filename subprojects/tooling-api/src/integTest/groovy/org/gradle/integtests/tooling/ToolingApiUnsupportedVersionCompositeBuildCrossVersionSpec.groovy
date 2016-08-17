@@ -16,14 +16,14 @@
 
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 
-class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     @ToolingApiVersion("current")
     @TargetGradleVersion("<1.2")
     def "build execution fails for pre 1.2 providers"() {

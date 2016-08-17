@@ -16,30 +16,25 @@
 
 package org.gradle.integtests.tooling.r31
 
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.GradleProject
 
-@ToolingApiVersion('>=3.1')
 @TargetGradleVersion(">=3.1")
-class CompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class CompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
 
     def "Can query project models from a composite build"() {
         setup:
 
         file('my-lib', 'settings.gradle') << 'rootProject.name = "my-lib"'
 
-        file('settings.gradle') << """
+        settingsFile << """
             rootProject.name = "root"
             includeBuild 'my-lib'
         """
 
         when:
-        def models = withCompositeConnection(rootDir) { GradleConnection composite ->
-            composite.getModels(GradleProject)
-        }
+        def models = loadToolingModels(GradleProject)
 
         then:
         models*.model*.name == ['root', 'my-lib']

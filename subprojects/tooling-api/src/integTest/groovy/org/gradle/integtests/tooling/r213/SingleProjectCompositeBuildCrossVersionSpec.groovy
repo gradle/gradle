@@ -15,13 +15,13 @@
  */
 
 package org.gradle.integtests.tooling.r213
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Builds a composite with a single project.
  */
-class SingleProjectCompositeBuildCrossVersionSpec extends CompositeToolingApiSpecification {
+class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def "can create composite of a single multi-project build"() {
         given:
         def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])

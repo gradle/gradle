@@ -18,7 +18,7 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
 import org.junit.runner.RunWith
@@ -26,7 +26,19 @@ import org.junit.runner.RunWith
 @ToolingApiVersion('>=2.0')
 @TargetGradleVersion('>=1.2')
 @RunWith(ToolingApiCompatibilitySuiteRunner)
-abstract class ToolingApiSpecification extends AbstractToolingApiSpecification {
+abstract class ProjectConnectionToolingApiSpecification extends AbstractToolingApiSpecification {
+
+    public void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
+        toolingApi.withConnector(cl)
+    }
+
+    public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
+        toolingApi.withConnection(connector, cl)
+    }
+
+    def connector() {
+        toolingApi.connector()
+    }
 
     public <T> T withConnection(@DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         toolingApi.withConnection(cl)
@@ -48,22 +60,6 @@ abstract class ToolingApiSpecification extends AbstractToolingApiSpecification {
             build.run()
             out
         }
-    }
-
-    TestFile getProjectDir() {
-        temporaryFolder.testDirectory
-    }
-
-    TestFile getBuildFile() {
-        file("build.gradle")
-    }
-
-    TestFile getSettingsFile() {
-        file("settings.gradle")
-    }
-
-    TestFile file(Object... path) {
-        projectDir.file(path)
     }
 
     /**

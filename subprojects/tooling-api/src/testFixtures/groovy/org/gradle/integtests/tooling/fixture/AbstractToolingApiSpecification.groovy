@@ -15,17 +15,16 @@
  */
 package org.gradle.integtests.tooling.fixture
 
-import groovy.transform.stc.ClosureParams
-import groovy.transform.stc.SimpleType
+import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestDistributionDirectoryProvider
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testing.internal.util.RetryRule
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.consumer.ConnectorServices
 import org.gradle.util.GradleVersion
 import org.gradle.util.SetSystemProperties
@@ -34,6 +33,7 @@ import org.junit.rules.RuleChain
 import spock.lang.Specification
 
 import static org.gradle.testing.internal.util.RetryRule.retryIf
+
 /**
  * A spec that executes tests against all compatible versions of tooling API consumer and testDirectoryProvider, including the current Gradle version under test.
  *
@@ -55,9 +55,10 @@ abstract class AbstractToolingApiSpecification extends Specification {
     RetryRule retryRule = retryIf(
         // known issue with pre 1.3 daemon versions: https://github.com/gradle/gradle/commit/29d895bc086bc2bfcf1c96a6efad22c602441e26
         { t ->
-           GradleVersion.version(targetDist.version.baseVersion.version) < GradleVersion.version("1.3") && t.cause != null &&
+            GradleVersion.version(targetDist.version.baseVersion.version) < GradleVersion.version("1.3") && t.cause != null &&
                 (t.cause.message ==~ /Timeout waiting to connect to (the )?Gradle daemon\./
-                || t.cause.message.contains("Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)")) }
+                    || t.cause.message.contains("Gradle build daemon disappeared unexpectedly (it may have been stopped, killed or may have crashed)"))
+        }
     );
 
     public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
@@ -84,15 +85,31 @@ abstract class AbstractToolingApiSpecification extends Specification {
         new ConnectorServices().reset()
     }
 
-    public void withConnector(@DelegatesTo(GradleConnector) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.GradleConnector"]) Closure cl) {
-        toolingApi.withConnector(cl)
+    TestFile getProjectDir() {
+        temporaryFolder.testDirectory
     }
 
-    public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
-        toolingApi.withConnection(connector, cl)
+    TestFile getBuildFile() {
+        file("build.gradle")
     }
 
-    def connector() {
-        toolingApi.connector()
+    TestFile getSettingsFile() {
+        file("settings.gradle")
+    }
+
+    TestFile file(Object... path) {
+        projectDir.file(path)
+    }
+
+    def populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
+        new BuildTestFixture(projectDir).populate(projectName, cl)
+    }
+
+    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).singleProjectBuild(projectName, cl)
+    }
+
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).multiProjectBuild(projectName, subprojects, cl)
     }
 }
