@@ -1,50 +1,123 @@
-# Use cases
+# Allow selecting project dependencies over binary dependencies
 
-Gradle normally handles version conflicts by picking the highest version of the module.
+## High-level goals
 
-In rare cases this may result in a project dependency being replaced by a module dependency, which
-may be counter-intuitive.
+Gradle normally handles version conflicts by picking the highest version a dependency.
+In rare cases this may result in a project dependency being replaced by a binary dependency, which
+may be counter-intuitive. The objective of this change is to make it 
+configurable to always prefer project dependencies.
 
-Other use cases depend on no priority being given to project dependencies.
+The situations where this happens boils down to the following two cases:
 
-## Use case 1 (project priority required)
+* Execute a composite build where a dependency between
+  included builds is actually not included
+* Test code changes in a multi project build on a common project and a project using
+  this project where not all intermediate dependencies are project dependencies
+  
+This means the basic setup for the dependencies will be something like the following:
 
-The actual use case involves a multi-repo system, where developers could choose a subset
-of projects to work on, but here is a simple case:
+<pre>
+    A ---> C
+     \     ^
+      \   /
+       V /
+        B
+</pre>
+  
+Here `A` and `C` will be projects in a multi project build respectively included builds
+in a composited build and `B` will
+be a binary dependency.
 
-We have 3 projects: `common`, `moduleA`, `moduleB`
+We still want to keep the current behaviour for two reasons:
 
-* `moduleA` has a dependency on `common 1.1`
-* `moduleB` depends on both `common` and `moduleA`
-* `settings.gradle` only includes `common` and `moduleB`. `moduleA` is being pulled from a repository.
-* The local version of `common` is `1.0`
+* Changing the default behavior would probably break some builds
+* For use cases like performance testing it is still necessary to have
+  a binary dependency on an earlier version of the same project which
+  should not be replaced by the project dependency.
+  
+## Story: User can prefer project modules for conflict resolution
 
-What happens by default:
-* For `moduleB` external dependency `common 1.1` replaces the direct project dependency.
+### User visible changes
 
-What would happen with `preferProjectModules = true`:
-* Project dependency will be picked over the external dependency.
+The user is able to do the following:
 
-## Use case 2 (project priority should be off)
+    configurations.all {
+        resolutionStrategy {
+            preferProjectModules()
+        }
+    }
 
-We need to do performance testing to ensure that the current version of the code
-isn't significantly slower than another version.
+When this method is called, project modules are preferred over binary modules
+in conflict resolution.
 
-To that end we declare a dependency that references that other version, and we don't
-want the current codebase to substitute it.
+In more detail, let us assume that we have the following layout
 
-# The change
+    settings.gradle
+    projectA
+       build.gradle
+    projectC
+       build.gradle
 
-The proposed change adds an option to enforce higher priority of project dependencies, before version comparison even starts.
-In other words prioritize by type first and by version second.
 
-To that extent a new class `ProjectDependencyForcingResolver` is introduced. It implements `ModuleConflictResolver`,
+`settings.gradle`:
+   
+    include ':projectA'
+    include ':projectC'
+
+`projectA/build.gradle`:
+
+    plugins {
+        id 'java'
+        id 'maven-publish'
+    }
+    
+    group = 'myorg.projectA'
+    version = '1.5'
+    
+    dependencies {
+        compile project(':projectC')
+        compile 'myorg.projectB:projectB:1.7'
+    }
+
+`projectC/build.gradle`:
+
+    plugins {
+        id 'java'
+        id 'maven-publish'
+    }
+    
+    group = 'myorg.projectC'
+    version = '1.7'
+
+Let us assume that `projectB` has the maven coordinates `myorg.projectB:projectB:1.7`
+and depends on `myorg.projectC:projectC:1.9`.
+
+The default behaviour now is that `projectA` is compiled against `myorg.projectC:projectC:1.9`. If
+we add
+
+    configurations.all {
+        resolutionStrategy {
+            preferProjectModules()
+        }
+    }
+
+to `projectA/build.gradle` then `projectA` is compiled against `project(:projectC)`.
+
+### Implementation
+
+A new class `ProjectDependencyForcingResolver` is introduced. It implements `ModuleConflictResolver`,
 and is chained in front of `LatestModuleConflictResolver` by `DefaultArtifactDependencyResolver`.
 
-There is also a new method `ResolutionStrategy.preferProjectModules`, which allows toggling between project priority and version-only
-conflict resolution.
+The new method `ResolutionStrategy.preferProjectModules` is added which activates `ProjectDependencyForcingResolver`.
 
-# Test cases
+### Test coverage
 
 `ProjectDependencyPreferenceIntegrationTest`, is added in order to test the various permutations of
 versions, forced dependencies and `preferProjectModules` settings.
+
+We need to test at least the following situations:
+
+* `A -> B -> C` with `B` being an external module
+* Some more complicated dependency graph with at least five dependencies
+* Activating `preferProjectModules` for some projects and not for others
+* The same tests in the composite build case
