@@ -15,6 +15,7 @@
  */
 package org.gradle.test.fixtures.maven
 
+import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.file.TestFile
 
 class MavenFileModule extends AbstractMavenModule {
@@ -25,13 +26,13 @@ class MavenFileModule extends AbstractMavenModule {
     }
 
     @Override
-    MavenFileModule dependsOn(MavenModule module) {
+    MavenFileModule dependsOn(Module module) {
         super.dependsOn(module)
         return this
     }
 
     @Override
-    MavenModule dependsOn(Map<String, ?> attributes, MavenModule module) {
+    MavenFileModule dependsOn(Map<String, ?> attributes, Module module) {
         super.dependsOn(attributes, module)
         return this
     }
@@ -46,7 +47,7 @@ class MavenFileModule extends AbstractMavenModule {
         return uniqueSnapshots
     }
 
-    MavenModule withNonUniqueSnapshots() {
+    MavenFileModule withNonUniqueSnapshots() {
         uniqueSnapshots = false;
         return this;
     }

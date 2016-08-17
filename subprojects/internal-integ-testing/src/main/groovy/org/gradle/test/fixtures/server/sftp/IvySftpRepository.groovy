@@ -63,7 +63,7 @@ class IvySftpRepository implements RemoteIvyRepository {
         return new SftpDirectoryResource(server, backingRepository.moduleDir(organisation, module))
     }
 
-    IvySftpModule module(String organisation, String module, Object revision = "1.0") {
+    IvySftpModule module(String organisation, String module, String revision = "1.0") {
         return new IvySftpModule(this, server, backingRepository.module(organisation, module, revision))
     }
 }

@@ -60,7 +60,7 @@ class IvyFileRepository implements IvyRepository {
         return this.module(organisation, module).moduleDir.parentFile
     }
 
-    IvyFileModule module(String organisation, String module, Object revision = '1.0') {
+    IvyFileModule module(String organisation, String module, String revision = '1.0') {
         return createModule(organisation, module, revision as String)
     }
 

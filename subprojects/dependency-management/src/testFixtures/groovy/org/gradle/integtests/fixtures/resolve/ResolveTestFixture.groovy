@@ -241,9 +241,14 @@ allprojects {
         String version
         String classifier
         String type
+        String name
 
         String getType() {
             return type ?: 'jar'
+        }
+
+        String getName() {
+            return name ?: module
         }
 
         ModuleVersionIdentifier getModuleVersionId() {
@@ -251,11 +256,11 @@ allprojects {
         }
 
         String getArtifactName() {
-            return "$module${classifier ? '-' + classifier : ''}.${getType()}"
+            return "${getName()}${classifier ? '-' + classifier : ''}.${getType()}"
         }
 
         String getFileName() {
-            return "$module${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
+            return "${getName()}${version ? '-' + version : ''}${classifier ? '-' + classifier : ''}.${getType()}"
         }
     }
 
@@ -368,7 +373,7 @@ allprojects {
          * Specifies an artifact for this node. A default is assumed when none specified
          */
         NodeBuilder artifact(Map attributes) {
-            def artifact = new ExpectedArtifact(group: group, module: module, version: version, classifier: attributes.classifier, type: attributes.type)
+            def artifact = new ExpectedArtifact(group: group, module: module, version: version, name: attributes.name, classifier: attributes.classifier, type: attributes.type)
             artifacts << artifact
             return this
         }

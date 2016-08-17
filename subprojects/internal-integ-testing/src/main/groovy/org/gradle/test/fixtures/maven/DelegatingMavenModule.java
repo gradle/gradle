@@ -16,6 +16,7 @@
 
 package org.gradle.test.fixtures.maven;
 
+import org.gradle.test.fixtures.Module;
 import org.gradle.test.fixtures.file.TestFile;
 
 import java.util.Map;
@@ -29,6 +30,16 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
 
     private T t() {
         return (T) this;
+    }
+
+    @Override
+    public String getGroup() {
+        return backingModule.getGroup();
+    }
+
+    @Override
+    public String getModule() {
+        return backingModule.getModule();
     }
 
     @Override
@@ -55,13 +66,13 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public T dependsOn(MavenModule module) {
+    public MavenModule dependsOn(Module module) {
         backingModule.dependsOn(module);
         return t();
     }
 
     @Override
-    public MavenModule dependsOn(Map<String, ?> attributes, MavenModule module) {
+    public MavenModule dependsOn(Map<String, ?> attributes, Module module) {
         backingModule.dependsOn(attributes, module);
         return t();
     }

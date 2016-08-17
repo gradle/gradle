@@ -27,8 +27,8 @@ import spock.lang.Issue
 class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec {
     public void "project dependency includes artifacts and transitive dependencies of default configuration in target project"() {
         given:
-        mavenRepo.module("org.other", "externalA", 1.2).publish()
-        mavenRepo.module("org.other", "externalB", 2.1).publish()
+        mavenRepo.module("org.other", "externalA", "1.2").publish()
+        mavenRepo.module("org.other", "externalB", "2.1").publish()
 
         and:
         file('settings.gradle') << "include 'a', 'b'"
@@ -116,7 +116,7 @@ project(":b") {
 
     public void "project dependency that specifies a target configuration includes artifacts and transitive dependencies of selected configuration"() {
         given:
-        mavenRepo.module("org.other", "externalA", 1.2).publish()
+        mavenRepo.module("org.other", "externalA", "1.2").publish()
 
         and:
         file('settings.gradle') << "include 'a', 'b'"
@@ -274,7 +274,7 @@ project(':b') {
 
     public void "project dependency that references an artifact includes the matching artifact only plus the transitive dependencies of referenced configuration"() {
         given:
-        mavenRepo.module("group", "externalA", 1.5).publish()
+        mavenRepo.module("group", "externalA", "1.5").publish()
 
         and:
         file('settings.gradle') << "include 'a', 'b'"
@@ -347,7 +347,7 @@ project(":b") {
 
     public void "non-transitive project dependency includes only the artifacts of the target configuration"() {
         given:
-        mavenRepo.module("group", "externalA", 1.5).publish()
+        mavenRepo.module("group", "externalA", "1.5").publish()
 
         and:
         file('settings.gradle') << "include 'a', 'b'"

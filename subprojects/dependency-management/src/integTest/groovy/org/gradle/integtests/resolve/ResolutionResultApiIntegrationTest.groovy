@@ -31,13 +31,13 @@ class ResolutionResultApiIntegrationTest extends AbstractDependencyResolutionTes
 
     def "selection reasons are described"() {
         given:
-        mavenRepo.module("org", "leaf", 1.0).publish()
-        mavenRepo.module("org", "leaf", 2.0).publish()
-        mavenRepo.module("org", "foo", 0.5).publish()
+        mavenRepo.module("org", "leaf", "1.0").publish()
+        mavenRepo.module("org", "leaf", "2.0").publish()
+        mavenRepo.module("org", "foo", "0.5").publish()
 
-        mavenRepo.module("org", "foo", 1.0).dependsOn('org', 'leaf', '1.0').publish()
-        mavenRepo.module("org", "bar", 1.0).dependsOn('org', 'leaf', '2.0').publish()
-        mavenRepo.module("org", "baz", 1.0).dependsOn('org', 'foo',  '1.0').publish()
+        mavenRepo.module("org", "foo", "1.0").dependsOn('org', 'leaf', '1.0').publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn('org', 'leaf', '2.0').publish()
+        mavenRepo.module("org", "baz", "1.0").dependsOn('org', 'foo',  '1.0').publish()
 
         file("settings.gradle") << "rootProject.name = 'cool-project'"
 

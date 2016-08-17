@@ -16,7 +16,9 @@
 package org.gradle.test.fixtures
 
 public interface HttpRepository extends Repository {
+    @Override
     HttpModule module(String group, String module)
 
-    HttpModule module(String group, String module, Object version)
+    @Override
+    HttpModule module(String group, String module, String version)
 }

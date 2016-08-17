@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resource.s3.fixtures
 
+import org.gradle.test.fixtures.Module
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.ivy.IvyDescriptor
 import org.gradle.test.fixtures.ivy.IvyFileModule
@@ -66,8 +67,18 @@ class IvyS3Module implements RemoteIvyModule {
     }
 
     @Override
+    String getGroup() {
+        return backingModule.group
+    }
+
+    @Override
     String getModule() {
         return backingModule.module
+    }
+
+    @Override
+    String getVersion() {
+        return backingModule.version
     }
 
     @Override
@@ -111,8 +122,13 @@ class IvyS3Module implements RemoteIvyModule {
     }
 
     @Override
-    IvyModule dependsOn(IvyModule ivyModule) {
-        return backingModule.dependsOn(ivyModule)
+    IvyModule dependsOn(Map<String, ?> attributes, Module module) {
+        return backingModule.dependsOn(attributes, module)
+    }
+
+    @Override
+    IvyModule dependsOn(Module module) {
+        return backingModule.dependsOn(module)
     }
 
     @Override

@@ -19,10 +19,11 @@ package org.gradle.test.fixtures.ivy
 import org.gradle.test.fixtures.resource.RemoteResource
 
 interface RemoteIvyRepository extends IvyRepository {
-
+    @Override
     RemoteIvyModule module(String organisation, String module)
 
-    RemoteIvyModule module(String organisation, String module, Object revision)
+    @Override
+    RemoteIvyModule module(String organisation, String module, String revision)
 
     String getBaseIvyPattern()
 
