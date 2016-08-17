@@ -57,7 +57,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             addPerformanceGraph("Average execution time", "executionTimeChart", "executionTime", "execution time", "s");
             addPerformanceGraph("Average setup/teardown time", "miscTimeChart", "miscTime", "setup/teardown time", "s");
             addPerformanceGraph("Average heap usage", "heapUsageChart", "heapUsage", "heap usage", "mb");
-            addPerformanceGraph("Average compile cpu time", "compileTotalTimeChart", "compileTotalTime", "compile cpu time", "s");
+            addPerformanceGraph("Average JIT compiler cpu time", "compileTotalTimeChart", "compileTotalTime", "jit compiler cpu time", "s");
             addPerformanceGraph("Average GC cpu time", "gcTotalTimeChart", "gcTotalTime", "GC cpu time", "s");
 
             div().id("tooltip").end();
@@ -93,7 +93,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             th().colspan(colspanForField).text("Average build time").end();
             th().colspan(colspanForField).text("Average configuration time").end();
             th().colspan(colspanForField).text("Average execution time").end();
-            th().colspan(colspanForField).text("Average compile cpu time").end();
+            th().colspan(colspanForField).text("Average jit compiler cpu time").end();
             th().colspan(colspanForField).text("Average gc cpu time").end();
             th().colspan(colspanForField).text("Average heap usage (old measurement)").end();
             th().colspan(colspanForField).text("Average total heap usage").end();
