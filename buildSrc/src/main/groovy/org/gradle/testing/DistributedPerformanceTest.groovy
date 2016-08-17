@@ -21,10 +21,14 @@ import com.google.common.collect.Lists
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import groovy.xml.XmlUtil
 import groovyx.net.http.ContentType
 import groovyx.net.http.RESTClient
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.*
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.IoActions
 
 import java.util.concurrent.TimeUnit
@@ -132,6 +136,7 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TypeChecked(TypeCheckingMode.SKIP)
     private void schedule(Scenario scenario) {
+        def lastChangeId = resolveLastChangeId()
         def buildRequest = """
                 <build>
                     <buildType id="${buildTypeId}"/>
@@ -144,31 +149,60 @@ class DistributedPerformanceTest extends PerformanceTest {
                         <property name="checks" value="${checks?:'all'}"/>
                         <property name="channel" value="${channel?:'commits'}"/>
                     </properties>
-                    ${getLastChange()}
+                    ${renderLastChange(lastChangeId)}
                 </build>
             """
-        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $coordinatorBuildId, build request: $buildRequest")
+        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $coordinatorBuildId, lastChangeId: $lastChangeId, build request: $buildRequest")
         def response = client.post(
             path: "buildQueue",
             requestContentType: ContentType.XML,
             body: buildRequest
         )
-        scheduledBuilds += response.data.@id
+        if (!response.success) {
+            throw new RuntimeException("Cannot schedule build job. build request: $buildRequest\nresponse: ${xmlToString(response.data)}")
+        }
+        def workerBuildId = response.data.@id
+        scheduledBuilds += workerBuildId
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private String getLastChange() {
-        if (coordinatorBuildId) {
-            def response = client.get(path: "builds/id:$coordinatorBuildId")
-            def id = response.data.lastChanges.change[0].@id
+    private static String xmlToString(xmlObject) {
+        if (xmlObject != null) {
+            try {
+                return XmlUtil.serialize(xmlObject)
+            } catch (e) {
+                // ignore errors
+            }
+        }
+        return null
+    }
+
+    private String renderLastChange(lastChangeId) {
+        if (lastChangeId) {
             return """
                 <lastChanges>
-                    <change id="$id"/>
+                    <change id="$lastChangeId"/>
                 </lastChanges>
             """
         } else {
             return ""
         }
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String resolveLastChangeId() {
+        if (coordinatorBuildId) {
+            def response = client.get(path: "builds/id:$coordinatorBuildId")
+            if (response.success) {
+                return findLastChangeIdInXml(response.data)
+            }
+        }
+        return null
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String findLastChangeIdInXml(xmlroot) {
+        xmlroot.lastChanges.change[0].@id.text()
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
