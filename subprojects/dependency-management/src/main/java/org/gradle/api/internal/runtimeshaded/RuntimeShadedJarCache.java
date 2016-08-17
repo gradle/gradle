@@ -21,10 +21,12 @@ import org.gradle.api.Action;
 import java.io.File;
 
 /**
- * Cache for generated jars such as {@code gradle-api-$version.jar} and {@code gradle-test-kit-@version.jar}.
+ * Cache for generated jars such as {@code gradle-api-${version}.jar} and {@code gradle-test-kit-${version}.jar}.
  */
 public interface RuntimeShadedJarCache {
+
     String CACHE_KEY = "generated-gradle-jars";
+
     String CACHE_DISPLAY_NAME = "Generated Gradle JARs cache";
 
     /**
