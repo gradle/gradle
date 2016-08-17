@@ -48,7 +48,7 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public MavenModule dependsOnModules(String... dependencyArtifactIds) {
+    public T dependsOnModules(String... dependencyArtifactIds) {
         backingModule.dependsOnModules(dependencyArtifactIds);
         return t();
     }
@@ -66,13 +66,13 @@ public abstract class DelegatingMavenModule<T extends MavenModule> implements Ma
     }
 
     @Override
-    public MavenModule dependsOn(Module module) {
+    public T dependsOn(Module module) {
         backingModule.dependsOn(module);
         return t();
     }
 
     @Override
-    public MavenModule dependsOn(Map<String, ?> attributes, Module module) {
+    public T dependsOn(Map<String, ?> attributes, Module module) {
         backingModule.dependsOn(attributes, module);
         return t();
     }
