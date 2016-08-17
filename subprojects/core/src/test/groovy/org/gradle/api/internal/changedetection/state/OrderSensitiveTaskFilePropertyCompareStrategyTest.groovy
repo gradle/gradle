@@ -23,30 +23,30 @@ class OrderSensitiveTaskFilePropertyCompareStrategyTest extends AbstractTaskFile
 
     def "detects addition"() {
         expect:
-        changes([one: snapshot(), two: snapshot()], [one: snapshot()]) == [change("two", ADDED)]
+        changes([snapshot("one"), snapshot("two")], [snapshot("one")]) == [change("two", ADDED)]
     }
 
     def "detects deletion"() {
         expect:
-        changes([one: snapshot()], [one: snapshot(), two: snapshot()]) == [change("two", REMOVED)]
+        changes([snapshot("one")], [snapshot("one"), snapshot("two")]) == [change("two", REMOVED)]
     }
 
     def "detects modification"() {
         expect:
-        changes([one: snapshot(), two: snapshot(false)], [one: snapshot(), two: snapshot()]) == [change("two", MODIFIED)]
+        changes([snapshot("one"), snapshot("two", false)], [snapshot("one"), snapshot("two")]) == [change("two", MODIFIED)]
     }
 
     def "detects replacement"() {
         expect:
-        changes([one: snapshot(), two: snapshot(), four: snapshot()], [one: snapshot(), three: snapshot(), four: snapshot()]) == [change("two", REPLACED)]
+        changes([snapshot("one"), snapshot("two"), snapshot("four")], [snapshot("one"), snapshot("three"), snapshot("four")]) == [change("two", REPLACED)]
     }
 
     def "detects reordering"() {
         expect:
-        changes([one: snapshot(), two: snapshot(), three: snapshot()], [one: snapshot(), three: snapshot(), two: snapshot()]) == [change("two", REPLACED), change("three", REPLACED)]
+        changes([snapshot("one"), snapshot("two"), snapshot("three")], [snapshot("one"), snapshot("three"), snapshot("two")]) == [change("two", REPLACED), change("three", REPLACED)]
     }
 
-    def changes(Map<String, IncrementalFileSnapshot> current, Map<String, IncrementalFileSnapshot> previous) {
+    def changes(Collection<NormalizedFileSnapshot> current, Collection<NormalizedFileSnapshot> previous) {
         return super.changes(strategy, current, previous)
     }
 }

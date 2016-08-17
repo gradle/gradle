@@ -407,10 +407,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         TaskArtifactState state = repository.getStateFor(task)
 
         then:
-        state.getExecutionHistory().getOutputFiles("dir").getFiles().isEmpty()
-        state.getExecutionHistory().getOutputFiles("file").getFiles().isEmpty()
-        state.getExecutionHistory().getOutputFiles("emptyDir").getFiles().isEmpty()
-        state.getExecutionHistory().getOutputFiles("missingFile").getFiles().isEmpty()
+        state.getExecutionHistory().getOutputFiles().getFiles().isEmpty()
     }
 
     def hasTaskHistoryFromPreviousExecution() {
@@ -421,10 +418,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         TaskArtifactState state = repository.getStateFor(task)
 
         then:
-        state.getExecutionHistory().getOutputFiles("dir").getFiles() == [outputDirFile, outputDirFile2] as Set
-        state.getExecutionHistory().getOutputFiles("file").getFiles() == [outputFile] as Set
-        state.getExecutionHistory().getOutputFiles("emptyDir").getFiles().isEmpty()
-        state.getExecutionHistory().getOutputFiles("missingFile").getFiles().isEmpty()
+        state.getExecutionHistory().getOutputFiles().getFiles() == [outputFile, outputDirFile, outputDirFile2] as Set
     }
 
     def multipleTasksCanProduceFilesIntoTheSameOutputDirectory() {
@@ -469,7 +463,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         then:
         TaskArtifactState state = repository.getStateFor(task)
         state.isUpToDate([])
-        !state.getExecutionHistory().getOutputFiles("outputDir").getFiles().contains(otherFile)
+        !state.getExecutionHistory().getOutputFiles().getFiles().contains(otherFile)
     }
 
     def considersExistingFileInOutputDirectoryWhichIsUpdatedByTheTaskAsProducedByTask() {
@@ -489,7 +483,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         then:
         def stateAfter = repository.getStateFor(task)
         !stateAfter.upToDate
-        stateAfter.getExecutionHistory().getOutputFiles("dir").files.contains(otherFile)
+        stateAfter.executionHistory.outputFiles.files.contains(otherFile)
     }
 
     def fileIsNoLongerConsideredProducedByTaskOnceItIsDeleted() {
@@ -507,7 +501,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         then:
         def stateAfter = repository.getStateFor(task)
         stateAfter.isUpToDate([])
-        !stateAfter.getExecutionHistory().getOutputFiles("dir").files.contains(outputDirFile)
+        !stateAfter.executionHistory.outputFiles.files.contains(outputDirFile)
     }
 
     def artifactsAreUpToDateWhenTaskDoesNotAcceptAnyInputs() {
@@ -555,12 +549,12 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         then:
         def state1 = repository.getStateFor(task1)
         state1.isUpToDate([])
-        state1.getExecutionHistory().getOutputFiles("dir").files == [outputDirFile] as Set
+        state1.executionHistory.outputFiles.files == [outputDirFile] as Set
 
         and:
         def state2 = repository.getStateFor(task2)
         state2.isUpToDate([])
-        state2.getExecutionHistory().getOutputFiles("dir").files == [outputDirFile2] as Set
+        state2.executionHistory.outputFiles.files == [outputDirFile2] as Set
     }
 
     private void outOfDate(TaskInternal task) {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.project.taskfactory;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.util.DeprecationLogger;
@@ -99,13 +100,18 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
     }
 
     @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+    public <A extends Annotation> A getAnnotation(Class<A> annotationType) {
         for (Annotation annotation : annotations) {
             if (annotationType.isInstance(annotation)) {
-                return true;
+                return Cast.uncheckedCast(annotation);
             }
         }
-        return false;
+        return null;
+    }
+
+    @Override
+    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
+        return getAnnotation(annotationType) != null;
     }
 
     @Override

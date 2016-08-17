@@ -36,6 +36,6 @@ public class CleaningGroovyCompiler extends CleaningJavaCompilerSupport<GroovyJa
 
     @Override
     protected StaleClassCleaner createCleaner(GroovyJavaJointCompileSpec spec) {
-        return new SimpleStaleClassCleaner(taskOutputs, "destinationDir");
+        return new SimpleStaleClassCleaner(taskOutputs);
     }
 }

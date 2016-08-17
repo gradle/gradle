@@ -23,6 +23,6 @@ import java.util.Iterator;
 import java.util.Map;
 
 interface TaskFilePropertyCompareStrategy {
-    Iterator<TaskStateChange> iterateContentChangesSince(Map<String, IncrementalFileSnapshot> current, Map<String, IncrementalFileSnapshot> previous, String fileType);
-    void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, IncrementalFileSnapshot> snapshots);
+    Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType);
+    void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots);
 }

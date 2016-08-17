@@ -51,8 +51,8 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType) {
-        return new OutputFilesCollectionSnapshot(getRoots(files), snapshotter.snapshot(files, compareType));
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType, TaskFilePropertyPathSensitivityType pathSensitivity) {
+        return new OutputFilesCollectionSnapshot(getRoots(files), snapshotter.snapshot(files, compareType, pathSensitivity));
     }
 
     @Override
@@ -71,18 +71,23 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     /**
      * Returns a new snapshot that filters out entries that should not be considered outputs of the task.
      */
-    public OutputFilesCollectionSnapshot createOutputSnapshot(FileCollectionSnapshot afterPreviousExecution, FileCollectionSnapshot beforeExecution, FileCollectionSnapshot afterExecution, FileCollection roots) {
+    public OutputFilesCollectionSnapshot createOutputSnapshot(
+        FileCollectionSnapshot afterPreviousExecution,
+        FileCollectionSnapshot beforeExecution,
+        FileCollectionSnapshot afterExecution,
+        FileCollection roots
+    ) {
         FileCollectionSnapshot filesSnapshot;
-        Map<String, IncrementalFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
+        Map<String, NormalizedFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
         if (!beforeExecution.getSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
-            Map<String, IncrementalFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
-            Map<String, IncrementalFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : new HashMap<String, IncrementalFileSnapshot>();
+            Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
+            Map<String, NormalizedFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : new HashMap<String, NormalizedFileSnapshot>();
             int newEntryCount = 0;
-            ImmutableMap.Builder<String, IncrementalFileSnapshot> outputEntries = ImmutableMap.builder();
+            ImmutableMap.Builder<String, NormalizedFileSnapshot> outputEntries = ImmutableMap.builder();
 
-            for (Map.Entry<String, IncrementalFileSnapshot> entry : afterSnapshots.entrySet()) {
+            for (Map.Entry<String, NormalizedFileSnapshot> entry : afterSnapshots.entrySet()) {
                 final String path = entry.getKey();
-                IncrementalFileSnapshot fileSnapshot = entry.getValue();
+                NormalizedFileSnapshot fileSnapshot = entry.getValue();
                 if (isOutputEntry(path, fileSnapshot, beforeSnapshots, afterPreviousSnapshots)) {
                     outputEntries.put(entry.getKey(), fileSnapshot);
                     newEntryCount++;
@@ -108,14 +113,14 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
      *     <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
      * </ul>
      */
-    private static boolean isOutputEntry(String path, IncrementalFileSnapshot fileSnapshot, Map<String, IncrementalFileSnapshot> beforeSnapshots, Map<String, IncrementalFileSnapshot> afterPreviousSnapshots) {
-        IncrementalFileSnapshot beforeSnapshot = beforeSnapshots.get(path);
+    private static boolean isOutputEntry(String path, NormalizedFileSnapshot fileSnapshot, Map<String, NormalizedFileSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
+        NormalizedFileSnapshot beforeSnapshot = beforeSnapshots.get(path);
         // Was it created during execution?
         if (beforeSnapshot == null) {
             return true;
         }
         // Was it updated during execution?
-        if (!fileSnapshot.isContentAndMetadataUpToDate(beforeSnapshot)) {
+        if (!fileSnapshot.getSnapshot().isContentAndMetadataUpToDate(beforeSnapshot.getSnapshot())) {
             return true;
         }
         // Did we already consider it as an output after the previous execution?

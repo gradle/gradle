@@ -42,6 +42,7 @@ import org.gradle.performance.results.BuildDisplayInfo
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.CrossVersionResultsStore
 import org.gradle.performance.results.MeasuredOperationList
+import org.gradle.performance.results.ResultsStoreHelper
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -137,7 +138,8 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                 tasks: [],
                 args: [],
                 gradleOpts: [],
-                daemon: true)
+                daemon: true,
+                channel: ResultsStoreHelper.determineChannel())
             def resolver = new ToolingApiDistributionResolver().withDefaultRepository()
             try {
                 List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions).toList()

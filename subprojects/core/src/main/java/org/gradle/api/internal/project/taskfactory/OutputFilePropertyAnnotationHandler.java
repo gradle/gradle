@@ -26,6 +26,7 @@ import java.util.Collection;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.project.taskfactory.OutputPropertyAnnotationUtil.validateFile;
+import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureParentDirectoryExists;
 import static org.gradle.util.GUtil.uncheckedCall;
 
@@ -43,7 +44,9 @@ public class OutputFilePropertyAnnotationHandler extends AbstractOutputPropertyA
 
     @Override
     protected void update(TaskPropertyActionContext context, TaskInternal task, final Callable<Object> futureValue) {
-        task.getOutputs().file(futureValue).withPropertyName(context.getName());
+        task.getOutputs().file(futureValue)
+            .withPropertyName(context.getName())
+            .withPathSensitivity(getPathSensitivity(context));
         task.prependParallelSafeAction(new Action<Task>() {
             public void execute(Task task) {
                 File file = (File) uncheckedCall(futureValue);

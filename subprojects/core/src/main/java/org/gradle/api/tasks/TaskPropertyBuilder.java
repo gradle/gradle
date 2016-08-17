@@ -17,6 +17,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.internal.changedetection.state.PathSensitivity;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -33,4 +34,9 @@ public interface TaskPropertyBuilder {
      * will be assigned to the property automatically.</p>
      */
     TaskPropertyBuilder withPropertyName(String propertyName);
+
+    /**
+     * Sets which part of the path of files should be considered during up-to-date checks.
+     */
+    TaskPropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 }

@@ -132,6 +132,8 @@ performanceTestTasks.all { PerformanceTest task ->
     }
 
     maxParallelForks = 1
+    checks = 'speed'
+
 
     doFirst {
         // Some performance builds generate a lot of output,

@@ -18,23 +18,51 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.changedetection.rules.TaskStateChange;
+import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-class DefaultFileCollectionSnapshot extends AbstractFileCollectionSnapshot {
-    public DefaultFileCollectionSnapshot(Map<String, IncrementalFileSnapshot> snapshots, TaskFilePropertyCompareType compareType) {
-        super(snapshots, compareType);
+class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
+    private final Map<String, NormalizedFileSnapshot> snapshots;
+    private final TaskFilePropertyCompareType compareType;
+
+    public DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, TaskFilePropertyCompareType compareType) {
+        this.snapshots = snapshots;
+        this.compareType = compareType;
     }
 
+    @Override
+    public Map<String, NormalizedFileSnapshot> getSnapshots() {
+        return snapshots;
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return snapshots.isEmpty();
+    }
+
+    @Override
+    public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType) {
+        return compareType.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType);
+    }
+
+    @Override
+    public void appendToCacheKey(TaskCacheKeyBuilder builder) {
+        compareType.appendToCacheKey(builder, snapshots);
+    }
+
+    @Override
     public List<File> getFiles() {
         List<File> files = Lists.newArrayList();
-        for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
-            if (!(entry.getValue() instanceof DirSnapshot)) {
+        for (Map.Entry<String, NormalizedFileSnapshot> entry : snapshots.entrySet()) {
+            if (!(entry.getValue().getSnapshot() instanceof DirSnapshot)) {
                 files.add(new File(entry.getKey()));
             }
         }
@@ -42,15 +70,15 @@ class DefaultFileCollectionSnapshot extends AbstractFileCollectionSnapshot {
     }
 
     public static class SerializerImpl implements Serializer<DefaultFileCollectionSnapshot> {
-        private final AbstractFileCollectionSnapshot.SnapshotMapSerializer snapshotMapSerializer;
+        private final SnapshotMapSerializer snapshotMapSerializer;
 
         public SerializerImpl(StringInterner stringInterner) {
-            this.snapshotMapSerializer = new AbstractFileCollectionSnapshot.SnapshotMapSerializer(stringInterner);
+            this.snapshotMapSerializer = new SnapshotMapSerializer(stringInterner);
         }
 
         public DefaultFileCollectionSnapshot read(Decoder decoder) throws Exception {
             TaskFilePropertyCompareType compareType = TaskFilePropertyCompareType.values()[decoder.readSmallInt()];
-            Map<String, IncrementalFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
+            Map<String, NormalizedFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
             return new DefaultFileCollectionSnapshot(snapshots, compareType);
         }
 

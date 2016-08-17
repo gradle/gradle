@@ -19,7 +19,10 @@ package org.gradle.nativeplatform.plugins
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.language.base.plugins.LifecycleBasePlugin
+import org.gradle.model.Model
 import org.gradle.model.ModelMap
+import org.gradle.model.Path
+import org.gradle.model.RuleSource
 import org.gradle.model.internal.type.ModelType
 import org.gradle.nativeplatform.BuildType
 import org.gradle.nativeplatform.BuildTypeContainer
@@ -40,6 +43,7 @@ import org.gradle.platform.base.ComponentSpecContainer
 import org.gradle.platform.base.PlatformContainer
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 import org.gradle.util.TestUtil
+import spock.lang.Issue
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap
 
@@ -269,5 +273,25 @@ class NativeComponentModelPluginTest extends AbstractProjectBuilderSpec {
         def tasks = dependencies.getDependencies(Stub(Task))
         assert tasks.size() == 1
         return tasks.asList()[0]
+    }
+
+    @Issue("GRADLE-3523")
+    def "does not prevent build authors to register root nodes of type File"() {
+        when:
+        project.pluginManager.apply(RootFileRules)
+        project.pluginManager.apply(NativeComponentModelPlugin)
+        project.model {
+            components {
+                exe(NativeExecutableSpec)
+            }
+        }
+
+        then:
+        getComponents()
+    }
+
+    static class RootFileRules extends RuleSource {
+        @Model
+        File someFile(@Path("buildDir") File buildDir) { return new File(buildDir, "something") }
     }
 }

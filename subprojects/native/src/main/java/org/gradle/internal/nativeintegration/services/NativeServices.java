@@ -33,7 +33,6 @@ import org.gradle.internal.nativeintegration.console.NoOpConsoleDetector;
 import org.gradle.internal.nativeintegration.console.WindowsConsoleDetector;
 import org.gradle.internal.nativeintegration.filesystem.services.FileSystemServices;
 import org.gradle.internal.nativeintegration.filesystem.services.UnavailablePosixFiles;
-import org.gradle.internal.nativeintegration.jna.JnaBootPathConfigurer;
 import org.gradle.internal.nativeintegration.jna.UnsupportedEnvironment;
 import org.gradle.internal.nativeintegration.processenvironment.NativePlatformBackedProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
@@ -63,11 +62,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
      * Initializes the native services to use the given user home directory to store native libs and other resources. Does nothing if already initialized. Will be implicitly initialized on first usage
      * of a native service. Also initializes the Native-Platform library using the given user home directory.
      */
-    public static void initialize(File userHomeDir) {
-        initialize(userHomeDir, true);
-    }
-
-    public static synchronized void initialize(File userHomeDir, boolean initializeJNA) {
+    public static synchronized void initialize(File userHomeDir) {
         if (!initialized) {
             nativeBaseDir = getNativeServicesDir(userHomeDir);
             if (useNativePlatform) {
@@ -84,10 +79,6 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
                         throw ex;
                     }
                 }
-            }
-            if (OperatingSystem.current().isWindows() && initializeJNA) {
-                // JNA is still being used by jansi
-                new JnaBootPathConfigurer().configure(nativeBaseDir);
             }
             initialized = true;
 

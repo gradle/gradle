@@ -106,7 +106,7 @@ class BaselineVersion implements VersionResults {
         }
     }
 
-    private static boolean isStrict() {
+    static boolean isStrict() {
         return Boolean.valueOf(System.getProperty("org.gradle.performance.strict", "false"))
     }
 }

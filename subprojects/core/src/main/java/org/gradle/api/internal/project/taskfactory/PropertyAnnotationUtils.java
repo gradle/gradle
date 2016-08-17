@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
 
-import org.gradle.api.file.FileCollection;
+package org.gradle.api.internal.project.taskfactory;
 
-public interface TaskExecutionHistory {
-    /**
-     * Returns the set of output files which the task produced.
-     */
-    FileCollection getOutputFiles();
+import org.gradle.api.internal.changedetection.state.PathSensitive;
+import org.gradle.api.internal.changedetection.state.PathSensitivity;
+
+public class PropertyAnnotationUtils {
+    public static PathSensitivity getPathSensitivity(TaskPropertyActionContext context) {
+        PathSensitive sensitivity = context.getAnnotation(PathSensitive.class);
+        return sensitivity != null
+            ? sensitivity.value()
+            : PathSensitivity.ABSOLUTE;
+    }
 }

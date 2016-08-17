@@ -26,33 +26,33 @@ class OrderInsensitiveTaskFilePropertyCompareStrategyTest extends AbstractTaskFi
 
     def "detects addition"() {
         expect:
-        changes(includeAdded, [one: snapshot(), two: snapshot()], [one: snapshot()]) == [change("two", ADDED)]
-        changes(excludeAdded, [one: snapshot(), two: snapshot()], [one: snapshot()]) == []
+        changes(includeAdded, [snapshot("one"), snapshot("two")], [snapshot("one")]) == [change("two", ADDED)]
+        changes(excludeAdded, [snapshot("one"), snapshot("two")], [snapshot("one")]) == []
     }
 
     def "detects deletion"() {
         expect:
-        changes(strategy, [one: snapshot()], [one: snapshot(), two: snapshot()]) == [change("two", REMOVED)]
+        changes(strategy, [snapshot("one")], [snapshot("one"), snapshot("two")]) == [change("two", REMOVED)]
         where:
         strategy << [includeAdded, excludeAdded]
     }
 
     def "detects modification"() {
         expect:
-        changes(strategy, [one: snapshot(), two: snapshot(false)], [one: snapshot(), two: snapshot()]) == [change("two", MODIFIED)]
+        changes(strategy, [snapshot("one"), snapshot("two", false)], [snapshot("one"), snapshot("two")]) == [change("two", MODIFIED)]
         where:
         strategy << [includeAdded, excludeAdded]
     }
 
     def "detects replacement as addition and removal"() {
         expect:
-        changes(includeAdded, [one: snapshot(), two: snapshot(), four: snapshot()], [one: snapshot(), three: snapshot(), four: snapshot()]) == [change("two", ADDED), change("three", REMOVED)]
-        changes(excludeAdded, [one: snapshot(), two: snapshot(), four: snapshot()], [one: snapshot(), three: snapshot(), four: snapshot()]) == [change("three", REMOVED)]
+        changes(includeAdded, [snapshot("one"), snapshot("two"), snapshot("four")], [snapshot("one"), snapshot("three"), snapshot("four")]) == [change("two", ADDED), change("three", REMOVED)]
+        changes(excludeAdded, [snapshot("one"), snapshot("two"), snapshot("four")], [snapshot("one"), snapshot("three"), snapshot("four")]) == [change("three", REMOVED)]
     }
 
     def "does not detect reordering"() {
         expect:
-        changes(strategy, [one: snapshot(), two: snapshot(), three: snapshot()], [one: snapshot(), three: snapshot(), two: snapshot()]) == []
+        changes(strategy, [snapshot("one"), snapshot("two"), snapshot("three")], [snapshot("one"), snapshot("three"), snapshot("two")]) == []
         where:
         strategy << [includeAdded, excludeAdded]
     }
