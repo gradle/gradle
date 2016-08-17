@@ -117,8 +117,9 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         createClient()
 
+        def lastChangeId = resolveLastChangeId()
         scenarios.each {
-            schedule(it)
+            schedule(it, lastChangeId)
         }
 
         scheduledBuilds.each {
@@ -135,8 +136,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void schedule(Scenario scenario) {
-        def lastChangeId = resolveLastChangeId()
+    private void schedule(Scenario scenario, String lastChangeId) {
         def buildRequest = """
                 <build>
                     <buildType id="${buildTypeId}"/>
