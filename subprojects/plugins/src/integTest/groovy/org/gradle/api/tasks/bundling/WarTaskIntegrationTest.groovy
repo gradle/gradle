@@ -281,7 +281,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3522")
-    def "war task doesn't trigger dependency resolution"() {
+    def "war task doesn't trigger dependency resolution early"() {
         when:
         buildFile << """
 configurations {

@@ -66,20 +66,20 @@ public class War extends Jar {
         webInf.into("classes", new Action<CopySpec>() {
             @Override
             public void execute(CopySpec copySpec) {
-                copySpec.from(new Callable<Object>() {
-                    public Object call() {
+                copySpec.from(new Callable<Iterable<File>>() {
+                    public Iterable<File> call() {
                         FileCollection classpath = getClasspath();
-                        return classpath != null ? classpath.filter(IS_DIRECTORY) : Collections.emptyList();
+                        return classpath != null ? classpath.filter(IS_DIRECTORY) : Collections.<File>emptyList();
                     }
                 });
             }
         });
         webInf.into("lib", new Action<CopySpec>() {
             public void execute(CopySpec it) {
-                it.from(new Callable<Object>() {
-                    public Object call() {
+                it.from(new Callable<Iterable<File>>() {
+                    public Iterable<File> call() {
                         FileCollection classpath = getClasspath();
-                        return classpath != null ? classpath.filter(IS_FILE) : Collections.emptyList();
+                        return classpath != null ? classpath.filter(IS_FILE) : Collections.<File>emptyList();
                     }
                 });
             }
