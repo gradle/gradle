@@ -17,7 +17,6 @@
 package org.gradle.internal.component.external.descriptor;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -78,18 +77,13 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         excludes.add(exclude);
     }
 
-    public Dependency addDependency(ModuleVersionSelector requested) {
-        return addDependency(requested, requested.getVersion(), false, false, true);
-    }
-
-    public Dependency addDependency(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive) {
-        Dependency dependency = new Dependency(requested, dynamicConstraintVersion, force, changing, transitive);
+    public <T extends Dependency> T addDependency(T dependency) {
         dependencies.add(dependency);
         return dependency;
     }
 
     public void addDependency(DependencyMetadata dependencyMetadata) {
-        Dependency dependency = new Dependency(
+        IvyDependency dependency = new IvyDependency(
             dependencyMetadata.getRequested(),
             dependencyMetadata.getDynamicConstraintVersion(),
             dependencyMetadata.isForce(),

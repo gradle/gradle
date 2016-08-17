@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.descriptor.DefaultExclude
+import org.gradle.internal.component.external.descriptor.IvyDependency
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -160,7 +161,7 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     }
 
     def dependency(String org, String module, String version) {
-        moduleDescriptor.addDependency(newSelector(org, module, version))
+        moduleDescriptor.addDependency(new IvyDependency(newSelector(org, module, version)))
     }
 
     def artifact(String name, List<String> confs = []) {

@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter
 import org.gradle.internal.component.external.descriptor.Dependency
+import org.gradle.internal.component.external.descriptor.IvyDependency
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -65,7 +66,7 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
     }
 
     def addDependencyDescriptor(MutableModuleDescriptorState state, String organisation = "org.test", String moduleName, String revision = "1.0") {
-        Dependency dep = state.addDependency(DefaultModuleVersionSelector.newSelector(organisation, moduleName, revision))
+        Dependency dep = state.addDependency(new IvyDependency(DefaultModuleVersionSelector.newSelector(organisation, moduleName, revision)))
         dep.addDependencyConfiguration("default", ["compile", "archives"])
     }
 

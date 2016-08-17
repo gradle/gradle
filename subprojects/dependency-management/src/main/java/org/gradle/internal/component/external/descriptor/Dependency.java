@@ -27,26 +27,14 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class Dependency {
-
+public abstract class Dependency {
     private final ModuleVersionSelector requested;
-    private final String dynamicConstraintVersion;
-
-    private final boolean force;
-    private final boolean changing;
-    private final boolean transitive;
-
     private final Map<String, List<String>> confMappings = Maps.newLinkedHashMap();
     private final List<Artifact> dependencyArtifacts = Lists.newArrayList();
     private final List<Exclude> dependencyExcludes = Lists.newArrayList();
 
-
-    public Dependency(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive) {
+    public Dependency(ModuleVersionSelector requested) {
         this.requested = requested;
-        this.dynamicConstraintVersion = dynamicConstraintVersion;
-        this.force = force;
-        this.changing = changing;
-        this.transitive = transitive;
     }
 
     public void addArtifact(IvyArtifactName newArtifact, Collection<String> configurations) {
@@ -77,17 +65,11 @@ public class Dependency {
         return requested;
     }
 
-    public boolean isForce() {
-        return force;
-    }
+    public abstract boolean isForce();
 
-    public boolean isChanging() {
-        return changing;
-    }
+    public abstract boolean isChanging();
 
-    public boolean isTransitive() {
-        return transitive;
-    }
+    public abstract boolean isTransitive();
 
     public Map<String, List<String>> getConfMappings() {
         return confMappings;
@@ -101,7 +83,5 @@ public class Dependency {
         return dependencyExcludes;
     }
 
-    public String getDynamicConstraintVersion() {
-        return dynamicConstraintVersion;
-    }
+    public abstract String getDynamicConstraintVersion();
 }

@@ -52,7 +52,7 @@ public class ModuleMetadataStore {
                     decoder.close();
                 }
             } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+                throw new RuntimeException("Could not load module metadata from " + resource.getDisplayName(), e);
             }
         }
         return null;

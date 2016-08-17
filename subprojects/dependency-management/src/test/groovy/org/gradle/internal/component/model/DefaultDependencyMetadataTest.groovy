@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Patte
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.Dependency
+import org.gradle.internal.component.external.descriptor.IvyDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
@@ -34,7 +35,7 @@ import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.new
 
 class DefaultDependencyMetadataTest extends Specification {
     def requested = newSelector("org", "module", "1.2+")
-    def descriptor = new Dependency(requested, "foo", false, false, false)
+    def descriptor = new IvyDependency(requested, "foo", false, false, false)
 
     def "constructs meta-data from descriptor"() {
         def metadata = new DefaultDependencyMetadata(descriptor)
@@ -179,7 +180,7 @@ class DefaultDependencyMetadataTest extends Specification {
 
     def "retains transitive and changing flags in substituted dependency"() {
         given:
-        def descriptor = new Dependency(requested, "foo", false, changing, transitive)
+        def descriptor = new IvyDependency(requested, "foo", false, changing, transitive)
         def metadata = new DefaultDependencyMetadata(descriptor)
 
         when:
@@ -199,7 +200,7 @@ class DefaultDependencyMetadataTest extends Specification {
     }
 
     def "excludes nothing when no exclude rules provided"() {
-        def descriptor = new Dependency(requested, "foo", false, false, true)
+        def descriptor = new IvyDependency(requested)
         def dep = new DefaultDependencyMetadata(descriptor)
 
         expect:
@@ -208,7 +209,7 @@ class DefaultDependencyMetadataTest extends Specification {
     }
 
     def "excludes nothing when traversing a different configuration"() {
-        def descriptor = new Dependency(requested, "foo", false, false, true)
+        def descriptor = new IvyDependency(requested)
         descriptor.addExcludeRule(new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT))
         def dep = new DefaultDependencyMetadata(descriptor)
 
@@ -217,7 +218,7 @@ class DefaultDependencyMetadataTest extends Specification {
     }
 
     def "applies and caches exclude rules"() {
-        def descriptor = new Dependency(requested, "foo", false, false, true)
+        def descriptor = new IvyDependency(requested)
         def exclude = new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT)
         descriptor.addExcludeRule(exclude)
         def dep = new DefaultDependencyMetadata(descriptor)
@@ -228,7 +229,7 @@ class DefaultDependencyMetadataTest extends Specification {
     }
 
     def "applies and caches exclude rules when traversing a child of specified configuration"() {
-        def descriptor = new Dependency(requested, "foo", false, false, true)
+        def descriptor = new IvyDependency(requested)
         def exclude = new DefaultExclude("group", "*", ["from"] as String[], PatternMatchers.EXACT)
         descriptor.addExcludeRule(exclude)
         def dep = new DefaultDependencyMetadata(descriptor)
@@ -239,7 +240,7 @@ class DefaultDependencyMetadataTest extends Specification {
     }
 
     def "applies and caches matching exclude rules"() {
-        def descriptor = new Dependency(requested, "foo", false, false, true)
+        def descriptor = new IvyDependency(requested)
         def exclude1 = new DefaultExclude("group1", "*", ["from"] as String[], PatternMatchers.EXACT)
         def exclude2 = new DefaultExclude("group2", "*", ["*"] as String[], PatternMatchers.EXACT)
         def exclude3 = new DefaultExclude("group3", "*", ["other"] as String[], PatternMatchers.EXACT)

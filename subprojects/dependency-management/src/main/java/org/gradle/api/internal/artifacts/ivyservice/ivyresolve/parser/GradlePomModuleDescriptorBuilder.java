@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
@@ -28,6 +29,9 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionS
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.Dependency;
+import org.gradle.internal.component.external.descriptor.IvyDependency;
+import org.gradle.internal.component.external.descriptor.MavenDependency;
+import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -47,7 +51,7 @@ import java.util.regex.Pattern;
  * classifiers)
  */
 public class GradlePomModuleDescriptorBuilder {
-    public static final Configuration[] MAVEN2_CONFIGURATIONS = new Configuration[]{
+    private static final Configuration[] MAVEN2_CONFIGURATIONS = new Configuration[]{
             new Configuration("default", Visibility.PUBLIC,
                     "runtime dependencies and master artifact can be used with this conf",
                     new String[]{"runtime", "master"}, true, null),
@@ -89,7 +93,14 @@ public class GradlePomModuleDescriptorBuilder {
                     "contains all optional dependencies", new String[0], true, null)
     };
 
-    private static final Map<String, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<String, ConfMapper>();
+    private static final Map<String, MavenScope> SCOPES = ImmutableMap.<String, MavenScope>builder()
+        .put("compile", MavenScope.Compile)
+        .put("runtime", MavenScope.Runtime)
+        .put("provided", MavenScope.Provided)
+        .put("test", MavenScope.Test)
+        .put("system", MavenScope.System)
+        .build();
+    private static final Map<MavenScope, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<MavenScope, ConfMapper>();
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
 
     interface ConfMapper {
@@ -97,7 +108,7 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     static {
-        MAVEN2_CONF_MAPPING.put("compile", new ConfMapper() {
+        MAVEN2_CONF_MAPPING.put(MavenScope.Compile, new ConfMapper() {
             public void addMappingConfs(Dependency dd, boolean isOptional) {
                 if (isOptional) {
                     dd.addDependencyConfiguration("optional", "compile(*)");
@@ -110,7 +121,7 @@ public class GradlePomModuleDescriptorBuilder {
                 }
             }
         });
-        MAVEN2_CONF_MAPPING.put("provided", new ConfMapper() {
+        MAVEN2_CONF_MAPPING.put(MavenScope.Provided, new ConfMapper() {
             public void addMappingConfs(Dependency dd, boolean isOptional) {
                 if (isOptional) {
                     dd.addDependencyConfiguration("optional", "compile(*)");
@@ -123,7 +134,7 @@ public class GradlePomModuleDescriptorBuilder {
                 }
             }
         });
-        MAVEN2_CONF_MAPPING.put("runtime", new ConfMapper() {
+        MAVEN2_CONF_MAPPING.put(MavenScope.Runtime, new ConfMapper() {
             public void addMappingConfs(Dependency dd, boolean isOptional) {
                 if (isOptional) {
                     dd.addDependencyConfiguration("optional", "compile(*)");
@@ -137,7 +148,7 @@ public class GradlePomModuleDescriptorBuilder {
                 }
             }
         });
-        MAVEN2_CONF_MAPPING.put("test", new ConfMapper() {
+        MAVEN2_CONF_MAPPING.put(MavenScope.Test, new ConfMapper() {
             public void addMappingConfs(Dependency dd, boolean isOptional) {
                 //optional doesn't make sense in the test scope
                 dd.addDependencyConfiguration("test", "compile(*)");
@@ -145,7 +156,7 @@ public class GradlePomModuleDescriptorBuilder {
                 dd.addDependencyConfiguration("test", "master(*)");
             }
         });
-        MAVEN2_CONF_MAPPING.put("system", new ConfMapper() {
+        MAVEN2_CONF_MAPPING.put(MavenScope.System, new ConfMapper() {
             public void addMappingConfs(Dependency dd, boolean isOptional) {
                 //optional doesn't make sense in the system scope
                 dd.addDependencyConfiguration("system", "master(*)");
@@ -192,10 +203,17 @@ public class GradlePomModuleDescriptorBuilder {
     }
 
     public void addDependency(PomDependencyData dep) {
-        String scope = dep.getScope();
-        if ((scope != null) && (scope.length() > 0) && !MAVEN2_CONF_MAPPING.containsKey(scope)) {
+        String scopeString = dep.getScope();
+        if (scopeString == null || scopeString.length() == 0) {
+            scopeString = getDefaultScope(dep);
+        }
+
+        MavenScope scope;
+        if (SCOPES.containsKey(scopeString)) {
+            scope = SCOPES.get(scopeString);
+        } else {
             // unknown scope, defaulting to 'compile'
-            scope = "compile";
+            scope = MavenScope.Compile;
         }
 
         String version = determineVersion(dep);
@@ -209,8 +227,7 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        Dependency dependency = descriptor.addDependency(selector);
-        scope = (scope == null || scope.length() == 0) ? getDefaultScope(dep) : scope;
+        MavenDependency dependency = descriptor.addDependency(new MavenDependency(scope, selector));
         ConfMapper mapping = MAVEN2_CONF_MAPPING.get(scope);
         mapping.addMappingConfs(dependency, dep.isOptional());
         boolean hasClassifier = dep.getClassifier() != null && dep.getClassifier().length() > 0;
@@ -225,7 +242,7 @@ public class GradlePomModuleDescriptorBuilder {
 
             // here we have to assume a type and ext for the artifact, so this is a limitation
             // compared to how m2 behave with classifiers
-            String optionalizedScope = dep.isOptional() ? "optional" : scope;
+            String optionalizedScope = dep.isOptional() ? "optional" : scope.toString().toLowerCase();
 
             IvyArtifactName artifactName = new DefaultIvyArtifactName(selector.getName(), type, ext, classifier);
             dependency.addArtifact(artifactName, Collections.singleton(optionalizedScope));
@@ -339,7 +356,7 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        Dependency dependency = descriptor.addDependency(selector);
+        IvyDependency dependency = descriptor.addDependency(new IvyDependency(selector));
         Configuration[] m2Confs = GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
         // Map dependency on all public configurations
         for (Configuration m2Conf : m2Confs) {
@@ -363,7 +380,7 @@ public class GradlePomModuleDescriptorBuilder {
         if (pomDependencyMgt != null) {
             result = pomDependencyMgt.getScope();
         }
-        if ((result == null) || !MAVEN2_CONF_MAPPING.containsKey(result)) {
+        if ((result == null) || !SCOPES.containsKey(result)) {
             result = "compile";
         }
         return result;

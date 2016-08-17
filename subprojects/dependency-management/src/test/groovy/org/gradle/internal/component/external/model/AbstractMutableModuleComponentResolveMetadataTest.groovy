@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.internal.component.external.descriptor.IvyDependency
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
@@ -113,7 +114,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def dependency(String org, String module, String version) {
-        moduleDescriptor.addDependency(newSelector(org, module, version))
+        moduleDescriptor.addDependency(new IvyDependency(newSelector(org, module, version)))
     }
 
     def configuration(String name, List<String> extendsFrom = []) {

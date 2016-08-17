@@ -23,6 +23,9 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.descriptor.Dependency;
+import org.gradle.internal.component.external.descriptor.IvyDependency;
+import org.gradle.internal.component.external.descriptor.MavenDependency;
+import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -67,6 +70,29 @@ public class ModuleMetadataSerializer {
         }
 
         public void write(ModuleComponentResolveMetadata metadata) throws IOException {
+            if (metadata instanceof IvyModuleResolveMetadata) {
+                write((IvyModuleResolveMetadata) metadata);
+            } else if (metadata instanceof MavenModuleResolveMetadata) {
+                write((MavenModuleResolveMetadata) metadata);
+            } else {
+                throw new IllegalArgumentException("Unexpected metadata type: " + metadata.getClass());
+            }
+        }
+
+        private void write(MavenModuleResolveMetadata metadata) throws IOException {
+            encoder.writeByte(TYPE_MAVEN);
+            writeSharedInfo(metadata);
+            writeNullableString(metadata.getSnapshotTimestamp());
+            writeNullableString(metadata.getPackaging());
+            writeBoolean(metadata.isRelocated());
+        }
+
+        private void write(IvyModuleResolveMetadata metadata) throws IOException {
+            encoder.writeByte(TYPE_IVY);
+            writeSharedInfo(metadata);
+        }
+
+        private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
             writeId(metadata.getComponentId());
             ModuleDescriptorState md = metadata.getDescriptor();
             writeInfoSection(md);
@@ -74,27 +100,12 @@ public class ModuleMetadataSerializer {
             writeArtifacts(md.getArtifacts());
             writeDependencies(md.getDependencies());
             writeExcludeRules(md.getExcludes());
-            writeTypeSpecificInfo(metadata);
         }
 
         private void writeId(ModuleComponentIdentifier componentIdentifier) throws IOException {
             writeString(componentIdentifier.getGroup());
             writeString(componentIdentifier.getModule());
             writeString(componentIdentifier.getVersion());
-        }
-
-        private void writeTypeSpecificInfo(ModuleComponentResolveMetadata metadata) throws IOException {
-            if (metadata instanceof IvyModuleResolveMetadata) {
-                encoder.writeByte(TYPE_IVY);
-            } else if (metadata instanceof MavenModuleResolveMetadata) {
-                MavenModuleResolveMetadata mavenMetadata = (MavenModuleResolveMetadata) metadata;
-                encoder.writeByte(TYPE_MAVEN);
-                writeNullableString(mavenMetadata.getSnapshotTimestamp());
-                writeNullableString(mavenMetadata.getPackaging());
-                writeBoolean(mavenMetadata.isRelocated());
-            } else {
-                throw new IllegalArgumentException("Unexpected metadata type: " + metadata.getClass());
-            }
         }
 
         private void writeInfoSection(ModuleDescriptorState md) throws IOException {
@@ -158,11 +169,20 @@ public class ModuleMetadataSerializer {
             writeString(selector.getGroup());
             writeString(selector.getName());
             writeString(selector.getVersion());
-            writeString(dep.getDynamicConstraintVersion());
 
-            writeBoolean(dep.isForce());
-            writeBoolean(dep.isChanging());
-            writeBoolean(dep.isTransitive());
+            if (dep instanceof IvyDependency) {
+                encoder.writeByte(TYPE_IVY);
+                writeString(dep.getDynamicConstraintVersion());
+                writeBoolean(dep.isForce());
+                writeBoolean(dep.isChanging());
+                writeBoolean(dep.isTransitive());
+            } else if (dep instanceof MavenDependency) {
+                MavenDependency mavenDependency = (MavenDependency) dep;
+                encoder.writeByte(TYPE_MAVEN);
+                encoder.writeSmallInt(mavenDependency.getScope().ordinal());
+            } else {
+                throw new IllegalStateException("Unexpected dependency type");
+            }
 
             writeDependencyConfigurationMapping(dep);
             writeArtifacts(dep.getDependencyArtifacts());
@@ -253,30 +273,39 @@ public class ModuleMetadataSerializer {
         }
 
         public MutableModuleComponentResolveMetadata read() throws IOException {
+            byte type = decoder.readByte();
+            switch (type) {
+                case TYPE_IVY:
+                    return readIvy();
+                case TYPE_MAVEN:
+                    return readMaven();
+                default:
+                    throw new IllegalArgumentException("Unexpected metadata type found.");
+            }
+        }
+
+        private void readSharedInfo() throws IOException {
             id = readId();
             readInfoSection();
             readConfigurations();
             readArtifacts();
             readDependencies();
             readAllExcludes();
-            return create();
         }
 
-        private MutableModuleComponentResolveMetadata create() throws IOException {
-            byte type = decoder.readByte();
-            switch (type) {
-                case TYPE_IVY:
-                    return new DefaultMutableIvyModuleResolveMetadata(id, md);
-                case TYPE_MAVEN:
-                    String snapshotTimestamp = readNullableString();
-                    String packaging = readNullableString();
-                    boolean relocated = readBoolean();
-                    DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, md, packaging, relocated);
-                    metadata.setSnapshotTimestamp(snapshotTimestamp);
-                    return metadata;
-                default:
-                    throw new IllegalArgumentException("Unexpected metadata type found.");
-            }
+        private MutableModuleComponentResolveMetadata readMaven() throws IOException {
+            readSharedInfo();
+            String snapshotTimestamp = readNullableString();
+            String packaging = readNullableString();
+            boolean relocated = readBoolean();
+            DefaultMutableMavenModuleResolveMetadata metadata = new DefaultMutableMavenModuleResolveMetadata(id, md, packaging, relocated);
+            metadata.setSnapshotTimestamp(snapshotTimestamp);
+            return metadata;
+        }
+
+        private MutableModuleComponentResolveMetadata readIvy() throws IOException {
+            readSharedInfo();
+            return new DefaultMutableIvyModuleResolveMetadata(id, md);
         }
 
         private void readInfoSection() throws IOException {
@@ -337,9 +366,20 @@ public class ModuleMetadataSerializer {
         }
 
         private void readDependency() throws IOException {
-
             ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(readString(), readString(), readString());
-            Dependency dep = md.addDependency(requested, readString(), readBoolean(), readBoolean(), readBoolean());
+
+            byte type = decoder.readByte();
+            Dependency dep;
+            switch (type) {
+                case TYPE_IVY:
+                    dep = md.addDependency(new IvyDependency(requested, readString(), readBoolean(), readBoolean(), readBoolean()));
+                    break;
+                case TYPE_MAVEN:
+                    dep = md.addDependency(new MavenDependency(MavenScope.values()[decoder.readSmallInt()], requested));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unexpected dependency type found.");
+            }
 
             readDependencyConfigurationMapping(dep);
             readDependencyArtifactDescriptors(dep);

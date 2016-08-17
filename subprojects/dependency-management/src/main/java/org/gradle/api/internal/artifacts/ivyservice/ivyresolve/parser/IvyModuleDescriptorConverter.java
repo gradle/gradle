@@ -34,7 +34,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
-import org.gradle.internal.component.external.descriptor.Dependency;
+import org.gradle.internal.component.external.descriptor.IvyDependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
@@ -99,12 +99,12 @@ public class IvyModuleDescriptorConverter {
         ModuleRevisionId revisionId = dependencyDescriptor.getDependencyRevisionId();
         ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(revisionId.getOrganisation(), revisionId.getName(), revisionId.getRevision());
 
-        Dependency dep = state.addDependency(
+        IvyDependency dep = state.addDependency(new IvyDependency(
             requested,
             dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision(),
             false,
             dependencyDescriptor.isChanging(),
-            dependencyDescriptor.isTransitive());
+            dependencyDescriptor.isTransitive()));
 
         Map<String, List<String>> configMappings = readConfigMappings(dependencyDescriptor);
         for (String from : configMappings.keySet()) {
