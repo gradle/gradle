@@ -225,11 +225,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
-    public FileCollection getPreviousOutputFiles(String propertyName) {
+    public FileCollection getPreviousOutputFiles() {
         if (history == null) {
             throw new IllegalStateException("Task history is currently not available for this task.");
         }
-        return history.getOutputFiles(propertyName);
+        return history.getOutputFiles();
     }
 
     @Override
