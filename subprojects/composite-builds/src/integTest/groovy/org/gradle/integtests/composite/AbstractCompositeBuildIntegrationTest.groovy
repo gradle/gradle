@@ -52,11 +52,15 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     }
 
     protected void executed(String... tasks) {
-        def executedTasks = result.executedTasks
         for (String task : tasks) {
-            assert executedTasks.contains(task)
-            assert executedTasks.findAll({ it == task }).size() == 1
+            executedOnce(task)
         }
+    }
+
+    protected void executedOnce(String task) {
+        def executedTasks = result.executedTasks
+        assert executedTasks.contains(task)
+        assert executedTasks.findAll({ it == task }).size() == 1
     }
 
     TestFile getRootDir() {

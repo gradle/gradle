@@ -42,7 +42,7 @@ import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextualArtifactPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.SelfResolvingDependencyConfigurationResolver;
 import org.gradle.api.internal.artifacts.ivyservice.ShortCircuitEmptyConfigurationResolver;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRuleProvider;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolveIvyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
@@ -119,7 +119,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
                                                                     ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
-                                                                    ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory) {
+                                                                    ProjectFinder projectFinder, ConfigurationComponentMetaDataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
+                                                                    GlobalDependencyResolutionRules globalDependencyResolutionRules) {
             return instantiator.newInstance(DefaultConfigurationContainer.class,
                     configurationResolver,
                     instantiator,
@@ -129,7 +130,9 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                     projectAccessListener,
                     projectFinder,
                     metaDataBuilder,
-                    fileCollectionFactory);
+                    fileCollectionFactory,
+                    globalDependencyResolutionRules.getDependencySubstitutionRules()
+                );
         }
 
         DependencyHandler createDependencyHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory,
@@ -157,7 +160,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         GlobalDependencyResolutionRules createModuleMetadataHandler(ComponentMetadataProcessor componentMetadataProcessor, ComponentModuleMetadataProcessor moduleMetadataProcessor, ServiceRegistry serviceRegistry) {
-            return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessor, moduleMetadataProcessor, serviceRegistry.getAll(DependencySubstitutionRuleProvider.class));
+            return new DefaultGlobalDependencyResolutionRules(componentMetadataProcessor, moduleMetadataProcessor, serviceRegistry.getAll(DependencySubstitutionRules.class));
         }
 
         ConfigurationResolver createDependencyResolver(ArtifactDependencyResolver artifactDependencyResolver,

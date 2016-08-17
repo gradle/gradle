@@ -23,6 +23,7 @@ import org.gradle.api.internal.ClassGeneratorBackedInstantiator
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.ProjectAccessListener
@@ -39,10 +40,11 @@ class DefaultConfigurationContainerTest extends Specification {
     private ProjectAccessListener projectAccessListener = Mock(ProjectAccessListener.class)
     private ProjectFinder projectFinder = Mock(ProjectFinder)
     private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock(ConfigurationComponentMetaDataBuilder)
+    private DependencySubstitutionRules globalSubstitutionRules = Mock(DependencySubstitutionRules)
     private Instantiator instantiator = new ClassGeneratorBackedInstantiator(new AsmBackedClassGenerator(), DirectInstantiator.INSTANCE)
     private DefaultConfigurationContainer configurationContainer = instantiator.newInstance(DefaultConfigurationContainer.class,
             resolver, instantiator, { name -> name } as DomainObjectContext,
-            listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory())
+            listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, TestFiles.fileCollectionFactory(), globalSubstitutionRules)
 
     def addsNewConfigurationWhenConfiguringSelf() {
         when:

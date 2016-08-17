@@ -20,7 +20,6 @@ import org.gradle.api.file.FileCollection;
 public interface TaskExecutionHistory {
     /**
      * Returns the set of output files which the task produced.
-     * @param propertyName the property to return output files for.
      */
-    FileCollection getOutputFiles(String propertyName);
+    FileCollection getOutputFiles();
 }

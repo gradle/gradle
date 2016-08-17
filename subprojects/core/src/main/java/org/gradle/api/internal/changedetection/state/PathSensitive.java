@@ -14,20 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
+package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencySubstitution;
+import org.gradle.api.Incubating;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * A service that injects dependency substitution rules into the build.
+ * Annotates a task file property, specifying which part of the file paths should be considered during up-to-date checks.
  */
-public interface DependencySubstitutionRuleProvider {
-    Action<DependencySubstitution> NO_OP = new Action<DependencySubstitution>() {
-        @Override
-        public void execute(DependencySubstitution dependencySubstitution) {
-        }
-    };
-
-    Action<DependencySubstitution> getDependencySubstitutionRule();
+@Incubating
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.FIELD})
+public @interface PathSensitive {
+    PathSensitivity value();
 }

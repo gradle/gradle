@@ -26,6 +26,8 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
+
 public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotationHandler {
     private final ValidationAction inputDirValidation = new ValidationAction() {
         public void validate(String propertyName, Object value, Collection<String> messages) {
@@ -44,14 +46,13 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
 
     public boolean attachActions(final TaskPropertyActionContext context) {
         context.setValidationAction(inputDirValidation);
-        final boolean skipWhenEmpty = context.isAnnotationPresent(SkipWhenEmpty.class);
-        final boolean orderSensitive = context.isAnnotationPresent(OrderSensitive.class);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
                 task.getInputs().dir(futureValue)
                     .withPropertyName(context.getName())
-                    .skipWhenEmpty(skipWhenEmpty)
-                    .orderSensitive(orderSensitive);
+                    .skipWhenEmpty(context.isAnnotationPresent(SkipWhenEmpty.class))
+                    .orderSensitive(context.isAnnotationPresent(OrderSensitive.class))
+                    .withPathSensitivity(getPathSensitivity(context));
             }
         });
         return true;

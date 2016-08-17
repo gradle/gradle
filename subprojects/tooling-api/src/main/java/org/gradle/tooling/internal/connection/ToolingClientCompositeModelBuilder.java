@@ -17,7 +17,7 @@
 package org.gradle.tooling.internal.connection;
 
 import com.google.common.collect.Lists;
-import org.gradle.internal.composite.IncludedBuild;
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.BuildController;
 import org.gradle.tooling.GradleConnectionException;
@@ -65,7 +65,7 @@ public class ToolingClientCompositeModelBuilder<T> {
     public Iterable<ModelResult<T>> get() throws GradleConnectionException, IllegalStateException {
         final List<ModelResult<T>> results = Lists.newArrayList();
 
-        for (IncludedBuild build : operationParameters.getBuilds()) {
+        for (GradleParticipantBuild build : operationParameters.getBuilds()) {
             ParticipantConnector participantConnector = util.createParticipantConnector(build);
             try {
                 final List<ModelResult<T>> participantResults = buildResultsForParticipant(participantConnector);

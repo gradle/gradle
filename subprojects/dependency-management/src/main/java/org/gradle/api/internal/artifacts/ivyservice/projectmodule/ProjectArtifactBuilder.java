@@ -19,5 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 public interface ProjectArtifactBuilder {
+    /**
+     * @param artifact Notify an artifact that will be included in dependency resolution.
+     */
+    void willBuild(ComponentArtifactMetadata artifact);
+
+    /**
+     * @param artifact Actually build an artifact that is included in dependency resolution.
+     */
     void build(ComponentArtifactMetadata artifact);
 }

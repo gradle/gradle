@@ -42,9 +42,9 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
 
         where:
         testProject       | maxExecutionTimeRegression | targetVersions
-        "small"           | millis(1200)               | ['1.1', '2.8', 'last']
-        "multi"           | millis(1200)               | ['1.1', '2.8', 'last']
-        "lotDependencies" | millis(1000)               | ['1.1', '2.4', '2.8', 'last']
+        "small"           | millis(1200)               | ['2.8', 'last']
+        "multi"           | millis(1200)               | ['2.8', 'last']
+        "lotDependencies" | millis(1000)               | ['2.4', '2.8', 'last']
         "bigOldJava"      | millis(1000)               | ['2.11', 'last']
     }
 }

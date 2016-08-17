@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.composite;
+package org.gradle.initialization;
+
+import org.gradle.api.initialization.IncludedBuild;
 
 import java.io.File;
-import java.net.URI;
 
-public interface IncludedBuild {
-    File getProjectDir();
-
-    File getGradleHome();
-
-    URI getGradleDistribution();
-
-    String getGradleVersion();
+public interface IncludedBuildFactory {
+    IncludedBuild createBuild(File buildDirectory);
+    IncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext);
 }

@@ -15,6 +15,7 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution
+
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.component.ComponentSelector
@@ -28,12 +29,13 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.SELECTED_BY_RULE
 
 class DefaultDependencySubstitutionsSpec extends Specification {
     DependencySubstitutionsInternal substitutions;
 
     def setup() {
-        substitutions = new DefaultDependencySubstitutions()
+        substitutions = DefaultDependencySubstitutions.forResolutionStrategy()
     }
 
     def "provides no op resolve rule when no rules or forced modules configured"() {
@@ -41,7 +43,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def details = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(details)
+        substitutions.ruleAction.execute(details)
 
         then:
         0 * details._
@@ -55,7 +57,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def moduleDetails = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
+        substitutions.ruleAction.execute(moduleDetails)
 
         then:
         _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
@@ -65,7 +67,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def projectDetails = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
+        substitutions.ruleAction.execute(projectDetails)
 
         then:
         _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
@@ -83,7 +85,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def moduleDetails = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
+        substitutions.ruleAction.execute(moduleDetails)
 
         then:
         _ * moduleDetails.target >> moduleTarget
@@ -98,7 +100,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def projectDetails = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
+        substitutions.ruleAction.execute(projectDetails)
 
         then:
         _ * projectDetails.target >> projectTarget
@@ -122,15 +124,15 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         }
 
         when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
+        substitutions.ruleAction.execute(moduleDetails)
 
         then:
         _ * moduleDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
-        1 * moduleDetails.useTarget(matchingSubstitute)
+        1 * moduleDetails.useTarget(matchingSubstitute, SELECTED_BY_RULE)
         0 * _
 
         when:
-        substitutions.dependencySubstitutionRule.execute(moduleDetails)
+        substitutions.ruleAction.execute(moduleDetails)
 
         then:
         _ * moduleDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
@@ -167,15 +169,15 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def projectDetails = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
+        substitutions.ruleAction.execute(projectDetails)
 
         then:
         _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
-        1 * projectDetails.useTarget(matchingSubstitute)
+        1 * projectDetails.useTarget(matchingSubstitute, SELECTED_BY_RULE)
         0 * _
 
         when:
-        substitutions.dependencySubstitutionRule.execute(projectDetails)
+        substitutions.ruleAction.execute(projectDetails)
 
         then:
         _ * projectDetails.requested >> DefaultModuleComponentSelector.newSelector("org.utils", "api", "1.5")
@@ -194,7 +196,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def details = Mock(DependencySubstitutionInternal)
 
         when:
-        substitutions.dependencySubstitutionRule.execute(details)
+        substitutions.ruleAction.execute(details)
 
         then:
         1 * details.useTarget("1.0")

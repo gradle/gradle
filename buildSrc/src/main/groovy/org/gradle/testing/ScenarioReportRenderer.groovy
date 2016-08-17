@@ -17,11 +17,11 @@ class ScenarioReportRenderer {
             def successfullBuilds = buildsSuccessOrNot.get(true)
             def otherBuilds = buildsSuccessOrNot.get(false)
             if (otherBuilds) {
-                h3 'Failed scenarios'
+                h3 "${otherBuilds.size()} Failed scenarios"
                 renderResultTable(markup, projectName, otherBuilds, testResultFilesForBuild, true)
             }
             if (successfullBuilds) {
-                h3 'Successful scenarios'
+                h3 "${successfullBuilds.size()} Successful scenarios"
                 renderResultTable(markup, projectName, successfullBuilds, testResultFilesForBuild)
             }
         }
@@ -40,10 +40,10 @@ class ScenarioReportRenderer {
                         th("")
                     }
                 }
-                builds.each { build ->
+                builds.eachWithIndex { build, idx ->
                     def rowClass = build.@status.toString().toLowerCase()
                     tr(class: rowClass) {
-                        td(this.getScenarioId(build))
+                        td("${idx+1}. ${this.getScenarioId(build)}")
                         td {
                             a(href: build.@webUrl, "Go to this Build")
                         }

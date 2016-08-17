@@ -76,7 +76,8 @@ public class Assemble extends DefaultTask {
     @TaskAction
     public void assemble() {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
-        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs(), "objectFileDir");
+        SimpleStaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        cleaner.setDestinationDir(getObjectFileDir());
         cleaner.execute();
 
         DefaultAssembleSpec spec = new DefaultAssembleSpec();

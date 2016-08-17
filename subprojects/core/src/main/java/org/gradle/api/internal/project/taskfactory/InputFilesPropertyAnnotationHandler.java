@@ -23,20 +23,21 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
+
 public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return InputFiles.class;
     }
 
     public boolean attachActions(final TaskPropertyActionContext context) {
-        final boolean skipWhenEmpty = context.isAnnotationPresent(SkipWhenEmpty.class);
-        final boolean orderSensitive = context.isAnnotationPresent(OrderSensitive.class);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
                 task.getInputs().files(futureValue)
                     .withPropertyName(context.getName())
-                    .skipWhenEmpty(skipWhenEmpty)
-                    .orderSensitive(orderSensitive);
+                    .skipWhenEmpty(context.isAnnotationPresent(SkipWhenEmpty.class))
+                    .orderSensitive(context.isAnnotationPresent(OrderSensitive.class))
+                    .withPathSensitivity(getPathSensitivity(context));
             }
         });
         return true;

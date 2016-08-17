@@ -18,15 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencyResolveDetails;
-import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 
-public interface DependencySubstitutionsInternal extends DependencySubstitutions {
-    boolean hasDependencySubstitutionRules();
-
-    Action<DependencySubstitution> getDependencySubstitutionRule();
-
+public interface DependencySubstitutionsInternal extends DependencySubstitutions, DependencySubstitutionRules {
     DependencySubstitutions allWithDependencyResolveDetails(Action<? super DependencyResolveDetails> rule);
 
     void setMutationValidator(MutationValidator validator);

@@ -34,12 +34,12 @@ public class NoResultsStore<T> implements DataReporter<T>, ResultsStore, Closeab
     }
 
     @Override
-    PerformanceTestHistory getTestResults(String testName) {
+    PerformanceTestHistory getTestResults(String testName, String channel) {
         null
     }
 
     @Override
-    PerformanceTestHistory getTestResults(String testName, int mostRecentN) {
+    PerformanceTestHistory getTestResults(String testName, int mostRecentN, int maxDaysOld, String channel) {
         null
     }
 }

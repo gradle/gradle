@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.composite;
+package org.gradle.composite.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.Buildable;
@@ -22,10 +22,11 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
+import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -35,38 +36,21 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
-import org.gradle.internal.invocation.BuildController;
 
 import java.io.File;
 import java.util.Set;
 
-public class CompositeContextBuildActionRunner {
+public class IncludedBuildDependencyMetadataBuilder {
     private final CompositeBuildContext context;
-    private final boolean propagateFailures;
 
-    public CompositeContextBuildActionRunner(CompositeBuildContext context, boolean propagateFailures) {
+    public IncludedBuildDependencyMetadataBuilder(CompositeBuildContext context) {
         this.context = context;
-        this.propagateFailures = propagateFailures;
     }
 
-    public void run(BuildController buildController) {
-        try {
-            GradleInternal gradle = buildController.configure();
-            ProjectInternal rootProject = gradle.getRootProject();
-
-            String participantName = rootProject.getName();
-            for (Project project : rootProject.getAllprojects()) {
-                registerProject(participantName, (ProjectInternal) project);
-            }
-        } catch (RuntimeException e) {
-            maybeRethrow(e);
-        }
-    }
-
-    private void maybeRethrow(RuntimeException e) {
-        // Ignore exceptions creating composite context for a model request
-        if (propagateFailures) {
-            throw e;
+    public void build(IncludedBuildInternal build) {
+        Gradle gradle = build.configure();
+        for (Project project : gradle.getRootProject().getAllprojects()) {
+            registerProject(build.getName(), (ProjectInternal) project);
         }
     }
 

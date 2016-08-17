@@ -26,7 +26,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
-class SettingsHandlerTest extends Specification {
+class DefaultSettingsLoaderTest extends Specification {
 
     def gradle = Mock(GradleInternal)
     def settings = Mock(SettingsInternal)
@@ -36,7 +36,7 @@ class SettingsHandlerTest extends Specification {
     def settingsFinder = Mock(ISettingsFinder)
     def settingsProcessor = Mock(SettingsProcessor)
     def buildSourceBuilder = Mock(BuildSourceBuilder)
-    def settingsHandler = new SettingsHandler(settingsFinder, settingsProcessor, buildSourceBuilder);
+    def settingsHandler = new DefaultSettingsLoader(settingsFinder, settingsProcessor, buildSourceBuilder);
 
     public void findAndLoadSettingsWithExistingSettings() {
         when:

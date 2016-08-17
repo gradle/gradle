@@ -41,7 +41,7 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
     }
 
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
-        ProjectInternal project = projectRegistry.getProject(projectIdentifier.getProjectPath());
+        ProjectInternal project = projectRegistry.getProject(getLocalIdentifier(projectIdentifier).getProjectPath());
         if (project == null) {
             return null;
         }
@@ -59,14 +59,28 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
 
     @Override
     public void registerAdditionalArtifact(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifact) {
-        registeredArtifacts.put(project, artifact);
+        registeredArtifacts.put(getLocalIdentifier(project), artifact);
     }
 
     @Override
     public Iterable<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
-        if (registeredArtifacts.containsKey(projectIdentifier)) {
-            return registeredArtifacts.get(projectIdentifier);
+        ProjectComponentIdentifier localIdentifier = getLocalIdentifier(projectIdentifier);
+        if (registeredArtifacts.containsKey(localIdentifier)) {
+            return registeredArtifacts.get(localIdentifier);
         }
         return null;
+    }
+
+    private ProjectComponentIdentifier getLocalIdentifier(ProjectComponentIdentifier projectIdentifier) {
+        // TODO:DAZ This is yet another place where we need a better id for project components in composite.
+        if (projectIdentifier.getProjectPath().contains("::")) {
+            String[] parts = projectIdentifier.getProjectPath().split("::", 2);
+            String buildName = parts[0];
+            String rootProjectName = projectRegistry.getProject(":").getName();
+            if (rootProjectName.equals(buildName)) {
+                return DefaultProjectComponentIdentifier.newId(":" + parts[1]);
+            }
+        }
+        return projectIdentifier;
     }
 }

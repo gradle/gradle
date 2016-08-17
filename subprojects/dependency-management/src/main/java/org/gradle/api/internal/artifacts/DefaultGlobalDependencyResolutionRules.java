@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.DependencySubstitution;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRuleProvider;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.internal.Actions;
 import org.gradle.util.CollectionUtils;
 
@@ -28,20 +28,14 @@ import java.util.List;
 public class DefaultGlobalDependencyResolutionRules implements GlobalDependencyResolutionRules {
     private final ComponentMetadataProcessor componentMetadataProcessor;
     private final ComponentModuleMetadataProcessor moduleMetadataProcessor;
-    private final Action<DependencySubstitution> globalDependencySubstitutionRule;
+    private final DependencySubstitutionRules globalDependencySubstitutionRule;
 
     public DefaultGlobalDependencyResolutionRules(ComponentMetadataProcessor componentMetadataProcessor,
                                                   ComponentModuleMetadataProcessor moduleMetadataProcessor,
-                                                  List<DependencySubstitutionRuleProvider> ruleProviders) {
+                                                  List<DependencySubstitutionRules> ruleProviders) {
         this.componentMetadataProcessor = componentMetadataProcessor;
         this.moduleMetadataProcessor = moduleMetadataProcessor;
-        List<Action<DependencySubstitution>> globalActions = CollectionUtils.collect(ruleProviders, new Transformer<Action<DependencySubstitution>, DependencySubstitutionRuleProvider>() {
-            @Override
-            public Action<DependencySubstitution> transform(DependencySubstitutionRuleProvider dependencySubstitutionRuleProvider) {
-                return dependencySubstitutionRuleProvider.getDependencySubstitutionRule();
-            }
-        });
-        this.globalDependencySubstitutionRule = Actions.composite(globalActions);
+        this.globalDependencySubstitutionRule = new CompositeDependencySubstitutionRules(ruleProviders);
     }
 
     public ComponentMetadataProcessor getComponentMetadataProcessor() {
@@ -53,7 +47,35 @@ public class DefaultGlobalDependencyResolutionRules implements GlobalDependencyR
     }
 
     @Override
-    public Action<DependencySubstitution> getDependencySubstitutionRule() {
+    public DependencySubstitutionRules getDependencySubstitutionRules() {
         return globalDependencySubstitutionRule;
+    }
+
+    private static class CompositeDependencySubstitutionRules implements DependencySubstitutionRules {
+        private final List<DependencySubstitutionRules> ruleProviders;
+
+        private CompositeDependencySubstitutionRules(List<DependencySubstitutionRules> ruleProviders) {
+            this.ruleProviders = ruleProviders;
+        }
+
+        @Override
+        public Action<DependencySubstitution> getRuleAction() {
+            return Actions.composite(CollectionUtils.collect(ruleProviders, new Transformer<Action<? super DependencySubstitution>, DependencySubstitutionRules>() {
+                @Override
+                public Action<? super DependencySubstitution> transform(DependencySubstitutionRules rule) {
+                    return rule.getRuleAction();
+                }
+            }));
+        }
+
+        @Override
+        public boolean hasRules() {
+            for (DependencySubstitutionRules ruleProvider : ruleProviders) {
+                if (ruleProvider.hasRules()) {
+                    return true;
+                }
+            }
+            return false;
+        }
     }
 }

@@ -25,6 +25,7 @@ import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentArtifacts;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -87,7 +88,9 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Override
     public void resolveArtifacts(ComponentResolveMetadata component, BuildableComponentArtifactsResolveResult result) {
         if (isProjectModule(component.getComponentId())) {
-            result.resolved(new MetadataSourcedComponentArtifacts());
+            ComponentArtifacts artifacts = new MetadataSourcedComponentArtifacts();
+            artifacts = new ProjectDependencyComponentArtifacts(artifactBuilder, artifacts);
+            result.resolved(artifacts);
         }
     }
 

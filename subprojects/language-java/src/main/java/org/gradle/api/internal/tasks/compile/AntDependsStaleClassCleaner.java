@@ -26,13 +26,11 @@ import org.gradle.language.base.internal.tasks.StaleClassCleaner;
 
 import java.io.File;
 
-public class AntDependsStaleClassCleaner implements StaleClassCleaner {
+public class AntDependsStaleClassCleaner extends StaleClassCleaner {
 
     private final Factory<AntBuilder> antBuilderFactory;
     private final CompileOptions compileOptions;
     private File dependencyCacheDir;
-    private FileCollection source;
-    private File destinationDir;
 
     public AntDependsStaleClassCleaner(Factory<AntBuilder> antBuilderFactory, CompileOptions compileOptions) {
         this.antBuilderFactory = antBuilderFactory;
@@ -62,19 +60,4 @@ public class AntDependsStaleClassCleaner implements StaleClassCleaner {
         }});
     }
 
-    public FileCollection getSource() {
-        return source;
-    }
-
-    public void setSource(FileCollection source) {
-        this.source = source;
-    }
-
-    public File getDestinationDir() {
-        return destinationDir;
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
-    }
 }

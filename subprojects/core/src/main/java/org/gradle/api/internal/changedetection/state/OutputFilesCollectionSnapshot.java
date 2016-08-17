@@ -50,7 +50,7 @@ public class OutputFilesCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
-    public Map<String, IncrementalFileSnapshot> getSnapshots() {
+    public Map<String, NormalizedFileSnapshot> getSnapshots() {
         return filesSnapshot.getSnapshots();
     }
 

@@ -16,6 +16,8 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.changedetection.state.PathSensitive;
+import org.gradle.api.internal.changedetection.state.PathSensitivity;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OrderSensitive;
@@ -42,6 +44,7 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @OrderSensitive
     @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
     public FileCollection getClasspath() {
         return classpath;
     }

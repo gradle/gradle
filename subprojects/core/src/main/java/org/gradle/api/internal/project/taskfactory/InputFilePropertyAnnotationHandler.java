@@ -23,6 +23,8 @@ import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
+
 public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
     private final ValidationAction inputFileValidation = new ValidationAction() {
         public void validate(String propertyName, Object value, Collection<String> messages) {
@@ -43,7 +45,9 @@ public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHan
         context.setValidationAction(inputFileValidation);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
-                task.getInputs().files(futureValue).withPropertyName(context.getName());
+                task.getInputs().files(futureValue)
+                    .withPropertyName(context.getName())
+                    .withPathSensitivity(getPathSensitivity(context));
             }
         });
         return true;

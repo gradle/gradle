@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.changedetection.state.PathSensitivity;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -46,6 +47,12 @@ public interface TaskOutputFilePropertyBuilder extends TaskPropertyBuilder, Task
      * specified for the property, but any value specified must meet the validation constraints for the property.
      */
     TaskOutputFilePropertyBuilder optional(boolean optional);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 
     /**
      * {@inheritDoc}

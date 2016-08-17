@@ -29,6 +29,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import static TaskFilePropertyCompareType.UNORDERED
+import static TaskFilePropertyPathSensitivityType.ABSOLUTE
 
 class MinimalFileSetSnapshotterTest extends Specification {
     @Rule
@@ -61,7 +62,7 @@ class MinimalFileSetSnapshotterTest extends Specification {
         def collection = new SimpleFileCollection(included, missing, includedDirectory)
 
         when:
-        snapshot = minimalFileSnapshotter.snapshot(collection, UNORDERED)
+        snapshot = minimalFileSnapshotter.snapshot(collection, UNORDERED, ABSOLUTE)
 
         then:
         findSnapshot(included) instanceof FileHashSnapshot
@@ -76,6 +77,6 @@ class MinimalFileSetSnapshotterTest extends Specification {
     }
 
     IncrementalFileSnapshot findSnapshot(File file) {
-        snapshot.snapshots.get(file.absolutePath)
+        snapshot.snapshots.get(file.absolutePath)?.getSnapshot()
     }
 }

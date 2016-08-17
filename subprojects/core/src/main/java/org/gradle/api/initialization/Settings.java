@@ -17,6 +17,8 @@
 package org.gradle.api.initialization;
 
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.PluginAware;
@@ -168,11 +170,24 @@ public interface Settings extends PluginAware {
 
     /**
      * Returns the {@link Gradle} instance for the current build.
-     * 
+     *
      * @return The Gradle instance. Never returns null.
      */
     Gradle getGradle();
 
-    void includeBuild(Object projectPath);
+    /**
+     * Includes a build at the specified path to the composite build.
+     * @param rootProject The path to the root project directory for the build.
+     */
+    @Incubating
+    void includeBuild(Object rootProject);
+
+    /**
+     * Includes a build at the specified path to the composite build, with the supplied configuration.
+     * @param rootProject The path to the root project directory for the build.
+     * @param configuration An action to configure the included build.
+     */
+    @Incubating
+    void includeBuild(Object rootProject, Action<IncludedBuild> configuration);
 
 }

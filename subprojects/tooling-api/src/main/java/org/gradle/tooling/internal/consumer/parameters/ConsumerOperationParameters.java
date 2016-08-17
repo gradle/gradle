@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.composite.IncludedBuild;
+import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.events.ProgressListener;
@@ -30,7 +30,11 @@ import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.ProjectConnectionParameters;
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable;
-import org.gradle.tooling.internal.protocol.*;
+import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
+import org.gradle.tooling.internal.protocol.BuildParameters;
+import org.gradle.tooling.internal.protocol.BuildParametersVersion1;
+import org.gradle.tooling.internal.protocol.InternalLaunchable;
+import org.gradle.tooling.internal.protocol.ProgressListenerVersion1;
 import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.Launchable;
 import org.gradle.tooling.model.Task;
@@ -38,7 +42,11 @@ import org.gradle.tooling.model.Task;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class ConsumerOperationParameters implements BuildOperationParametersVersion1, BuildParametersVersion1, BuildParameters {
@@ -411,18 +419,18 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
         return ((CancellationTokenInternal) cancellationToken).getToken();
     }
 
-    public List<IncludedBuild> getBuilds() {
+    public List<GradleParticipantBuild> getBuilds() {
         if (!(parameters instanceof CompositeConnectionParameters)) {
             return null;
         }
-        List<IncludedBuild> unorderedBuilds = ((CompositeConnectionParameters) parameters).getBuilds();
+        List<GradleParticipantBuild> unorderedBuilds = ((CompositeConnectionParameters) parameters).getBuilds();
         if (buildIdentifier == null) {
             return unorderedBuilds;
         }
 
-        IncludedBuild targetBuild = null;
-        List<IncludedBuild> builds = new LinkedList<IncludedBuild>();
-        for (IncludedBuild build : unorderedBuilds) {
+        GradleParticipantBuild targetBuild = null;
+        List<GradleParticipantBuild> builds = new LinkedList<GradleParticipantBuild>();
+        for (GradleParticipantBuild build : unorderedBuilds) {
             BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getProjectDir());
             if (buildIdentifier.equals(this.buildIdentifier)) {
                 targetBuild = build;
