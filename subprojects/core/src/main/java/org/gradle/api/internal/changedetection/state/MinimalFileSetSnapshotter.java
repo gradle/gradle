@@ -16,8 +16,11 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileResolver;
@@ -26,6 +29,9 @@ import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -47,13 +53,82 @@ public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter
             if (file.exists()) {
                 fileTreeElements.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
             } else {
-                missingFiles.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
+                missingFiles.add(new MissingFileVisitDetails(file));
             }
         }
     }
 
     @Override
     public void registerSerializers(SerializerRegistry registry) {
+    }
 
+    private static class MissingFileVisitDetails implements FileVisitDetails {
+        private final File file;
+        private final RelativePath relativePath;
+
+        public MissingFileVisitDetails(File file) {
+            this.file = file;
+            this.relativePath = new RelativePath(true, file.getName());
+        }
+
+        @Override
+        public File getFile() {
+            return file;
+        }
+
+        @Override
+        public boolean isDirectory() {
+            return false;
+        }
+
+        @Override
+        public String getName() {
+            return file.getName();
+        }
+
+        @Override
+        public String getPath() {
+            return file.getName();
+        }
+
+        @Override
+        public RelativePath getRelativePath() {
+            return relativePath;
+        }
+
+        @Override
+        public int getMode() {
+            return 0;
+        }
+
+        @Override
+        public long getLastModified() {
+            return 0L;
+        }
+
+        @Override
+        public long getSize() {
+            return 0L;
+        }
+
+        @Override
+        public InputStream open() {
+            throw new UncheckedIOException(new FileNotFoundException(file.getAbsolutePath()));
+        }
+
+        @Override
+        public void copyTo(OutputStream output) {
+            throw new UncheckedIOException(new FileNotFoundException(file.getAbsolutePath()));
+        }
+
+        @Override
+        public boolean copyTo(File target) {
+            throw new UncheckedIOException(new FileNotFoundException(file.getAbsolutePath()));
+        }
+
+        @Override
+        public void stopVisiting() {
+            // Ignore
+        }
     }
 }
