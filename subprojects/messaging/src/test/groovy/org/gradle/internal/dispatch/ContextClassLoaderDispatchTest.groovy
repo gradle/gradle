@@ -17,67 +17,54 @@
 
 package org.gradle.internal.dispatch
 
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
+import spock.lang.Specification
 
-import static org.hamcrest.Matchers.sameInstance
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.fail
-
-@RunWith(JMock.class)
-class ContextClassLoaderDispatchTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final Dispatch<String> target = context.mock(Dispatch.class)
+class ContextClassLoaderDispatchTest extends Specification {
+    private final Dispatch<String> target = Mock()
     private final ClassLoader appClassLoader = new ClassLoader() {}
     private ClassLoader original
     private final ContextClassLoaderDispatch dispatch = new ContextClassLoaderDispatch(target, appClassLoader)
 
-    @Before
-    public void setUp() {
+    def setup() {
         original = Thread.currentThread().contextClassLoader
     }
 
-    @After
-    public void tearDown() {
+    public void cleanup() {
         Thread.currentThread().contextClassLoader = original
     }
 
-    @Test
-    public void setsContextClassLoaderDuringDispatch() {
-        context.checking {
-            one(target).dispatch('message')
-            will {
-                assertThat(Thread.currentThread().contextClassLoader, sameInstance(appClassLoader))
-            }
-        }
-
+    def 'sets ContextClassLoader during dispatch'() {
+        when:
         dispatch.dispatch('message')
-        assertThat(Thread.currentThread().contextClassLoader, sameInstance(original))
+
+        then:
+        1 * target.dispatch('message') >> {
+            contextClassloaderIs(appClassLoader)
+        }
+        0 * _._
+
+        contextClassloaderIs(original)
     }
 
-    @Test
-    public void cleansUpAfterFailure() {
-        RuntimeException failure = new RuntimeException()
+    def 'cleans up after failure'() {
+        given:
+        def failure = new RuntimeException()
 
-        context.checking {
-            one(target).dispatch('message')
-            will {
-                assertThat(Thread.currentThread().contextClassLoader, sameInstance(appClassLoader))
-                throw failure
-            }
+        when:
+        dispatch.dispatch('message')
+
+        then:
+        1 * target.dispatch('message') >> {
+            contextClassloaderIs(appClassLoader)
+            throw failure
         }
+        0 * _._
+        RuntimeException e = thrown()
+        e.is(failure)
+        contextClassloaderIs(original)
+    }
 
-        try {
-            dispatch.dispatch('message')
-            fail()
-        } catch (RuntimeException e) {
-            assertThat(e, sameInstance(failure))
-        }
-
-        assertThat(Thread.currentThread().contextClassLoader, sameInstance(original))
+    private void contextClassloaderIs(ClassLoader expectedClassloader) {
+        assert Thread.currentThread().contextClassLoader.is(expectedClassloader)
     }
 }
