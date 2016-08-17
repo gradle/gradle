@@ -26,6 +26,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.text.TreeFormatter;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.ProjectSourceSet;
+import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.language.base.internal.model.BinarySourceTransformations;
 import org.gradle.language.base.internal.registry.DefaultLanguageTransformContainer;
 import org.gradle.language.base.internal.registry.LanguageTransform;
@@ -98,6 +99,11 @@ public class ComponentModelBasePlugin implements Plugin<Project> {
 
                 transformations.createTasksFor(binary);
             }
+        }
+
+        @Model
+        public ProjectLayout projectLayout(ProjectIdentifier projectIdentifier, @Path("buildDir") File buildDir) {
+            return new ProjectLayout(projectIdentifier, buildDir);
         }
 
         @Model
