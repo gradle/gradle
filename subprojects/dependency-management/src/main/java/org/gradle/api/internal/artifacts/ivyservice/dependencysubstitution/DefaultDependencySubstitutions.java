@@ -175,7 +175,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         public void execute(DependencySubstitution dependencySubstitution) {
             if (dependencySubstitution.getRequested() instanceof ModuleComponentSelector) {
                 ModuleComponentSelector requested = (ModuleComponentSelector) dependencySubstitution.getRequested();
-                if (moduleId.getGroup().equals(requested.getGroup()) && moduleId.getName().equals(requested.getModule())) {
+                if (moduleId.getGroup().equals(requested.getGroup()) && moduleId.getName().equals(requested.getName())) {
                     dependencySubstitution.useTarget(substitute);
                 }
             }

@@ -50,7 +50,7 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         }
 
         if (componentArtifacts.isEmpty()) {
-            IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(componentIdentifier.getModule(), "jar", "jar");
+            IvyArtifactName defaultArtifact = new DefaultIvyArtifactName(componentIdentifier.getName(), "jar", "jar");
             moduleDescriptorState.addArtifact(defaultArtifact, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
         }
 

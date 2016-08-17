@@ -46,7 +46,7 @@ class DependencyResultSpec implements Spec<DependencyResult> {
 
         if(requested instanceof ModuleComponentSelector) {
             ModuleComponentSelector requestedModule = (ModuleComponentSelector)requested;
-            String requestedCandidate = requestedModule.getGroup() + ":" + requestedModule.getModule() + ":" + requestedModule.getVersion();
+            String requestedCandidate = requestedModule.getGroup() + ":" + requestedModule.getName() + ":" + requestedModule.getVersion();
             return requestedCandidate.contains(stringNotation);
         }
 
@@ -55,7 +55,7 @@ class DependencyResultSpec implements Spec<DependencyResult> {
 
     private boolean matchesSelected(ResolvedDependencyResult candidate) {
         ModuleVersionIdentifier selected = candidate.getSelected().getModuleVersion();
-        String selectedCandidate = selected.getGroup() + ":" + selected.getModule() + ":" + selected.getVersion();
+        String selectedCandidate = selected.getGroup() + ":" + selected.getName() + ":" + selected.getVersion();
         return selectedCandidate.contains(stringNotation);
     }
 }

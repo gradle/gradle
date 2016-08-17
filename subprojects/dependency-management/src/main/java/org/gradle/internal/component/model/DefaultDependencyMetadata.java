@@ -97,7 +97,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
 
     public DefaultDependencyMetadata(ModuleComponentIdentifier componentIdentifier) {
         this(
-            new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion()),
+            new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getName(), componentIdentifier.getVersion()),
             Collections.<String, List<String>>emptyMap(),
             Collections.<IvyArtifactName, Set<String>>emptyMap(),
             Collections.<Exclude, Set<String>>emptyMap(),
@@ -265,7 +265,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
+            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getName(), moduleTarget.getVersion());
             if (requestedVersion.equals(requested)) {
                 return this;
             }

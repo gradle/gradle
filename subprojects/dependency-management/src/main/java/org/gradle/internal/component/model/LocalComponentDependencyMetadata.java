@@ -145,7 +145,7 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
-            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
+            ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getName(), moduleTarget.getVersion());
             return copyWithTarget(moduleTarget, requestedVersion);
         } else if (target instanceof ProjectComponentSelector) {
             return copyWithTarget(target, requested);

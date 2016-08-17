@@ -53,7 +53,7 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
             ModuleComponentIdentifier moduleComponentIdentifier = (ModuleComponentIdentifier)value;
             encoder.writeByte(Implementation.MODULE.getId());
             encoder.writeString(moduleComponentIdentifier.getGroup());
-            encoder.writeString(moduleComponentIdentifier.getModule());
+            encoder.writeString(moduleComponentIdentifier.getName());
             encoder.writeString(moduleComponentIdentifier.getVersion());
         } else if(value instanceof DefaultProjectComponentIdentifier) {
             ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier)value;

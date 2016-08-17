@@ -152,7 +152,7 @@ public class DefaultComponentSelectionRules implements ComponentSelectionRulesIn
         }
 
         public boolean isSatisfiedBy(ComponentSelection selection) {
-            return selection.getCandidate().getGroup().equals(target.getGroup()) && selection.getCandidate().getModule().equals(target.getName());
+            return selection.getCandidate().getGroup().equals(target.getGroup()) && selection.getCandidate().getName().equals(target.getName());
         }
     }
 }

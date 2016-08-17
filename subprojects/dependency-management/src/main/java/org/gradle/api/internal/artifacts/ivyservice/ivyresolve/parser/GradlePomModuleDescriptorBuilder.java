@@ -209,7 +209,7 @@ public class GradlePomModuleDescriptorBuilder {
         // Some POMs depend on themselves, don't add this dependency: Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/net/jini/jsk-platform/2.1/jsk-platform-2.1.pom
         if (selector.getGroup().equals(descriptor.getComponentIdentifier().getGroup())
-            && selector.getName().equals(descriptor.getComponentIdentifier().getModule())) {
+            && selector.getName().equals(descriptor.getComponentIdentifier().getName())) {
             return;
         }
 
@@ -339,7 +339,7 @@ public class GradlePomModuleDescriptorBuilder {
         // since Ivy doesn't allow this!
         // Example: http://repo2.maven.org/maven2/com/atomikos/atomikos-util/3.6.4/atomikos-util-3.6.4.pom
         if (selector.getGroup().equals(descriptor.getComponentIdentifier().getGroup())
-            && selector.getName().equals(descriptor.getComponentIdentifier().getModule())) {
+            && selector.getName().equals(descriptor.getComponentIdentifier().getName())) {
             return;
         }
 

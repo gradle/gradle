@@ -93,7 +93,7 @@ public class CompositeBuildDependencySubstitutions implements DependencySubstitu
         }
 
         public ProjectComponentIdentifier getReplacementFor(ModuleComponentSelector selector) {
-            ModuleIdentifier candidateId = DefaultModuleIdentifier.newId(selector.getGroup(), selector.getModule());
+            ModuleIdentifier candidateId = DefaultModuleIdentifier.newId(selector.getGroup(), selector.getName());
             Collection<ProjectComponentIdentifier> providingProjects = replacements.get(candidateId);
             if (providingProjects.isEmpty()) {
                 LOGGER.info("Found no composite build substitute for module '" + candidateId + "'.");

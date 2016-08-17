@@ -203,7 +203,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
 
     private MutableModuleComponentResolveMetadata createMetaDataFromDefaultArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         Set<IvyArtifactName> artifacts = overrideMetadata.getArtifacts();
-        for (IvyArtifactName artifact : getDependencyArtifactNames(moduleComponentIdentifier.getModule(), artifacts)) {
+        for (IvyArtifactName artifact : getDependencyArtifactNames(moduleComponentIdentifier.getName(), artifacts)) {
             if (artifactResolver.artifactExists(new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, artifact), result)) {
                 return createDefaultComponentResolveMetaData(moduleComponentIdentifier, artifacts);
             }
@@ -231,8 +231,8 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
         if (!expectedId.getGroup().equals(metadata.getId().getGroup())) {
             errors.add("bad group: expected='" + expectedId.getGroup() + "' found='" + metadata.getId().getGroup() + "'");
         }
-        if (!expectedId.getModule().equals(metadata.getId().getName())) {
-            errors.add("bad module name: expected='" + expectedId.getModule() + "' found='" + metadata.getId().getName() + "'");
+        if (!expectedId.getName().equals(metadata.getId().getName())) {
+            errors.add("bad module name: expected='" + expectedId.getName() + "' found='" + metadata.getId().getName() + "'");
         }
         if (!expectedId.getVersion().equals(metadata.getId().getVersion())) {
             errors.add("bad version: expected='" + expectedId.getVersion() + "' found='" + metadata.getId().getVersion() + "'");
@@ -254,7 +254,7 @@ public abstract class ExternalResourceResolver implements ModuleVersionPublisher
     }
 
     private ModuleDescriptorArtifactMetadata getMetaDataArtifactFor(ModuleComponentIdentifier moduleComponentIdentifier) {
-        IvyArtifactName ivyArtifactName = getMetaDataArtifactName(moduleComponentIdentifier.getModule());
+        IvyArtifactName ivyArtifactName = getMetaDataArtifactName(moduleComponentIdentifier.getName());
         DefaultModuleComponentArtifactMetadata defaultModuleComponentArtifactMetadata = new DefaultModuleComponentArtifactMetadata(moduleComponentIdentifier, ivyArtifactName);
         return new DefaultModuleDescriptorArtifactMetadata(defaultModuleComponentArtifactMetadata);
     }

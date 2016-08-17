@@ -103,7 +103,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.startElement("info");
 
         writer.attribute("organisation", id.getGroup());
-        writer.attribute("module", id.getModule());
+        writer.attribute("module", id.getName());
         String branch = descriptor.getBranch();
         if (branch != null) {
             writer.attribute("branch", branch);
