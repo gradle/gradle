@@ -35,7 +35,7 @@ import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.language.base.internal.model.DefaultVariantAxisCompatibilityFactory;
 import org.gradle.language.base.internal.model.VariantAxisCompatibilityFactory;
 import org.gradle.language.base.internal.model.VariantsMetaData;
-import org.gradle.language.base.internal.resolve.LocalComponentResolveContext;
+import org.gradle.api.internal.resolve.JvmLibraryResolveContext;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -84,13 +84,13 @@ public class PlatformJvmServices implements PluginServiceRegistry {
 
         @Override
         public boolean canCreate(ResolveContext context) {
-            return context instanceof LocalComponentResolveContext;
+            return context instanceof JvmLibraryResolveContext;
         }
 
         @Override
         public ComponentResolvers create(ResolveContext context) {
             final ModelSchemaStore schemaStore = registry.get(ModelSchemaStore.class);
-            VariantsMetaData variants = ((LocalComponentResolveContext) context).getVariants();
+            VariantsMetaData variants = ((JvmLibraryResolveContext) context).getVariants();
             JvmLocalLibraryMetaDataAdapter libraryMetaDataAdapter = new JvmLocalLibraryMetaDataAdapter();
             LocalLibraryDependencyResolver<JvmBinarySpec> delegate =
                     new LocalLibraryDependencyResolver<JvmBinarySpec>(

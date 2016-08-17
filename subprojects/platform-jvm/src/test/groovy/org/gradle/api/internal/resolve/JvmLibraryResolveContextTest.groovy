@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.language.base.internal.resolve
+package org.gradle.api.internal.resolve
+
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
-import org.gradle.internal.component.local.model.UsageKind
 import org.gradle.language.base.internal.model.VariantsMetaData
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class LocalComponentResolveContextTest extends Specification {
+class JvmLibraryResolveContextTest extends Specification {
     private final static String COMPONENT_NAME = 'lib'
     private final static String VARIANT = 'api'
 
@@ -43,8 +43,8 @@ class LocalComponentResolveContextTest extends Specification {
         ':myPath2' | 'myLib'  | UsageKind.API
     }
 
-    private LocalComponentResolveContext resolveContext(DefaultLibraryBinaryIdentifier id, UsageKind usage) {
-        new LocalComponentResolveContext(id, Mock(VariantsMetaData), Collections.emptyList(), usage, 'test source set')
+    private JvmLibraryResolveContext resolveContext(DefaultLibraryBinaryIdentifier id, UsageKind usage) {
+        new JvmLibraryResolveContext(id, Mock(VariantsMetaData), Collections.emptyList(), usage, 'test source set')
     }
 
 }

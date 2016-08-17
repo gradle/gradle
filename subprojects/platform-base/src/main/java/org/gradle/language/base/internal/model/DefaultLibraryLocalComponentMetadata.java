@@ -29,7 +29,6 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLibraryComponentSelector;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
@@ -54,30 +53,30 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
 
     public static DefaultLibraryLocalComponentMetadata newResolvedLibraryMetadata(
         LibraryBinaryIdentifier componentId,
-        Map<UsageKind, TaskDependency> buildDependencies,
-        Map<UsageKind, Iterable<DependencySpec>> dependencies,
+        Map<String, TaskDependency> buildDependencies,
+        Map<String, Iterable<DependencySpec>> dependencies,
         String defaultProject) {
         DefaultLibraryLocalComponentMetadata metadata = newDefaultLibraryLocalComponentMetadata(componentId, buildDependencies);
         addDependenciesToMetaData(dependencies, metadata, defaultProject);
         return metadata;
     }
 
-    private static void addDependenciesToMetaData(Map<UsageKind, Iterable<DependencySpec>> dependencies, DefaultLibraryLocalComponentMetadata metadata, String defaultProject) {
-        for (Map.Entry<UsageKind, Iterable<DependencySpec>> entry : dependencies.entrySet()) {
+    private static void addDependenciesToMetaData(Map<String, Iterable<DependencySpec>> dependencies, DefaultLibraryLocalComponentMetadata metadata, String defaultProject) {
+        for (Map.Entry<String, Iterable<DependencySpec>> entry : dependencies.entrySet()) {
             addDependenciesToMetadata(metadata, defaultProject, entry.getValue(), entry.getKey());
         }
     }
 
-    public static DefaultLibraryLocalComponentMetadata newResolvingLocalComponentMetadata(LibraryBinaryIdentifier componentId, UsageKind usage, Iterable<DependencySpec> dependencies) {
-        DefaultLibraryLocalComponentMetadata metadata = newDefaultLibraryLocalComponentMetadata(componentId, Collections.<UsageKind, TaskDependency>singletonMap(usage, new DefaultTaskDependency()));
+    public static DefaultLibraryLocalComponentMetadata newResolvingLocalComponentMetadata(LibraryBinaryIdentifier componentId, String usage, Iterable<DependencySpec> dependencies) {
+        DefaultLibraryLocalComponentMetadata metadata = newDefaultLibraryLocalComponentMetadata(componentId, Collections.<String, TaskDependency>singletonMap(usage, new DefaultTaskDependency()));
         addDependenciesToMetadata(metadata, componentId.getProjectPath(), dependencies, usage);
         return metadata;
     }
 
-    private static DefaultLibraryLocalComponentMetadata newDefaultLibraryLocalComponentMetadata(LibraryBinaryIdentifier componentId, Map<UsageKind, TaskDependency> buildDependencies) {
+    private static DefaultLibraryLocalComponentMetadata newDefaultLibraryLocalComponentMetadata(LibraryBinaryIdentifier componentId, Map<String, TaskDependency> buildDependencies) {
         DefaultLibraryLocalComponentMetadata metaData = new DefaultLibraryLocalComponentMetadata(localModuleVersionIdentifierFor(componentId), componentId);
-        for (Map.Entry<UsageKind, TaskDependency> entry : buildDependencies.entrySet()) {
-            String configurationName = entry.getKey().getConfigurationName();
+        for (Map.Entry<String, TaskDependency> entry : buildDependencies.entrySet()) {
+            String configurationName = entry.getKey();
             metaData.addConfiguration(
                 configurationName,
                 String.format("Request metadata: %s", componentId.getDisplayName()),
@@ -90,8 +89,8 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
         return metaData;
     }
 
-    private static void addDependenciesToMetadata(DefaultLibraryLocalComponentMetadata metadata, String defaultProject, Iterable<DependencySpec> value, UsageKind usage) {
-        metadata.addDependencies(value, defaultProject, usage.getConfigurationName());
+    private static void addDependenciesToMetadata(DefaultLibraryLocalComponentMetadata metadata, String defaultProject, Iterable<DependencySpec> value, String configuration) {
+        metadata.addDependencies(value, defaultProject, configuration);
     }
 
     private static DefaultModuleVersionIdentifier localModuleVersionIdentifierFor(LibraryBinaryIdentifier componentId) {

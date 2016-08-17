@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.language.base.internal.resolve;
+package org.gradle.api.internal.resolve;
 
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy;
-import org.gradle.internal.component.local.model.UsageKind;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.platform.base.DependencySpec;
 
 import static org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata.newResolvingLocalComponentMetadata;
 
-public class LocalComponentResolveContext implements ResolveContext {
+public class JvmLibraryResolveContext implements ResolveContext {
     private final LibraryBinaryIdentifier libraryBinaryIdentifier;
     private final String displayName;
     private final UsageKind usage;
@@ -35,7 +34,7 @@ public class LocalComponentResolveContext implements ResolveContext {
     private final VariantsMetaData variants;
     private final Iterable<DependencySpec> dependencies;
 
-    public LocalComponentResolveContext(
+    public JvmLibraryResolveContext(
         LibraryBinaryIdentifier libraryBinaryIdentifier,
         VariantsMetaData variants,
         Iterable<DependencySpec> dependencies,
@@ -69,7 +68,7 @@ public class LocalComponentResolveContext implements ResolveContext {
 
     @Override
     public ComponentResolveMetadata toRootComponentMetaData() {
-        return newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage, dependencies);
+        return newResolvingLocalComponentMetadata(libraryBinaryIdentifier, usage.getConfigurationName(), dependencies);
     }
 
 }
