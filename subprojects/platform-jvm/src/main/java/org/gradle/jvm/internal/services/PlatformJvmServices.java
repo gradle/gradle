@@ -22,8 +22,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingCompone
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.resolve.DefaultLibraryResolutionErrorMessageBuilder;
 import org.gradle.api.internal.resolve.JvmLocalLibraryMetaDataAdapter;
+import org.gradle.api.internal.resolve.JvmVariantSelector;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
+import org.gradle.api.internal.resolve.VariantSelector;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -91,14 +93,13 @@ public class PlatformJvmServices implements PluginServiceRegistry {
         public ComponentResolvers create(ResolveContext context) {
             final ModelSchemaStore schemaStore = registry.get(ModelSchemaStore.class);
             VariantsMetaData variants = ((JvmLibraryResolveContext) context).getVariants();
+            VariantSelector variantSelector = new JvmVariantSelector(registry.getAll(VariantAxisCompatibilityFactory.class), JvmBinarySpec.class, schemaStore, variants);
             JvmLocalLibraryMetaDataAdapter libraryMetaDataAdapter = new JvmLocalLibraryMetaDataAdapter();
             LocalLibraryDependencyResolver<JvmBinarySpec> delegate =
                     new LocalLibraryDependencyResolver<JvmBinarySpec>(
                             JvmBinarySpec.class,
                             projectModelResolver,
-                            registry.getAll(VariantAxisCompatibilityFactory.class),
-                            variants,
-                            schemaStore,
+                            variantSelector,
                             libraryMetaDataAdapter,
                             new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
                     );
