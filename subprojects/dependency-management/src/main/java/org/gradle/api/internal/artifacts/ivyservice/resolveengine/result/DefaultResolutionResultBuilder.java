@@ -18,41 +18,42 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.*;
+import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.artifacts.result.ResolutionResult;
+import org.gradle.api.artifacts.result.ResolvedComponentResult;
+import org.gradle.api.artifacts.result.ResolvedDependencyResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.ComponentResult;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolutionResult;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedComponentResult;
 import org.gradle.internal.Factory;
 
 import java.util.Collection;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
-public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
+public class DefaultResolutionResultBuilder {
+    private final Map<Long, DefaultResolvedComponentResult> modules = new HashMap<Long, DefaultResolvedComponentResult>();
+    private final CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
 
-    private DefaultResolvedComponentResult rootModule;
-
-    private Map<ModuleVersionIdentifier, DefaultResolvedComponentResult> modules
-            = new LinkedHashMap<ModuleVersionIdentifier, DefaultResolvedComponentResult>();
-
-    CachingDependencyResultFactory dependencyResultFactory = new CachingDependencyResultFactory();
-
-    public DefaultResolutionResultBuilder start(ModuleVersionIdentifier root, ComponentIdentifier componentIdentifier) {
-        rootModule = createOrGet(root, VersionSelectionReasons.ROOT, componentIdentifier);
-        return this;
+    public static ResolutionResult empty(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
+        DefaultResolutionResultBuilder builder = new DefaultResolutionResultBuilder();
+        builder.visitComponent(new DefaultComponentResult(0L, id, VersionSelectionReasons.ROOT, componentIdentifier));
+        return builder.complete(0L);
     }
 
-    public ResolutionResult complete() {
-        return new DefaultResolutionResult(new RootFactory(rootModule));
+    public ResolutionResult complete(Long rootId) {
+        return new DefaultResolutionResult(new RootFactory(modules.get(rootId)));
     }
 
-    public void resolvedModuleVersion(ModuleVersionSelection moduleVersion) {
-        createOrGet(moduleVersion.getId(), moduleVersion.getSelectionReason(), moduleVersion.getComponentId());
+    public void visitComponent(ComponentResult component) {
+        create(component.getResultId(), component.getModuleVersion(), component.getSelectionReason(), component.getComponentId());
     }
 
-    public void resolvedConfiguration(ModuleVersionIdentifier id, Collection<? extends InternalDependencyResult> dependencies) {
-        for (InternalDependencyResult d : dependencies) {
-            DefaultResolvedComponentResult from = modules.get(id);
-            DependencyResult dependency;
+    public void visitOutgoingEdges(Long fromComponent, Collection<? extends DependencyResult> dependencies) {
+        for (DependencyResult d : dependencies) {
+            DefaultResolvedComponentResult from = modules.get(fromComponent);
+            org.gradle.api.artifacts.result.DependencyResult dependency;
             if (d.getFailure() != null) {
                 dependency = dependencyResultFactory.createUnresolvedDependency(d.getRequested(), from, d.getReason(), d.getFailure());
             } else {
@@ -64,11 +65,10 @@ public class DefaultResolutionResultBuilder implements ResolutionResultBuilder {
         }
     }
 
-    private DefaultResolvedComponentResult createOrGet(ModuleVersionIdentifier id, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
+    private void create(Long id, ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
         if (!modules.containsKey(id)) {
-            modules.put(id, new DefaultResolvedComponentResult(id, selectionReason, componentId));
+            modules.put(id, new DefaultResolvedComponentResult(moduleVersion, selectionReason, componentId));
         }
-        return modules.get(id);
     }
 
     private static class RootFactory implements Factory<ResolvedComponentResult> {

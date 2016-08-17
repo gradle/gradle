@@ -221,31 +221,6 @@ if (project.hasProperty('skipCache')) {
         succeeds 'retrieve'
     }
 
-    @Issue('GRADLE-2188')
-    def "where 'module.custom' exists, will use it as main artifact for pom with packaging 'custom'"() {
-        when:
-        buildWithDependencies("compile 'group:projectA:1.0'")
-        projectARepo1.hasPackaging("custom").hasType("custom").publish()
-
-        and:
-        projectARepo1.pom.expectGet()
-        projectARepo1.artifact.expectHead()
-        projectARepo1.artifact.expectGet()
-
-        then:
-        succeeds 'retrieve'
-
-        and:
-        file('libs').assertHasDescendants('projectA-1.0.custom')
-        file('libs/projectA-1.0.custom').assertIsCopyOf(projectARepo1.artifactFile)
-
-        // Check caching
-        when:
-        server.resetExpectations()
-        then:
-        succeeds 'retrieve'
-    }
-
     def "fails and reports type-based location if neither packaging-based or type-based artifact can be located"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")

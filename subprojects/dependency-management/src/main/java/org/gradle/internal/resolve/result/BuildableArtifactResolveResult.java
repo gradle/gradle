@@ -16,21 +16,25 @@
 
 package org.gradle.internal.resolve.result;
 
+import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.internal.resolve.ArtifactResolveException;
 
 import java.io.File;
 
-public interface BuildableArtifactResolveResult extends ArtifactResolveResult, ResourceAwareResolveResult {
-    /**
-     * Marks the artifact as resolved to the given file.
-     */
-    void resolved(File file);
+public interface BuildableArtifactResolveResult extends ResolveResult, BuildableTypedResolveResult<File, ArtifactResolveException>, ResourceAwareResolveResult {
+    boolean isSuccessful();
 
     /**
-     * Marks the resolve as failed with the given exception.
+     * Returns the resolve failure, if any.
      */
-    void failed(ArtifactResolveException failure);
+    @Nullable
+    ArtifactResolveException getFailure();
+
+    /**
+     * @throws ArtifactResolveException If the resolution was unsuccessful.
+     */
+    File getResult() throws ArtifactResolveException;
 
     /**
      * Marks the artifact as not found.

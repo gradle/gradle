@@ -34,11 +34,6 @@ public interface BuildableModuleComponentMetaDataResolveResult extends ResourceA
     State getState();
 
     /**
-     * Returns true if this result is available, ie the state is not {@link State#Unknown}.
-     */
-    boolean hasResult();
-
-    /**
      * Returns the meta-data.
      *
      * @throws ModuleVersionResolveException If the resolution was not successful.

@@ -26,9 +26,7 @@ import spock.lang.Specification
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
 class InMemoryMetaDataCacheTest extends Specification {
-
-    def stats = new InMemoryCacheStats()
-    def cache = new InMemoryMetaDataCache(stats)
+    def cache = new InMemoryMetaDataCache()
 
     static componentId(String group, String module, String version) {
         return DefaultModuleComponentIdentifier.newId(group, module, version)
@@ -90,7 +88,6 @@ class InMemoryMetaDataCacheTest extends Specification {
 
         then:
         !differentSelector
-        stats.metadataServed == 0
         0 * result._
 
         when:
@@ -98,7 +95,6 @@ class InMemoryMetaDataCacheTest extends Specification {
 
         then:
         match
-        stats.metadataServed == 1
         1 * result.resolved(metadata)
     }
 
@@ -121,7 +117,6 @@ class InMemoryMetaDataCacheTest extends Specification {
 
         then:
         found
-        stats.metadataServed == 1
         1 * result.resolved(moduleMetaData)
     }
 

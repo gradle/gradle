@@ -8,8 +8,17 @@ import spock.lang.Subject
 
 
 class ScenarioReportRendererTest extends Specification {
+    // set to true to develop report html and css, temp files don't get removed when debugging
+    static final boolean REPORT_DEBUG = false
     @Rule
-    public final TemporaryFolder tempDir = new TemporaryFolder()
+    public final TemporaryFolder tempDir = new TemporaryFolder() {
+        @Override
+        protected void after() {
+            if (!REPORT_DEBUG) {
+                super.after()
+            }
+        }
+    }
 
     @Subject
     ScenarioReportRenderer renderer = new ScenarioReportRenderer()
@@ -30,10 +39,17 @@ class ScenarioReportRendererTest extends Specification {
         def htmlFile = tempDir.newFile("scenario-report.html")
         def failedBuild = getSampleBuild("sample-build-result-failure.xml")
         def successfulBuild = getSampleBuild("sample-build-result-success.xml")
+        def testResultXmlFile = copyResource("TEST-sample.xml")
+        def testResultFilesForBuild = [:]
+        testResultFilesForBuild.put(failedBuild.@id.text(), [testResultXmlFile])
 
         when:
         htmlFile.withWriter { Writer writer ->
-            renderer.render('performance', [failedBuild, successfulBuild, failedBuild, successfulBuild], writer)
+            renderer.render(writer, 'performance', [failedBuild, successfulBuild, failedBuild, successfulBuild], testResultFilesForBuild)
+        }
+        if (REPORT_DEBUG) {
+            renderer.writeCss(htmlFile.getParentFile())
+            println "Report written to ${htmlFile.toURI().toURL()}"
         }
 
         then:
@@ -44,5 +60,13 @@ class ScenarioReportRendererTest extends Specification {
         getClass().getResourceAsStream(name).withStream { input ->
             new XmlSlurper().parse(input)
         }
+    }
+
+    private File copyResource(name) {
+        def file = File.createTempFile("resource", ".xml", tempDir.getRoot())
+        getClass().getResourceAsStream(name).withStream { input ->
+            file.withOutputStream { it << input }
+        }
+        file
     }
 }

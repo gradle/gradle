@@ -60,9 +60,6 @@ class InMemoryCachedRepositoryFactoryTest extends Specification {
 
         c2.localAccess.artifactsCache != c1.localAccess.artifactsCache
 
-        cache.stats.reposWrapped == 3
-        cache.stats.cacheInstances == 2
-
         cache.cachePerRepo.size() == 2
     }
 

@@ -51,7 +51,7 @@ abstract class ResultSpecification extends Specification {
                 jvm: "java 7",
                 versionUnderTest: "Gradle 1.0",
                 operatingSystem: "windows",
-                testTime: 100,
+                startTime: 100,
                 vcsBranch: "master",
                 vcsCommits: ["abcdef"]
         )
@@ -66,7 +66,7 @@ abstract class ResultSpecification extends Specification {
                 jvm: "java 7",
                 versionUnderTest: "Gradle 1.0",
                 operatingSystem: "windows",
-                testTime: 100,
+                startTime: 100,
                 vcsBranch: "master",
                 vcsCommits: ["abcdef"]
         )

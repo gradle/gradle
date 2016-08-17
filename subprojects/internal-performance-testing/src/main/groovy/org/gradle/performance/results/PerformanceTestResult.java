@@ -19,14 +19,25 @@ package org.gradle.performance.results;
 import java.util.List;
 
 public abstract class PerformanceTestResult {
+
     String testId;
     String jvm;
     String operatingSystem;
-    long testTime;
+    long startTime;
+    long endTime;
     String vcsBranch;
     List<String> vcsCommits;
     List<String> previousTestIds;
     String versionUnderTest;
+
+    protected static Checks whatToCheck() {
+        Checks result = Checks.ALL;
+        String override = System.getProperty("org.gradle.performance.execution.checks");
+        if (override != null) {
+            result = Checks.valueOf(override.toUpperCase());
+        }
+        return result;
+    }
 
     public String getTestId() {
         return testId;
@@ -44,12 +55,20 @@ public abstract class PerformanceTestResult {
         this.previousTestIds = previousTestIds;
     }
 
-    public long getTestTime() {
-        return testTime;
+    public long getStartTime() {
+        return startTime;
     }
 
-    public void setTestTime(long testTime) {
-        this.testTime = testTime;
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
     }
 
     public String getVersionUnderTest() {

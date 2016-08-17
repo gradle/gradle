@@ -24,6 +24,12 @@ import java.util.List;
 import java.util.Map;
 
 public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
+    private final List<NavigationItem> navigationItems;
+
+    public GraphIndexPageGenerator(List<NavigationItem> navigationItems) {
+        this.navigationItems = navigationItems;
+    }
+
     @Override
     public void render(final ResultsStore store, Writer writer) throws IOException {
         new MetricsHtml(writer) {{
@@ -33,6 +39,9 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 title().text("Performance test graphs").end();
             end();
             body();
+
+            navigation(navigationItems);
+
             div().id("content");
                 Calendar calendar = Calendar.getInstance();
                 calendar.add(Calendar.DAY_OF_YEAR, -14);
@@ -43,7 +52,7 @@ public class GraphIndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                 for (String testName : testNames) {
                     PerformanceTestHistory testHistory = store.getTestResults(testName, 5);
                     List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
-                    if (results.isEmpty() || results.get(0).getTestTime() < expiry) {
+                    if (results.isEmpty() || results.get(0).getStartTime() < expiry) {
                         continue;
                     }
                     h2().classAttr("test-execution");

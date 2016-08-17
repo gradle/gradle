@@ -22,6 +22,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.performance.measure.MeasuredOperation;
 import org.gradle.performance.results.MeasuredOperationList;
 import org.gradle.util.GFileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,6 +31,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildExperimentRunner {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildExperimentRunner.class);
+
     private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
     private final OperationTimer timer = new OperationTimer();
@@ -52,7 +56,8 @@ public class BuildExperimentRunner {
         memoryInfoCollector.setOutputFileName("build/totalMemoryUsed.txt");
         BuildEventTimestampCollector buildEventTimestampCollector = new BuildEventTimestampCollector("build/buildEventTimestamps.txt");
         GCLoggingCollector gcCollector = new GCLoggingCollector();
-        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, new CompilationLoggingCollector());
+        PerformanceCounterCollector performanceCounterCollector = new PerformanceCounterCollector();
+        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, performanceCounterCollector, new CompilationLoggingCollector());
     }
 
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
@@ -67,9 +72,7 @@ public class BuildExperimentRunner {
             final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
             final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
-            if (System.getProperty("org.gradle.performance.heapdump") != null) {
-                additionalArgs.add("-Pheapdump");
-            }
+            passHeapDumperParameter(additionalArgs);
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
             copyTemplateTo(experiment, workingDirectory);
@@ -81,6 +84,14 @@ public class BuildExperimentRunner {
             } finally {
                 session.cleanup();
             }
+        }
+    }
+
+    // activate org.gradle.performance.plugin.HeapDumper in the build
+    private void passHeapDumperParameter(List<String> additionalArgs) {
+        final String heapdumpProperty = System.getProperty("org.gradle.performance.heapdump");
+        if (heapdumpProperty != null) {
+            additionalArgs.add("-Pheapdump=${heapdumpProperty}".toString());
         }
     }
 
@@ -220,8 +231,11 @@ public class BuildExperimentRunner {
             if (operation.getException() == null) {
                 dataCollector.collect(invocationInfo, operation);
             }
-
-            results.add(operation);
+            if (operation.isValid()) {
+                results.add(operation);
+            } else {
+                LOGGER.error("Discarding invalid operation record {}", operation);
+            }
         }
     }
 

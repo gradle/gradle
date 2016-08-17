@@ -36,6 +36,8 @@ public class VersionSelectionReasons {
             return CONFLICT_RESOLUTION;
         } else if (reason == FORCED) {
             return CONFLICT_RESOLUTION;
+        } else if (reason == ROOT) {
+            return reason;
         }
         throw new IllegalArgumentException("Cannot create conflict resolution selection reason for input: " + reason);
     }

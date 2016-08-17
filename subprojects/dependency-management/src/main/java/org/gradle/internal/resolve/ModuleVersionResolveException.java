@@ -17,6 +17,7 @@ package org.gradle.internal.resolve;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.UncheckedException;
@@ -24,11 +25,15 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Formatter;
+import java.util.List;
 
 @Contextual
 public class ModuleVersionResolveException extends DefaultMultiCauseException {
-    private final List<List<ModuleVersionIdentifier>> paths = new ArrayList<List<ModuleVersionIdentifier>>();
+    private final List<List<? extends ComponentIdentifier>> paths = new ArrayList<List<? extends ComponentIdentifier>>();
     private final ComponentSelector selector;
 
     public ModuleVersionResolveException(ComponentSelector selector, String message) {
@@ -88,7 +93,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
     /**
      * Creates a copy of this exception, with the given incoming paths.
      */
-    public ModuleVersionResolveException withIncomingPaths(Collection<? extends List<ModuleVersionIdentifier>> paths) {
+    public ModuleVersionResolveException withIncomingPaths(Collection<? extends List<? extends ComponentIdentifier>> paths) {
         ModuleVersionResolveException copy = createCopy();
         copy.paths.addAll(paths);
         copy.initCauses(getCauses());
@@ -103,7 +108,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
         }
         Formatter formatter = new Formatter();
         formatter.format("%s%nRequired by:", super.getMessage());
-        for (List<ModuleVersionIdentifier> path : paths) {
+        for (List<? extends ComponentIdentifier> path : paths) {
             formatter.format("%n    %s", toString(path.get(0)));
             for (int i = 1; i < path.size(); i++) {
                 formatter.format(" > %s", toString(path.get(i)));
@@ -112,8 +117,8 @@ public class ModuleVersionResolveException extends DefaultMultiCauseException {
         return formatter.toString();
     }
 
-    private String toString(ModuleVersionIdentifier identifier) {
-        return identifier.toString();
+    private String toString(ComponentIdentifier identifier) {
+        return identifier.getDisplayName();
     }
 
     protected ModuleVersionResolveException createCopy() {

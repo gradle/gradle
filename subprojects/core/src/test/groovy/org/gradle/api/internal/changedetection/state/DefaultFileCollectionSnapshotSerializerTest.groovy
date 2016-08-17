@@ -21,14 +21,14 @@ import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.serialize.SerializerSpec
 
-class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
+class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
-    def serializer = new DefaultFileSnapshotterSerializer(stringInterner)
+    def serializer = new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner)
 
     def "reads and writes the snapshot"() {
         when:
         def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
-        FileCollectionSnapshotImpl out = serialize(new FileCollectionSnapshotImpl([
+        DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
             "1": DirSnapshot.getInstance(),
             "2": MissingFileSnapshot.getInstance(),
             "3": new FileHashSnapshot(hash)], TaskFilePropertyCompareType.UNORDERED), serializer)
@@ -43,7 +43,7 @@ class DefaultFileSnapshotterSerializerTest extends SerializerSpec {
     def "should retain order in serialization"() {
         when:
         def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
-        FileCollectionSnapshotImpl out = serialize(new FileCollectionSnapshotImpl([
+        DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
             "3": DirSnapshot.getInstance(),
             "2": MissingFileSnapshot.getInstance(),
             "1": new FileHashSnapshot(hash)], TaskFilePropertyCompareType.ORDERED), serializer)

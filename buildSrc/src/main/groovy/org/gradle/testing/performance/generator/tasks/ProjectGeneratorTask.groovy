@@ -26,8 +26,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.testing.performance.generator.*
 
-import java.util.concurrent.Callable
-
 abstract class ProjectGeneratorTask extends DefaultTask {
     @OutputDirectory
     File destDir
@@ -51,9 +49,6 @@ abstract class ProjectGeneratorTask extends DefaultTask {
     @Optional
     @InputDirectory
     File sharedTemplateDirectory
-
-
-    Callable<String> buildScanPluginVersionProvider
 
     def ProjectGeneratorTask() {
         setProjects(1)
@@ -170,7 +165,10 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             includeSource: true)
     }
 
-    def generateProject(Map args, TestProject testProject) {
+    def generateProject(Map parameterArgs, TestProject testProject) {
+        def args = [:]
+        args += parameterArgs
+
         File projectDir = args.projectDir
         logger.lifecycle "Generating test project '$testProject.name' into $projectDir"
 
@@ -185,9 +183,7 @@ abstract class ProjectGeneratorTask extends DefaultTask {
             propertyCount: (testProject.linesOfCodePerSourceFile.intdiv(7)),
             repository: testProject.repository,
             dependencies: testProject.dependencies,
-            testProject: testProject,
-            buildScanPluginVersion: buildScanPluginVersionProvider?.call(),
-            gradleTask: this
+            testProject: testProject
         ]
 
         args += templateArgs

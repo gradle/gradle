@@ -29,17 +29,17 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultResolvedComponentResult implements ResolvedComponentResult {
-    private final ModuleVersionIdentifier id;
+    private final ModuleVersionIdentifier moduleVersion;
     private final Set<DependencyResult> dependencies = new LinkedHashSet<DependencyResult>();
     private final Set<ResolvedDependencyResult> dependents = new LinkedHashSet<ResolvedDependencyResult>();
     private final ComponentSelectionReason selectionReason;
     private final ComponentIdentifier componentId;
 
-    public DefaultResolvedComponentResult(ModuleVersionIdentifier id, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
-        assert id != null;
+    public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId) {
+        assert moduleVersion != null;
         assert selectionReason != null;
 
-        this.id = id;
+        this.moduleVersion = moduleVersion;
         this.selectionReason = selectionReason;
         this.componentId = componentId;
     }
@@ -72,7 +72,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResult {
 
     @Nullable
     public ModuleVersionIdentifier getModuleVersion() {
-        return id;
+        return moduleVersion;
     }
 
     @Override

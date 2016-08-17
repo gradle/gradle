@@ -30,6 +30,12 @@ import java.util.List;
 import java.util.Map;
 
 public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
+    private final List<NavigationItem> navigationItems;
+
+    public IndexPageGenerator(List<NavigationItem> navigationItems) {
+        this.navigationItems = navigationItems;
+    }
+
     @Override
     public void render(final ResultsStore store, Writer writer) throws IOException {
         new MetricsHtml(writer) {{
@@ -39,6 +45,9 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     title().text("Profile report").end();
                 end();
                 body();
+
+                navigation(navigationItems);
+
                 div().id("content");
                     Calendar calendar = Calendar.getInstance();
                     calendar.add(Calendar.DAY_OF_YEAR, -14);
@@ -49,7 +58,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                     for (String testName : testNames) {
                         PerformanceTestHistory testHistory = store.getTestResults(testName, 5);
                         List<? extends PerformanceTestExecution> results = testHistory.getExecutions();
-                        if (results.isEmpty() || results.get(0).getTestTime() < expiry) {
+                        if (results.isEmpty() || results.get(0).getStartTime() < expiry) {
                             archived.put(testHistory.getId(), testHistory.getDisplayName());
                             continue;
                         }
@@ -74,7 +83,7 @@ public class IndexPageGenerator extends HtmlPageGenerator<ResultsStore> {
                         end();
                         for (PerformanceTestExecution performanceTestExecution : results) {
                             tr();
-                                td().text(format.timestamp(new Date(performanceTestExecution.getTestTime()))).end();
+                                td().text(format.timestamp(new Date(performanceTestExecution.getStartTime()))).end();
                                 td().text(performanceTestExecution.getVcsBranch()).end();
                                 renderSamplesForExperiment(performanceTestExecution.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                                     @Override

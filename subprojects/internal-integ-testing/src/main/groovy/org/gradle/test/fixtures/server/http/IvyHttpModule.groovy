@@ -97,8 +97,9 @@ class IvyHttpModule implements RemoteIvyModule, HttpModule {
         return this
     }
 
-    IvyModule dependsOn(IvyModule ivyModule) {
-        return backingModule.dependsOn(ivyModule)
+    IvyHttpModule dependsOn(IvyModule ivyModule) {
+        backingModule.dependsOn(ivyModule)
+        return this
     }
 
     IvyHttpModule artifact(Map<String, ?> options = [:]) {

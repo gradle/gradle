@@ -16,7 +16,6 @@
 
 package org.gradle.performance.plugin;
 
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Plugin;
@@ -24,31 +23,28 @@ import org.gradle.api.Project;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.Logger;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryUsage;
-import java.lang.management.PlatformManagedObject;
-import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
+/**
+ * Gradle Plugin used in Gradle's internal performance tests to do measurements
+ */
 public class MeasurementPlugin implements Plugin<Project> {
+
     @Override
     public void apply(Project project) {
         Gradle gradle = project.getGradle();
+
+        final PerformanceCounterMeasurement performanceCounterMeasurement = new PerformanceCounterMeasurement(project.getRootProject().getBuildDir());
+        performanceCounterMeasurement.recordStart();
 
         gradle.addBuildListener(new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {
                 BuildEventTimeStamps.buildFinished(result);
+                performanceCounterMeasurement.recordFinish();
                 Project rootProject = result.getGradle().getRootProject();
-                handleHeapDump(rootProject, rootProject.getLogger());
-                handleHeapMeasurement(rootProject, rootProject.getLogger());
-                handleExternalResourcesStats();
+                HeapDumper.handle(rootProject, rootProject.getLogger());
+                new HeapMeasurement().handle(rootProject, rootProject.getLogger());
+                ExternalResources.printAndResetStats();
             }
 
         });
@@ -59,86 +55,5 @@ public class MeasurementPlugin implements Plugin<Project> {
                 BuildEventTimeStamps.configurationEvaluated();
             }
         });
-    }
-
-    private void handleHeapDump(final Project project, Logger logger) {
-        if (project.hasProperty("heapdump")) {
-            boolean skipHeapDump = false;
-
-            if (project.hasProperty("buildExperimentPhase") && project.hasProperty("buildExperimentIterationNumber") && project.hasProperty("buildExperimentIterationMax")) {
-                // only dump heap automaticly on the last iteration of the testrun (not in warmup)
-                if (!"measurement".equals(project.property("buildExperimentPhase")) || !project.property("buildExperimentIterationNumber").equals(project.property("buildExperimentIterationMax"))) {
-                    skipHeapDump = true;
-                }
-            }
-
-            if (!skipHeapDump) {
-                PlatformManagedObject hotspotDiagnosticMXBean = null;
-                try {
-                    Class<? extends PlatformManagedObject> hotspotDiagnosticMXBeanClass = (Class<? extends PlatformManagedObject>) Class.forName("com.sun.management.HotSpotDiagnosticMXBean");
-                    hotspotDiagnosticMXBean = ManagementFactory.getPlatformMXBeans(hotspotDiagnosticMXBeanClass).get(0);
-                } catch (Exception e) {
-                    logger.error("Couldn't locate MBean for doing heap dump.", e);
-                }
-
-                if (hotspotDiagnosticMXBean != null) {
-                    logger.lifecycle("Creating heap dump...");
-                    final String dumpDescription = (project.hasProperty("buildExperimentDisplayName") ? (project.getName() + "_" + project.property("buildExperimentDisplayName")) : project.getName()).replaceAll("[^a-zA-Z0-9.-]", "_").replaceAll("[_]+", "_");
-                    final File dumpFile = new File(System.getProperty("java.io.tmpdir"), "heapdump-" + dumpDescription + "-" + new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss").format(new Date()) + ".hprof");
-                    DefaultGroovyMethods.invokeMethod(hotspotDiagnosticMXBean, "dumpHeap", new Object[]{dumpFile.getAbsolutePath(), true});
-                    logger.lifecycle("Dumped to " + dumpFile.getAbsolutePath() + ".");
-                }
-
-            }
-
-        }
-
-    }
-
-    private void handleHeapMeasurement(Project project, Logger logger) {
-        MemoryUsage heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-        MemoryUsage nonHeap = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
-        logger.lifecycle("BEFORE GC");
-        logger.lifecycle("heap: " + formatBytes(heap.getUsed()) + " (initial " + formatBytes(heap.getInit()) + ", committed " + formatBytes(heap.getCommitted()) + ", max " + formatBytes(heap.getMax()));
-        logger.lifecycle("nonHeap: " + formatBytes(nonHeap.getUsed()) + " (initial " + formatBytes(nonHeap.getInit()) + ", committed " + formatBytes(nonHeap.getCommitted()) + ", max " + formatBytes(nonHeap.getMax()));
-
-        ManagementFactory.getMemoryMXBean().gc();
-
-        heap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-        nonHeap = ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage();
-        logger.lifecycle("AFTER GC");
-        logger.lifecycle("heap: " + formatBytes(heap.getUsed()) + " (initial " + formatBytes(heap.getInit()) + ", committed " + formatBytes(heap.getCommitted()) + ", max " + formatBytes(heap.getMax()));
-        logger.lifecycle("nonHeap: " + formatBytes(nonHeap.getUsed()) + " (initial " + formatBytes(nonHeap.getInit()) + ", committed " + formatBytes(nonHeap.getCommitted()) + ", max " + formatBytes(nonHeap.getMax()));
-
-        project.getBuildDir().mkdirs();
-        File totalMemoryUsedFile = new File(project.getBuildDir(), "totalMemoryUsed.txt");
-        try {
-            FileWriter writer = new FileWriter(totalMemoryUsedFile);
-            try {
-                writer.write(String.valueOf(heap.getUsed()));
-            } finally {
-                writer.close();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String formatBytes(long bytesValue) {
-        BigDecimal divisor = new BigDecimal(1024 * 1024);
-        BigDecimal megabytes = new BigDecimal(bytesValue).divide(divisor).setScale(4, BigDecimal.ROUND_DOWN);
-        return megabytes.toString() + "MB";
-    }
-
-    private void handleExternalResourcesStats() {
-        if (System.getProperty("gradle.externalresources.recordstats") != null) {
-            try {
-                Object statistics = DefaultGroovyMethods.invokeMethod(Class.forName("org.gradle.internal.resource.transfer.DefaultExternalResourceConnector"), "getStatistics", new Object[0]);
-                DefaultGroovyMethods.println(this, statistics);
-                DefaultGroovyMethods.invokeMethod(statistics, "reset", new Object[0]);
-            } catch (ClassNotFoundException e) {
-                // ignore
-            }
-        }
     }
 }

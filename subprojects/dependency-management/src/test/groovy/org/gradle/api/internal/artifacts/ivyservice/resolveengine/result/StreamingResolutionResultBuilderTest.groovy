@@ -17,23 +17,27 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.result.ComponentSelectionReason
+import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphComponent
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphEdge
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolutionResultPrinter.printGraph
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.CONFLICT_RESOLUTION
-import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.REQUESTED
+import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.*
 
 class StreamingResolutionResultBuilderTest extends Specification {
 
     StreamingResolutionResultBuilder builder = new StreamingResolutionResultBuilder(new DummyBinaryStore(), new DummyStore())
 
     def "result can be read multiple times"() {
-        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
+        def rootNode = node(1, "org", "root", "1.0", ROOT)
+        builder.start(rootNode)
+        builder.visitNode(rootNode)
+        builder.finish(rootNode)
 
         when:
         def result = builder.complete()
@@ -41,20 +45,28 @@ class StreamingResolutionResultBuilderTest extends Specification {
         then:
         with(result) {
             root.id == DefaultModuleComponentIdentifier.newId("org", "root", "1.0")
-            root.selectionReason == VersionSelectionReasons.ROOT
+            root.selectionReason == ROOT
         }
         printGraph(result.root) == """org:root:1.0
 """
     }
 
     def "maintains graph in byte stream"() {
-        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
+        def root = node(1, "org", "root", "1.0", ROOT)
+        def dep1 = node(2, "org", "dep1", "2.0", CONFLICT_RESOLUTION)
+        root.outgoingEdges >> [
+                dep("org", "dep1", "2.0", 2),
+                dep("org", "dep2", "3.0", new RuntimeException("Boo!"))
+        ]
 
-        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", CONFLICT_RESOLUTION))
-        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), CONFLICT_RESOLUTION, null),
-                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "3.0"), null, CONFLICT_RESOLUTION, new ModuleVersionResolveException(newSelector("org", "dep2", "3.0"), new RuntimeException("Boo!")))
-        ])
+        builder.start(root)
+
+        builder.visitNode(root)
+        builder.visitNode(dep1)
+
+        builder.visitEdge(root)
+
+        builder.finish(root)
 
         when:
         def result = builder.complete()
@@ -67,14 +79,20 @@ class StreamingResolutionResultBuilderTest extends Specification {
     }
 
     def "visiting resolved module version again has no effect"() {
-        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
-        builder.resolvedModuleVersion(sel("org", "root", "1.0", REQUESTED)) //it's fine
+        def root = node(1, "org", "root", "1.0")
+        root.outgoingEdges >> [dep("org", "dep1", "2.0", 2)]
 
-        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", CONFLICT_RESOLUTION))
-        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED)) //will be ignored
+        builder.start(root)
 
-        builder.resolvedConfiguration(newId("org", "root", "1.0"),
-                [new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), CONFLICT_RESOLUTION, null)])
+        builder.visitNode(root)
+        builder.visitNode(node(1, "org", "root", "1.0", REQUESTED)) //it's fine
+
+        builder.visitNode(node(2, "org", "dep1", "2.0", CONFLICT_RESOLUTION))
+        builder.visitNode(node(2, "org", "dep1", "2.0", REQUESTED)) //will be ignored
+
+        builder.visitEdge(root)
+
+        builder.finish(root)
 
         when:
         def result = builder.complete()
@@ -85,55 +103,100 @@ class StreamingResolutionResultBuilderTest extends Specification {
 """
     }
 
-    def "visiting resolved configuration again accumulates dependencies"() {
-        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
+    def "accumulates dependencies for all configurations of same component"() {
+        def root = node(1, "org", "root", "1.0")
+        root.outgoingEdges >> [dep("org", "dep1", "1.0", 2)]
 
-        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED))
-        builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
+        def conf1 = node(2, "org", "dep1", "1.0")
+        conf1.outgoingEdges >> [dep("org", "dep2", "1.0", 3)]
 
-        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), newId("org", "dep1", "2.0"), REQUESTED, null),
-        ])
-        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-                new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), newId("org", "dep2", "2.0"), REQUESTED, null),
-        ])
+        def conf2 = node(2, "org", "dep1", "1.0")
+        conf2.outgoingEdges >> [dep("org", "dep3", "1.0", 4)]
+
+        builder.start(root)
+
+        builder.visitNode(root)
+        builder.visitNode(conf1)
+        builder.visitNode(conf2)
+        builder.visitNode(node(3, "org", "dep2", "1.0"))
+        builder.visitNode(node(4, "org", "dep3", "1.0"))
+
+        builder.visitEdge(root)
+        builder.visitEdge(conf1)
+        builder.visitEdge(conf2)
+
+        builder.finish(root)
 
         when:
         def result = builder.complete()
 
         then:
         printGraph(result.root) == """org:root:1.0
-  org:dep1:2.0 [root]
-  org:dep2:2.0 [root]
+  org:dep1:1.0 [root]
+    org:dep2:1.0 [dep1]
+    org:dep3:1.0 [dep1]
 """
     }
 
     def "dependency failures are remembered"() {
-        builder.start(newId("org", "root", "1.0"), new DefaultModuleComponentIdentifier("org", "root", "1.0"))
+        def root = node(1, "org", "root", "1.0")
+        root.outgoingEdges >> [
+                dep("org", "dep1", "1.0", new RuntimeException()),
+                dep("org", "dep2", "2.0", 3)
+        ]
+        def dep2 = node(3, "org", "dep2", "2.0")
+        dep2.outgoingEdges >> [dep("org", "dep1", "5.0", new RuntimeException())]
 
-        builder.resolvedModuleVersion(sel("org", "dep1", "2.0", REQUESTED))
-        builder.resolvedModuleVersion(sel("org", "dep2", "2.0", REQUESTED))
+        builder.start(root)
 
-        builder.resolvedConfiguration(newId("org", "root", "1.0"), [
-            new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "2.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "1.0"), new RuntimeException())),
-            new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep2", "2.0"), newId("org", "dep2", "2.0"), REQUESTED, null),
-        ])
-        builder.resolvedConfiguration(newId("org", "dep2", "2.0"), [
-            new DefaultInternalDependencyResult(DefaultModuleComponentSelector.newSelector("org", "dep1", "5.0"), null, REQUESTED, new ModuleVersionResolveException(newSelector("org", "dep1", "5.0"), new RuntimeException())),
-        ])
+        builder.visitNode(root)
+        builder.visitNode(node(2, "org", "dep1", "2.0"))
+
+        builder.visitNode(dep2)
+
+        builder.visitEdge(root)
+        builder.visitEdge(dep2)
+
+        builder.finish(root)
 
         when:
         def result = builder.complete()
 
         then:
         printGraph(result.root) == """org:root:1.0
-  org:dep1:2.0 -> org:dep1:1.0 - Could not resolve org:dep1:1.0.
+  org:dep1:1.0 -> org:dep1:1.0 - Could not resolve org:dep1:1.0.
   org:dep2:2.0 [root]
     org:dep1:5.0 -> org:dep1:5.0 - Could not resolve org:dep1:5.0.
 """
     }
 
-    private DefaultModuleVersionSelection sel(String org, String name, String ver, ComponentSelectionReason reason) {
-        new DefaultModuleVersionSelection(newId(org, name, ver), reason, new DefaultModuleComponentIdentifier(org, name, ver))
+    private DependencyGraphEdge dep(String org, String name, String ver, Long selectedId) {
+        def edge = Stub(DependencyGraphEdge)
+        _ * edge.requested >> DefaultModuleComponentSelector.newSelector(org, name, ver)
+        _ * edge.selected >> selectedId
+        _ * edge.failure >> null
+        return edge
+    }
+
+    private DependencyGraphEdge dep(String org, String name, String ver, Throwable failure) {
+        def requested = DefaultModuleComponentSelector.newSelector(org, name, ver)
+
+        def edge = Stub(DependencyGraphEdge)
+        _ * edge.requested >> requested
+        _ * edge.reason >> VersionSelectionReasons.REQUESTED
+        _ * edge.failure >> new ModuleVersionResolveException(requested, failure)
+        return edge
+    }
+
+    private DependencyGraphNode node(Long resultId, String org, String name, String ver, ComponentSelectionReason reason = VersionSelectionReasons.REQUESTED) {
+        def component = Stub(DependencyGraphComponent)
+        _ * component.resultId >> resultId
+        _ * component.moduleVersion >> DefaultModuleVersionIdentifier.newId(org, name, ver)
+        _ * component.componentId >> DefaultModuleComponentIdentifier.newId(org, name, ver)
+        _ * component.selectionReason >> reason
+
+        def node = Stub(DependencyGraphNode)
+        _ * node.owner >> component
+        return node
     }
 }

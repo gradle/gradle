@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.performance.results;
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
+enum Checks {
+    NONE(false, false),
+    ALL(true, true),
+    SPEED(false, true),
+    MEMORY(true, false);
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.result.ComponentSelectionReason;
+    private final boolean checkMemory;
+    private final boolean checkSpeed;
 
-public interface ModuleVersionSelection {
+    Checks(boolean memory, boolean speed) {
+        checkMemory = memory;
+        checkSpeed = speed;
+    }
 
-    ModuleVersionIdentifier getId();
+    boolean speed() {
+        return checkSpeed;
+    }
 
-    ComponentSelectionReason getSelectionReason();
-
-    ComponentIdentifier getComponentId();
+    boolean memory() {
+        return checkMemory;
+    }
 }

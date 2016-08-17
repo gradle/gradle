@@ -20,7 +20,7 @@ import org.gradle.api.Incubating;
 import java.io.File;
 
 /**
- * The result of successfully downloading an artifact.
+ * The result of successfully resolving an artifact.
  *
  * @since 2.0
  */

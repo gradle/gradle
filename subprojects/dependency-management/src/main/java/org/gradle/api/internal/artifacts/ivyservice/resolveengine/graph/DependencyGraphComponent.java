@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.memcache;
+package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-class InMemoryCacheStats {
-    int cacheInstances;
-    int reposWrapped;
-    int metadataServed;
-    int artifactsServed;
-    public String toString() {
-        return String.format(
-                "Repos cached: %s, cache instances: %s, modules served from cache: %s, artifacts: %s",
-                reposWrapped, cacheInstances, metadataServed, artifactsServed);
-    }
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+
+import java.util.Set;
+
+/**
+ * A component in the dependency graph.
+ */
+public interface DependencyGraphComponent extends ComponentResult {
+    ComponentResolveMetadata getMetadata();
+
+    Set<? extends DependencyGraphComponent> getDependents();
 }

@@ -42,7 +42,7 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
             if (i > 0) {
                 out.print(", ");
             }
-            out.print("\"" + format.date(new Date(results.getTestTime())) + "\"");
+            out.print("\"" + format.date(new Date(results.getStartTime())) + "\"");
         }
         out.println("],");
         out.print("\"totalTime\":");
@@ -63,6 +63,20 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
         render(testHistory, new Transformer<String, MeasuredOperationList>() {
             public String transform(MeasuredOperationList original) {
                 return format.seconds(original.getExecutionTime().getAverage());
+            }
+        }, out);
+        out.println(",");
+        out.print("\"compileTotalTime\":");
+        render(testHistory, new Transformer<String, MeasuredOperationList>() {
+            public String transform(MeasuredOperationList original) {
+                return format.seconds(original.getCompileTotalTime().getAverage());
+            }
+        }, out);
+        out.println(",");
+        out.print("\"gcTotalTime\":");
+        render(testHistory, new Transformer<String, MeasuredOperationList>() {
+            public String transform(MeasuredOperationList original) {
+                return format.seconds(original.getGcTotalTime().getAverage());
             }
         }, out);
         out.println(",");

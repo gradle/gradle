@@ -25,7 +25,7 @@ class DefaultBuildableArtifactSetResolveResultTest extends Specification {
 
     def "cannot get artifacts when no result specified"() {
         when:
-        result.artifacts
+        result.result
 
         then:
         IllegalStateException e = thrown()
@@ -46,7 +46,7 @@ class DefaultBuildableArtifactSetResolveResultTest extends Specification {
 
         when:
         result.failed(failure)
-        result.artifacts
+        result.result
 
         then:
         ArtifactResolveException e = thrown()
@@ -56,12 +56,12 @@ class DefaultBuildableArtifactSetResolveResultTest extends Specification {
     def "has result when artifacts set"() {
         when:
         def artifact = Mock(ComponentArtifactMetadata)
-        result.resolved([artifact])
+        result.resolved([artifact] as Set)
 
         then:
         result.hasResult()
         result.failure == null
-        result.artifacts == [artifact] as Set
+        result.result == [artifact] as Set
     }
 
     def "has result when failure set"() {

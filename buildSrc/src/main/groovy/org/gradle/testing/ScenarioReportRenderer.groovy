@@ -4,7 +4,7 @@ import groovy.util.slurpersupport.NodeChildren
 import groovy.xml.MarkupBuilder
 
 class ScenarioReportRenderer {
-    void render(String projectName, List<Object> finishedBuilds, Writer writer) {
+    void render(Writer writer, String projectName, List<Object> finishedBuilds, Map<String, List<File>> testResultFilesForBuild) {
         def markup = new MarkupBuilder(writer)
 
         markup.html {
@@ -13,21 +13,21 @@ class ScenarioReportRenderer {
                 meta("http-equiv": "Content-Type", content: "text/html; charset=utf-8")
                 link(rel: "stylesheet", type: "text/css", href: "scenario-report-style.css")
             }
-            def buildsSuccessOrNot = finishedBuilds.groupBy { build -> build.@status.toString() == 'SUCCESS' }
+            def buildsSuccessOrNot = finishedBuilds.sort(false) { build -> getScenarioId(build)?:'' }.groupBy { build -> build.@status.toString() == 'SUCCESS' }
             def successfullBuilds = buildsSuccessOrNot.get(true)
             def otherBuilds = buildsSuccessOrNot.get(false)
             if (otherBuilds) {
                 h3 'Failed scenarios'
-                renderResultTable(markup, projectName, otherBuilds, true)
+                renderResultTable(markup, projectName, otherBuilds, testResultFilesForBuild, true)
             }
             if (successfullBuilds) {
                 h3 'Successful scenarios'
-                renderResultTable(markup, projectName, successfullBuilds)
+                renderResultTable(markup, projectName, successfullBuilds, testResultFilesForBuild)
             }
         }
     }
 
-    private renderResultTable(markup, projectName, builds, failed = false) {
+    private renderResultTable(markup, projectName, builds, Map<String, List<File>> testResultFilesForBuild, failed = false) {
         def closure = {
             table {
                 thead {
@@ -41,7 +41,8 @@ class ScenarioReportRenderer {
                     }
                 }
                 builds.each { build ->
-                    tr(class: build.@status.toString().toLowerCase()) {
+                    def rowClass = build.@status.toString().toLowerCase()
+                    tr(class: rowClass) {
                         td(this.getScenarioId(build))
                         td {
                             a(href: build.@webUrl, "Go to this Build")
@@ -55,6 +56,23 @@ class ScenarioReportRenderer {
                             a(href: "report/tests/${this.getScenarioId(build).replaceAll(" ", "-")}.html", "Performance Report")
                         }
                     }
+                    if (failed) {
+                        def testResultXmlFiles = testResultFilesForBuild.get(build.@id.text())
+                        if (testResultXmlFiles) {
+                            for (File testResultXmlFile : testResultXmlFiles) {
+                                def testresult = new XmlSlurper().parse(testResultXmlFile)
+                                testresult.testcase.failure.each { failure ->
+                                    tr(class: rowClass) {
+                                        td(colspan: 4) {
+                                            span(class: 'code') {
+                                                pre(failure.text())
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -66,7 +84,7 @@ class ScenarioReportRenderer {
 
     private String getScenarioId(Object build) {
         NodeChildren properties = build.properties.children()
-        properties.find { it.@name == 'scenario' }.@value
+        properties.find { it.@name == 'scenario' }.@value.text()
     }
 
     void writeCss(File directory) {

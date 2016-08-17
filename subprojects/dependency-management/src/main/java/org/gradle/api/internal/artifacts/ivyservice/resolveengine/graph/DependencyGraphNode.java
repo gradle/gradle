@@ -16,29 +16,28 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ModuleVersionSelection;
-import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Set;
 
+/**
+ * A node in the dependency graph. Represents a configuration.
+ */
 public interface DependencyGraphNode {
+    /**
+     * Returns a simple id for this configuration, unique across configurations in the same graph.
+     * This id cannot be used across graphs.
+     */
+    Long getResultId();
+
     ResolvedConfigurationIdentifier getNodeId();
 
-    ModuleVersionIdentifier toId();
+    DependencyGraphComponent getOwner();
 
-    ComponentIdentifier getComponentId();
+    Set<? extends DependencyGraphEdge> getIncomingEdges();
 
-    ModuleVersionSelection getSelection();
+    Set<? extends DependencyGraphEdge> getOutgoingEdges();
 
-    Set<DependencyGraphEdge> getIncomingEdges();
-
-    Set<DependencyGraphEdge> getOutgoingEdges();
-
-    ConfigurationMetadata getMetaData();
-
-    ComponentResolveMetadata getComponent();
+    ConfigurationMetadata getMetadata();
 }

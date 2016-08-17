@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult;
 
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.UnresolvedDependency;
-import org.gradle.api.internal.artifacts.ResolvedConfigurationIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
 
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -28,7 +28,7 @@ import java.util.Set;
 public class DefaultResolvedConfigurationBuilder implements ResolvedConfigurationBuilder {
 
     private final Set<UnresolvedDependency> unresolvedDependencies = new LinkedHashSet<UnresolvedDependency>();
-    private final Map<ResolvedConfigurationIdentifier, ModuleDependency> modulesMap = new HashMap<ResolvedConfigurationIdentifier, ModuleDependency>();
+    private final Map<Long, ModuleDependency> modulesMap = new HashMap<Long, ModuleDependency>();
 
     private final TransientConfigurationResultsBuilder builder;
 
@@ -40,23 +40,27 @@ public class DefaultResolvedConfigurationBuilder implements ResolvedConfiguratio
         unresolvedDependencies.add(unresolvedDependency);
     }
 
-    public void addFirstLevelDependency(ModuleDependency moduleDependency, ResolvedConfigurationIdentifier dependency) {
-        builder.firstLevelDependency(dependency);
+    @Override
+    public void addFirstLevelDependency(ModuleDependency moduleDependency, DependencyGraphNode dependency) {
+        builder.firstLevelDependency(dependency.getResultId());
         //we don't serialise the module dependencies at this stage so we need to keep track
         //of the mapping module dependency <-> resolved dependency
-        modulesMap.put(dependency, moduleDependency);
+        modulesMap.put(dependency.getResultId(), moduleDependency);
     }
 
-    public void done(ResolvedConfigurationIdentifier root) {
-        builder.done(root);
+    @Override
+    public void done(DependencyGraphNode root) {
+        builder.done(root.getResultId());
     }
 
-    public void addChild(ResolvedConfigurationIdentifier parent, ResolvedConfigurationIdentifier child, long artifactSet) {
-        builder.parentChildMapping(parent, child, artifactSet);
+    @Override
+    public void addChild(DependencyGraphNode parent, DependencyGraphNode child, long artifactsId) {
+        builder.parentChildMapping(parent.getResultId(), child.getResultId(), artifactsId);
     }
 
-    public void newResolvedDependency(ResolvedConfigurationIdentifier id) {
-        builder.resolvedDependency(id);
+    @Override
+    public void newResolvedDependency(DependencyGraphNode node) {
+        builder.resolvedDependency(node.getResultId(), node.getNodeId());
     }
 
     @Override

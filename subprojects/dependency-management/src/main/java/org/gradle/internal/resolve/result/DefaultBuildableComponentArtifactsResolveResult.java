@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.component.model;
 
-public class DefaultComponentUsage implements ComponentUsage {
-    private final String configurationName;
+package org.gradle.internal.resolve.result;
 
-    public DefaultComponentUsage(String configurationName) {
-        this.configurationName = configurationName;
-    }
+import org.gradle.internal.component.model.ComponentArtifacts;
+import org.gradle.internal.resolve.ArtifactResolveException;
 
-    public String getConfigurationName() {
-        return configurationName;
-    }
-
-    @Override
-    public String toString() {
-        return "artifacts for configuration '" + configurationName + "'";
-    }
+public class DefaultBuildableComponentArtifactsResolveResult extends DefaultBuildableTypedResolveResult<ComponentArtifacts, ArtifactResolveException> implements BuildableComponentArtifactsResolveResult {
 }

@@ -18,7 +18,7 @@ package org.gradle.performance.plugin;
 
 import org.gradle.BuildResult;
 import org.gradle.api.Project;
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildRequestMetaData;
 
 import java.io.File;
@@ -26,9 +26,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 
+import static org.gradle.performance.plugin.ReflectionUtil.*;
+
+
 public class BuildEventTimeStamps {
     private static long settingsEvaluatedTimestampIfNotAvailable;
     private static long configurationEndTimestamp;
+    private static boolean useBuildTimeClock = true;
 
     public static void settingsEvaluated() {
         settingsEvaluatedTimestampIfNotAvailable = System.nanoTime();
@@ -73,7 +77,21 @@ public class BuildEventTimeStamps {
     }
 
     private static long resolveBuildTime(BuildResult buildResult) {
-        GradleInternal gradleInternal = (GradleInternal) buildResult.getGradle();
-        return gradleInternal.getServices().get(BuildRequestMetaData.class).getBuildTimeClock().getTimeInMs();
+        if (!useBuildTimeClock) {
+            return 0;
+        }
+        try {
+            return getService(buildResult.getGradle(), BuildRequestMetaData.class).getBuildTimeClock().getTimeInMs();
+        } catch (Exception e) {
+            System.err.println("Exception in getting build time " + e.getMessage());
+            useBuildTimeClock = false;
+            return 0;
+        }
+    }
+
+    // Use reflection to get services because internal API is not the same in older versions
+    private static <T> T getService(Gradle gradle, Class<T> serviceType) {
+        Object serviceFactory = invokeMethod(gradle, findMethodByName(gradle.getClass(), "getServices"));
+        return (T) invokeMethod(serviceFactory, findMethod(serviceFactory.getClass(), "get", Class.class), serviceType);
     }
 }

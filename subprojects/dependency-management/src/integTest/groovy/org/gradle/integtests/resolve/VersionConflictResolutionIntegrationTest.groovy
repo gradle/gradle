@@ -722,6 +722,6 @@ task checkDeps(dependsOn: configurations.compile) << {
         runAndFail "resolve"
 
         then:
-        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy(":broken:12 > org:c:1.0")
+        failure.assertResolutionFailure(":conf").assertFailedDependencyRequiredBy("project : > org:c:1.0")
     }
 }

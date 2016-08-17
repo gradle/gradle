@@ -52,45 +52,13 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             h2().text(String.format("Test: %s", testHistory.getDisplayName())).end();
             text(getReproductionInstructions(testHistory));
 
-            h3().text("Average total time").end();
-            div().id("totalTimeChart").classAttr("chart");
-                p().text("Loading...").end();
-                script();
-                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.totalTime }, 'total time', 's', 'totalTimeChart');");
-                end();
-            end();
-
-            h3().text("Average configuration time").end();
-            div().id("configurationTimeChart").classAttr("chart");
-                p().text("Loading...").end();
-                script();
-                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.configurationTime }, 'configuration time', 's', 'configurationTimeChart');");
-                end();
-            end();
-
-            h3().text("Average execution time").end();
-            div().id("executionTimeChart").classAttr("chart");
-                p().text("Loading...").end();
-                script();
-                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.executionTime }, 'execution time', 's', 'executionTimeChart');");
-                end();
-            end();
-
-            h3().text("Average setup/teardown time").end();
-            div().id("miscTimeChart").classAttr("chart");
-                p().text("Loading...").end();
-                script();
-                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.miscTime }, 'setup/teardown time', 's', 'miscTimeChart');");
-                end();
-            end();
-
-            h3().text("Average heap usage").end();
-            div().id("heapUsageChart").classAttr("chart");
-                p().text("Loading...").end();
-                script();
-                    text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data.heapUsage }, 'heap usage', 'mb', 'heapUsageChart');");
-                end();
-            end();
+            addPerformanceGraph("Average total time", "totalTimeChart", "totalTime", "total time", "s");
+            addPerformanceGraph("Average configuration time", "configurationTimeChart", "configurationTime", "configuration time", "s");
+            addPerformanceGraph("Average execution time", "executionTimeChart", "executionTime", "execution time", "s");
+            addPerformanceGraph("Average setup/teardown time", "miscTimeChart", "miscTime", "setup/teardown time", "s");
+            addPerformanceGraph("Average heap usage", "heapUsageChart", "heapUsage", "heap usage", "mb");
+            addPerformanceGraph("Average compile cpu time", "compileTotalTimeChart", "compileTotalTime", "compile cpu time", "s");
+            addPerformanceGraph("Average GC cpu time", "gcTotalTimeChart", "gcTotalTime", "GC cpu time", "s");
 
             div().id("tooltip").end();
             div().id("controls").end();
@@ -124,6 +92,8 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average build time").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average configuration time").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average execution time").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average compile cpu time").end();
+            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average gc cpu time").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average heap usage (old measurement)").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average total heap usage").end();
             th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average max heap usage").end();
@@ -151,7 +121,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             end();
             for (PerformanceTestExecution results : testHistory.getExecutions()) {
                 tr();
-                textCell(format.timestamp(new Date(results.getTestTime())));
+                textCell(format.timestamp(new Date(results.getStartTime())));
                 textCell(results.getVcsBranch());
 
                 td();
@@ -178,6 +148,16 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                         return original.getExecutionTime();
+                    }
+                });
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                    public DataSeries<Duration> transform(MeasuredOperationList original) {
+                        return original.getCompileTotalTime();
+                    }
+                });
+                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                    public DataSeries<Duration> transform(MeasuredOperationList original) {
+                        return original.getGcTotalTime();
                     }
                 });
                 renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
@@ -219,7 +199,18 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             end();
             footer(this);
             endAll();
-        }};
+        }
+
+            private void addPerformanceGraph(String heading, String chartId, String jsonFieldName, String fieldLabel, String fieldUnit) {
+                h3().text(heading).end();
+                div().id(chartId).classAttr("chart");
+                p().text("Loading...").end();
+                script();
+                text("performanceTests.createPerformanceGraph('" + testHistory.getId() + ".json', function(data) { return data." + jsonFieldName + "}, '" + fieldLabel + "', '" + fieldUnit + "', '" + chartId + "');");
+                end();
+                end();
+            }
+        };
     }
 
     private String getReproductionInstructions(PerformanceTestHistory history) {
@@ -234,7 +225,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             + Joiner.on(' ').join(cleanTasks)
             + " "
             + Joiner.on(' ').join(templates)
-            + " cleanPerformanceTest performanceTest --scenarios "
+            + " cleanPerformanceAdHocTest performanceAdHocTest --scenarios "
             + "'" + history.getDisplayName() + "'"
             + " -x prepareSamples";
     }

@@ -17,24 +17,24 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result
 
 import org.gradle.api.artifacts.component.ModuleComponentSelector
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyResult
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.serialize.InputStreamBackedDecoder
 import org.gradle.internal.serialize.OutputStreamBackedEncoder
 import spock.lang.Specification
 
-import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
 
-class InternalDependencyResultSerializerTest extends Specification {
+class DependencyResultSerializerTest extends Specification {
 
-    def serializer = new InternalDependencyResultSerializer()
+    def serializer = new DependencyResultSerializer()
 
     def "serializes successful dependency result"() {
-        def successful = Mock(InternalDependencyResult) {
+        def successful = Mock(DependencyResult) {
             getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
             getFailure() >> null
-            getSelected() >> newId("org", "foo", "1.0")
+            getSelected() >> 12L
             getReason() >> VersionSelectionReasons.REQUESTED
         }
 
@@ -48,14 +48,14 @@ class InternalDependencyResultSerializerTest extends Specification {
         then:
         out.requested == DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
         out.failure == null
-        out.selected == newId("org", "foo", "1.0")
+        out.selected == 12L
     }
 
     def "serializes failed dependency result"() {
         ModuleComponentSelector requested = DefaultModuleComponentSelector.newSelector("x", "y", "1.0")
         def failure = new ModuleVersionResolveException(newSelector("x", "y", "1.2"), new RuntimeException("Boo!"))
 
-        def failed = Mock(InternalDependencyResult) {
+        def failed = Mock(DependencyResult) {
             getRequested() >> requested
             getFailure() >> failure
             getSelected() >> null

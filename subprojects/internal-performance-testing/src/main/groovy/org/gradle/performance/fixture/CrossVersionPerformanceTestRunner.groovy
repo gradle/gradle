@@ -97,7 +97,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId],
-            testTime: System.currentTimeMillis())
+            startTime: System.currentTimeMillis())
 
         LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions)
 
@@ -109,6 +109,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
 
         runVersion(current, workingDir, results.current)
+
+        results.endTime = System.currentTimeMillis()
 
         results.assertEveryBuildSucceeds()
 
@@ -124,7 +126,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
         def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def baselineVersions = new LinkedHashSet()
+        def baselineVersions = new LinkedHashSet<String>()
         Set<String> overridenTargetVersions = Splitter.on(COMMA_OR_SEMICOLON)
             .omitEmptyStrings()
             .splitToList(System.getProperty('org.gradle.performance.baselines','').replace('defaults', targetVersions.join(',')))
@@ -139,13 +141,26 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                     // These are all treated specially below
                     continue
                 }
-                baselineVersions.add(findRelease(releases, version).version.version)
+                def releasedVersion = findRelease(releases, version)
+                if (releasedVersion) {
+                    baselineVersions.add(releasedVersion.version.version)
+                } else if (GradleVersion.version(version).snapshot) {
+                    // for snapshots, we don't have a cheap way to check if it really exists, so we'll just
+                    // blindly add it to the list and trust the test author
+                    baselineVersions.add(version)
+                } else {
+                    throw new RuntimeException("Cannot find Gradle release that matches version '$version'")
+                }
+
             }
-            if (!targetVersions.contains('nightly')) {
-                // Include the most recent final release if we're not testing against a nightly
-                baselineVersions.add(mostRecentFinalRelease)
-            } else {
-                baselineVersions.add(mostRecentSnapshot)
+            if (baselineVersions.collect { !GradleVersion.version(it).snapshot }.every { it } ) {
+                // if we didn't add any snapshot version to the baselines, look at adding the latest release or snapshot
+                if (!targetVersions.contains('nightly')) {
+                    // Include the most recent final release if we're not testing against a nightly
+                    baselineVersions.add(mostRecentFinalRelease)
+                } else {
+                    baselineVersions.add(mostRecentSnapshot)
+                }
             }
         }
         baselineVersions
@@ -161,10 +176,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 best = release
             }
         }
-        if (best != null) {
-            return best
-        }
-        throw new RuntimeException("Cannot find Gradle release that matches version '" + requested + "'")
+
+        best
     }
 
     private void runVersion(GradleDistribution dist, File workingDir, MeasuredOperationList results) {
