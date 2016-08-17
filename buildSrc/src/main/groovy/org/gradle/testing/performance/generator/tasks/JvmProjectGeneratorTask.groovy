@@ -20,7 +20,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFiles
 import org.gradle.testing.performance.generator.*
 
-class JvmProjectGeneratorTask extends ProjectGeneratorTask {
+class JvmProjectGeneratorTask extends AbstractProjectGeneratorTask {
     boolean groovyProject
     boolean scalaProject
     boolean createTestComponent = true

@@ -34,7 +34,7 @@ import org.gradle.testing.performance.generator.*
  * to build multiple components where none/some/a lot of the source files are shared between components
  * in a way that doesn't allow us to reuse the compilation steps (we don't do this now).
  */
-class MonolithicNativeProjectGeneratorTask extends ProjectGeneratorTask {
+class MonolithicNativeProjectGeneratorTask extends AbstractProjectGeneratorTask {
 
     def generateRootProject() {
         super.generateRootProject()
