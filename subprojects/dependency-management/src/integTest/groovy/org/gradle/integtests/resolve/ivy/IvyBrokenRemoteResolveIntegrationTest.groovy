@@ -71,6 +71,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from multiple missing modules"() {
@@ -120,6 +126,12 @@ Required by:
         moduleA.jar.expectGet()
         moduleB.ivy.expectGet()
         moduleB.jar.expectGet()
+
+        then:
+        succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds('showMissing')
@@ -201,6 +213,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from missing module when dependency declaration references an artifact"() {
@@ -239,6 +257,12 @@ Required by:
         server.resetExpectations()
         module.ivy.expectGet()
         artifact.expectGet()
+
+        then:
+        succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds('showMissing')
@@ -289,6 +313,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from missing module when no repositories defined"() {
@@ -315,6 +345,12 @@ task showMissing << { println configurations.missing.files }
 
         module.ivy.expectGet()
         module.jar.expectGet()
+
+        then:
+        succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds('showMissing')
@@ -352,6 +388,12 @@ task showBroken << { println configurations.broken.files }
         server.resetExpectations()
         module.ivy.expectGet()
         module.jar.expectGet()
+
+        then:
+        succeeds("showBroken")
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds("showBroken")
@@ -433,6 +475,13 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         module.jar.expectGet()
+
+        then:
+        succeeds "retrieve"
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds "retrieve"
