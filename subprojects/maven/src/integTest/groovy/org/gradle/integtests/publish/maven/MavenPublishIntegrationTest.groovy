@@ -60,7 +60,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = mavenRepo.module('group', 'root', 1.0)
+        def module = mavenRepo.module('group', 'root', '1.0')
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.pom')
     }
 
@@ -157,7 +157,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = mavenRepo.module('group', 'root', 1.0)
+        def module = mavenRepo.module('group', 'root', '1.0')
         module.assertPublished()
         module.assertArtifactsPublished('root-1.0.pom', 'root-1.0-source.jar')
     }
@@ -197,7 +197,7 @@ uploadArchives {
         def replacements = file("build/replacements")
         replacements.assertHasDescendants('root-1.0.jar')
 
-        def module = mavenRepo.module('group', 'root', 1.0)
+        def module = mavenRepo.module('group', 'root', '1.0')
         module.assertPublished()
         module.assertArtifactsPublished('root-1.0.pom', 'root-1.0.jar')
 
@@ -252,7 +252,7 @@ uploadArchives {
         succeeds 'uploadArchives'
 
         then:
-        def module = mavenRepo.module('group', 'root', 1.0)
+        def module = mavenRepo.module('group', 'root', '1.0')
         module.assertArtifactsPublished('root-1.0.jar', 'root-1.0.jar.sig', 'root-1.0.pom', 'root-1.0.pom.sig')
     }
 
