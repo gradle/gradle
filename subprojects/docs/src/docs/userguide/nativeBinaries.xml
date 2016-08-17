@@ -262,6 +262,59 @@
                 This allows you to run the executable without needing to install the shared libraries in their final locations.
             </para>
         </section>
+
+        <section id="sec:check_tasks">
+            <title>Check tasks</title>
+            <para>
+                For each <apilink class="org.gradle.nativeplatform.NativeBinarySpec"/> that can be produced by a build,
+                a single <firstterm>check task</firstterm> is constructed that can be used to assemble and check that binary.
+            </para>
+            <table>
+                <thead>
+                    <tr>
+                        <td>Component Type</td>
+                        <td>Native Binary Type</td>
+                        <td>Check task</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><apilink class="org.gradle.nativeplatform.NativeExecutableSpec"/></td>
+                    <td><apilink class="org.gradle.nativeplatform.NativeExecutableBinarySpec"/></td>
+                    <td><literal>check<replaceable>${component.name}</replaceable>Executable</literal></td>
+                </tr>
+                <tr>
+                    <td><apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/></td>
+                    <td><apilink class="org.gradle.nativeplatform.SharedLibraryBinarySpec"/></td>
+                    <td><literal>check<replaceable>${component.name}</replaceable>SharedLibrary</literal></td>
+                </tr>
+                <tr>
+                    <td><apilink class="org.gradle.nativeplatform.NativeLibrarySpec"/></td>
+                    <td><apilink class="org.gradle.nativeplatform.StaticLibraryBinarySpec"/></td>
+                    <td><literal>check<replaceable>${component.name}</replaceable>StaticLibrary</literal></td>
+                </tr>
+            </table>
+            <para>
+                The project lifecycle <literal>check</literal> task depends on all these binaries <firstterm>check tasks</firstterm>.
+                By default, the latter depend only on the respective binaries <firstterm>lifecyle task</firstterm>, see <xref linkend="sec:native_tasks"/>.
+            </para>
+            <para>
+                <link linkend="native_binaries:cunit">CUnit</link> or <link linkend="native_binaries:google_test">GoogleTest</link> test suites that
+                targets a component are automatically wired to binaries under test <firstterm>check tasks</firstterm>.
+                In other words, the <firstterm>check task</firstterm> of a binary under test depends on the task that runs the corresponding test suite.
+            </para>
+            <para>
+                You can also add your custom check tasks as follows:
+            </para>
+            <sample id="nativeComponentCustomCheck" dir="native-binaries/custom-check" title="Adding a custom check task" includeLocation="true">
+                <sourcefile file="build.gradle" snippet="custom-check"/>
+            </sample>
+            <para>
+                Now, running <literal>check</literal> or any of the <literal>hello</literal> binaries <firstterm>check task</firstterm> will run the custom check task:
+            </para>
+            <sample id="nativeComponentCustomCheckOutput" dir="native-binaries/custom-check" title="Running checks for a given binary">
+                <output args="checkHelloSharedLibrary"/>
+            </sample>
+        </section>
     </section>
 
     <section id="sec:finding_out_more_about_your_project">
