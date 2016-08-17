@@ -272,7 +272,7 @@ Util build type: RELEASE
         installation(sourcesetVariant.dir.file("build/install/main")).exec().out.contains("Attributes of '$platformName' platform")
     }
 
-    def "custom-check"() {
+    def customcheck() {
         given:
         sample customCheck
 
