@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
-import java.util.Iterator;
-import java.util.Map;
-
-interface TaskFilePropertyCompareStrategy {
-    Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType);
-    void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots);
+public interface NormalizedFileSnapshot extends Comparable<NormalizedFileSnapshot> {
+    String getNormalizedPath();
+    IncrementalFileSnapshot getSnapshot();
+    void appendToCacheKey(TaskCacheKeyBuilder hasher);
 }

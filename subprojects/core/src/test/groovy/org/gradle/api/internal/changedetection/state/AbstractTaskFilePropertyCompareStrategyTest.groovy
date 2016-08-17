@@ -19,19 +19,21 @@ package org.gradle.api.internal.changedetection.state
 import com.google.common.collect.Lists
 import org.gradle.api.internal.changedetection.rules.ChangeType
 import org.gradle.api.internal.changedetection.rules.FileChange
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.DefaultNormalizedFileSnapshot
 import spock.lang.Specification
 
 abstract class AbstractTaskFilePropertyCompareStrategyTest extends Specification {
 
-    def changes(TaskFilePropertyCompareStrategy strategy, Map<String, IncrementalFileSnapshot> current, Map<String, IncrementalFileSnapshot> previous) {
-        Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test"))
+    def changes(TaskFilePropertyCompareStrategy strategy, Collection<NormalizedFileSnapshot> current, Collection<NormalizedFileSnapshot> previous) {
+        Lists.newArrayList(strategy.iterateContentChangesSince(current.collectEntries { [it.normalizedPath, it] }, previous.collectEntries { [it.normalizedPath, it] }, "test"))
     }
 
-    def snapshot(boolean contentUpToDate = true) {
-        return Mock(IncrementalFileSnapshot) {
-            isContentUpToDate(_) >> { contentUpToDate }
-            isContentAndMetadataUpToDate(_) >> { contentUpToDate }
-        }
+    def snapshot(String normalizedPath, boolean contentUpToDate = true) {
+        return new DefaultNormalizedFileSnapshot(normalizedPath,
+            Mock(IncrementalFileSnapshot) {
+                isContentUpToDate(_) >> { contentUpToDate }
+                isContentAndMetadataUpToDate(_) >> { contentUpToDate }
+            })
     }
 
     def change(String path, ChangeType type) {

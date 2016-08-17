@@ -33,11 +33,11 @@ public enum TaskFilePropertyCompareType implements TaskFilePropertyCompareStrate
         this.strategy = strategy;
     }
 
-    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, IncrementalFileSnapshot> current, Map<String, IncrementalFileSnapshot> previous, String fileType) {
+    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType) {
         return strategy.iterateContentChangesSince(current, previous, fileType);
     }
 
-    public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, IncrementalFileSnapshot> snapshots) {
+    public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots) {
         strategy.appendToCacheKey(builder, snapshots);
     }
 }

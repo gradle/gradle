@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.api.internal.changedetection.state.PathSensitive;
+import org.gradle.api.internal.changedetection.state.PathSensitivity;
 
-import java.util.Iterator;
-import java.util.Map;
-
-interface TaskFilePropertyCompareStrategy {
-    Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType);
-    void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots);
+public class PropertyAnnotationUtils {
+    public static PathSensitivity getPathSensitivity(TaskPropertyActionContext context) {
+        PathSensitive sensitivity = context.getAnnotation(PathSensitive.class);
+        return sensitivity != null
+            ? sensitivity.value()
+            : PathSensitivity.ABSOLUTE;
+    }
 }

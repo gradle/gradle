@@ -28,7 +28,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.changedetection.state.PathSensitivity;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -237,10 +239,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     private interface CompositePropertySpec extends TaskPropertySpec, Iterable<TaskOutputFilePropertySpec> {
         OutputType getOutputType();
+        TaskFilePropertyPathSensitivityType getPathSensitivity();
     }
 
     abstract private class BasePropertySpec extends AbstractTaskPropertyBuilder implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
         private boolean optional;
+        private TaskFilePropertyPathSensitivityType pathSensitivity = TaskFilePropertyPathSensitivityType.ABSOLUTE;
 
         @Override
         public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
@@ -260,6 +264,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         @Override
         public TaskOutputFilePropertyBuilder optional(boolean optional) {
             this.optional = optional;
+            return this;
+        }
+
+        public TaskFilePropertyPathSensitivityType getPathSensitivity() {
+            return pathSensitivity;
+        }
+
+        @Override
+        public TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
+            this.pathSensitivity = TaskFilePropertyPathSensitivityType.valueOf(sensitivity);
             return this;
         }
 
@@ -445,6 +459,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         @Override
         public TaskFilePropertyCompareType getCompareType() {
             return OUTPUT;
+        }
+
+        @Override
+        public TaskFilePropertyPathSensitivityType getPathSensitivity() {
+            return parentProperty.getPathSensitivity();
         }
 
         @Override

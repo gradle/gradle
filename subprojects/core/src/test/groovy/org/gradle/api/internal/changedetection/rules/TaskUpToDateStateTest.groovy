@@ -25,6 +25,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -127,7 +128,8 @@ class TaskUpToDateStateTest extends Specification {
             return new PropertySpec(
                 propertyName: entry.key,
                 propertyFiles: new SimpleFileCollection([new File(entry.value)]),
-                compareType: TaskFilePropertyCompareType.UNORDERED
+                compareType: TaskFilePropertyCompareType.UNORDERED,
+                pathSensitivity: TaskFilePropertyPathSensitivityType.ABSOLUTE
             )
         } as SortedSet
     }
@@ -136,6 +138,7 @@ class TaskUpToDateStateTest extends Specification {
         String propertyName
         FileCollection propertyFiles
         TaskFilePropertyCompareType compareType
+        TaskFilePropertyPathSensitivityType pathSensitivity
 
         @Override
         int compareTo(TaskPropertySpec o) {

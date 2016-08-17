@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.DefaultNormalizedFileSnapshot
 import org.gradle.internal.serialize.SerializerSpec
 
 class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
@@ -29,26 +30,32 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
         when:
         def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
-            "1": DirSnapshot.getInstance(),
-            "2": MissingFileSnapshot.getInstance(),
-            "3": new FileHashSnapshot(hash)], TaskFilePropertyCompareType.UNORDERED), serializer)
+            "/1": new DefaultNormalizedFileSnapshot("1", DirSnapshot.getInstance()),
+            "/2": new DefaultNormalizedFileSnapshot("2", MissingFileSnapshot.getInstance()),
+            "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash))
+        ], TaskFilePropertyCompareType.UNORDERED), serializer)
 
         then:
         out.snapshots.size() == 3
-        out.snapshots['1'] instanceof DirSnapshot
-        out.snapshots['2'] instanceof MissingFileSnapshot
-        ((FileHashSnapshot) out.snapshots['3']).hash == hash
+        out.snapshots['/1'].normalizedPath == "1"
+        out.snapshots['/1'].snapshot instanceof DirSnapshot
+        out.snapshots['/2'].normalizedPath == "2"
+        out.snapshots['/2'].snapshot instanceof MissingFileSnapshot
+        out.snapshots['/3'].normalizedPath == "3"
+        out.snapshots['/3'].snapshot instanceof FileHashSnapshot
+        out.snapshots['/3'].snapshot.hash == hash
     }
 
     def "should retain order in serialization"() {
         when:
         def hash = Hashing.md5().hashString("foo", Charsets.UTF_8)
         DefaultFileCollectionSnapshot out = serialize(new DefaultFileCollectionSnapshot([
-            "3": DirSnapshot.getInstance(),
-            "2": MissingFileSnapshot.getInstance(),
-            "1": new FileHashSnapshot(hash)], TaskFilePropertyCompareType.ORDERED), serializer)
+            "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash)),
+            "/2": new DefaultNormalizedFileSnapshot("2", MissingFileSnapshot.getInstance()),
+            "/1": new DefaultNormalizedFileSnapshot("1", DirSnapshot.getInstance())
+        ], TaskFilePropertyCompareType.ORDERED), serializer)
 
         then:
-        out.snapshots.keySet() as List == ['3', '2', '1']
+        out.snapshots.keySet() as List == ['/3', '/2', '/1']
     }
 }

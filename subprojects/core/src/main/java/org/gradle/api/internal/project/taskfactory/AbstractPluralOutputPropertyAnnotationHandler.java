@@ -19,6 +19,7 @@ package org.gradle.api.internal.project.taskfactory;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
 import org.gradle.internal.Cast;
 
 import java.io.File;
@@ -27,6 +28,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.project.taskfactory.PropertyAnnotationUtils.getPathSensitivity;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.util.GUtil.uncheckedCall;
 
@@ -43,11 +45,13 @@ public abstract class AbstractPluralOutputPropertyAnnotationHandler extends Abst
 
     @Override
     protected void update(final TaskPropertyActionContext context, final TaskInternal task, final Callable<Object> futureValue) {
+        TaskOutputFilePropertyBuilder propertyBuilder;
         if (Map.class.isAssignableFrom(context.getType())) {
-            task.getOutputs().namedFiles(Cast.<Callable<Map<?, ?>>>uncheckedCast(futureValue));
+            propertyBuilder = task.getOutputs().namedFiles(Cast.<Callable<Map<?, ?>>>uncheckedCast(futureValue));
         } else {
-            task.getOutputs().files(futureValue);
+            propertyBuilder = task.getOutputs().files(futureValue);
         }
+        propertyBuilder.withPathSensitivity(getPathSensitivity(context));
         task.prependParallelSafeAction(new Action<Task>() {
             public void execute(Task task) {
                 for (File file : toFiles(uncheckedCall(futureValue))) {

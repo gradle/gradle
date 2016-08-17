@@ -16,13 +16,28 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+/**
+ * Enumeration of different file path handling strategies for task properties.
+ *
+ * @see PathSensitive
+ */
+public enum PathSensitivity {
+    /**
+     * Consider the full path of files.
+     */
+    ABSOLUTE,
+    /**
+     * Consider the path for each file relative to the root it was included via.
+     */
+    RELATIVE,
 
-import java.util.Iterator;
-import java.util.Map;
+    /**
+     * Consider only the name of files.
+     */
+    NAME_ONLY,
 
-interface TaskFilePropertyCompareStrategy {
-    Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType);
-    void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots);
+    /**
+     * Ignore file paths altogether.
+     */
+    NONE
 }

@@ -42,12 +42,12 @@ public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter
     }
 
     @Override
-    protected void visitFiles(FileCollection input, List<FileTreeElement> fileTreeElements, List<File> missingFiles) {
+    protected void visitFiles(FileCollection input, List<FileTreeElement> fileTreeElements, List<FileTreeElement> missingFiles) {
         for (File file : input.getFiles()) {
             if (file.exists()) {
                 fileTreeElements.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
             } else {
-                missingFiles.add(file);
+                missingFiles.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
             }
         }
     }

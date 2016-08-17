@@ -18,6 +18,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.changedetection.state.PathSensitivity;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.util.Map;
@@ -67,6 +68,12 @@ public interface TaskInputFilePropertyBuilder extends TaskPropertyBuilder, TaskI
      * Sets whether the order of the files is relevant when observing this property.
      */
     TaskInputFilePropertyBuilder orderSensitive(boolean orderSensitive);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 
     /**
      * {@inheritDoc}
