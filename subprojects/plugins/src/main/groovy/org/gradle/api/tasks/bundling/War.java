@@ -31,6 +31,7 @@ import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 /**
@@ -65,20 +66,20 @@ public class War extends Jar {
         webInf.into("classes", new Action<CopySpec>() {
             @Override
             public void execute(CopySpec copySpec) {
-                copySpec.from(new Callable<FileCollection>() {
-                    public FileCollection call() {
+                copySpec.from(new Callable<Object>() {
+                    public Object call() {
                         FileCollection classpath = getClasspath();
-                        return classpath.filter(IS_DIRECTORY);
+                        return classpath != null ? classpath.filter(IS_DIRECTORY) : Collections.emptyList();
                     }
                 });
             }
         });
         webInf.into("lib", new Action<CopySpec>() {
             public void execute(CopySpec it) {
-                it.from(new Callable<FileCollection>() {
-                    public FileCollection call() {
+                it.from(new Callable<Object>() {
+                    public Object call() {
                         FileCollection classpath = getClasspath();
-                        return classpath.filter(IS_FILE);
+                        return classpath != null ? classpath.filter(IS_FILE) : Collections.emptyList();
                     }
                 });
             }
