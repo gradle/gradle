@@ -89,16 +89,17 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             table().classAttr("history");
             tr().classAttr("control-groups");
             th().colspan("3").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average build time").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average configuration time").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average execution time").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average compile cpu time").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average gc cpu time").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average heap usage (old measurement)").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average total heap usage").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average max heap usage").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average max uncollected heap").end();
-            th().colspan(String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples())).text("Average max committed heap").end();
+            final String colspanForField = String.valueOf(testHistory.getScenarioCount() * getColumnsForSamples());
+            th().colspan(colspanForField).text("Average build time").end();
+            th().colspan(colspanForField).text("Average configuration time").end();
+            th().colspan(colspanForField).text("Average execution time").end();
+            th().colspan(colspanForField).text("Average compile cpu time").end();
+            th().colspan(colspanForField).text("Average gc cpu time").end();
+            th().colspan(colspanForField).text("Average heap usage (old measurement)").end();
+            th().colspan(colspanForField).text("Average total heap usage").end();
+            th().colspan(colspanForField).text("Average max heap usage").end();
+            th().colspan(colspanForField).text("Average max uncollected heap").end();
+            th().colspan(colspanForField).text("Average max committed heap").end();
             th().colspan("8").text("Details").end();
             end();
             tr();
@@ -135,52 +136,53 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
                 }
                 end();
 
-                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                final List<MeasuredOperationList> scenarios = results.getScenarios();
+                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                         return original.getTotalTime();
                     }
                 });
-                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                         return original.getConfigurationTime();
                     }
                 });
-                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                         return original.getExecutionTime();
                     }
                 });
-                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                         return original.getCompileTotalTime();
                     }
                 });
-                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
+                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<Duration>, MeasuredOperationList>() {
                     public DataSeries<Duration> transform(MeasuredOperationList original) {
                         return original.getGcTotalTime();
                     }
                 });
-                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                         return original.getTotalMemoryUsed();
                     }
                 });
-                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                         return original.getTotalHeapUsage();
                     }
                 });
-                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                         return original.getMaxHeapUsage();
                     }
                 });
-                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                         return original.getMaxUncollectedHeap();
                     }
                 });
-                renderSamplesForExperiment(results.getScenarios(), new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
+                renderSamplesForExperiment(scenarios, new Transformer<DataSeries<DataAmount>, MeasuredOperationList>() {
                     public DataSeries<DataAmount> transform(MeasuredOperationList original) {
                         return original.getMaxCommittedHeap();
                     }
