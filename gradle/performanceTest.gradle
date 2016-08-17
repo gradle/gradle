@@ -182,12 +182,14 @@ task distributedPerformanceTest(type: DistributedPerformanceTest) {
     options {
         excludeCategories 'org.gradle.performance.categories.Experiment'
     }
+    checks = 'speed'
 }
 
 task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
     options {
         includeCategories 'org.gradle.performance.categories.Experiment'
     }
+    checks = 'speed'
 }
 
 task distributedFullPerformanceTest(type: DistributedPerformanceTest) {
