@@ -93,6 +93,7 @@ We would like to thank the following community members for making contributions 
 - [Stefan Neuhaus](https://github.com/stefanneuhaus) - Copy task: filesMatching and filesNotMatching should support multiple patterns
 - [Johnny Lim](https://github.com/izeye) - Fix typos in documentation for Maven Publishing plugin
 - [Vladislav Bauer](https://github.com/vbauer) - Update Gson library from 2.2.4 to 2.7
+- [Valdis Rigdon](https://github.com/valdisrigdon) - Support for preserving files in the destination dir for Sync task
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
