@@ -230,21 +230,6 @@ class AmountTest extends Specification {
         0.25  | 8   | 2
     }
 
-    def "can multiply amount by another amount of same quantity"() {
-        expect:
-        Amount.valueOf(valueA, unitsA) * Amount.valueOf(valueB, unitsB) == result
-
-        where:
-        valueA | unitsA        | valueB | unitsB           | result
-        0      | Fruit.apples  | 200    | Fruit.apples     | 0
-        2      | Fruit.apples  | 1      | Fruit.apples     | 2
-        5      | Fruit.apples  | 10     | Fruit.apples     | 50
-        10     | Fruit.apples  | -2     | Fruit.apples     | -20
-        0.25   | Fruit.apples  | 8      | Fruit.apples     | 2
-        4      | Fruit.apples  | 1.2    | Fruit.oranges    | 14.4
-        125    | Fruit.oranges | 2      | Fruit.grapefruit | 3750
-    }
-
     def "can convert to absolute value"() {
         expect:
         Amount.valueOf(12, Fruit.grapefruit).abs() == Amount.valueOf(12, Fruit.grapefruit)
