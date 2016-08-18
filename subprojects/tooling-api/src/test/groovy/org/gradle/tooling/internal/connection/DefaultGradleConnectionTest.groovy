@@ -29,7 +29,7 @@ class DefaultGradleConnectionTest extends Specification {
 
     def "can get model builder"() {
         expect:
-        connection.models(EclipseProject) instanceof DefaultCompositeModelBuilder
+        connection.models(EclipseProject) instanceof DefaultMultiModelBuilder
     }
 
     def "close stops all underlying connections"() {

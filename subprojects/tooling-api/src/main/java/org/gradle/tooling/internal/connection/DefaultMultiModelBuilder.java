@@ -33,39 +33,34 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperation<DefaultCompositeModelBuilder<T>> implements ModelBuilder<ModelResults<T>> {
+public class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<DefaultMultiModelBuilder<T>> implements ModelBuilder<ModelResults<T>> {
     private final Class<T> modelType;
     private final AsyncConsumerActionExecutor connection;
 
-    protected DefaultCompositeModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+    protected DefaultMultiModelBuilder(Class<T> modelType, AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
         super(parameters);
         this.modelType = modelType;
         this.connection = connection;
-        operationParamsBuilder.setEntryPoint("CompositeModelBuilder API");
+        operationParamsBuilder.setEntryPoint("MultiModelBuilder API");
         operationParamsBuilder.setRootDirectory(parameters.getProjectDir());
     }
 
     @Override
-    protected DefaultCompositeModelBuilder<T> getThis() {
+    protected DefaultMultiModelBuilder<T> getThis() {
         return this;
     }
 
-    public DefaultCompositeModelBuilder<T> forTasks(String... tasks) {
+    public DefaultMultiModelBuilder<T> forTasks(String... tasks) {
         return forTasks(Arrays.asList(tasks));
     }
 
     @Override
-    public DefaultCompositeModelBuilder<T> forTasks(Iterable<String> tasks) {
-        return unsupportedMethod();
-    }
-
-    @Override
-    public DefaultCompositeModelBuilder<T> setStandardInput(InputStream inputStream) {
-        return unsupportedMethod();
+    public DefaultMultiModelBuilder<T> forTasks(Iterable<String> tasks) {
+        operationParamsBuilder.setTasks(rationalizeInput(tasks));
+        return this;
     }
 
     @Override
@@ -114,10 +109,5 @@ public class DefaultCompositeModelBuilder<T> extends AbstractLongRunningOperatio
                 }
             }));
         }
-    }
-
-    private DefaultCompositeModelBuilder<T> unsupportedMethod() {
-        throw new UnsupportedOperationException(
-            "This is unsupported for composite models from GradleConnections at this time.");
     }
 }

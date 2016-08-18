@@ -47,7 +47,7 @@ public class DefaultGradleConnection implements GradleConnection {
     @Override
     public <T> ModelBuilder<ModelResults<T>> models(Class<T> modelType) {
         checkSupportedModelType(modelType);
-        return new DefaultCompositeModelBuilder<T>(modelType, asyncConnection, parameters);
+        return new DefaultMultiModelBuilder<T>(modelType, asyncConnection, parameters);
     }
 
     @Override
