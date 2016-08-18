@@ -71,7 +71,6 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = targetVersions
-        runner.targetVersions = ['2.11', 'last']
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
 
         when:
