@@ -38,7 +38,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testProject = testProject
         runner.tasksToRun = ['build']
         runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.14.1']
+        runner.targetVersions = ['3.0']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
 
