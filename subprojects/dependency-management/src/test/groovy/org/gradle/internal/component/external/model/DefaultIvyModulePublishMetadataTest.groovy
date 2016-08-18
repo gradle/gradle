@@ -17,10 +17,8 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
 
@@ -62,33 +60,5 @@ class DefaultIvyModulePublishMetadataTest extends Specification {
             configuration.visible >> true
             configuration.transitive >> true
         }
-    }
-
-    def "can add dependencies"() {
-        def dependency = Mock(DependencyMetadata)
-
-        given:
-        metadata.addConfiguration("configName", "configDescription", ["one", "two", "three"] as Set, ["one", "two", "three", "configName"] as Set, true, true, null)
-
-        and:
-        dependency.requested >> DefaultModuleVersionSelector.newSelector("group", "module", "version")
-        dependency.force >> true
-        dependency.changing >> true
-        dependency.transitive >> true
-        dependency.moduleConfigurations >> (["configName"] as String[])
-        dependency.getDependencyConfigurations("configName", "configName") >> (["dep1"] as String[])
-        dependency.artifacts >> ([] as Set)
-
-        when:
-        metadata.addDependency(dependency)
-
-        then:
-        metadata.moduleDescriptor.dependencies.size() == 1
-        def dependencyMetadata = metadata.moduleDescriptor.dependencies[0]
-        dependencyMetadata.force
-        dependencyMetadata.changing
-        dependencyMetadata.transitive
-        dependencyMetadata.confMappings == [configName: ["dep1"]]
-        dependencyMetadata.dependencyArtifacts.empty
     }
 }

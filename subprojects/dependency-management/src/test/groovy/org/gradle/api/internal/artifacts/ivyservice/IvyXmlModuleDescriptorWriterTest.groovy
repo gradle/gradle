@@ -19,10 +19,13 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.publisher.IvyXmlModuleDescriptorWriter
-import org.gradle.internal.component.external.descriptor.Dependency
 import org.gradle.internal.component.external.descriptor.IvyDependency
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
+import org.gradle.internal.component.external.model.BuildableIvyModulePublishMetadata
+import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetadata
+import org.gradle.internal.component.external.model.DefaultIvyModulePublishMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.model.DefaultDependencyMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -42,11 +45,14 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         addConfiguration(descriptor, "archives")
         addConfiguration(descriptor, "compile")
         addConfiguration(descriptor, "runtime", ["compile"])
-        addDependencyDescriptor(descriptor, "Dep1")
-        addDependencyDescriptor(descriptor, "Dep2")
-        descriptor.addArtifact(new DefaultIvyArtifactName("testartifact", "jar", "jar"), ["archives", "runtime"] as Set)
+        def metadata = new DefaultIvyModulePublishMetadata(id, descriptor)
+        addDependencyDescriptor(metadata, "Dep1")
+        addDependencyDescriptor(metadata, "Dep2")
+        metadata.addArtifact(new DefaultIvyModuleArtifactPublishMetadata(id, new DefaultIvyArtifactName("testartifact", "jar", "jar"), ["archives", "runtime"] as Set))
+
         File ivyFile = temporaryFolder.file("test/ivy/ivy.xml")
-        ivyXmlModuleDescriptorWriter.write(descriptor, ivyFile);
+        ivyXmlModuleDescriptorWriter.write(metadata, ivyFile);
+
         then:
         def ivyModule = new XmlSlurper().parse(ivyFile);
         assert ivyModule.@version == "2.0"
@@ -65,9 +71,10 @@ class IvyXmlModuleDescriptorWriterTest extends Specification {
         format.parse(timestamp)
     }
 
-    def addDependencyDescriptor(MutableModuleDescriptorState state, String organisation = "org.test", String moduleName, String revision = "1.0") {
-        Dependency dep = state.addDependency(new IvyDependency(DefaultModuleVersionSelector.newSelector(organisation, moduleName, revision)))
+    def addDependencyDescriptor(BuildableIvyModulePublishMetadata metadata, String organisation = "org.test", String moduleName, String revision = "1.0") {
+        def dep = new IvyDependency(DefaultModuleVersionSelector.newSelector(organisation, moduleName, revision))
         dep.addDependencyConfiguration("default", ["compile", "archives"])
+        metadata.addDependency(new DefaultDependencyMetadata(dep))
     }
 
     def addConfiguration(MutableModuleDescriptorState state, String configurationName, List extended = []) {

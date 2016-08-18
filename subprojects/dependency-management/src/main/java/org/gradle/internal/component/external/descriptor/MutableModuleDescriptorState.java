@@ -16,18 +16,14 @@
 
 package org.gradle.internal.component.external.descriptor;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 public class MutableModuleDescriptorState extends ModuleDescriptorState {
@@ -80,35 +76,5 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
     public <T extends Dependency> T addDependency(T dependency) {
         dependencies.add(dependency);
         return dependency;
-    }
-
-    public void addDependency(DependencyMetadata dependencyMetadata) {
-        IvyDependency dependency = new IvyDependency(
-            dependencyMetadata.getRequested(),
-            dependencyMetadata.getDynamicConstraintVersion(),
-            dependencyMetadata.isForce(),
-            dependencyMetadata.isChanging(),
-            dependencyMetadata.isTransitive());
-
-        // In reality, there will only be 1 module configuration and 1 matching dependency configuration
-        List<String> configurations = Lists.newArrayList(dependencyMetadata.getModuleConfigurations());
-        for (String moduleConfiguration : configurations) {
-            for (String dependencyConfiguration : dependencyMetadata.getDependencyConfigurations(moduleConfiguration, moduleConfiguration)) {
-                dependency.addDependencyConfiguration(moduleConfiguration, dependencyConfiguration);
-            }
-        }
-
-        for (IvyArtifactName artifactName : dependencyMetadata.getArtifacts()) {
-            dependency.addArtifact(artifactName, configurations);
-        }
-
-        List<Exclude> excludeRules = dependencyMetadata.getExcludes(Arrays.asList(dependencyMetadata.getModuleConfigurations()));
-        if (excludeRules != null) {
-            for (Exclude rule : excludeRules) {
-                dependency.addExcludeRule(rule);
-            }
-        }
-
-        dependencies.add(dependency);
     }
 }

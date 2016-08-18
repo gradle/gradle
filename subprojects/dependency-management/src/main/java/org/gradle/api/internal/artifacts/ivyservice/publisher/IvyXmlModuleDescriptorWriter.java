@@ -17,23 +17,22 @@
 package org.gradle.api.internal.artifacts.ivyservice.publisher;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.Dependency;
+import org.gradle.internal.component.external.descriptor.IvyDependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.external.model.DefaultIvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.xml.SimpleXmlWriter;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -52,29 +51,13 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     public static final String IVY_DATE_PATTERN = "yyyyMMddHHmmss";
 
     @Override
-    public void write(ModuleDescriptorState md, File output) {
-        final ModuleComponentIdentifier componentIdentifier = md.getComponentIdentifier();
-        List<IvyModuleArtifactPublishMetadata> ivyArtifacts = CollectionUtils.collect(md.getArtifacts(), new Transformer<IvyModuleArtifactPublishMetadata, Artifact>() {
-            @Override
-            public IvyModuleArtifactPublishMetadata transform(Artifact artifact) {
-                return new DefaultIvyModuleArtifactPublishMetadata(componentIdentifier, artifact.getArtifactName(), artifact.getConfigurations());
-            }
-        });
-        doWrite(md, ivyArtifacts, output);
-    }
-
-    @Override
-    public void write(ModuleDescriptorState descriptor, Collection<IvyModuleArtifactPublishMetadata> artifacts, File output) {
-        doWrite(descriptor, artifacts, output);
-    }
-
-    private void doWrite(ModuleDescriptorState descriptor, Collection<IvyModuleArtifactPublishMetadata> artifacts, File output) {
+    public void write(IvyModulePublishMetadata module, File output) {
         try {
             output.getParentFile().mkdirs();
             OutputStream outputStream = new FileOutputStream(output);
             try {
                 SimpleXmlWriter xmlWriter = new SimpleXmlWriter(outputStream, "  ");
-                writeTo(descriptor, artifacts, xmlWriter);
+                writeTo(module, xmlWriter);
                 xmlWriter.flush();
             } finally {
                 outputStream.close();
@@ -84,16 +67,17 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    private void writeTo(ModuleDescriptorState descriptor, Collection<IvyModuleArtifactPublishMetadata> artifacts, SimpleXmlWriter writer) throws IOException {
+    private void writeTo(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
         writer.startElement("ivy-module");
         writer.attribute("version", "2.0");
 
         writer.attribute("xmlns:" + IvyModulePublishMetadata.IVY_MAVEN_NAMESPACE_PREFIX, IvyModulePublishMetadata.IVY_MAVEN_NAMESPACE);
 
+        ModuleDescriptorState descriptor = metadata.getModuleDescriptor();
         printInfoTag(descriptor, writer);
         printConfigurations(descriptor, writer);
-        printPublications(artifacts, writer);
-        printDependencies(descriptor, writer);
+        printPublications(metadata.getArtifacts(), writer);
+        printDependencies(descriptor, metadata.getDependencies(), writer);
 
         writer.endElement();
     }
@@ -190,20 +174,48 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.endElement();
     }
 
-    private void printDependencies(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
-        List<Dependency> dds = descriptor.getDependencies();
-        if (dds.size() > 0) {
+    private void printDependencies(ModuleDescriptorState descriptor, Collection<DependencyMetadata> dependencies, SimpleXmlWriter writer) throws IOException {
+        if (dependencies.size() > 0) {
             writer.startElement("dependencies");
-            for (Dependency dd : dds) {
-                printDependency(descriptor, dd, writer);
+            for (DependencyMetadata dd : dependencies) {
+                printDependency(descriptor, toIvy(dd), writer);
             }
             printAllExcludes(descriptor, writer);
             writer.endElement();
         }
     }
 
-    protected void printDependency(ModuleDescriptorState descriptor, Dependency dep,
-                                   SimpleXmlWriter writer) throws IOException {
+    private IvyDependency toIvy(DependencyMetadata dependencyMetadata) {
+        IvyDependency dependency = new IvyDependency(
+            dependencyMetadata.getRequested(),
+            dependencyMetadata.getDynamicConstraintVersion(),
+            dependencyMetadata.isForce(),
+            dependencyMetadata.isChanging(),
+            dependencyMetadata.isTransitive());
+
+        // In reality, there will only be 1 module configuration and 1 matching dependency configuration
+        List<String> configurations = Lists.newArrayList(dependencyMetadata.getModuleConfigurations());
+        for (String moduleConfiguration : configurations) {
+            for (String dependencyConfiguration : dependencyMetadata.getDependencyConfigurations(moduleConfiguration, moduleConfiguration)) {
+                dependency.addDependencyConfiguration(moduleConfiguration, dependencyConfiguration);
+            }
+        }
+
+        for (IvyArtifactName artifactName : dependencyMetadata.getArtifacts()) {
+            dependency.addArtifact(artifactName, configurations);
+        }
+
+        List<Exclude> excludeRules = dependencyMetadata.getExcludes(Arrays.asList(dependencyMetadata.getModuleConfigurations()));
+        if (excludeRules != null) {
+            for (Exclude rule : excludeRules) {
+                dependency.addExcludeRule(rule);
+            }
+        }
+
+        return dependency;
+    }
+
+    protected void printDependency(ModuleDescriptorState descriptor, IvyDependency dep, SimpleXmlWriter writer) throws IOException {
         writer.startElement("dependency");
 
         ModuleVersionSelector requested = dep.getRequested();
@@ -233,7 +245,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.endElement();
     }
 
-    private String getConfMapping(Dependency dependency) {
+    private String getConfMapping(IvyDependency dependency) {
 
         Map<String, List<String>> configMappings = dependency.getConfMappings();
 

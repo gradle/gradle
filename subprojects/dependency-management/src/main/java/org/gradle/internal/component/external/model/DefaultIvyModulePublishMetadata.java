@@ -32,6 +32,7 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +41,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     private final ModuleComponentIdentifier id;
     private final MutableModuleDescriptorState descriptor;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
+    private final Set<DependencyMetadata> dependencies = new LinkedHashSet<DependencyMetadata>();
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
         this.id = id;
@@ -60,6 +62,11 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     @Override
+    public Collection<DependencyMetadata> getDependencies() {
+        return dependencies;
+    }
+
+    @Override
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
         List<String> sortedExtends = Lists.newArrayList(extendsFrom);
         Collections.sort(sortedExtends);
@@ -73,7 +80,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
 
     @Override
     public void addDependency(DependencyMetadata dependency) {
-        descriptor.addDependency(normalizeVersionForIvy(dependency));
+        dependencies.add(normalizeVersionForIvy(dependency));
     }
 
     /**
