@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
 import org.gradle.api.internal.tasks.TaskStateInternal;
@@ -36,17 +35,15 @@ import java.util.List;
 public class SkipUpToDateTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipUpToDateTaskExecuter.class);
     private final TaskExecuter executer;
-    private final TaskArtifactStateRepository repository;
 
-    public SkipUpToDateTaskExecuter(TaskArtifactStateRepository repository, TaskExecuter executer) {
+    public SkipUpToDateTaskExecuter(TaskExecuter executer) {
         this.executer = executer;
-        this.repository = repository;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
         LOGGER.debug("Determining if {} is up-to-date", task);
         Clock clock = new Clock();
-        TaskArtifactState taskArtifactState = repository.getStateFor(task);
+        TaskArtifactState taskArtifactState = context.getTaskArtifactState();
         try {
             List<String> messages = LOGGER.isInfoEnabled() ? new ArrayList<String>() : null;
             if (taskArtifactState.isUpToDate(messages)) {
@@ -57,7 +54,6 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
             logOutOfDateMessages(messages, task, clock.getTime());
 
             task.getOutputs().setHistory(taskArtifactState.getExecutionHistory());
-            context.setTaskArtifactState(taskArtifactState);
 
             taskArtifactState.beforeTask();
             try {
@@ -67,7 +63,6 @@ public class SkipUpToDateTaskExecuter implements TaskExecuter {
                 }
             } finally {
                 task.getOutputs().setHistory(null);
-                context.setTaskArtifactState(null);
             }
         } finally {
             taskArtifactState.finished();

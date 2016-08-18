@@ -17,8 +17,9 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
+import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
@@ -37,48 +38,56 @@ public class SkipEmptySourceFilesTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = Logging.getLogger(SkipEmptySourceFilesTaskExecuter.class);
     private final TaskInputsListener taskInputsListener;
     private final TaskExecuter executer;
-    private final TaskArtifactStateRepository repository;
 
-    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, TaskArtifactStateRepository repository, TaskExecuter executer) {
+    public SkipEmptySourceFilesTaskExecuter(TaskInputsListener taskInputsListener, TaskExecuter executer) {
         this.taskInputsListener = taskInputsListener;
         this.executer = executer;
-        this.repository = repository;
     }
 
     public void execute(TaskInternal task, TaskStateInternal state, TaskExecutionContext context) {
-        FileCollection sourceFiles = task.getInputs().getSourceFiles();
-        if (task.getInputs().getHasSourceFiles() && sourceFiles.isEmpty()) {
-            state.skipped("SKIPPED");
-            FileCollection outputFiles = repository.getStateFor(task).getExecutionHistory().getOutputFiles();
-            if(outputFiles.isEmpty()) {
-                LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
-            } else {
-                Set<File> outputFileSet = outputFiles.getFiles();
-                boolean deletedFiles = false;
-                for (File file : outputFileSet) {
-                    if(file.delete()) {
-                        if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Deleted stale output file '{}'.", file.getAbsolutePath());
-                        }
-                        deletedFiles = true;
-                    } else {
-                        if (LOGGER.isWarnEnabled()) {
-                            LOGGER.warn("Failed to delete stale output file '{}'.", file.getAbsolutePath());
+        TaskInputsInternal taskInputs = task.getInputs();
+        if (taskInputs.getHasSourceFiles()) {
+            FileCollection sourceFiles = taskInputs.getSourceFiles();
+            if (sourceFiles.isEmpty()) {
+                state.skipped("SKIPPED");
+                TaskArtifactState taskArtifactState = context.getTaskArtifactState();
+                FileCollection outputFiles = taskArtifactState.getExecutionHistory().getOutputFiles();
+                if (outputFiles.isEmpty()) {
+                    if (LOGGER.isInfoEnabled()) {
+                        LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
+                    }
+                } else {
+                    Set<File> outputFileSet = outputFiles.getFiles();
+                    boolean deletedFiles = false;
+                    for (File file : outputFileSet) {
+                        if (file.isFile()) {
+                            if (file.delete()) {
+                                if (LOGGER.isDebugEnabled()) {
+                                    LOGGER.debug("Deleted stale output file '{}'.", file.getAbsolutePath());
+                                }
+                                deletedFiles = true;
+                            } else {
+                                if (LOGGER.isWarnEnabled()) {
+                                    LOGGER.warn("Failed to delete stale output file '{}'.", file.getAbsolutePath());
+                                }
+                            }
                         }
                     }
+                    if (deletedFiles) {
+                        if (LOGGER.isInfoEnabled()) {
+                            LOGGER.info("Cleaned previous output of {} as it has no source files.", task);
+                        }
+                        // uncomment the line below if you think the info that previous output has been
+                        // cleaned vs. a simple SKIPPED is worthwhile.
+                        //state.skipped("CLEANED");
+                    }
                 }
-                if(deletedFiles) {
-                    LOGGER.info("Cleaned previous output of {} as it has no source files.", task);
-                    // uncomment the line below if you think the info that previous output has been
-                    // cleaned vs. a simple SKIPPED is worthwhile.
-                    //state.skipped("CLEANED");
-                }
+                taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
+                return;
             }
-            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
-            return;
-        } else {
-            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, task.getInputs().getFiles()));
         }
+
+        taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, taskInputs.getFiles()));
         executer.execute(task, state, context);
     }
 }
