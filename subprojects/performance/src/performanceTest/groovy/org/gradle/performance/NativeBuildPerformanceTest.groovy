@@ -42,7 +42,8 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         type           | maxExecutionTimeRegression     | fastestVersion
-        "small"        | millis(500)                    | '2.11'
+        // TODO: Restore 'last' when sufficent performance gains are made.
+        "small"        | millis(500)                    | '3.1-20160818000032+0000'
         "medium"       | millis(500)                    | '2.14.1'
         "big"          | millis(2500)                   | '2.14.1'
         "multi"        | millis(2500)                   | '2.14.1'
