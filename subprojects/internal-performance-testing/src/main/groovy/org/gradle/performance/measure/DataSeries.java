@@ -26,8 +26,10 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
     private final Amount<Q> average;
     private final Amount<Q> max;
     private final Amount<Q> min;
-    private final Amount<Q> stddev;
-    private final Amount<Q> sdom;
+    // https://en.wikipedia.org/wiki/Standard_error
+    private final Amount<Q> standardError;
+    // https://en.wikipedia.org/wiki/Standard_error#Standard_error_of_the_mean
+    private final Amount<Q> standardErrorOfMean;
 
     public DataSeries(Iterable<? extends Amount<Q>> values) {
         for (Amount<Q> value : values) {
@@ -40,8 +42,8 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
             average = null;
             max = null;
             min = null;
-            stddev = null;
-            sdom = null;
+            standardError = null;
+            standardErrorOfMean = null;
             return;
         }
 
@@ -71,8 +73,8 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
         // This isn't quite right, as we may lose precision when converting to a double
         BigDecimal result = BigDecimal.valueOf(Math.sqrt(sumSquares.divide(BigDecimal.valueOf(size()), BigDecimal.ROUND_HALF_UP).doubleValue())).setScale(2, BigDecimal.ROUND_HALF_UP);
 
-        stddev = Amount.valueOf(result, baseUnits);
-        sdom = stddev.div(BigDecimal.valueOf(Math.sqrt(size())));
+        standardError = Amount.valueOf(result, baseUnits);
+        standardErrorOfMean = standardError.div(BigDecimal.valueOf(Math.sqrt(size())));
     }
 
     public Amount<Q> getAverage() {
@@ -87,11 +89,11 @@ public class DataSeries<Q> extends ArrayList<Amount<Q>> {
         return max;
     }
 
-    public Amount<Q> getStddev() {
-        return stddev;
+    public Amount<Q> getStandardError() {
+        return standardError;
     }
 
-    public Amount<Q> getSdom() {
-        return sdom;
+    public Amount<Q> getStandardErrorOfMean() {
+        return standardErrorOfMean;
     }
 }

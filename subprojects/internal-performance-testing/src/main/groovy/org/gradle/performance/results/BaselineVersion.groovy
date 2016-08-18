@@ -92,7 +92,7 @@ class BaselineVersion implements VersionResults {
 
     Amount<Duration> getMaxExecutionTimeRegression(MeasuredOperationList current) {
         if (strict) {
-            (current.totalTime.sdom + results.totalTime.sdom) * 1.5
+            (current.totalTime.standardErrorOfMean + results.totalTime.standardErrorOfMean) * 1.5
         } else {
             maxExecutionTimeRegression
         }
@@ -100,7 +100,7 @@ class BaselineVersion implements VersionResults {
 
     Amount<DataAmount> getMaxMemoryRegression(MeasuredOperationList current) {
         if (strict) {
-            (current.totalMemoryUsed.sdom + results.totalMemoryUsed.sdom) * 1.5
+            (current.totalMemoryUsed.standardErrorOfMean + results.totalMemoryUsed.standardErrorOfMean) * 1.5
         } else {
             maxMemoryRegression
         }
