@@ -17,13 +17,10 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
 public interface BuildableIvyModulePublishMetadata extends IvyModulePublishMetadata, BuildableLocalComponentMetadata {
     void addArtifact(IvyArtifactName artifact, File file);
-
-    void addDependency(DependencyMetadata dependency);
 }

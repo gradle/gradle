@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -33,11 +35,12 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
-import org.gradle.internal.component.external.descriptor.IvyDependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -99,28 +102,31 @@ public class IvyModuleDescriptorConverter {
         ModuleRevisionId revisionId = dependencyDescriptor.getDependencyRevisionId();
         ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(revisionId.getOrganisation(), revisionId.getName(), revisionId.getRevision());
 
-        IvyDependency dep = state.addDependency(new IvyDependency(
+        ListMultimap<String, String> configMappings = ArrayListMultimap.create();
+        for (Map.Entry<String, List<String>> entry : readConfigMappings(dependencyDescriptor).entrySet()) {
+            configMappings.putAll(entry.getKey(), entry.getValue());
+        }
+
+        List<Artifact> artifacts = Lists.newArrayList();
+        for (DependencyArtifactDescriptor ivyArtifact : dependencyDescriptor.getAllDependencyArtifacts()) {
+            IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExt(), (String) ivyArtifact.getExtraAttributes().get(CLASSIFIER));
+            artifacts.add(new Artifact(ivyArtifactName, Sets.newHashSet(ivyArtifact.getConfigurations())));
+        }
+
+        List<Exclude> excludes = Lists.newArrayList();
+        for (ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
+            excludes.add(forIvyExclude(excludeRule));
+        }
+
+        state.addDependency(new IvyDependencyMetadata(
             requested,
             dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision(),
             false,
             dependencyDescriptor.isChanging(),
-            dependencyDescriptor.isTransitive()));
-
-        Map<String, List<String>> configMappings = readConfigMappings(dependencyDescriptor);
-        for (String from : configMappings.keySet()) {
-            for (String to : configMappings.get(from)) {
-                dep.addDependencyConfiguration(from, to);
-            }
-        }
-
-        for (DependencyArtifactDescriptor ivyArtifact : dependencyDescriptor.getAllDependencyArtifacts()) {
-            IvyArtifactName ivyArtifactName = new DefaultIvyArtifactName(ivyArtifact.getName(), ivyArtifact.getType(), ivyArtifact.getExt(), (String) ivyArtifact.getExtraAttributes().get(CLASSIFIER));
-            dep.addArtifact(ivyArtifactName, Sets.newHashSet(ivyArtifact.getConfigurations()));
-        }
-
-        for (ExcludeRule excludeRule : dependencyDescriptor.getAllExcludeRules()) {
-            dep.addExcludeRule(forIvyExclude(excludeRule));
-        }
+            dependencyDescriptor.isTransitive(),
+            configMappings,
+            artifacts,
+            excludes));
     }
 
     private static Exclude forIvyExclude(org.apache.ivy.core.module.descriptor.ExcludeRule excludeRule) {

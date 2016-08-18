@@ -16,17 +16,21 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.component.ComponentSelector;
 
-import java.util.Set;
+import java.util.List;
 
-public interface Exclude {
-    ModuleIdentifier getModuleId();
+/**
+ * A simplified dependency, that maps from a single module configuration to a single target configuration.
+ */
+public interface LocalOriginDependencyMetadata extends DependencyMetadata {
+    String getModuleConfiguration();
 
-    IvyArtifactName getArtifact();
+    String getDependencyConfiguration();
 
-    Set<String> getConfigurations();
+    List<Exclude> getExcludes();
 
-    String getMatcher();
+    LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion);
 
+    LocalOriginDependencyMetadata withTarget(ComponentSelector target);
 }

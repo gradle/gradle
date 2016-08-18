@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -34,7 +35,7 @@ public class ModuleDescriptorState {
     private final ModuleComponentIdentifier componentIdentifier;
     protected final Map<String, Configuration> configurations;
     protected final List<Exclude> excludes;
-    protected final List<Dependency> dependencies;
+    protected final List<DependencyMetadata> dependencies;
     private final List<Artifact> artifacts = Lists.newArrayList();
     private final String status;
     private final boolean generated;
@@ -126,7 +127,7 @@ public class ModuleDescriptorState {
         return newArtifact;
     }
 
-    public List<Dependency> getDependencies() {
+    public List<DependencyMetadata> getDependencies() {
         return dependencies;
     }
 

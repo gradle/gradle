@@ -15,7 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import org.apache.ivy.core.module.descriptor.Configuration;
 import org.apache.ivy.core.module.descriptor.Configuration.Visibility;
@@ -27,15 +29,16 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data.PomDe
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
+import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.DefaultExclude;
-import org.gradle.internal.component.external.descriptor.Dependency;
-import org.gradle.internal.component.external.descriptor.IvyDependency;
-import org.gradle.internal.component.external.descriptor.MavenDependency;
 import org.gradle.internal.component.external.descriptor.MavenScope;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.IvyDependencyMetadata;
+import org.gradle.internal.component.external.model.MavenDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.Collections;
@@ -104,62 +107,62 @@ public class GradlePomModuleDescriptorBuilder {
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
 
     interface ConfMapper {
-        void addMappingConfs(Dependency dd, boolean isOptional);
+        void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional);
     }
 
     static {
         MAVEN2_CONF_MAPPING.put(MavenScope.Compile, new ConfMapper() {
-            public void addMappingConfs(Dependency dd, boolean isOptional) {
+            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
                 if (isOptional) {
-                    dd.addDependencyConfiguration("optional", "compile(*)");
-                    dd.addDependencyConfiguration("optional", "master(*)");
+                    dd.put("optional", "compile(*)");
+                    dd.put("optional", "master(*)");
 
                 } else {
-                    dd.addDependencyConfiguration("compile", "compile(*)");
-                    dd.addDependencyConfiguration("compile", "master(*)");
-                    dd.addDependencyConfiguration("runtime", "runtime(*)");
+                    dd.put("compile", "compile(*)");
+                    dd.put("compile", "master(*)");
+                    dd.put("runtime", "runtime(*)");
                 }
             }
         });
         MAVEN2_CONF_MAPPING.put(MavenScope.Provided, new ConfMapper() {
-            public void addMappingConfs(Dependency dd, boolean isOptional) {
+            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
                 if (isOptional) {
-                    dd.addDependencyConfiguration("optional", "compile(*)");
-                    dd.addDependencyConfiguration("optional", "runtime(*)");
-                    dd.addDependencyConfiguration("optional", "master(*)");
+                    dd.put("optional", "compile(*)");
+                    dd.put("optional", "runtime(*)");
+                    dd.put("optional", "master(*)");
                 } else {
-                    dd.addDependencyConfiguration("provided", "compile(*)");
-                    dd.addDependencyConfiguration("provided", "runtime(*)");
-                    dd.addDependencyConfiguration("provided", "master(*)");
+                    dd.put("provided", "compile(*)");
+                    dd.put("provided", "runtime(*)");
+                    dd.put("provided", "master(*)");
                 }
             }
         });
         MAVEN2_CONF_MAPPING.put(MavenScope.Runtime, new ConfMapper() {
-            public void addMappingConfs(Dependency dd, boolean isOptional) {
+            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
                 if (isOptional) {
-                    dd.addDependencyConfiguration("optional", "compile(*)");
-                    dd.addDependencyConfiguration("optional", "runtime(*)");
-                    dd.addDependencyConfiguration("optional", "master(*)");
+                    dd.put("optional", "compile(*)");
+                    dd.put("optional", "runtime(*)");
+                    dd.put("optional", "master(*)");
 
                 } else {
-                    dd.addDependencyConfiguration("runtime", "compile(*)");
-                    dd.addDependencyConfiguration("runtime", "runtime(*)");
-                    dd.addDependencyConfiguration("runtime", "master(*)");
+                    dd.put("runtime", "compile(*)");
+                    dd.put("runtime", "runtime(*)");
+                    dd.put("runtime", "master(*)");
                 }
             }
         });
         MAVEN2_CONF_MAPPING.put(MavenScope.Test, new ConfMapper() {
-            public void addMappingConfs(Dependency dd, boolean isOptional) {
+            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
                 //optional doesn't make sense in the test scope
-                dd.addDependencyConfiguration("test", "compile(*)");
-                dd.addDependencyConfiguration("test", "runtime(*)");
-                dd.addDependencyConfiguration("test", "master(*)");
+                dd.put("test", "compile(*)");
+                dd.put("test", "runtime(*)");
+                dd.put("test", "master(*)");
             }
         });
         MAVEN2_CONF_MAPPING.put(MavenScope.System, new ConfMapper() {
-            public void addMappingConfs(Dependency dd, boolean isOptional) {
+            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
                 //optional doesn't make sense in the system scope
-                dd.addDependencyConfiguration("system", "master(*)");
+                dd.put("system", "master(*)");
             }
         });
     }
@@ -227,9 +230,12 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        MavenDependency dependency = descriptor.addDependency(new MavenDependency(scope, selector));
+        // TODO - this is constant
         ConfMapper mapping = MAVEN2_CONF_MAPPING.get(scope);
-        mapping.addMappingConfs(dependency, dep.isOptional());
+        ListMultimap<String, String> confMappings = ArrayListMultimap.create();
+        mapping.addMappingConfs(confMappings, dep.isOptional());
+
+        List<Artifact> artifacts = Lists.newArrayList();
         boolean hasClassifier = dep.getClassifier() != null && dep.getClassifier().length() > 0;
         boolean hasNonJarType = dep.getType() != null && !"jar".equals(dep.getType());
         if (hasClassifier || hasNonJarType) {
@@ -245,18 +251,19 @@ public class GradlePomModuleDescriptorBuilder {
             String optionalizedScope = dep.isOptional() ? "optional" : scope.toString().toLowerCase();
 
             IvyArtifactName artifactName = new DefaultIvyArtifactName(selector.getName(), type, ext, classifier);
-            dependency.addArtifact(artifactName, Collections.singleton(optionalizedScope));
+            artifacts.add(new Artifact(artifactName, Collections.singleton(optionalizedScope)));
         }
 
         // experimentation shows the following, excluded modules are
         // inherited from parent POMs if either of the following is true:
         // the <exclusions> element is missing or the <exclusions> element
         // is present, but empty.
+        List<Exclude> excludes = Lists.newArrayList();
         List<ModuleIdentifier> excluded = dep.getExcludedModules();
         if (excluded.isEmpty()) {
             excluded = getDependencyMgtExclusions(dep);
         }
-        Set<String> confs = dependency.getConfMappings().keySet();
+        Set<String> confs = confMappings.keySet();
         String[] confArray = confs.toArray(new String[confs.size()]);
         for (ModuleIdentifier excludedModule : excluded) {
             DefaultExclude rule = new DefaultExclude(
@@ -264,8 +271,10 @@ public class GradlePomModuleDescriptorBuilder {
                 excludedModule.getName(),
                 confArray,
                 PatternMatchers.EXACT);
-            dependency.addExcludeRule(rule);
+            excludes.add(rule);
         }
+
+        descriptor.addDependency(new MavenDependencyMetadata(scope, selector, confMappings, artifacts, excludes));
     }
 
     private String convertVersionFromMavenSyntax(String version) {
@@ -356,14 +365,17 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        IvyDependency dependency = descriptor.addDependency(new IvyDependency(selector));
+        // TODO - this is a constant
         Configuration[] m2Confs = GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS;
+        ListMultimap<String, String> confMappings = ArrayListMultimap.create();
         // Map dependency on all public configurations
         for (Configuration m2Conf : m2Confs) {
             if (Visibility.PUBLIC.equals(m2Conf.getVisibility())) {
-                dependency.addDependencyConfiguration(m2Conf.getName(), m2Conf.getName());
+                confMappings.put(m2Conf.getName(), m2Conf.getName());
             }
         }
+
+        descriptor.addDependency(new IvyDependencyMetadata(selector, confMappings));
     }
 
     private String getDefaultVersion(PomDependencyData dep) {

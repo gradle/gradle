@@ -17,12 +17,12 @@
 package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.ModuleDependency;
-import org.gradle.internal.component.model.DependencyMetadata;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 /**
  * A dependency declared using the dependency DSL.
  */
-public interface DslOriginDependencyMetadata extends DependencyMetadata {
+public interface DslOriginDependencyMetadata extends LocalOriginDependencyMetadata {
     /**
      * Remove this.
      */

@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ import java.util.Set;
 public class DefaultLocalComponentMetadata implements LocalComponentMetadata, BuildableLocalComponentMetadata {
     private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newHashMap();
     private final Multimap<String, ComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
-    private final List<DependencyMetadata> allDependencies = Lists.newArrayList();
+    private final List<LocalOriginDependencyMetadata> allDependencies = Lists.newArrayList();
     private final List<Exclude> allExcludes = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
@@ -73,7 +74,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         allConfigurations.put(name, conf);
     }
 
-    public void addDependency(DependencyMetadata dependency) {
+    public void addDependency(LocalOriginDependencyMetadata dependency) {
         allDependencies.add(dependency);
     }
 
@@ -114,7 +115,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         return componentIdentifier;
     }
 
-    public List<DependencyMetadata> getDependencies() {
+    public List<LocalOriginDependencyMetadata> getDependencies() {
         return allDependencies;
     }
 

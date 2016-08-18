@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.descriptor;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -73,7 +74,7 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         excludes.add(exclude);
     }
 
-    public <T extends Dependency> T addDependency(T dependency) {
+    public <T extends DependencyMetadata> T addDependency(T dependency) {
         dependencies.add(dependency);
         return dependency;
     }

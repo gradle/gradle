@@ -65,7 +65,7 @@ public interface MutableModuleComponentResolveMetadata {
      */
     ModuleDescriptorState getDescriptor();
 
-    List<DependencyMetadata> getDependencies();
+    List<? extends DependencyMetadata> getDependencies();
 
     /**
      * Replaces the dependencies of this module version.

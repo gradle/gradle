@@ -16,6 +16,10 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
@@ -29,66 +33,45 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.descriptor.Artifact;
-import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
 import org.gradle.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class DefaultDependencyMetadata implements DependencyMetadata {
     private final ModuleVersionSelector requested;
-    private final Map<String, List<String>> confs;
-    private final Map<IvyArtifactName, Set<String>> dependencyArtifacts;
-    private final Map<Exclude, Set<String>> excludes;
+    private final ListMultimap<String, String> confs;
+    private final Set<IvyArtifactName> artifacts;
+    private final List<Artifact> dependencyArtifacts;
+    private final List<Exclude> excludes;
 
     private final boolean changing;
     private final boolean transitive;
     private final boolean force;
     private final String dynamicConstraintVersion;
 
-    public DefaultDependencyMetadata(Dependency dependencyState) {
-        this.requested = dependencyState.getRequested();
-        this.changing = dependencyState.isChanging();
-        this.transitive = dependencyState.isTransitive();
-        this.force = dependencyState.isForce();
-        this.dynamicConstraintVersion = dependencyState.getDynamicConstraintVersion();
-
-        Map<String, List<String>> configMappings = dependencyState.getConfMappings();
-        Set<String> configs = configMappings.keySet();
-        // LinkedHashMap here because order matters
-        this.confs = configs.isEmpty() ? Collections.<String, List<String>>emptyMap() : new LinkedHashMap<String, List<String>>(configs.size());
-        for (String config : configs) {
-            List<String> mappings = new ArrayList<String>(configMappings.get(config));
-            confs.put(config, mappings);
-        }
-
-        List<Artifact> artifacts = dependencyState.getDependencyArtifacts();
-        dependencyArtifacts = artifacts.isEmpty() ? Collections.<IvyArtifactName, Set<String>>emptyMap() : new HashMap<IvyArtifactName, Set<String>>(artifacts.size());
-        for (Artifact dependencyArtifact : artifacts) {
-            this.dependencyArtifacts.put(dependencyArtifact.getArtifactName(), dependencyArtifact.getConfigurations());
-        }
-
-        List<Exclude> dependencyExcludes = dependencyState.getDependencyExcludes();
-        excludes = dependencyExcludes.isEmpty() ? Collections.<Exclude, Set<String>>emptyMap() : new HashMap<Exclude, Set<String>>(dependencyExcludes.size());
-        for (Exclude exclude : dependencyExcludes) {
-            this.excludes.put(exclude, Sets.newHashSet(exclude.getConfigurations()));
-        }
+    public DefaultDependencyMetadata(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, ListMultimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
+        this.requested = requested;
+        this.changing = changing;
+        this.transitive = transitive;
+        this.force = force;
+        this.dynamicConstraintVersion = dynamicConstraintVersion;
+        this.confs = ImmutableListMultimap.copyOf(confMappings);
+        dependencyArtifacts = ImmutableList.copyOf(artifacts);
+        this.artifacts = map(dependencyArtifacts);
+        this.excludes = ImmutableList.copyOf(excludes);
     }
 
     public DefaultDependencyMetadata(ModuleVersionIdentifier moduleVersionIdentifier) {
         this(
             new DefaultModuleVersionSelector(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion()),
-            Collections.<String, List<String>>emptyMap(),
-            Collections.<IvyArtifactName, Set<String>>emptyMap(),
-            Collections.<Exclude, Set<String>>emptyMap(),
+            ImmutableListMultimap.<String, String>of(),
+            ImmutableList.<Artifact>of(),
+            ImmutableList.<Exclude>of(),
             moduleVersionIdentifier.getVersion(),
             false,
             true
@@ -98,26 +81,38 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     public DefaultDependencyMetadata(ModuleComponentIdentifier componentIdentifier) {
         this(
             new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion()),
-            Collections.<String, List<String>>emptyMap(),
-            Collections.<IvyArtifactName, Set<String>>emptyMap(),
-            Collections.<Exclude, Set<String>>emptyMap(),
+            ImmutableListMultimap.<String, String>of(),
+            ImmutableList.<Artifact>of(),
+            ImmutableList.<Exclude>of(),
             componentIdentifier.getVersion(),
             false,
             true
         );
     }
 
-    public DefaultDependencyMetadata(ModuleVersionSelector requested, Map<String, List<String>> confs,
-                                     Map<IvyArtifactName, Set<String>> dependencyArtifacts, Map<Exclude, Set<String>> excludes,
+    protected DefaultDependencyMetadata(ModuleVersionSelector requested, ListMultimap<String, String> confs,
+                                     List<Artifact> dependencyArtifacts, List<Exclude> excludes,
                                      String dynamicConstraintVersion, boolean changing, boolean transitive) {
         this.requested = requested;
         this.confs = confs;
         this.dependencyArtifacts = dependencyArtifacts;
+        this.artifacts = map(dependencyArtifacts);
         this.excludes = excludes;
         this.changing = changing;
         this.transitive = transitive;
         this.dynamicConstraintVersion = dynamicConstraintVersion;
         this.force = false;
+    }
+
+    private static Set<IvyArtifactName> map(List<Artifact> dependencyArtifacts) {
+        if (dependencyArtifacts.isEmpty()) {
+            return ImmutableSet.of();
+        }
+        Set<IvyArtifactName> result = Sets.newLinkedHashSetWithExpectedSize(dependencyArtifacts.size());
+        for (Artifact artifact : dependencyArtifacts) {
+            result.add(artifact.getArtifactName());
+        }
+        return result;
     }
 
     @Override
@@ -139,18 +134,14 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         Set<String> mappedConfigs = Sets.newLinkedHashSet();
 
         List<String> matchedConfigs = confs.get(moduleConfiguration);
-        if (matchedConfigs == null) {
+        if (matchedConfigs.isEmpty()) {
             // there is no mapping defined for this configuration, add the 'other' mappings.
             matchedConfigs = confs.get("%");
         }
-        if (matchedConfigs != null) {
-            mappedConfigs.addAll(matchedConfigs);
-        }
+        mappedConfigs.addAll(matchedConfigs);
 
         List<String> wildcardConfigs = confs.get("*");
-        if (wildcardConfigs != null) {
-            mappedConfigs.addAll(wildcardConfigs);
-        }
+        mappedConfigs.addAll(wildcardConfigs);
 
         mappedConfigs = CollectionUtils.collect(mappedConfigs, new Transformer<String, String>() {
             @Override
@@ -185,9 +176,8 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
 
     public List<Exclude> getExcludes(Collection<String> configurations) {
         List<Exclude> rules = Lists.newArrayList();
-        for (Map.Entry<Exclude, Set<String>> entry : excludes.entrySet()) {
-            Exclude exclude = entry.getKey();
-            Set<String> ruleConfigurations = entry.getValue();
+        for (Exclude exclude : excludes) {
+            Set<String> ruleConfigurations = exclude.getConfigurations();
             if (include(ruleConfigurations, configurations)) {
                 rules.add(exclude);
             }
@@ -219,9 +209,9 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         Set<String> includedConfigurations = fromConfiguration.getHierarchy();
         Set<ComponentArtifactMetadata> artifacts = Sets.newLinkedHashSet();
 
-        for (Map.Entry<IvyArtifactName, Set<String>> entry : dependencyArtifacts.entrySet()) {
-            IvyArtifactName ivyArtifactName = entry.getKey();
-            Set<String> artifactConfigurations = entry.getValue();
+        for (Artifact depArtifact : dependencyArtifacts) {
+            IvyArtifactName ivyArtifactName = depArtifact.getArtifactName();
+            Set<String> artifactConfigurations = depArtifact.getConfigurations();
             if (include(artifactConfigurations, includedConfigurations)) {
                 ComponentArtifactMetadata artifact = toConfiguration.artifact(ivyArtifactName);
                 artifacts.add(artifact);
@@ -243,7 +233,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     }
 
     public Set<IvyArtifactName> getArtifacts() {
-        return dependencyArtifacts.keySet();
+        return artifacts;
     }
 
     public DependencyMetadata withRequestedVersion(String requestedVersion) {
@@ -289,5 +279,17 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
 
     public ComponentSelector getSelector() {
         return DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
+    }
+
+    public ListMultimap<String, String> getConfMappings() {
+        return confs;
+    }
+
+    public List<Artifact> getDependencyArtifacts() {
+        return dependencyArtifacts;
+    }
+
+    public List<Exclude> getDependencyExcludes() {
+        return excludes;
     }
 }

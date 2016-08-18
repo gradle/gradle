@@ -24,8 +24,8 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.IvyArtifactName
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata
 import org.gradle.util.WrapUtil
 import spock.lang.Specification
 
@@ -166,7 +166,7 @@ class DefaultLocalComponentMetadataTest extends Specification {
     }
 
     def "can add dependencies"() {
-        def dependency = Mock(DependencyMetadata)
+        def dependency = Mock(LocalOriginDependencyMetadata)
 
         when:
         metadata.addDependency(dependency)

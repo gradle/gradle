@@ -25,16 +25,17 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMetadata {
-    private final DependencyMetadata delegate;
+    private final LocalOriginDependencyMetadata delegate;
     private final ModuleDependency source;
 
-    public DslOriginDependencyMetadataWrapper(DependencyMetadata delegate, ModuleDependency source) {
+    public DslOriginDependencyMetadataWrapper(LocalOriginDependencyMetadata delegate, ModuleDependency source) {
         this.delegate = delegate;
         this.source = source;
     }
@@ -53,8 +54,18 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     }
 
     @Override
+    public String getModuleConfiguration() {
+        return delegate.getModuleConfiguration();
+    }
+
+    @Override
     public String[] getModuleConfigurations() {
         return delegate.getModuleConfigurations();
+    }
+
+    @Override
+    public String getDependencyConfiguration() {
+        return delegate.getDependencyConfiguration();
     }
 
     @Override
@@ -65,6 +76,11 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
         return delegate.getExclusions(fromConfiguration);
+    }
+
+    @Override
+    public List<Exclude> getExcludes() {
+        return delegate.getExcludes();
     }
 
     public List<Exclude> getExcludes(Collection<String> configurations) {
@@ -95,11 +111,11 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
         return delegate.getArtifacts();
     }
 
-    public DependencyMetadata withRequestedVersion(String requestedVersion) {
+    public LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion) {
         return delegate.withRequestedVersion(requestedVersion);
     }
 
-    public DependencyMetadata withTarget(ComponentSelector target) {
+    public LocalOriginDependencyMetadata withTarget(ComponentSelector target) {
         return delegate.withTarget(target);
     }
 

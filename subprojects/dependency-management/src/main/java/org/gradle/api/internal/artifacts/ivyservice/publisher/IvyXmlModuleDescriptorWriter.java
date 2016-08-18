@@ -17,21 +17,17 @@
 package org.gradle.api.internal.artifacts.ivyservice.publisher;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
-import org.gradle.internal.component.external.descriptor.IvyDependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
 import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.xml.SimpleXmlWriter;
 
 import java.io.File;
@@ -39,7 +35,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -174,48 +169,18 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.endElement();
     }
 
-    private void printDependencies(ModuleDescriptorState descriptor, Collection<DependencyMetadata> dependencies, SimpleXmlWriter writer) throws IOException {
+    private void printDependencies(ModuleDescriptorState descriptor, Collection<LocalOriginDependencyMetadata> dependencies, SimpleXmlWriter writer) throws IOException {
         if (dependencies.size() > 0) {
             writer.startElement("dependencies");
-            for (DependencyMetadata dd : dependencies) {
-                printDependency(descriptor, toIvy(dd), writer);
+            for (LocalOriginDependencyMetadata dd : dependencies) {
+                printDependency(descriptor, dd, writer);
             }
             printAllExcludes(descriptor, writer);
             writer.endElement();
         }
     }
 
-    private IvyDependency toIvy(DependencyMetadata dependencyMetadata) {
-        IvyDependency dependency = new IvyDependency(
-            dependencyMetadata.getRequested(),
-            dependencyMetadata.getDynamicConstraintVersion(),
-            dependencyMetadata.isForce(),
-            dependencyMetadata.isChanging(),
-            dependencyMetadata.isTransitive());
-
-        // In reality, there will only be 1 module configuration and 1 matching dependency configuration
-        List<String> configurations = Lists.newArrayList(dependencyMetadata.getModuleConfigurations());
-        for (String moduleConfiguration : configurations) {
-            for (String dependencyConfiguration : dependencyMetadata.getDependencyConfigurations(moduleConfiguration, moduleConfiguration)) {
-                dependency.addDependencyConfiguration(moduleConfiguration, dependencyConfiguration);
-            }
-        }
-
-        for (IvyArtifactName artifactName : dependencyMetadata.getArtifacts()) {
-            dependency.addArtifact(artifactName, configurations);
-        }
-
-        List<Exclude> excludeRules = dependencyMetadata.getExcludes(Arrays.asList(dependencyMetadata.getModuleConfigurations()));
-        if (excludeRules != null) {
-            for (Exclude rule : excludeRules) {
-                dependency.addExcludeRule(rule);
-            }
-        }
-
-        return dependency;
-    }
-
-    protected void printDependency(ModuleDescriptorState descriptor, IvyDependency dep, SimpleXmlWriter writer) throws IOException {
+    protected void printDependency(ModuleDescriptorState descriptor, LocalOriginDependencyMetadata dep, SimpleXmlWriter writer) throws IOException {
         writer.startElement("dependency");
 
         ModuleVersionSelector requested = dep.getRequested();
@@ -236,31 +201,17 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
         writer.attribute("conf", getConfMapping(dep));
 
-        for (Artifact dependencyArtifact : dep.getDependencyArtifacts()) {
-            printDependencyArtifact(descriptor, writer, dependencyArtifact.getArtifactName(), dependencyArtifact.getConfigurations());
+        for (IvyArtifactName dependencyArtifact : dep.getArtifacts()) {
+            printDependencyArtifact(writer, dependencyArtifact, dep.getModuleConfiguration());
         }
 
-        printDependencyExcludeRules(descriptor, writer, dep.getDependencyExcludes());
+        printDependencyExcludeRules(descriptor, writer, dep.getExcludes());
 
         writer.endElement();
     }
 
-    private String getConfMapping(IvyDependency dependency) {
-
-        Map<String, List<String>> configMappings = dependency.getConfMappings();
-
-        StringBuilder confs = new StringBuilder();
-        String delimiter = "";
-        for (String modConf : configMappings.keySet()) {
-            confs.append(delimiter);
-            confs.append(modConf).append("->");
-
-            List<String> depConfs = configMappings.get(modConf);
-            Joiner.on(",").appendTo(confs, depConfs);
-
-            delimiter = ";";
-        }
-        return confs.toString();
+    private String getConfMapping(LocalOriginDependencyMetadata dependency) {
+        return dependency.getModuleConfiguration() + "->" + dependency.getDependencyConfiguration();
     }
 
     private static void printAllExcludes(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
@@ -272,8 +223,8 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.attribute("artifact", exclude.getArtifact().getName());
             writer.attribute("type", exclude.getArtifact().getType());
             writer.attribute("ext", exclude.getArtifact().getExtension());
-            String[] ruleConfs = exclude.getConfigurations();
-            if (!descriptor.getConfigurationsNames().equals(Arrays.asList(ruleConfs))) {
+            Set<String> ruleConfs = exclude.getConfigurations();
+            if (!descriptor.getConfigurationsNames().equals(ruleConfs)) {
                 writer.attribute("conf", Joiner.on(',').join(ruleConfs));
             }
             writer.attribute("matcher", exclude.getMatcher());
@@ -290,8 +241,8 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.attribute("name", exclude.getArtifact().getName());
             writer.attribute("type", exclude.getArtifact().getType());
             writer.attribute("ext", exclude.getArtifact().getExtension());
-            String[] ruleConfs = exclude.getConfigurations();
-            if (!descriptor.getConfigurationsNames().equals(Arrays.asList(ruleConfs))) {
+            Set<String> ruleConfs = exclude.getConfigurations();
+            if (!descriptor.getConfigurationsNames().equals(ruleConfs)) {
                 writer.attribute("conf", Joiner.on(',').join(ruleConfs));
             }
             writer.attribute("matcher", exclude.getMatcher());
@@ -299,8 +250,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    private static void printDependencyArtifact(ModuleDescriptorState descriptor, SimpleXmlWriter writer,
-                                                IvyArtifactName artifact, Set<String> configurations) throws IOException {
+    private static void printDependencyArtifact(SimpleXmlWriter writer, IvyArtifactName artifact, String configuration) throws IOException {
         writer.startElement("artifact");
         writer.attribute("name", artifact.getName());
         writer.attribute("type", artifact.getType());
@@ -308,9 +258,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         if (artifact.getClassifier() != null) {
             printExtraAttributes(Collections.singletonMap("m:classifier", artifact.getClassifier()), writer);
         }
-        if (!Sets.newHashSet(descriptor.getConfigurationsNames()).equals(configurations)) {
-            writer.attribute("conf", Joiner.on(',').join(configurations));
-        }
+        writer.attribute("conf", configuration);
         writer.endElement();
     }
 

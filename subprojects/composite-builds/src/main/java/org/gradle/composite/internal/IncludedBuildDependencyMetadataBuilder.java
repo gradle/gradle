@@ -34,8 +34,9 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
+import org.gradle.internal.invocation.BuildController;
 
 import java.io.File;
 import java.util.Set;
@@ -87,7 +88,7 @@ public class IncludedBuildDependencyMetadataBuilder {
             }
         }
 
-        for (DependencyMetadata dependency : originalComponentMetadata.getDependencies()) {
+        for (LocalOriginDependencyMetadata dependency : originalComponentMetadata.getDependencies()) {
             if (dependency.getSelector() instanceof ProjectComponentSelector) {
                 ProjectComponentSelector requested = (ProjectComponentSelector) dependency.getSelector();
                 String externalPath = createExternalProjectPath(buildName, requested.getProjectPath());

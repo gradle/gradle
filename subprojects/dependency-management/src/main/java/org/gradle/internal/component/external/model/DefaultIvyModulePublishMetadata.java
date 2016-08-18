@@ -24,9 +24,9 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
 import java.util.Collection;
@@ -41,7 +41,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     private final ModuleComponentIdentifier id;
     private final MutableModuleDescriptorState descriptor;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
-    private final Set<DependencyMetadata> dependencies = new LinkedHashSet<DependencyMetadata>();
+    private final Set<LocalOriginDependencyMetadata> dependencies = new LinkedHashSet<LocalOriginDependencyMetadata>();
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
         this.id = id;
@@ -62,7 +62,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     @Override
-    public Collection<DependencyMetadata> getDependencies() {
+    public Collection<LocalOriginDependencyMetadata> getDependencies() {
         return dependencies;
     }
 
@@ -79,14 +79,14 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     @Override
-    public void addDependency(DependencyMetadata dependency) {
+    public void addDependency(LocalOriginDependencyMetadata dependency) {
         dependencies.add(normalizeVersionForIvy(dependency));
     }
 
     /**
      * [1.0] is a valid version in maven, but not in Ivy: strip the surrounding '[' and ']' characters for ivy publish.
      */
-    private static DependencyMetadata normalizeVersionForIvy(DependencyMetadata dependency) {
+    private static LocalOriginDependencyMetadata normalizeVersionForIvy(LocalOriginDependencyMetadata dependency) {
         String version = dependency.getRequested().getVersion();
         if (version.startsWith("[") && version.endsWith("]") && version.indexOf(',') == -1) {
             String normalizedVersion = version.substring(1, version.length() - 1);

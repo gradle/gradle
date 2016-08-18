@@ -31,7 +31,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class LocalComponentDependencyMetadata implements DependencyMetadata {
+public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
     private final ComponentSelector selector;
     private final ModuleVersionSelector requested;
     private final String moduleConfiguration;
@@ -71,6 +71,16 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
         return selector;
     }
 
+    @Override
+    public String getModuleConfiguration() {
+        return moduleConfiguration;
+    }
+
+    @Override
+    public String getDependencyConfiguration() {
+        return dependencyConfiguration;
+    }
+
     public String[] getModuleConfigurations() {
         return new String[] {
             moduleConfiguration
@@ -92,6 +102,11 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
             return ModuleExclusions.excludeNone();
         }
         return exclusions;
+    }
+
+    @Override
+    public List<Exclude> getExcludes() {
+        return excludes;
     }
 
     public List<Exclude> getExcludes(Collection<String> configurations) {
@@ -132,7 +147,7 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
         return artifactNames;
     }
 
-    public DependencyMetadata withRequestedVersion(String requestedVersion) {
+    public LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion) {
         if (requestedVersion.equals(requested.getVersion())) {
             return this;
         }
@@ -142,7 +157,7 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public DependencyMetadata withTarget(ComponentSelector target) {
+    public LocalOriginDependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
             ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
@@ -154,11 +169,11 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
         }
     }
 
-    private DependencyMetadata copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
+    private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
         return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
 
-    public DependencyMetadata withChanging() {
+    public LocalOriginDependencyMetadata withChanging() {
         if (isChanging()) {
             return this;
         }
