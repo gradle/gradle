@@ -23,6 +23,8 @@ import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.Duration.millis
+
 @Category([ToolingApiPerformanceTest])
 class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCrossVersionPerformanceTest {
 
@@ -33,6 +35,7 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         experiment(template, "get $template EclipseProject model") {
             warmUpCount = 20
             invocationCount = 30
+            maxExecutionTimeRegression = millis(maxRegressionTime)
             action {
                 def model = getModel(tapiClass(EclipseProject))
                 // we must actually do something to highlight some performance issues
@@ -80,7 +83,11 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        template << ["smallOldJava", "mediumOldJava", "bigOldJava", "lotDependencies"]
+        template                 | maxRegressionTime
+        "smallOldJava"           | 20
+        "mediumOldJava"          | 100
+        "bigOldJava"             | 100
+        "lotDependencies"        | 400
     }
 
     @Unroll
@@ -90,6 +97,7 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         experiment(template, "get $template IdeaProject model") {
             warmUpCount = 20
             invocationCount = 30
+            maxExecutionTimeRegression = millis(maxRegressionTime)
             action {
                 def model = getModel(tapiClass(IdeaProject))
                 // we must actually do something to highlight some performance issues
@@ -134,7 +142,11 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         results.assertCurrentVersionHasNotRegressed()
 
         where:
-        template << ["smallOldJava", "mediumOldJava", "bigOldJava", "lotDependencies"]
+        template                 | maxRegressionTime
+        "smallOldJava"           | 20
+        "mediumOldJava"          | 100
+        "bigOldJava"             | 100
+        "lotDependencies"        | 400
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value=EclipseProject) Closure<?> action) {

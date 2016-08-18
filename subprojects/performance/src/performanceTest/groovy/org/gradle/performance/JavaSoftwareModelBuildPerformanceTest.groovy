@@ -20,6 +20,9 @@ import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.DataAmount.mbytes
+import static org.gradle.performance.measure.Duration.millis
+
 @Category([Experiment])
 class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Checking overhead of API stubbing when #cardinality.description")
@@ -28,6 +31,8 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         runner.testId = "overhead of API jar generation when ${cardinality.description}"
         runner.testProject = 'tinyJavaSwApiJarStubbingWithoutApi'
         runner.tasksToRun = ['project1:mainApiJar']
+        runner.maxExecutionTimeRegression = maxTimeRegression
+        runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
@@ -41,6 +46,8 @@ class JavaSoftwareModelBuildPerformanceTest extends AbstractCrossVersionPerforma
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        cardinality << [SourceUpdateCardinality.ONE_FILE, SourceUpdateCardinality.ALL_FILES]
+        cardinality                       | maxTimeRegression | maxMemoryRegression
+        SourceUpdateCardinality.ONE_FILE  | millis(500)       | mbytes(5)
+        SourceUpdateCardinality.ALL_FILES | millis(1000)      | mbytes(10)
     }
 }

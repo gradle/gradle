@@ -20,6 +20,8 @@ import org.gradle.performance.categories.NativePerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.Duration.millis
+
 @Category([NativePerformanceTest])
 class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll('Project #type native build')
@@ -28,6 +30,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "native build ${type}"
         runner.testProject = "${type}Native"
         runner.tasksToRun = ["clean", "assemble"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = [fastestVersion]
         runner.useDaemon = true
 
@@ -38,12 +41,12 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        type           | fastestVersion
+        type           | maxExecutionTimeRegression     | fastestVersion
         // TODO: Restore 'last' when sufficent performance gains are made.
-        "small"        | '3.1-20160818000032+0000'
-        "medium"       | '2.14.1'
-        "big"          | '2.14.1'
-        "multi"        | '2.14.1'
+        "small"        | millis(500)                    | '3.1-20160818000032+0000'
+        "medium"       | millis(500)                    | '2.14.1'
+        "big"          | millis(2500)                   | '2.14.1'
+        "multi"        | millis(2500)                   | '2.14.1'
     }
 
     def "Many projects native build" () {
@@ -51,6 +54,7 @@ class NativeBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "native build many projects"
         runner.testProject = "manyProjectsNative"
         runner.tasksToRun = ["clean", "assemble"]
+        runner.maxExecutionTimeRegression = millis(1000)
         runner.targetVersions = ['2.14.1']
         runner.useDaemon = true
 

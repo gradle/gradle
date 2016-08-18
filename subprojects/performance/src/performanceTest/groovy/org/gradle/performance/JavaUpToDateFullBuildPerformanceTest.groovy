@@ -20,6 +20,8 @@ import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.Duration.millis
+
 @Category(JavaPerformanceTest)
 class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Up-to-date full build - #testProject")
@@ -29,6 +31,7 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         runner.previousTestIds = ["up-to-date build $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['build']
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = targetVersions
 
         when:
@@ -38,10 +41,10 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | targetVersions
-        "small"           |  ['2.4', 'last']
-        "multi"           |  ['2.8', 'last']
-        "lotDependencies" |  ['2.8', 'last']
+        testProject       | maxExecutionTimeRegression | targetVersions
+        "small"           | millis(1000)               |  ['2.4', 'last']
+        "multi"           | millis(1000)               |  ['2.8', 'last']
+        "lotDependencies" | millis(1000)               |  ['2.8', 'last']
     }
 
     @Unroll("Up-to-date full build (daemon) - #testProject")
@@ -50,6 +53,7 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "up-to-date full build Java build $testProject (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['build']
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
         runner.targetVersions = ['2.11', 'last']
         runner.useDaemon = true
@@ -59,6 +63,8 @@ class JavaUpToDateFullBuildPerformanceTest extends AbstractCrossVersionPerforman
         then:
         result.assertCurrentVersionHasNotRegressed()
         where:
-        testProject << ["bigOldJava", "lotDependencies"]
+        testProject       | maxExecutionTimeRegression
+        "bigOldJava"      | millis(1000)
+        "lotDependencies" | millis(1000)
     }
 }

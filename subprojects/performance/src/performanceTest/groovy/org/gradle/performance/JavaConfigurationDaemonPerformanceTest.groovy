@@ -21,6 +21,9 @@ import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.DataAmount.mbytes
+import static org.gradle.performance.measure.Duration.millis
+
 @Category([JavaPerformanceTest])
 class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -34,6 +37,8 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         runner.tasksToRun = ['help']
         runner.targetVersions = ['2.11', 'last']
         runner.useDaemon = true
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.maxMemoryRegression = mbytes(25)
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
@@ -43,7 +48,11 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << [ "largeJavaSwModelProject", "bigNewJava", "mediumNewJava", "smallNewJava"]
+        testProject               | maxExecutionTimeRegression
+        "largeJavaSwModelProject" | millis(500)
+        "bigNewJava"              | millis(500)
+        "mediumNewJava"           | millis(500)
+        "smallNewJava"            | millis(500)
     }
 
     @Unroll("configure Java build - #testProject")
@@ -55,6 +64,8 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         runner.tasksToRun = ['help']
         runner.targetVersions = targetVersions
         runner.useDaemon = true
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.maxMemoryRegression = mbytes(25)
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
@@ -64,10 +75,10 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject     | targetVersions
-        "bigOldJava"    | ['2.11', 'last']
-        "mediumOldJava" | ['2.11', 'last']
+        testProject     | maxExecutionTimeRegression | targetVersions
+        "bigOldJava"    | millis(500)                | ['2.11', 'last']
+        "mediumOldJava" | millis(500)                | ['2.11', 'last']
         // TODO: Restore 'last' when sufficent performance gains are made.
-        "smallOldJava"  | ['3.1-20160818000032+0000']
+        "smallOldJava"  | millis(500)                | ['3.1-20160818000032+0000']
     }
 }

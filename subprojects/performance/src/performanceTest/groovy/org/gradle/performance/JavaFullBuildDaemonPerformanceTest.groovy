@@ -20,6 +20,9 @@ import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.DataAmount.mbytes
+import static org.gradle.performance.measure.Duration.millis
+
 @Category([JavaPerformanceTest])
 class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("full build Java build - #testProject")
@@ -30,6 +33,8 @@ class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformance
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = ['clean', 'build']
+        runner.maxExecutionTimeRegression = maxTimeReg
+        runner.maxMemoryRegression = maxMemReg
         runner.targetVersions = ['2.11', 'last']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
@@ -40,6 +45,8 @@ class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformance
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << ["small", "multi"]
+        testProject | maxTimeReg   | maxMemReg
+        "small"     | millis(500)  | mbytes(3)
+        "multi"     | millis(1000) | mbytes(10)
     }
 }

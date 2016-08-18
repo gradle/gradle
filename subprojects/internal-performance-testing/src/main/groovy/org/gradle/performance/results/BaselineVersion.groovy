@@ -28,6 +28,8 @@ import static PrettyCalculator.toMillis
 class BaselineVersion implements VersionResults {
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
+    Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
+    Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     BaselineVersion(String version) {
         this.version = version
@@ -89,10 +91,22 @@ class BaselineVersion implements VersionResults {
     }
 
     Amount<Duration> getMaxExecutionTimeRegression(MeasuredOperationList current) {
-        (current.totalTime.sdom + results.totalTime.sdom) * 1.5
+        if (strict) {
+            (current.totalTime.sdom + results.totalTime.sdom) * 1.5
+        } else {
+            maxExecutionTimeRegression
+        }
     }
 
     Amount<DataAmount> getMaxMemoryRegression(MeasuredOperationList current) {
-        (current.totalMemoryUsed.sdom + results.totalMemoryUsed.sdom) * 1.5
+        if (strict) {
+            (current.totalMemoryUsed.sdom + results.totalMemoryUsed.sdom) * 1.5
+        } else {
+            maxMemoryRegression
+        }
+    }
+
+    static boolean isStrict() {
+        return Boolean.valueOf(System.getProperty("org.gradle.performance.strict", "false"))
     }
 }

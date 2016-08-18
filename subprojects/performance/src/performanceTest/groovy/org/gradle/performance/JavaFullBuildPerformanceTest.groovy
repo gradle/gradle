@@ -20,6 +20,8 @@ import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.Duration.millis
+
 @Category([JavaPerformanceTest])
 class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("full build Java build - #testProject")
@@ -29,6 +31,7 @@ class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.previousTestIds = ["clean build $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['clean', 'build']
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = targetVersions
 
         when:
@@ -38,10 +41,10 @@ class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | targetVersions
+        testProject       | maxExecutionTimeRegression | targetVersions
         // TODO: Restore 'last' when sufficent performance gains are made.
-        "small"           | ['3.1-20160818000032+0000']
-        "multi"           | ['3.1-20160818000032+0000']
-        "lotDependencies" | ['2.4', '2.8', 'last']
+        "small"           | millis(1000)               | ['3.1-20160818000032+0000']
+        "multi"           | millis(1300)               | ['3.1-20160818000032+0000']
+        "lotDependencies" | millis(1000)               | ['2.4', '2.8', 'last']
     }
 }

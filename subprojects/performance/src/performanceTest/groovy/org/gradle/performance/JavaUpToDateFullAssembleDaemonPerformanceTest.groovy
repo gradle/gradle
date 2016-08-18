@@ -20,6 +20,9 @@ import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.DataAmount.mbytes
+import static org.gradle.performance.measure.Duration.millis
+
 @Category([Experiment])
 class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Up-to-date assemble Java software model build - #testProject")
@@ -28,6 +31,8 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         runner.testId = "up-to-date full assemble Java build $testProject (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
+        runner.maxExecutionTimeRegression = maxTimeRegression
+        runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
@@ -39,8 +44,14 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << ["smallJavaSwModelProject", "largeJavaSwModelProject", "smallJavaSwModelCompileAvoidanceWithoutApi",
-                        "largeJavaSwModelCompileAvoidanceWithoutApi", "bigNewJava", "mediumNewJava", "smallNewJava"]
+        testProject                                  | maxTimeRegression | maxMemoryRegression
+        "smallJavaSwModelProject"                    | millis(200)       | mbytes(5)
+        "largeJavaSwModelProject"                    | millis(1500)      | mbytes(50)
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(200)       | mbytes(5)
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(1500)      | mbytes(50)
+        "bigNewJava"                                 | millis(500)       | mbytes(50)
+        "mediumNewJava"                              | millis(500)       | mbytes(50)
+        "smallNewJava"                               | millis(200)       | mbytes(5)
     }
 
     @Unroll("Up-to-date parallel full assemble Java build - #testProject")
@@ -49,6 +60,8 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         runner.testId = "up-to-date full assemble Java build $testProject (daemon, parallel)"
         runner.testProject = testProject
         runner.tasksToRun = ['assemble']
+        runner.maxExecutionTimeRegression = maxTimeRegression
+        runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = ['2.10', '2.11', 'last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
@@ -61,6 +74,8 @@ class JavaUpToDateFullAssembleDaemonPerformanceTest extends AbstractCrossVersion
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << ["smallJavaSwModelProject", "largeJavaSwModelProject"]
+        testProject               | maxTimeRegression | maxMemoryRegression
+        "smallJavaSwModelProject" | millis(200)       | mbytes(5)
+        "largeJavaSwModelProject" | millis(1000)      | mbytes(50)
     }
 }

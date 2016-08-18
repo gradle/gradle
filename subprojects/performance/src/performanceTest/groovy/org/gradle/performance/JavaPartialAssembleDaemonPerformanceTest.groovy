@@ -21,6 +21,9 @@ import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.DataAmount.mbytes
+import static org.gradle.performance.measure.Duration.millis
+
 @Category([JavaPerformanceTest])
 class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -32,6 +35,8 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = [":project1:clean", ":project1:assemble"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = targetVersions
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
@@ -42,9 +47,9 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject     | targetVersions
-        "bigNewJava"    | ['2.11', 'last']
-        "mediumNewJava" | ['2.9', '2.10', 'last']
+        testProject     | maxExecutionTimeRegression | targetVersions
+        "bigNewJava"    | millis(1000)               | ['2.11', 'last']
+        "mediumNewJava" | millis(500)                | ['2.9', '2.10', 'last']
     }
 
     @Unroll("partial assemble Java build - #testProject")
@@ -57,6 +62,8 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = [":project1:clean", ":project1:assemble"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = ['2.11', 'last']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
@@ -67,6 +74,9 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject << ["bigOldJavaMoreSource", "bigOldJava", "mediumOldJava"]
+        testProject            | maxExecutionTimeRegression
+        "bigOldJavaMoreSource" | millis(1000)
+        "bigOldJava"           | millis(1000)
+        "mediumOldJava"        | millis(500)
     }
 }

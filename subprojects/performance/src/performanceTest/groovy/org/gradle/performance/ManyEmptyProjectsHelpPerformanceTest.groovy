@@ -15,9 +15,11 @@
  */
 
 package org.gradle.performance
-
 import org.gradle.performance.categories.BasicPerformanceTest
 import org.junit.experimental.categories.Category
+
+import static org.gradle.performance.measure.DataAmount.mbytes
+import static org.gradle.performance.measure.Duration.millis
 
 @Category(BasicPerformanceTest)
 class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -27,6 +29,9 @@ class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "many empty projects help"
         runner.testProject = "bigEmpty"
         runner.tasksToRun = ['help']
+        runner.maxExecutionTimeRegression = millis(500)
+        // TODO: Tighten this threshold, once we reduce the base memory used per project
+        runner.maxMemoryRegression = mbytes(300)
         runner.targetVersions = ['2.7', 'last']
 
         when:
@@ -41,6 +46,8 @@ class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "many empty projects help (daemon)"
         runner.testProject = "bigEmpty"
         runner.tasksToRun = ['help']
+        runner.maxExecutionTimeRegression = millis(500)
+        runner.maxMemoryRegression = mbytes(100)
         runner.targetVersions = ['2.7', 'last']
         runner.useDaemon = true
 

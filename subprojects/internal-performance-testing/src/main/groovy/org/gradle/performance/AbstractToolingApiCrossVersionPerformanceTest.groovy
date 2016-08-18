@@ -35,6 +35,7 @@ import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
+import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.BuildDisplayInfo
@@ -91,6 +92,10 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     @InheritConstructors
     private static class ToolingApiExperimentSpec extends BuildExperimentSpec {
+
+        Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
+        Amount<DataAmount> maxMemoryRegression = DataAmount.mbytes(0)
+
         List<String> targetVersions = []
 
         Closure<?> action
@@ -144,6 +149,8 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
                     println "Testing ${dist.version}..."
                     if ('current' != version) {
                         def baselineVersion = results.baseline(version)
+                        baselineVersion.maxExecutionTimeRegression = experimentSpec.maxExecutionTimeRegression
+                        baselineVersion.maxMemoryRegression = experimentSpec.maxMemoryRegression
                     }
                     def toolingApiDistribution = resolver.resolve(dist.version.version)
                     def testClassPath = []

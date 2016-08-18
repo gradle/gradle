@@ -21,6 +21,9 @@ import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
+import static org.gradle.performance.measure.DataAmount.mbytes
+import static org.gradle.performance.measure.Duration.millis
+
 @Category([JavaPerformanceTest])
 class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
@@ -32,6 +35,8 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         runner.previousTestIds = ["clean build java project $testProject which doesn't declare any API"]
         runner.testProject = testProject
         runner.tasksToRun = ['clean', 'assemble']
+        runner.maxExecutionTimeRegression = maxTimeRegression
+        runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
@@ -43,14 +48,14 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                                  | targetVersions
-        "smallJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', 'last']
-        "largeJavaSwModelCompileAvoidanceWithoutApi" | ['2.11', 'last']
-        "smallJavaSwModelProject"                    | ['2.9', 'last']
-        "largeJavaSwModelProject"                    | ['2.10', 'last']
-        "bigNewJava"                                 | ['2.11', 'last']
-        "mediumNewJava"                              | ['2.11', 'last']
-        "smallNewJava"                               | ['2.9', '2.10', 'last']
+        testProject                                  | maxTimeRegression | maxMemoryRegression | targetVersions
+        "smallJavaSwModelCompileAvoidanceWithoutApi" | millis(800)       | mbytes(5)           | ['2.11', 'last']
+        "largeJavaSwModelCompileAvoidanceWithoutApi" | millis(3000)      | mbytes(50)          | ['2.11', 'last']
+        "smallJavaSwModelProject"                    | millis(800)       | mbytes(5)           | ['2.9', 'last']
+        "largeJavaSwModelProject"                    | millis(5000)      | mbytes(50)          | ['2.10', 'last']
+        "bigNewJava"                                 | millis(1000)      | mbytes(50)          | ['2.11', 'last']
+        "mediumNewJava"                              | millis(1000)      | mbytes(50)          | ['2.11', 'last']
+        "smallNewJava"                               | millis(800)       | mbytes(5)           | ['2.9', '2.10', 'last']
     }
 
     @Unroll("full assemble Java build - #testProject")
@@ -63,6 +68,8 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = ["clean", "assemble"]
+        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
+        runner.maxMemoryRegression = mbytes(50)
         runner.targetVersions = targetVersions
         runner.targetVersions = ['2.11', 'last']
         runner.gradleOpts = ["-Xms2g", "-Xmx2g"]
@@ -74,11 +81,11 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject            | targetVersions
-        "bigOldJavaMoreSource" | ['2.11', 'last']
-        "bigOldJava"           | ['2.11', 'last']
-        "mediumOldJava"        | ['2.11', 'last']
+        testProject            | maxExecutionTimeRegression | targetVersions
+        "bigOldJavaMoreSource" | millis(1000)               | ['2.11', 'last']
+        "bigOldJava"           | millis(1000)               | ['2.11', 'last']
+        "mediumOldJava"        | millis(1000)               | ['2.11', 'last']
         // TODO: Restore 'last' when sufficent performance gains are made.
-        "smallOldJava"         | ['3.1-20160818000032+0000']
+        "smallOldJava"         | millis(1000)               | ['3.1-20160818000032+0000']
     }
 }

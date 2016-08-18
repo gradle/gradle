@@ -123,6 +123,10 @@ performanceTestTasks.all { PerformanceTest task ->
     dependsOn( prepareSamples, { rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
     finalizedBy performanceReport
 
+    if (project.findProperty("org.gradle.performance.strict")) {
+        systemProperty "org.gradle.performance.strict", "true"
+    }
+
     if (project.findProperty('org.gradle.performance.baselines')) {
         systemProperty 'org.gradle.performance.baselines', project.getProperty('org.gradle.performance.baselines')
     }
