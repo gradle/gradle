@@ -23,17 +23,17 @@ import org.gradle.tooling.model.BuildIdentifier;
 import org.gradle.tooling.model.ProjectIdentifier;
 
 public class DefaultFailedModelResult<T> implements FailedModelResult<T> {
-    private final GradleConnectionException failure;
+    private final RuntimeException failure;
     private final BuildIdentifier buildIdentifier;
     private final ProjectIdentifier projectIdentifier;
 
-    public DefaultFailedModelResult(BuildIdentifier buildIdentifier, GradleConnectionException failure) {
+    public DefaultFailedModelResult(BuildIdentifier buildIdentifier, RuntimeException failure) {
         this.failure = failure;
         this.buildIdentifier = buildIdentifier;
         this.projectIdentifier = null;
     }
 
-    public DefaultFailedModelResult(ProjectIdentifier projectIdentifier, GradleConnectionException failure) {
+    public DefaultFailedModelResult(ProjectIdentifier projectIdentifier, RuntimeException failure) {
         this.failure = failure;
         this.buildIdentifier = projectIdentifier.getBuildIdentifier();
         this.projectIdentifier = projectIdentifier;
@@ -44,9 +44,13 @@ public class DefaultFailedModelResult<T> implements FailedModelResult<T> {
         throw failure;
     }
 
+    public RuntimeException getRawFailure() {
+        return failure;
+    }
+
     @Override
     public GradleConnectionException getFailure() {
-        return failure;
+        return (GradleConnectionException) failure;
     }
 
     public BuildIdentifier getBuildIdentifier() {

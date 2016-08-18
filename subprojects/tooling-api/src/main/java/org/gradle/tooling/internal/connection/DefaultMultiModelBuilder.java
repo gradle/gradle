@@ -20,12 +20,15 @@ import org.gradle.api.Transformer;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
+import org.gradle.tooling.connection.FailedModelResult;
 import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.connection.ModelResults;
 import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
 import org.gradle.tooling.internal.consumer.BlockingResultHandler;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
 import org.gradle.tooling.internal.consumer.ExceptionTransformer;
+import org.gradle.tooling.internal.consumer.ModelExceptionTransformer;
+import org.gradle.tooling.internal.consumer.ResultHandlerAdapter;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
@@ -67,18 +70,13 @@ public class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<De
     public ModelResults<T> get() throws GradleConnectionException, IllegalStateException {
         BlockingResultHandler<ModelResults> handler = new BlockingResultHandler<ModelResults>(ModelResults.class);
         get(handler);
-        ModelResults<T> result = handler.getResult();
-        for (ModelResult<T> modelResult : result) {
-            if (modelResult.getFailure() != null) {
-                BlockingResultHandler.attachCallerThreadStackTrace(modelResult.getFailure());
-            }
-        }
-        return result;
+        return handler.getResult();
     }
 
     @Override
     public void get(final ResultHandler<? super ModelResults<T>> handler) throws IllegalStateException {
         final ConsumerOperationParameters operationParameters = getConsumerOperationParameters();
+        final ExceptionTransformer exceptionTransformer = getModelExceptionTransformer();
         connection.run(new ConsumerAction<ModelResults<T>>() {
             public ConsumerOperationParameters getParameters() {
                 return operationParameters;
@@ -86,28 +84,65 @@ public class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<De
 
             public ModelResults<T> run(ConsumerConnection connection) {
                 final Iterable<ModelResult<T>> models = connection.buildModels(modelType, operationParameters);
-                return new ModelResults<T>() {
-                    @Override
-                    public Iterator<ModelResult<T>> iterator() {
-                        return models.iterator();
-                    }
-                };
+                return new ExceptionTransformingModelResults<T>(models, exceptionTransformer);
             }
-        }, new ResultHandlerAdapter<T>(handler));
+        }, new ResultHandlerAdapter<ModelResults<T>>(handler, exceptionTransformer));
     }
 
-    private final class ResultHandlerAdapter<T> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<ModelResults<T>> {
-        ResultHandlerAdapter(ResultHandler<? super ModelResults<T>> handler) {
-            super(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
-                @Override
-                public String transform(Throwable failure) {
-                    String message = String.format("Could not fetch models of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
-                    if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
-                        message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
-                    }
-                    return message;
+    private ModelExceptionTransformer getModelExceptionTransformer() {
+        return new ModelExceptionTransformer(modelType, new Transformer<String, Throwable>() {
+            @Override
+            public String transform(Throwable failure) {
+                String message = String.format("Could not fetch models of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());
+                if (!(failure instanceof UnsupportedMethodException) && failure instanceof UnsupportedOperationException) {
+                    message += "\n" + Exceptions.INCOMPATIBLE_VERSION_HINT;
                 }
-            }));
+                return message;
+            }
+        });
+    }
+
+    private static class ExceptionTransformingModelResults<T> implements ModelResults<T> {
+        private final Iterable<ModelResult<T>> models;
+        private final ExceptionTransformer transformer;
+
+        public ExceptionTransformingModelResults(Iterable<ModelResult<T>> models, ExceptionTransformer transformer) {
+            this.models = models;
+            this.transformer = transformer;
+        }
+
+        @Override
+        public Iterator<ModelResult<T>> iterator() {
+            final Iterator<ModelResult<T>> original = models.iterator();
+            return new Iterator<ModelResult<T>>() {
+                @Override
+                public boolean hasNext() {
+                    return original.hasNext();
+                }
+
+                @Override
+                public ModelResult<T> next() {
+                    ModelResult<T> next = original.next();
+                    if (next instanceof FailedModelResult) {
+                        DefaultFailedModelResult<T> failedResult = (DefaultFailedModelResult<T>) next;
+                        GradleConnectionException transformedFailure = transformer.transform(failedResult.getRawFailure());
+                        //TODO should we actually be doing this? It seems we should only do it for the blocking case.
+                        BlockingResultHandler.attachCallerThreadStackTrace(transformedFailure);
+                        if (failedResult.getProjectIdentifier() != null) {
+                            return new DefaultFailedModelResult<T>(failedResult.getProjectIdentifier(), transformedFailure);
+                        } else {
+                            return new DefaultFailedModelResult<T>(failedResult.getBuildIdentifier(), transformedFailure);
+                        }
+                    } else {
+                        return next;
+                    }
+                }
+
+                @Override
+                public void remove() {
+                    throw new UnsupportedOperationException();
+                }
+            };
         }
     }
 }

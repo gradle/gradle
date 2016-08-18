@@ -81,7 +81,7 @@ public class DefaultModelBuilder<T> extends AbstractLongRunningOperation<Default
 
     private class ResultHandlerAdapter<T> extends org.gradle.tooling.internal.consumer.ResultHandlerAdapter<T> {
         public ResultHandlerAdapter(ResultHandler<? super T> handler) {
-            super(handler, new ExceptionTransformer(new Transformer<String, Throwable>() {
+            super(handler, new ModelExceptionTransformer(modelType, new Transformer<String, Throwable>() {
                 @Override
                 public String transform(Throwable failure) {
                     String message = String.format("Could not fetch model of type '%s' using %s.", modelType.getSimpleName(), connection.getDisplayName());

@@ -51,6 +51,7 @@ import java.util.Map;
 import java.util.Set;
 
 //TODO continue on errors in individual builds
+//TODO this is getting too long, split it up
 public class BuildModelActionRunner implements BuildActionRunner {
     @Override
     public void run(final BuildAction action, final BuildController buildController) {
@@ -112,7 +113,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
             if (buildModelAction.isAllModels()) {
                 compositeResults.add(new Object[] { gradle.getDefaultProject().getProjectDir(), gradle.getDefaultProject().getPath(), transformFailure(e)});
             } else {
-                throw UncheckedException.throwAsUncheckedException(transformFailure(e));
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
@@ -168,6 +169,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         return builder;
     }
 
+    //TODO get rid of duplication between this and DaemonBuildActionExecuter
     private Exception transformFailure(Exception e) {
         if (e instanceof BuildCancelledException) {
             return new InternalBuildCancelledException(e.getCause());

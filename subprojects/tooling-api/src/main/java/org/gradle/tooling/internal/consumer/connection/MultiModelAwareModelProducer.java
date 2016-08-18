@@ -16,21 +16,17 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.api.Transformer;
-import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.connection.DefaultFailedModelResult;
 import org.gradle.tooling.internal.connection.DefaultModelResult;
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.consumer.ExceptionTransformer;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalMultiModelAwareConnection;
-import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -45,16 +41,14 @@ public class MultiModelAwareModelProducer extends HasCompatibilityMapping implem
     private final VersionDetails versionDetails;
     private final ModelMapping modelMapping;
     private final InternalMultiModelAwareConnection connection;
-    private final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
 
-    public MultiModelAwareModelProducer(ModelProducer delegate, ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalMultiModelAwareConnection connection, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
+    public MultiModelAwareModelProducer(ModelProducer delegate, ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalMultiModelAwareConnection connection) {
         super(versionDetails);
         this.delegate = delegate;
         this.adapter = adapter;
         this.versionDetails = versionDetails;
         this.modelMapping = modelMapping;
         this.connection = connection;
-        this.exceptionTransformer = exceptionTransformer;
     }
 
     @Override
@@ -65,7 +59,6 @@ public class MultiModelAwareModelProducer extends HasCompatibilityMapping implem
     @Override
     public <T> Iterable<ModelResult<T>> produceModels(final Class<T> elementType, ConsumerOperationParameters operationParameters) {
         BuildResult<?> result = buildModels(elementType, operationParameters);
-        ExceptionTransformer exceptionTransformer = new CompositeExceptionTransformer(elementType);
 
         if (result.getModel() instanceof List) {
             final List<ModelResult<T>> models = new LinkedList<ModelResult<T>>();
@@ -75,8 +68,7 @@ public class MultiModelAwareModelProducer extends HasCompatibilityMapping implem
                 ProjectIdentifier projectIdentifier = new DefaultProjectIdentifier((File) t[0], (String) t[1]);
                 Object modelValue = t[2];
                 if (modelValue instanceof Throwable) {
-                    GradleConnectionException failure = exceptionTransformer.transform((Throwable) modelValue);
-                    models.add(new DefaultFailedModelResult<T>(projectIdentifier, failure));
+                    models.add(new DefaultFailedModelResult<T>(projectIdentifier, (RuntimeException) modelValue));
                 } else {
                     T modelResult = applyCompatibilityMapping(adapter.builder(elementType), projectIdentifier).build(modelValue);
                     models.add(new DefaultModelResult<T>(modelResult));
@@ -93,41 +85,7 @@ public class MultiModelAwareModelProducer extends HasCompatibilityMapping implem
             throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
         }
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
-        BuildResult<?> result;
-        try {
-            result = connection.getModels(modelIdentifier, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
-        } catch (InternalUnsupportedModelException e) {
-            throw Exceptions.unknownModel(type, e);
-        } catch (RuntimeException e) {
-            throw exceptionTransformer.transform(e);
-        }
-        return result;
-    }
-
-    private static class CompositeExceptionTransformer extends ExceptionTransformer {
-        private final Class<?> modelType;
-
-        public CompositeExceptionTransformer(Class<?> modelType) {
-            super(createConnectionTransformer(modelType));
-            this.modelType = modelType;
-        }
-
-        @Override
-        public GradleConnectionException transform(Throwable failure) {
-            if (failure instanceof InternalUnsupportedModelException) {
-                return Exceptions.unknownModel(modelType, (InternalUnsupportedModelException) failure);
-            }
-            return super.transform(failure);
-        }
-
-        private static Transformer<String, Throwable> createConnectionTransformer(final Class<?> type) {
-            return new Transformer<String, Throwable>() {
-                @Override
-                public String transform(Throwable throwable) {
-                    return String.format("Could not fetch models of type '%s' using Gradle daemon composite connection.", type.getSimpleName());
-                }
-            };
-        }
+        return connection.getModels(modelIdentifier, new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
     }
 
 }

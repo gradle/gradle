@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.api.Transformer;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
@@ -34,9 +33,9 @@ public class MultiModelAwareConsumerConnection extends TestExecutionConsumerConn
     }
 
     @Override
-    protected ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
-        ModelProducer delegate = super.createModelProducer(connection, modelMapping, adapter, exceptionTransformer);
-        return new MultiModelAwareModelProducer(delegate, adapter, getVersionDetails(), modelMapping, (InternalMultiModelAwareConnection) connection, exceptionTransformer);
+    protected ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
+        ModelProducer delegate = super.createModelProducer(connection, modelMapping, adapter);
+        return new MultiModelAwareModelProducer(delegate, adapter, getVersionDetails(), modelMapping, (InternalMultiModelAwareConnection) connection);
     }
 
 }
