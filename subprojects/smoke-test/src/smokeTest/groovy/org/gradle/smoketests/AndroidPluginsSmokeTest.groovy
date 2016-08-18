@@ -170,7 +170,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
 
                 dependencies {
-                    classpath 'com.android.tools.build:gradle:2.2.0-alpha6'
+                    classpath 'com.android.tools.build:gradle:2.2.0-beta1'
                 }
             }
 
