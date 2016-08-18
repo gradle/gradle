@@ -24,10 +24,20 @@ import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.hamcrest.Matcher;
 import org.junit.After;
+import org.junit.rules.ExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.AbstractExecutorService;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
@@ -37,7 +47,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * <p>A base class for testing concurrent code.</p>
+ * <p>A rule for testing concurrent code.</p>
  *
  * <p>Provides several ways to start and manage threads. You can use the {@link #start(groovy.lang.Closure)} or {@link
  * #run(groovy.lang.Closure)} methods to execute test code in other threads. You can use {@link #waitForAll()} to wait
@@ -50,7 +60,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>You can use {@link #syncAt(int)} and {@link #expectBlocksUntil(int, groovy.lang.Closure)} to synchronise between
  * test threads.</p>
  */
-public class MultithreadedTestCase {
+public class MultithreadedTestCase extends ExternalResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(MultithreadedTestCase.class);
     private static final int MAX_WAIT_TIME = 5000;
     private ExecutorImpl executor;
@@ -255,6 +265,11 @@ public class MultithreadedTestCase {
             lock.unlock();
         }
         waitForAll();
+    }
+
+    @Override
+    protected void after() {
+        waitForStop();
     }
 
     /**
