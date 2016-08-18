@@ -254,5 +254,13 @@ task retrieve(type: Sync) {
         then:
         file("libs").assertHasDescendants("test-1.45.jar")
         file("libs/test-1.45.jar").assertIsCopyOf(moduleWithMetaData.jarFile)
+
+        when:
+        server.resetExpectations()
+        succeeds "retrieve"
+
+        then:
+        file("libs").assertHasDescendants("test-1.45.jar")
+        file("libs/test-1.45.jar").assertIsCopyOf(moduleWithMetaData.jarFile)
     }
 }
