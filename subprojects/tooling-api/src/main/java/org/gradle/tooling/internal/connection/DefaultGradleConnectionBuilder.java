@@ -125,6 +125,9 @@ public class DefaultGradleConnectionBuilder implements GradleConnectionBuilderIn
             .setVerboseLogging(verboseLogging)
             .build();
 
+        if (connectionParameters.getProjectDir() == null) {
+            throw new IllegalStateException("A root directory must be specified before creating a connection.");
+        }
         if (distribution == null) {
             distribution = distributionFactory.getDistribution(GradleVersion.current().getVersion());
         }
