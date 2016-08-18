@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.provider.runner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.BuildAdapter;
+import org.gradle.api.BuildCancelledException;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
@@ -27,10 +28,14 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.execution.ProjectConfigurer;
+import org.gradle.initialization.ReportedException;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
+import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
@@ -77,26 +82,38 @@ public class BuildModelActionRunner implements BuildActionRunner {
                 for (IncludedBuild includedBuild : includedBuilds) {
                     IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
                     GradleInternal includedGradle = includedBuildInternal.configure();
-                    forceFullConfiguration(includedGradle);
-                    compositeResults.addAll(getModels(includedGradle, modelName));
+                    try {
+                        forceFullConfiguration(includedGradle);
+                        compositeResults.addAll(getModels(includedGradle, modelName));
+                    } catch (Exception e) {
+                        compositeResults.add(new Object[] { includedGradle.getDefaultProject().getProjectDir(), includedGradle.getDefaultProject().getPath(), transformFailure(e)});
+                    }
                 }
             }
 
         });
 
-        if (buildModelAction.isRunTasks()) {
-            buildController.run();
-        } else {
-            buildController.configure();
-            forceFullConfiguration(gradle);
-        }
+        Object modelResult = null;
+        try {
+            if (buildModelAction.isRunTasks()) {
+                buildController.run();
+            } else {
+                buildController.configure();
+                forceFullConfiguration(gradle);
+            }
 
-        Object modelResult;
-        if (buildModelAction.isAllModels()) {
-            compositeResults.addAll(0, getModels(gradle, modelName));
-            modelResult = compositeResults;
-        } else {
-            modelResult = getModel(gradle, modelName);
+            if (buildModelAction.isAllModels()) {
+                compositeResults.addAll(0, getModels(gradle, modelName));
+                modelResult = compositeResults;
+            } else {
+                modelResult = getModel(gradle, modelName);
+            }
+        } catch (Exception e) {
+            if (buildModelAction.isAllModels()) {
+                compositeResults.add(new Object[] { gradle.getDefaultProject().getProjectDir(), gradle.getDefaultProject().getPath(), transformFailure(e)});
+            } else {
+                throw UncheckedException.throwAsUncheckedException(transformFailure(e));
+            }
         }
 
         final PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
@@ -125,15 +142,15 @@ public class BuildModelActionRunner implements BuildActionRunner {
     //TODO use a better protocol than a List of Object arrays. Transfer `ModelResults` directly?
     //TODO let ToolingModelBuilder construct modelresults directly?
     private List<Object[]> getModels(GradleInternal gradle, String modelName) {
-        ToolingModelBuilder builder = getToolingModelBuilder(gradle, modelName);
+        List<Object[]> models = Lists.newArrayList();
         Map<String, Object> modelsByPath = Maps.newLinkedHashMap();
+        ToolingModelBuilder builder = getToolingModelBuilder(gradle, modelName);
         if (builder instanceof ProjectToolingModelBuilder) {
             ((ProjectToolingModelBuilder) builder).addModels(modelName, gradle.getDefaultProject(), modelsByPath);
         } else {
             Object buildScopedModel = builder.buildAll(modelName, gradle.getDefaultProject());
             modelsByPath.put(gradle.getDefaultProject().getPath(), buildScopedModel);
         }
-        List<Object[]> models = Lists.newArrayList();
         for (Map.Entry<String, Object> entry : modelsByPath.entrySet()) {
             models.add(new Object[] { gradle.getDefaultProject().getProjectDir(), entry.getKey(), entry.getValue()});
         }
@@ -151,6 +168,26 @@ public class BuildModelActionRunner implements BuildActionRunner {
         return builder;
     }
 
+    private Exception transformFailure(Exception e) {
+        if (e instanceof BuildCancelledException) {
+            return new InternalBuildCancelledException(e.getCause());
+        }
+        if (e instanceof ReportedException) {
+            return unwrap((ReportedException) e);
+        }
+        return e;
+    }
+
+    private Exception unwrap(ReportedException e) {
+        Throwable t = e.getCause();
+        while (t != null) {
+            if (t instanceof BuildCancelledException) {
+                return new InternalBuildCancelledException(e.getCause());
+            }
+            t = t.getCause();
+        }
+        return new BuildExceptionVersion1(e.getCause());
+    }
     private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
         return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
     }

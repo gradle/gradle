@@ -56,6 +56,6 @@ public class NoToolingApiConnection implements ConsumerConnection {
 
     @Override
     public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "2.13");
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "3.1");
     }
 }
