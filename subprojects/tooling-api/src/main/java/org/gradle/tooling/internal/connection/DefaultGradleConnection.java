@@ -23,6 +23,7 @@ import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.connection.GradleConnection;
 import org.gradle.tooling.connection.ModelResults;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
+import org.gradle.tooling.internal.consumer.DefaultBuildLauncher;
 import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 
 public class DefaultGradleConnection implements GradleConnection {
@@ -52,7 +53,7 @@ public class DefaultGradleConnection implements GradleConnection {
 
     @Override
     public BuildLauncher newBuild() {
-        return new GradleConnectionBuildLauncher(asyncConnection, parameters);
+        return new DefaultBuildLauncher(asyncConnection, parameters);
     }
 
     private <T> void checkSupportedModelType(Class<T> modelType) {
