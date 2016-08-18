@@ -32,7 +32,7 @@ class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerforman
         runner.maxExecutionTimeRegression = millis(500)
         // TODO: Tighten this threshold, once we reduce the base memory used per project
         runner.maxMemoryRegression = mbytes(300)
-        runner.targetVersions = ['2.7', 'last']
+        runner.targetVersions = ['3.1-20160818000032+0000', 'last']
 
         when:
         def result = runner.run()
@@ -48,7 +48,7 @@ class ManyEmptyProjectsHelpPerformanceTest extends AbstractCrossVersionPerforman
         runner.tasksToRun = ['help']
         runner.maxExecutionTimeRegression = millis(500)
         runner.maxMemoryRegression = mbytes(100)
-        runner.targetVersions = ['2.7', 'last']
+        runner.targetVersions = ['3.1-20160818000032+0000', 'last']
         runner.useDaemon = true
 
         when:
