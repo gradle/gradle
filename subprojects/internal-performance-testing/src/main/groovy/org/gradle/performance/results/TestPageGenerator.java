@@ -227,7 +227,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             + Joiner.on(' ').join(cleanTasks)
             + " "
             + Joiner.on(' ').join(templates)
-            + " cleanPerformanceAdHocTest performanceAdHocTest --scenarios "
+            + " cleanPerformanceAdhocTest performanceAdhocTest --scenarios "
             + "'" + history.getDisplayName() + "'"
             + " -x prepareSamples"
             + " -Porg.gradle.performance.strict=true";
