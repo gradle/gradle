@@ -31,7 +31,7 @@ class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends GradleC
         def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
 
         when:
-        withCompositeConnection(singleBuild) { GradleConnection connection ->
+        withGradleConnection(singleBuild) { GradleConnection connection ->
             connection.newBuild().run()
         }
 
@@ -47,10 +47,7 @@ class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends GradleC
         def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
 
         when:
-        withCompositeConnection(singleBuild) { GradleConnection connection ->
-            def models = connection.getModels(EclipseProject)
-            models*.model
-        }
+        getUnwrappedModelsWithGradleConnection(singleBuild, EclipseProject)
 
         then:
         UnsupportedVersionException e = thrown()

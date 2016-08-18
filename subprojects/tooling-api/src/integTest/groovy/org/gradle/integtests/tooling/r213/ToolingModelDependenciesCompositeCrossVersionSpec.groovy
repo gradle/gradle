@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -36,7 +35,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
     def stdOut = new ByteArrayOutputStream()
     TestFile buildA
     TestFile buildB
-    def builds = []
+    List<String> builds = []
     def publishedModuleB1
     EclipseProject eclipseProjectA
     EclipseProject eclipseProjectB1
@@ -73,23 +72,15 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
         loadEclipseProjectModels()
 
         then:
-        if (isIntegratedComposite()) {
-            assert eclipseProjectA.classpath.empty
-            assert eclipseProjectA.projectDependencies.size() == 1
-            with(eclipseProjectA.projectDependencies.first()) {
-                assert path == 'b1'
-                assert targetProject == null
-                assert target == eclipseProjectB1.identifier
-            }
-        } else {
-            assert eclipseProjectA.projectDependencies.empty
-            assert eclipseProjectA.classpath.size() == 1
-            def externalDependency = eclipseProjectA.classpath.first()
-            assert externalDependency.file == publishedModuleB1.artifactFile
+        assert eclipseProjectA.classpath.empty
+        assert eclipseProjectA.projectDependencies.size() == 1
+        with(eclipseProjectA.projectDependencies.first()) {
+            assert path == 'b1'
+            assert targetProject == null
+            assert target == eclipseProjectB1.identifier
         }
     }
 
-    @RequiresIntegratedComposite
     @TargetGradleVersion(">=3.0")
     def "EclipseProject model honours custom project name"() {
         when:
@@ -132,23 +123,15 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
         loadIdeaModuleModels()
 
         then:
-        if (isIntegratedComposite()) {
-            assert ideaModuleB1.identifier != null
-            assert ideaModuleA.dependencies.size() == 1
-            with(ideaModuleA.dependencies.first()) {
-                assert it instanceof IdeaModuleDependency
-                assert dependencyModule == null
-                assert target == ideaModuleB1.identifier
-            }
-        } else {
-            assert ideaModuleA.dependencies.size() == 1
-            def externalDependency = ideaModuleA.dependencies.first()
-            assert externalDependency instanceof IdeaSingleEntryLibraryDependency
-            assert externalDependency.file == publishedModuleB1.artifactFile
+        ideaModuleB1.identifier != null
+        ideaModuleA.dependencies.size() == 1
+        with(ideaModuleA.dependencies.first()) {
+            assert it instanceof IdeaModuleDependency
+            assert dependencyModule == null
+            assert target == ideaModuleB1.identifier
         }
     }
 
-    @RequiresIntegratedComposite
     def "Idea model honours custom module name"() {
         when:
         buildB.buildFile << """
@@ -179,9 +162,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
     }
 
     private ArrayList<EclipseProject> loadEclipseProjectModels() {
-        def eclipseProjects = withCompositeConnection(builds) { connection ->
-            connection.getModels(EclipseProject).asList()*.model
-        }
+        def eclipseProjects = getUnwrappedModelsWithGradleConnection(defineComposite(builds), EclipseProject)
         assert eclipseProjects.size() == 4
         eclipseProjectA = eclipseProjects.find { it.projectDirectory.absoluteFile == buildA.absoluteFile }
         eclipseProjectB1 = eclipseProjects.find { it.projectDirectory.absoluteFile == buildB.file('b1').absoluteFile }
@@ -191,9 +172,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
     }
 
     private List<IdeaModule> loadIdeaModuleModels() {
-        def ideaProjects = withCompositeConnection(builds) { connection ->
-            connection.getModels(IdeaProject).asList()*.model
-        }
+        def ideaProjects = getUnwrappedModelsWithGradleConnection(defineComposite(builds), IdeaProject)
         def ideaModules = ideaProjects*.modules.flatten() as List<IdeaModule>
         assert ideaModules.size() == 4
         ideaModuleA = ideaModules.find { it.gradleProject.projectIdentifier == new DefaultProjectIdentifier(buildA, ":") }

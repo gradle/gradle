@@ -18,20 +18,19 @@ package org.gradle.integtests.tooling.r213
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
- * Tests composites with multiple participants.  All participants have the same version.
+ * Tests composites with multiple participants.
  */
 class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def "can create composite of a two multi-project builds"() {
         given:
         def multiBuild1 = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
         def multiBuild2 = multiProjectBuild("multi-build-2", ['a2', 'b2', 'c2'])
-
         when:
-        def models = withCompositeConnection([ multiBuild1, multiBuild2 ]) { connection ->
-            unwrap(connection.getModels(EclipseProject))
-        }
+        def models = getUnwrappedModelsWithGradleConnection(defineComposite(multiBuild1, multiBuild2), EclipseProject)
+
         then:
         models.size() == 8
         rootProjects(models).size() == 2
@@ -44,9 +43,8 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def singleBuild2 = singleProjectBuild("single-build-2")
 
         when:
-        def models = withCompositeConnection([ singleBuild1, singleBuild2 ]) { connection ->
-            unwrap(connection.getModels(EclipseProject))
-        }
+        def models = getUnwrappedModelsWithGradleConnection(defineComposite(singleBuild1, singleBuild2), EclipseProject)
+
         then:
         models.size() == 2
         rootProjects(models).size() == 2
@@ -91,9 +89,8 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def multiBuild = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
 
         when:
-        def models = withCompositeConnection([ singleBuild, multiBuild ]) { connection ->
-            unwrap(connection.getModels(EclipseProject))
-        }
+        def models = getUnwrappedModelsWithGradleConnection(defineComposite(singleBuild, multiBuild), EclipseProject)
+
         then:
         models.size() == 5
         rootProjects(models).size() == 2
@@ -104,10 +101,13 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         given:
         def singleBuild = singleProjectBuild("single-build")
         def multiBuild = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
-        def composite = createComposite(singleBuild, multiBuild)
+        def composite = defineComposite(singleBuild, multiBuild)
+        GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
+        connector.forRootDirectory(composite)
+        def connection = connector.build()
 
         when:
-        def firstRetrieval = unwrap(composite.getModels(EclipseProject))
+        def firstRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
         firstRetrieval.size() == 5
@@ -122,7 +122,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
 """
         }
         and:
-        def secondRetrieval = unwrap(composite.getModels(EclipseProject))
+        def secondRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
         secondRetrieval.size() == 6
@@ -135,7 +135,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
             file("settings.gradle") << "include 'b2', 'c2'"
         }
         and:
-        def thirdRetrieval = unwrap(composite.getModels(EclipseProject))
+        def thirdRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
         thirdRetrieval.size() == 8
@@ -147,16 +147,16 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         singleBuild.deleteDir()
 
         and:
-        def fourthRetrieval = unwrap(composite.getModels(EclipseProject))
+        def fourthRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
         def e = thrown(GradleConnectionException)
-        assertFailure(e,
-            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
-            "single-build' does not exist")
+        e.printStackTrace()
+        assertFailure(e, "Could not fetch models of type 'EclipseProject'",
+            "The root project is not yet available for build.")
 
         cleanup:
-        composite?.close()
+        connection?.close()
     }
 
     Iterable<EclipseProject> rootProjects(Iterable<EclipseProject> projects) {

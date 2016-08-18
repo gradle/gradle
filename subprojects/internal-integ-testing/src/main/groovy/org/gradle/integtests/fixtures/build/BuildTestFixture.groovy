@@ -69,4 +69,11 @@ class BuildTestFixture {
         }
         return rootMulti
     }
+
+    def defineComposite(File target, List<File> includedBuilds) {
+        def path = target.toPath()
+        new File(target, 'settings.gradle') << includedBuilds.collect { "includeBuild '${path.relativize(it.toPath()).toFile()}'" }.join('\n')
+        target
+    }
+
 }

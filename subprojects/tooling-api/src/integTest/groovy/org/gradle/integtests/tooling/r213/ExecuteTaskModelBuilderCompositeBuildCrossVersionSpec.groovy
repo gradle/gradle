@@ -38,7 +38,7 @@ class ExecuteTaskModelBuilderCompositeBuildCrossVersionSpec extends GradleConnec
 """
         }
         when:
-        def modelResults = withCompositeConnection(singleBuild) { connection ->
+        def modelResults = withGradleConnection(singleBuild) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.forTasks("setDescription")
             modelBuilder.get()

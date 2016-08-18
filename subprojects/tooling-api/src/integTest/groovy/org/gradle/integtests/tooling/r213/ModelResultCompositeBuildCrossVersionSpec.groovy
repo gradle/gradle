@@ -15,14 +15,15 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
-import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.connection.FailedModelResult
 import org.gradle.tooling.connection.ModelResults
-import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
+import org.gradle.tooling.model.BuildIdentifier
 import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.ProjectIdentifier
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.idea.IdeaProject
@@ -41,14 +42,14 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
             buildFile << "throw new GradleException('Different failure in C')"
         }
         when:
-        withCompositeConnection([rootDirA, rootDirB, rootDirC]) { connection ->
+        withGradleConnection(defineComposite(rootDirB, rootDirA, rootDirC)) { connection ->
             modelResults = connection.getModels(EclipseProject)
         }
 
         then:
         def resultA = findFailureByBuildIdentifier(rootDirA)
         assertFailure(resultA.failure,
-            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
+            "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating root project 'A'.",
             "Failure in A")
 
@@ -56,7 +57,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
 
         def resultC = findFailureByBuildIdentifier(rootDirC)
         assertFailure(resultC.failure,
-            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
+            "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating root project 'C'.",
             "Different failure in C")
     }
@@ -71,15 +72,15 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
         def rootDirB = multiProjectBuild("B", ['bx', 'by'])
 
         when:
-        withCompositeConnection([rootDirA, rootDirB]) {
-            modelResults = it.getModels(EclipseProject)
+        withGradleConnection(defineComposite(rootDirA, rootDirB)) { connection ->
+            modelResults = connection.getModels(EclipseProject)
         }
 
         then:
         // when the build cannot be configured, we return only a failure for the root project
         def resultA = findFailureByBuildIdentifier(rootDirA)
         assertFailure(resultA.failure,
-            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
+            "Could not fetch models of type 'EclipseProject'",
             "A problem occurred evaluating project ':ax'.",
             "Failure in A::ax")
         // No models are returned
@@ -94,7 +95,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
 
         when:
         Iterable<IdeaProject> ideaProjects = []
-        withCompositeConnection([rootDirA]) {
+        withGradleConnection(rootDirA) {
             modelResults = it.getModels(EclipseProject)
             ideaProjects = it.getModels(IdeaProject)*.model
         }
@@ -117,7 +118,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
         def otherHierarchicalModelResults = []
         def otherPerBuildModelResults = []
         def ideaProjects = []
-        withCompositeConnection([rootDirA]) {
+        withGradleConnection(rootDirA) {
             modelResults = it.getModels(EclipseProject)
             otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
             otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier
@@ -151,7 +152,8 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
         def otherHierarchicalModelResults = []
         def otherPerBuildModelResults = []
         def ideaProjects = []
-        withCompositeConnection([rootDirA, rootDirB]) {
+
+        withGradleConnection(defineComposite(rootDirA, rootDirB)) {
             modelResults = it.getModels(EclipseProject)
             otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
             otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier

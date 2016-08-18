@@ -38,10 +38,7 @@ class CustomModelsCompositeBuildCrossVersionSpec extends GradleConnectionTooling
     @TargetGradleVersion(">=1.2 <1.6")
     def "decent error message for Gradle version that doesn't support custom models"() {
         when:
-        def modelResults = withCompositeConnection([rootSingle, rootMulti]) { GradleConnection connection ->
-            def modelBuilder = connection.models(CustomModel)
-            modelBuilder.get()
-        }.asList()
+        def modelResults = getModelsWithGradleConnection(defineComposite(rootSingle, rootMulti), CustomModel)
 
         then:
         modelResults.size() == 2
@@ -55,13 +52,10 @@ class CustomModelsCompositeBuildCrossVersionSpec extends GradleConnectionTooling
     @TargetGradleVersion(">=1.6")
     def "decent error message for unknown custom model"() {
         when:
-        def modelResults = withCompositeConnection([rootSingle, rootMulti]) { GradleConnection connection ->
-            def modelBuilder = connection.models(CustomModel)
-            modelBuilder.get()
-        }.asList()
+        def modelResults = getModelsWithGradleConnection(defineComposite(rootSingle, rootMulti), CustomModel)
 
         then:
-        def expectedMessage = toolingApiVersion < GradleVersion.version("2.14") ? "Could not fetch models of type 'CustomModel' using client-side composite connection." : 'No model of type \'CustomModel\' is available in this build.'
+        def expectedMessage = GradleVersion.current() < GradleVersion.version("2.14") ? "Could not fetch models of type 'CustomModel' using client-side composite connection." : 'No model of type \'CustomModel\' is available in this build.'
         modelResults.size() == 2
         modelResults.each {
             def e = it.failure
@@ -107,10 +101,7 @@ apply plugin: CustomPlugin
         rootMulti.buildFile << buildContent
 
         when:
-        def modelResults = withCompositeConnection([rootSingle, rootMulti]) { GradleConnection connection ->
-            def modelBuilder = connection.models(CustomModel)
-            modelBuilder.get()
-        }.asList()
+        def modelResults = getModelsWithGradleConnection(defineComposite(rootSingle, rootMulti), CustomModel)
 
         then:
         modelResults.size() == 2

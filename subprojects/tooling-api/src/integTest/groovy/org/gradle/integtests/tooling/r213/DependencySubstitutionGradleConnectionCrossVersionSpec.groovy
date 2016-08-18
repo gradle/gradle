@@ -15,17 +15,20 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import spock.lang.Ignore
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
+
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
 @TargetGradleVersion(">=1.4")
+@Ignore("Requires composite task execution")
 // Dependencies task fails for missing dependencies with older Gradle versions
 class DependencySubstitutionGradleConnectionCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
@@ -60,10 +63,7 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends GradleConne
 
     def "dependencies report shows external dependencies substituted with project dependencies"() {
         given:
-        def expectedOutput = "org.test:buildB:1.0"
-        if (isIntegratedComposite()) {
-            expectedOutput = "org.test:buildB:1.0 -> project buildB::"
-        }
+        def expectedOutput = "org.test:buildB:1.0 -> project buildB::"
 
         when:
         dependencies()
@@ -75,7 +75,6 @@ compile
 """
     }
 
-    @RequiresIntegratedComposite
     def "dependencies report displays failure for dependency that cannot be resolved in composite"() {
         given:
         // Add a project that makes 'buildB' ambiguous in the composite
@@ -92,7 +91,6 @@ compile
 """
     }
 
-    @RequiresIntegratedComposite
     def "builds artifacts for substituted dependencies"() {
         given:
         buildA.buildFile << """
@@ -113,7 +111,7 @@ compile
         builds << buildC
 
         when:
-        withCompositeConnection(builds) { connection ->
+        withGradleConnection(defineComposite(builds)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.setStandardError(stdErr)
@@ -135,7 +133,7 @@ compile
     }
 
     private Object dependencies() {
-        withCompositeConnection(builds) { connection ->
+        withGradleConnection(defineComposite(builds)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.forTasks(buildA, "dependencies")

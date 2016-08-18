@@ -17,11 +17,11 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.IgnoreIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.BuildLauncher
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
+import spock.lang.Ignore
 
 class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
 
@@ -29,11 +29,13 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         toolingApi.requireDaemons()
     }
 
-    def "can pass additional command-line arguments for project properties"() {
+    def "can pass additional command-line arguments for project properties when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+        def composite = defineComposite(builds)
+
         when:
-        def modelResults = withCompositeConnection(builds) { connection ->
+        def modelResults = withGradleConnection(composite) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withArguments("-PprojectProperty=foo")
             modelBuilder.get()
@@ -44,8 +46,21 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
             it.model.description == "Set from project property = foo"
         }
 
+        where:
+        numberOfParticipants | numberOfSubprojects
+        1                    | [0]
+        3                    | [0, 0, 0]
+        2                    | [3, 0]
+    }
+
+    @Ignore("Requires composite task execution")
+    def "can pass additional command-line arguments for project properties when executing tasks"() {
+        given:
+        def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+        def composite = defineComposite(builds)
+
         when:
-        withCompositeConnection(builds) { connection ->
+        withGradleConnection(composite) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-PprojectProperty=foo")
@@ -55,6 +70,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         noExceptionThrown()
         def results = builds.first().file("result")
         results.text.count("Project property = foo") == (numberOfSubprojects[0]+1)
+
         where:
         numberOfParticipants | numberOfSubprojects
         1                    | [0]
@@ -62,11 +78,13 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         2                    | [3, 0]
     }
 
-    def "can pass additional command-line arguments for system properties"() {
+    def "can pass additional command-line arguments for system properties when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+        def composite = defineComposite(builds)
+
         when:
-        def modelResults = withCompositeConnection(builds) { connection ->
+        def modelResults = withGradleConnection(composite) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withArguments("-DsystemProperty=foo")
             modelBuilder.get()
@@ -77,8 +95,21 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
             it.model.description == "Set from system property = foo"
         }
 
+        where:
+        numberOfParticipants | numberOfSubprojects
+        1                    | [0]
+        3                    | [0, 0, 0]
+        2                    | [3, 0]
+    }
+
+    @Ignore("Requires composite task execution")
+    def "can pass additional command-line arguments for system properties when executing tasks"() {
+        given:
+        def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+        def composite = defineComposite(builds)
+
         when:
-        withCompositeConnection(builds) { connection ->
+        withGradleConnection(composite) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-DsystemProperty=foo")
@@ -95,11 +126,13 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         2                    | [3, 0]
     }
 
-    def "can pass additional jvm arguments"() {
+    def "can pass additional jvm arguments when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+        def composite = defineComposite(builds)
+
         when:
-        def modelResults = withCompositeConnection(builds) { connection ->
+        def modelResults = withGradleConnection(composite) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setJvmArguments("-DsystemProperty=foo")
             modelBuilder.get()
@@ -110,8 +143,21 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
             it.model.description == "Set from system property = foo"
         }
 
+        where:
+        numberOfParticipants | numberOfSubprojects
+        1                    | [0]
+        3                    | [0, 0, 0]
+        2                    | [3, 0]
+    }
+
+    @Ignore("Requires composite task execution")
+    def "can pass additional jvm arguments"() {
+        given:
+        def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+        def composite = defineComposite(builds)
+
         when:
-        withCompositeConnection(builds) { connection ->
+        withGradleConnection(composite) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "run")
             buildLauncher.setJvmArguments("-DsystemProperty=foo")
@@ -129,15 +175,15 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     }
 
     @TargetGradleVersion(">=2.10")
-    @IgnoreIntegratedComposite
-    def "can set javahome for model requests"() {
+    def "can set java home for model requests"() {
         given:
         File javaHome = new File("not/javahome")
         javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+        def composite = defineComposite(builds)
 
         when:
-        def modelResults = withCompositeConnection(builds) { connection ->
+        def modelResults = withGradleConnection(composite) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setJavaHome(javaHome)
             modelBuilder.get()
@@ -147,6 +193,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         modelResults.each {
             assertFailure(it.failure, "The supplied javaHome seems to be invalid.")
         }
+
         where:
         numberOfParticipants | numberOfSubprojects
         1                    | [0]
@@ -154,14 +201,16 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         2                    | [3, 0]
     }
 
-    @IgnoreIntegratedComposite
+    @Ignore("Requires composite task execution")
     def "can set javahome for build launcher"() {
         given:
         File javaHome = new File("not/javahome")
         javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
+        def composite = defineComposite(builds)
+
         when:
-        withCompositeConnection(builds) { connection ->
+        withGradleConnection(composite) { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.setJavaHome(javaHome)
             buildLauncher.forTasks(builds[0], "run")

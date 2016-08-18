@@ -26,6 +26,8 @@ import org.gradle.tooling.ResultHandler
 import org.gradle.tooling.connection.ModelResults
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
+import spock.lang.Ignore
+
 /**
  * Tests cancellation of model requests in a composite build.
  */
@@ -83,7 +85,7 @@ class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         when:
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
-        withCompositeConnection([build1, build2, build3]) { connection ->
+        withGradleConnection(defineComposite(build1, build2, build3)) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withCancellationToken(cancellationToken.token())
             modelBuilder.withArguments("-PwaitForCancellation")
@@ -128,7 +130,7 @@ class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
         cancellationToken.cancel()
-        withCompositeConnection([build1, build2]) { connection ->
+        withGradleConnection(defineComposite(build1, build2)) { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withCancellationToken(cancellationToken.token())
             modelBuilder.get(resultHandler)
@@ -140,6 +142,7 @@ class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         !executedAfterCancellingFile.exists()
     }
 
+    @Ignore("Requires composite task execution")
     def "check that no participant tasks are started at all when token is initially cancelled"() {
         given:
         def executedAfterCancellingFile = file("executed")
@@ -158,7 +161,7 @@ class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
         cancellationToken.cancel()
-        withCompositeConnection([build1, build2]) { connection ->
+        withGradleConnection(defineComposite(build1, build2)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "run")
             buildLauncher.withCancellationToken(cancellationToken.token())

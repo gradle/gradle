@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Builds a composite with a single project.
@@ -24,11 +25,11 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def "can create composite of a single multi-project build"() {
         given:
-        def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
+        def multiBuild = multiProjectBuild("multi-build", ['a', 'b', 'c'])
+
         when:
-        def models = withCompositeConnection(singleBuild) { connection ->
-            unwrap(connection.getModels(EclipseProject))
-        }
+        def models = getUnwrappedModelsWithGradleConnection(multiBuild, EclipseProject)
+
         then:
         models.size() == 4
         rootProjects(models).size() == 1
@@ -38,10 +39,10 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
     def "can create composite of a single single-project build"() {
         given:
         def singleBuild = singleProjectBuild("single-build")
+
         when:
-        def models = withCompositeConnection(singleBuild) { connection ->
-            unwrap(connection.getModels(EclipseProject))
-        }
+        def models = getUnwrappedModelsWithGradleConnection(singleBuild, EclipseProject)
+
         then:
         models.size() == 1
         rootProjects(models).size() == 1
@@ -61,10 +62,10 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
         goodChildProject.file("build.gradle") <<"""
             apply plugin: 'java'
 """
+
         when:
-        def models = withCompositeConnection(goodChildProject) { connection ->
-            unwrap(connection.getModels(EclipseProject))
-        }
+        def models = getUnwrappedModelsWithGradleConnection(goodChildProject)
+
         then:
         models.size() == 1
         EclipseProject project = models.get(0)
@@ -76,7 +77,9 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
     def "sees changes to composite build when projects are added"() {
         given:
         def singleBuild = singleProjectBuild("single-build")
-        def composite = createComposite(singleBuild)
+        GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
+        connector.forRootDirectory(singleBuild)
+        def composite = connector.build()
 
         when:
         def firstRetrieval = unwrap(composite.getModels(EclipseProject))
@@ -120,8 +123,8 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
         then:
         def e = thrown(GradleConnectionException)
         assertFailure(e,
-            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
-            "single-build' does not exist")
+            "Could not fetch models of type 'EclipseProject'",
+            "The root project is not yet available for build")
 
         cleanup:
         composite?.close()

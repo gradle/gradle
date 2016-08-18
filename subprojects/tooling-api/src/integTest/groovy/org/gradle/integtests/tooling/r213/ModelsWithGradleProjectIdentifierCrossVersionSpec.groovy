@@ -41,8 +41,8 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
 
     def "GradleConnection provides identified models for single project build"() {
         when:
-        def gradleProjects = getModelsWithGradleConnection([rootSingle], EclipseProject)*.gradleProject
-        def models = getModelsWithGradleConnection([rootSingle], modelType)
+        def gradleProjects = getUnwrappedModelsWithGradleConnection(rootSingle, EclipseProject)*.gradleProject
+        def models = getUnwrappedModelsWithGradleConnection(rootSingle, modelType)
 
         then:
         gradleProjects.size() == 1
@@ -55,8 +55,8 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
 
     def "GradleConnection provides identified models for multi-project build"() {
         when:
-        def gradleProjects = getModelsWithGradleConnection([rootMulti], EclipseProject)*.gradleProject
-        def models = getModelsWithGradleConnection([rootMulti], modelType)
+        def gradleProjects = getUnwrappedModelsWithGradleConnection(rootMulti, EclipseProject)*.gradleProject
+        def models = getUnwrappedModelsWithGradleConnection(rootMulti, modelType)
 
         then:
         gradleProjects.size() == models.size()
@@ -68,8 +68,9 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
 
     def "GradleConnection provides identified models for composite build"() {
         when:
-        def gradleProjects = getModelsWithGradleConnection([rootMulti, rootSingle], EclipseProject)*.gradleProject
-        def models = getModelsWithGradleConnection([rootMulti, rootSingle], modelType)
+        def composite = defineComposite(rootMulti, rootSingle)
+        def gradleProjects = getUnwrappedModelsWithGradleConnection(composite, EclipseProject)*.gradleProject
+        def models = getUnwrappedModelsWithGradleConnection(composite, modelType)
 
         then:
         gradleProjects.size() == models.size()
@@ -81,7 +82,8 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
 
     def "all Launchables are identified when obtained from GradleConnection"() {
         when:
-        def buildInvocationsSet = getModelsWithGradleConnection([rootMulti, rootSingle], BuildInvocations)
+        def composite = defineComposite(rootMulti, rootSingle)
+        def buildInvocationsSet = getUnwrappedModelsWithGradleConnection(composite, BuildInvocations)
 
         then:
         buildInvocationsSet.each { BuildInvocations buildInvocations ->
@@ -111,8 +113,8 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
     @TargetGradleVersion(">=2.13")
     def "ProjectConnection with custom action provides identified models for multi-project build"() {
         when:
-        def gradleProjects = getModelsWithProjectConnection(rootMulti, GradleProject)
-        def models = getModelsWithProjectConnection(rootMulti, modelType)
+        def gradleProjects = getModelsWithProjectConnectionAndCustomAction(rootMulti, GradleProject)
+        def models = getModelsWithProjectConnectionAndCustomAction(rootMulti, modelType)
 
         then:
         assertSameIdentifiers(gradleProjects, models)
@@ -124,7 +126,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
     @TargetGradleVersion('>=1.2 <1.12')
     def "decent error message for Gradle version that doesn't expose publications"() {
         when:
-        def modelResults = withCompositeConnection([rootMulti, rootSingle]) { GradleConnection connection ->
+        def modelResults = withGradleConnection([rootMulti, rootSingle]) { GradleConnection connection ->
             def modelBuilder = connection.models(ProjectPublications)
             modelBuilder.get()
         }.asList()
@@ -148,33 +150,16 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
         assert gradleProjectIdentifiers == modelIdentifiers
     }
 
-    private List getModelsWithGradleConnection(List<TestFile> rootDirs, Class modelType) {
-        withCompositeConnection(rootDirs) { GradleConnection connection ->
-            def modelBuilder = connection.models(modelType)
-            modelBuilder.get()
-        }.asList()*.model
-    }
-
-    private getModelWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
-        GradleConnector connector = connector()
-        connector.forProjectDirectory(rootDir)
-        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
-        return withConnection(connector) { it.getModel(modelType) }
-    }
-
-    private getModelsWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
+    private getModelsWithProjectConnectionAndCustomAction(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
         FetchProjectModelsBuildAction buildAction = new FetchProjectModelsBuildAction(modelType)
-        GradleConnector connector = connector()
-        connector.forProjectDirectory(rootDir)
-        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
-        withConnection(connector) { connection ->
+        withProjectConnection(rootDir, searchUpwards) { connection ->
             connection.action(buildAction).run()
         }
     }
 
     private static getModelsHavingGradleProjectIdentifier() {
         List<Class<?>> models = [BuildInvocations]
-        if (targetDist >= GradleVersion.version("1.12")) {
+        if (targetDist.getVersion() >= GradleVersion.version("1.12")) {
             models += ProjectPublications
         }
         return models

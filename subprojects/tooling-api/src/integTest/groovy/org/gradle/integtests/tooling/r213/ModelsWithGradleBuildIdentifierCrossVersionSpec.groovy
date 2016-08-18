@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.GradleBuild
 
@@ -34,8 +33,8 @@ class ModelsWithGradleBuildIdentifierCrossVersionSpec extends GradleConnectionTo
 
     def "GradleConnection provides identified model for single project build"() {
         when:
-        def gradleBuilds = getModelsWithGradleConnection([rootSingle], GradleBuild)
-        def models = getModelsWithGradleConnection([rootSingle], modelType)
+        def gradleBuilds = getUnwrappedModelsWithGradleConnection(rootSingle, GradleBuild)
+        def models = getUnwrappedModelsWithGradleConnection(rootSingle, modelType)
 
         then:
         gradleBuilds.size() == 1
@@ -48,8 +47,8 @@ class ModelsWithGradleBuildIdentifierCrossVersionSpec extends GradleConnectionTo
 
     def "GradleConnection provides identified model for multi-project build"() {
         when:
-        def gradleBuilds = getModelsWithGradleConnection([rootMulti], GradleBuild)
-        def models = getModelsWithGradleConnection([rootMulti], modelType)
+        def gradleBuilds = getUnwrappedModelsWithGradleConnection(rootMulti, GradleBuild)
+        def models = getUnwrappedModelsWithGradleConnection(rootMulti, modelType)
 
         then:
         gradleBuilds.size() == 1
@@ -62,8 +61,9 @@ class ModelsWithGradleBuildIdentifierCrossVersionSpec extends GradleConnectionTo
 
     def "GradleConnection provides identified model for composite build"() {
         when:
-        def gradleBuilds = getModelsWithGradleConnection([rootMulti, rootSingle], GradleBuild)
-        def models = getModelsWithGradleConnection([rootMulti, rootSingle], modelType)
+        def composite = defineComposite(rootSingle, rootMulti)
+        def gradleBuilds = getUnwrappedModelsWithGradleConnection(composite, GradleBuild)
+        def models = getUnwrappedModelsWithGradleConnection(composite, modelType)
 
         then:
         gradleBuilds.size() == models.size()
@@ -81,13 +81,6 @@ class ModelsWithGradleBuildIdentifierCrossVersionSpec extends GradleConnectionTo
         def gradleBuildIdentifiers = gradleBuilds.collect { it.buildIdentifier } as Set
         def modelBuildIdentifiers = models.collect { it.buildIdentifier } as Set
         assert gradleBuildIdentifiers == modelBuildIdentifiers
-    }
-
-    private List getModelsWithGradleConnection(List<TestFile> rootDirs, Class modelType) {
-        withCompositeConnection(rootDirs) { GradleConnection connection ->
-            def modelBuilder = connection.models(modelType)
-            modelBuilder.get()
-        }.asList()*.model
     }
 
     private static getModelsHavingGradleBuildIdentifier() {

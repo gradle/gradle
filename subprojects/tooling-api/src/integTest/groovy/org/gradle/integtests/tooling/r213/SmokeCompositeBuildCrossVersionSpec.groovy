@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r213
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
@@ -24,31 +25,23 @@ import org.gradle.tooling.model.eclipse.EclipseProject
  */
 class SmokeCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
 
-    def "throws IllegalStateException when no participants are added"() {
-        when:
-        createComposite()
-        then:
-        thrown(IllegalStateException)
-    }
-
     @NotYetImplemented
     def "throws IllegalArgumentException when trying to add overlapping participants"() {
         given:
         def project = projectDir("project")
         def overlapping = project.file("overlapping").createDir()
+
         when:
-        withCompositeConnection([ project, overlapping ]) { connection ->
-            connection.getModels(EclipseProject)
-        }
+        getModelsWithGradleConnection(defineComposite(project, overlapping), EclipseProject)
+
         then:
         thrown(IllegalArgumentException)
     }
 
     def "throws IllegalArgumentException when trying to retrieve a non-model type"() {
         when:
-        withCompositeConnection(projectDir("project")) { connection ->
-            connection.getModels(Object)
-        }
+        getModelsWithGradleConnection(projectDir.createDir('project'), Object)
+
         then:
         thrown(IllegalArgumentException)
     }
@@ -59,11 +52,12 @@ class SmokeCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpec
             settingsFile << "rootProject.name = 'project'"
         }
         when:
-        withCompositeConnection(project) { connection ->
+        withGradleConnection(project) { connection ->
             def models = connection.getModels(EclipseProject)
             connection.close()
             def modelsAgain = connection.getModels(EclipseProject)
         }
+
         then:
         thrown(IllegalStateException)
     }
@@ -74,42 +68,36 @@ class SmokeCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpec
             settingsFile << "rootProject.name = '${rootProjectName}'"
             buildFile << "throw new RuntimeException()"
         }
+
         when:
-        withCompositeConnection(project) { connection ->
-            connection.getModels(EclipseProject).each {
-                it.model
-            }
-        }
+        getUnwrappedModelsWithGradleConnection(project, EclipseProject)
+
         then:
         def e = thrown(GradleConnectionException)
-        assertFailure(e, integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'")
+        assertFailure(e, "Could not fetch models of type 'EclipseProject'")
     }
 
     def "fails to retrieve model when participant is not a Gradle project"() {
         when:
-        withCompositeConnection(projectDir("project-does-not-exist")) { connection ->
-            connection.getModels(EclipseProject).each {
-                it.model
-            }
-        }
+        getUnwrappedModelsWithGradleConnection(projectDir.file("project-does-not-exist"), EclipseProject)
+
         then:
         def e = thrown(GradleConnectionException)
         assertFailure(e,
-            integratedComposite ? "Could not fetch models of type 'EclipseProject'" : "Could not fetch model of type 'EclipseProject'",
-            "project-does-not-exist' does not exist")
+            "Could not fetch models of type 'EclipseProject'",
+            "The root project is not yet available for build")
     }
 
     def "does not search upwards for projects"() {
         given:
-        def rootDir = projectDir("root")
+        def rootDir = projectDir.createDir("root")
         rootDir.file("settings.gradle") << "include 'project', 'a', 'b', 'c'"
         def project = rootDir.createDir("project")
         project.createFile("build.gradle")
 
         when:
-        def models = withCompositeConnection(project) { connection ->
-            connection.getModels(EclipseProject)
-        }
+        def models = getModelsWithGradleConnection(project, EclipseProject)
+
         then:
         // should only find 'project', not the other projects defined in root.
         models.size() == 1

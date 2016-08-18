@@ -18,9 +18,18 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
+import org.gradle.integtests.tooling.r213.FetchProjectModelsBuildAction
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.connection.GradleConnection
+import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
 import org.gradle.tooling.connection.ModelResults
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
+import org.gradle.tooling.model.GradleProject
+import org.gradle.tooling.model.eclipse.EclipseProject
+import org.gradle.util.GradleVersion
 import org.junit.runner.RunWith
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_GRADLE_CONNECTION)
@@ -28,38 +37,38 @@ import org.junit.runner.RunWith
 @RunWith(ToolingApiCompatibilitySuiteRunner)
 abstract class GradleConnectionToolingApiSpecification extends AbstractToolingApiSpecification {
 
-    public <T> T withConnection(@DelegatesTo(GradleConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.connection.GradleConnection"]) Closure<T> cl) {
-        toolingApi.withGradleConnection(cl)
+    protected <T> T withGradleConnection(TestFile projectDir, @DelegatesTo(GradleConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.connection.GradleConnection"]) Closure<T> cl = {}) {
+        GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
+        connector.forRootDirectory(projectDir)
+        return toolingApi.withGradleConnection(connector, cl)
     }
 
-    public ConfigurableOperation withModels(Class modelType, Closure cl = {}) {
-        withConnection {
-            def models = it.models(modelType)
-            cl(models)
-            new ConfigurableOperation(models).buildModel()
+    protected <T> ModelResults<T> getModelsWithGradleConnection(TestFile projectDir, Class<T> modelType) {
+        withGradleConnection(projectDir) { connection ->
+            return connection.getModels(modelType)
         }
     }
 
-    public ConfigurableOperation withBuild(Closure cl = {}) {
-        withConnection {
-            def build = it.newBuild()
-            cl(build)
-            def out = new ConfigurableOperation(build)
-            build.run()
-            out
-        }
+    protected <T> List<T> getUnwrappedModelsWithGradleConnection(TestFile projectDir, Class<T> modelType) {
+        unwrap(getModelsWithGradleConnection(projectDir, modelType))
     }
 
-    public <T> ModelResults<T> loadToolingModels(Class<T> modelClass) {
-        withConnection { connection -> connection.getModels(modelClass) }
-    }
-
-    // Transforms Iterable<ModelResult<T>> into Iterable<T>
-    def unwrap(Iterable<ModelResult> modelResults) {
+    protected <T> List<T> unwrap(Iterable<ModelResult<T>> modelResults) {
         modelResults.collect { it.model }
     }
 
-    void assertFailure(Throwable failure, String... messages) {
+    protected <T> T withProjectConnection(TestFile projectDir, boolean searchUpwards = true, @DelegatesTo(ProjectConnection) Closure<T> cl = {}) {
+        GradleConnector connector = toolingApi.connector()
+        connector.forProjectDirectory(projectDir.absoluteFile)
+        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
+        return toolingApi.withConnection(cl)
+    }
+
+    protected <T> T getModelWithProjectConnection(TestFile rootDir, Class<T> modelType, boolean searchUpwards = true) {
+        return withProjectConnection(rootDir, searchUpwards) { it.getModel(modelType) }
+    }
+
+    protected assertFailure(Throwable failure, String... messages) {
         assert failure != null
         def causes = getCauses(failure)
 
@@ -68,7 +77,7 @@ abstract class GradleConnectionToolingApiSpecification extends AbstractToolingAp
         }
     }
 
-    void assertFailureHasCause(Throwable failure, Class<Throwable> expectedType) {
+    protected assertFailureHasCause(Throwable failure, Class<Throwable> expectedType) {
         assert failure != null
         Throwable throwable = failure
         List causes = []

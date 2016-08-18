@@ -25,7 +25,6 @@ class CompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecifica
 
     def "Can query project models from a composite build"() {
         setup:
-
         file('my-lib', 'settings.gradle') << 'rootProject.name = "my-lib"'
 
         settingsFile << """
@@ -34,7 +33,7 @@ class CompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecifica
         """
 
         when:
-        def models = loadToolingModels(GradleProject)
+        def models = getModelsWithGradleConnection(projectDir, GradleProject)
 
         then:
         models*.model*.name == ['root', 'my-lib']
