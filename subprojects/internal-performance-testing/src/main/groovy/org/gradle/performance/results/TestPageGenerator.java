@@ -230,7 +230,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             + " cleanPerformanceAdHocTest performanceAdHocTest --scenarios "
             + "'" + history.getDisplayName() + "'"
             + " -x prepareSamples"
-            + (BaselineVersion.isStrict() ? " -Porg.gradle.performance.strict=true" : "");
+            + " -Porg.gradle.performance.strict=true";
     }
 
     private static class Link {
