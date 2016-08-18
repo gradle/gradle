@@ -50,6 +50,9 @@ public class DependentComponentsReport extends DefaultTask {
     private boolean showTestSuites;
     private List<String> components;
 
+    /**
+     * Set this to include non buildable components in the report.
+     */
     @Console
     public boolean isShowNonBuildable() {
         return showNonBuildable;
@@ -60,6 +63,9 @@ public class DependentComponentsReport extends DefaultTask {
         this.showNonBuildable = showNonBuildable;
     }
 
+    /**
+     * Set this to include test suites in the report.
+     */
     @Console
     public boolean isShowTestSuites() {
         return showTestSuites;
@@ -70,6 +76,9 @@ public class DependentComponentsReport extends DefaultTask {
         this.showTestSuites = showTestSuites;
     }
 
+    /**
+     * Set this to include both non buildable components and test suites in the report.
+     */
     @Option(option = "all", description = "Show all components (non-buildable and test suites).")
     public void setShowAll(boolean showAll) {
         this.showNonBuildable = showAll;

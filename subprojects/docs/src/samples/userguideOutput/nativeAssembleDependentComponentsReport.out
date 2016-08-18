@@ -1,0 +1,17 @@
+:dependentComponents
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+operators - Components that depend on native library 'operators'
++--- operators:failingSharedLibrary
++--- operators:failingStaticLibrary
++--- operators:passingSharedLibrary
+\--- operators:passingStaticLibrary
+
+Some test suites were not shown, use --test-suites or --all to show them.
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs

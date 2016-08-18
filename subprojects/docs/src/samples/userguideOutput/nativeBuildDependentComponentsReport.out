@@ -1,0 +1,19 @@
+:dependentComponents
+
+------------------------------------------------------------
+Root project
+------------------------------------------------------------
+
+operators - Components that depend on native library 'operators'
++--- operators:failingSharedLibrary
++--- operators:failingStaticLibrary
+|    \--- operatorsTest:failingCUnitExe (t)
++--- operators:passingSharedLibrary
+\--- operators:passingStaticLibrary
+     \--- operatorsTest:passingCUnitExe (t)
+
+(t) - Test suite binary
+
+BUILD SUCCESSFUL
+
+Total time: 1 secs
