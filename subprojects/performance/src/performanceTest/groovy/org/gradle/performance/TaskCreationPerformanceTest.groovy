@@ -45,7 +45,6 @@ class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject         | maxTimeRegression | maxMemoryRegression | targetVersions
-        "createSomeTasks"   | millis(200)       | mbytes(50)          | ['2.12', 'last']
         "createLotsOfTasks" | millis(300)       | mbytes(50)          | ['2.12', 'last']
     }
 }
