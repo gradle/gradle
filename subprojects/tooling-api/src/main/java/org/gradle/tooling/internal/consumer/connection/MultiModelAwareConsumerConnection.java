@@ -17,37 +17,26 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Transformer;
-import org.gradle.internal.Cast;
-import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
-import org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection;
+import org.gradle.tooling.internal.protocol.InternalMultiModelAwareConnection;
 
 /**
- * An adapter for {@link org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection}.
+ * An adapter for {@link InternalMultiModelAwareConnection}.
  *
- * <p>Used for providers >= 2.13.</p>
+ * <p>Used for providers >= 3.1.</p>
  */
-public class CompositeAwareConsumerConnection extends TestExecutionConsumerConnection {
-    public CompositeAwareConsumerConnection(ConnectionVersion4 connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
+public class MultiModelAwareConsumerConnection extends TestExecutionConsumerConnection {
+    public MultiModelAwareConsumerConnection(ConnectionVersion4 connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(connection, modelMapping, adapter);
     }
 
     @Override
     protected ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
         ModelProducer delegate = super.createModelProducer(connection, modelMapping, adapter, exceptionTransformer);
-        return new CompositeAwareModelProducer(delegate, adapter, getVersionDetails(), modelMapping, (InternalCompositeAwareConnection) connection, exceptionTransformer);
+        return new MultiModelAwareModelProducer(delegate, adapter, getVersionDetails(), modelMapping, (InternalMultiModelAwareConnection) connection, exceptionTransformer);
     }
 
-    protected MultiModelProducer getMultiModelProducer() {
-        return Cast.uncheckedCast(getModelProducer());
-    }
-
-    @Override
-    public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        return getMultiModelProducer().produceModels(elementType, operationParameters);
-    }
 }

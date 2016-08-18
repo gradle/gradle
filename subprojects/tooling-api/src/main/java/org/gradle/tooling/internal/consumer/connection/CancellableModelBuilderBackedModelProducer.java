@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.api.Transformer;
+import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.BuildCancellationTokenAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -58,5 +59,11 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
             throw exceptionTransformer.transform(e);
         }
         return applyCompatibilityMapping(adapter.builder(type), operationParameters).build(result.getModel());
+    }
+
+    @Override
+    public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+        //TODO implement this to support GradleConnection against Gradle 1.8-3.0
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), versionDetails.getVersion(), "3.1");
     }
 }

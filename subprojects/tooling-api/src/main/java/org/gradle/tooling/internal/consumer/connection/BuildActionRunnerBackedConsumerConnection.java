@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -101,6 +102,12 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
             Object model = buildActionRunner.run(protocolType, operationParameters).getModel();
 
             return mapperProvider.applyCompatibilityMapping(adapter.builder(type), operationParameters).build(model);
+        }
+
+        @Override
+        public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+            //TODO implement this to support GradleConnection against Gradle 1.2-1.6
+            throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), versionDetails.getVersion(), "3.1");
         }
     }
 }

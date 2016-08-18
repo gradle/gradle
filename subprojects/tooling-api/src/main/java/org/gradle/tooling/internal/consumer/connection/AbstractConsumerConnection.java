@@ -70,6 +70,6 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
 
     @Override
     public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
-        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), getVersionDetails().getVersion(), "2.14");
+        return getModelProducer().produceModels(elementType, operationParameters);
     }
 }

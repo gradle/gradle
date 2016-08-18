@@ -42,7 +42,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
 import org.gradle.tooling.internal.protocol.InternalCancellationToken;
-import org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection;
+import org.gradle.tooling.internal.protocol.InternalMultiModelAwareConnection;
 import org.gradle.tooling.internal.protocol.InternalConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
@@ -65,7 +65,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 public class DefaultConnection implements ConnectionVersion4, InternalConnection, BuildActionRunner,
-    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection, InternalCompositeAwareConnection {
+    ConfigurableConnection, ModelBuilder, InternalBuildActionExecutor, InternalCancellableConnection, StoppableConnection, InternalTestExecutionConnection, InternalMultiModelAwareConnection {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnection.class);
     private static final GradleVersion MIN_CLIENT_VERSION = GradleVersion.version("2.0");
     private ProtocolToModelAdapter adapter;

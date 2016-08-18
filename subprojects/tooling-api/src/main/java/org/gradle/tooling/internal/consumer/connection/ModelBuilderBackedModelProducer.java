@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -52,5 +53,11 @@ public class ModelBuilderBackedModelProducer extends HasCompatibilityMapping imp
             throw Exceptions.unknownModel(type, e);
         }
         return applyCompatibilityMapping(adapter.builder(type), operationParameters).build(result.getModel());
+    }
+
+    @Override
+    public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+        //TODO implement this to support GradleConnection against Gradle 1.6-1.8
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), versionDetails.getVersion(), "3.1");
     }
 }

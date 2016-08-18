@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -44,5 +45,11 @@ public class BuildInvocationsAdapterProducer implements ModelProducer {
             return adapter.adapt(type, new BuildInvocationsConverter().convert(gradleProject));
         }
         return delegate.produceModel(type, operationParameters);
+    }
+
+    @Override
+    public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+        //TODO implement this to support GradleConnection against older Gradle versions
+        throw new UnsupportedOperationException();
     }
 }

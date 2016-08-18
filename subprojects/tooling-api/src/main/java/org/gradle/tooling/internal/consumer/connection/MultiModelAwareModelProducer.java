@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection;
+import org.gradle.tooling.internal.protocol.InternalMultiModelAwareConnection;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.ProjectIdentifier;
@@ -39,15 +39,15 @@ import java.io.File;
 import java.util.LinkedList;
 import java.util.List;
 
-public class CompositeAwareModelProducer extends HasCompatibilityMapping implements MultiModelProducer {
+public class MultiModelAwareModelProducer extends HasCompatibilityMapping implements ModelProducer {
     private final ModelProducer delegate;
     private final ProtocolToModelAdapter adapter;
     private final VersionDetails versionDetails;
     private final ModelMapping modelMapping;
-    private final InternalCompositeAwareConnection connection;
+    private final InternalMultiModelAwareConnection connection;
     private final Transformer<RuntimeException, RuntimeException> exceptionTransformer;
 
-    public CompositeAwareModelProducer(ModelProducer delegate, ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCompositeAwareConnection connection, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
+    public MultiModelAwareModelProducer(ModelProducer delegate, ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalMultiModelAwareConnection connection, Transformer<RuntimeException, RuntimeException> exceptionTransformer) {
         super(versionDetails);
         this.delegate = delegate;
         this.adapter = adapter;

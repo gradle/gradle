@@ -33,7 +33,7 @@ import org.gradle.tooling.internal.consumer.connection.AbstractConsumerConnectio
 import org.gradle.tooling.internal.consumer.connection.ActionAwareConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.BuildActionRunnerBackedConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.CancellableConsumerConnection;
-import org.gradle.tooling.internal.consumer.connection.CompositeAwareConsumerConnection;
+import org.gradle.tooling.internal.consumer.connection.MultiModelAwareConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ModelBuilderBackedConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.NoToolingApiConnection;
@@ -47,7 +47,7 @@ import org.gradle.tooling.internal.protocol.BuildActionRunner;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalCancellableConnection;
-import org.gradle.tooling.internal.protocol.InternalCompositeAwareConnection;
+import org.gradle.tooling.internal.protocol.InternalMultiModelAwareConnection;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.StoppableConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
@@ -85,8 +85,8 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
             // Adopting the connection to a refactoring friendly type that the consumer owns
             AbstractConsumerConnection adaptedConnection;
-            if (connection instanceof InternalCompositeAwareConnection) {
-                adaptedConnection = new CompositeAwareConsumerConnection(connection, modelMapping, adapter);
+            if (connection instanceof InternalMultiModelAwareConnection) {
+                adaptedConnection = new MultiModelAwareConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof InternalTestExecutionConnection){
                 adaptedConnection = new TestExecutionConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof StoppableConnection) {

@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-//TODO get rid of the many `isAllModels` checks.
 //TODO continue on errors in individual builds
 public class BuildModelActionRunner implements BuildActionRunner {
     @Override
@@ -124,7 +123,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
     }
 
     //TODO use a better protocol than a List of Object arrays. Transfer `ModelResults` directly?
-    //TODO let ToolingModelBuilder construct modelresults directly
+    //TODO let ToolingModelBuilder construct modelresults directly?
     private List<Object[]> getModels(GradleInternal gradle, String modelName) {
         ToolingModelBuilder builder = getToolingModelBuilder(gradle, modelName);
         Map<String, Object> modelsByPath = Maps.newLinkedHashMap();
