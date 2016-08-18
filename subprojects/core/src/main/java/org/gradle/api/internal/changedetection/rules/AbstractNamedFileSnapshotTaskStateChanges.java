@@ -25,7 +25,6 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
@@ -82,9 +81,8 @@ abstract class AbstractNamedFileSnapshotTaskStateChanges implements TaskStateCha
         ImmutableMap.Builder<String, FileCollectionSnapshot> builder = ImmutableMap.builder();
         for (TaskFilePropertySpec propertySpec : fileProperties) {
             FileCollectionSnapshot result;
-            TaskFilePropertyCompareType compareType = propertySpec.getCompareType();
             try {
-                result = snapshotter.snapshot(propertySpec.getPropertyFiles(), compareType);
+                result = snapshotter.snapshot(propertySpec);
             } catch (UncheckedIOException e) {
                 throw new UncheckedIOException(String.format("Failed to capture snapshot of %s files for task '%s' property '%s' during up-to-date check.", title.toLowerCase(), taskName, propertySpec.getPropertyName()), e);
             }

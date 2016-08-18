@@ -16,65 +16,41 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.StartParameter;
+import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.composite.CompositeContextBuildActionRunner;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.BuildRequestContext;
-import org.gradle.initialization.GradleLauncher;
-import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
-import org.gradle.internal.composite.IncludedBuild;
-import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.exec.GradleBuildController;
 
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DefaultCompositeContextBuilder.class);
-    private final StartParameter buildStartParam;
-    private final ServiceRegistry sharedServices;
+    private final CompositeBuildContext context;
 
-    public DefaultCompositeContextBuilder(StartParameter startParameter, ServiceRegistry services) {
-        this.buildStartParam = startParameter;
-        this.sharedServices = services;
+    public DefaultCompositeContextBuilder(CompositeBuildContext context) {
+        this.context = context;
     }
 
     @Override
-    public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds, boolean propagateFailures) {
-        doAddToCompositeContext(includedBuilds, null, propagateFailures);
+    public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds) {
+        doAddToCompositeContext(includedBuilds);
     }
 
-    @Override
-    public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
-        doAddToCompositeContext(includedBuilds, requestContext, propagateFailures);
-    }
-
-    private void doAddToCompositeContext(Iterable<IncludedBuild> includedBuilds, BuildRequestContext requestContext, boolean propagateFailures) {
-        GradleLauncherFactory gradleLauncherFactory = sharedServices.get(GradleLauncherFactory.class);
-        CompositeBuildContext context = sharedServices.get(CompositeBuildContext.class);
-        CompositeContextBuildActionRunner contextBuilder = new CompositeContextBuildActionRunner(context, propagateFailures);
+    private void doAddToCompositeContext(Iterable<IncludedBuild> includedBuilds) {
+        IncludedBuildDependencySubstitutionsBuilder contextBuilder = new IncludedBuildDependencySubstitutionsBuilder(context);
 
         for (IncludedBuild build : includedBuilds) {
-            StartParameter includedBuildStartParam = buildStartParam.newBuild();
-            includedBuildStartParam.setProjectDir(build.getProjectDir());
-            includedBuildStartParam.setSearchUpwards(false);
-            includedBuildStartParam.setConfigureOnDemand(false);
+            IncludedBuildInternal buildInternal = (IncludedBuildInternal) build;
+            context.registerBuild(buildInternal.getName(), build);
 
-            LOGGER.lifecycle("[composite-build] Configuring build: " + build.getProjectDir());
-
-            GradleLauncher gradleLauncher = createGradleLauncher(includedBuildStartParam, requestContext, gradleLauncherFactory);
-
-            contextBuilder.run(new GradleBuildController(gradleLauncher));
+            DependencySubstitutionsInternal substitutions = buildInternal.resolveDependencySubstitutions();
+            if (!substitutions.hasRules()) {
+                // Configure the included build to discover substitutions
+                LOGGER.lifecycle("[composite-build] Configuring build: " + buildInternal.getProjectDir());
+                contextBuilder.build(buildInternal);
+            } else {
+                // Register the defined substitutions for included build
+                context.registerSubstitution(substitutions.getRuleAction());
+            }
         }
-    }
-
-    private GradleLauncher createGradleLauncher(StartParameter participantStartParam, BuildRequestContext requestContext, GradleLauncherFactory gradleLauncherFactory) {
-        if (requestContext == null) {
-            return gradleLauncherFactory.nestedInstance(participantStartParam, sharedServices);
-        }
-
-        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(participantStartParam, requestContext, sharedServices);
-        gradleLauncher.addStandardOutputListener(requestContext.getOutputListener());
-        gradleLauncher.addStandardErrorListener(requestContext.getErrorListener());
-        return gradleLauncher;
     }
 }

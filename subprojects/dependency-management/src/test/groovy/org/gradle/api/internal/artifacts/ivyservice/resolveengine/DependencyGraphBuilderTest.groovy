@@ -650,9 +650,9 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionResolveException
-        e.cause.message.contains "group:root:1.0 > group:a:1.0"
-        e.cause.message.contains "group:root:1.0 > group:b:1.0"
-        !e.cause.message.contains("group:root:1.0 > group:b:1.0 > group:a:1.0")
+        e.cause.message.contains "project :root > group:a:1.0"
+        e.cause.message.contains "project :root > group:b:1.0"
+        !e.cause.message.contains("project :root > group:b:1.0 > group:a:1.0")
     }
 
     def "reports failure to resolve version selector to module version"() {
@@ -677,8 +677,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionResolveException
-        e.cause.message.contains "group:root:1.0 > group:a:1.0"
-        e.cause.message.contains "group:root:1.0 > group:b:1.0"
+        e.cause.message.contains "project :root > group:a:1.0"
+        e.cause.message.contains "project :root > group:b:1.0"
     }
 
     def "merges all failures for all dependencies with a given module version selector"() {
@@ -703,8 +703,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionResolveException
-        e.cause.message.contains "group:root:1.0 > group:a:1.0"
-        e.cause.message.contains "group:root:1.0 > group:b:1.0"
+        e.cause.message.contains "project :root > group:a:1.0"
+        e.cause.message.contains "project :root > group:b:1.0"
     }
 
     def "reports shortest incoming paths for a missing module version"() {
@@ -730,9 +730,9 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
-        e.cause.message.contains "group:root:1.0 > group:a:1.0"
-        e.cause.message.contains "group:root:1.0 > group:b:1.0"
-        !e.cause.message.contains("group:root:1.0 > group:b:1.0 > group:a:1.0")
+        e.cause.message.contains "project :root > group:a:1.0"
+        e.cause.message.contains "project :root > group:b:1.0"
+        !e.cause.message.contains("project :root > group:b:1.0 > group:a:1.0")
     }
 
     def "merges all dependencies with a given module version selector when reporting missing version"() {
@@ -757,8 +757,8 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
-        e.cause.message.contains "group:root:1.0 > group:a:1.0"
-        e.cause.message.contains "group:root:1.0 > group:b:1.0"
+        e.cause.message.contains "project :root > group:a:1.0"
+        e.cause.message.contains "project :root > group:b:1.0"
     }
 
     def "can handle a cycle in the incoming paths of a broken module"() {
@@ -783,7 +783,7 @@ class DependencyGraphBuilderTest extends Specification {
         then:
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
-        e.cause.message.contains "group:root:1.0 > group:a:1.0 > group:b:1.0"
+        e.cause.message.contains "project :root > group:a:1.0 > group:b:1.0"
     }
 
     def "does not report a path through an evicted version"() {
@@ -818,7 +818,7 @@ class DependencyGraphBuilderTest extends Specification {
         ResolveException ex = thrown()
         ex.cause instanceof ModuleVersionNotFoundException
         !ex.cause.message.contains("group:a:1.1")
-        ex.cause.message.contains "group:root:1.0 > group:a:1.2"
+        ex.cause.message.contains "project :root > group:a:1.2"
 
         and:
         result.components == ids(root, selected, d, e)
@@ -846,7 +846,7 @@ class DependencyGraphBuilderTest extends Specification {
         and:
         ResolveException e = thrown()
         e.cause instanceof ModuleVersionNotFoundException
-        e.cause.message.contains("group:root:1.0")
+        e.cause.message.contains("project :root")
     }
 
     def "does not fail when conflict resolution evicts a version that does not exist"() {

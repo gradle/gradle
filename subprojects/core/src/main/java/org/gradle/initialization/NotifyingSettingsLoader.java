@@ -20,17 +20,17 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 
 public class NotifyingSettingsLoader implements SettingsLoader {
-    private final SettingsHandler settingsHandler;
+    private final SettingsLoader settingsLoader;
     private final BuildLoader buildLoader;
 
-    public NotifyingSettingsLoader(SettingsHandler settingsHandler, BuildLoader buildLoader) {
-        this.settingsHandler = settingsHandler;
+    public NotifyingSettingsLoader(SettingsLoader settingsLoader, BuildLoader buildLoader) {
+        this.settingsLoader = settingsLoader;
         this.buildLoader = buildLoader;
     }
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
-        SettingsInternal settings = settingsHandler.findAndLoadSettings(gradle);
+        SettingsInternal settings = settingsLoader.findAndLoadSettings(gradle);
         gradle.getBuildListenerBroadcaster().settingsEvaluated(settings);
         buildLoader.load(settings.getRootProject(), settings.getDefaultProject(), gradle, settings.getRootClassLoaderScope());
         gradle.getBuildListenerBroadcaster().projectsLoaded(gradle);

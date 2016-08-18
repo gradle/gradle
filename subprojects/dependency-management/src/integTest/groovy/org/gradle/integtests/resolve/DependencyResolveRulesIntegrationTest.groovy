@@ -628,7 +628,7 @@ class DependencyResolveRulesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertResolutionFailure(":conf")
                 .assertHasCause("Could not resolve org.utils:impl:1.3.")
                 .assertHasCause("Unhappy :(")
-                .assertFailedDependencyRequiredBy(":root:1.0")
+                .assertFailedDependencyRequiredBy("project :")
     }
 
     void "can substitute module name and resolve conflict"()

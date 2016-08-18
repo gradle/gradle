@@ -86,7 +86,7 @@ public interface Configuration extends FileCollection {
     /**
      * A {@link org.gradle.api.Namer} namer for configurations that returns {@link #getName()}.
      */
-    static class Namer implements org.gradle.api.Namer<Configuration> {
+    class Namer implements org.gradle.api.Namer<Configuration> {
         public String determineName(Configuration c) {
             return c.getName();
         }
@@ -239,7 +239,6 @@ public interface Configuration extends FileCollection {
      */
     FileCollection fileCollection(Dependency... dependencies);
 
-
     /**
      * Resolves this configuration. This locates and downloads the files which make up this configuration, and returns
      * a ResolvedConfiguration that may be used to determine information about the resolve (including errors).
@@ -258,7 +257,7 @@ public interface Configuration extends FileCollection {
     String getUploadTaskName();
 
     /**
-     * Returns a {@code TaskDependency} object containing all required dependencies to build the internal dependencies
+     * Returns a {@code TaskDependency} object containing all required dependencies to build the local dependencies
      * (e.g.<!-- --> project dependencies) belonging to this configuration or to one of its super configurations.
      *
      * @return a TaskDependency object
@@ -334,7 +333,6 @@ public interface Configuration extends FileCollection {
      *     <li>Another {@link Configuration} that extends this one is resolved</li>
      *     <li>Another {@link Configuration} that references this one as a project dependency is resolved</li>
      * </ul>
-     *
      *
      * This method is useful for specifying default dependencies for a configuration:
      * <pre autoTested='true'>

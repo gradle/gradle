@@ -16,17 +16,11 @@
 
 package org.gradle.internal.composite;
 
-import org.gradle.initialization.BuildRequestContext;
+import org.gradle.api.initialization.IncludedBuild;
 
 public interface CompositeContextBuilder {
     /**
      * Add the participants to the composite context, using the currently executing build context.
      */
-    void addToCompositeContext(Iterable<IncludedBuild> includedBuilds, boolean propagateFailures);
-
-    /**
-     * Add the participants to the composite context, creating a new GradleLauncher using the supplied build context.
-     */
-    void addToCompositeContext(Iterable<IncludedBuild> includedBuilds, BuildRequestContext requestContext, boolean propagateFailures);
-
+    void addToCompositeContext(Iterable<IncludedBuild> includedBuilds);
 }

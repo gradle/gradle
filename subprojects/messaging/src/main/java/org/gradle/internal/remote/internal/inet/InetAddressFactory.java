@@ -34,6 +34,20 @@ public class InetAddressFactory {
     private InetAddress localBindingAddress;
     private InetAddresses inetAddresses;
     private boolean initialized;
+    private String hostName;
+
+    public String getHostname() {
+        synchronized (lock) {
+            if (hostName == null) {
+                try {
+                    hostName = InetAddress.getLocalHost().getHostName();
+                } catch (UnknownHostException e) {
+                    hostName = getCommunicationAddresses().get(0).toString();
+                }
+            }
+            return hostName;
+        }
+    }
 
     /**
      * Determines if the IP address can be used for communication with this machine

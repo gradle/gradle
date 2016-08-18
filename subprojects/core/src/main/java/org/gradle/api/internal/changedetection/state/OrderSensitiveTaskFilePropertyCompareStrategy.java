@@ -28,28 +28,33 @@ import java.util.Map;
 class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy {
 
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, IncrementalFileSnapshot> current, Map<String, IncrementalFileSnapshot> previous, final String fileType) {
-        final Iterator<Map.Entry<String, IncrementalFileSnapshot>> currentEntries = current.entrySet().iterator();
-        final Iterator<Map.Entry<String, IncrementalFileSnapshot>> previousEntries = previous.entrySet().iterator();
+    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType) {
+        final Iterator<Map.Entry<String, NormalizedFileSnapshot>> currentEntries = current.entrySet().iterator();
+        final Iterator<Map.Entry<String, NormalizedFileSnapshot>> previousEntries = previous.entrySet().iterator();
         return new AbstractIterator<TaskStateChange>() {
             @Override
             protected TaskStateChange computeNext() {
                 while (true) {
                     if (currentEntries.hasNext()) {
-                        Map.Entry<String, IncrementalFileSnapshot> current = currentEntries.next();
+                        Map.Entry<String, NormalizedFileSnapshot> current = currentEntries.next();
+                        String absolutePath = current.getKey();
                         if (previousEntries.hasNext()) {
-                            Map.Entry<String, IncrementalFileSnapshot> other = previousEntries.next();
-                            if (current.getKey().equals(other.getKey())) {
-                                if (current.getValue().isContentUpToDate(other.getValue())) {
+                            Map.Entry<String, NormalizedFileSnapshot> other = previousEntries.next();
+                            NormalizedFileSnapshot normalizedSnapshot = current.getValue();
+                            NormalizedFileSnapshot otherNormalizedSnapshot = other.getValue();
+                            String normalizedPath = normalizedSnapshot.getNormalizedPath();
+                            String otherNormalizedPath = otherNormalizedSnapshot.getNormalizedPath();
+                            if (normalizedPath.equals(otherNormalizedPath)) {
+                                if (normalizedSnapshot.getSnapshot().isContentUpToDate(otherNormalizedSnapshot.getSnapshot())) {
                                     continue;
                                 } else {
-                                    return new FileChange(current.getKey(), ChangeType.MODIFIED, fileType);
+                                    return new FileChange(absolutePath, ChangeType.MODIFIED, fileType);
                                 }
                             } else {
-                                return new FileChange(current.getKey(), ChangeType.MODIFIED, fileType);
+                                return new FileChange(absolutePath, ChangeType.REPLACED, fileType);
                             }
                         } else {
-                            return new FileChange(current.getKey(), ChangeType.ADDED, fileType);
+                            return new FileChange(absolutePath, ChangeType.ADDED, fileType);
                         }
                     } else {
                         if (previousEntries.hasNext()) {
@@ -64,10 +69,10 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
     }
 
     @Override
-    public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, IncrementalFileSnapshot> snapshots) {
-        for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
-            builder.putString(entry.getKey());
-            builder.putBytes(entry.getValue().getHash().asBytes());
+    public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots) {
+        for (Map.Entry<String, NormalizedFileSnapshot> entry : snapshots.entrySet()) {
+            NormalizedFileSnapshot normalizedSnapshot = entry.getValue();
+            normalizedSnapshot.appendToCacheKey(builder);
         }
     }
 }

@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.BuildResult;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.concurrent.Stoppable;
 
@@ -26,6 +27,7 @@ import org.gradle.internal.concurrent.Stoppable;
 public abstract class GradleLauncher implements Stoppable {
 
     public abstract GradleInternal getGradle();
+    public abstract SettingsInternal getSettings();
 
     /**
      * <p>Executes the build for this {@code GradleLauncher} instance and returns the result.</p>
@@ -34,6 +36,14 @@ public abstract class GradleLauncher implements Stoppable {
      * @throws ReportedException On build failure. The failure will have been logged.
      */
     public abstract BuildResult run() throws ReportedException;
+
+    /**
+     * Evaluates the settings for this build. The information about available tasks and projects is accessible via the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
+     *
+     * @return The result. Never returns null.
+     * @throws ReportedException On build failure. The failure will have been logged.
+     */
+    public abstract BuildResult load() throws ReportedException;
 
     /**
      * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.

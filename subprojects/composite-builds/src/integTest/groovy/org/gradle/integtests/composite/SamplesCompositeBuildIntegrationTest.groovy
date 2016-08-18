@@ -37,25 +37,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         succeeds(':assemble')
 
         then:
-        result.assertOutputContains("""
-:compileJava
-:projectB:b1:compileJava
-:projectB:b1:processResources UP-TO-DATE
-:projectB:b1:classes
-:projectB:b1:jar
-:projectB:b2:compileJava
-:projectC:compileJava
-:projectC:processResources UP-TO-DATE
-:projectC:classes
-:projectC:jar
-:projectB:b2:processResources UP-TO-DATE
-:projectB:b2:classes
-:projectB:b2:jar
-:processResources UP-TO-DATE
-:classes
-:jar
-:assemble
-""")
+        executed ":projectB:b1:jar", ":projectB:b2:jar", ":projectC:jar", ":jar"
     }
 
     @UsesSample('compositeBuilds/tooling-api')

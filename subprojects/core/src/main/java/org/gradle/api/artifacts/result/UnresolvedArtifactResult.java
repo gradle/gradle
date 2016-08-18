@@ -18,7 +18,7 @@ package org.gradle.api.artifacts.result;
 import org.gradle.api.Incubating;
 
 /**
- * An artifact the could not be resolved.
+ * An artifact that could not be resolved.
  *
  * @since 2.0
  */

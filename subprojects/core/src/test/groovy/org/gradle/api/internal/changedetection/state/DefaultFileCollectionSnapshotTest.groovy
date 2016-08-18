@@ -17,19 +17,21 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.hash.HashCode
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.DefaultNormalizedFileSnapshot
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder
 import spock.lang.Specification
 
-class FileCollectionSnapshotImplTest extends Specification {
+class DefaultFileCollectionSnapshotTest extends Specification {
+
     def "order-insensitive collection snapshot ignores order when hashing"() {
         def builder = Mock(TaskCacheKeyBuilder)
-        def oldSnapshot = new FileCollectionSnapshotImpl([
-            "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
-            "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
+        def oldSnapshot = new DefaultFileCollectionSnapshot([
+            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
+            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
         ], TaskFilePropertyCompareType.UNORDERED)
-        def newSnapshot = new FileCollectionSnapshotImpl([
-            "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
-            "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
+        def newSnapshot = new DefaultFileCollectionSnapshot([
+            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
+            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
         ], TaskFilePropertyCompareType.UNORDERED)
         when:
         oldSnapshot.appendToCacheKey(builder)
@@ -52,13 +54,13 @@ class FileCollectionSnapshotImplTest extends Specification {
 
     def "order-sensitive collection snapshot considers order when hashing"() {
         def builder = Mock(TaskCacheKeyBuilder)
-        def oldSnapshot = new FileCollectionSnapshotImpl([
-            "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
-            "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
+        def oldSnapshot = new DefaultFileCollectionSnapshot([
+            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
+            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
         ], TaskFilePropertyCompareType.ORDERED)
-        def newSnapshot = new FileCollectionSnapshotImpl([
-            "file2.txt": new FileHashSnapshot(HashCode.fromInt(234)),
-            "file1.txt": new FileHashSnapshot(HashCode.fromInt(123)),
+        def newSnapshot = new DefaultFileCollectionSnapshot([
+            "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
+            "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
         ], TaskFilePropertyCompareType.ORDERED)
         when:
         oldSnapshot.appendToCacheKey(builder)

@@ -18,15 +18,15 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy {
@@ -38,8 +38,8 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
     }
 
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(final Map<String, IncrementalFileSnapshot> current, Map<String, IncrementalFileSnapshot> previous, final String fileType) {
-        final Map<String, IncrementalFileSnapshot> remainingPrevious = new HashMap<String, IncrementalFileSnapshot>(previous);
+    public Iterator<TaskStateChange> iterateContentChangesSince(final Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType) {
+        final Map<String, NormalizedFileSnapshot> remainingPrevious = Maps.newHashMap(previous);
         final Iterator<String> currentFiles = current.keySet().iterator();
         return new AbstractIterator<TaskStateChange>() {
             private Iterator<String> removedFiles;
@@ -48,12 +48,12 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
             protected TaskStateChange computeNext() {
                 while (currentFiles.hasNext()) {
                     String currentFile = currentFiles.next();
-                    IncrementalFileSnapshot previousFile = remainingPrevious.remove(currentFile);
+                    NormalizedFileSnapshot previousFile = remainingPrevious.remove(currentFile);
                     if (previousFile == null) {
                         if (includeAdded) {
                             return new FileChange(currentFile, ChangeType.ADDED, fileType);
                         }
-                    } else if (!current.get(currentFile).isContentUpToDate(previousFile)) {
+                    } else if (!current.get(currentFile).getSnapshot().isContentUpToDate(previousFile.getSnapshot())) {
                         return new FileChange(currentFile, ChangeType.MODIFIED, fileType);
                     }
                 }
@@ -73,47 +73,11 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
     }
 
     @Override
-    public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, IncrementalFileSnapshot> snapshots) {
-        ArrayList<Entry> entries = Lists.newArrayListWithCapacity(snapshots.size());
-        for (Map.Entry<String, IncrementalFileSnapshot> entry : snapshots.entrySet()) {
-            entries.add(new Entry(entry.getKey(), entry.getValue().getHash().asBytes()));
-        }
-        Collections.sort(entries);
-        for (Entry entry : entries) {
-            entry.appendToCacheKey(builder);
-        }
-    }
-
-    private static class Entry implements Comparable<Entry> {
-        private final String key;
-        private final byte[] hashCode;
-
-        public Entry(String key, byte[] hashCode) {
-            this.key = key;
-            this.hashCode = hashCode;
-        }
-
-        public void appendToCacheKey(TaskCacheKeyBuilder hasher) {
-            hasher.putString(key);
-            hasher.putBytes(hashCode);
-        }
-
-        @Override
-        public int compareTo(Entry o) {
-            int result = key.compareTo(o.key);
-            if (result == 0) {
-                int len = hashCode.length;
-                result = len - o.hashCode.length;
-                if (result == 0) {
-                    for (int idx = 0; idx < len; idx++) {
-                        result = hashCode[idx] - o.hashCode[idx];
-                        if (result != 0) {
-                            break;
-                        }
-                    }
-                }
-            }
-            return result;
+    public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots) {
+        List<NormalizedFileSnapshot> normalizedSnapshots = Lists.newArrayList(snapshots.values());
+        Collections.sort(normalizedSnapshots);
+        for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
+            normalizedSnapshot.appendToCacheKey(builder);
         }
     }
 }

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 public interface FileCollectionSnapshotter {
@@ -36,7 +37,13 @@ public interface FileCollectionSnapshotter {
      *
      * @param files The files to snapshot.
      * @param compareType How to compare this collection snapshot to others.
+     * @param pathSensitivity How to compare file paths.
      * @return The snapshot.
      */
-    FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType);
+    FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType, TaskFilePropertyPathSensitivityType pathSensitivity);
+
+    /**
+     * Creates a snapshot of the contents of the given property.
+     */
+    FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec);
 }

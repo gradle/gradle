@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons
 import org.gradle.internal.Actions
@@ -36,7 +37,8 @@ public class DefaultResolutionStrategySpec extends Specification {
 
     def cachePolicy = Mock(DefaultCachePolicy)
     def dependencySubstitutions = Mock(DependencySubstitutionsInternal)
-    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions)
+    def globalDependencySubstitutions = Mock(DependencySubstitutionRules)
+    def strategy = new DefaultResolutionStrategy(cachePolicy, dependencySubstitutions, globalDependencySubstitutions)
 
     def "allows setting forced modules"() {
         expect:
@@ -81,7 +83,8 @@ public class DefaultResolutionStrategySpec extends Specification {
         strategy.dependencySubstitutionRule.execute(details)
 
         then:
-        _ * dependencySubstitutions.dependencySubstitutionRule >> Actions.doNothing()
+        _ * dependencySubstitutions.ruleAction >> Actions.doNothing()
+        _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
         _ * details.getRequested() >> DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
         _ * details.getOldRequested() >> newSelector("org", "foo", "1.0")
         1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", "2.0"), VersionSelectionReasons.FORCED)
@@ -109,10 +112,11 @@ public class DefaultResolutionStrategySpec extends Specification {
         strategy.dependencySubstitutionRule.execute(details)
 
         then: //forced modules:
-        dependencySubstitutions.dependencySubstitutionRule >> substitutionAction
+        dependencySubstitutions.ruleAction >> substitutionAction
         _ * details.requested >> DefaultModuleComponentSelector.newSelector("org", "foo", "1.0")
         _ * details.oldRequested >> newSelector("org", "foo", "1.0")
         1 * details.useTarget(DefaultModuleComponentSelector.newSelector("org", "foo", "2.0"), VersionSelectionReasons.FORCED)
+        _ * globalDependencySubstitutions.ruleAction >> Actions.doNothing()
 
         then: //user rules follow:
         1 * substitutionAction.execute(details)

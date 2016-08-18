@@ -15,10 +15,10 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.internal.composite.IncludedBuild;
+import org.gradle.internal.composite.GradleParticipantBuild;
 
 import java.util.List;
 
 public interface CompositeConnectionParameters extends ConnectionParameters {
-    List<IncludedBuild> getBuilds();
+    List<GradleParticipantBuild> getBuilds();
 }

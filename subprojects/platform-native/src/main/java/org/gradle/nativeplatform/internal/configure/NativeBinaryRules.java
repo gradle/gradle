@@ -16,6 +16,7 @@
 
 package org.gradle.nativeplatform.internal.configure;
 
+import org.gradle.language.base.internal.ProjectLayout;
 import org.gradle.model.Defaults;
 import org.gradle.model.RuleSource;
 import org.gradle.nativeplatform.*;
@@ -29,7 +30,11 @@ import java.io.File;
 
 public class NativeBinaryRules extends RuleSource {
     @Defaults
-    public static void assignTools(NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains, /* @Path("buildDir") */ File buildDir) {
+    public static void assignTools(NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains, ProjectLayout projectLayout) {
+        assignTools(nativeBinarySpec, toolChains, projectLayout.getBuildDir());
+    }
+
+    static void assignTools(NativeBinarySpec nativeBinarySpec, NativeToolChainRegistryInternal toolChains, File buildDir) {
         NativeBinarySpecInternal nativeBinary = (NativeBinarySpecInternal) nativeBinarySpec;
         assignToolsToNativeBinary(nativeBinary, nativeBinarySpec, toolChains);
         assignToolsToNativeBinaryExtension(nativeBinary, buildDir);

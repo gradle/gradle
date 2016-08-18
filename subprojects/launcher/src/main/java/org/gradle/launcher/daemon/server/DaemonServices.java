@@ -26,7 +26,6 @@ import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.remote.internal.inet.InetAddressFactory;
-import org.gradle.internal.remote.services.MessagingServices;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
@@ -164,7 +163,7 @@ public class DaemonServices extends DefaultServiceRegistry {
         return new Daemon(
             new DaemonTcpServerConnector(
                 get(ExecutorFactory.class),
-                get(MessagingServices.class).get(InetAddressFactory.class)
+                get(InetAddressFactory.class)
             ),
             get(DaemonRegistry.class),
             get(DaemonContext.class),

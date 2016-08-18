@@ -19,6 +19,7 @@ import org.gradle.BuildListener;
 import org.gradle.BuildResult;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -32,10 +33,9 @@ import org.gradle.internal.service.scopes.BuildScopeServices;
 public class DefaultGradleLauncher extends GradleLauncher {
 
     private enum Stage {
-        Configure, Build
+        Load, Configure, Build
     }
 
-    private final GradleInternal gradle;
     private final InitScriptHandler initScriptHandler;
     private final SettingsLoader settingsLoader;
     private final BuildConfigurer buildConfigurer;
@@ -48,6 +48,9 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final BuildConfigurationActionExecuter buildConfigurationActionExecuter;
     private final BuildExecuter buildExecuter;
     private final BuildScopeServices buildServices;
+    private GradleInternal gradle;
+    private SettingsInternal settings;
+    private Stage stage;
 
     /**
      * Creates a new instance.
@@ -80,6 +83,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     @Override
+    public SettingsInternal getSettings() {
+        return settings;
+    }
+
+    @Override
     public BuildResult run() {
         return doBuild(Stage.Build);
     }
@@ -87,6 +95,11 @@ public class DefaultGradleLauncher extends GradleLauncher {
     @Override
     public BuildResult getBuildAnalysis() {
         return doBuild(Stage.Configure);
+    }
+
+    @Override
+    public BuildResult load() throws ReportedException {
+        return doBuild(Stage.Load);
     }
 
     private BuildResult doBuild(final Stage upTo) {
@@ -112,29 +125,48 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     private void doBuildStages(Stage upTo) {
-        // Evaluate init scripts
-        initScriptHandler.executeScripts(gradle);
+        if (stage == Stage.Build) {
+            throw new IllegalStateException("Cannot build with GradleLauncher multiple times");
+        }
 
-        // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-        settingsLoader.findAndLoadSettings(gradle);
+        if (stage == null) {
+            // Evaluate init scripts
+            initScriptHandler.executeScripts(gradle);
 
-        // Configure build
-        buildOperationExecutor.run("Configure build", new Runnable() {
-            @Override
-            public void run() {
-                buildConfigurer.configure(gradle);
+            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
+            settings = settingsLoader.findAndLoadSettings(gradle);
 
-                if (!gradle.getStartParameter().isConfigureOnDemand()) {
-                    buildListener.projectsEvaluated(gradle);
+            stage = Stage.Load;
+        }
+
+        if (upTo == Stage.Load) {
+            return;
+        }
+
+        if (stage == Stage.Load) {
+            // Configure build
+            buildOperationExecutor.run("Configure build", new Runnable() {
+                @Override
+                public void run() {
+                    buildConfigurer.configure(gradle);
+
+                    if (!gradle.getStartParameter().isConfigureOnDemand()) {
+                        buildListener.projectsEvaluated(gradle);
+                    }
+
+                    modelConfigurationListener.onConfigure(gradle);
                 }
+            });
 
-                modelConfigurationListener.onConfigure(gradle);
-            }
-        });
+            stage = Stage.Configure;
+        }
 
         if (upTo == Stage.Configure) {
             return;
         }
+
+        // After this point, the GradleLauncher cannot be reused
+        stage = Stage.Build;
 
         // Populate task graph
         buildOperationExecutor.run("Calculate task graph", new Runnable() {
@@ -154,8 +186,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
                 buildExecuter.execute(gradle);
             }
         });
-
-        assert upTo == Stage.Build;
     }
 
     /**

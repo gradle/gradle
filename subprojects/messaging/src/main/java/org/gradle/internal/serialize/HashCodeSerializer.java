@@ -18,9 +18,11 @@ package org.gradle.internal.serialize;
 
 import com.google.common.hash.HashCode;
 
+import java.io.IOException;
+
 public class HashCodeSerializer implements Serializer<HashCode> {
     @Override
-    public HashCode read(Decoder decoder) throws Exception {
+    public HashCode read(Decoder decoder) throws IOException {
         byte hashSize = decoder.readByte();
         byte[] hash = new byte[hashSize];
         decoder.readBytes(hash);
@@ -28,7 +30,7 @@ public class HashCodeSerializer implements Serializer<HashCode> {
     }
 
     @Override
-    public void write(Encoder encoder, HashCode value) throws Exception {
+    public void write(Encoder encoder, HashCode value) throws IOException {
         byte[] hash = value.asBytes();
         encoder.writeByte((byte) hash.length);
         encoder.writeBytes(hash);

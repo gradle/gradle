@@ -132,6 +132,8 @@ performanceTestTasks.all { PerformanceTest task ->
     }
 
     maxParallelForks = 1
+    checks = 'speed'
+
 
     doFirst {
         // Some performance builds generate a lot of output,
@@ -140,6 +142,9 @@ performanceTestTasks.all { PerformanceTest task ->
             jvmArgs '-Xmx4g'
         } else {
             println "not increasing JVM heap size due to use of 32bit JVM"
+        }
+        if (task.channel) {
+            performanceReport.systemProperty 'org.gradle.performance.execution.channel', task.channel
         }
     }
 }
@@ -161,12 +166,14 @@ task fullPerformanceTest(type: PerformanceTest) {
 
 task performanceAdhocTest(type: PerformanceTest) {
     systemProperty "org.gradle.performance.db.url", "jdbc:h2:./build/database"
+    channel = "adhoc"
 }
 
 tasks.withType(DistributedPerformanceTest) {
     scenarioList = file("$buildDir/performance-tests/scenario-list.csv")
     scenarioReport = file("$buildDir/performance-tests/scenario-report.html")
     buildTypeId = project.findProperty("org.gradle.performance.buildTypeId")
+    workerTestTaskName = project.findProperty("org.gradle.performance.workerTestTaskName")?:'fullPerformanceTest'
     coordinatorBuildId = project.findProperty("org.gradle.performance.coordinatorBuildId")
     teamCityUrl = "https://builds.gradle.org/"
     teamCityUsername = project.findProperty("teamCityUsername")
@@ -186,6 +193,9 @@ task distributedPerformanceExperiment(type: DistributedPerformanceTest) {
 }
 
 task distributedFullPerformanceTest(type: DistributedPerformanceTest) {
+    baselines = ['1.1', '1.12', '2.0', '2.1', '2.4', '2.9', '2.12', '2.14.1', 'last']
+    checks = 'none'
+    channel = 'historical'
 }
 
 configure([performanceTest, performanceExperiment, fullPerformanceTest, performanceAdhocTest]) {
@@ -195,7 +205,7 @@ configure([performanceTest, performanceExperiment, fullPerformanceTest, performa
         outputs.upToDateWhen { false }
     }
     if (project.hasProperty('org.gradle.performance.heapdump')) {
-        systemProperties['org.gradle.performance.heapdump'] = '1'
+        systemProperties['org.gradle.performance.heapdump'] = project.property('org.gradle.performance.heapdump')?:'1'
     }
     if (project.hasProperty('org.gradle.performance.hotspotlog')) {
         systemProperties['org.gradle.performance.hotspotlog'] = '1'
@@ -244,5 +254,38 @@ tasks.withType(ProjectGeneratorTask) {
     dependsOn ':internalPerformanceTesting:measurementPluginJar'
     doFirst {
         templateArgs.measurementPluginJarFile = project.tasks.findByPath(':internalPerformanceTesting:measurementPluginJar')?.archivePath
+    }
+}
+
+// add task that zips the junit xml test report files to a zip file
+// this file can be used to combine the test reports of the distributed test runs into a single report in the coordinator
+tasks.withType(PerformanceTest) { task ->
+    if(!(task instanceof DistributedPerformanceTest)) {
+        def junitXmlDir = task.reports.junitXml.destination
+        def testResultsZipTask = tasks.create(name: "${task.name}ResultsZip", type: org.gradle.api.tasks.bundling.Zip) {
+            from(junitXmlDir) {
+                include '**/TEST-*.xml'
+                includeEmptyDirs = false
+                eachFile { copyDetails ->
+                    try {
+                        def testsuite = new groovy.util.XmlSlurper().parse(copyDetails.file)
+                        // skip files where all tests were skipped
+                        if (testsuite.@tests.text() == testsuite.@skipped.text()) {
+                            copyDetails.exclude()
+                        }
+                    } catch (e) {
+                        copyDetails.exclude()
+                    }
+                }
+            }
+            destinationDir = buildDir
+            archiveName = "test-results-${junitXmlDir.name}.zip"
+        }
+        task.finalizedBy testResultsZipTask
+
+        def cleanTestResultsZipTask = tasks.create(name: "clean${testResultsZipTask.name.capitalize()}", type: Delete) {
+            delete testResultsZipTask.archivePath
+        }
+        tasks.getByName("clean${task.name.capitalize()}").finalizedBy cleanTestResultsZipTask
     }
 }

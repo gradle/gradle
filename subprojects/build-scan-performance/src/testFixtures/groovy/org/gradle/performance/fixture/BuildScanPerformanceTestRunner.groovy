@@ -40,7 +40,8 @@ class BuildScanPerformanceTestRunner extends CrossBuildPerformanceTestRunner {
             versionUnderTest: GradleVersion.current().getVersion(),
             vcsBranch: Git.current().branchName,
             vcsCommits: [Git.current().commitId, pluginCommitSha],
-            startTime: System.currentTimeMillis()
+            startTime: System.currentTimeMillis(),
+            channel: determineChannel()
         )
     }
 

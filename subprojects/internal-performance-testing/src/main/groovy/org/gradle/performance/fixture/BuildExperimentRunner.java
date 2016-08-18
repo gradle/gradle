@@ -31,7 +31,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class BuildExperimentRunner {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(BuildExperimentRunner.class);
+    public static final String HEAP_DUMP_PROPERTY = "org.gradle.performance.heapdump";
 
     private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
@@ -56,7 +58,8 @@ public class BuildExperimentRunner {
         memoryInfoCollector.setOutputFileName("build/totalMemoryUsed.txt");
         BuildEventTimestampCollector buildEventTimestampCollector = new BuildEventTimestampCollector("build/buildEventTimestamps.txt");
         GCLoggingCollector gcCollector = new GCLoggingCollector();
-        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, new CompilationLoggingCollector());
+        PerformanceCounterCollector performanceCounterCollector = new PerformanceCounterCollector();
+        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, performanceCounterCollector, new CompilationLoggingCollector());
     }
 
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
@@ -71,9 +74,7 @@ public class BuildExperimentRunner {
             final List<String> additionalJvmOpts = dataCollector.getAdditionalJvmOpts(workingDirectory);
             final List<String> additionalArgs = new ArrayList<String>(dataCollector.getAdditionalArgs(workingDirectory));
             additionalArgs.add("-PbuildExperimentDisplayName=" + experiment.getDisplayName());
-            if (System.getProperty("org.gradle.performance.heapdump") != null) {
-                additionalArgs.add("-Pheapdump");
-            }
+            passHeapDumperParameter(additionalArgs);
 
             GradleInvocationSpec buildSpec = invocation.withAdditionalJvmOpts(additionalJvmOpts).withAdditionalArgs(additionalArgs);
             copyTemplateTo(experiment, workingDirectory);
@@ -84,6 +85,18 @@ public class BuildExperimentRunner {
                 performMeasurements(session, experiment, results, workingDirectory);
             } finally {
                 session.cleanup();
+            }
+        }
+    }
+
+    // activate org.gradle.performance.plugin.HeapDumper in the build
+    private void passHeapDumperParameter(List<String> additionalArgs) {
+        final String heapdumpValue = System.getProperty(HEAP_DUMP_PROPERTY);
+        if (heapdumpValue != null) {
+            if (heapdumpValue.equals("")) {
+                additionalArgs.add("-P" + HEAP_DUMP_PROPERTY);
+            } else {
+                additionalArgs.add("-P" + HEAP_DUMP_PROPERTY + "=" + heapdumpValue);
             }
         }
     }

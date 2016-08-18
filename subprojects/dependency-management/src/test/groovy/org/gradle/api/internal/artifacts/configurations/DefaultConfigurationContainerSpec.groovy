@@ -19,6 +19,7 @@ import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.ConfigurationResolver
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
+import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.file.FileCollectionFactory
@@ -38,17 +39,18 @@ public class DefaultConfigurationContainerSpec extends Specification {
     private ProjectFinder projectFinder = Mock()
     private ConfigurationComponentMetaDataBuilder metaDataBuilder = Mock()
     private FileCollectionFactory fileCollectionFactory = Mock()
+    private DependencySubstitutionRules globalSubstitutionRules = Mock()
 
     def ConfigurationInternal conf = Mock()
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
             resolver, instantiator, domainObjectContext,
-            listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory);
+            listenerManager, metaDataProvider, projectAccessListener, projectFinder, metaDataBuilder, fileCollectionFactory, globalSubstitutionRules);
 
     def "adds and gets"() {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
-        1 * instantiator.newInstance(DefaultResolutionStrategy.class) >> { new DefaultResolutionStrategy() }
+        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules) >> { new DefaultResolutionStrategy(globalSubstitutionRules) }
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
                 resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal, projectAccessListener,
                 projectFinder, metaDataBuilder, fileCollectionFactory) >> conf
@@ -69,7 +71,7 @@ public class DefaultConfigurationContainerSpec extends Specification {
     def "configures and finds"() {
         _ * conf.getName() >> "compile"
         1 * domainObjectContext.absoluteProjectPath("compile") >> ":compile"
-        1 * instantiator.newInstance(DefaultResolutionStrategy.class) >> { new DefaultResolutionStrategy() }
+        1 * instantiator.newInstance(DefaultResolutionStrategy.class, globalSubstitutionRules) >> { new DefaultResolutionStrategy(globalSubstitutionRules) }
         1 * instantiator.newInstance(DefaultConfiguration.class, ":compile", "compile", configurationContainer,
                 resolver, listenerManager, metaDataProvider, _ as ResolutionStrategyInternal, projectAccessListener,
                 projectFinder, metaDataBuilder, fileCollectionFactory) >> conf

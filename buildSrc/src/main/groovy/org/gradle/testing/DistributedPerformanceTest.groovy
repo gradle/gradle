@@ -21,6 +21,7 @@ import com.google.common.collect.Lists
 import groovy.transform.CompileStatic
 import groovy.transform.TypeChecked
 import groovy.transform.TypeCheckingMode
+import groovy.xml.XmlUtil
 import groovyx.net.http.ContentType
 import groovyx.net.http.RESTClient
 import org.gradle.api.GradleException
@@ -31,6 +32,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.internal.IoActions
 
 import java.util.concurrent.TimeUnit
+import java.util.zip.ZipInputStream
 
 /**
  * Runs each performance test scenario in a dedicated TeamCity job.
@@ -48,6 +50,9 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @Input
     String buildTypeId
+
+    @Input
+    String workerTestTaskName
 
     @Input
     String teamCityUrl
@@ -70,6 +75,9 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     List<Object> finishedBuilds = Lists.newArrayList()
 
+    Map<String, List<File>> testResultFilesForBuild = [:]
+    private File workerTestResultsTempDir
+
     void setScenarioList(File scenarioList) {
         systemProperty "org.gradle.performance.scenario.list", scenarioList
         this.scenarioList = scenarioList
@@ -77,6 +85,25 @@ class DistributedPerformanceTest extends PerformanceTest {
 
     @TaskAction
     void executeTests() {
+        createWorkerTestResultsTempDir()
+        try {
+            doExecuteTests()
+        } finally {
+            cleanTempFiles()
+        }
+    }
+
+    private void createWorkerTestResultsTempDir() {
+        workerTestResultsTempDir = File.createTempFile("worker-test-results", "")
+        workerTestResultsTempDir.delete()
+        workerTestResultsTempDir.mkdir()
+    }
+
+    private void cleanTempFiles() {
+        workerTestResultsTempDir.deleteDir()
+    }
+
+    private void doExecuteTests() {
         scenarioList.delete()
 
         fillScenarioList()
@@ -90,8 +117,9 @@ class DistributedPerformanceTest extends PerformanceTest {
 
         createClient()
 
+        def lastChangeId = resolveLastChangeId()
         scenarios.each {
-            schedule(it)
+            schedule(it, lastChangeId)
         }
 
         scheduledBuilds.each {
@@ -108,12 +136,8 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void schedule(Scenario scenario) {
-        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime")
-        def response = client.post(
-            path: "buildQueue",
-            requestContentType: ContentType.XML,
-            body: """
+    private void schedule(Scenario scenario, String lastChangeId) {
+        def buildRequest = """
                 <build>
                     <buildType id="${buildTypeId}"/>
                     <properties>
@@ -123,28 +147,66 @@ class DistributedPerformanceTest extends PerformanceTest {
                         <property name="warmups" value="${warmups!=null?:'defaults'}"/>
                         <property name="runs" value="${runs!=null?:'defaults'}"/>
                         <property name="checks" value="${checks?:'all'}"/>
+                        <property name="channel" value="${channel?:'commits'}"/>
                     </properties>
-                    ${getLastChange()}
+                    ${renderLastChange(lastChangeId)}
                 </build>
             """
+        logger.info("Scheduling $scenario.id, estimated runtime: $scenario.estimatedRuntime, coordinatorBuildId: $coordinatorBuildId, lastChangeId: $lastChangeId, build request: $buildRequest")
+        def response = client.post(
+            path: "buildQueue",
+            requestContentType: ContentType.XML,
+            body: buildRequest
         )
-
-        scheduledBuilds += response.data.@id
+        if (!response.success) {
+            throw new RuntimeException("Cannot schedule build job. build request: $buildRequest\nresponse: ${xmlToString(response.data)}")
+        }
+        def workerBuildId = response.data.@id
+        def scheduledChangeId = findLastChangeIdInXml(response.data)
+        if (lastChangeId && scheduledChangeId != lastChangeId) {
+            throw new RuntimeException("The requested change id is different than the actual one. requested change id: $lastChangeId in coordinatorBuildId: $coordinatorBuildId , actual change id: $scheduledChangeId in workerBuildId: $workerBuildId\nresponse: ${xmlToString(response.data)}")
+        }
+        scheduledBuilds += workerBuildId
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
-    private void getLastChange() {
-        if (coordinatorBuildId) {
-            def response = client.get(path: "builds/id:$coordinatorBuildId")
-            def id = response.data.lastChanges.change[0].@id
-            """
+    private static String xmlToString(xmlObject) {
+        if (xmlObject != null) {
+            try {
+                return XmlUtil.serialize(xmlObject)
+            } catch (e) {
+                // ignore errors
+            }
+        }
+        return null
+    }
+
+    private String renderLastChange(lastChangeId) {
+        if (lastChangeId) {
+            return """
                 <lastChanges>
-                    <change id="$id"/>
+                    <change id="$lastChangeId"/>
                 </lastChanges>
             """
         } else {
-            ""
+            return ""
         }
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String resolveLastChangeId() {
+        if (coordinatorBuildId) {
+            def response = client.get(path: "builds/id:$coordinatorBuildId")
+            if (response.success) {
+                return findLastChangeIdInXml(response.data)
+            }
+        }
+        return null
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private String findLastChangeIdInXml(xmlroot) {
+        xmlroot.lastChanges.change[0].@id.text()
     }
 
     @TypeChecked(TypeCheckingMode.SKIP)
@@ -159,12 +221,61 @@ class DistributedPerformanceTest extends PerformanceTest {
             }
         }
         finishedBuilds += response.data
+
+        try {
+            testResultFilesForBuild.put(jobId, fetchTestResults(jobId, response.data))
+        } catch (e) {
+            e.printStackTrace(System.err)
+        }
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    private def fetchTestResults(String jobId, buildData) {
+        def unzippedFiles = []
+        def artifactsUri = buildData?.artifacts?.@href?.text()
+        if (artifactsUri) {
+            def resultArtifacts = client.get(path: "${artifactsUri}/results/${project.name}/build/")
+            if (resultArtifacts.success) {
+                def zipName = "test-results-${workerTestTaskName}.zip".toString()
+                def fileNode = resultArtifacts.data.file.find {
+                    it.@name.text() == zipName
+                }
+                if (fileNode) {
+                    def resultsDirectory = new File(workerTestResultsTempDir, jobId)
+                    def contentUri = fileNode.content.@href.text()
+                    client.get(path: contentUri, contentType: ContentType.BINARY) {
+                        resp, inputStream ->
+                            unzippedFiles = unzipToDirectory(inputStream, resultsDirectory)
+                    }
+                }
+            }
+        }
+        unzippedFiles
+    }
+
+    @TypeChecked(TypeCheckingMode.SKIP)
+    def unzipToDirectory(inputStream, destination) {
+        def unzippedFiles = []
+        new ZipInputStream(inputStream).withStream { zipInput ->
+            def entry
+            while (entry = zipInput.nextEntry) {
+                if (!entry.isDirectory()) {
+                    def file = new File(destination, entry.name)
+                    file.parentFile?.mkdirs()
+                    new FileOutputStream(file).withStream {
+                        it << zipInput
+                    }
+                    unzippedFiles << file
+                }
+            }
+        }
+        unzippedFiles
     }
 
     private void writeScenarioReport() {
         def renderer = new ScenarioReportRenderer()
         IoActions.writeTextFile(scenarioReport) { Writer writer ->
-            renderer.render(project.name, finishedBuilds, writer)
+            renderer.render(writer, project.name, finishedBuilds, testResultFilesForBuild)
         }
         renderer.writeCss(scenarioReport.getParentFile())
     }

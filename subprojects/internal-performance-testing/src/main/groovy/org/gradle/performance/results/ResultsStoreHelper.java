@@ -25,9 +25,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class ResultsStoreHelper {
+    private static final String SYSPROP_PERFORMANCE_TEST_CHANNEL = "org.gradle.performance.execution.channel";
     private static final Logger LOGGER = LoggerFactory.getLogger(ResultsStoreHelper.class);
 
-    public static List<String> splitVcsCommits(String string) {
+    public static List<String> split(String string) {
         if (null != string) {
             return ImmutableList.copyOf(Splitter.on(",").split(string));
         }
@@ -50,4 +51,7 @@ public class ResultsStoreHelper {
         return result;
     }
 
+    public static String determineChannel() {
+        return System.getProperty(SYSPROP_PERFORMANCE_TEST_CHANNEL, "commits");
+    }
 }

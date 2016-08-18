@@ -25,6 +25,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.SimpleFileCollection
@@ -73,15 +74,15 @@ class TaskUpToDateStateTest extends Specification {
         1 * mockInputs.getProperties() >> [:]
         1 * mockInputs.getFileProperties() >> fileProperties(prop: "a")
         1 * mockOutputs.getFileProperties() >> fileProperties(out: "b")
-        1 * mockOutputFileSnapshotter.snapshot(_, _) >> stubSnapshot
-        1 * mockInputFileSnapshotter.snapshot(_, _) >> stubSnapshot
+        1 * mockOutputFileSnapshotter.snapshot(_) >> stubSnapshot
+        1 * mockInputFileSnapshotter.snapshot(_) >> stubSnapshot
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when input snapshot throws UncheckedIOException" () {
         setup:
         def cause = new UncheckedIOException("thrown from stub")
-        _ * stubInputFileSnapshotter.snapshot(_, _) >> { throw cause }
+        _ * stubInputFileSnapshotter.snapshot(_) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
@@ -107,7 +108,7 @@ class TaskUpToDateStateTest extends Specification {
             }
         }
         def cause = new UncheckedIOException("thrown from stub")
-        _ * stubOutputFileSnapshotter.snapshot(_, _) >> { throw cause }
+        _ * stubOutputFileSnapshotter.snapshot(_) >> { throw cause }
 
         when:
         new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
@@ -127,7 +128,8 @@ class TaskUpToDateStateTest extends Specification {
             return new PropertySpec(
                 propertyName: entry.key,
                 propertyFiles: new SimpleFileCollection([new File(entry.value)]),
-                compareType: TaskFilePropertyCompareType.UNORDERED
+                compareType: TaskFilePropertyCompareType.UNORDERED,
+                pathSensitivity: TaskFilePropertyPathSensitivityType.ABSOLUTE
             )
         } as SortedSet
     }
@@ -136,6 +138,7 @@ class TaskUpToDateStateTest extends Specification {
         String propertyName
         FileCollection propertyFiles
         TaskFilePropertyCompareType compareType
+        TaskFilePropertyPathSensitivityType pathSensitivity
 
         @Override
         int compareTo(TaskPropertySpec o) {

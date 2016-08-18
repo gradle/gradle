@@ -174,6 +174,11 @@ Extension objects have been available for over 5 years and are now an establishe
 * Project should not delegate to its parent for missing properties or methods.
 * Project build script classpath should not inherit anything from parent project.
 
+## Configuration API tidy-ups
+
+* Remove `getUploadTaskName()`
+* Remove `getAll()`
+
 ## Container API tidy-ups
 
 * Remove the specialised subclasses of `UnknownDomainObjectException` and the overridden methods that exist simply to declare this from `PluginContainer`, `ArtifactRepositoryContainer`,

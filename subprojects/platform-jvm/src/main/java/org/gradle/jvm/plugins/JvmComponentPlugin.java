@@ -28,7 +28,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
@@ -123,11 +122,6 @@ public class JvmComponentPlugin implements Plugin<Project> {
         public JavaToolChainRegistry javaToolChain(ServiceRegistry serviceRegistry) {
             JavaToolChainInternal toolChain = serviceRegistry.get(JavaToolChainInternal.class);
             return new DefaultJavaToolChainRegistry(toolChain);
-        }
-
-        @Model
-        public ProjectLayout projectLayout(ProjectIdentifier projectIdentifier, @Path("buildDir") File buildDir) {
-            return new ProjectLayout(projectIdentifier, buildDir);
         }
 
         @Model

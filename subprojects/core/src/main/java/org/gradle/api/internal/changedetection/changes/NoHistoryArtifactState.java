@@ -60,7 +60,7 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     public void finished() {
     }
 
-    public FileCollection getOutputFiles(String propertyName) {
+    public FileCollection getOutputFiles() {
         return EmptyFileCollection.INSTANCE;
     }
 

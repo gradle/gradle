@@ -23,19 +23,22 @@ import com.google.common.collect.Sets;
 import org.gradle.performance.measure.DataAmount;
 import org.gradle.performance.measure.Duration;
 import org.gradle.performance.measure.MeasuredOperation;
+import org.joda.time.LocalDate;
 
 import java.io.Closeable;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.performance.results.ResultsStoreHelper.splitVcsCommits;
+import static org.gradle.performance.results.ResultsStoreHelper.split;
 
 public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> implements ResultsStore, DataReporter<R>, Closeable {
 
@@ -52,7 +55,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             db.withConnection(new ConnectionAction<Void>() {
                 public Void execute(Connection connection) throws SQLException {
                     long executionId;
-                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement statement = connection.prepareStatement("insert into testExecution(testId, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, resultType, channel) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         statement.setString(1, results.getTestId());
                         statement.setTimestamp(2, new Timestamp(results.getStartTime()));
@@ -64,6 +67,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         statement.setString(8, Joiner.on(",").join(results.getVcsCommits()));
                         statement.setString(9, results.getTestGroup());
                         statement.setString(10, resultType);
+                        statement.setString(11, results.getChannel());
                         statement.execute();
                         ResultSet keys = statement.getGeneratedKeys();
                         keys.next();
@@ -71,7 +75,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                     } finally {
                         statement.close();
                     }
-                    statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    statement = connection.prepareStatement("insert into testOperation(testExecution, testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     try {
                         for (BuildDisplayInfo displayInfo : results.getBuilds()) {
                             addOperations(statement, executionId, displayInfo, results.buildResult(displayInfo));
@@ -105,6 +109,16 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.setBigDecimal(13, operation.getMaxHeapUsage().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(14, operation.getMaxUncollectedHeap().toUnits(DataAmount.BYTES).getValue());
             statement.setBigDecimal(15, operation.getMaxCommittedHeap().toUnits(DataAmount.BYTES).getValue());
+            if (operation.getCompileTotalTime() != null) {
+                statement.setBigDecimal(16, operation.getCompileTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            } else {
+                statement.setNull(16, Types.DECIMAL);
+            }
+            if (operation.getGcTotalTime() != null) {
+                statement.setBigDecimal(17, operation.getGcTotalTime().toUnits(Duration.MILLI_SECONDS).getValue());
+            } else {
+                statement.setNull(17, Types.DECIMAL);
+            }
             statement.addBatch();
         }
     }
@@ -139,11 +153,11 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
     }
 
     @Override
-    public CrossBuildPerformanceTestHistory getTestResults(String testName) {
-        return getTestResults(testName, Integer.MAX_VALUE);
+    public CrossBuildPerformanceTestHistory getTestResults(String testName, String channel) {
+        return getTestResults(testName, Integer.MAX_VALUE, Integer.MAX_VALUE, channel);
     }
 
-    public CrossBuildPerformanceTestHistory getTestResults(final String testName, final int mostRecentN) {
+    public CrossBuildPerformanceTestHistory getTestResults(final String testName, final int mostRecentN, final int maxDaysOld, final String channel) {
         try {
             return db.withConnection(new ConnectionAction<CrossBuildPerformanceTestHistory>() {
                 public CrossBuildPerformanceTestHistory execute(Connection connection) throws SQLException {
@@ -154,10 +168,13 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                             return o1.getDisplayName().compareTo(o2.getDisplayName());
                         }
                     });
-                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup from testExecution where testId = ? order by startTime desc");
-                    PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes from testOperation where testExecution = ?");
+                    PreparedStatement executionsForName = connection.prepareStatement("select top ? id, startTime, endTime, versionUnderTest, operatingSystem, jvm, vcsBranch, vcsCommit, testGroup, channel from testExecution where testId = ? and startTime >= ? and channel = ? order by startTime desc");
+                    PreparedStatement operationsForExecution = connection.prepareStatement("select testProject, displayName, tasks, args, gradleOpts, daemon, totalTime, configurationTime, executionTime, heapUsageBytes, totalHeapUsageBytes, maxHeapUsageBytes, maxUncollectedHeapBytes, maxCommittedHeapBytes, compileTotalTime, gcTotalTime from testOperation where testExecution = ?");
                     executionsForName.setInt(1, mostRecentN);
                     executionsForName.setString(2, testName);
+                    Timestamp minDate = new Timestamp(LocalDate.now().minusDays(maxDaysOld).toDate().getTime());
+                    executionsForName.setTimestamp(3, minDate);
+                    executionsForName.setString(4, channel);
                     ResultSet testExecutions = executionsForName.executeQuery();
                     while (testExecutions.next()) {
                         long id = testExecutions.getLong(1);
@@ -169,8 +186,9 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                         performanceResults.setOperatingSystem(testExecutions.getString(5));
                         performanceResults.setJvm(testExecutions.getString(6));
                         performanceResults.setVcsBranch(testExecutions.getString(7).trim());
-                        performanceResults.setVcsCommits(splitVcsCommits(testExecutions.getString(8)));
+                        performanceResults.setVcsCommits(split(testExecutions.getString(8)));
                         performanceResults.setTestGroup(testExecutions.getString(9));
+                        performanceResults.setChannel(testExecutions.getString(10));
 
                         if (ignore(performanceResults)) {
                             continue;
@@ -199,7 +217,14 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                             operation.setMaxHeapUsage(DataAmount.bytes(resultSet.getBigDecimal(12)));
                             operation.setMaxUncollectedHeap(DataAmount.bytes(resultSet.getBigDecimal(13)));
                             operation.setMaxCommittedHeap(DataAmount.bytes(resultSet.getBigDecimal(14)));
-
+                            BigDecimal compileTotalTime = resultSet.getBigDecimal(15);
+                            if (compileTotalTime != null) {
+                                operation.setCompileTotalTime(Duration.millis(compileTotalTime));
+                            }
+                            BigDecimal gcTotalTime = resultSet.getBigDecimal(16);
+                            if (gcTotalTime != null) {
+                                operation.setGcTotalTime(Duration.millis(gcTotalTime));
+                            }
                             performanceResults.buildResult(displayInfo).add(operation);
                             builds.add(displayInfo);
                         }
@@ -256,6 +281,8 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
             statement.execute("alter table testOperation add column if not exists gradleOpts array");
             statement.execute("alter table testOperation add column if not exists daemon boolean");
             statement.execute("alter table testExecution add column if not exists resultType varchar not null default 'cross-build'");
+            statement.execute("alter table testOperation add column if not exists compileTotalTime decimal");
+            statement.execute("alter table testOperation add column if not exists gcTotalTime decimal");
             statement.execute("create index if not exists testExecution_executionTime on testExecution (executionTime desc)");
             statement.execute("create index if not exists testExecution_testGroup on testExecution (testGroup)");
             if (columnExists(connection, "TESTEXECUTION", "EXECUTIONTIME")) {
@@ -265,6 +292,12 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
                 statement.execute("alter table testExecution add column endTime timestamp");
                 statement.execute("update testExecution set endTime = startTime");
                 statement.execute("alter table testExecution alter column endTime set not null");
+            }
+            if (!columnExists(connection, "TESTEXECUTION", "CHANNEL")) {
+                statement.execute("alter table testExecution add column if not exists channel varchar");
+                statement.execute("update testExecution set channel='commits'");
+                statement.execute("alter table testExecution alter column channel set not null");
+                statement.execute("create index if not exists testExecution_channel on testExecution (channel)");
             }
             statement.close();
             return null;

@@ -16,8 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine;
 
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
-import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules;
 import org.gradle.api.internal.artifacts.ResolveContext;
@@ -41,7 +39,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictHandler;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
-import org.gradle.internal.Actions;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -85,9 +82,7 @@ public class DefaultArtifactDependencyResolver implements ArtifactDependencyReso
 
     private DependencyGraphBuilder createDependencyGraphBuilder(ComponentResolvers componentSource, ResolutionStrategyInternal resolutionStrategy, GlobalDependencyResolutionRules globalRules) {
 
-        Action<DependencySubstitution> dependencySubstitutionRule =
-            Actions.composite(resolutionStrategy.getDependencySubstitutionRule(), globalRules.getDependencySubstitutionRule());
-        DependencyToComponentIdResolver componentIdResolver = new DependencySubstitutionResolver(componentSource.getComponentIdResolver(), dependencySubstitutionRule);
+        DependencyToComponentIdResolver componentIdResolver = new DependencySubstitutionResolver(componentSource.getComponentIdResolver(), resolutionStrategy.getDependencySubstitutionRule());
         ComponentMetaDataResolver componentMetaDataResolver = new ClientModuleResolver(componentSource.getComponentResolver(), dependencyDescriptorFactory);
 
         DependencyToConfigurationResolver dependencyToConfigurationResolver = new DefaultDependencyToConfigurationResolver();

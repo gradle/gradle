@@ -16,26 +16,17 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterators;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.rules.ChangeType;
-import org.gradle.api.internal.changedetection.rules.FileChange;
-import org.gradle.api.internal.changedetection.rules.TaskStateChange;
-import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Takes a snapshot of the output files of a task.
@@ -52,16 +43,21 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     public void registerSerializers(SerializerRegistry registry) {
         DefaultSerializerRegistry nested = new DefaultSerializerRegistry();
         snapshotter.registerSerializers(nested);
-        registry.register(OutputFilesSnapshot.class, new OutputFilesSnapshotSerializer(nested.build(FileCollectionSnapshot.class), stringInterner));
+        registry.register(OutputFilesCollectionSnapshot.class, new OutputFilesCollectionSnapshot.SerializerImpl(nested.build(FileCollectionSnapshot.class), stringInterner));
     }
 
     public FileCollectionSnapshot emptySnapshot() {
-        return new OutputFilesSnapshot(Collections.<String, Boolean>emptyMap(), snapshotter.emptySnapshot());
+        return new OutputFilesCollectionSnapshot(Collections.<String, Boolean>emptyMap(), snapshotter.emptySnapshot());
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType) {
-        return new OutputFilesSnapshot(getRoots(files), snapshotter.snapshot(files, compareType));
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType, TaskFilePropertyPathSensitivityType pathSensitivity) {
+        return new OutputFilesCollectionSnapshot(getRoots(files), snapshotter.snapshot(files, compareType, pathSensitivity));
+    }
+
+    @Override
+    public FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec) {
+        return new OutputFilesCollectionSnapshot(getRoots(propertySpec.getPropertyFiles()), snapshotter.snapshot(propertySpec));
     }
 
     private Map<String, Boolean> getRoots(FileCollection files) {
@@ -73,112 +69,71 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     /**
-     * Returns a new snapshot that ignores new files between 2 previous snapshots
+     * Returns a new snapshot that filters out entries that should not be considered outputs of the task.
      */
-    public OutputFilesSnapshot createOutputSnapshot(FileCollectionSnapshot afterPreviousExecution, FileCollectionSnapshot beforeExecution, FileCollectionSnapshot afterExecution, FileCollection roots) {
+    public OutputFilesCollectionSnapshot createOutputSnapshot(
+        FileCollectionSnapshot afterPreviousExecution,
+        FileCollectionSnapshot beforeExecution,
+        FileCollectionSnapshot afterExecution,
+        FileCollection roots
+    ) {
         FileCollectionSnapshot filesSnapshot;
-        Map<String, IncrementalFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
+        Map<String, NormalizedFileSnapshot> afterSnapshots = afterExecution.getSnapshots();
         if (!beforeExecution.getSnapshots().isEmpty() && !afterSnapshots.isEmpty()) {
-            Map<String, IncrementalFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
-            Map<String, IncrementalFileSnapshot> previousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : new HashMap<String, IncrementalFileSnapshot>();
+            Map<String, NormalizedFileSnapshot> beforeSnapshots = beforeExecution.getSnapshots();
+            Map<String, NormalizedFileSnapshot> afterPreviousSnapshots = afterPreviousExecution != null ? afterPreviousExecution.getSnapshots() : new HashMap<String, NormalizedFileSnapshot>();
             int newEntryCount = 0;
-            ImmutableMap.Builder<String, IncrementalFileSnapshot> newEntries = ImmutableMap.builder();
+            ImmutableMap.Builder<String, NormalizedFileSnapshot> outputEntries = ImmutableMap.builder();
 
-            for (Map.Entry<String, IncrementalFileSnapshot> entry : afterSnapshots.entrySet()) {
+            for (Map.Entry<String, NormalizedFileSnapshot> entry : afterSnapshots.entrySet()) {
                 final String path = entry.getKey();
-                IncrementalFileSnapshot otherFile = beforeSnapshots.get(path);
-                if (otherFile == null
-                    || !entry.getValue().isContentAndMetadataUpToDate(otherFile)
-                    || previousSnapshots.containsKey(path)) {
-                    newEntries.put(entry.getKey(), entry.getValue());
+                NormalizedFileSnapshot fileSnapshot = entry.getValue();
+                if (isOutputEntry(path, fileSnapshot, beforeSnapshots, afterPreviousSnapshots)) {
+                    outputEntries.put(entry.getKey(), fileSnapshot);
                     newEntryCount++;
                 }
             }
+            // Are all files snapshot after execution accounted for as new entries?
             if (newEntryCount == afterSnapshots.size()) {
-                filesSnapshot = afterExecution;
+                filesSnapshot = unwrap(afterExecution);
             } else {
-                filesSnapshot = new FileCollectionSnapshotImpl(newEntries.build(), TaskFilePropertyCompareType.OUTPUT);
+                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareType.OUTPUT);
             }
         } else {
-            filesSnapshot = afterExecution;
+            filesSnapshot = unwrap(afterExecution);
         }
-        if (filesSnapshot instanceof OutputFilesSnapshot) {
-            filesSnapshot = ((OutputFilesSnapshot) filesSnapshot).filesSnapshot;
-        }
-        return new OutputFilesSnapshot(getRoots(roots), filesSnapshot);
+        return new OutputFilesCollectionSnapshot(getRoots(roots), filesSnapshot);
     }
 
-    static class OutputFilesSnapshot implements FileCollectionSnapshot {
-        final Map<String, Boolean> roots;
-        final FileCollectionSnapshot filesSnapshot;
-
-        public OutputFilesSnapshot(Map<String, Boolean> roots, FileCollectionSnapshot filesSnapshot) {
-            this.roots = roots;
-            this.filesSnapshot = filesSnapshot;
+    /**
+     * Decide whether an entry should be considered to be part of the output. Entries that are considered outputs are:
+     * <ul>
+     *     <li>an entry that did not exist before the execution, but exists after the execution</li>
+     *     <li>an entry that did exist before the execution, and has been changed durign the execution</li>
+     *     <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
+     * </ul>
+     */
+    private static boolean isOutputEntry(String path, NormalizedFileSnapshot fileSnapshot, Map<String, NormalizedFileSnapshot> beforeSnapshots, Map<String, NormalizedFileSnapshot> afterPreviousSnapshots) {
+        NormalizedFileSnapshot beforeSnapshot = beforeSnapshots.get(path);
+        // Was it created during execution?
+        if (beforeSnapshot == null) {
+            return true;
         }
-
-        public Collection<File> getFiles() {
-            return filesSnapshot.getFiles();
+        // Was it updated during execution?
+        if (!fileSnapshot.getSnapshot().isContentAndMetadataUpToDate(beforeSnapshot.getSnapshot())) {
+            return true;
         }
-
-        @Override
-        public Map<String, IncrementalFileSnapshot> getSnapshots() {
-            return filesSnapshot.getSnapshots();
+        // Did we already consider it as an output after the previous execution?
+        if (afterPreviousSnapshots.containsKey(path)) {
+            return true;
         }
+        return false;
+    }
 
-        @Override
-        public boolean isEmpty() {
-            return filesSnapshot.isEmpty();
+    private static FileCollectionSnapshot unwrap(FileCollectionSnapshot filesSnapshot) {
+        if (filesSnapshot instanceof OutputFilesCollectionSnapshot) {
+            return ((OutputFilesCollectionSnapshot) filesSnapshot).getFilesSnapshot();
         }
-
-        @Override
-        public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType) {
-            final OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
-            final Iterator<TaskStateChange> rootFileIdIterator = iterateRootFileIdChanges(other, fileType);
-            final Iterator<TaskStateChange> fileIterator = filesSnapshot.iterateContentChangesSince(other.filesSnapshot, fileType);
-            return Iterators.concat(rootFileIdIterator, fileIterator);
-        }
-
-        private Iterator<TaskStateChange> iterateRootFileIdChanges(final OutputFilesSnapshot other, final String fileType) {
-            Map<String, Boolean> added = new HashMap<String, Boolean>(roots);
-            added.keySet().removeAll(other.roots.keySet());
-            final Iterator<String> addedIterator = added.keySet().iterator();
-
-            Map<String, Boolean> removed = new HashMap<String, Boolean>(other.roots);
-            removed.keySet().removeAll(roots.keySet());
-            final Iterator<String> removedIterator = removed.keySet().iterator();
-
-            Set<String> changed = new HashSet<String>();
-            for (Map.Entry<String, Boolean> current : roots.entrySet()) {
-                Boolean otherValue = other.roots.get(current.getKey());
-                // Only care about roots that used to exist and have been removed
-                if (otherValue != null && otherValue && !otherValue.equals(current.getValue())) {
-                    changed.add(current.getKey());
-                }
-            }
-            final Iterator<String> changedIterator = changed.iterator();
-
-            return new AbstractIterator<TaskStateChange>() {
-                @Override
-                protected TaskStateChange computeNext() {
-                    if (addedIterator.hasNext()) {
-                        return new FileChange(addedIterator.next(), ChangeType.ADDED, fileType);
-                    }
-                    if (removedIterator.hasNext()) {
-                        return new FileChange(removedIterator.next(), ChangeType.REMOVED, fileType);
-                    }
-                    if (changedIterator.hasNext()) {
-                        return new FileChange(changedIterator.next(), ChangeType.MODIFIED, fileType);
-                    }
-
-                    return endOfData();
-                }
-            };
-        }
-
-        @Override
-        public void appendToCacheKey(TaskCacheKeyBuilder builder) {
-            filesSnapshot.appendToCacheKey(builder);
-        }
+        return filesSnapshot;
     }
 }

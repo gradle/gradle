@@ -33,3 +33,23 @@ th, td {
     background-color: #ecdada;
     border-color: #b60808;
 }
+
+.code {
+    display: inline-block;
+    margin-top: 0em;
+    margin-bottom: 1em;
+}
+
+.code pre {
+    font-size: 9pt;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin: 0;
+    background-color: #f7f7f7;
+    border: solid 1px #d0d0d0;
+    min-width: 700px;
+    width: auto !important;
+    width: 700px;
+}

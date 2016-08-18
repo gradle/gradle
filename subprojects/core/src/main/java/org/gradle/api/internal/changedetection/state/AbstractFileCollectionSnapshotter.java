@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.serialize.SerializerRegistry;
 
@@ -47,51 +48,58 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
 
     @Override
     public FileCollectionSnapshot emptySnapshot() {
-        return new FileCollectionSnapshotImpl(Collections.<String, IncrementalFileSnapshot>emptyMap(), UNORDERED);
+        return new DefaultFileCollectionSnapshot(Collections.<String, NormalizedFileSnapshot>emptyMap(), UNORDERED);
     }
 
     public void registerSerializers(SerializerRegistry registry) {
-        registry.register(FileCollectionSnapshotImpl.class, new DefaultFileSnapshotterSerializer(stringInterner));
+        registry.register(DefaultFileCollectionSnapshot.class, new DefaultFileCollectionSnapshot.SerializerImpl(stringInterner));
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareType compareType) {
+    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareType compareType, final TaskFilePropertyPathSensitivityType pathSensitivity) {
         final List<FileTreeElement> fileTreeElements = Lists.newLinkedList();
-        final List<File> missingFiles = Lists.newArrayList();
+        final List<FileTreeElement> missingFiles = Lists.newArrayList();
         visitFiles(input, fileTreeElements, missingFiles);
 
         if (fileTreeElements.isEmpty() && missingFiles.isEmpty()) {
             return emptySnapshot();
         }
 
-        final Map<String, IncrementalFileSnapshot> snapshots = Maps.newLinkedHashMap();
+        final Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
 
         cacheAccess.useCache("Create file snapshot", new Runnable() {
             public void run() {
                 for (FileTreeElement fileDetails : fileTreeElements) {
                     String absolutePath = getInternedAbsolutePath(fileDetails.getFile());
                     if (!snapshots.containsKey(absolutePath)) {
+                        IncrementalFileSnapshot snapshot;
                         if (fileDetails.isDirectory()) {
-                            snapshots.put(absolutePath, DirSnapshot.getInstance());
+                            snapshot = DirSnapshot.getInstance();
                         } else {
-                            snapshots.put(absolutePath, new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(), fileDetails.getLastModified()));
+                            snapshot = new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(), fileDetails.getLastModified());
                         }
+                        snapshots.put(absolutePath, pathSensitivity.getNormalizedSnapshot(fileDetails, snapshot, stringInterner));
                     }
                 }
-                for (File missingFile : missingFiles) {
-                    String absolutePath = getInternedAbsolutePath(missingFile);
+                for (FileTreeElement missingFileDetails : missingFiles) {
+                    String absolutePath = getInternedAbsolutePath(missingFileDetails.getFile());
                     if (!snapshots.containsKey(absolutePath)) {
-                        snapshots.put(absolutePath, MissingFileSnapshot.getInstance());
+                        snapshots.put(absolutePath, pathSensitivity.getNormalizedSnapshot(missingFileDetails, MissingFileSnapshot.getInstance(), stringInterner));
                     }
                 }
             }
         });
-        return new FileCollectionSnapshotImpl(snapshots, compareType);
+        return new DefaultFileCollectionSnapshot(snapshots, compareType);
+    }
+
+    @Override
+    public FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec) {
+        return snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareType(), propertySpec.getPathSensitivity());
     }
 
     private String getInternedAbsolutePath(File file) {
         return stringInterner.intern(file.getAbsolutePath());
     }
 
-    abstract protected void visitFiles(FileCollection input, List<FileTreeElement> fileTreeElements, List<File> missingFiles);
+    abstract protected void visitFiles(FileCollection input, List<FileTreeElement> fileTreeElements, List<FileTreeElement> missingFiles);
 }

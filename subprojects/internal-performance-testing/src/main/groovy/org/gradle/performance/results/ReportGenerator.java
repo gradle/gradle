@@ -16,11 +16,14 @@
 
 package org.gradle.performance.results;
 
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.performance.results.HtmlPageGenerator.NavigationItem;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 
 public class ReportGenerator {
 
@@ -41,12 +44,16 @@ public class ReportGenerator {
             TestPageGenerator testHtmlRenderer = new TestPageGenerator();
             TestDataGenerator testDataRenderer = new TestDataGenerator();
 
-            fileRenderer.render(store, new IndexPageGenerator(), new File(outputDirectory, "index.html"));
-            fileRenderer.render(store, new GraphIndexPageGenerator(), new File(outputDirectory, "graph-index.html"));
+            List<NavigationItem> navigationItems = ImmutableList.of(
+                new NavigationItem("Overview", "index.html"),
+                new NavigationItem("Graphs", "graph-index.html")
+            );
+            fileRenderer.render(store, new IndexPageGenerator(navigationItems), new File(outputDirectory, "index.html"));
+            fileRenderer.render(store, new GraphIndexPageGenerator(navigationItems), new File(outputDirectory, "graph-index.html"));
 
             File testsDir = new File(outputDirectory, "tests");
             for (String testName : store.getTestNames()) {
-                PerformanceTestHistory testResults = store.getTestResults(testName, 100);
+                PerformanceTestHistory testResults = store.getTestResults(testName, 100, 90, ResultsStoreHelper.determineChannel());
                 fileRenderer.render(testResults, testHtmlRenderer, new File(testsDir, testResults.getId() + ".html"));
                 fileRenderer.render(testResults, testDataRenderer, new File(testsDir, testResults.getId() + ".json"));
             }
