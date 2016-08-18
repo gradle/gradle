@@ -16,9 +16,6 @@
 
 package org.gradle.performance.results
 
-import org.gradle.performance.measure.DataAmount
-import org.gradle.performance.measure.Duration
-
 class GradleVsMavenBuildPerformanceResults extends CrossBuildPerformanceResults {
 
     void assertComparesWithMaven(double maxTimeDifference, double maxMemoryDifference) {
@@ -27,8 +24,6 @@ class GradleVsMavenBuildPerformanceResults extends CrossBuildPerformanceResults 
             def maven = buildResults[infos.find { it.displayName.startsWith 'Maven ' }]
             def baselineVersion = new BaselineVersion("Maven")
             baselineVersion.results.addAll(maven)
-            baselineVersion.setMaxExecutionTimeRegression(Duration.millis(maxTimeDifference))
-            baselineVersion.setMaxMemoryRegression(DataAmount.mbytes(maxMemoryDifference))
             def stats = [baselineVersion.getSpeedStatsAgainst("Gradle", gradle), baselineVersion.getMemoryStatsAgainst("Gradle", gradle)]
             stats.each {
                 println it
