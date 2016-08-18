@@ -41,7 +41,7 @@ class DependencyReportPerformanceTest extends AbstractCrossVersionPerformanceTes
 
         where:
         testProject       | maxExecutionTimeRegression | targetVersions
-        "small"           | millis(1000)               | ['1.1', '2.2.1', '2.8', 'last']
+        "small"           | millis(1000)               | ['2.2.1', '2.8', 'last']
         "multi"           | millis(1000)               | ['2.8', 'last']
         "lotDependencies" | millis(1250)               | ['2.8', 'last']
     }
