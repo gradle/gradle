@@ -15,8 +15,8 @@
  */
 package org.gradle.integtests
 
-import org.junit.Test
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.junit.Test
 
 class SyncTaskIntegrationTest extends AbstractIntegrationTest {
 
@@ -43,7 +43,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationTest {
                 into 'dest'
                 from 'source'
             }
-'''
+        '''.stripIndent()
 
         inTestDirectory().withTasks('sync').run()
 
@@ -82,9 +82,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationTest {
                   exclude 'dir1/extra.txt'
                 }
             }
-'''
+        '''.stripIndent()
 
-        inTestDirectory().withTasks('sync').withArgument("-i").run()
+        inTestDirectory().withTasks('sync').run()
 
         testFile('dest').assertHasDescendants(
             'dir1/file1.txt',

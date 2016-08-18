@@ -15,10 +15,6 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -33,10 +29,14 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.GFileUtils;
 
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
+
 public class SyncCopyActionDecorator implements CopyAction {
     private final File baseDestDir;
     private final CopyAction delegate;
-    private CopySpec preserveSpec;
+    private final CopySpec preserveSpec;
 
     public SyncCopyActionDecorator(File baseDestDir, CopyAction delegate) {
         this(baseDestDir, delegate, null);
@@ -62,8 +62,7 @@ public class SyncCopyActionDecorator implements CopyAction {
             }
         });
 
-        SyncCopyActionDecoratorFileVisitor fileVisitor = new SyncCopyActionDecoratorFileVisitor(visited,
-            preserveSpec);
+        SyncCopyActionDecoratorFileVisitor fileVisitor = new SyncCopyActionDecoratorFileVisitor(visited, preserveSpec);
 
         MinimalFileTree walker = new DirectoryFileTree(baseDestDir).postfix();
         walker.visit(fileVisitor);
@@ -78,9 +77,7 @@ public class SyncCopyActionDecorator implements CopyAction {
         private final PatternSet preserveSet;
         private boolean didWork;
 
-        private SyncCopyActionDecoratorFileVisitor(
-            Set<RelativePath> visited,
-            CopySpec preserveSpec) {
+        private SyncCopyActionDecoratorFileVisitor(Set<RelativePath> visited, CopySpec preserveSpec) {
             this.visited = visited;
             PatternSet preserveSet = new PatternSet();
             if (preserveSpec != null) {

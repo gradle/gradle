@@ -16,9 +16,8 @@
 
 package org.gradle.api.tasks;
 
-import java.io.File;
-
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.FileResolver;
@@ -29,6 +28,8 @@ import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
 import org.gradle.internal.reflect.Instantiator;
+
+import java.io.File;
 
 /**
  * Synchronises the contents of a destination directory with some source directories and files.
@@ -92,6 +93,7 @@ public class Sync extends AbstractCopyTask {
     * @see #getDestinationDir()
     */
     @Internal
+    @Incubating
     public CopySpec getPreserve() {
         return preserveInDestination;
     }
@@ -103,6 +105,7 @@ public class Sync extends AbstractCopyTask {
     *
     * @see #getDestinationDir()
     */
+    @Incubating
     public void preserve(Action<? super CopySpec> action) {
         action.execute(preserveInDestination);
     }
