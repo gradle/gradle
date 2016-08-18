@@ -109,10 +109,10 @@
     <section id="sec:rerun_tasks">
         <title>Forcing tasks to execute</title>
         <para>
-            Many tasks, particularly those provided by Gradle itself, support <link linkend="incremental_tasks">incremental builds</link>.
+            Many tasks, particularly those provided by Gradle itself, support <link linkend="sec:up_to_date_checks">incremental builds</link>.
             Such tasks can determine whether they need to run or not based on whether their inputs or outputs have changed since the last
-            time they ran. You can easily identify incremental tasks when Gradle displays the text <literal>UP-TO-DATE</literal> next to
-            their name when executing a build.
+            time they ran. You can easily identify tasks that take part in incremental build when Gradle displays
+            the text <literal>UP-TO-DATE</literal> next to their name during a build run.
         </para>
         <para>
             You may on occasion want to force Gradle to run all the tasks, ignoring any up-to-date checks. If that's the case, simply use

@@ -1,0 +1,85 @@
+import org.example.*
+
+apply plugin: "base"
+
+task processTemplates(type: ProcessTemplates) {
+    templateEngine = TemplateEngineType.FREEMARKER
+    sourceFiles = fileTree("src/templates")
+    templateData = new TemplateData("test", [year: 2012])
+    outputDir = file("$buildDir/genOutput")
+}
+
+// START SNIPPET ad-hoc-task
+task processTemplatesAdHoc {
+    inputs.property("engine", TemplateEngineType.FREEMARKER)
+    inputs.files(fileTree("src/templates"))
+    inputs.property("templateData.name", "docs")
+    inputs.property("templateData.variables", [year: 2013])
+    outputs.dir("$buildDir/genOutput2")
+
+    doLast {
+        // Process the templates here
+// END SNIPPET ad-hoc-task
+        copy {
+            into "$buildDir/genOutput2"
+            from fileTree("src/templates")
+            expand([year: 2013])
+        }
+
+// START SNIPPET ad-hoc-task
+    }
+}
+// END SNIPPET ad-hoc-task
+
+// START SNIPPET custom-class-runtime-api
+task processTemplatesRuntime(type: ProcessTemplatesNoAnnotations) {
+    templateEngine = TemplateEngineType.FREEMARKER
+    sourceFiles = fileTree("src/templates")
+    templateData = new TemplateData("test", [year: 2014])
+    outputDir = file("$buildDir/genOutput3")
+
+    inputs.property("engine",templateEngine)
+    inputs.files(sourceFiles)
+    inputs.property("templateData.name", templateData.name)
+    inputs.property("templateData.variables", templateData.variables)
+    outputs.dir(outputDir)
+}
+// END SNIPPET custom-class-runtime-api
+
+// START SNIPPET runtime-api-conf
+task processTemplatesRuntimeConf(type: ProcessTemplatesNoAnnotations) {
+    // ...
+// END SNIPPET runtime-api-conf
+    templateEngine = TemplateEngineType.FREEMARKER
+    templateData = new TemplateData("test", [year: 2014])
+    outputDir = file("$buildDir/genOutput3")
+// START SNIPPET runtime-api-conf
+    sourceFiles = fileTree("src/templates") {
+        include "**/*.fm"
+    }
+
+    inputs.files(sourceFiles).skipWhenEmpty()
+    // ...
+// END SNIPPET runtime-api-conf
+    inputs.property("engine",templateEngine)
+    inputs.property("templateData.name", templateData.name)
+    inputs.property("templateData.variables", templateData.variables)
+    outputs.dir(outputDir)
+// START SNIPPET runtime-api-conf
+}
+// END SNIPPET runtime-api-conf
+
+// START SNIPPET inferred-task-dep-via-outputs
+task packageFiles(type: Zip) {
+    from processTemplates.outputs
+}
+// END SNIPPET inferred-task-dep-via-outputs
+
+// START SNIPPET inferred-task-dep-via-task
+task packageFiles2(type: Zip) {
+    from processTemplates
+}
+// END SNIPPET inferred-task-dep-via-task
+
+
+build.dependsOn processTemplates, processTemplatesAdHoc, processTemplatesRuntime, processTemplatesRuntimeConf
