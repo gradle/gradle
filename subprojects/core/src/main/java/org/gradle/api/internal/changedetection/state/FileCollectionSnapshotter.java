@@ -37,9 +37,10 @@ public interface FileCollectionSnapshotter {
      *
      * @param files The files to snapshot.
      * @param compareType How to compare this collection snapshot to others.
+     * @param pathSensitivity How to compare file paths.
      * @return The snapshot.
      */
-    FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType);
+    FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType, TaskFilePropertyPathSensitivityType pathSensitivity);
 
     /**
      * Creates a snapshot of the contents of the given property.

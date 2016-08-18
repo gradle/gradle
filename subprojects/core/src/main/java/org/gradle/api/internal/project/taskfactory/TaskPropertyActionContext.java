@@ -36,6 +36,11 @@ public interface TaskPropertyActionContext {
     boolean isAnnotationPresent(Class<? extends Annotation> annotationType);
 
     /**
+     * Returns the given annotation if present on the field or any of the methods declaring the property.
+     */
+    <A extends Annotation> A getAnnotation(Class<A> annotationType);
+
+    /**
      * Specifies the action used to validate the value of this property. This action is only executed when the property
      * value is not null.
      */

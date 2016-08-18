@@ -19,7 +19,9 @@ import com.google.common.collect.Lists;
 import groovy.lang.GString;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
+import org.gradle.api.internal.changedetection.state.PathSensitivity;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -35,6 +37,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.ORDERED;
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.UNORDERED;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.ABSOLUTE;
 import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
 import static org.gradle.util.GUtil.uncheckedCall;
 
@@ -217,6 +220,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private boolean skipWhenEmpty;
         private boolean optional;
         private TaskFilePropertyCompareType compareType = UNORDERED;
+        private TaskFilePropertyPathSensitivityType pathSensitivity = ABSOLUTE;
 
         public PropertySpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
             this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
@@ -277,6 +281,17 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         @Override
         public TaskInputFilePropertyBuilder orderSensitive(boolean orderSensitive) {
             this.compareType = orderSensitive ? ORDERED : UNORDERED;
+            return this;
+        }
+
+        @Override
+        public TaskFilePropertyPathSensitivityType getPathSensitivity() {
+            return pathSensitivity;
+        }
+
+        @Override
+        public TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
+            this.pathSensitivity = TaskFilePropertyPathSensitivityType.valueOf(sensitivity);
             return this;
         }
 

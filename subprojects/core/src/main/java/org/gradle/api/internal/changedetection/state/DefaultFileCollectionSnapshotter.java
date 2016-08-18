@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -36,7 +35,7 @@ public class DefaultFileCollectionSnapshotter extends AbstractFileCollectionSnap
     }
 
     @Override
-    protected void visitFiles(FileCollection input, final List<FileTreeElement> fileTreeElements, final List<File> missingFiles) {
+    protected void visitFiles(FileCollection input, final List<FileTreeElement> fileTreeElements, final List<FileTreeElement> missingFiles) {
         DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(fileResolver);
         context.add(input);
         List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();

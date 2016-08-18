@@ -40,6 +40,6 @@ public class CleaningScalaCompiler extends CleaningJavaCompilerSupport<ScalaJava
 
     @Override
     protected StaleClassCleaner createCleaner(ScalaJavaJointCompileSpec spec) {
-        return new SimpleStaleClassCleaner(taskOutputs, "destinationDir");
+        return new SimpleStaleClassCleaner(taskOutputs);
     }
 }

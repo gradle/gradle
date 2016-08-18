@@ -37,7 +37,7 @@ class IncrementalNativeCompilerTest extends Specification {
     def delegateCompiler = Mock(Compiler)
     def toolChain = Mock(NativeToolChain)
     def task = Mock(TaskInternal)
-    def compiler = new IncrementalNativeCompiler(task, null, null, null, delegateCompiler, toolChain, "objectFileDir")
+    def compiler = new IncrementalNativeCompiler(task, null, null, null, delegateCompiler, toolChain)
 
     def outputs = Mock(TaskOutputsInternal)
 
@@ -81,7 +81,8 @@ class IncrementalNativeCompilerTest extends Specification {
         def result = compiler.doCleanIncrementalCompile(spec)
 
         then:
-        1 * outputs.getPreviousOutputFiles("objectFileDir") >> new SimpleFileCollection(outputFile)
+        1 * spec.getObjectFileDir() >> outputFile.parentFile
+        1 * outputs.previousOutputFiles >> new SimpleFileCollection(outputFile)
         0 * spec._
         1 * delegateCompiler.execute(spec) >> new SimpleWorkResult(false)
 
@@ -93,7 +94,7 @@ class IncrementalNativeCompilerTest extends Specification {
     @Unroll
     def "imports are includes for toolchain #tcName"() {
        when:
-       def compiler = new IncrementalNativeCompiler(task, null, null, null, delegateCompiler, toolChain, "objectFileDir")
+       def compiler = new IncrementalNativeCompiler(task, null, null, null, delegateCompiler, toolChain)
        then:
        compiler.importsAreIncludes
        where:

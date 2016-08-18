@@ -26,6 +26,9 @@ public abstract class CleaningJavaCompilerSupport<T extends JavaCompileSpec> imp
     @Override
     public WorkResult execute(T spec) {
         StaleClassCleaner cleaner = createCleaner(spec);
+
+        cleaner.setDestinationDir(spec.getDestinationDir());
+        cleaner.setSource(spec.getSource());
         cleaner.execute();
 
         Compiler<? super T> compiler = getCompiler();

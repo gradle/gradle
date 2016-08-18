@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
 
-import org.gradle.api.file.FileCollection;
+package org.gradle.api.internal.changedetection.state;
 
-public interface TaskExecutionHistory {
+/**
+ * Enumeration of different file path handling strategies for task properties.
+ *
+ * @see PathSensitive
+ */
+public enum PathSensitivity {
     /**
-     * Returns the set of output files which the task produced.
+     * Consider the full path of files.
      */
-    FileCollection getOutputFiles();
+    ABSOLUTE,
+    /**
+     * Consider the path for each file relative to the root it was included via.
+     */
+    RELATIVE,
+
+    /**
+     * Consider only the name of files.
+     */
+    NAME_ONLY,
+
+    /**
+     * Ignore file paths altogether.
+     */
+    NONE
 }
