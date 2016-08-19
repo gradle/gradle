@@ -122,6 +122,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def perVersion = new File(workingDir, version)
         if (!perVersion.exists()) {
             perVersion.mkdirs()
+        } else {
+            throw new IllegalArgumentException("Didn't expect to find an existing directory at $perVersion")
         }
         perVersion
     }

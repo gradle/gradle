@@ -175,8 +175,10 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             TestFile perVersionDir = new TestFile(workingDir, version)
             if (!perVersionDir.exists()) {
                 perVersionDir.mkdirs()
+            } else {
+                throw new IllegalArgumentException("Didn't expect to find an existing directory at $perVersionDir")
             }
-            GFileUtils.cleanDirectory(perVersionDir)
+
             GFileUtils.copyDirectory(templateDir, perVersionDir)
             return new TestDirectoryProvider() {
                 @Override
