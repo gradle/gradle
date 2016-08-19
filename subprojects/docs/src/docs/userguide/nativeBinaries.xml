@@ -221,24 +221,24 @@
         <title>Assembling or building dependents</title>
         <para>
             Sometimes, you may need to <firstterm>assemble</firstterm> (compile and link) or <firstterm>build</firstterm> (compile, link and test) a component or binary and its
-            <firstterm>dependents</firstterm> (things that depend upon it). The native software model provides tasks to help with this.
-            First, a <firstterm>dependent components</firstterm> report gives insight about are relationships between each component.
-            Second, a <firstterm>build dependents</firstterm> task allows you to assemble or build a component and its dependents in one step.
+            <firstterm>dependents</firstterm> (things that depend upon the component or binary). The native software model provides tasks that enable this capability.
+            First, the <firstterm>dependent components</firstterm> report gives insight about the relationships between each component.
+            Second, the <firstterm>build and assemble dependents</firstterm> tasks allow you to assemble or build a component and its dependents in one step.
         </para>
         <para>
-            When you <firstterm>assemble</firstterm> dependents of a component, the component and all of its dependents are compiled and linked, including test suites binaries if any. Gradle's
+            When you <firstterm>assemble</firstterm> dependents of a component, the component and all of its dependents are compiled and linked, including any test suite binaries. Gradle's
             up-to-date checks are used to only compile or link if something has changed.  For instance, if you have changed source files in a way that do not affect the headers of your project,
-            Gradle will be able to skip compilation for dependent components and only need to re-link with the new library.  Tests are not run when just assembling a component.
+            Gradle will be able to skip compilation for dependent components and only need to re-link with the new library.  Tests are not run when assembling a component.
         </para>
         <para>
-            When you <firstterm>build</firstterm> dependents of a component, the component and all of its dependent binaries are compiled, linked and checked.
-            Checking components means running any <link linkend="sec:check_tasks">check task</link>. Tests are run when building a component.
+            When you <firstterm>build</firstterm> dependents of a component, the component and all of its dependent binaries are compiled, linked <emphasis>and checked</emphasis>.
+            Checking components means running any <link linkend="sec:check_tasks">check task</link> including executing any test suites, so tests <emphasis>are</emphasis> run when building a component.
         </para>
 
         <para>
             In the following sections, we will demonstrate the usage of the <userinput>assembleDependents*</userinput>, <userinput>buildDependents*</userinput> and
-            <userinput>dependentComponents</userinput> tasks with a sample build that contains a CUnit test suite that tests a C library.
-            Here is it's build script:
+            <userinput>dependentComponents</userinput> tasks with a sample build that contains a CUnit test suite.
+            The build script for the sample is the following:
         </para>
         <sample id="nativeDependentComponentsSample" dir="native-binaries/cunit" title="Sample build" includeLocation="true">
             <sourcefile file="build.gradle" snippet="terse-example"/>
@@ -248,16 +248,15 @@
 
             <title>Dependent components report</title>
             <para>
-                Gradle provides a report that you can run from the command-line that shows a graph of reverse dependencies in your project.
-                To use this report, just run <userinput>gradle dependentComponents</userinput>.
-                Below is an example of running this report on the sample project.
+                Gradle provides a report that you can run from the command-line that shows a graph of components in your project and components that depend upon them.
+                The following is an example of running <userinput>gradle dependentComponents</userinput> on the sample project:
             </para>
             <sample id="nativeDependentComponentsReport" dir="native-binaries/cunit" title="Dependent components report">
                 <output args="dependentComponents"/>
             </sample>
             <para>
                 By default, non-buildable binaries and test suites are hidden from the report. The <userinput>dependentComponents</userinput> task provides options that allow you
-                see all dependents. Run the task using the <literal>--all</literal> option:
+                to see all dependents by using the <literal>--all</literal> option:
             </para>
             <sample id="nativeDependentComponentsReportAll" dir="native-binaries/cunit" title="Dependent components report">
                 <output args="dependentComponents --all"/>
@@ -276,13 +275,13 @@
                 that <firstterm>assembles</firstterm> (compile and link) the binary and all of its dependent binaries.
             </para>
             <para>
-                And, for each <apilink class="org.gradle.nativeplatform.NativeComponentSpec"/>,
+                For each <apilink class="org.gradle.nativeplatform.NativeComponentSpec"/>,
                 Gradle will create a task named <userinput>assembleDependents<replaceable>${component.name}</replaceable></userinput>
                 that <firstterm>assembles</firstterm> all the binaries of the component and all of their dependent binaries.
             </para>
             <para>
-                We will assemble the dependents of the <literal>passing</literal> flavor of the <literal>static library</literal> binary
-                of the <literal>operators</literal> component by running the <userinput>assembleDependentsOperatorsPassingStaticLibrary</userinput> task:
+                For example, to assemble the dependents of the "passing" flavor of the "static" library binary
+                of the "operators" component, you would run the <userinput>assembleDependentsOperatorsPassingStaticLibrary</userinput> task:
             </para>
             <sample id="nativeAssembleDependentComponents" dir="native-binaries/cunit" title="Assemble components that depends on the passing/static binary of the operators component">
                 <output args="assembleDependentsOperatorsPassingStaticLibrary"/>
@@ -291,7 +290,7 @@
                 In the output above, the targeted binary gets assembled as well as the test suite binary that depends on it.
             </para>
             <para>
-                You can also assemble the dependents of a component, i.e. of all its binaries/variants, using the corresponding task, e.g. <userinput>assembleDependentsOperators</userinput>. This is
+                You can also assemble <emphasis>all</emphasis> of the dependents of a component (i.e. of all its binaries/variants) using the corresponding component task, e.g. <userinput>assembleDependentsOperators</userinput>. This is
                 useful if you have many combinations of build types, flavors and platforms and want to assemble all of them.
             </para>
             <para>
@@ -310,13 +309,13 @@
                 that <firstterm>builds</firstterm> (compile, link and check) the binary and all of its dependent binaries.
             </para>
             <para>
-                And, for each <apilink class="org.gradle.nativeplatform.NativeComponentSpec"/>,
+                For each <apilink class="org.gradle.nativeplatform.NativeComponentSpec"/>,
                 Gradle will create a task named <userinput>buildDependents<replaceable>${component.name}</replaceable></userinput>
                 that <firstterm>builds</firstterm> all the binaries of the component and all of their dependent binaries.
             </para>
             <para>
-                We will build the dependents of the <literal>passing</literal> flavor of the <literal>static library</literal> binary
-                of the <literal>operators</literal> component by running the <userinput>buildDependentsOperatorsPassingStaticLibrary</userinput> task:
+                For example, to build the dependents of the "passing" flavor of the "static" library binary
+                of the "operators" component, you would run the <userinput>buildDependentsOperatorsPassingStaticLibrary</userinput> task:
             </para>
             <sample id="nativeBuildDependentComponents" dir="native-binaries/cunit" title="Build components that depends on the passing/static binary of the operators component">
                 <output args="buildDependentsOperatorsPassingStaticLibrary"/>
@@ -325,7 +324,7 @@
                 In the output above, the targeted binary as well as the test suite binary that depends on it are built and the test suite has run.
             </para>
             <para>
-                You can also build the dependents of a component, i.e. of all its binaries/variants, using the corresponding task, e.g. <userinput>buildDependentsOperators</userinput>.
+                You can also build <emphasis>all</emphasis> of the dependents of a component (i.e. of all its binaries/variants) using the corresponding component task, e.g. <userinput>buildDependentsOperators</userinput>.
             </para>
             <para>
                 Here is the corresponding report for the <literal>operators</literal> component, showing build dependents of all its binaries, including test suites:
