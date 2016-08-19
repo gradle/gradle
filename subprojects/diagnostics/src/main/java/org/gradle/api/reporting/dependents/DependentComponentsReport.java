@@ -95,7 +95,7 @@ public class DependentComponentsReport extends DefaultTask {
 
     /**
      * Returns the components to generate the report for.
-     * Defaults to all components of this task's containing project.
+     * Defaults to all components of this project.
      *
      * @return the components.
      */
