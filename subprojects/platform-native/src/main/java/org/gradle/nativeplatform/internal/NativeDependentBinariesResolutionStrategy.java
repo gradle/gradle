@@ -19,6 +19,7 @@ package org.gradle.nativeplatform.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
@@ -47,6 +48,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -54,12 +56,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class NativeDependentBinariesResolutionStrategy extends AbstractDependentBinariesResolutionStrategy {
 
     private static class State {
-        private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
+        private final Map<NativeBinarySpecInternal, Set<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
         private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependents = Maps.newHashMap();
 
         void registerBinary(NativeBinarySpecInternal binary) {
             if (dependencies.get(binary) == null) {
-                dependencies.put(binary, Lists.<NativeBinarySpecInternal>newArrayList());
+                dependencies.put(binary, Sets.<NativeBinarySpecInternal>newLinkedHashSet());
             }
         }
 
