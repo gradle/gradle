@@ -254,15 +254,6 @@
             </tr>
         </table>
 
-        <section id="sec:working_with_shared_libraries">
-            <title>Working with shared libraries</title>
-            <para>
-                For each executable binary produced, the <literal>cpp</literal> plugin provides an <literal>install${binary.name}</literal> task,
-                which creates a development install of the executable, along with the shared libraries it requires.
-                This allows you to run the executable without needing to install the shared libraries in their final locations.
-            </para>
-        </section>
-
         <section id="sec:check_tasks">
             <title>Check tasks</title>
             <para>
@@ -294,26 +285,35 @@
                 </tr>
             </table>
             <para>
-                The project lifecycle <literal>check</literal> task depends on all these binaries <firstterm>check tasks</firstterm>.
-                By default, the latter depend only on the respective binaries <firstterm>lifecyle task</firstterm>, see <xref linkend="sec:native_tasks"/>.
+                The built-in <literal>check</literal> task depends on all the <firstterm>check tasks</firstterm> for binaries in the project.
+                Without either <link linkend="native_binaries:cunit">CUnit</link> or <link linkend="native_binaries:google_test">GoogleTest</link> plugins, the binary check task only depends on
+                the <firstterm>lifecycle task</firstterm> that assembles the binary, see <xref linkend="sec:native_tasks"/>.
             </para>
             <para>
-                <link linkend="native_binaries:cunit">CUnit</link> or <link linkend="native_binaries:google_test">GoogleTest</link> test suites that
-                targets a component are automatically wired to binaries under test <firstterm>check tasks</firstterm>.
-                In other words, the <firstterm>check task</firstterm> of a binary under test depends on the task that runs the corresponding test suite.
+                When the <link linkend="native_binaries:cunit">CUnit</link> or <link linkend="native_binaries:google_test">GoogleTest</link> plugins are applied, the task that executes the test suites
+                for a component are automatically wired to the appropriate <firstterm>check task</firstterm>.
             </para>
             <para>
-                You can also add your custom check tasks as follows:
+                You can also add custom check tasks as follows:
             </para>
             <sample id="nativeComponentCustomCheck" dir="native-binaries/custom-check" title="Adding a custom check task" includeLocation="true">
                 <sourcefile file="build.gradle" snippet="custom-check"/>
             </sample>
             <para>
-                Now, running <literal>check</literal> or any of the <literal>hello</literal> binaries <firstterm>check task</firstterm> will run the custom check task:
+                Now, running <literal>check</literal> or any of the <firstterm>check tasks</firstterm> for the <literal>hello</literal> binaries will run the custom check task:
             </para>
             <sample id="nativeComponentCustomCheckOutput" dir="native-binaries/custom-check" title="Running checks for a given binary">
                 <output args="checkHelloSharedLibrary"/>
             </sample>
+        </section>
+
+        <section id="sec:working_with_shared_libraries">
+            <title>Working with shared libraries</title>
+            <para>
+                For each executable binary produced, the <literal>cpp</literal> plugin provides an <literal>install${binary.name}</literal> task,
+                which creates a development install of the executable, along with the shared libraries it requires.
+                This allows you to run the executable without needing to install the shared libraries in their final locations.
+            </para>
         </section>
     </section>
 
