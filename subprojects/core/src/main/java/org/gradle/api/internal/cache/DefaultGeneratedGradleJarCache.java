@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.runtimeshaded;
+package org.gradle.api.internal.cache;
 
 import org.gradle.api.Action;
 import org.gradle.cache.CacheRepository;
@@ -27,12 +27,12 @@ import java.io.IOException;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultRuntimeShadedJarCache implements RuntimeShadedJarCache, Closeable {
+public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, Closeable {
 
     private final PersistentCache cache;
     private final String gradleVersion;
 
-    public DefaultRuntimeShadedJarCache(CacheRepository cacheRepository, String gradleVersion) {
+    public DefaultGeneratedGradleJarCache(CacheRepository cacheRepository, String gradleVersion) {
         this.cache = cacheRepository
             .cache(CACHE_KEY)
             .withDisplayName(CACHE_DISPLAY_NAME)

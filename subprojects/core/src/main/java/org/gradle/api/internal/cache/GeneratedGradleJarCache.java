@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.runtimeshaded;
+package org.gradle.api.internal.cache;
 
 import org.gradle.api.Action;
 
@@ -23,7 +23,7 @@ import java.io.File;
 /**
  * Cache for generated jars such as {@code gradle-api-${version}.jar} and {@code gradle-test-kit-${version}.jar}.
  */
-public interface RuntimeShadedJarCache {
+public interface GeneratedGradleJarCache {
 
     String CACHE_KEY = "generated-gradle-jars";
 

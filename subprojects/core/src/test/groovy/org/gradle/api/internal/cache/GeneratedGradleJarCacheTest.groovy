@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.runtimeshaded
+package org.gradle.api.internal.cache
 
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
@@ -32,10 +32,10 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.api.internal.runtimeshaded.RuntimeShadedJarCache.CACHE_DISPLAY_NAME
-import static org.gradle.api.internal.runtimeshaded.RuntimeShadedJarCache.CACHE_KEY
+import static org.gradle.api.internal.cache.GeneratedGradleJarCache.CACHE_DISPLAY_NAME
+import static org.gradle.api.internal.cache.GeneratedGradleJarCache.CACHE_KEY
 
-class RuntimeShadedJarCacheTest extends Specification {
+class GeneratedGradleJarCacheTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -47,7 +47,7 @@ class RuntimeShadedJarCacheTest extends Specification {
 
     def "can close cache"() {
         when:
-        def provider = new DefaultRuntimeShadedJarCache(cacheRepository, gradleVersion)
+        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
         provider.close()
 
         then:
@@ -66,7 +66,7 @@ class RuntimeShadedJarCacheTest extends Specification {
         def cache = Mock(PersistentCache)
 
         when:
-        def provider = new DefaultRuntimeShadedJarCache(cacheRepository, gradleVersion)
+        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
         def resolvedFile = provider.get(identifier) { it.createNewFile() }
 
         then:
@@ -79,7 +79,7 @@ class RuntimeShadedJarCacheTest extends Specification {
         jarFile == resolvedFile
 
         where:
-        identifier << RuntimeShadedJarType.values()*.identifier
+        identifier << ["api", "test-kit"]
     }
 
     def "reuses existing JAR file if existent"() {
@@ -89,7 +89,7 @@ class RuntimeShadedJarCacheTest extends Specification {
         def cache = Mock(PersistentCache)
 
         when:
-        def provider = new DefaultRuntimeShadedJarCache(cacheRepository, gradleVersion)
+        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
         def resolvedFile = provider.get("api") { it.createNewFile() }
 
         then:

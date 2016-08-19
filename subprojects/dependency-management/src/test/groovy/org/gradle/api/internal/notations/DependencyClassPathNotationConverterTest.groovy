@@ -22,7 +22,7 @@ import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDepend
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarCache
+import org.gradle.api.internal.cache.GeneratedGradleJarCache
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory
 
 import org.gradle.internal.classpath.ClassPath
@@ -46,7 +46,7 @@ public class DependencyClassPathNotationConverterTest extends Specification {
     def instantiator = Mock(Instantiator)
     def classPathRegistry = Mock(ClassPathRegistry)
     def fileResolver = Mock(FileResolver)
-    def cache = Mock(RuntimeShadedJarCache)
+    def cache = Mock(GeneratedGradleJarCache)
     def progressLoggerFactory = Mock(ProgressLoggerFactory)
 
     def "parses classpath literals"() {

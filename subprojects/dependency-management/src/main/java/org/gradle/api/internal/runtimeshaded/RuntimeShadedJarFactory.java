@@ -17,6 +17,7 @@
 package org.gradle.api.internal.runtimeshaded;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +29,10 @@ public class RuntimeShadedJarFactory {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarFactory.class);
 
-    private final RuntimeShadedJarCache cache;
+    private final GeneratedGradleJarCache cache;
     private final ProgressLoggerFactory progressLoggerFactory;
 
-    public RuntimeShadedJarFactory(RuntimeShadedJarCache cache, ProgressLoggerFactory progressLoggerFactory) {
+    public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory) {
         this.cache = cache;
         this.progressLoggerFactory = progressLoggerFactory;
     }
