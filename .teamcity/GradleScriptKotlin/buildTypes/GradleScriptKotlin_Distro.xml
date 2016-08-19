@@ -5,7 +5,6 @@
   <settings>
     <options>
       <option name="allowExternalStatus" value="true" />
-      <option name="artifactRules" value="build/distributions/gradle-script-kotlin-*.zip" />
       <option name="checkoutMode" value="ON_AGENT" />
       <option name="cleanBuild" value="true" />
     </options>
@@ -55,10 +54,10 @@
       </runner>
       <runner id="RUNNER_87" name="publish" type="gradle-runner">
         <parameters>
-          <param name="org.jfrog.artifactory.selectedDeployableServer.activateGradleIntegration" value="true" />
           <param name="org.jfrog.artifactory.selectedDeployableServer.defaultModuleVersionConfiguration" value="GLOBAL" />
           <param name="org.jfrog.artifactory.selectedDeployableServer.envVarsExcludePatterns" value="*password*,*secret*" />
           <param name="org.jfrog.artifactory.selectedDeployableServer.publishBuildInfo" value="true" />
+          <param name="org.jfrog.artifactory.selectedDeployableServer.publishedArtifacts" value="build/distributions/gradle-script-kotlin-*.zip" />
           <param name="org.jfrog.artifactory.selectedDeployableServer.resolvingRepo" value="repo" />
           <param name="org.jfrog.artifactory.selectedDeployableServer.targetRepo" value="dist-snapshots" />
           <param name="org.jfrog.artifactory.selectedDeployableServer.urlId" value="0" />
