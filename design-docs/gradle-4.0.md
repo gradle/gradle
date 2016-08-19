@@ -154,6 +154,7 @@ types and to offer a more consistent DSL.
 * Inline `ConventionTask` and `AbstractTask` into `DefaultTask`.
 * Remove `Task.dependsOnTaskDidWork()`.
 * Mix `TaskInternal` in during decoration and remove references to internal types from `DefaultTask` and `AbstractTask`
+* Making calling `Task.execute` an error https://issues.gradle.org/browse/GRADLE-3531
 
 ## Remove references to internal classes from public API
 
