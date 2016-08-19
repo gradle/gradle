@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -197,11 +197,11 @@ public class ModuleMetadataSerializer {
         }
 
         private void writeDependencyConfigurationMapping(DefaultDependencyMetadata dep) throws IOException {
-            ListMultimap<String, String> confMappings = dep.getConfMappings();
+            SetMultimap<String, String> confMappings = dep.getConfMappings();
             writeCount(confMappings.keySet().size());
             for (String conf : confMappings.keySet()) {
                 writeString(conf);
-                writeStringList(confMappings.get(conf));
+                writeStringSet(confMappings.get(conf));
             }
         }
 
@@ -377,7 +377,7 @@ public class ModuleMetadataSerializer {
             byte type = decoder.readByte();
             switch (type) {
                 case TYPE_IVY:
-                    ListMultimap<String, String> configMappings = readDependencyConfigurationMapping();
+                    SetMultimap<String, String> configMappings = readDependencyConfigurationMapping();
                     List<Artifact> artifacts = readDependencyArtifactDescriptors();
                     List<Exclude> excludes = readExcludeRules();
                     String dynamicConstraintVersion = readString();
@@ -398,12 +398,12 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private ListMultimap<String, String> readDependencyConfigurationMapping() throws IOException {
+        private SetMultimap<String, String> readDependencyConfigurationMapping() throws IOException {
             int size = readCount();
-            ListMultimap<String, String> result = ArrayListMultimap.create();
+            SetMultimap<String, String> result = LinkedHashMultimap.create();
             for (int i = 0; i < size; i++) {
                 String from = readString();
-                List<String> to = readStringList();
+                Set<String> to = readStringSet();
                 result.putAll(from, to);
             }
             return result;

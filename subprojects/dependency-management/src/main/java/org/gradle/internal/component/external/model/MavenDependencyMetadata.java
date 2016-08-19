@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.MavenScope;
@@ -28,7 +28,7 @@ import java.util.List;
 public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     private final MavenScope scope;
 
-    public MavenDependencyMetadata(MavenScope scope, ModuleVersionSelector requested, ListMultimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
+    public MavenDependencyMetadata(MavenScope scope, ModuleVersionSelector requested, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
         super(requested, requested.getVersion(), false, false, true, confMappings, artifacts, excludes);
         this.scope = scope;
     }

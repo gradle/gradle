@@ -17,6 +17,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.model.DefaultDependencyMetadata;
@@ -26,7 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class IvyDependencyMetadata extends DefaultDependencyMetadata {
-    public IvyDependencyMetadata(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, ListMultimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
+    public IvyDependencyMetadata(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
         super(requested, dynamicConstraintVersion, force, changing, transitive, confMappings, artifacts, excludes);
     }
 

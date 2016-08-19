@@ -20,8 +20,6 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 public interface DependencyMetadata {
@@ -68,12 +66,16 @@ public interface DependencyMetadata {
     // TODO:ADAM - fromConfiguration should be implicit in this metadata
     ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration);
 
+    /**
+     * Select the target configurations for this dependency from the given target component.
+     */
+    // TODO:ADAM - fromComponent and fromConfiguration should be implicit in this metadata
+    Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
+
     // The following methods all wrap an underlying method on DependencyDescriptor that we use, to help migrate away from using Ivy types.
     String[] getModuleConfigurations();
 
     String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration);
-
-    List<Exclude> getExcludes(Collection<String> configurations);
 
     boolean isChanging();
 

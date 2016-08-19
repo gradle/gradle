@@ -26,6 +26,9 @@ import java.util.Set;
 public interface BuildableLocalComponentMetadata {
     void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts);
 
+    /**
+     * @param hierarchy Must include name
+     */
     void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies);
 
     void addDependency(LocalOriginDependencyMetadata dependency);

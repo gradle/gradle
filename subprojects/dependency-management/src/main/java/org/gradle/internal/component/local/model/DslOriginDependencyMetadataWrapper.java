@@ -21,13 +21,12 @@ import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -45,10 +44,12 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
         return delegate.toString();
     }
 
+    @Override
     public ModuleDependency getSource() {
         return source;
     }
 
+    @Override
     public ModuleVersionSelector getRequested() {
         return delegate.getRequested();
     }
@@ -56,6 +57,11 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
     @Override
     public String getModuleConfiguration() {
         return delegate.getModuleConfiguration();
+    }
+
+    @Override
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+        return delegate.selectConfigurations(fromComponent, fromConfiguration, targetComponent);
     }
 
     @Override
@@ -83,46 +89,52 @@ public class DslOriginDependencyMetadataWrapper implements DslOriginDependencyMe
         return delegate.getExcludes();
     }
 
-    public List<Exclude> getExcludes(Collection<String> configurations) {
-        return delegate.getExcludes(configurations);
-    }
-
+    @Override
     public String getDynamicConstraintVersion() {
         return delegate.getDynamicConstraintVersion();
     }
 
+    @Override
     public boolean isChanging() {
         return delegate.isChanging();
     }
 
+    @Override
     public boolean isTransitive() {
         return delegate.isTransitive();
     }
 
+    @Override
     public boolean isForce() {
         return delegate.isForce();
     }
 
+    @Override
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         return delegate.getArtifacts(fromConfiguration, toConfiguration);
     }
 
+    @Override
     public Set<IvyArtifactName> getArtifacts() {
         return delegate.getArtifacts();
     }
 
+    @Override
     public LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion) {
         return delegate.withRequestedVersion(requestedVersion);
     }
 
+    @Override
     public LocalOriginDependencyMetadata withTarget(ComponentSelector target) {
         return delegate.withTarget(target);
     }
 
-    public DependencyMetadata withChanging() {
+    @Override
+    public LocalOriginDependencyMetadata withChanging() {
         return delegate.withChanging();
     }
 
+    @Override
     public ComponentSelector getSelector() {
         return delegate.getSelector();
     }

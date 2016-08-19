@@ -17,10 +17,11 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -44,7 +45,7 @@ import java.util.Set;
 
 public class DefaultDependencyMetadata implements DependencyMetadata {
     private final ModuleVersionSelector requested;
-    private final ListMultimap<String, String> confs;
+    private final SetMultimap<String, String> confs;
     private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
     private final List<Exclude> excludes;
@@ -54,13 +55,13 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     private final boolean force;
     private final String dynamicConstraintVersion;
 
-    public DefaultDependencyMetadata(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, ListMultimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
+    public DefaultDependencyMetadata(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
         this.requested = requested;
         this.changing = changing;
         this.transitive = transitive;
         this.force = force;
         this.dynamicConstraintVersion = dynamicConstraintVersion;
-        this.confs = ImmutableListMultimap.copyOf(confMappings);
+        this.confs = ImmutableSetMultimap.copyOf(confMappings);
         dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.artifacts = map(dependencyArtifacts);
         this.excludes = ImmutableList.copyOf(excludes);
@@ -69,7 +70,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     public DefaultDependencyMetadata(ModuleVersionIdentifier moduleVersionIdentifier) {
         this(
             new DefaultModuleVersionSelector(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion()),
-            ImmutableListMultimap.<String, String>of(),
+            ImmutableSetMultimap.<String, String>of(),
             ImmutableList.<Artifact>of(),
             ImmutableList.<Exclude>of(),
             moduleVersionIdentifier.getVersion(),
@@ -81,7 +82,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     public DefaultDependencyMetadata(ModuleComponentIdentifier componentIdentifier) {
         this(
             new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion()),
-            ImmutableListMultimap.<String, String>of(),
+            ImmutableSetMultimap.<String, String>of(),
             ImmutableList.<Artifact>of(),
             ImmutableList.<Exclude>of(),
             componentIdentifier.getVersion(),
@@ -90,7 +91,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         );
     }
 
-    protected DefaultDependencyMetadata(ModuleVersionSelector requested, ListMultimap<String, String> confs,
+    protected DefaultDependencyMetadata(ModuleVersionSelector requested, SetMultimap<String, String> confs,
                                      List<Artifact> dependencyArtifacts, List<Exclude> excludes,
                                      String dynamicConstraintVersion, boolean changing, boolean transitive) {
         this.requested = requested;
@@ -120,6 +121,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         return "dependency: " + requested + ", confs: " + confs;
     }
 
+    @Override
     public ModuleVersionSelector getRequested() {
         return requested;
     }
@@ -130,17 +132,95 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+        // TODO - all this matching stuff is constant for a given DependencyMetadata instance
+        Set<ConfigurationMetadata> targets = Sets.newLinkedHashSet();
+        boolean matched = false;
+        String fromConfigName = fromConfiguration.getName();
+        for (String config : fromConfiguration.getHierarchy()) {
+            Set<String> targetPatterns = confs.get(config);
+            if (!targetPatterns.isEmpty()) {
+                matched = true;
+            }
+            for (String targetPattern : targetPatterns) {
+                findMatches(fromComponent, targetComponent, fromConfigName, config, targetPattern, targets);
+            }
+        }
+        if (!matched) {
+            for (String targetPattern : confs.get("%")) {
+                findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets);
+            }
+        }
+
+        // TODO - this is not quite right, eg given *,!A->A;*,!B->B the result should be B->A and A->B but will in fact be B-> and A->
+        Set<String> wildcardPatterns = confs.get("*");
+        if (!wildcardPatterns.isEmpty()) {
+            boolean excludeWildcards = false;
+            for (String confName : fromConfiguration.getHierarchy()) {
+                if (confs.containsKey("!" + confName)) {
+                    excludeWildcards = true;
+                    break;
+                }
+            }
+            if (!excludeWildcards) {
+                for (String targetPattern : wildcardPatterns) {
+                    findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets);
+                }
+            }
+        }
+
+        return targets;
+    }
+
+    private void findMatches(ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, Set<ConfigurationMetadata> targetConfigurations) {
+        int startFallback = targetPattern.indexOf('(');
+        if (startFallback >= 0) {
+            if (targetPattern.endsWith(")")) {
+                String preferred = targetPattern.substring(0, startFallback);
+                ConfigurationMetadata configuration = targetComponent.getConfiguration(preferred);
+                if (configuration != null) {
+                    targetConfigurations.add(configuration);
+                    return;
+                }
+                targetPattern = targetPattern.substring(startFallback + 1, targetPattern.length() - 1);
+            }
+        }
+
+        if (targetPattern.equals("*")) {
+            for (String targetName : targetComponent.getConfigurationNames()) {
+                ConfigurationMetadata configuration = targetComponent.getConfiguration(targetName);
+                if (configuration.isVisible()) {
+                    targetConfigurations.add(configuration);
+                }
+            }
+            return;
+        }
+
+        if (targetPattern.equals("@")) {
+            targetPattern = patternConfiguration;
+        } else if (targetPattern.equals("#")) {
+            targetPattern = fromConfiguration;
+        }
+
+        ConfigurationMetadata configuration = targetComponent.getConfiguration(targetPattern);
+        if (configuration == null) {
+            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), fromConfiguration, targetPattern, targetComponent.getComponentId());
+        }
+        targetConfigurations.add(configuration);
+    }
+
+    @Override
     public String[] getDependencyConfigurations(final String moduleConfiguration, final String requestedConfiguration) {
         Set<String> mappedConfigs = Sets.newLinkedHashSet();
 
-        List<String> matchedConfigs = confs.get(moduleConfiguration);
+        Set<String> matchedConfigs = confs.get(moduleConfiguration);
         if (matchedConfigs.isEmpty()) {
             // there is no mapping defined for this configuration, add the 'other' mappings.
             matchedConfigs = confs.get("%");
         }
         mappedConfigs.addAll(matchedConfigs);
 
-        List<String> wildcardConfigs = confs.get("*");
+        Set<String> wildcardConfigs = confs.get("*");
         mappedConfigs.addAll(wildcardConfigs);
 
         mappedConfigs = CollectionUtils.collect(mappedConfigs, new Transformer<String, String>() {
@@ -174,7 +254,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         return excludes.isEmpty() ? ModuleExclusions.excludeNone() : ModuleExclusions.excludeAny(getExcludes(fromConfiguration.getHierarchy()));
     }
 
-    public List<Exclude> getExcludes(Collection<String> configurations) {
+    private List<Exclude> getExcludes(Collection<String> configurations) {
         List<Exclude> rules = Lists.newArrayList();
         for (Exclude exclude : excludes) {
             Set<String> ruleConfigurations = exclude.getConfigurations();
@@ -185,22 +265,27 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         return rules;
     }
 
+    @Override
     public boolean isChanging() {
         return changing;
     }
 
+    @Override
     public boolean isTransitive() {
         return transitive;
     }
 
+    @Override
     public boolean isForce() {
         return force;
     }
 
+    @Override
     public String getDynamicConstraintVersion() {
         return dynamicConstraintVersion;
     }
 
+    @Override
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         if (dependencyArtifacts.isEmpty()) {
             return Collections.emptySet();
@@ -232,10 +317,12 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         return false;
     }
 
+    @Override
     public Set<IvyArtifactName> getArtifacts() {
         return artifacts;
     }
 
+    @Override
     public DependencyMetadata withRequestedVersion(String requestedVersion) {
         if (requestedVersion.equals(requested.getVersion())) {
             return this;
@@ -269,6 +356,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         }
     }
 
+    @Override
     public DependencyMetadata withChanging() {
         if (changing) {
             return this;
@@ -277,11 +365,12 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         return new DefaultDependencyMetadata(requested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, true, transitive);
     }
 
+    @Override
     public ComponentSelector getSelector() {
         return DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
     }
 
-    public ListMultimap<String, String> getConfMappings() {
+    public SetMultimap<String, String> getConfMappings() {
         return confs;
     }
 

@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
 
-import com.google.common.collect.ArrayListMultimap
-import com.google.common.collect.ListMultimap
+import com.google.common.collect.LinkedHashMultimap
+import com.google.common.collect.SetMultimap
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
@@ -674,8 +674,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         true
     }
 
-    protected ListMultimap<String, String> map(Map<String, List<String>> map) {
-        ListMultimap<String, String> result = ArrayListMultimap.create()
+    protected SetMultimap<String, String> map(Map<String, List<String>> map) {
+        SetMultimap<String, String> result = LinkedHashMultimap.create()
         for (Map.Entry<String, List<String>> entry : map.entrySet()) {
             result.putAll(entry.key, entry.value)
         }

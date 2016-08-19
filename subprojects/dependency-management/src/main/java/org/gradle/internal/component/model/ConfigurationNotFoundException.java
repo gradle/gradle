@@ -16,26 +16,11 @@
 
 package org.gradle.internal.component.model;
 
-import org.gradle.api.artifacts.component.ComponentSelector;
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 
-import java.util.List;
-
-/**
- * A simplified dependency, that maps from a single module configuration to a single target configuration.
- */
-public interface LocalOriginDependencyMetadata extends DependencyMetadata {
-    String getModuleConfiguration();
-
-    String getDependencyConfiguration();
-
-    List<Exclude> getExcludes();
-
-    @Override
-    LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion);
-
-    @Override
-    LocalOriginDependencyMetadata withTarget(ComponentSelector target);
-
-    @Override
-    LocalOriginDependencyMetadata withChanging();
+public class ConfigurationNotFoundException extends RuntimeException {
+    public ConfigurationNotFoundException(ComponentIdentifier fromComponent, String fromConfiguration, String toConfiguration, ComponentIdentifier toComponent) {
+        super(String.format("%s declares a dependency from configuration '%s' to configuration '%s' which is not declared in the descriptor for %s.", StringUtils.capitalize(fromComponent.getDisplayName()), fromConfiguration, toConfiguration, toComponent.getDisplayName()));
+    }
 }

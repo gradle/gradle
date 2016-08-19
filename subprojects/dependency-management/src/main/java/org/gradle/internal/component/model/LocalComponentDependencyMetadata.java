@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -25,7 +26,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -63,10 +63,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return "dependency: " + requested + " from-conf: " + moduleConfiguration + " to-conf: " + dependencyConfiguration;
     }
 
+    @Override
     public ModuleVersionSelector getRequested() {
         return requested;
     }
 
+    @Override
     public ComponentSelector getSelector() {
         return selector;
     }
@@ -81,12 +83,24 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return dependencyConfiguration;
     }
 
+    @Override
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+        assert fromConfiguration.getHierarchy().contains(moduleConfiguration);
+        ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(dependencyConfiguration);
+        if (toConfiguration == null) {
+            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, dependencyConfiguration, targetComponent.getComponentId());
+        }
+        return ImmutableSet.of(toConfiguration);
+    }
+
+    @Override
     public String[] getModuleConfigurations() {
         return new String[] {
             moduleConfiguration
         };
     }
 
+    @Override
     public String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration) {
         if (this.moduleConfiguration.equals(moduleConfiguration)) {
             return new String[] {
@@ -109,29 +123,27 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return excludes;
     }
 
-    public List<Exclude> getExcludes(Collection<String> configurations) {
-        if (configurations.contains(moduleConfiguration)) {
-            return excludes;
-        }
-        return Collections.emptyList();
-    }
-
+    @Override
     public boolean isChanging() {
         return changing;
     }
 
+    @Override
     public boolean isTransitive() {
         return transitive;
     }
 
+    @Override
     public boolean isForce() {
         return force;
     }
 
+    @Override
     public String getDynamicConstraintVersion() {
         return requested.getVersion();
     }
 
+    @Override
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         if (artifactNames.isEmpty()) {
             return Collections.emptySet();
@@ -143,10 +155,12 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return artifacts;
     }
 
+    @Override
     public Set<IvyArtifactName> getArtifacts() {
         return artifactNames;
     }
 
+    @Override
     public LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion) {
         if (requestedVersion.equals(requested.getVersion())) {
             return this;
@@ -173,6 +187,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
         return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
 
+    @Override
     public LocalOriginDependencyMetadata withChanging() {
         if (isChanging()) {
             return this;

@@ -42,7 +42,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private List<? extends DependencyMetadata> dependencies;
     private List<ModuleComponentArtifactMetadata> artifacts;
 
-    public AbstractMutableModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor) {
         this.descriptor = moduleDescriptor;
         this.componentId = componentIdentifier;
         this.id = DefaultModuleVersionIdentifier.newId(componentIdentifier);

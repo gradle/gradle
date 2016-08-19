@@ -70,6 +70,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
+        assert hierarchy.contains(name);
         DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, buildDependencies);
         allConfigurations.put(name, conf);
     }
@@ -195,7 +196,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         public List<DependencyMetadata> getDependencies() {
             if (configurationDependencies == null) {
                 configurationDependencies = new ArrayList<DependencyMetadata>();
-                for (DependencyMetadata dependency : allDependencies) {
+                for (LocalOriginDependencyMetadata dependency : allDependencies) {
                     if (include(dependency)) {
                         configurationDependencies.add(dependency);
                     }
@@ -204,27 +205,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return configurationDependencies;
         }
 
-        private boolean include(DependencyMetadata dependency) {
-            String[] moduleConfigurations = dependency.getModuleConfigurations();
-            for (int i = 0; i < moduleConfigurations.length; i++) {
-                String moduleConfiguration = moduleConfigurations[i];
-                if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
-                    return true;
-                }
-                if (moduleConfiguration.equals("*")) {
-                    boolean include = true;
-                    for (int j = i + 1; j < moduleConfigurations.length && moduleConfigurations[j].startsWith("!"); j++) {
-                        if (moduleConfigurations[j].substring(1).equals(getName())) {
-                            include = false;
-                            break;
-                        }
-                    }
-                    if (include) {
-                        return true;
-                    }
-                }
-            }
-            return false;
+        private boolean include(LocalOriginDependencyMetadata dependency) {
+            return hierarchy.contains(dependency.getModuleConfiguration());
         }
 
         public Set<Exclude> getExcludes() {

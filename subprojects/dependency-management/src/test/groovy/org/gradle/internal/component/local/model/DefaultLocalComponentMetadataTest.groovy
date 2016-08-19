@@ -22,6 +22,7 @@ import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
+import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
@@ -173,6 +174,25 @@ class DefaultLocalComponentMetadataTest extends Specification {
 
         then:
         metadata.dependencies == [dependency]
+    }
+
+    def "dependency is attached to module configuration and its children"() {
+        def dependency1 = Mock(LocalOriginDependencyMetadata)
+        dependency1.moduleConfiguration >> "conf"
+        def dependency2 = Mock(LocalOriginDependencyMetadata)
+        dependency2.moduleConfiguration >> "child"
+
+        when:
+        metadata.addConfiguration("conf", null, [] as Set, ["conf"] as Set, true, true, Stub(TaskDependency))
+        metadata.addConfiguration("child", null, ["conf"] as Set, ["conf", "child"] as Set, true, true, Stub(TaskDependency))
+        metadata.addConfiguration("other", null, [] as Set, ["other"] as Set, true, true, Stub(TaskDependency))
+        metadata.addDependency(dependency1)
+        metadata.addDependency(dependency2)
+
+        then:
+        metadata.getConfiguration("conf").dependencies == [dependency1]
+        metadata.getConfiguration("child").dependencies == [dependency1, dependency2]
+        metadata.getConfiguration("other").dependencies.isEmpty()
     }
 
     def artifactName() {

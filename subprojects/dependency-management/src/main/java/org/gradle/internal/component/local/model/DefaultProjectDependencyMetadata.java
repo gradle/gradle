@@ -16,7 +16,7 @@
 
 package org.gradle.internal.component.local.model;
 
-import com.google.common.collect.ListMultimap;
+import com.google.common.collect.SetMultimap;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
@@ -28,7 +28,7 @@ import java.util.List;
 public class DefaultProjectDependencyMetadata extends DefaultDependencyMetadata {
     private final String projectPath;
 
-    public DefaultProjectDependencyMetadata(String projectPath, ModuleVersionSelector requested, ListMultimap<String, String> confs,
+    public DefaultProjectDependencyMetadata(String projectPath, ModuleVersionSelector requested, SetMultimap<String, String> confs,
                                             List<Artifact> dependencyArtifacts, List<Exclude> excludeRules,
                                             String dynamicConstraintVersion, boolean changing, boolean transitive) {
         super(requested, confs, dependencyArtifacts, excludeRules, dynamicConstraintVersion, changing, transitive);
