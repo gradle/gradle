@@ -91,7 +91,7 @@ class BuildActionCrossVersionSpec extends ProjectConnectionToolingApiSpecificati
 
         then:
         BuildActionFailureException e = thrown()
-        e.message.startsWith("Could not run build action using Gradle installation")
+        e.message.startsWith("Could not run build action using") || e.message == "The supplied build action failed with an exception."
         e.cause instanceof BrokenAction.CustomException
     }
 
