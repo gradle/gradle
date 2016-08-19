@@ -48,6 +48,6 @@ configure<PublishingExtension> {
     }
 }
 
-fun gradle(module: String) = "org.gradle:gradle-$module:3.0-20160720184418+0000"
+fun gradle(module: String) = "org.gradle:gradle-$module:3.1-20160818000032+0000"
 
 fun kotlin(module: String) = "org.jetbrains.kotlin:kotlin-$module:$kotlinVersion"
