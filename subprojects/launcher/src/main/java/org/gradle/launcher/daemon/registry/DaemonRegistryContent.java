@@ -17,10 +17,12 @@
 package org.gradle.launcher.daemon.registry;
 
 import org.gradle.internal.remote.Address;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
+import org.gradle.internal.remote.internal.inet.SocketInetAddress;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -34,6 +36,8 @@ import java.util.Map;
 public class DaemonRegistryContent implements Serializable {
 
     public static final org.gradle.internal.serialize.Serializer<DaemonRegistryContent> SERIALIZER = new Serializer();
+
+    private static final MultiChoiceAddressSerializer MULTI_CHOICE_ADDRESS_SERIALIZER = new MultiChoiceAddressSerializer();
 
     private final Map<Address, DaemonInfo> infosMap;
     private final List<DaemonStopEvent> stopEvents;
@@ -169,20 +173,43 @@ public class DaemonRegistryContent implements Serializable {
         }
 
 
-        private void writeAddresses(Encoder encoder, int infosSize, List<Address> addresses) throws IOException {
+        private void writeAddresses(Encoder encoder, int infosSize, List<Address> addresses) throws Exception {
             encoder.writeInt(infosSize);
             ObjectOutputStream oos = new ObjectOutputStream(encoder.getOutputStream());
             for (Address address : addresses) {
-                oos.writeObject(address);
+                byte type = (byte) (address instanceof SocketInetAddress ? 0
+                    : address instanceof MultiChoiceAddress ? 1
+                    : 2);
+                encoder.writeByte(type);
+                switch (type) {
+                    case 0:
+                        SocketInetAddress.SERIALIZER.write(encoder, (SocketInetAddress) address);
+                        break;
+                    case 1:
+                        MULTI_CHOICE_ADDRESS_SERIALIZER.write(encoder, (MultiChoiceAddress) address);
+                        break;
+                    default:
+                        oos.writeObject(address);
+                }
             }
         }
 
-        private List<Address> readAdresses(Decoder decoder) throws IOException, ClassNotFoundException {
+        private List<Address> readAdresses(Decoder decoder) throws Exception {
             int infosSize = decoder.readInt();
             List<Address> out = new ArrayList<Address>();
             ObjectInputStream ois = new ObjectInputStream(decoder.getInputStream());
             for (int i=0; i<infosSize; i++) {
-                out.add((Address) ois.readObject());
+                byte type = decoder.readByte();
+                switch (type) {
+                    case 0:
+                        out.add(SocketInetAddress.SERIALIZER.read(decoder));
+                        break;
+                    case 1:
+                        out.add(MULTI_CHOICE_ADDRESS_SERIALIZER.read(decoder));
+                        break;
+                    default:
+                        out.add((Address) ois.readObject());
+                }
             }
             return out;
         }

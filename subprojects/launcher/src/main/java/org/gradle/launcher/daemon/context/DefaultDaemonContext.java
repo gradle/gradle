@@ -19,7 +19,6 @@ import com.google.common.base.Joiner;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 
-import java.io.EOFException;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -81,9 +80,10 @@ public class DefaultDaemonContext implements DaemonContext {
     private static class Serializer implements org.gradle.internal.serialize.Serializer<DefaultDaemonContext> {
 
         @Override
-        public DefaultDaemonContext read(Decoder decoder) throws EOFException, Exception {
+        public DefaultDaemonContext read(Decoder decoder) throws Exception {
             String uid = decoder.readNullableString();
-            File javaHome = new File(decoder.readString());
+            String pathname = decoder.readString();
+            File javaHome = new File(pathname);
             File registryDir = new File(decoder.readString());
             Long pid = decoder.readBoolean() ? decoder.readLong() : null;
             Integer idle = decoder.readBoolean() ? decoder.readInt() : null;
@@ -98,8 +98,8 @@ public class DefaultDaemonContext implements DaemonContext {
         @Override
         public void write(Encoder encoder, DefaultDaemonContext context) throws Exception {
             encoder.writeNullableString(context.uid);
-            encoder.writeString(context.javaHome.getAbsolutePath());
-            encoder.writeString(context.daemonRegistryDir.getAbsolutePath());
+            encoder.writeString(context.javaHome.getPath());
+            encoder.writeString(context.daemonRegistryDir.getPath());
             encoder.writeBoolean(context.pid != null);
             if (context.pid != null) {
                 encoder.writeLong(context.pid);

@@ -411,7 +411,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         and:
         foregroundDaemonContext {
-            assert javaHome == AvailableJavaHomes.differentJdk.javaHome
+            assert javaHome.canonicalPath == AvailableJavaHomes.differentJdk.javaHome.canonicalPath
         }
 
         when:
