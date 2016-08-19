@@ -15,21 +15,20 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.junit.Test
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class SyncTaskIntegrationTest extends AbstractIntegrationTest {
+class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
-    @Test
-    public void copiesFilesAndRemovesExtraFilesFromDestDir() {
-        testFile('source').create {
+    def copiesFilesAndRemovesExtraFilesFromDestDir() {
+        given:
+        file('source').create {
             dir1 { file 'file1.txt' }
             dir2 {
                 subdir { file 'file2.txt' }
                 file 'file3.txt'
             }
         }
-        testFile('dest').create {
+        file('dest').create {
             file 'extra.txt'
             extraDir { file 'extra.txt' }
             dir1 {
@@ -38,32 +37,34 @@ class SyncTaskIntegrationTest extends AbstractIntegrationTest {
             }
         }
 
-        testFile('build.gradle') << '''
+        buildScript '''
             task sync(type: Sync) {
                 into 'dest'
                 from 'source'
             }
         '''.stripIndent()
 
-        inTestDirectory().withTasks('sync').run()
+        when:
+        run 'sync'
 
-        testFile('dest').assertHasDescendants(
+        then:
+        file('dest').assertHasDescendants(
                 'dir1/file1.txt',
                 'dir2/subdir/file2.txt',
                 'dir2/file3.txt'
         )
     }
 
-    @Test
-    public void preserveInDestinationKeepsSpecifiedFilesInDestDir() {
-        testFile('source').create {
+    def preserveInDestinationKeepsSpecifiedFilesInDestDir() {
+        given:
+        file('source').create {
             dir1 { file 'file1.txt' }
             dir2 {
                 subdir { file 'file2.txt' }
                 file 'file3.txt'
             }
         }
-        testFile('dest').create {
+        file('dest').create {
             file 'extra.txt'
             extraDir { file 'extra.txt' }
             dir1 {
@@ -72,7 +73,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationTest {
             }
         }
 
-        testFile('build.gradle') << '''
+        buildScript '''
             task sync(type: Sync) {
                 into 'dest'
                 from 'source'
@@ -84,9 +85,11 @@ class SyncTaskIntegrationTest extends AbstractIntegrationTest {
             }
         '''.stripIndent()
 
-        inTestDirectory().withTasks('sync').run()
+        when:
+        run 'sync'
 
-        testFile('dest').assertHasDescendants(
+        then:
+        file('dest').assertHasDescendants(
             'dir1/file1.txt',
             'dir2/subdir/file2.txt',
             'dir2/file3.txt',
