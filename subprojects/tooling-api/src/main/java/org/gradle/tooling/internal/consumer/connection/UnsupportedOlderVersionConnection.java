@@ -18,13 +18,13 @@ package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.build.VersionOnlyBuildEnvironment;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.tooling.model.internal.Exceptions;
 
@@ -71,7 +71,7 @@ public class UnsupportedOlderVersionConnection implements ConsumerConnection {
     }
 
     @Override
-    public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> InternalModelResults<T> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), version, "3.1");
     }
 }

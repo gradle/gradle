@@ -25,8 +25,10 @@ import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
-import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
+import org.gradle.tooling.internal.consumer.converters.FixedProjectIdentifierProvider;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.InternalModelResult;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
@@ -61,7 +63,7 @@ public class ToolingClientCompositeModelBuilder<T> {
         this.operationParameters = operationParameters;
     }
 
-    public Iterable<ModelResult<T>> get() throws GradleConnectionException, IllegalStateException {
+    public InternalModelResults<T> get() throws GradleConnectionException, IllegalStateException {
         final List<ModelResult<T>> results = Lists.newArrayList();
 //
 //        for (GradleParticipantBuild build : operationParameters.getBuilds()) {
@@ -73,7 +75,7 @@ public class ToolingClientCompositeModelBuilder<T> {
 //                results.add(new DefaultFailedModelResult<T>(participantConnector.toBuildIdentifier(), e));
 //            }
 //        }
-        return results;
+        return new InternalModelResults<T>(Lists.<InternalModelResult<T>>newArrayList());
     }
 
     private List<ModelResult<T>> buildResultsForParticipant(ParticipantConnector participant) throws GradleConnectionException {
@@ -231,7 +233,7 @@ public class ToolingClientCompositeModelBuilder<T> {
         }
 
         private T transform(ProjectIdentifier projectIdentifier, Object sourceObject) {
-            return new FixedBuildIdentifierProvider(projectIdentifier).applyTo(protocolToModelAdapter.builder(modelType)).build(sourceObject);
+            return new FixedProjectIdentifierProvider(projectIdentifier).applyTo(protocolToModelAdapter.builder(modelType)).build(sourceObject);
         }
     }
 

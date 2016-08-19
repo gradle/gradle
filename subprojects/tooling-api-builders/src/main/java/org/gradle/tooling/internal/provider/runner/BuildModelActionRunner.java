@@ -36,6 +36,8 @@ import org.gradle.internal.invocation.BuildController;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
+import org.gradle.tooling.internal.protocol.InternalModelResult;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
@@ -50,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-//TODO continue on errors in individual builds
 //TODO this is getting too long, split it up
 public class BuildModelActionRunner implements BuildActionRunner {
     @Override
@@ -64,7 +65,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         final GradleInternal gradle = buildController.getGradle();
         final ServiceRegistry services = gradle.getServices();
 
-        final List<Object[]> compositeResults = Lists.newArrayList();
+        final List<InternalModelResult<Object>> compositeResults = Lists.newArrayList();
         gradle.addBuildListener(new BuildAdapter() {
             @Override
             public void settingsEvaluated(Settings settings) {
@@ -86,8 +87,8 @@ public class BuildModelActionRunner implements BuildActionRunner {
                     try {
                         forceFullConfiguration(includedGradle);
                         compositeResults.addAll(getModels(includedGradle, modelName));
-                    } catch (Exception e) {
-                        compositeResults.add(new Object[] { includedGradle.getDefaultProject().getProjectDir(), includedGradle.getDefaultProject().getPath(), transformFailure(e)});
+                    } catch (RuntimeException e) {
+                        compositeResults.add(InternalModelResult.failure(includedBuild.getProjectDir(), transformFailure(e)));
                     }
                 }
             }
@@ -105,13 +106,13 @@ public class BuildModelActionRunner implements BuildActionRunner {
 
             if (buildModelAction.isAllModels()) {
                 compositeResults.addAll(0, getModels(gradle, modelName));
-                modelResult = compositeResults;
+                modelResult = new InternalModelResults<Object>(compositeResults);
             } else {
                 modelResult = getModel(gradle, modelName);
             }
-        } catch (Exception e) {
+        } catch (RuntimeException e) {
             if (buildModelAction.isAllModels()) {
-                compositeResults.add(new Object[] { gradle.getDefaultProject().getProjectDir(), gradle.getDefaultProject().getPath(), transformFailure(e)});
+                compositeResults.add(InternalModelResult.failure(gradle.getRootProject().getProjectDir(), transformFailure(e)));
             } else {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
@@ -140,20 +141,19 @@ public class BuildModelActionRunner implements BuildActionRunner {
         }
     }
 
-    //TODO use a better protocol than a List of Object arrays. Transfer `ModelResults` directly?
-    //TODO let ToolingModelBuilder construct modelresults directly?
-    private List<Object[]> getModels(GradleInternal gradle, String modelName) {
-        List<Object[]> models = Lists.newArrayList();
-        Map<String, Object> modelsByPath = Maps.newLinkedHashMap();
+    //TODO let ToolingModelBuilder register results/failures instead of giving it a Map
+    private List<InternalModelResult<Object>> getModels(GradleInternal gradle, String modelName) {
+        List<InternalModelResult<Object>> models = Lists.newArrayList();
         ToolingModelBuilder builder = getToolingModelBuilder(gradle, modelName);
         if (builder instanceof ProjectToolingModelBuilder) {
+            Map<String, Object> modelsByPath = Maps.newLinkedHashMap();
             ((ProjectToolingModelBuilder) builder).addModels(modelName, gradle.getDefaultProject(), modelsByPath);
+            for (Map.Entry<String, Object> entry : modelsByPath.entrySet()) {
+                models.add(InternalModelResult.model(gradle.getRootProject().getProjectDir(), entry.getKey(), entry.getValue()));
+            }
         } else {
             Object buildScopedModel = builder.buildAll(modelName, gradle.getDefaultProject());
-            modelsByPath.put(gradle.getDefaultProject().getPath(), buildScopedModel);
-        }
-        for (Map.Entry<String, Object> entry : modelsByPath.entrySet()) {
-            models.add(new Object[] { gradle.getDefaultProject().getProjectDir(), entry.getKey(), entry.getValue()});
+            models.add(InternalModelResult.model(gradle.getRootProject().getProjectDir(), buildScopedModel));
         }
         return models;
     }
@@ -170,7 +170,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
     }
 
     //TODO get rid of duplication between this and DaemonBuildActionExecuter
-    private Exception transformFailure(Exception e) {
+    private RuntimeException transformFailure(RuntimeException e) {
         if (e instanceof BuildCancelledException) {
             return new InternalBuildCancelledException(e.getCause());
         }
@@ -180,7 +180,7 @@ public class BuildModelActionRunner implements BuildActionRunner {
         return e;
     }
 
-    private Exception unwrap(ReportedException e) {
+    private RuntimeException unwrap(ReportedException e) {
         Throwable t = e.getCause();
         while (t != null) {
             if (t instanceof BuildCancelledException) {

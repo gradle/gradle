@@ -21,7 +21,7 @@ import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
-import org.gradle.tooling.internal.consumer.converters.FixedBuildIdentifierProvider;
+import org.gradle.tooling.internal.consumer.converters.FixedProjectIdentifierProvider;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
@@ -90,7 +90,8 @@ class BuildControllerAdapter implements BuildController {
         }
 
         if (rootDir != null) {
-            FixedBuildIdentifierProvider identifierProvider = new FixedBuildIdentifierProvider(new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
+            //TODO shouldn't we be applying HasCompatibilityMapping#applyCompatibilityMapping here?
+            FixedProjectIdentifierProvider identifierProvider = new FixedProjectIdentifierProvider(new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
             return identifierProvider.applyTo(resultAdapter.builder(modelType)).build(result.getModel());
         }
         return resultAdapter.adapt(modelType, result.getModel());

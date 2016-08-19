@@ -36,7 +36,7 @@ public interface InternalMultiModelAwareConnection extends InternalTestExecution
      * @since 3.1-rc-1
      */
     BuildResult<?> getModels(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken,
-                            BuildParameters operationParameters) throws
+                                         BuildParameters operationParameters) throws
         BuildExceptionVersion1,
         InternalUnsupportedModelException,
         InternalUnsupportedBuildArgumentException,

@@ -17,10 +17,10 @@
 package org.gradle.tooling.internal.connection;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.Cast;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ModelBuilder;
 import org.gradle.tooling.ResultHandler;
-import org.gradle.tooling.connection.FailedModelResult;
 import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.connection.ModelResults;
 import org.gradle.tooling.internal.consumer.AbstractLongRunningOperation;
@@ -33,6 +33,10 @@ import org.gradle.tooling.internal.consumer.async.AsyncConsumerActionExecutor;
 import org.gradle.tooling.internal.consumer.connection.ConsumerAction;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.InternalModelResult;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
+import org.gradle.tooling.model.BuildIdentifier;
+import org.gradle.tooling.model.ProjectIdentifier;
 import org.gradle.tooling.model.UnsupportedMethodException;
 import org.gradle.tooling.model.internal.Exceptions;
 
@@ -70,7 +74,7 @@ public class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<De
     public ModelResults<T> get() throws GradleConnectionException, IllegalStateException {
         BlockingResultHandler<ModelResults> handler = new BlockingResultHandler<ModelResults>(ModelResults.class);
         get(handler);
-        return handler.getResult();
+        return Cast.uncheckedCast(handler.getResult());
     }
 
     @Override
@@ -83,7 +87,7 @@ public class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<De
             }
 
             public ModelResults<T> run(ConsumerConnection connection) {
-                final Iterable<ModelResult<T>> models = connection.buildModels(modelType, operationParameters);
+                final InternalModelResults<T> models = connection.buildModels(modelType, operationParameters);
                 return new ExceptionTransformingModelResults<T>(models, exceptionTransformer);
             }
         }, new ResultHandlerAdapter<ModelResults<T>>(handler, exceptionTransformer));
@@ -103,17 +107,17 @@ public class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<De
     }
 
     private static class ExceptionTransformingModelResults<T> implements ModelResults<T> {
-        private final Iterable<ModelResult<T>> models;
+        private final InternalModelResults<T> models;
         private final ExceptionTransformer transformer;
 
-        public ExceptionTransformingModelResults(Iterable<ModelResult<T>> models, ExceptionTransformer transformer) {
+        public ExceptionTransformingModelResults(InternalModelResults<T> models, ExceptionTransformer transformer) {
             this.models = models;
             this.transformer = transformer;
         }
 
         @Override
         public Iterator<ModelResult<T>> iterator() {
-            final Iterator<ModelResult<T>> original = models.iterator();
+            final Iterator<InternalModelResult<T>> original = models.iterator();
             return new Iterator<ModelResult<T>>() {
                 @Override
                 public boolean hasNext() {
@@ -122,19 +126,25 @@ public class DefaultMultiModelBuilder<T> extends AbstractLongRunningOperation<De
 
                 @Override
                 public ModelResult<T> next() {
-                    ModelResult<T> next = original.next();
-                    if (next instanceof FailedModelResult) {
-                        DefaultFailedModelResult<T> failedResult = (DefaultFailedModelResult<T>) next;
-                        GradleConnectionException transformedFailure = transformer.transform(failedResult.getRawFailure());
+                    InternalModelResult<T> next = original.next();
+                    T model = next.getModel();
+                    RuntimeException failure = next.getFailure();
+                    BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(next.getRootDir());
+                    ProjectIdentifier projectIdentifier = null;
+                    if (next.getProjectPath() != null) {
+                        projectIdentifier = new DefaultProjectIdentifier(buildIdentifier, next.getProjectPath());
+                    }
+                    if (failure == null) {
+                        return new DefaultModelResult<T>(model);
+                    } else {
+                        GradleConnectionException transformedFailure = transformer.transform(failure);
                         //TODO should we actually be doing this? It seems we should only do it for the blocking case.
                         BlockingResultHandler.attachCallerThreadStackTrace(transformedFailure);
-                        if (failedResult.getProjectIdentifier() != null) {
-                            return new DefaultFailedModelResult<T>(failedResult.getProjectIdentifier(), transformedFailure);
+                        if (projectIdentifier != null) {
+                            return new DefaultFailedModelResult<T>(projectIdentifier, transformedFailure);
                         } else {
-                            return new DefaultFailedModelResult<T>(failedResult.getBuildIdentifier(), transformedFailure);
+                            return new DefaultFailedModelResult<T>(buildIdentifier, transformedFailure);
                         }
-                    } else {
-                        return next;
                     }
                 }
 

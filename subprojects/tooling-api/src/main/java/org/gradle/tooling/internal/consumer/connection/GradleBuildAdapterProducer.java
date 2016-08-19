@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.GradleBuildConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
@@ -39,13 +39,13 @@ public class GradleBuildAdapterProducer implements ModelProducer {
         if (type.equals(GradleBuild.class)) {
             GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);
             final DefaultGradleBuild convert = new GradleBuildConverter().convert(gradleProject);
-            return mappingProvider.applyCompatibilityMapping(adapter.builder(type), operationParameters).build(convert);
+            return mappingProvider.applyCompatibilityMapping(adapter.builder(type), operationParameters.getBuildIdentifier()).build(convert);
         }
         return delegate.produceModel(type, operationParameters);
     }
 
     @Override
-    public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+    public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         //TODO implement this to support GradleConnection against older Gradle versions
         throw new UnsupportedOperationException();
     }

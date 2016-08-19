@@ -16,8 +16,8 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.internal.Exceptions;
 import org.gradle.util.GradleVersion;
 
@@ -40,7 +40,7 @@ public class PluginClasspathInjectionSupportedCheckModelProducer implements Mode
     }
 
     @Override
-    public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+    public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         checkInjectionSupported(operationParameters);
         return delegate.produceModels(elementType, operationParameters);
     }

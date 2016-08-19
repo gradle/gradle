@@ -16,12 +16,12 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
@@ -52,11 +52,11 @@ public class ModelBuilderBackedModelProducer extends HasCompatibilityMapping imp
         } catch (InternalUnsupportedModelException e) {
             throw Exceptions.unknownModel(type, e);
         }
-        return applyCompatibilityMapping(adapter.builder(type), operationParameters).build(result.getModel());
+        return applyCompatibilityMapping(adapter.builder(type), operationParameters.getBuildIdentifier()).build(result.getModel());
     }
 
     @Override
-    public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+    public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         //TODO implement this to support GradleConnection against Gradle 1.6-1.8
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), versionDetails.getVersion(), "3.1");
     }

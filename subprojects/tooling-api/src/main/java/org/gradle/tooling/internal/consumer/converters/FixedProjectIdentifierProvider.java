@@ -24,11 +24,11 @@ import org.gradle.tooling.model.ProjectModel;
 
 import java.io.Serializable;
 
-public class FixedBuildIdentifierProvider implements Serializable, BuildModel, ProjectModel {
+public class FixedProjectIdentifierProvider implements Serializable, BuildModel, ProjectModel {
     private final BuildIdentifier buildIdentifier;
     private final ProjectIdentifier projectIdentifier;
 
-    public FixedBuildIdentifierProvider(ProjectIdentifier projectIdentifier) {
+    public FixedProjectIdentifierProvider(ProjectIdentifier projectIdentifier) {
         this.buildIdentifier = projectIdentifier.getBuildIdentifier();
         this.projectIdentifier = projectIdentifier;
     }

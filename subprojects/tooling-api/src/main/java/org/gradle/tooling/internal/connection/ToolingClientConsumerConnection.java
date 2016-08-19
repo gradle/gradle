@@ -17,10 +17,10 @@
 package org.gradle.tooling.internal.connection;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.connection.ConsumerConnection;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.UnsupportedMethodException;
 
 public class ToolingClientConsumerConnection implements ConsumerConnection {
@@ -55,7 +55,7 @@ public class ToolingClientConsumerConnection implements ConsumerConnection {
     }
 
     @Override
-    public <T> Iterable<ModelResult<T>> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
+    public <T> InternalModelResults<T> buildModels(Class<T> elementType, ConsumerOperationParameters operationParameters) throws UnsupportedOperationException, IllegalStateException {
         return new ToolingClientCompositeModelBuilder<T>(elementType, operationParameters).get();
     }
 

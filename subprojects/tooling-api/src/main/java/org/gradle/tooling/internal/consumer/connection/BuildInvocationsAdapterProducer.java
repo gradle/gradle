@@ -16,11 +16,11 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -48,7 +48,7 @@ public class BuildInvocationsAdapterProducer implements ModelProducer {
     }
 
     @Override
-    public <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+    public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         //TODO implement this to support GradleConnection against older Gradle versions
         throw new UnsupportedOperationException();
     }

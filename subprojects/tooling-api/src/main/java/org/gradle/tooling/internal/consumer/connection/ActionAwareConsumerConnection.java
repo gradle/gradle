@@ -17,7 +17,6 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.tooling.BuildAction;
-import org.gradle.tooling.BuildActionFailureException;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
@@ -25,7 +24,6 @@ import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.ConnectionVersion4;
 import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
-import org.gradle.tooling.internal.protocol.InternalBuildActionFailureException;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.model.gradle.BuildInvocations;
 import org.gradle.tooling.model.gradle.ProjectPublications;

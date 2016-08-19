@@ -16,10 +16,10 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import org.gradle.tooling.connection.ModelResult;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 
 public interface ModelProducer {
     <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters);
-    <T> Iterable<ModelResult<T>> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters);
+    <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters);
 }
