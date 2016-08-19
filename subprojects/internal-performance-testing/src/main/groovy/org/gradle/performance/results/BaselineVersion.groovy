@@ -26,6 +26,9 @@ import static PrettyCalculator.toMillis
 
 @CompileStatic
 class BaselineVersion implements VersionResults {
+    // To give us < 0.3% odds of a falsely identified regression.
+    // https://en.wikipedia.org/wiki/Standard_deviation#Rules_for_normally_distributed_data
+    static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("3.0")
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
     Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
@@ -49,7 +52,7 @@ class BaselineVersion implements VersionResults {
 
             def diff = currentVersionAverage - thisVersionAverage
             def desc = diff > Duration.millis(0) ? "slower" : "faster"
-            sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxExecutionTimeRegression(current).format()}\n")
+            sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxExecutionTimeRegression().format()}\n")
             sb.append(current.speedStats)
             sb.append(results.speedStats)
             sb.append("\n")
@@ -72,7 +75,7 @@ class BaselineVersion implements VersionResults {
 
             def diff = currentVersionAverage - thisVersionAverage
             def desc = diff > DataAmount.bytes(0) ? "more" : "less"
-            sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxMemoryRegression(current).format()}\n")
+            sb.append("Difference: ${diff.abs().format()} $desc (${toBytes(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxMemoryRegression().format()}\n")
             sb.append(current.memoryStats)
             sb.append(results.memoryStats)
             sb.append("\n")
@@ -83,24 +86,25 @@ class BaselineVersion implements VersionResults {
     }
 
     boolean fasterThan(MeasuredOperationList current) {
-        results.totalTime && current.totalTime.average - results.totalTime.average > getMaxExecutionTimeRegression(current)
+        results.totalTime && current.totalTime.average - results.totalTime.average > getMaxExecutionTimeRegression()
     }
 
     boolean usesLessMemoryThan(MeasuredOperationList current) {
-        results.totalMemoryUsed && current.totalMemoryUsed.average - results.totalMemoryUsed.average > getMaxMemoryRegression(current)
+        results.totalMemoryUsed && current.totalMemoryUsed.average - results.totalMemoryUsed.average > getMaxMemoryRegression()
     }
 
-    Amount<Duration> getMaxExecutionTimeRegression(MeasuredOperationList current) {
+
+    Amount<Duration> getMaxExecutionTimeRegression() {
         if (strict) {
-            (current.totalTime.standardErrorOfMean + results.totalTime.standardErrorOfMean) * 1.5
+            results.totalTime.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
         } else {
             maxExecutionTimeRegression
         }
     }
 
-    Amount<DataAmount> getMaxMemoryRegression(MeasuredOperationList current) {
+    Amount<DataAmount> getMaxMemoryRegression() {
         if (strict) {
-            (current.totalMemoryUsed.standardErrorOfMean + results.totalMemoryUsed.standardErrorOfMean) * 1.5
+            results.totalMemoryUsed.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
         } else {
             maxMemoryRegression
         }
