@@ -12,6 +12,10 @@
                 <td>destinationDir</td>
                 <td><literal>null</literal></td>
             </tr>
+            <tr>
+                <td>preserve</td>
+                <td><literal>empty</literal></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -22,6 +26,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>preserve</td>
+            </tr>
         </table>
     </section>
 </section>

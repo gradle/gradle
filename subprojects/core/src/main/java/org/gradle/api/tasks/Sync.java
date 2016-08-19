@@ -33,6 +33,26 @@ import java.io.File;
 
 /**
  * Synchronises the contents of a destination directory with some source directories and files.
+ *
+ * <p> Examples:
+ * <pre autoTested=''>
+ *
+ * task syncDependencies(type: Sync) {
+ *     from 'my/shared/dependencyDir'
+ *     into 'build/deps/compile'
+ * }
+ *
+ * // for preserve
+ * task sync(type: Sync) {
+ *     into 'dest'
+ *     from 'source'
+ *     preserve {
+ *         include 'extraDir/**'
+ *         include 'dir1/**'
+ *         exclude 'dir1/extra.txt'
+ *     }
+ * }
+ * </pre>
  */
 public class Sync extends AbstractCopyTask {
 
@@ -86,12 +106,12 @@ public class Sync extends AbstractCopyTask {
     }
 
     /**
-    * Returns the CopySpec that defines what files to preserve in {@link #getDestinationDir()}
-    *
-    * @return    the CopySpec for files to preserve
-    *
-    * @see #getDestinationDir()
-    */
+     * Returns the filter that defines what files to preserve in the destination directory
+     *
+     * @return the filter defining the files to preserve
+     *
+     * @see #getDestinationDir()
+     */
     @Internal
     @Incubating
     public CopySpec getPreserve() {
@@ -99,15 +119,17 @@ public class Sync extends AbstractCopyTask {
     }
 
     /**
-    * Configures the patterns to preserve in the destination directory.
-    *
-    * @param action
-    *
-    * @see #getDestinationDir()
-    */
+     * Configures the filter that defines what files to preserve in the destination directory.
+     *
+     * @param action Action for configuring the preserve filter
+     * @return this
+     *
+     * @see #getDestinationDir()
+     */
     @Incubating
-    public void preserve(Action<? super CopySpec> action) {
+    public Sync preserve(Action<? super CopySpec> action) {
         action.execute(preserveInDestination);
+        return this;
     }
 
 }
