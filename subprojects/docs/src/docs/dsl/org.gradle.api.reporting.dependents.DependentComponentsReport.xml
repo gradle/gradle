@@ -23,6 +23,19 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>showAll</td>
+            </tr>
+            <tr>
+                <td>showNonBuildable</td>
+            </tr>
+            <tr>
+                <td>showTestSuites</td>
+            </tr>
+            <tr>
+                <td>components</td>
+            </tr>
+
         </table>
     </section>
     <section>
