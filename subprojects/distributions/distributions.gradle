@@ -30,7 +30,7 @@ configurations.all {
 tasks.remove(jar)
 
 tasks.withType(AbstractArchiveTask) {
-    baseName "gradle"
+    baseName "gradle-kotlin-dsl"
     version = baseVersion
 
     // The CI server looks for the distributions at this location
