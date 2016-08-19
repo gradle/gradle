@@ -101,10 +101,10 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         baselineVersions.each { it ->
             def baselineVersion = results.baseline(it)
-            runVersion(buildContext.distribution(baselineVersion.version), workingDir, baselineVersion.results)
+            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
         }
 
-        runVersion(current, workingDir, results.current)
+        runVersion(current, perVersionWorkingDirectory('current'), results.current)
 
         results.endTime = System.currentTimeMillis()
 
@@ -116,6 +116,14 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         results.assertCurrentVersionHasNotRegressed()
 
         return results
+    }
+
+    protected File perVersionWorkingDirectory(String version) {
+        def perVersion = new File(workingDir, version)
+        if (!perVersion.exists()) {
+            perVersion.mkdirs()
+        }
+        perVersion
     }
 
     static LinkedHashSet<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions) {

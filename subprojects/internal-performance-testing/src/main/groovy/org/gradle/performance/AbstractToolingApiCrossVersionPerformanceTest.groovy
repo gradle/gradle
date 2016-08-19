@@ -139,7 +139,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             try {
                 List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions).toList()
                 [*baselines, 'current'].each { String version ->
-                    def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory)
+                    def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
                     if ('current' != version) {
@@ -171,13 +171,17 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             results
         }
 
-        private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir) {
-            GFileUtils.cleanDirectory(workingDir)
-            GFileUtils.copyDirectory(templateDir, workingDir)
+        private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir, String version) {
+            TestFile perVersionDir = new TestFile(workingDir, version)
+            if (!perVersionDir.exists()) {
+                perVersionDir.mkdirs()
+            }
+            GFileUtils.cleanDirectory(perVersionDir)
+            GFileUtils.copyDirectory(templateDir, perVersionDir)
             return new TestDirectoryProvider() {
                 @Override
                 TestFile getTestDirectory() {
-                    workingDir
+                    perVersionDir
                 }
 
                 @Override
