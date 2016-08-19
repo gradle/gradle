@@ -31,8 +31,6 @@ class BaselineVersion implements VersionResults {
     static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("3.0")
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
-    Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
-    Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     BaselineVersion(String version) {
         this.version = version
@@ -93,24 +91,11 @@ class BaselineVersion implements VersionResults {
         results.totalMemoryUsed && current.totalMemoryUsed.average - results.totalMemoryUsed.average > getMaxMemoryRegression()
     }
 
-
     Amount<Duration> getMaxExecutionTimeRegression() {
-        if (strict) {
-            results.totalTime.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
-        } else {
-            maxExecutionTimeRegression
-        }
+        results.totalTime.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
     }
 
     Amount<DataAmount> getMaxMemoryRegression() {
-        if (strict) {
-            results.totalMemoryUsed.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
-        } else {
-            maxMemoryRegression
-        }
-    }
-
-    static boolean isStrict() {
-        return Boolean.valueOf(System.getProperty("org.gradle.performance.strict", "false"))
+        results.totalMemoryUsed.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
     }
 }

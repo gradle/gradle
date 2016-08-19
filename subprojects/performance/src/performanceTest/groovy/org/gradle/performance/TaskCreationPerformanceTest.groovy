@@ -20,9 +20,6 @@ import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.DataAmount.mbytes
-import static org.gradle.performance.measure.Duration.millis
-
 @Category([GradleCorePerformanceTest])
 class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("performance of #testProject tasks without configuring them")
@@ -31,8 +28,6 @@ class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
         runner.testId = "creating $testProject tasks without configuring them (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.maxExecutionTimeRegression = maxTimeRegression
-        runner.maxMemoryRegression = maxMemoryRegression
         runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
@@ -44,7 +39,7 @@ class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject         | maxTimeRegression | maxMemoryRegression | targetVersions
-        "createLotsOfTasks" | millis(300)       | mbytes(50)          | ['2.12', 'last']
+        testProject         | targetVersions
+        "createLotsOfTasks" | ['2.12', 'last']
     }
 }

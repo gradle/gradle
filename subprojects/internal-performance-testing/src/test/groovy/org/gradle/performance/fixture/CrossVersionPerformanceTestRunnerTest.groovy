@@ -75,8 +75,6 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         runner.useDaemon = true
         runner.warmUpRuns = 1
         runner.runs = 4
-        runner.maxExecutionTimeRegression = Duration.millis(100)
-        runner.maxMemoryRegression = DataAmount.bytes(10)
 
         when:
         def results = runner.run()
@@ -99,8 +97,6 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         results.baseline('1.0').results.size() == 4
         results.baseline('1.1').results.size() == 4
         results.baseline(MOST_RECENT_RELEASE).results.size() == 4
-        results.baselineVersions.every { it.maxExecutionTimeRegression == runner.maxExecutionTimeRegression }
-        results.baselineVersions.every { it.maxMemoryRegression == runner.maxMemoryRegression }
 
         and:
         4 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->

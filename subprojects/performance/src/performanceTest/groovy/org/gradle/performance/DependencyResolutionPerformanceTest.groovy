@@ -20,8 +20,6 @@ import org.gradle.performance.categories.GradleCorePerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.Duration.millis
-
 @Category(GradleCorePerformanceTest)
 class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("Resolves dependencies from #repoType repository - #testProject (daemon)")
@@ -30,7 +28,6 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         runner.testId = "resolves dependencies from $repoType repository $testProject (daemon)"
         runner.testProject = testProject
         runner.tasksToRun = ['resolveDependencies']
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = targetVersions
         runner.useDaemon = true
 
@@ -41,8 +38,8 @@ class DependencyResolutionPerformanceTest extends AbstractCrossVersionPerformanc
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject              | repoType | maxExecutionTimeRegression | targetVersions
-        "lotDependencies"        | 'local'  | millis(200)                | ['2.13', 'last']
-        "lotProjectDependencies" | 'local'  | millis(1000)               | ['2.13', 'last']
+        testProject              | repoType | targetVersions
+        "lotDependencies"        | 'local'  | ['2.13', 'last']
+        "lotProjectDependencies" | 'local'  | ['2.13', 'last']
     }
 }

@@ -20,8 +20,6 @@ import org.gradle.performance.categories.JavaPerformanceTest
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-import static org.gradle.performance.measure.Duration.millis
-
 @Category([JavaPerformanceTest])
 class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTest {
     @Unroll("configure Java build - #testProject")
@@ -31,7 +29,6 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         runner.previousTestIds = ["configuration $testProject"]
         runner.testProject = testProject
         runner.tasksToRun = ['help']
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
         runner.targetVersions = targetVersions
 
         when:
@@ -41,10 +38,10 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject       | maxExecutionTimeRegression | targetVersions
-        "small"           | millis(1200)               | ['2.8', 'last']
-        "multi"           | millis(1200)               | ['2.8', 'last']
-        "lotDependencies" | millis(1000)               | ['2.4', '2.8', 'last']
-        "bigOldJava"      | millis(1000)               | ['2.11', 'last']
+        testProject       | targetVersions
+        "small"           | ['2.8', 'last']
+        "multi"           | ['2.8', 'last']
+        "lotDependencies" | ['2.4', '2.8', 'last']
+        "bigOldJava"      | ['2.11', 'last']
     }
 }
