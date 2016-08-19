@@ -22,7 +22,6 @@ import com.google.common.collect.Ordering;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Nullable;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
@@ -51,45 +50,31 @@ import java.util.Map;
 import java.util.Stack;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Strings.emptyToNull;
 
 public class NativeDependentBinariesResolutionStrategy extends AbstractDependentBinariesResolutionStrategy {
 
     private static class State {
-        private final Map<String, NativeBinarySpecInternal> binaries = Maps.newLinkedHashMap();
-        private final Map<String, List<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
+        private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
+        private final Map<NativeBinarySpecInternal, List<NativeBinarySpecInternal>> dependents = Maps.newHashMap();
 
-        private final Map<String, List<NativeBinarySpecInternal>> dependents = Maps.newHashMap();
+        void registerBinary(NativeBinarySpecInternal binary) {
+            if (dependencies.get(binary) == null) {
+                dependencies.put(binary, Lists.<NativeBinarySpecInternal>newArrayList());
+            }
+        }
 
         List<NativeBinarySpecInternal> getDependents(NativeBinarySpecInternal target) {
-            String key = keyOf(target);
-            List<NativeBinarySpecInternal> result = dependents.get(key);
+            List<NativeBinarySpecInternal> result = dependents.get(target);
             if (result == null) {
                 result = Lists.newArrayList();
-                for (Map.Entry<String, List<NativeBinarySpecInternal>> entry : dependencies.entrySet()) {
-                    if (entry.getValue().contains(target)) {
-                        result.add(binaries.get(entry.getKey()));
+                for (NativeBinarySpecInternal dependentBinary : dependencies.keySet()) {
+                    if (dependencies.get(dependentBinary).contains(target)) {
+                        result.add(dependentBinary);
                     }
                 }
-                dependents.put(key, result);
+                dependents.put(target, result);
             }
             return result;
-        }
-
-        private String keyOf(BinarySpecInternal binary) {
-            LibraryBinaryIdentifier id = binary.getId();
-            return keyOf(id.getProjectPath(), id.getLibraryName(), id.getVariant());
-        }
-
-        private String keyOf(String project, String component, String binary) {
-            String key = "";
-            if (emptyToNull(project) == null) {
-                key += Project.PATH_SEPARATOR;
-            } else {
-                key += project;
-            }
-            key += Project.PATH_SEPARATOR + component + Project.PATH_SEPARATOR + binary;
-            return key;
         }
     }
 
@@ -128,28 +113,23 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
                 ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(project.getPath());
                 ModelMap<NativeComponentSpec> components = modelRegistry.realize("components", ModelTypes.modelMap(NativeComponentSpec.class));
                 for (NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
-                    state.binaries.put(state.keyOf(binary), binary);
+                    state.registerBinary(binary);
                 }
             }
             for (NativeBinarySpecInternal extraBinary : getExtraBinaries(project, projectModelResolver)) {
-                state.binaries.put(state.keyOf(extraBinary), extraBinary);
+                state.registerBinary(extraBinary);
             }
         }
 
-        for (Map.Entry<String, NativeBinarySpecInternal> entry : state.binaries.entrySet()) {
-            String key = entry.getKey();
-            NativeBinarySpecInternal nativeBinary = entry.getValue();
-            if (state.dependencies.get(key) == null) {
-                state.dependencies.put(key, Lists.<NativeBinarySpecInternal>newArrayList());
-            }
+        for (NativeBinarySpecInternal nativeBinary : state.dependencies.keySet()) {
             for (NativeLibraryBinary libraryBinary : nativeBinary.getDependentBinaries()) {
                 // Skip prebuilt libraries
                 if (libraryBinary instanceof NativeBinarySpecInternal) {
                     // Unfortunate cast! see LibraryBinaryLocator
-                    state.dependencies.get(key).add((NativeBinarySpecInternal) libraryBinary);
+                    state.dependencies.get(nativeBinary).add((NativeBinarySpecInternal) libraryBinary);
                 }
             }
-            state.dependencies.get(key).addAll(getExtraDependents(nativeBinary));
+            state.dependencies.get(nativeBinary).addAll(getExtraDependents(nativeBinary));
         }
 
         return state;
