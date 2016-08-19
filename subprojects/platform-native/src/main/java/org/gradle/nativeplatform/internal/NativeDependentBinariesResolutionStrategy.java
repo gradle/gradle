@@ -83,6 +83,8 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ProjectModelResolver projectModelResolver;
 
+    private State cachedState = null;
+
     public NativeDependentBinariesResolutionStrategy(ProjectRegistry<ProjectInternal> projectRegistry, ProjectModelResolver projectModelResolver) {
         super();
         checkNotNull(projectRegistry, "ProjectRegistry must not be null");
@@ -101,9 +103,16 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     }
 
     private List<DependentBinariesResolvedResult> resolveDependentBinaries(NativeBinarySpecInternal target) {
-        State state = buildState();
+        State state = getState();
         Stack<NativeBinarySpecInternal> stack = new Stack<NativeBinarySpecInternal>();
         return buildResolvedResult(target, state, stack);
+    }
+
+    private State getState() {
+        if (cachedState == null) {
+            cachedState = buildState();
+        }
+        return cachedState;
     }
 
     private State buildState() {
