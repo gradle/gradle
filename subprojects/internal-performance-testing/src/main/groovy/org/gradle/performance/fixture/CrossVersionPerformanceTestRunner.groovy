@@ -202,7 +202,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
             }
-
+        builder.workingDirectory = workingDir
         def spec = builder.build()
 
         experimentRunner.run(spec, results)
