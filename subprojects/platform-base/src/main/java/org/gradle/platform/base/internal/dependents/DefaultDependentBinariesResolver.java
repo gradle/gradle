@@ -46,8 +46,11 @@ public class DefaultDependentBinariesResolver implements DependentBinariesResolv
         return new DefaultDependentBinariesResolutionResult(mergeResults(roots));
     }
 
-    private DependentBinariesResolvedResult mergeResults(Iterable<DependentBinariesResolvedResult> results) {
+    private DependentBinariesResolvedResult mergeResults(Collection<DependentBinariesResolvedResult> results) {
         DependentBinariesResolvedResult first = results.iterator().next();
+        if (results.size() == 1) {
+            return first;
+        }
         boolean hasNotBuildables = false;
         boolean hasTestSuites = false;
         LinkedListMultimap<LibraryBinaryIdentifier, DependentBinariesResolvedResult> index = LinkedListMultimap.create();
