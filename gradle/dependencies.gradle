@@ -87,7 +87,6 @@ libraries += [
         groovy: "org.codehaus.groovy:groovy-all:${versions.groovy}",
         jaxen: 'jaxen:jaxen:1.1@jar',
         jcip: "net.jcip:jcip-annotations:1.0@jar",
-        jna: 'net.java.dev.jna:jna:3.2.7@jar',
         junit: 'junit:junit:4.12@jar',
         xmlunit: 'xmlunit:xmlunit:1.3',
         nekohtml: 'net.sourceforge.nekohtml:nekohtml:1.9.14',
