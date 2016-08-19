@@ -19,14 +19,14 @@ package org.gradle.api.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
-import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
+import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
@@ -56,13 +56,7 @@ import java.io.File;
  */
 public class Sync extends AbstractCopyTask {
 
-    private final CopySpecInternal preserveInDestination;
-
-    public Sync() {
-        Instantiator instantiator = getInstantiator();
-        FileResolver fileResolver = getFileResolver();
-        preserveInDestination = instantiator.newInstance(DefaultCopySpec.class, fileResolver, instantiator);
-    }
+    private final PatternFilterable preserveInDestination = new PatternSet();
 
     @Override
     protected CopyAction createCopyAction() {
@@ -114,7 +108,7 @@ public class Sync extends AbstractCopyTask {
      */
     @Internal
     @Incubating
-    public CopySpec getPreserve() {
+    public PatternFilterable getPreserve() {
         return preserveInDestination;
     }
 
@@ -127,7 +121,7 @@ public class Sync extends AbstractCopyTask {
      * @see #getDestinationDir()
      */
     @Incubating
-    public Sync preserve(Action<? super CopySpec> action) {
+    public Sync preserve(Action<? super PatternFilterable> action) {
         action.execute(preserveInDestination);
         return this;
     }
