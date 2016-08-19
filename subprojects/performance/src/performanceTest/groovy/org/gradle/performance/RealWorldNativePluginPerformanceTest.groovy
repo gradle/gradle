@@ -69,13 +69,13 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.runs = 10
 
         runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
-            File file
             String originalContent
+            File originalContentFor
 
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (file == null) {
-                    file = new File(invocationInfo.projectDir, changedFile)
+                File file = new File(invocationInfo.projectDir, changedFile)
+                if (originalContentFor != file) {
                     assert file.exists()
                     def backupFile = new File(file.parentFile, file.name + "~")
                     if (backupFile.exists()) {
@@ -85,6 +85,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
                         originalContent = file.text
                         FileUtils.copyFile(file, backupFile)
                     }
+                    originalContentFor = file
                 }
                 if (invocationInfo.iterationNumber % 2 == 0) {
                     println "Changing $file"
