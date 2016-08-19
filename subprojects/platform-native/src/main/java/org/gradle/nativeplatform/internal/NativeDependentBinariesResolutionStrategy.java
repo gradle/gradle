@@ -83,7 +83,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ProjectModelResolver projectModelResolver;
 
-    private State cachedState = null;
+    private State cachedState;
 
     public NativeDependentBinariesResolutionStrategy(ProjectRegistry<ProjectInternal> projectRegistry, ProjectModelResolver projectModelResolver) {
         super();
