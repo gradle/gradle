@@ -31,7 +31,7 @@ public class DefaultFileVisitDetails extends DefaultFileTreeElement implements F
     private final long lastModified;
 
     public DefaultFileVisitDetails(File file, RelativePath relativePath, AtomicBoolean stop, Chmod chmod, Stat stat) {
-        this(file, relativePath, stop, chmod, stat, file.isDirectory());
+        this(file, relativePath, stop, chmod, stat, !relativePath.isFile());
     }
 
     public DefaultFileVisitDetails(File file, RelativePath relativePath, AtomicBoolean stop, Chmod chmod, Stat stat, boolean isDirectory) {
