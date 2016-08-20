@@ -43,9 +43,6 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
         AwsCredentials awsCredentials = connectionDetails.getCredentials(AwsCredentials.class);
-        if(awsCredentials == null) {
-            throw new IllegalArgumentException("AwsCredentials must be set for S3 backed repository.");
-        }
         return new S3ResourceConnector(new S3Client(awsCredentials, new S3ConnectionProperties()));
     }
 }
