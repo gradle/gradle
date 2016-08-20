@@ -21,11 +21,16 @@ import org.gradle.language.base.internal.model.DefaultVariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaData;
 import org.gradle.language.base.internal.model.VariantsMetaDataHelper;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
+import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.util.TextUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResolutionErrorMessageBuilder {
     private static final String TARGET_PLATFORM = "targetPlatform";
@@ -41,10 +46,11 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
     }
 
     @Override
-    public String multipleCompatibleVariantsErrorMessage(String libraryName, Collection<? extends BinarySpec> binaries) {
+    public String multipleCompatibleVariantsErrorMessage(String libraryName, Collection<? extends Binary> binaries) {
         List<String> variantDescriptors = new ArrayList<String>(binaries.size());
         StringBuilder variantDescriptor = new StringBuilder();
-        for (BinarySpec variant : binaries) {
+        for (Binary binary : binaries) {
+            BinarySpec variant = (BinarySpec) binary;
             variantDescriptor.setLength(0);
             boolean first = true;
             variantDescriptor.append("    - ").append(variant.getDisplayName()).append(" [");
@@ -69,9 +75,10 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
     }
 
     @Override
-    public String noCompatibleVariantErrorMessage(String libraryName, Collection<BinarySpec> allBinaries) {
+    public String noCompatibleVariantErrorMessage(String libraryName, Collection<? extends Binary> allBinaries) {
         HashMultimap<String, String> variantAxisMessages = HashMultimap.create();
-        for (BinarySpec spec : allBinaries) {
+        for (Binary binary : allBinaries) {
+            BinarySpec spec = (BinarySpec) binary;
             VariantsMetaData md = DefaultVariantsMetaData.extractFrom(spec, schemaStore.getSchema(((BinarySpecInternal)spec).getPublicType()));
             Set<String> variantAxesWithIncompatibleTypes = VariantsMetaDataHelper.determineAxesWithIncompatibleTypes(variantsMetaData, md, variantAxesToResolve);
             for (String variantAxis : variantAxesToResolve) {

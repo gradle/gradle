@@ -45,21 +45,23 @@ import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.model.internal.type.ModelTypes;
+import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.BinarySpec;
 import org.gradle.platform.base.ComponentSpec;
+import org.gradle.platform.base.VariantComponent;
 import org.gradle.platform.base.VariantComponentSpec;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class LocalLibraryDependencyResolver<T extends BinarySpec> implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
+public class LocalLibraryDependencyResolver<T extends Binary> implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     private static final ModelType<ModelMap<ComponentSpec>> COMPONENT_MAP_TYPE = ModelTypes.modelMap(ComponentSpec.class);
     private final ProjectModelResolver projectModelResolver;
     private final VariantSelector variantSelector;
     private final LibraryResolutionErrorMessageBuilder errorMessageBuilder;
     private final LocalLibraryMetaDataAdapter libraryMetaDataAdapter;
-    private final Class<? extends BinarySpec> binaryType;
+    private final Class<? extends Binary> binaryType;
     private final Predicate<VariantComponentSpec> binarySpecPredicate;
 
     public LocalLibraryDependencyResolver(Class<T> binarySpecType,
@@ -101,14 +103,15 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
             return;
         }
 
-        Collection<? extends BinarySpec> matchingVariants = chooseMatchingVariants(selectedLibrary, variant);
+        Collection<? extends Binary> matchingVariants = chooseMatchingVariants(selectedLibrary, variant);
         if (matchingVariants.isEmpty()) {
             // no compatible variant found
-            result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName, selectedLibrary.getBinaries().values())));
+            Collection<BinarySpec> values = selectedLibrary.getBinaries().values();
+            result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName, values)));
         } else if (matchingVariants.size() > 1) {
             result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, matchingVariants)));
         } else {
-            BinarySpec selectedBinary = matchingVariants.iterator().next();
+            Binary selectedBinary = matchingVariants.iterator().next();
             // TODO:Cedric This is not quite right. We assume that if we are asking for a specific binary, then we resolve to the assembly instead
             // of the jar, but it should be somehow parametrized
             LocalComponentMetadata metaData;
@@ -121,8 +124,8 @@ public class LocalLibraryDependencyResolver<T extends BinarySpec> implements Dep
         }
     }
 
-    private Collection<? extends BinarySpec> chooseMatchingVariants(VariantComponentSpec selectedLibrary, String variant) {
-        return variantSelector.selectVariants(selectedLibrary, variant);
+    private Collection<? extends Binary> chooseMatchingVariants(VariantComponent selectedLibrary, String variant) {
+            return variantSelector.selectVariants(selectedLibrary, variant);
     }
 
     private LibraryResolutionErrorMessageBuilder.LibraryResolutionResult doResolve(String projectPath,

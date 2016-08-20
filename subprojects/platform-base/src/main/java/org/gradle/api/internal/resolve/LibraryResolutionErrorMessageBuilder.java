@@ -23,7 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.VariantComponentSpec;
 
 import java.util.Collection;
@@ -31,9 +31,9 @@ import java.util.List;
 import java.util.Map;
 
 public interface LibraryResolutionErrorMessageBuilder {
-    String multipleCompatibleVariantsErrorMessage(String libraryName, Collection<? extends BinarySpec> binaries);
+    String multipleCompatibleVariantsErrorMessage(String libraryName, Collection<? extends Binary> binaries);
 
-    String noCompatibleVariantErrorMessage(String libraryName, Collection<BinarySpec> allBinaries);
+    String noCompatibleVariantErrorMessage(String libraryName, Collection<? extends Binary> allBinaries);
 
     /**
      * Intermediate data structure used to store the result of a resolution and help at building an understandable error message in case resolution fails.
@@ -99,7 +99,7 @@ public interface LibraryResolutionErrorMessageBuilder {
         }
 
         public String toResolutionErrorMessage(
-                Class<? extends BinarySpec> binaryType,
+                Class<? extends Binary> binaryType,
                 LibraryComponentSelector selector) {
             List<String> candidateLibraries = formatLibraryNames(getCandidateLibraries());
             String projectPath = selector.getProjectPath();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.resolve;
+package org.gradle.platform.base;
 
-import org.gradle.internal.component.local.model.LocalComponentMetadata;
-import org.gradle.platform.base.Binary;
+import org.gradle.api.Incubating;
+import org.gradle.model.ModelElement;
 
-public interface LocalLibraryMetaDataAdapter {
-    LocalComponentMetadata createLocalComponentMetaData(Binary selectedBinary, String projectPath, boolean toAssembly);
+/**
+ * A component that has one or more mutually exclusive variants.
+ */
+@Incubating
+public interface VariantComponent extends ModelElement {
+    /**
+     * The variants of this component.
+     */
+    Iterable<? extends Binary> getVariants();
 }

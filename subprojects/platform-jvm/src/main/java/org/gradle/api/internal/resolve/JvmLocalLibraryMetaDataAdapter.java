@@ -28,7 +28,7 @@ import org.gradle.jvm.internal.JarFile;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.internal.WithJvmAssembly;
 import org.gradle.language.base.internal.model.DefaultLibraryLocalComponentMetadata;
-import org.gradle.platform.base.BinarySpec;
+import org.gradle.platform.base.Binary;
 import org.gradle.platform.base.DependencySpec;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
@@ -49,7 +49,7 @@ public class JvmLocalLibraryMetaDataAdapter implements LocalLibraryMetaDataAdapt
 
     @Override
     @SuppressWarnings("unchecked")
-    public DefaultLibraryLocalComponentMetadata createLocalComponentMetaData(BinarySpec selectedBinary, String projectPath, boolean toAssembly) {
+    public DefaultLibraryLocalComponentMetadata createLocalComponentMetaData(Binary selectedBinary, String projectPath, boolean toAssembly) {
         EnumMap<UsageKind, Iterable<DependencySpec>> dependenciesPerUsage = new EnumMap<UsageKind, Iterable<DependencySpec>>(UsageKind.class);
         EnumMap<UsageKind, TaskDependency> buildDependenciesPerUsage = new EnumMap<UsageKind, TaskDependency>(UsageKind.class);
         EnumMap<UsageKind, List<PublishArtifact>> artifacts = new EnumMap<UsageKind, List<PublishArtifact>>(UsageKind.class);
