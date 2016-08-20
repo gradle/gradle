@@ -47,7 +47,6 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
 
     public void deprecatedFeatureUsed(DeprecatedFeatureUsage usage) {
         if (messages.add(usage.getMessage())) {
-            usage = usage.withStackTrace();
             StringBuilder message = new StringBuilder();
             locationReporter.reportLocation(usage, message);
             if (message.length() > 0) {
