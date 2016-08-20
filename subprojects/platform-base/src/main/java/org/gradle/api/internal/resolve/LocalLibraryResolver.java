@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.platform.base;
+package org.gradle.api.internal.resolve;
 
-import org.gradle.api.Incubating;
-import org.gradle.model.ModelElement;
+import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.platform.base.VariantComponent;
 
-/**
- * A component that has one or more mutually exclusive variants.
- */
-@Incubating
-public interface VariantComponent extends ModelElement {
-    /**
-     * The variants of this component.
-     */
-    Iterable<? extends Binary> getVariants();
-    String getName();
+import java.util.Collection;
+
+public interface LocalLibraryResolver {
+    Collection<VariantComponent> resolveCandidates(ModelRegistry projectModel, String libraryName);
 }

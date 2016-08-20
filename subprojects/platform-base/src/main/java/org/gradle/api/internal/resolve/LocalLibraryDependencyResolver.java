@@ -16,7 +16,8 @@
 package org.gradle.api.internal.resolve;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
+import org.gradle.api.Nullable;
 import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
@@ -41,43 +42,43 @@ import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResu
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 import org.gradle.language.base.internal.resolve.LibraryResolveException;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.model.internal.type.ModelType;
-import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.platform.base.Binary;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.VariantComponent;
-import org.gradle.platform.base.VariantComponentSpec;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
-public class LocalLibraryDependencyResolver<T extends Binary> implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
-    private static final ModelType<ModelMap<ComponentSpec>> COMPONENT_MAP_TYPE = ModelTypes.modelMap(ComponentSpec.class);
-    private final ProjectModelResolver projectModelResolver;
+public class LocalLibraryDependencyResolver implements DependencyToComponentIdResolver, ComponentMetaDataResolver, ArtifactResolver {
     private final VariantSelector variantSelector;
     private final LibraryResolutionErrorMessageBuilder errorMessageBuilder;
     private final LocalLibraryMetaDataAdapter libraryMetaDataAdapter;
+    private final LocalLibraryResolver libraryResolver;
     private final Class<? extends Binary> binaryType;
-    private final Predicate<VariantComponentSpec> binarySpecPredicate;
+    private final Predicate<VariantComponent> binaryPredicate;
+    private final ProjectModelResolver projectModelResolver;
 
-    public LocalLibraryDependencyResolver(Class<T> binarySpecType,
+    public LocalLibraryDependencyResolver(final Class<? extends Binary> binaryType,
                                           ProjectModelResolver projectModelResolver,
+                                          LocalLibraryResolver libraryResolver,
                                           VariantSelector variantSelector,
                                           LocalLibraryMetaDataAdapter libraryMetaDataAdapter,
                                           LibraryResolutionErrorMessageBuilder errorMessageBuilder) {
-        this.projectModelResolver = projectModelResolver;
         this.libraryMetaDataAdapter = libraryMetaDataAdapter;
         this.variantSelector = variantSelector;
         this.errorMessageBuilder = errorMessageBuilder;
-        this.binaryType = binarySpecType;
-        this.binarySpecPredicate = new Predicate<VariantComponentSpec>() {
+        this.projectModelResolver = projectModelResolver;
+        this.libraryResolver = libraryResolver;
+        this.binaryType = binaryType;
+        this.binaryPredicate = new Predicate<VariantComponent>() {
             @Override
-            public boolean apply(VariantComponentSpec input) {
-                return !input.getBinaries().withType(binaryType).isEmpty();
+            public boolean apply(VariantComponent input) {
+                return Iterables.any(input.getVariants(), new Predicate<Binary>() {
+                    @Override
+                    public boolean apply(Binary input) {
+                        return binaryType.isAssignableFrom(input.getClass());
+                    }
+                });
             }
         };
     }
@@ -94,10 +95,11 @@ public class LocalLibraryDependencyResolver<T extends Binary> implements Depende
         final String selectorProjectPath = selector.getProjectPath();
         final String libraryName = selector.getLibraryName();
         final String variant = selector.getVariant();
-        LibraryResolutionErrorMessageBuilder.LibraryResolutionResult resolutionResult = doResolve(selectorProjectPath, libraryName);
-        VariantComponentSpec selectedLibrary = resolutionResult.getSelectedLibrary();
+        LibraryResolutionResult resolutionResult = doResolve(selectorProjectPath, libraryName);
+
+        VariantComponent selectedLibrary = resolutionResult.getSelectedLibrary();
         if (selectedLibrary == null) {
-            String message = resolutionResult.toResolutionErrorMessage(binaryType, selector);
+            String message = resolutionResult.toResolutionErrorMessage(selector);
             ModuleVersionResolveException failure = new ModuleVersionResolveException(selector, new LibraryResolveException(message));
             result.failed(failure);
             return;
@@ -106,7 +108,7 @@ public class LocalLibraryDependencyResolver<T extends Binary> implements Depende
         Collection<? extends Binary> matchingVariants = chooseMatchingVariants(selectedLibrary, variant);
         if (matchingVariants.isEmpty()) {
             // no compatible variant found
-            Collection<BinarySpec> values = selectedLibrary.getBinaries().values();
+            Iterable<? extends Binary> values = selectedLibrary.getVariants();
             result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.noCompatibleVariantErrorMessage(libraryName, values)));
         } else if (matchingVariants.size() > 1) {
             result.failed(new ModuleVersionResolveException(selector, errorMessageBuilder.multipleCompatibleVariantsErrorMessage(libraryName, matchingVariants)));
@@ -124,42 +126,24 @@ public class LocalLibraryDependencyResolver<T extends Binary> implements Depende
         }
     }
 
+    @Nullable
+    private LibraryResolutionResult doResolve(String selectorProjectPath, String libraryName) {
+        try {
+            ModelRegistry projectModel = projectModelResolver.resolveProjectModel(selectorProjectPath);
+            Collection<VariantComponent> candidates = libraryResolver.resolveCandidates(projectModel, libraryName);
+            if (candidates.isEmpty()) {
+                return LibraryResolutionResult.emptyResolutionResult(binaryType);
+            }
+            return LibraryResolutionResult.of(binaryType, candidates, libraryName, binaryPredicate);
+        } catch (UnknownProjectException e) {
+            return LibraryResolutionResult.projectNotFound(binaryType);
+        }
+    }
+
     private Collection<? extends Binary> chooseMatchingVariants(VariantComponent selectedLibrary, String variant) {
             return variantSelector.selectVariants(selectedLibrary, variant);
     }
 
-    private LibraryResolutionErrorMessageBuilder.LibraryResolutionResult doResolve(String projectPath,
-                                                                                   String libraryName) {
-        try {
-            ModelRegistry projectModel = projectModelResolver.resolveProjectModel(projectPath);
-            LibraryResolutionErrorMessageBuilder.LibraryResolutionResult libraries = findLocalComponent(libraryName, projectModel);
-            if (libraries != null) {
-                return libraries;
-            }
-
-            return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.emptyResolutionResult();
-        } catch (UnknownProjectException e) {
-            return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.projectNotFound();
-        }
-    }
-
-    private LibraryResolutionErrorMessageBuilder.LibraryResolutionResult findLocalComponent(String componentName, ModelRegistry projectModel) {
-        List<VariantComponentSpec> librarySpecs = Lists.newArrayList();
-        collectLocalComponents(projectModel, "components", librarySpecs);
-        collectLocalComponents(projectModel, "testSuites", librarySpecs);
-        if (librarySpecs.isEmpty()) {
-            return null;
-        }
-        return LibraryResolutionErrorMessageBuilder.LibraryResolutionResult.of(librarySpecs, componentName, binarySpecPredicate);
-    }
-
-    private void collectLocalComponents(ModelRegistry projectModel, String container, List<VariantComponentSpec> librarySpecs) {
-        ModelMap<ComponentSpec> components = projectModel.find(container, COMPONENT_MAP_TYPE);
-        if (components != null) {
-            ModelMap<? extends VariantComponentSpec> libraries = components.withType(VariantComponentSpec.class);
-            librarySpecs.addAll(libraries.values());
-        }
-    }
 
     @Override
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
@@ -197,4 +181,5 @@ public class LocalLibraryDependencyResolver<T extends Binary> implements Depende
             }
         }
     }
+
 }

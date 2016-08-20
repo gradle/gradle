@@ -27,7 +27,6 @@ import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.util.TextUtil;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -46,8 +45,8 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
     }
 
     @Override
-    public String multipleCompatibleVariantsErrorMessage(String libraryName, Collection<? extends Binary> binaries) {
-        List<String> variantDescriptors = new ArrayList<String>(binaries.size());
+    public String multipleCompatibleVariantsErrorMessage(String libraryName, Iterable<? extends Binary> binaries) {
+        List<String> variantDescriptors = new ArrayList<String>();
         StringBuilder variantDescriptor = new StringBuilder();
         for (Binary binary : binaries) {
             BinarySpec variant = (BinarySpec) binary;
@@ -75,7 +74,7 @@ public class DefaultLibraryResolutionErrorMessageBuilder implements LibraryResol
     }
 
     @Override
-    public String noCompatibleVariantErrorMessage(String libraryName, Collection<? extends Binary> allBinaries) {
+    public String noCompatibleVariantErrorMessage(String libraryName, Iterable<? extends Binary> allBinaries) {
         HashMultimap<String, String> variantAxisMessages = HashMultimap.create();
         for (Binary binary : allBinaries) {
             BinarySpec spec = (BinarySpec) binary;
