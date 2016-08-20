@@ -225,6 +225,22 @@
             First, the <firstterm>dependent components</firstterm> report gives insight about the relationships between each component.
             Second, the <firstterm>build and assemble dependents</firstterm> tasks allow you to assemble or build a component and its dependents in one step.
         </para>
+
+        <para>
+            In the following example, the build file defines <literal>OpenSSL</literal> as a dependency of <literal>libUtil</literal> and <literal>libUtil</literal> as a dependency of
+            <literal>LinuxApp</literal> and <literal>WindowsApp</literal>. Test suites are treated similarly. Dependents can be thought of as reverse dependencies.
+            <figure>
+                <title>Dependent Components Example</title>
+                <imageobject>
+                    <imagedata fileref="img/nativeDependents.png"/>
+                </imageobject>
+            </figure>
+            <note>
+                By following the dependencies backwards, you can see <literal>LinuxApp</literal> and <literal>WindowsApp</literal> are <firstterm>dependents</firstterm> of <literal>libUtil</literal>.
+                When <literal>libUtil</literal> is changed, Gradle will need to recompile or relink <literal>LinuxApp</literal> and <literal>WindowsApp</literal>.
+            </note>
+        </para>
+
         <para>
             When you <firstterm>assemble</firstterm> dependents of a component, the component and all of its dependents are compiled and linked, including any test suite binaries. Gradle's
             up-to-date checks are used to only compile or link if something has changed.  For instance, if you have changed source files in a way that do not affect the headers of your project,
@@ -254,6 +270,9 @@
             <sample id="nativeDependentComponentsReport" dir="native-binaries/cunit" title="Dependent components report">
                 <output args="dependentComponents"/>
             </sample>
+            <note>
+                See <apilink class="org.gradle.api.reporting.dependents.DependentComponentsReport"/> API documentation for more details.
+            </note>
             <para>
                 By default, non-buildable binaries and test suites are hidden from the report. The <userinput>dependentComponents</userinput> task provides options that allow you
                 to see all dependents by using the <literal>--all</literal> option:
@@ -262,10 +281,18 @@
                 <output args="dependentComponents --all"/>
             </sample>
             <para>
-                See <apilink class="org.gradle.api.reporting.dependents.DependentComponentsReport"/> API documentation for more details.
+                Here is the corresponding report for the <literal>operators</literal> component, showing dependents of all its binaries:
             </para>
+            <sample id="nativeAssembleDependentComponentsReport" dir="native-binaries/cunit" title="Report of components that depends on the operators component">
+                <output args="dependentComponents --component operators"/>
+            </sample>
+            <para>
+                Here is the corresponding report for the <literal>operators</literal> component, showing dependents of all its binaries, including test suites:
+            </para>
+            <sample id="nativeBuildDependentComponentsReport" dir="native-binaries/cunit" title="Report of components that depends on the operators component, including test suites">
+                <output args="dependentComponents --test-suites --component operators"/>
+            </sample>
         </section>
-
 
         <section id="sec:assemble_dependents">
             <title>Assembling dependents</title>
@@ -293,12 +320,6 @@
                 You can also assemble <emphasis>all</emphasis> of the dependents of a component (i.e. of all its binaries/variants) using the corresponding component task, e.g. <userinput>assembleDependentsOperators</userinput>. This is
                 useful if you have many combinations of build types, flavors and platforms and want to assemble all of them.
             </para>
-            <para>
-                Here is the corresponding report for the <literal>operators</literal> component, showing assemble dependents of all its binaries:
-            </para>
-            <sample id="nativeAssembleDependentComponentsReport" dir="native-binaries/cunit" title="Report of components that depends on the operators component">
-                <output args="dependentComponents --component operators"/>
-            </sample>
         </section>
 
         <section id="sec:build_dependents">
@@ -326,12 +347,6 @@
             <para>
                 You can also build <emphasis>all</emphasis> of the dependents of a component (i.e. of all its binaries/variants) using the corresponding component task, e.g. <userinput>buildDependentsOperators</userinput>.
             </para>
-            <para>
-                Here is the corresponding report for the <literal>operators</literal> component, showing build dependents of all its binaries, including test suites:
-            </para>
-            <sample id="nativeBuildDependentComponentsReport" dir="native-binaries/cunit" title="Report of components that depends on the operators component, including test suites">
-                <output args="dependentComponents --test-suites --component operators"/>
-            </sample>
         </section>
     </section>
 
