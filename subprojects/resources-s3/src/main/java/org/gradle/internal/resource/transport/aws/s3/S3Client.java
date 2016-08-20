@@ -21,6 +21,7 @@ import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
@@ -59,12 +60,20 @@ public class S3Client {
 
     public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
-        AWSCredentials credentials = awsCredentials == null ? null : new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
+        AWSCredentials credentials = null;
+        if (awsCredentials != null) {
+            if (awsCredentials.getToken() == null) {
+                credentials =  new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
+            } else {
+                   
+                credentials =  new BasicSessionCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey(), awsCredentials.getToken());
+            }
+        }
         amazonS3Client = createAmazonS3Client(credentials);
     }
 
     private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
-        AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
+        AmazonS3Client amazonS3Client = credentials == null ? new AmazonS3Client(createConnectionProperties()) : new AmazonS3Client(credentials, createConnectionProperties());
         S3ClientOptions.Builder clientOptionsBuilder = S3ClientOptions.builder();
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
