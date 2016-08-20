@@ -32,20 +32,30 @@ import org.gradle.internal.reflect.Instantiator;
 import java.io.File;
 
 /**
- * Synchronises the contents of a destination directory with some source directories and files.
+ * Synchronizes the contents of a destination directory with some source directories and files.
  *
- * <p> Examples:
+ * <p>
+ * This task is like the {@link Copy} task, except the destination directory will only contain the files
+ * copied. All files that exist in the destination directory will be deleted before copying files, unless
+ * a {@link #preserve(Action)} is specified.
+ *
+ * <p>
+ * Examples:
  * <pre autoTested=''>
  *
+ * // Sync can be used like a Copy task
+ * // See the Copy documentation for more examples
  * task syncDependencies(type: Sync) {
  *     from 'my/shared/dependencyDir'
  *     into 'build/deps/compile'
  * }
  *
- * // for preserve
+ * // You can preserve output that already exists in the
+ * // destination directory. Files matching the preserve
+ * // filter will not be deleted.
  * task sync(type: Sync) {
- *     into 'dest'
  *     from 'source'
+ *     into 'dest'
  *     preserve {
  *         include 'extraDir/**'
  *         include 'dir1/**'
@@ -100,7 +110,7 @@ public class Sync extends AbstractCopyTask {
     }
 
     /**
-     * Returns the filter that defines what files to preserve in the destination directory
+     * Returns the filter that defines which files to preserve in the destination directory.
      *
      * @return the filter defining the files to preserve
      *
@@ -113,7 +123,7 @@ public class Sync extends AbstractCopyTask {
     }
 
     /**
-     * Configures the filter that defines what files to preserve in the destination directory.
+     * Configures the filter that defines which files to preserve in the destination directory.
      *
      * @param action Action for configuring the preserve filter
      * @return this
