@@ -15,18 +15,16 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.Matchers
-import org.junit.Test
 import spock.lang.Issue
 
-class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
+class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
 
-    @Test
-    public void canExecuteAnotherBuildFromBuild() {
-        file('build.gradle') << '''
+    def canExecuteAnotherBuildFromBuild() {
+        when:
+        buildFile << '''
             assert gradle.parent == null
             task build(type: GradleBuild) {
                 dir = 'other'
@@ -35,6 +33,7 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
             }
 '''
 
+        and:
         file('other/build.gradle') << '''
             assert gradle.parent != null
             task dostuff << {
@@ -42,12 +41,13 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
             }
 '''
 
-        executer.withTasks('build').run()
+        then:
+        succeeds "build"
     }
 
-    @Test
-    public void treatsBuildSrcProjectAsANestedBuild() {
-        file('build.gradle') << '''
+    def treatsBuildSrcProjectAsANestedBuild() {
+        when:
+        buildFile << '''
             assert gradle.parent == null
             task build
 '''
@@ -60,42 +60,49 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
             }
 '''
 
-        executer.withTasks('build').run()
+        then:
+        succeeds "build"
     }
 
-    @Test
-    public void reportsNestedBuildFailure() {
+    def reportsNestedBuildFailure() {
+        when:
         TestFile other = file('other.gradle') << '''
             throw new ArithmeticException('broken')
 '''
 
-        file('build.gradle') << '''
+        buildFile << '''
             task build(type: GradleBuild) {
                 buildFile = 'other.gradle'
                 startParameter.searchUpwards = false
             }
 '''
 
-        ExecutionFailure failure = executer.withTasks('build').runWithFailure()
+        then:
+        fails "build"
+
+        and:
         failure.assertHasFileName("Build file '${other}'")
         failure.assertHasLineNumber(2)
         failure.assertThatDescription(Matchers.startsWith('A problem occurred evaluating root project'))
         failure.assertHasCause('broken')
     }
 
-    @Test
-    public void reportsBuildSrcFailure() {
+    def reportsBuildSrcFailure() {
+        when:
         file('buildSrc/src/main/java/Broken.java') << 'broken!'
-        ExecutionFailure failure = executer.runWithFailure()
+
+        then:
+        fails()
+
+        and:
         failure.assertHasDescription('Execution failed for task \':compileJava\'.')
     }
 
-    @Test
     @Issue("https://issues.gradle.org//browse/GRADLE-3052")
-    void buildTaskCanHaveInputsAndOutputs() {
+    def buildTaskCanHaveInputsAndOutputs() {
         file("input") << "foo"
-        file("settings.gradle") << "rootProject.name = 'proj'"
-        file("build.gradle") << """
+        settingsFile << "rootProject.name = 'proj'"
+        buildFile << """
             class UpperFile extends DefaultTask {
                 @InputFile
                 File input
@@ -122,8 +129,11 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationTest {
             }
         """
 
-        def run = executer.withTasks("build").run()
-        assert run.executedTasks == [":upper", ":build", ":proj:upper"]
-        assert run.skippedTasks == [":proj:upper"].toSet()
+        when:
+        succeeds "build"
+
+        then:
+        executed ":upper", ":build", ":proj:upper"
+        skippedTasks == [":proj:upper"] as Set
     }
 }
