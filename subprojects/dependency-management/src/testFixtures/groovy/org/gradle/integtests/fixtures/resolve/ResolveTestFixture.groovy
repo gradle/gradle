@@ -20,6 +20,7 @@ import com.google.common.base.Joiner
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ModuleVersionIdentifier
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.result.ComponentSelectionReason
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
@@ -90,9 +91,13 @@ allprojects {
         def expectedFirstLevel = graph.root.deps.collect { "[${it.selected.moduleVersionId}:${it.selected.configuration}]" } as Set
         compare("first level dependencies", actualFirstLevel, expectedFirstLevel)
 
-        def actualNodes = configDetails.findAll { it.startsWith('component:') }.collect { it.substring(10) }
-        def expectedNodes = graph.nodes.values().collect { "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]" }
-        compare("components in graph", actualNodes, expectedNodes)
+        def actualConfigurations = configDetails.findAll { it.startsWith('configuration:') }.collect { it.substring(14) } as Set
+        def expectedConfigurations = graph.nodesWithoutRoot.collect { "[${it.moduleVersionId}]" }
+        compare("configurations in graph", actualConfigurations, expectedConfigurations)
+
+        def actualComponents = configDetails.findAll { it.startsWith('component:') }.collect { it.substring(10) }
+        def expectedComponents = graph.nodes.collect { "[id:${it.id}][mv:${it.moduleVersionId}][reason:${it.reason}]" }
+        compare("components in graph", actualComponents, expectedComponents)
 
         def actualEdges = configDetails.findAll { it.startsWith('dependency:') }.collect { it.substring(11) }
         def expectedEdges = graph.edges.collect { "[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
@@ -118,6 +123,26 @@ allprojects {
     public static class GraphBuilder {
         private final Map<String, NodeBuilder> nodes = new LinkedHashMap<>()
         private NodeBuilder root
+
+        Collection<NodeBuilder> getNodes() {
+            return nodes.values()
+        }
+
+        Collection<NodeBuilder> getNodesWithoutRoot() {
+            def nodes = new HashSet<>()
+            visitDeps(root.deps, nodes, new HashSet<>())
+            return nodes
+        }
+
+        private void visitDeps(List<EdgeBuilder> edges, Set<NodeBuilder> nodes, Set<NodeBuilder> seen) {
+            for (EdgeBuilder edge : edges) {
+                def selected = edge.selected
+                if (seen.add(selected)) {
+                    nodes.add(selected)
+                    visitDeps(selected.deps, nodes, seen)
+                }
+            }
+        }
 
         Set<ExpectedArtifact> getArtifactNodes() {
             Set<NodeBuilder> result = new LinkedHashSet()
@@ -425,6 +450,7 @@ public class GenerateGraphTask extends DefaultTask {
             configuration.resolvedConfiguration.firstLevelModuleDependencies.each {
                 writer.println("first-level:[${it.moduleGroup}:${it.moduleName}:${it.moduleVersion}:${it.configuration}]")
             }
+            visitNodes(configuration.resolvedConfiguration.firstLevelModuleDependencies, writer, new HashSet<>())
             configuration.resolvedConfiguration.resolvedArtifacts.each {
                 writer.println("artifact:[${it.moduleVersion.id}][${it.name}${it.classifier ? "-" + it.classifier : ""}.${it.extension}]")
             }
@@ -441,6 +467,16 @@ public class GenerateGraphTask extends DefaultTask {
                     writer.println("file:${it.name}")
                 }
             }
+        }
+    }
+
+    def visitNodes(Collection<ResolvedDependency> nodes, PrintWriter writer, Set<ResolvedDependency> visited) {
+        for (ResolvedDependency node : nodes) {
+            if (!visited.add(node)) {
+                continue
+            }
+            writer.println("configuration:[${node.moduleGroup}:${node.moduleName}:${node.moduleVersion}]")
+            visitNodes(node.children, writer, visited)
         }
     }
 
