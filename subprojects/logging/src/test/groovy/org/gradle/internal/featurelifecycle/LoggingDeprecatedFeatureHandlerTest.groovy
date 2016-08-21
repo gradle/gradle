@@ -16,15 +16,19 @@
 
 package org.gradle.internal.featurelifecycle
 
+import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.SingleMessageLogger
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
+import spock.lang.Subject
+import spock.lang.Unroll
 
+@Subject(LoggingDeprecatedFeatureHandler)
 class LoggingDeprecatedFeatureHandlerTest extends Specification {
-    final outputEventListener = new TestOutputEventListener()
+    final outputEventListener = new CollectingTestOutputEventListener()
     @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
     @Rule SetSystemProperties systemProperties = new SetSystemProperties()
     final locationReporter = Mock(UsageLocationReporter)
@@ -32,19 +36,69 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
     def "logs each deprecation warning once only"() {
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage("feature1", LoggingDeprecatedFeatureHandlerTest))
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage("feature2", LoggingDeprecatedFeatureHandlerTest))
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage("feature2", LoggingDeprecatedFeatureHandlerTest))
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage("feature1", []))
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage("feature2", []))
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage("feature2", []))
 
         then:
-        outputEventListener.toString() == '[WARN feature1][WARN feature2]'
+        def events = outputEventListener.events
+        events.size() == 2
+
+        and:
+        events[0].message == 'feature1'
+        events[1].message == 'feature2'
+    }
+
+    @Unroll
+    def 'logs fake call with #deprecationTracePropertyName=#deprecationTraceProperty'() {
+        System.setProperty(deprecationTracePropertyName, ''+deprecationTraceProperty)
+
+        when:
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('fake', createFakeStackTrace()))
+        def events = outputEventListener.events
+
+        then:
+        events.size() == 1
+
+        and:
+        def message = events[0].message
+        //println message
+
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.contains('SimulatedJavaCallLocation.create')
+        message.contains('some.GradleScript.foo')
+        message.contains('some.KotlinGradleScript')
+        if(deprecationTraceProperty) {
+            assert message.contains('java.lang.reflect.Method.invoke')
+            assert message.contains('some.Class.withoutSource')
+            assert message.contains('some.Class.withNativeMethod')
+        } else {
+            assert !message.contains('java.lang.reflect.Method.invoke')
+            assert !message.contains('some.Class.withoutSource')
+            assert !message.contains('some.Class.withNativeMethod')
+        }
+
+        where:
+        deprecationTraceProperty << [true, false]
+        deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+    }
+
+    List<StackTraceElement> createFakeStackTrace() {
+        [
+            new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+            new StackTraceElement('some.Class', 'withoutSource', null, -1),
+            new StackTraceElement('some.Class', 'withNativeMethod', null, -2),
+            new StackTraceElement('some.GradleScript', 'foo', 'GradleScript.gradle', 1337),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+            new StackTraceElement('some.KotlinGradleScript', 'foo', 'GradleScript.gradle.kts', 31337),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+        ] as ArrayList<StackTraceElement>
     }
 
     def "location reporter can prepend text"() {
-        def usage = new DeprecatedFeatureUsage("feature", LoggingDeprecatedFeatureHandlerTest)
-
         when:
-        handler.deprecatedFeatureUsed(usage)
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage("feature", []))
 
         then:
         1 * locationReporter.reportLocation(_, _) >> { DeprecatedFeatureUsage param1, StringBuilder message ->
@@ -52,6 +106,8 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         }
 
         and:
-        outputEventListener.toString() == TextUtil.toPlatformLineSeparators('[WARN location\nfeature]')
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message == TextUtil.toPlatformLineSeparators('location\nfeature')
     }
 }

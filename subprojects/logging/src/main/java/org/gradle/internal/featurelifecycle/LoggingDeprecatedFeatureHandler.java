@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
@@ -58,14 +59,45 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         }
     }
 
-    private void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
+    private static final String ELEMENT_PREFIX = "    ";
+
+    private static void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
+        final String lineSeperator = SystemProperties.getInstance().getLineSeparator();
+
         if (isTraceLoggingEnabled()) {
+            // append full stack trace
             for (StackTraceElement frame : stack) {
-                message.append(SystemProperties.getInstance().getLineSeparator());
-                message.append("    ");
+                message.append(lineSeperator);
+                message.append(ELEMENT_PREFIX);
                 message.append(frame.toString());
             }
+        } else {
+            boolean first = true;
+            for (StackTraceElement frame : stack) {
+                if (first // only append the root element...
+                    || isGradleScriptElement(frame) // ... and elements originating from Gradle script files
+                    ) {
+                    message.append(lineSeperator);
+                    message.append(ELEMENT_PREFIX);
+                    message.append(frame.toString());
+                    first = false;
+                }
+            }
         }
+    }
+
+    private static boolean isGradleScriptElement(StackTraceElement element) {
+        String fileName = element.getFileName();
+        if (fileName == null) {
+            return false;
+        }
+        fileName = fileName.toLowerCase(Locale.US);
+        if (fileName.endsWith(".gradle") // ordinary Groovy Gradle script
+            || fileName.endsWith(".gradle.kts") // Kotlin Gradle script
+            ) {
+            return true;
+        }
+        return false;
     }
 
     private static boolean isTraceLoggingEnabled() {
