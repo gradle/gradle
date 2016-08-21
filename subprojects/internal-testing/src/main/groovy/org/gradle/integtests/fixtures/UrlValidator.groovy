@@ -23,14 +23,14 @@ import org.junit.Assert
 
 class UrlValidator {
 
-    static void available(String theUrl, String application = null, int timeout = 30) {
+    static void available(String theUrl, String application = "service", int timeout = 30) {
         URL url = new URL(theUrl)
         try {
             ConcurrentTestUtil.poll(timeout) {
-                assert urlIsAvailable(url)
+                assertUrlIsAvailable(url)
             }
-        } catch(AssertionError e) {
-            throw new RuntimeException(String.format("Timeout waiting for %s to become available.", application != null ? application : theUrl));
+        } catch(Throwable t) {
+            throw new RuntimeException(String.format("Timeout waiting for %s to become available at [%s].", application, theUrl), t);
         }
     }
 
@@ -42,13 +42,9 @@ class UrlValidator {
         }
     }
 
-    private static boolean urlIsAvailable(URL url) {
-        try {
-            url.text
-            return true
-        } catch (IOException e) {
-            return false
-        }
+    // Throws IOException if URL is unavailable
+    private static assertUrlIsAvailable(URL url) {
+        assert url.text != null
     }
 
     /**
