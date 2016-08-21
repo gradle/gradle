@@ -37,7 +37,6 @@ import org.gradle.internal.component.external.model.MavenDependencyMetadata;
 import org.gradle.internal.component.external.model.MavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
-import org.gradle.internal.component.model.DefaultDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
@@ -187,16 +186,16 @@ public class ModuleMetadataSerializer {
             } else if (dep instanceof MavenDependencyMetadata) {
                 MavenDependencyMetadata mavenDependency = (MavenDependencyMetadata) dep;
                 encoder.writeByte(TYPE_MAVEN);
-                writeDependencyConfigurationMapping(mavenDependency);
                 writeArtifacts(mavenDependency.getDependencyArtifacts());
                 writeExcludeRules(mavenDependency.getDependencyExcludes());
                 encoder.writeSmallInt(mavenDependency.getScope().ordinal());
+                encoder.writeBoolean(mavenDependency.isOptional());
             } else {
                 throw new IllegalStateException("Unexpected dependency type");
             }
         }
 
-        private void writeDependencyConfigurationMapping(DefaultDependencyMetadata dep) throws IOException {
+        private void writeDependencyConfigurationMapping(IvyDependencyMetadata dep) throws IOException {
             SetMultimap<String, String> confMappings = dep.getConfMappings();
             writeCount(confMappings.keySet().size());
             for (String conf : confMappings.keySet()) {
@@ -387,11 +386,11 @@ public class ModuleMetadataSerializer {
                     md.addDependency(new IvyDependencyMetadata(requested, dynamicConstraintVersion, force, changing, transitive, configMappings, artifacts, excludes));
                     break;
                 case TYPE_MAVEN:
-                    configMappings = readDependencyConfigurationMapping();
                     artifacts = readDependencyArtifactDescriptors();
                     excludes = readExcludeRules();
                     MavenScope scope = MavenScope.values()[decoder.readSmallInt()];
-                    md.addDependency(new MavenDependencyMetadata(scope, requested, configMappings, artifacts, excludes));
+                    boolean optional = decoder.readBoolean();
+                    md.addDependency(new MavenDependencyMetadata(scope, optional, requested, artifacts, excludes));
                     break;
                 default:
                     throw new IllegalArgumentException("Unexpected dependency type found.");

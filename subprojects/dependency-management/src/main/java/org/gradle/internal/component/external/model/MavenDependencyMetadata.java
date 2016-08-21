@@ -16,24 +16,109 @@
 
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.MavenScope;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.DefaultDependencyMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 
 import java.util.List;
+import java.util.Set;
 
 public class MavenDependencyMetadata extends DefaultDependencyMetadata {
     private final MavenScope scope;
+    private final boolean optional;
+    private final ImmutableSet<String> moduleConfigurations;
 
-    public MavenDependencyMetadata(MavenScope scope, ModuleVersionSelector requested, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
-        super(requested, requested.getVersion(), false, false, true, confMappings, artifacts, excludes);
+    public MavenDependencyMetadata(MavenScope scope, boolean optional, ModuleVersionSelector requested, List<Artifact> artifacts, List<Exclude> excludes) {
+        super(requested, artifacts, excludes);
         this.scope = scope;
+        this.optional = optional;
+        if (optional && scope != MavenScope.Test && scope != MavenScope.System) {
+            moduleConfigurations = ImmutableSet.of("optional");
+        } else {
+            moduleConfigurations = ImmutableSet.of(scope.name().toLowerCase());
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "dependency: " + getRequested() + ", scope: " + scope + ", optional: " + optional;
     }
 
     public MavenScope getScope() {
         return scope;
+    }
+
+    @Override
+    public Set<String> getModuleConfigurations() {
+        return moduleConfigurations;
+    }
+
+    public boolean isOptional() {
+        return optional;
+    }
+
+    @Override
+    public boolean isChanging() {
+        return false;
+    }
+
+    @Override
+    public boolean isTransitive() {
+        return true;
+    }
+
+    @Override
+    public boolean isForce() {
+        return false;
+    }
+
+    @Override
+    public String getDynamicConstraintVersion() {
+        return getRequested().getVersion();
+    }
+
+    @Override
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+        Set<ConfigurationMetadata> result = Sets.newLinkedHashSet();
+        boolean requiresCompile = fromConfiguration.getName().equals("compile");
+        if (!requiresCompile) {
+            // From every configuration other than compile, include both the runtime and compile dependencies
+            ConfigurationMetadata runtime = findTargetConfiguration(fromComponent, fromConfiguration, targetComponent, "runtime");
+            result.add(runtime);
+            requiresCompile = !runtime.getHierarchy().contains("compile");
+        }
+        if (requiresCompile) {
+            // From compile configuration, or when the target's runtime configuration does not extend from compile, include the compile dependencies
+            result.add(findTargetConfiguration(fromComponent, fromConfiguration, targetComponent, "compile"));
+        }
+        ConfigurationMetadata master = targetComponent.getConfiguration("master");
+        if (master != null && (!master.getDependencies().isEmpty() || !master.getArtifacts().isEmpty())) {
+            result.add(master);
+        }
+        return result;
+    }
+
+    private ConfigurationMetadata findTargetConfiguration(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent, String target) {
+        ConfigurationMetadata configuration = targetComponent.getConfiguration(target);
+        if (configuration == null) {
+            configuration = targetComponent.getConfiguration("default");
+            if (configuration == null) {
+                throw new ConfigurationNotFoundException(fromComponent.getComponentId(), fromConfiguration.getName(), target, targetComponent.getComponentId());
+            }
+        }
+        return configuration;
+    }
+
+    @Override
+    protected DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
+        return new MavenDependencyMetadata(scope, optional, newRequested, getDependencyArtifacts(), getDependencyExcludes());
     }
 }

@@ -16,22 +16,157 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.internal.component.external.descriptor.Artifact;
+import org.gradle.internal.component.model.ComponentResolveMetadata;
+import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ConfigurationNotFoundException;
 import org.gradle.internal.component.model.DefaultDependencyMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class IvyDependencyMetadata extends DefaultDependencyMetadata {
+    private final String dynamicConstraintVersion;
+    private final boolean force;
+    private final boolean changing;
+    private final boolean transitive;
+    private final SetMultimap<String, String> confs;
+
     public IvyDependencyMetadata(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
-        super(requested, dynamicConstraintVersion, force, changing, transitive, confMappings, artifacts, excludes);
+        super(requested, artifacts, excludes);
+        this.dynamicConstraintVersion = dynamicConstraintVersion;
+        this.force = force;
+        this.changing = changing;
+        this.transitive = transitive;
+        this.confs = ImmutableSetMultimap.copyOf(confMappings);
     }
 
     public IvyDependencyMetadata(ModuleVersionSelector requested, ListMultimap<String, String> confMappings) {
         this(requested, requested.getVersion(), false, false, true, confMappings, Collections.<Artifact>emptyList(), Collections.<Exclude>emptyList());
+    }
+
+    @Override
+    public String toString() {
+        return "dependency: " + getRequested() + ", confs: " + confs;
+    }
+
+    @Override
+    protected DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
+        return new IvyDependencyMetadata(newRequested, dynamicConstraintVersion, force, changing, transitive, confs, getDependencyArtifacts(), getDependencyExcludes());
+    }
+
+    @Override
+    public boolean isChanging() {
+        return changing;
+    }
+
+    @Override
+    public boolean isTransitive() {
+        return transitive;
+    }
+
+    @Override
+    public boolean isForce() {
+        return force;
+    }
+
+    @Override
+    public String getDynamicConstraintVersion() {
+        return dynamicConstraintVersion;
+    }
+
+    @Override
+    public Set<String> getModuleConfigurations() {
+        return confs.keySet();
+    }
+
+    public SetMultimap<String, String> getConfMappings() {
+        return confs;
+    }
+
+    @Override
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+        // TODO - all this matching stuff is constant for a given DependencyMetadata instance
+        Set<ConfigurationMetadata> targets = Sets.newLinkedHashSet();
+        boolean matched = false;
+        String fromConfigName = fromConfiguration.getName();
+        for (String config : fromConfiguration.getHierarchy()) {
+            Set<String> targetPatterns = confs.get(config);
+            if (!targetPatterns.isEmpty()) {
+                matched = true;
+            }
+            for (String targetPattern : targetPatterns) {
+                findMatches(fromComponent, targetComponent, fromConfigName, config, targetPattern, targets);
+            }
+        }
+        if (!matched) {
+            for (String targetPattern : confs.get("%")) {
+                findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets);
+            }
+        }
+
+        // TODO - this is not quite right, eg given *,!A->A;*,!B->B the result should be B->A and A->B but will in fact be B-> and A->
+        Set<String> wildcardPatterns = confs.get("*");
+        if (!wildcardPatterns.isEmpty()) {
+            boolean excludeWildcards = false;
+            for (String confName : fromConfiguration.getHierarchy()) {
+                if (confs.containsKey("!" + confName)) {
+                    excludeWildcards = true;
+                    break;
+                }
+            }
+            if (!excludeWildcards) {
+                for (String targetPattern : wildcardPatterns) {
+                    findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets);
+                }
+            }
+        }
+
+        return targets;
+    }
+    private void findMatches(ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, Set<ConfigurationMetadata> targetConfigurations) {
+        int startFallback = targetPattern.indexOf('(');
+        if (startFallback >= 0) {
+            if (targetPattern.endsWith(")")) {
+                String preferred = targetPattern.substring(0, startFallback);
+                ConfigurationMetadata configuration = targetComponent.getConfiguration(preferred);
+                if (configuration != null) {
+                    targetConfigurations.add(configuration);
+                    return;
+                }
+                targetPattern = targetPattern.substring(startFallback + 1, targetPattern.length() - 1);
+            }
+        }
+
+        if (targetPattern.equals("*")) {
+            for (String targetName : targetComponent.getConfigurationNames()) {
+                ConfigurationMetadata configuration = targetComponent.getConfiguration(targetName);
+                if (configuration.isVisible()) {
+                    targetConfigurations.add(configuration);
+                }
+            }
+            return;
+        }
+
+        if (targetPattern.equals("@")) {
+            targetPattern = patternConfiguration;
+        } else if (targetPattern.equals("#")) {
+            targetPattern = fromConfiguration;
+        }
+
+        ConfigurationMetadata configuration = targetComponent.getConfiguration(targetPattern);
+        if (configuration == null) {
+            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), fromConfiguration, targetPattern, targetComponent.getComponentId());
+        }
+        targetConfigurations.add(configuration);
     }
 }

@@ -233,7 +233,8 @@ public class GradlePomModuleDescriptorBuilder {
         // TODO - this is constant
         ConfMapper mapping = MAVEN2_CONF_MAPPING.get(scope);
         ListMultimap<String, String> confMappings = ArrayListMultimap.create();
-        mapping.addMappingConfs(confMappings, dep.isOptional());
+        boolean optional = dep.isOptional();
+        mapping.addMappingConfs(confMappings, optional);
 
         List<Artifact> artifacts = Lists.newArrayList();
         boolean hasClassifier = dep.getClassifier() != null && dep.getClassifier().length() > 0;
@@ -248,7 +249,7 @@ public class GradlePomModuleDescriptorBuilder {
 
             // here we have to assume a type and ext for the artifact, so this is a limitation
             // compared to how m2 behave with classifiers
-            String optionalizedScope = dep.isOptional() ? "optional" : scope.toString().toLowerCase();
+            String optionalizedScope = optional ? "optional" : scope.toString().toLowerCase();
 
             IvyArtifactName artifactName = new DefaultIvyArtifactName(selector.getName(), type, ext, classifier);
             artifacts.add(new Artifact(artifactName, Collections.singleton(optionalizedScope)));
@@ -274,7 +275,7 @@ public class GradlePomModuleDescriptorBuilder {
             excludes.add(rule);
         }
 
-        descriptor.addDependency(new MavenDependencyMetadata(scope, selector, confMappings, artifacts, excludes));
+        descriptor.addDependency(new MavenDependencyMetadata(scope, optional, selector, artifacts, excludes));
     }
 
     private String convertVersionFromMavenSyntax(String version) {

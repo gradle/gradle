@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.maven
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
@@ -95,7 +94,6 @@ project(':child2') {
         }
     }
 
-    @NotYetImplemented
     def "when no target configuration is specified then a dependency on maven module includes the runtime dependencies of target project that is using the Java plugin"() {
         mavenRepo.module("org.test", "m1", "1.0").publish()
         mavenRepo.module("org.test", "m2", "1.0").publish()
@@ -189,7 +187,6 @@ project(':child2') {
         }
     }
 
-    @NotYetImplemented
     def "a dependency on compile scope of maven module includes the compile dependencies of target project that is using the Java plugin"() {
         mavenRepo.module("org.test", "m1", "1.0").publish()
         mavenRepo.module("org.test", "m2", "1.0").publish()
@@ -223,8 +220,11 @@ project(':child2') {
         resolve.expectGraph {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
+                    configuration = 'compile'
                     edge('org.test:replaced:1.0', 'project :child2', 'testproject:child2:') {
                         selectedByRule()
+                        // TODO - should include artifacts
+                        noArtifacts()
                         module('org.test:m1:1.0')
                     }
                 }

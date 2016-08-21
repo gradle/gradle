@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.resolve.maven
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
@@ -137,7 +136,6 @@ dependencies {
         }
     }
 
-    @NotYetImplemented
     def "ignores missing master configuration of ivy module when consumed by maven module"() {
         def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
         def m1 = ivyRepo.module("org.test", "m1", "1.0").publish()

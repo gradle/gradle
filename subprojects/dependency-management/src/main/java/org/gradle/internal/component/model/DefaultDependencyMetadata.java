@@ -18,15 +18,10 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -43,64 +38,17 @@ import java.util.Set;
 
 public class DefaultDependencyMetadata implements DependencyMetadata {
     private final ModuleVersionSelector requested;
-    private final SetMultimap<String, String> confs;
     private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
     private final List<Exclude> excludes;
+    private final ModuleComponentSelector selector;
 
-    private final boolean changing;
-    private final boolean transitive;
-    private final boolean force;
-    private final String dynamicConstraintVersion;
-
-    public DefaultDependencyMetadata(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
+    public DefaultDependencyMetadata(ModuleVersionSelector requested, List<Artifact> artifacts, List<Exclude> excludes) {
         this.requested = requested;
-        this.changing = changing;
-        this.transitive = transitive;
-        this.force = force;
-        this.dynamicConstraintVersion = dynamicConstraintVersion;
-        this.confs = ImmutableSetMultimap.copyOf(confMappings);
         dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.artifacts = map(dependencyArtifacts);
         this.excludes = ImmutableList.copyOf(excludes);
-    }
-
-    public DefaultDependencyMetadata(ModuleVersionIdentifier moduleVersionIdentifier) {
-        this(
-            new DefaultModuleVersionSelector(moduleVersionIdentifier.getGroup(), moduleVersionIdentifier.getName(), moduleVersionIdentifier.getVersion()),
-            ImmutableSetMultimap.<String, String>of(),
-            ImmutableList.<Artifact>of(),
-            ImmutableList.<Exclude>of(),
-            moduleVersionIdentifier.getVersion(),
-            false,
-            true
-        );
-    }
-
-    public DefaultDependencyMetadata(ModuleComponentIdentifier componentIdentifier) {
-        this(
-            new DefaultModuleVersionSelector(componentIdentifier.getGroup(), componentIdentifier.getModule(), componentIdentifier.getVersion()),
-            ImmutableSetMultimap.<String, String>of(),
-            ImmutableList.<Artifact>of(),
-            ImmutableList.<Exclude>of(),
-            componentIdentifier.getVersion(),
-            false,
-            true
-        );
-    }
-
-    protected DefaultDependencyMetadata(ModuleVersionSelector requested, SetMultimap<String, String> confs,
-                                     List<Artifact> dependencyArtifacts, List<Exclude> excludes,
-                                     String dynamicConstraintVersion, boolean changing, boolean transitive) {
-        this.requested = requested;
-        this.confs = confs;
-        this.dependencyArtifacts = dependencyArtifacts;
-        this.artifacts = map(dependencyArtifacts);
-        this.excludes = excludes;
-        this.changing = changing;
-        this.transitive = transitive;
-        this.dynamicConstraintVersion = dynamicConstraintVersion;
-        this.force = false;
+        selector = DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
     }
 
     private static Set<IvyArtifactName> map(List<Artifact> dependencyArtifacts) {
@@ -115,96 +63,8 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public String toString() {
-        return "dependency: " + requested + ", confs: " + confs;
-    }
-
-    @Override
     public ModuleVersionSelector getRequested() {
         return requested;
-    }
-
-    @Override
-    public Set<String> getModuleConfigurations() {
-        return confs.keySet();
-    }
-
-    @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        // TODO - all this matching stuff is constant for a given DependencyMetadata instance
-        Set<ConfigurationMetadata> targets = Sets.newLinkedHashSet();
-        boolean matched = false;
-        String fromConfigName = fromConfiguration.getName();
-        for (String config : fromConfiguration.getHierarchy()) {
-            Set<String> targetPatterns = confs.get(config);
-            if (!targetPatterns.isEmpty()) {
-                matched = true;
-            }
-            for (String targetPattern : targetPatterns) {
-                findMatches(fromComponent, targetComponent, fromConfigName, config, targetPattern, targets);
-            }
-        }
-        if (!matched) {
-            for (String targetPattern : confs.get("%")) {
-                findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets);
-            }
-        }
-
-        // TODO - this is not quite right, eg given *,!A->A;*,!B->B the result should be B->A and A->B but will in fact be B-> and A->
-        Set<String> wildcardPatterns = confs.get("*");
-        if (!wildcardPatterns.isEmpty()) {
-            boolean excludeWildcards = false;
-            for (String confName : fromConfiguration.getHierarchy()) {
-                if (confs.containsKey("!" + confName)) {
-                    excludeWildcards = true;
-                    break;
-                }
-            }
-            if (!excludeWildcards) {
-                for (String targetPattern : wildcardPatterns) {
-                    findMatches(fromComponent, targetComponent, fromConfigName, fromConfigName, targetPattern, targets);
-                }
-            }
-        }
-
-        return targets;
-    }
-
-    private void findMatches(ComponentResolveMetadata fromComponent, ComponentResolveMetadata targetComponent, String fromConfiguration, String patternConfiguration, String targetPattern, Set<ConfigurationMetadata> targetConfigurations) {
-        int startFallback = targetPattern.indexOf('(');
-        if (startFallback >= 0) {
-            if (targetPattern.endsWith(")")) {
-                String preferred = targetPattern.substring(0, startFallback);
-                ConfigurationMetadata configuration = targetComponent.getConfiguration(preferred);
-                if (configuration != null) {
-                    targetConfigurations.add(configuration);
-                    return;
-                }
-                targetPattern = targetPattern.substring(startFallback + 1, targetPattern.length() - 1);
-            }
-        }
-
-        if (targetPattern.equals("*")) {
-            for (String targetName : targetComponent.getConfigurationNames()) {
-                ConfigurationMetadata configuration = targetComponent.getConfiguration(targetName);
-                if (configuration.isVisible()) {
-                    targetConfigurations.add(configuration);
-                }
-            }
-            return;
-        }
-
-        if (targetPattern.equals("@")) {
-            targetPattern = patternConfiguration;
-        } else if (targetPattern.equals("#")) {
-            targetPattern = fromConfiguration;
-        }
-
-        ConfigurationMetadata configuration = targetComponent.getConfiguration(targetPattern);
-        if (configuration == null) {
-            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), fromConfiguration, targetPattern, targetComponent.getComponentId());
-        }
-        targetConfigurations.add(configuration);
     }
 
     @Override
@@ -221,26 +81,6 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
             }
         }
         return rules;
-    }
-
-    @Override
-    public boolean isChanging() {
-        return changing;
-    }
-
-    @Override
-    public boolean isTransitive() {
-        return transitive;
-    }
-
-    @Override
-    public boolean isForce() {
-        return force;
-    }
-
-    @Override
-    public String getDynamicConstraintVersion() {
-        return dynamicConstraintVersion;
     }
 
     @Override
@@ -289,13 +129,6 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         return withRequested(newRequested);
     }
 
-    private DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
-        if (newRequested.equals(requested)) {
-            return this;
-        }
-        return new DefaultDependencyMetadata(newRequested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, changing, transitive);
-    }
-
     @Override
     public DependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
@@ -306,21 +139,50 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
             }
             return withRequested(requestedVersion);
         } else if (target instanceof ProjectComponentSelector) {
-            // TODO:Prezi what to do here?
             ProjectComponentSelector projectTarget = (ProjectComponentSelector) target;
-            return new DefaultProjectDependencyMetadata(projectTarget.getProjectPath(), requested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, changing, transitive);
+            return new DefaultProjectDependencyMetadata(projectTarget, this);
         } else {
-            throw new AssertionError();
+            throw new IllegalArgumentException("Unexpected selector provided: " + target);
         }
     }
 
     @Override
-    public ComponentSelector getSelector() {
-        return DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
+    public String getDynamicConstraintVersion() {
+        throw new UnsupportedOperationException();
     }
 
-    public SetMultimap<String, String> getConfMappings() {
-        return confs;
+    @Override
+    public boolean isChanging() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isTransitive() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean isForce() {
+        throw new UnsupportedOperationException();
+    }
+
+    protected DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<String> getModuleConfigurations() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ComponentSelector getSelector() {
+        return selector;
     }
 
     public List<Artifact> getDependencyArtifacts() {
