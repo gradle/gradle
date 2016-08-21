@@ -170,7 +170,7 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
     def "dependencies of non declarative plugins influence buildscript dependency resolution"() {
         given:
         [1, 2].each { n ->
-            def m = service.m2repo.module("test", "test", n)
+            def m = service.m2repo.module("test", "test", n as String)
             m.publish().allowAll()
 
             file("j$n").with {
