@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.maven
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
@@ -38,7 +39,7 @@ class MixedMavenAndIvyModulesIntegrationTest extends AbstractDependencyResolutio
 """
     }
 
-    def "a dependency on maven module consumes compile, runtime and master configurations of ivy module when they are present"() {
+    def "when no target configuration is specified then a dependency on maven module includes the compile, runtime and master configurations of required ivy module when they are present"() {
         def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
         def m1 = ivyRepo.module("org.test", "m1", "1.0")
             .configuration("compile")
@@ -89,7 +90,7 @@ dependencies {
         }
     }
 
-    def "a dependency on compile scope of maven module consumes compile, runtime and master configurations of ivy module when present"() {
+    def "a dependency on compile scope of maven module includes compile and master configurations of required ivy module when they are present"() {
         def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
         def m1 = ivyRepo.module("org.test", "m1", "1.0")
             .configuration("compile")
@@ -136,7 +137,49 @@ dependencies {
         }
     }
 
-    def "ivy module can consume maven module"() {
+    @NotYetImplemented
+    def "ignores missing master configuration of ivy module when consumed by maven module"() {
+        def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
+        def m1 = ivyRepo.module("org.test", "m1", "1.0").publish()
+        def m2 = ivyRepo.module("org.test", "m2", "1.0").publish()
+        def ivyModule = ivyRepo.module("org.test", "ivy", "1.0")
+            .configuration("compile")
+            .configuration("runtime")
+            .configuration("other")
+            .configuration("default")
+            .dependsOn(m1, conf: "compile->default")
+            .dependsOn(m2, conf: "runtime->default")
+            .dependsOn(notRequired, conf: "*,!compile,!runtime")
+            .artifact(name: "compile", conf: "compile")
+            .artifact(name: "runtime", conf: "runtime")
+            .artifact(name: 'ignore-me', conf: "other,default")
+            .publish()
+        mavenRepo.module("org.test", "maven", "1.0")
+            .dependsOn(ivyModule)
+            .publish()
+
+        buildFile << """
+dependencies {
+    conf 'org.test:maven:1.0'
+}
+"""
+        expect:
+        succeeds 'checkDep'
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module('org.test:maven:1.0') {
+                    module('org.test:ivy:1.0') {
+                        artifact(name: 'compile')
+                        artifact(name: 'runtime')
+                        module('org.test:m1:1.0')
+                        module('org.test:m2:1.0')
+                    }
+                }
+            }
+        }
+    }
+
+    def "ivy module can consume scopes of maven module"() {
         def notRequired = mavenRepo.module("org.test", "ignore-me", "1.0")
         def m1 = mavenRepo.module('org.test', 'm1', '1.0').publish()
         def m2 = mavenRepo.module('org.test', 'm2', '1.0').publish()
@@ -164,6 +207,103 @@ dependencies {
             root(':', ':testproject:') {
                 module('org.test:ivy:1.0') {
                     module('org.test:maven:1.0') {
+                        module('org.test:m1:1.0')
+                        module('org.test:m2:1.0')
+                    }
+                }
+            }
+        }
+    }
+
+    def "selects correct configuration of ivy module when dependency from consuming maven module is substituted"() {
+        def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
+        def m1 = ivyRepo.module("org.test", "m1", "1.0")
+            .configuration("compile")
+            .publish()
+        def m2 = ivyRepo.module("org.test", "m2", "1.0").publish()
+            .configuration("master")
+            .publish()
+        ivyRepo.module("org.test", "ivy", "1.2")
+            .configuration("compile")
+            .configuration("runtime")
+            .configuration("master")
+            .configuration("other")
+            .configuration("default")
+            .dependsOn(m1, conf: "compile")
+            .dependsOn(m2, conf: "master")
+            .dependsOn(notRequired, conf: "*,!compile,!master->unknown")
+            .artifact(name: "compile", conf: "compile")
+            .artifact(name: "master", conf: "master")
+            .artifact(name: 'ignore-me', conf: "other,default,runtime")
+            .publish()
+        def ivyModule = ivyRepo.module("org.test", "ivy", "1.0")
+        mavenRepo.module("org.test", "maven", "1.0")
+            .dependsOn(ivyModule)
+            .publish()
+
+        buildFile << """
+dependencies {
+    conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
+}
+configurations.conf.resolutionStrategy.force('org.test:ivy:1.2')
+"""
+        expect:
+        succeeds 'checkDep'
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module('org.test:maven:1.0') {
+                    configuration = 'compile'
+                    edge('org.test:ivy:1.0', 'org.test:ivy:1.2') {
+                        forced()
+                        artifact(name: 'compile')
+                        artifact(name: 'master')
+                        module('org.test:m1:1.0')
+                        module('org.test:m2:1.0')
+                    }
+                }
+            }
+        }
+    }
+
+    def "selects correct configuration of ivy module when dynamic dependency is used from consuming maven module"() {
+        def notRequired = ivyRepo.module("org.test", "ignore-me", "1.0")
+        def m1 = ivyRepo.module("org.test", "m1", "1.0")
+            .configuration("compile")
+            .publish()
+        def m2 = ivyRepo.module("org.test", "m2", "1.0").publish()
+            .configuration("master")
+            .publish()
+        ivyRepo.module("org.test", "ivy", "1.2")
+            .configuration("compile")
+            .configuration("runtime")
+            .configuration("master")
+            .configuration("other")
+            .configuration("default")
+            .dependsOn(m1, conf: "compile")
+            .dependsOn(m2, conf: "master")
+            .dependsOn(notRequired, conf: "*,!compile,!master->unknown")
+            .artifact(name: "compile", conf: "compile")
+            .artifact(name: "master", conf: "master")
+            .artifact(name: 'ignore-me', conf: "other,default,runtime")
+            .publish()
+        mavenRepo.module("org.test", "maven", "1.0")
+            .dependsOn("org.test", "ivy", "1.+")
+            .publish()
+
+        buildFile << """
+dependencies {
+    conf group: 'org.test', name: 'maven', version: '1.0', configuration: 'compile'
+}
+"""
+        expect:
+        succeeds 'checkDep'
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module('org.test:maven:1.0') {
+                    configuration = 'compile'
+                    edge('org.test:ivy:1.+', 'org.test:ivy:1.2') {
+                        artifact(name: 'compile')
+                        artifact(name: 'master')
                         module('org.test:m1:1.0')
                         module('org.test:m2:1.0')
                     }

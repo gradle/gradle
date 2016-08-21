@@ -298,6 +298,7 @@ allprojects {
         final String module
         final String version
         String configuration = "default"
+        private boolean implicitArtifact = true
         private final Set<ExpectedArtifact> artifacts = new LinkedHashSet<>()
         private final Set<String> reasons = new TreeSet<String>()
 
@@ -311,7 +312,7 @@ allprojects {
         }
 
         Set<ExpectedArtifact> getArtifacts() {
-            return artifacts.empty ? [new ExpectedArtifact(group: group, module: module, version: version)] : artifacts
+            return artifacts.empty && implicitArtifact ? [new ExpectedArtifact(group: group, module: module, version: version)] : artifacts
         }
 
         String getReason() {
@@ -392,6 +393,14 @@ allprojects {
             def edge = new EdgeBuilder(this, "${requested.group}:${requested.module}:${requested.version}", null)
             deps << edge
             return edge
+        }
+
+        /**
+         * Specifies that this node has no artifacts associated with it.
+         */
+        NodeBuilder noArtifacts() {
+            implicitArtifact = false
+            return this
         }
 
         /**

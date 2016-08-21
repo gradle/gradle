@@ -279,7 +279,7 @@ dependencies {
     }
 
     // This test is documenting behaviour for backwards compatibility purposes
-    def "can reference default configuration to include runtime dependencies of module"() {
+    def "can reference 'default' configuration to include runtime dependencies of module"() {
         def notRequired = mavenRepo.module('test', 'dont-include-me', '1.0')
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
         def m2 = mavenRepo.module('test', 'test2', '1.0').publish()
@@ -308,7 +308,7 @@ dependencies {
     }
 
     // This test is documenting behaviour for backwards compatibility purposes
-    def "can reference optional configuration to include optional dependencies of module"() {
+    def "can reference 'optional' configuration to include optional dependencies of module"() {
         def notRequired = mavenRepo.module('test', 'dont-include-me', '1.0')
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
         def m2 = mavenRepo.module('test', 'test2', '1.0').publish()
@@ -338,7 +338,7 @@ dependencies {
     }
 
     // This test is documenting behaviour for backwards compatibility purposes
-    def "can reference master configuration to include artifact only"() {
+    def "can reference 'master' configuration to include artifact only"() {
         def notRequired = mavenRepo.module('test', 'dont-include-me', '1.0')
         mavenRepo.module('test', 'target', '1.0')
             .dependsOn(notRequired, scope: 'compile')
@@ -361,5 +361,19 @@ dependencies {
                 }
             }
         }
+    }
+
+    def "fails when referencing a scope that does not exist"() {
+        mavenRepo.module('test', 'target', '1.0')
+            .publish()
+
+        buildFile << """
+dependencies {
+    conf group: 'test', name: 'target', version: '1.0', configuration: 'x86_windows'
+}
+"""
+        expect:
+        fails 'checkDep'
+        failure.assertHasCause("Project : declares a dependency from configuration 'conf' to configuration 'x86_windows' which is not declared in the descriptor for test:target:1.0.")
     }
 }
