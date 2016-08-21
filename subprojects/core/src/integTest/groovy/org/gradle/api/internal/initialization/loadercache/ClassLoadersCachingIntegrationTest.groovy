@@ -188,7 +188,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
     def "refreshes when buildscript classpath gets new dependency"() {
         addIsCachedCheck()
-        file("foo.jar") << "foo"
+        file("foo.jar") << testDirectory.name
 
         when:
         run()
@@ -209,7 +209,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
     def "cache shrinks as buildscript disappears"() {
         addIsCachedCheck()
-        file("foo.jar") << "foo"
+        file("foo.jar") << testDirectory.name
         buildFile << """
             buildscript { dependencies { classpath files("foo.jar") } }
 
@@ -238,7 +238,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
     def "cache shrinks when script with buildscript block is removed"() {
         addIsCachedCheck()
-        file("foo.jar") << "foo"
+        file("foo.jar") << testDirectory.name
         buildFile << """
             buildscript { dependencies { classpath files("foo.jar") } }
 

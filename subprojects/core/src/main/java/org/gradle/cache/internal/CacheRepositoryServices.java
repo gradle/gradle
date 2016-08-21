@@ -30,8 +30,11 @@ public class CacheRepositoryServices {
         this.projectCacheDir = projectCacheDir;
     }
 
-    protected CacheRepository createCacheRepository(CacheFactory factory) {
-        DefaultCacheScopeMapping scopeMapping = new DefaultCacheScopeMapping(gradleUserHomeDir, projectCacheDir, GradleVersion.current());
+    protected CacheScopeMapping createCacheScopeMapping() {
+        return new DefaultCacheScopeMapping(gradleUserHomeDir, projectCacheDir, GradleVersion.current());
+    }
+
+    protected CacheRepository createCacheRepository(CacheFactory factory, CacheScopeMapping scopeMapping) {
         return new DefaultCacheRepository(
             scopeMapping,
             factory);

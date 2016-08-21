@@ -36,6 +36,7 @@ import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.InvalidPluginException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.repository.internal.PluginRepositoryRegistry;
@@ -63,11 +64,13 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     private final PluginRegistry pluginRegistry;
     private final PluginResolverFactory pluginResolverFactory;
     private PluginRepositoryRegistry pluginRepositoryRegistry;
+    private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry) {
+    public DefaultPluginRequestApplicator(PluginRegistry pluginRegistry, PluginResolverFactory pluginResolver, PluginRepositoryRegistry pluginRepositoryRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
         this.pluginRegistry = pluginRegistry;
         this.pluginResolverFactory = pluginResolver;
         this.pluginRepositoryRegistry = pluginRepositoryRegistry;
+        this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
     public void applyPlugins(final PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, ClassLoaderScope classLoaderScope) {
@@ -188,7 +191,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private void defineScriptHandlerClassScope(ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, Iterable<PluginImplementation<?>> pluginsFromOtherLoaders) {
         ClassPath classPath = scriptHandler.getScriptClassPath();
-        classLoaderScope.export(classPath);
+        ClassPath cachedJarClassPath = cachedClasspathTransformer.transform(classPath);
+        classLoaderScope.export(cachedJarClassPath);
 
         for (PluginImplementation<?> pluginImplementation : pluginsFromOtherLoaders) {
             classLoaderScope.export(pluginImplementation.asClass().getClassLoader());

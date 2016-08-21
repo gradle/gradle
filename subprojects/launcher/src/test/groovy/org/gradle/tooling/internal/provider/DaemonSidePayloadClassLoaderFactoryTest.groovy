@@ -16,10 +16,8 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.cache.CacheBuilder
-import org.gradle.cache.CacheRepository
-import org.gradle.cache.PersistentCache
-import org.gradle.internal.Factory
+import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -29,23 +27,18 @@ class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def factory = Mock(PayloadClassLoaderFactory)
-    def jarCache = Mock(JarCache)
-    def cache = Stub(PersistentCache)
-    def cacheBuilder = Stub(CacheBuilder) {
-        open() >> cache
-        withDisplayName(_) >> { cacheBuilder }
-        withCrossVersionCache() >> { cacheBuilder }
-        withLockOptions(_) >> { cacheBuilder }
-    }
-    def cacheRepository = Stub(CacheRepository) {
-        cache(_) >> cacheBuilder
-    }
+    def classpathTransformer = Mock(CachedClasspathTransformer)
 
-    def registry = new DaemonSidePayloadClassLoaderFactory(factory, jarCache, cacheRepository)
+    def registry = new DaemonSidePayloadClassLoaderFactory(factory, classpathTransformer)
 
     def "creates ClassLoader for classpath"() {
         def url1 = new URL("http://localhost/file1.jar")
         def url2 = new URL("http://localhost/file2.jar")
+        def classpath = Mock(ClassPath)
+
+        given:
+        classpathTransformer.transform(_) >> classpath
+        classpath.getAsURLs() >> []
 
         when:
         def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec([url1, url2]), [null])
@@ -61,10 +54,11 @@ class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
         def url1 = jarFile.toURI().toURL()
         def cached = cachedJar.toURI().toURL()
         def url2 = tmpDir.createDir("classes-dir").toURI().toURL()
+        def classpath = Mock(ClassPath)
 
         given:
-        cache.useCache(_, _) >> { String display, Factory f -> f.create() }
-        jarCache.getCachedJar(jarFile, _) >> cachedJar
+        classpathTransformer.transform(_) >> classpath
+        classpath.getAsURLs() >> [ cached, url2 ]
 
         when:
         def cl = registry.getClassLoaderFor(new VisitableURLClassLoader.Spec([url1, url2]), [null])

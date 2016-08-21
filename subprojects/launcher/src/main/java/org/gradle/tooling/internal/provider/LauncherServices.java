@@ -16,7 +16,7 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.cache.CacheRepository;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.composite.CompositeBuildActionParameters;
 import org.gradle.internal.composite.CompositeBuildActionRunner;
@@ -78,19 +78,13 @@ public class LauncherServices implements PluginServiceRegistry {
         ClassLoaderCache createClassLoaderCache() {
             return new ClassLoaderCache();
         }
-
-        JarCache createJarCache() {
-            return new JarCache();
-        }
-
     }
 
     static class ToolingBuildSessionScopeServices {
-        PayloadClassLoaderFactory createClassLoaderFactory(JarCache jarCache, CacheRepository cacheRepository) {
+        PayloadClassLoaderFactory createClassLoaderFactory(CachedClasspathTransformer cachedClasspathTransformer) {
             return new DaemonSidePayloadClassLoaderFactory(
                 new ModelClassLoaderFactory(),
-                jarCache,
-                cacheRepository);
+                cachedClasspathTransformer);
         }
 
         PayloadSerializer createPayloadSerializer(ClassLoaderCache classLoaderCache, PayloadClassLoaderFactory classLoaderFactory) {
