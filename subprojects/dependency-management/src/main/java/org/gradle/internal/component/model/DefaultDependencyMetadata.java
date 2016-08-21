@@ -23,7 +23,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -36,7 +35,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
-import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -127,8 +125,8 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public String[] getModuleConfigurations() {
-        return confs.keySet().toArray(new String[confs.keySet().size()]);
+    public Set<String> getModuleConfigurations() {
+        return confs.keySet();
     }
 
     @Override
@@ -207,46 +205,6 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
             throw new ConfigurationNotFoundException(fromComponent.getComponentId(), fromConfiguration, targetPattern, targetComponent.getComponentId());
         }
         targetConfigurations.add(configuration);
-    }
-
-    @Override
-    public String[] getDependencyConfigurations(final String moduleConfiguration, final String requestedConfiguration) {
-        Set<String> mappedConfigs = Sets.newLinkedHashSet();
-
-        Set<String> matchedConfigs = confs.get(moduleConfiguration);
-        if (matchedConfigs.isEmpty()) {
-            // there is no mapping defined for this configuration, add the 'other' mappings.
-            matchedConfigs = confs.get("%");
-        }
-        mappedConfigs.addAll(matchedConfigs);
-
-        Set<String> wildcardConfigs = confs.get("*");
-        mappedConfigs.addAll(wildcardConfigs);
-
-        mappedConfigs = CollectionUtils.collect(mappedConfigs, new Transformer<String, String>() {
-            @Override
-            public String transform(String original) {
-                if (original.startsWith("@")) {
-                    return moduleConfiguration + original.substring(1);
-                }
-                if (original.startsWith("#")) {
-                    return requestedConfiguration + original.substring(1);
-                }
-                return original;
-            }
-        });
-
-        if (mappedConfigs.remove("*")) {
-            StringBuilder r = new StringBuilder("*");
-            // merge excluded configurations as one conf like *!A!B
-            for (String c : mappedConfigs) {
-                if (c.startsWith("!")) {
-                    r.append(c);
-                }
-            }
-            return new String[] {r.toString()};
-        }
-        return mappedConfigs.toArray(new String[mappedConfigs.size()]);
     }
 
     @Override

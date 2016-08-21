@@ -77,7 +77,8 @@ public abstract class AbstractDependencyDescriptorFactoryInternalTest {
 
     protected void assertDependencyDescriptorHasCommonFixtureValues(DslOriginDependencyMetadata dependencyMetadata) {
         assertEquals(TEST_IVY_EXCLUDE_RULE, dependencyMetadata.getExcludes().get(0));
-        assertThat(dependencyMetadata.getDependencyConfigurations(TEST_CONF, TEST_CONF), equalTo(WrapUtil.toArray(TEST_DEP_CONF)));
+        assertThat(dependencyMetadata.getModuleConfiguration(), equalTo(TEST_CONF));
+        assertThat(dependencyMetadata.getDependencyConfiguration(), equalTo(TEST_DEP_CONF));
         assertThat(dependencyMetadata.isTransitive(), equalTo(true));
         assertDependencyDescriptorHasArtifacts(dependencyMetadata);
     }

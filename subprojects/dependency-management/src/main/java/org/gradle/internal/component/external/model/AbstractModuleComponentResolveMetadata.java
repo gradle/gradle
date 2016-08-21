@@ -311,17 +311,15 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
 
         private boolean include(DependencyMetadata dependency) {
-            String[] moduleConfigurations = dependency.getModuleConfigurations();
             Set<String> hierarchy = getHierarchy();
-            for (int i = 0; i < moduleConfigurations.length; i++) {
-                String moduleConfiguration = moduleConfigurations[i];
+            for (String moduleConfiguration : dependency.getModuleConfigurations()) {
                 if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
                     return true;
                 }
                 if (moduleConfiguration.equals("*")) {
                     boolean include = true;
-                    for (int j = 0; j < moduleConfigurations.length && moduleConfigurations[j].startsWith("!"); j++) {
-                        if (moduleConfigurations[j].substring(1).equals(getName())) {
+                    for (String conf2 : dependency.getModuleConfigurations()) {
+                        if (conf2.startsWith("!") && conf2.substring(1).equals(getName())) {
                             include = false;
                             break;
                         }

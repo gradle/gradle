@@ -72,10 +72,10 @@ public interface DependencyMetadata {
     // TODO:ADAM - fromComponent and fromConfiguration should be implicit in this metadata
     Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent);
 
-    // The following methods all wrap an underlying method on DependencyDescriptor that we use, to help migrate away from using Ivy types.
-    String[] getModuleConfigurations();
-
-    String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration);
+    /**
+     * Returns the set of source configurations that this dependency should be attached to.
+     */
+    Set<String> getModuleConfigurations();
 
     boolean isChanging();
 

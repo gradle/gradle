@@ -94,20 +94,8 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     @Override
-    public String[] getModuleConfigurations() {
-        return new String[] {
-            moduleConfiguration
-        };
-    }
-
-    @Override
-    public String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration) {
-        if (this.moduleConfiguration.equals(moduleConfiguration)) {
-            return new String[] {
-                dependencyConfiguration
-            };
-        }
-        return new String[0];
+    public Set<String> getModuleConfigurations() {
+        return ImmutableSet.of(moduleConfiguration);
     }
 
     @Override
