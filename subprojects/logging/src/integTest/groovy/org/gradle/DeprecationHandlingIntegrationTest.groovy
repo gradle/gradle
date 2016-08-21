@@ -29,12 +29,12 @@ task broken(type: DeprecatedTask) {
 }
 
 def someFeature() {
-    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()")
+    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()") // line 10
 }
 
 class DeprecatedTask extends DefaultTask {
     def otherFeature() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("otherFeature()")
+        DeprecationLogger.nagUserOfDiscontinuedMethod("otherFeature()") // line 15
     }
 }
 """
@@ -45,9 +45,9 @@ class DeprecatedTask extends DefaultTask {
         run()
 
         then:
-        output.contains("Build file '$buildFile': line 3")
+        output.contains("Build file '$buildFile': line 10")
+        output.contains("Build file '$buildFile': line 15")
         output.count("The someFeature() method has been deprecated") == 1
-        output.contains("Build file '$buildFile': line 6")
         output.count("The otherFeature() method has been deprecated") == 1
 
         // Run again to ensure logging is reset
@@ -57,9 +57,7 @@ class DeprecatedTask extends DefaultTask {
         run()
 
         then:
-        output.contains("Build file '$buildFile': line 3")
         output.count("The someFeature() method has been deprecated") == 1
-        output.contains("Build file '$buildFile': line 6")
         output.count("The otherFeature() method has been deprecated") == 1
 
         // Not shown at quiet level
@@ -90,7 +88,7 @@ def someFeature() {
         run()
 
         then:
-        output.contains("Initialization script '$initScript': line 3")
+        output.contains("Initialization script '$initScript': line 7")
         output.count("The someFeature() method has been deprecated") == 1
         errorOutput == ""
     }
@@ -99,7 +97,7 @@ def someFeature() {
         def script = file("project.gradle") << """
 
 def someFeature() {
-    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()")
+    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()") // line 4
 }
 
 someFeature()
@@ -111,7 +109,7 @@ someFeature()
         run()
 
         then:
-        output.contains("Script '$script': line 7")
+        output.contains("Script '$script': line 4")
         output.count("The someFeature() method has been deprecated") == 1
         errorOutput == ""
     }
