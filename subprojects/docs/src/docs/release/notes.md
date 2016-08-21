@@ -10,6 +10,12 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Faster dependency resolution
+
+TBD: faster for large dependency graphs
+TBD: faster for dependencies from Maven repositories
+TBD: faster for Android builds
+
 ### Incremental build improvements
 
 #### Tracking changes in the order of input files
@@ -82,6 +88,19 @@ experience a different dependency graph than observed with earlier versions of G
 
 We do not need [JNA](https://github.com/java-native-access/jna) anymore so we removed this library from
 the Gradle distribution. Plugin authors relying on the library being present now need to ship their own.
+
+### Dependency resolution changes when a Maven module dependency is substituted with a Gradle project dependency
+
+TBD: Previously, the result would include dependencies and artifacts from all configurations of the target project, such as test compilation and runtime dependencies.
+TBD: Previously, when the target project did not have a 'runtime', 'compile' or 'master' configuration, the result would include all dependencies and artifacts from all configurations of the target project. When 'runtime' or 'compile' is not defined the 'default' configuration is used instead. A missing 'master' configuration is ignored.
+
+### Dependency resolution changes when a Maven module depends on an Ivy module
+
+TBD: Previously, when the target Ivy module did not define a 'runtime', 'compile' or 'master' configuration, the result would include all dependencies and artifacts from all configurations of the Ivy module. When 'runtime' or 'compile' is not defined the 'default' configuration is used instead. A missing 'master' configuration is ignored.
+
+### Dependency resolution result changes
+
+TBD: As a result of performance improvements, the result includes fewer `ResolvedDependency` nodes, as some nodes are merged. Previous versions of Gradle would include a `compile`, `runtime` and `master` node for transitive Maven dependencies. Gradle now includes a single `runtime` node. The same modules and artifacts are included in the result, and in the same order.
 
 ## External contributions
 
