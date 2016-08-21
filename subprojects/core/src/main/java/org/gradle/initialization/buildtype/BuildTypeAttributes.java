@@ -29,4 +29,14 @@ public interface BuildTypeAttributes {
      * Is this build a composite build?
      */
     boolean isCompositeBuild();
+
+    /**
+     * Was this build triggered by the Tooling API?
+     */
+    boolean isToolingApiBuild();
+
+    /**
+     * Is this build a tooling model request?
+     */
+    boolean isToolingModelRequest();
 }
