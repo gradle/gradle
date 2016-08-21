@@ -308,7 +308,37 @@ dependencies {
     }
 
     // This test is documenting behaviour for backwards compatibility purposes
-    def "can reference master configuration but it doesn't include anything"() {
+    def "can reference optional configuration to include optional dependencies of module"() {
+        def notRequired = mavenRepo.module('test', 'dont-include-me', '1.0')
+        def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
+        def m2 = mavenRepo.module('test', 'test2', '1.0').publish()
+        mavenRepo.module('test', 'target', '1.0')
+            .dependsOn(notRequired, scope: 'compile')
+            .dependsOn(notRequired, scope: 'runtime')
+            .dependsOn(m1, scope: 'compile', optional: true)
+            .dependsOn(m2, scope: 'runtime', optional: true)
+            .publish()
+
+        buildFile << """
+dependencies {
+    conf group: 'test', name: 'target', version: '1.0', configuration: 'optional'
+}
+"""
+        expect:
+        succeeds 'checkDep'
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module('test:target:1.0') {
+                    configuration = 'optional'
+                    module('test:test1:1.0')
+                    module('test:test2:1.0')
+                }
+            }
+        }
+    }
+
+    // This test is documenting behaviour for backwards compatibility purposes
+    def "can reference master configuration to include artifact only"() {
         def notRequired = mavenRepo.module('test', 'dont-include-me', '1.0')
         mavenRepo.module('test', 'target', '1.0')
             .dependsOn(notRequired, scope: 'compile')

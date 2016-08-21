@@ -32,8 +32,8 @@ class MavenDependencyResolveIntegrationTest extends AbstractDependencyResolution
 
     def "dependency includes main artifact and runtime dependencies of referenced module"() {
         given:
-        def other = mavenRepo().module("org.gradle", "other", "preview-1").publish()
-        mavenRepo().module("org.gradle", "test", "1.45")
+        def other = mavenRepo.module("org.gradle", "other", "preview-1").publish()
+        mavenRepo.module("org.gradle", "test", "1.45")
             .dependsOn(other)
             .artifact(classifier: 'classifier') // ignored
             .publish()
@@ -43,7 +43,7 @@ class MavenDependencyResolveIntegrationTest extends AbstractDependencyResolution
         buildFile << """
 group = 'org.gradle'
 version = '1.0'
-repositories { maven { url "${mavenRepo().uri}" } }
+repositories { maven { url "${mavenRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45"
@@ -63,8 +63,8 @@ dependencies {
 
     def "dependency that references a classifier includes the matching artifact only plus the runtime dependencies of referenced module"() {
         given:
-        def other = mavenRepo().module("org.gradle", "other", "preview-1").publish()
-        mavenRepo().module("org.gradle", "test", "1.45")
+        def other = mavenRepo.module("org.gradle", "other", "preview-1").publish()
+        mavenRepo.module("org.gradle", "test", "1.45")
             .dependsOn(other)
             .artifact(classifier: 'classifier')
             .artifact(classifier: 'some-other') // ignored
@@ -74,7 +74,7 @@ dependencies {
         buildFile << """
 group = 'org.gradle'
 version = '1.0'
-repositories { maven { url "${mavenRepo().uri}" } }
+repositories { maven { url "${mavenRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "org.gradle:test:1.45:classifier"
@@ -95,8 +95,8 @@ dependencies {
 
     def "dependency that references an artifact includes the matching artifact only plus the runtime dependencies of referenced module"() {
         given:
-        def other = mavenRepo().module("org.gradle", "other", "preview-1").publish()
-        mavenRepo().module("org.gradle", "test", "1.45")
+        def other = mavenRepo.module("org.gradle", "other", "preview-1").publish()
+        mavenRepo.module("org.gradle", "test", "1.45")
             .dependsOn(other)
             .artifact(type: 'aar', classifier: 'classifier')
             .publish()
@@ -105,7 +105,7 @@ dependencies {
         buildFile << """
 group = 'org.gradle'
 version = '1.0'
-repositories { maven { url "${mavenRepo().uri}" } }
+repositories { maven { url "${mavenRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile ("org.gradle:test:1.45") {
@@ -126,6 +126,33 @@ dependencies {
                     artifact(type: 'aar', classifier: 'classifier')
                     module("org.gradle:other:preview-1")
                 }
+            }
+        }
+    }
+
+    def "does not include optional dependencies of maven module"() {
+        given:
+        def notRequired = mavenRepo.module("org.gradle", "i-do-not-exist", "1.0")
+        mavenRepo.module("org.gradle", "test", "1.45")
+            .dependsOn(notRequired, optional: true)
+            .dependsOn(notRequired, optional: true, scope: 'runtime')
+            .publish()
+
+        and:
+
+        buildFile << """
+repositories { maven { url "${mavenRepo.uri}" } }
+configurations { compile }
+dependencies {
+    compile "org.gradle:test:1.45"
+}
+"""
+
+        expect:
+        succeeds "checkDep"
+        resolve.expectGraph {
+            root(':', ':testproject:') {
+                module("org.gradle:test:1.45")
             }
         }
     }
@@ -202,14 +229,14 @@ task check << {
 
     def "dependency with wildcard exclusions is treated as non-transitive"() {
         given:
-        def thirdLevel = mavenRepo().module("org.gradle", "thirdLevel", "1.0").publish()
-        def secondLevel = mavenRepo().module("org.gradle", "secondLevel", "1.0").dependsOn(thirdLevel).publish()
-        def firstLevel = mavenRepo().module("org.gradle", "firstLevel", "1.0").dependsOn(secondLevel.groupId,
+        def thirdLevel = mavenRepo.module("org.gradle", "thirdLevel", "1.0").publish()
+        def secondLevel = mavenRepo.module("org.gradle", "secondLevel", "1.0").dependsOn(thirdLevel).publish()
+        def firstLevel = mavenRepo.module("org.gradle", "firstLevel", "1.0").dependsOn(secondLevel.groupId,
             secondLevel.artifactId, secondLevel.version, null, null, null, [[groupId: '*', artifactId: '*']]).publish()
 
         and:
         buildFile << """
-repositories { maven { url "${mavenRepo().uri}" } }
+repositories { maven { url "${mavenRepo.uri}" } }
 configurations { compile }
 dependencies {
     compile "$firstLevel.groupId:$firstLevel.artifactId:$firstLevel.version"
