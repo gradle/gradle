@@ -25,6 +25,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.initialization.buildtype.MutableBuildTypeAttributes;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.event.ListenerManager;
@@ -149,6 +150,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);
         SettingsLoader settingsLoader = nestedInstance ? settingsLoaderFactory.forNestedBuild() : settingsLoaderFactory.forTopLevelBuild();
+
+        if (nestedInstance) {
+            MutableBuildTypeAttributes buildTypeAttributes = serviceRegistry.get(MutableBuildTypeAttributes.class);
+            buildTypeAttributes.markNestedBuild();
+        }
 
         GradleInternal gradle = serviceRegistry.get(Instantiator.class).newInstance(DefaultGradle.class, tracker.getCurrentBuild(), startParameter, serviceRegistry.get(ServiceRegistryFactory.class));
         return new DefaultGradleLauncher(
