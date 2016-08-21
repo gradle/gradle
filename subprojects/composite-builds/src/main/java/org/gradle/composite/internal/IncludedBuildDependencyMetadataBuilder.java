@@ -36,7 +36,6 @@ import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
-import org.gradle.internal.invocation.BuildController;
 
 import java.io.File;
 import java.util.Set;
