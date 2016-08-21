@@ -35,7 +35,4 @@ public interface LocalOriginDependencyMetadata extends DependencyMetadata {
 
     @Override
     LocalOriginDependencyMetadata withTarget(ComponentSelector target);
-
-    @Override
-    LocalOriginDependencyMetadata withChanging();
 }

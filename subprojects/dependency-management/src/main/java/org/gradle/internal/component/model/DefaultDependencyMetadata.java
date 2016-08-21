@@ -315,15 +315,6 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public DependencyMetadata withChanging() {
-        if (changing) {
-            return this;
-        }
-
-        return new DefaultDependencyMetadata(requested, confs, dependencyArtifacts, excludes, dynamicConstraintVersion, true, transitive);
-    }
-
-    @Override
     public ComponentSelector getSelector() {
         return DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
     }

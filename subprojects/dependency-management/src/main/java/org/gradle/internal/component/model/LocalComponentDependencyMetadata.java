@@ -174,12 +174,4 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
         return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
-
-    @Override
-    public LocalOriginDependencyMetadata withChanging() {
-        if (isChanging()) {
-            return this;
-        }
-        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, true, transitive);
-    }
 }

@@ -74,27 +74,6 @@ class DefaultDependencyMetadataTest extends Specification {
         metadata.withTarget(DefaultModuleComponentSelector.newSelector("org", "module", "1.2+")).is(metadata)
     }
 
-    def "can set changing flag"() {
-        def metadata = new DefaultDependencyMetadata(id)
-
-        expect:
-        !metadata.changing
-
-        when:
-        def copy = metadata.withChanging()
-
-        then:
-        copy.requested == requested
-        copy.changing
-    }
-
-    def "returns this when changing is already true"() {
-        def metadata = new DefaultDependencyMetadata(id).withChanging()
-
-        expect:
-        metadata.withChanging().is(metadata)
-    }
-
     def "selects no configurations when no configuration mappings provided"() {
         def fromComponent = Stub(ComponentResolveMetadata)
         def toComponent = Stub(ComponentResolveMetadata)

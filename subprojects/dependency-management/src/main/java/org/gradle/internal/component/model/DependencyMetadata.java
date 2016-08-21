@@ -49,11 +49,6 @@ public interface DependencyMetadata {
     DependencyMetadata withTarget(ComponentSelector target);
 
     /**
-     * Returns a copy of this dependency with the changing flag set.
-     */
-    DependencyMetadata withChanging();
-
-    /**
      * Returns the component selector for this dependency.
      *
      * @return Component selector
