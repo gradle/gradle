@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.FilteringClassLoader;
 
 public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
@@ -27,6 +28,7 @@ public class DefaultClassLoaderRegistry implements ClassLoaderRegistry {
     private final ClassLoader pluginsClassLoader;
 
     public DefaultClassLoaderRegistry(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory) {
+        ClassLoaderUtils.disableUrlConnectionCaching();
         ClassLoader runtimeClassLoader = getClass().getClassLoader();
         this.apiOnlyClassLoader = restrictToGradleApi(runtimeClassLoader, classLoaderFactory);
         this.pluginsClassLoader = new MixInLegacyTypesClassLoader(runtimeClassLoader, classPathRegistry.getClassPath("GRADLE_EXTENSIONS"));
