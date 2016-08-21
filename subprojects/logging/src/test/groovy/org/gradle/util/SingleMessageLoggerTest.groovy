@@ -17,14 +17,17 @@
 package org.gradle.util
 
 import org.gradle.internal.Factory
+import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.logging.TestOutputEventListener
 import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import org.junit.Rule
+import spock.lang.Subject
 
+@Subject(SingleMessageLogger)
 class SingleMessageLoggerTest extends ConcurrentSpec {
-    final TestOutputEventListener outputEventListener = new TestOutputEventListener()
-    @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+    final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
     def cleanup() {
         SingleMessageLogger.reset()
@@ -36,18 +39,23 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         SingleMessageLogger.nagUserWith("nag")
 
         then:
-        outputEventListener.toString() == '[WARN nag]'
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message.startsWith('nag')
 
         when:
         SingleMessageLogger.reset()
         SingleMessageLogger.nagUserWith("nag")
 
         then:
-        outputEventListener.toString() == '[WARN nag][WARN nag]'
+        events.size() == 2
+        events[0].message.startsWith('nag')
+        events[1].message.startsWith('nag')
     }
 
     def "does not log warning while disabled with factory"() {
-        Factory<String> factory = Mock()
+        given:
+        Factory<String> factory = Mock(Factory)
 
         when:
         def result = SingleMessageLogger.whileDisabled(factory)
@@ -63,11 +71,12 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         0 * _
 
         and:
-        outputEventListener.toString().length() == 0
+        outputEventListener.events.empty
     }
 
     def "does not log warning while disabled with action"() {
-        Runnable action = Mock()
+        given:
+        def action = Mock(Runnable)
 
         when:
         SingleMessageLogger.whileDisabled(action)
@@ -77,7 +86,7 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         0 * _
 
         and:
-        outputEventListener.toString().length() == 0
+        outputEventListener.events.empty
     }
 
     def "warnings are disabled for the current thread only"() {
@@ -98,7 +107,9 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         }
 
         then:
-        outputEventListener.toString() == '[WARN nag]'
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message.startsWith('nag')
     }
 
     def "deprecation message has next major version"() {
@@ -109,6 +120,8 @@ class SingleMessageLoggerTest extends ConcurrentSpec {
         SingleMessageLogger.nagUserOfDeprecated("foo", "bar")
 
         then:
-        outputEventListener.toString() == "[WARN foo has been deprecated and is scheduled to be removed in Gradle ${major.version}. bar.]"
+        def events = outputEventListener.events
+        events.size() == 1
+        events[0].message.startsWith("foo has been deprecated and is scheduled to be removed in Gradle ${major.version}. bar.")
     }
 }
