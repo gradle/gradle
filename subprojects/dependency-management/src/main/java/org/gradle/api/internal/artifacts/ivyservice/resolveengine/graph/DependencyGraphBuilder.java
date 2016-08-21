@@ -181,7 +181,6 @@ public class DependencyGraphBuilder {
         // Visit the nodes
         for (ConfigurationNode resolvedConfiguration : resolveState.getConfigurationNodes()) {
             if (resolvedConfiguration.isSelected()) {
-                resolvedConfiguration.validate();
                 listener.visitNode(resolvedConfiguration);
             }
         }
@@ -832,15 +831,6 @@ public class DependencyGraphBuilder {
                     dependency.restart(selected);
                 }
                 incomingEdges.clear();
-            }
-        }
-
-        public void validate() {
-            for (DependencyEdge incomingEdge : incomingEdges) {
-                ConfigurationNode fromNode = incomingEdge.from;
-                if (!fromNode.isSelected()) {
-                    throw new IllegalStateException(String.format("Unexpected state %s for parent node for dependency from %s to %s.", fromNode.moduleRevision.state, fromNode, this));
-                }
             }
         }
 
