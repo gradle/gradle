@@ -59,7 +59,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         }
     }
 
-    private static final String ELEMENT_PREFIX = "    ";
+    private static final String ELEMENT_PREFIX = "\tat ";
 
     private static void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
         final String lineSeperator = SystemProperties.getInstance().getLineSeparator();
