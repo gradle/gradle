@@ -97,10 +97,13 @@ public class ApplicationPlugin implements Plugin<Project> {
             @Override
             public void execute(Task task) {
                 Sync sync = (Sync) task;
-                HashMap<String, Object> args = new HashMap<String, Object>();
-                args.put("file", "" + sync.getDestinationDir().getAbsolutePath() + "/bin/" + pluginConvention.getApplicationName());
-                args.put("perm", "ugo+x");
-                project.getAnt().invokeMethod("chmod", args);
+                File binDir = new File(sync.getDestinationDir(), "bin");
+                if (binDir.isDirectory()) {
+                    HashMap<String, Object> args = new HashMap<String, Object>();
+                    args.put("file", binDir.getAbsolutePath() + File.separator + pluginConvention.getApplicationName());
+                    args.put("perm", "ugo+x");
+                    project.getAnt().invokeMethod("chmod", args);
+                }
             }
         });
     }
