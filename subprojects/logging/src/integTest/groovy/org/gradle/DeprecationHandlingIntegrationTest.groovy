@@ -17,8 +17,26 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
+
+    @Ignore("This would break with Gradle 4.0.")
+    def "upToDateWhen deprecation is detected."() {
+        buildFile << """
+task binZip(type: Zip) {
+    outputs.file('build/some').upToDateWhen { false }
+    into('some')
+}
+"""
+        when:
+        executer.expectDeprecationWarning()
+        run()
+
+        then:
+        output.contains('build.gradle:3)')
+    }
+
     def "reports first usage of deprecated feature from a build script"() {
         buildFile << """
 
