@@ -17,8 +17,6 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.ProjectSensitiveToolingModelBuilder;
