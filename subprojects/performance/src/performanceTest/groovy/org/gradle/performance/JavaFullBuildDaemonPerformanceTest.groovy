@@ -30,7 +30,7 @@ class JavaFullBuildDaemonPerformanceTest extends AbstractCrossVersionPerformance
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = ['clean', 'build']
-        runner.targetVersions = ['2.11', 'last']
+        runner.targetVersions = targetVersions
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:
