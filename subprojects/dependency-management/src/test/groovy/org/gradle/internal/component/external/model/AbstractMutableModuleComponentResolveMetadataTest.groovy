@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
@@ -113,7 +114,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def dependency(String org, String module, String version) {
-        moduleDescriptor.addDependency(newSelector(org, module, version))
+        moduleDescriptor.addDependency(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of()))
     }
 
     def configuration(String name, List<String> extendsFrom = []) {

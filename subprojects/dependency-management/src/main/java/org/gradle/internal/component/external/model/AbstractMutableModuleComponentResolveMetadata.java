@@ -20,16 +20,13 @@ import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.external.descriptor.Dependency;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
-import org.gradle.internal.component.model.DefaultDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.util.CollectionUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.gradle.internal.component.model.ComponentResolveMetadata.DEFAULT_STATUS_SCHEME;
@@ -42,15 +39,15 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     private String status;
     private List<String> statusScheme = DEFAULT_STATUS_SCHEME;
     private ModuleSource moduleSource;
-    private List<DependencyMetadata> dependencies;
+    private List<? extends DependencyMetadata> dependencies;
     private List<ModuleComponentArtifactMetadata> artifacts;
 
-    public AbstractMutableModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor) {
         this.descriptor = moduleDescriptor;
         this.componentId = componentIdentifier;
         this.id = DefaultModuleVersionIdentifier.newId(componentIdentifier);
         this.status = moduleDescriptor.getStatus();
-        this.dependencies = populateDependenciesFromDescriptor(moduleDescriptor);
+        this.dependencies = moduleDescriptor.getDependencies();
     }
 
     protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentResolveMetadata metadata) {
@@ -63,15 +60,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
         this.moduleSource = metadata.getSource();
         this.artifacts = metadata.getArtifacts();
         this.dependencies = metadata.getDependencies();
-    }
-
-    private static List<DependencyMetadata> populateDependenciesFromDescriptor(ModuleDescriptorState moduleDescriptor) {
-        List<Dependency> dependencies = moduleDescriptor.getDependencies();
-        List<DependencyMetadata> result = new ArrayList<DependencyMetadata>(dependencies.size());
-        for (Dependency dependency : dependencies) {
-            result.add(new DefaultDependencyMetadata(dependency));
-        }
-        return result;
     }
 
     @Override
@@ -153,7 +141,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     }
 
     @Override
-    public List<DependencyMetadata> getDependencies() {
+    public List<? extends DependencyMetadata> getDependencies() {
         return dependencies;
     }
 

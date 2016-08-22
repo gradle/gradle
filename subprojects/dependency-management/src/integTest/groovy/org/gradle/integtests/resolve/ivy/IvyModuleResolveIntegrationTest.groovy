@@ -85,6 +85,59 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.2.jar', 'projectB-other-1.6.jar', 'projectD-1.0.jar')
     }
 
+    def "fails when project dependency references a configuration that does not exist"() {
+        ivyRepo.module('test', 'target', '1.0').publish()
+
+        buildFile << """
+configurations {
+    compile
+}
+repositories {
+    ivy { url "${ivyRepo.uri}" }
+}
+dependencies {
+    compile group: 'test', name: 'target', version: '1.0', configuration: 'x86_windows'
+}
+task retrieve(type: Sync) {
+  from configurations.compile
+  into 'libs'
+}
+"""
+
+        expect:
+        fails 'retrieve'
+        failure.assertHasCause("Project : declares a dependency from configuration 'compile' to configuration 'x86_windows' which is not declared in the descriptor for test:target:1.0.")
+    }
+
+    def "fails when ivy module references a configuration that does not exist"() {
+        def b = ivyRepo.module('test', 'b', '1.0').publish()
+        ivyRepo.module('test', 'a', '1.0')
+        ivyRepo.module('test', 'target', '1.0')
+            .configuration('something')
+            .dependsOn(b, conf: 'something->unknown')
+            .publish()
+
+        buildFile << """
+configurations {
+    compile
+}
+repositories {
+    ivy { url "${ivyRepo.uri}" }
+}
+dependencies {
+    compile group: 'test', name: 'target', version: '1.0', configuration: 'something'
+}
+task retrieve(type: Sync) {
+  from configurations.compile
+  into 'libs'
+}
+"""
+
+        expect:
+        fails 'retrieve'
+        failure.assertHasCause("Test:target:1.0 declares a dependency from configuration 'something' to configuration 'unknown' which is not declared in the descriptor for test:b:1.0.")
+    }
+
     @Unroll
     def "correctly handles configuration mapping rule '#rule'"() {
         given:
@@ -249,6 +302,14 @@ task retrieve(type: Sync) {
         moduleWithNoMetaData.jar.expectHead()
         moduleWithMetaData.ivy.expectGet()
         moduleWithMetaData.jar.expectGet()
+        succeeds "retrieve"
+
+        then:
+        file("libs").assertHasDescendants("test-1.45.jar")
+        file("libs/test-1.45.jar").assertIsCopyOf(moduleWithMetaData.jarFile)
+
+        when:
+        server.resetExpectations()
         succeeds "retrieve"
 
         then:

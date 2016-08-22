@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.ReportedException;
+import org.gradle.initialization.buildtype.MutableBuildTypeAttributes;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
@@ -39,6 +40,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalModelResult;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
@@ -97,6 +99,9 @@ public class BuildModelActionRunner implements BuildActionRunner {
 
         Object modelResult = null;
         try {
+            boolean isModelRequest = !buildModelAction.getModelName().equals(ModelIdentifier.NULL_MODEL);
+            gradle.getServices().get(MutableBuildTypeAttributes.class).markToolingApiBuild(isModelRequest);
+
             if (buildModelAction.isRunTasks()) {
                 buildController.run();
             } else {

@@ -174,7 +174,7 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
                     td().text("").end();
                 } else {
                     Amount<T> value = data.getAverage();
-                    Amount<T> stddev = data.getStddev();
+                    Amount<T> stddev = data.getStandardError();
                     String classAttr = "numeric";
                     if (value.equals(min)) {
                         classAttr += " min-value";

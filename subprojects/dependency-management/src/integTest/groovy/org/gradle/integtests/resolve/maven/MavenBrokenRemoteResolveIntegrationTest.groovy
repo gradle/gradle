@@ -72,6 +72,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from multiple missing modules"() {
@@ -121,6 +127,12 @@ Required by:
         moduleA.artifact.expectGet()
         moduleB.pom.expectGet()
         moduleB.artifact.expectGet()
+
+        then:
+        succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds('showMissing')
@@ -202,6 +214,12 @@ Required by:
 
         then:
         succeeds('showMissing')
+
+        when:
+        server.resetExpectations()
+
+        then:
+        succeeds('showMissing')
     }
 
     public void "reports and recovers from failed POM download"() {
@@ -236,6 +254,12 @@ task showBroken << { println configurations.broken.files }
         server.resetExpectations()
         module.pom.expectGet()
         module.artifact.expectGet()
+
+        then:
+        succeeds("showBroken")
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds("showBroken")
@@ -274,6 +298,13 @@ task retrieve(type: Sync) {
         when:
         server.resetExpectations()
         module.artifact.expectGet()
+
+        then:
+        succeeds "retrieve"
+        file('libs').assertHasDescendants('projectA-1.2.jar')
+
+        when:
+        server.resetExpectations()
 
         then:
         succeeds "retrieve"

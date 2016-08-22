@@ -14,38 +14,40 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.runtimeshaded
+package org.gradle.api.internal.cache
 
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.FileLockManager
-import org.gradle.internal.logging.progress.ProgressLoggerFactory
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GFileUtils
+
+import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+
 import org.gradle.util.GradleVersion
+
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+
 import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static RuntimeShadedJarFactory.CACHE_DISPLAY_NAME
-import static RuntimeShadedJarFactory.CACHE_KEY
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
+import static org.gradle.api.internal.cache.GeneratedGradleJarCache.CACHE_DISPLAY_NAME
+import static org.gradle.api.internal.cache.GeneratedGradleJarCache.CACHE_KEY
 
-class RuntimeShadedJarFactoryTest extends Specification {
+class GeneratedGradleJarCacheTest extends Specification {
 
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
 
     def cacheRepository = Mock(CacheRepository)
-    def progressLoggerFactory = Mock(ProgressLoggerFactory)
     def gradleVersion = GradleVersion.current().version
     def cacheBuilder = Mock(CacheBuilder)
     def cache = Mock(PersistentCache)
 
     def "can close cache"() {
         when:
-        def provider = new RuntimeShadedJarFactory(cacheRepository, progressLoggerFactory, gradleVersion)
+        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
         provider.close()
 
         then:
@@ -57,19 +59,18 @@ class RuntimeShadedJarFactoryTest extends Specification {
     }
 
     @Unroll
-    def "creates JAR file on demand for name '#gradleImplDepsJar.identifier'"(RuntimeShadedJarType type) {
+    def "creates JAR file on demand for identifier '#identifier'"(String identifier) {
         def cacheDir = tmpDir.testDirectory
-        def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
-        def jarFile = cacheDir.file("gradle-${type.identifier}-${gradleVersion}.jar")
+        def jarFile = cacheDir.file("gradle-${identifier}-${gradleVersion}.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
 
         when:
-        def provider = new RuntimeShadedJarFactory(cacheRepository, progressLoggerFactory, gradleVersion)
-        def resolvedFile = provider.get(type, [jar])
+        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
+        def resolvedFile = provider.get(identifier) { it.createNewFile() }
 
         then:
-        1 * cacheRepository.cache(RuntimeShadedJarFactory.CACHE_KEY) >> cacheBuilder
+        1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
@@ -78,22 +79,21 @@ class RuntimeShadedJarFactoryTest extends Specification {
         jarFile == resolvedFile
 
         where:
-        type << RuntimeShadedJarType.values()
+        identifier << ["api", "test-kit"]
     }
 
     def "reuses existing JAR file if existent"() {
         def cacheDir = tmpDir.testDirectory
-        def jar = tmpDir.createDir('originalJars').file('mydep-1.2.jar')
         def jarFile = cacheDir.file("gradle-api-${gradleVersion}.jar")
         def cacheBuilder = Mock(CacheBuilder)
         def cache = Mock(PersistentCache)
 
         when:
-        def provider = new RuntimeShadedJarFactory(cacheRepository, progressLoggerFactory, gradleVersion)
-        def resolvedFile = provider.get(RuntimeShadedJarType.API, [jar])
+        def provider = new DefaultGeneratedGradleJarCache(cacheRepository, gradleVersion)
+        def resolvedFile = provider.get("api") { it.createNewFile() }
 
         then:
-        1 * cacheRepository.cache(RuntimeShadedJarFactory.CACHE_KEY) >> cacheBuilder
+        1 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
         1 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         1 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         1 * cacheBuilder.open() >> { cache }
@@ -103,10 +103,10 @@ class RuntimeShadedJarFactoryTest extends Specification {
 
         when:
         GFileUtils.touch(jarFile)
-        resolvedFile = provider.get(RuntimeShadedJarType.API, [jar])
+        resolvedFile = provider.get("api") { Assert.fail("Should not be called if file already exists") }
 
         then:
-        0 * cacheRepository.cache(RuntimeShadedJarFactory.CACHE_KEY) >> cacheBuilder
+        0 * cacheRepository.cache(CACHE_KEY) >> cacheBuilder
         0 * cacheBuilder.withDisplayName(CACHE_DISPLAY_NAME) >> cacheBuilder
         0 * cacheBuilder.withLockOptions(mode(FileLockManager.LockMode.None)) >> cacheBuilder
         0 * cacheBuilder.open() >> { cache }

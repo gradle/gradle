@@ -20,8 +20,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata
+import org.gradle.internal.component.local.model.DslOriginDependencyMetadata
 import org.gradle.internal.component.model.Exclude
 import spock.lang.Specification
 
@@ -50,7 +50,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
     }
 
     def "adds dependencies from configuration"() {
-        def dependencyDescriptor = Mock(DependencyMetadata)
+        def dependencyDescriptor = Mock(DslOriginDependencyMetadata)
         def dependency = Mock(ModuleDependency)
 
         when:

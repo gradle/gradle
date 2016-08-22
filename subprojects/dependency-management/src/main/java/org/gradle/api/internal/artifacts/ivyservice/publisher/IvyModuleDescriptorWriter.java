@@ -16,13 +16,10 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.publisher;
 
-import org.gradle.internal.component.external.model.IvyModuleArtifactPublishMetadata;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
+import org.gradle.internal.component.external.model.IvyModulePublishMetadata;
 
 import java.io.File;
-import java.util.Collection;
 
 public interface IvyModuleDescriptorWriter {
-    void write(ModuleDescriptorState md, File output);
-    void write(ModuleDescriptorState md, Collection<IvyModuleArtifactPublishMetadata> artifacts, File output);
+    void write(IvyModulePublishMetadata module, File output);
 }

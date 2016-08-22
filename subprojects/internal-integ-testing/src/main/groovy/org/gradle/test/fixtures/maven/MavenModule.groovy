@@ -42,7 +42,9 @@ interface MavenModule extends Module {
 
     MavenModule dependsOnModules(String... dependencyArtifactIds)
 
-    MavenModule dependsOn(MavenModule module)
+    MavenModule dependsOn(Module module)
+
+    MavenModule dependsOn(Map<String, ?> attributes, Module module)
 
     MavenModule dependsOn(String group, String artifactId, String version)
 

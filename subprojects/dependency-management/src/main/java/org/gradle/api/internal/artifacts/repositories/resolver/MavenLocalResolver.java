@@ -21,7 +21,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataPa
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
-import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.local.FileStore;
@@ -43,16 +42,16 @@ public class MavenLocalResolver extends MavenResolver {
 
     @Override
     @Nullable
-    protected MutableModuleComponentResolveMetadata parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
-        MutableModuleComponentResolveMetadata metaData = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
-        if (metaData == null) {
+    protected MutableMavenModuleResolveMetadata parseMetaDataFromArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
+        MutableMavenModuleResolveMetadata metadata = super.parseMetaDataFromArtifact(moduleComponentIdentifier, artifactResolver, result);
+        if (metadata == null) {
             return null;
         }
 
-        if (isOrphanedPom(mavenMetaData(metaData), artifactResolver)) {
+        if (isOrphanedPom(metadata, artifactResolver)) {
             return null;
         }
-        return metaData;
+        return metadata;
     }
 
     private boolean isOrphanedPom(MutableMavenModuleResolveMetadata metaData, ExternalResourceArtifactResolver artifactResolver) {

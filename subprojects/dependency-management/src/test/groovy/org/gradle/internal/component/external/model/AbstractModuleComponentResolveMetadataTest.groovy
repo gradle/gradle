@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model
 
+import com.google.common.collect.ImmutableListMultimap
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
@@ -81,11 +82,11 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
         given:
         configuration("super")
         configuration("conf", ["super"])
-        dependency("org", "module", "1.1").addDependencyConfiguration("conf", "a")
-        dependency("org", "module", "1.2").addDependencyConfiguration("*", "b")
-        dependency("org", "module", "1.3").addDependencyConfiguration("super", "c")
-        dependency("org", "module", "1.4").addDependencyConfiguration("other", "d")
-        dependency("org", "module", "1.5").addDependencyConfiguration("%", "e")
+        dependency("org", "module", "1.1", "conf", "a")
+        dependency("org", "module", "1.2", "*", "b")
+        dependency("org", "module", "1.3", "super", "c")
+        dependency("org", "module", "1.4", "other", "d")
+        dependency("org", "module", "1.5", "%", "e")
 
         when:
         def md = metadata
@@ -160,7 +161,11 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     }
 
     def dependency(String org, String module, String version) {
-        moduleDescriptor.addDependency(newSelector(org, module, version))
+        moduleDescriptor.addDependency(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of()))
+    }
+
+    def dependency(String org, String module, String version, String fromConf, String toConf) {
+        moduleDescriptor.addDependency(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of(fromConf, toConf)))
     }
 
     def artifact(String name, List<String> confs = []) {

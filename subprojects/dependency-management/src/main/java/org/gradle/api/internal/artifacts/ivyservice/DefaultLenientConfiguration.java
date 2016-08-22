@@ -15,7 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.LenientConfiguration;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.ResolveException;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifacts;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.oldresult.TransientConfigurationResults;
 import org.gradle.api.specs.Spec;
@@ -27,7 +34,14 @@ import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Deque;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class DefaultLenientConfiguration implements LenientConfiguration {
     private CacheLockingManager cacheLockingManager;
@@ -79,6 +93,22 @@ public class DefaultLenientConfiguration implements LenientConfiguration {
             }
         }
         return matches;
+    }
+
+    public Set<ResolvedDependency> getAllDependencies() {
+        Set<ResolvedDependency> resolvedElements = new LinkedHashSet<ResolvedDependency>();
+        Deque<ResolvedDependency> workQueue = new LinkedList<ResolvedDependency>();
+        workQueue.addAll(loadTransientGraphResults().getRoot().getChildren());
+        while (!workQueue.isEmpty()) {
+            ResolvedDependency item = workQueue.removeFirst();
+            if (resolvedElements.add(item)) {
+                final Set<ResolvedDependency> children = item.getChildren();
+                if (children != null) {
+                    workQueue.addAll(children);
+                }
+            }
+        }
+        return resolvedElements;
     }
 
     public Set<File> getFiles(Spec<? super Dependency> dependencySpec) {

@@ -18,9 +18,10 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencie
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.internal.component.model.Exclude;
-import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+
+import java.util.Collections;
 
 import static org.junit.Assert.assertThat;
 
@@ -44,6 +45,6 @@ public class DefaultExcludeRuleConverterTest {
         assertThat(exclude.getMatcher(),
                 Matchers.equalTo(PatternMatchers.EXACT));
         assertThat(exclude.getConfigurations(),
-                Matchers.equalTo(WrapUtil.toArray(configurationName)));
+                Matchers.equalTo(Collections.singleton(configurationName)));
     }
 }

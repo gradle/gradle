@@ -51,6 +51,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             div().id("content");
             h2().text(String.format("Test: %s", testHistory.getDisplayName())).end();
             text(getReproductionInstructions(testHistory));
+            p().text("Tasks: " + getTasks(testHistory)).end();
 
             addPerformanceGraph("Average total time", "totalTimeChart", "totalTime", "total time", "s");
             addPerformanceGraph("Average configuration time", "configurationTimeChart", "configurationTime", "configuration time", "s");
@@ -215,6 +216,18 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
         };
     }
 
+    private String getTasks(PerformanceTestHistory testHistory) {
+        List<? extends PerformanceTestExecution> executions = testHistory.getExecutions();
+        if (executions.isEmpty()) {
+            return "";
+        }
+        PerformanceTestExecution performanceTestExecution = executions.get(0);
+        if (performanceTestExecution == null || performanceTestExecution.getTasks() == null) {
+            return "";
+        }
+        return Joiner.on(" ").join(performanceTestExecution.getTasks());
+    }
+
     private String getReproductionInstructions(PerformanceTestHistory history) {
         Set<String> templates = Sets.newHashSet();
         Set<String> cleanTasks = Sets.newHashSet();
@@ -227,10 +240,9 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             + Joiner.on(' ').join(cleanTasks)
             + " "
             + Joiner.on(' ').join(templates)
-            + " cleanPerformanceAdHocTest performanceAdHocTest --scenarios "
+            + " cleanPerformanceAdhocTest performanceAdhocTest --scenarios "
             + "'" + history.getDisplayName() + "'"
-            + " -x prepareSamples"
-            + (BaselineVersion.isStrict() ? " -Porg.gradle.performance.strict=true" : "");
+            + " -x prepareSamples";
     }
 
     private static class Link {

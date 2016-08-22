@@ -88,9 +88,11 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
                     while(!file("stop").exists()) {
                         sleep 100
                         if (file("exit").exists()) {
+                            println "found exit file, exiting"
                             System.exit(1)
                         }
                         if (System.currentTimeMillis() > sanityCheck) {
+                            println "timed out waiting for stop file, failing"
                             throw new RuntimeException("It seems the stop file was never created")
                         }
                     }
@@ -108,9 +110,13 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         }
     }
 
-    void waitForFileDelete(File file) {
-        run {
-            poll(10) { assert(!file.exists()) }
+    private static deleteFile(File file) {
+        // Repeat the attempt to delete in case it was temporarily locked
+        poll(10) {
+            if (file.exists()) {
+                file.delete()
+            }
+            assert !file.exists()
         }
     }
 
@@ -304,7 +310,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         then:
         busy()
         daemonContext {
-            new DaemonDir(executer.daemonBaseDir).registry.delete()
+            File registry = new DaemonDir(executer.daemonBaseDir).registry
+            deleteFile(registry)
         }
 
         when:
@@ -333,7 +340,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         when:
         daemonContext {
-            new DaemonDir(executer.daemonBaseDir).registry.delete()
+            File registry = new DaemonDir(executer.daemonBaseDir).registry
+            deleteFile(registry)
         }
 
         then:
@@ -348,7 +356,8 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         then:
         busy()
         daemonContext {
-            new DaemonDir(executer.daemonBaseDir).registry.delete()
+            File registry = new DaemonDir(executer.daemonBaseDir).registry
+            deleteFile(registry)
         }
         startBuild()
         waitForBuildToWait(1)
@@ -380,8 +389,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
         busy()
         daemonContext {
             registry = new DaemonDir(executer.daemonBaseDir).registry
-            registry.delete()
-            waitForFileDelete(registry)
+            deleteFile(registry)
         }
 
         when:
@@ -411,7 +419,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
         and:
         foregroundDaemonContext {
-            assert javaHome == AvailableJavaHomes.differentJdk.javaHome
+            assert javaHome.canonicalPath == AvailableJavaHomes.differentJdk.javaHome.canonicalPath
         }
 
         when:

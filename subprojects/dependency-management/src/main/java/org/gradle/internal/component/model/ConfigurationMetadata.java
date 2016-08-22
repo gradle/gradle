@@ -27,6 +27,9 @@ public interface ConfigurationMetadata {
 
     String getName();
 
+    /**
+     * Returns the dependencies that apply to this configuration.
+     */
     List<DependencyMetadata> getDependencies();
 
     /**

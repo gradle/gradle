@@ -30,6 +30,7 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ import java.util.Set;
 public class DefaultLocalComponentMetadata implements LocalComponentMetadata, BuildableLocalComponentMetadata {
     private final Map<String, DefaultLocalConfigurationMetadata> allConfigurations = Maps.newHashMap();
     private final Multimap<String, ComponentArtifactMetadata> allArtifacts = ArrayListMultimap.create();
-    private final List<DependencyMetadata> allDependencies = Lists.newArrayList();
+    private final List<LocalOriginDependencyMetadata> allDependencies = Lists.newArrayList();
     private final List<Exclude> allExcludes = Lists.newArrayList();
     private final ModuleVersionIdentifier id;
     private final ComponentIdentifier componentIdentifier;
@@ -69,11 +70,12 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
     }
 
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
+        assert hierarchy.contains(name);
         DefaultLocalConfigurationMetadata conf = new DefaultLocalConfigurationMetadata(name, description, visible, transitive, extendsFrom, hierarchy, buildDependencies);
         allConfigurations.put(name, conf);
     }
 
-    public void addDependency(DependencyMetadata dependency) {
+    public void addDependency(LocalOriginDependencyMetadata dependency) {
         allDependencies.add(dependency);
     }
 
@@ -114,7 +116,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         return componentIdentifier;
     }
 
-    public List<DependencyMetadata> getDependencies() {
+    public List<LocalOriginDependencyMetadata> getDependencies() {
         return allDependencies;
     }
 
@@ -194,7 +196,7 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
         public List<DependencyMetadata> getDependencies() {
             if (configurationDependencies == null) {
                 configurationDependencies = new ArrayList<DependencyMetadata>();
-                for (DependencyMetadata dependency : allDependencies) {
+                for (LocalOriginDependencyMetadata dependency : allDependencies) {
                     if (include(dependency)) {
                         configurationDependencies.add(dependency);
                     }
@@ -203,27 +205,8 @@ public class DefaultLocalComponentMetadata implements LocalComponentMetadata, Bu
             return configurationDependencies;
         }
 
-        private boolean include(DependencyMetadata dependency) {
-            String[] moduleConfigurations = dependency.getModuleConfigurations();
-            for (int i = 0; i < moduleConfigurations.length; i++) {
-                String moduleConfiguration = moduleConfigurations[i];
-                if (moduleConfiguration.equals("%") || hierarchy.contains(moduleConfiguration)) {
-                    return true;
-                }
-                if (moduleConfiguration.equals("*")) {
-                    boolean include = true;
-                    for (int j = i + 1; j < moduleConfigurations.length && moduleConfigurations[j].startsWith("!"); j++) {
-                        if (moduleConfigurations[j].substring(1).equals(getName())) {
-                            include = false;
-                            break;
-                        }
-                    }
-                    if (include) {
-                        return true;
-                    }
-                }
-            }
-            return false;
+        private boolean include(LocalOriginDependencyMetadata dependency) {
+            return hierarchy.contains(dependency.getModuleConfiguration());
         }
 
         public Set<Exclude> getExcludes() {

@@ -186,6 +186,7 @@ ext {
         project(':wrapper'),
         project(':baseServices'),
         project(':baseServicesGroovy'),
+        project(':dependencyManagement'),
         project(':messaging'),
         project(':processServices'),
         project(':resources')

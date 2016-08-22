@@ -17,12 +17,48 @@
 package org.gradle.internal.component.model
 
 import org.gradle.api.artifacts.ModuleVersionSelector
+import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
 import org.gradle.internal.component.external.descriptor.DefaultExclude
 import spock.lang.Specification
 
 class LocalComponentDependencyMetadataTest extends Specification {
+    def "selects the target configuration from target component"() {
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", "to", [] as Set, [], false, false, true)
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata)
+        def fromConfig = Stub(ConfigurationMetadata)
+        def toConfig = Stub(ConfigurationMetadata)
+        fromConfig.hierarchy >> ["from"]
+
+        given:
+        toComponent.getConfiguration("to") >> toConfig
+
+        expect:
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent) == [toConfig] as Set
+    }
+
+    def "fails to select target configuration when not present in the target component"() {
+        def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", "to", [] as Set, [], false, false, true)
+        def fromComponent = Stub(ComponentResolveMetadata)
+        def toComponent = Stub(ComponentResolveMetadata)
+        def fromConfig = Stub(ConfigurationMetadata)
+        fromComponent.componentId >> Stub(ComponentIdentifier) { getDisplayName() >> "thing a" }
+        toComponent.componentId >> Stub(ComponentIdentifier) { getDisplayName() >> "thing b" }
+        fromConfig.hierarchy >> ["from"]
+
+        given:
+        toComponent.getConfiguration("to") >> null
+
+        when:
+        dep.selectConfigurations(fromComponent, fromConfig, toComponent)
+
+        then:
+        def e = thrown(ConfigurationNotFoundException)
+        e.message == "Thing a declares a dependency from configuration 'from' to configuration 'to' which is not declared in the descriptor for thing b."
+    }
+
     def "excludes nothing when no exclude rules provided"() {
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", "to", [] as Set, [], false, false, true)
 
@@ -39,7 +75,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.getExclusions(configuration("anything")) == ModuleExclusions.excludeNone()
     }
 
-    def "applies and caches exclude rules when traversing the from configuration"() {
+    def "applies exclude rules when traversing the from configuration"() {
         def exclude = new DefaultExclude("group", "*")
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", "to", [] as Set, [exclude], false, false, true)
         def configuration = configuration("from")
@@ -49,7 +85,7 @@ class LocalComponentDependencyMetadataTest extends Specification {
         dep.getExclusions(configuration).is(dep.getExclusions(configuration))
     }
 
-    def "applies and caches exclude rules when traversing a child of from configuration"() {
+    def "applies exclude rules when traversing a child of from configuration"() {
         def exclude = new DefaultExclude("group", "*")
         def dep = new LocalComponentDependencyMetadata(Stub(ComponentSelector), Stub(ModuleVersionSelector), "from", "to", [] as Set, [exclude], false, false, true)
         def configuration = configuration("child", "from")

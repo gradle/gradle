@@ -15,19 +15,15 @@
  */
 
 package org.gradle.performance
+
 import org.apache.commons.io.FileUtils
 import org.gradle.performance.categories.NativePerformanceTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListener
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
-import org.gradle.performance.measure.Amount
-import org.gradle.performance.measure.DataAmount
-import org.gradle.performance.measure.Duration
 import org.gradle.performance.measure.MeasuredOperation
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
-
-import static org.gradle.performance.measure.Duration.millis
 
 @Category(NativePerformanceTest)
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerformanceTest {
@@ -37,15 +33,13 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "build monolithic native project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = ['build']
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = ['2.14.1']
+        runner.targetVersions = ['3.0']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
 
         if (parallelWorkers) {
             runner.args += ["--parallel", "--max-workers=$parallelWorkers".toString()]
         }
-        runner.maxMemoryRegression = DataAmount.mbytes(100)
 
         when:
         def result = runner.run()
@@ -54,35 +48,34 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject                   | maxExecutionTimeRegression | parallelWorkers
-        "nativeMonolithic"            | millis(1000)               | 0
-        "nativeMonolithic"            | millis(1000)               | 4
-        "nativeMonolithicOverlapping" | millis(1000)               | 0
-        "nativeMonolithicOverlapping" | millis(1000)               | 4
+        testProject                   | parallelWorkers
+        "nativeMonolithic"            | 0
+        "nativeMonolithic"            | 4
+        "nativeMonolithicOverlapping" | 0
+        "nativeMonolithicOverlapping" | 4
     }
 
     @Unroll('Project #buildSize native build #changeType')
-    def "build with changes"(String buildSize, String changeType, Amount<Duration> maxExecutionTimeRegression, String changedFile, Closure changeClosure, String fastestVersion) {
+    def "build with changes"(String buildSize, String changeType, String changedFile, Closure changeClosure, List<String> targetVersions) {
         given:
         runner.testId = "native build ${buildSize} ${changeType}"
         runner.testProject = "${buildSize}NativeMonolithic"
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=4"]
-        runner.maxExecutionTimeRegression = maxExecutionTimeRegression
-        runner.targetVersions = [fastestVersion]
+        runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
         runner.warmUpRuns = 5
         runner.runs = 10
 
         runner.buildExperimentListener = new BuildExperimentListenerAdapter() {
-            File file
             String originalContent
+            File originalContentFor
 
             @Override
             void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-                if (file == null) {
-                    file = new File(invocationInfo.projectDir, changedFile)
+                File file = new File(invocationInfo.projectDir, changedFile)
+                if (originalContentFor != file) {
                     assert file.exists()
                     def backupFile = new File(file.parentFile, file.name + "~")
                     if (backupFile.exists()) {
@@ -92,6 +85,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
                         originalContent = file.text
                         FileUtils.copyFile(file, backupFile)
                     }
+                    originalContentFor = file
                 }
                 if (invocationInfo.iterationNumber % 2 == 0) {
                     println "Changing $file"
@@ -122,10 +116,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // source file change causes a single project, single source set, single file to be recompiled.
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
-        buildSize | changeType              | maxExecutionTimeRegression | changedFile                       | changeClosure        | fastestVersion
-        "medium"  | 'source file change'    | millis(300)                | 'modules/project5/src/src100_c.c' | this.&changeCSource  | '2.14.1'
-        "medium"  | 'header file change'    | millis(300)                | 'modules/project1/src/src50_h.h'  | this.&changeHeader   | '2.14.1'
-        "medium"  | 'recompile all sources' | millis(1500)               | 'common.gradle'                   | this.&changeArgs     | '2.11'
+        buildSize | changeType              | changedFile                       | changeClosure        | targetVersions
+        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource  | ['2.14.1']
+        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader   | ['2.14.1']
+        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs     | ['2.11', '2.12', '2.13', '2.14.1']
     }
 
     void changeCSource(File file, String originalContent) {

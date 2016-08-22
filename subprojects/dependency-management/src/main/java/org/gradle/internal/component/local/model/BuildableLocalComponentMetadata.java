@@ -18,17 +18,20 @@ package org.gradle.internal.component.local.model;
 
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.util.Set;
 
 public interface BuildableLocalComponentMetadata {
     void addArtifacts(String configuration, Iterable<? extends PublishArtifact> artifacts);
 
+    /**
+     * @param hierarchy Must include name
+     */
     void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies);
 
-    void addDependency(DependencyMetadata dependency);
+    void addDependency(LocalOriginDependencyMetadata dependency);
 
     void addExclude(Exclude exclude);
 }

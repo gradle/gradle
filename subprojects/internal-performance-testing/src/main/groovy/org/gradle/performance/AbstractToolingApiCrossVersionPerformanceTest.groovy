@@ -35,7 +35,6 @@ import org.gradle.performance.fixture.OperationTimer
 import org.gradle.performance.fixture.PerformanceTestDirectoryProvider
 import org.gradle.performance.fixture.TestProjectLocator
 import org.gradle.performance.fixture.TestScenarioSelector
-import org.gradle.performance.measure.Amount
 import org.gradle.performance.measure.DataAmount
 import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.BuildDisplayInfo
@@ -92,10 +91,6 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
 
     @InheritConstructors
     private static class ToolingApiExperimentSpec extends BuildExperimentSpec {
-
-        Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
-        Amount<DataAmount> maxMemoryRegression = DataAmount.mbytes(0)
-
         List<String> targetVersions = []
 
         Closure<?> action
@@ -144,13 +139,11 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             try {
                 List<String> baselines = CrossVersionPerformanceTestRunner.toBaselineVersions(RELEASES, experimentSpec.targetVersions).toList()
                 [*baselines, 'current'].each { String version ->
-                    def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory)
+                    def workingDirProvider = copyTemplateTo(projectDir, experimentSpec.workingDirectory, version)
                     GradleDistribution dist = 'current' == version ? CURRENT : buildContext.distribution(version)
                     println "Testing ${dist.version}..."
                     if ('current' != version) {
                         def baselineVersion = results.baseline(version)
-                        baselineVersion.maxExecutionTimeRegression = experimentSpec.maxExecutionTimeRegression
-                        baselineVersion.maxMemoryRegression = experimentSpec.maxMemoryRegression
                     }
                     def toolingApiDistribution = resolver.resolve(dist.version.version)
                     def testClassPath = []
@@ -178,13 +171,19 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
             results
         }
 
-        private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir) {
-            GFileUtils.cleanDirectory(workingDir)
-            GFileUtils.copyDirectory(templateDir, workingDir)
+        private TestDirectoryProvider copyTemplateTo(File templateDir, File workingDir, String version) {
+            TestFile perVersionDir = new TestFile(workingDir, version)
+            if (!perVersionDir.exists()) {
+                perVersionDir.mkdirs()
+            } else {
+                throw new IllegalArgumentException("Didn't expect to find an existing directory at $perVersionDir")
+            }
+
+            GFileUtils.copyDirectory(templateDir, perVersionDir)
             return new TestDirectoryProvider() {
                 @Override
                 TestFile getTestDirectory() {
-                    workingDir
+                    perVersionDir
                 }
 
                 @Override

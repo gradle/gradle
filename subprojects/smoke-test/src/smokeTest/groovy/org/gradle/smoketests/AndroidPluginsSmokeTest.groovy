@@ -66,7 +66,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent() << androidPluginConfiguration() << activityDependency()
 
         when:
-        def result = runner('build', '-x', 'lint').build()
+        def result = runner('androidDependencies', 'build', '-x', 'lint').build()
 
         then:
         result.task(':assemble').outcome == TaskOutcome.SUCCESS
@@ -170,7 +170,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
 
 
                 dependencies {
-                    classpath 'com.android.tools.build:gradle:2.2.0-alpha6'
+                    classpath 'com.android.tools.build:gradle:2.2.0-beta1'
                 }
             }
 

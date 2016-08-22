@@ -69,6 +69,7 @@ import org.gradle.api.internal.notations.DependencyNotationParser;
 import org.gradle.api.internal.notations.ProjectDependencyFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.cache.GeneratedGradleJarCache;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.initialization.ProjectAccessListener;
@@ -84,7 +85,6 @@ import org.gradle.internal.resource.local.UniquePathKeyFileStore;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.BuildCommencedTimeProvider;
-import org.gradle.util.GradleVersion;
 
 import java.util.List;
 
@@ -120,9 +120,8 @@ class DependencyManagementBuildScopeServices {
             projectDependencyFactory);
     }
 
-    RuntimeShadedJarFactory createGradleImplDepsProvider(CacheRepository cacheRepository, ProgressLoggerFactory progressLoggerFactory) {
-        String gradleVersion = GradleVersion.current().getVersion();
-        return new RuntimeShadedJarFactory(cacheRepository, progressLoggerFactory, gradleVersion);
+    RuntimeShadedJarFactory createRuntimeShadedJarFactory(GeneratedGradleJarCache jarCache, ProgressLoggerFactory progressLoggerFactory) {
+        return new RuntimeShadedJarFactory(jarCache, progressLoggerFactory);
     }
 
     CacheLockingManager createCacheLockingManager(CacheRepository cacheRepository) {

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -25,13 +26,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.Modul
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class LocalComponentDependencyMetadata implements DependencyMetadata {
+public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
     private final ComponentSelector selector;
     private final ModuleVersionSelector requested;
     private final String moduleConfiguration;
@@ -63,27 +63,39 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
         return "dependency: " + requested + " from-conf: " + moduleConfiguration + " to-conf: " + dependencyConfiguration;
     }
 
+    @Override
     public ModuleVersionSelector getRequested() {
         return requested;
     }
 
+    @Override
     public ComponentSelector getSelector() {
         return selector;
     }
 
-    public String[] getModuleConfigurations() {
-        return new String[] {
-            moduleConfiguration
-        };
+    @Override
+    public String getModuleConfiguration() {
+        return moduleConfiguration;
     }
 
-    public String[] getDependencyConfigurations(String moduleConfiguration, String requestedConfiguration) {
-        if (this.moduleConfiguration.equals(moduleConfiguration)) {
-            return new String[] {
-                dependencyConfiguration
-            };
+    @Override
+    public String getDependencyConfiguration() {
+        return dependencyConfiguration;
+    }
+
+    @Override
+    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
+        assert fromConfiguration.getHierarchy().contains(moduleConfiguration);
+        ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(dependencyConfiguration);
+        if (toConfiguration == null) {
+            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, dependencyConfiguration, targetComponent.getComponentId());
         }
-        return new String[0];
+        return ImmutableSet.of(toConfiguration);
+    }
+
+    @Override
+    public Set<String> getModuleConfigurations() {
+        return ImmutableSet.of(moduleConfiguration);
     }
 
     @Override
@@ -94,29 +106,32 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
         return exclusions;
     }
 
-    public List<Exclude> getExcludes(Collection<String> configurations) {
-        if (configurations.contains(moduleConfiguration)) {
-            return excludes;
-        }
-        return Collections.emptyList();
+    @Override
+    public List<Exclude> getExcludes() {
+        return excludes;
     }
 
+    @Override
     public boolean isChanging() {
         return changing;
     }
 
+    @Override
     public boolean isTransitive() {
         return transitive;
     }
 
+    @Override
     public boolean isForce() {
         return force;
     }
 
+    @Override
     public String getDynamicConstraintVersion() {
         return requested.getVersion();
     }
 
+    @Override
     public Set<ComponentArtifactMetadata> getArtifacts(ConfigurationMetadata fromConfiguration, ConfigurationMetadata toConfiguration) {
         if (artifactNames.isEmpty()) {
             return Collections.emptySet();
@@ -128,11 +143,13 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
         return artifacts;
     }
 
+    @Override
     public Set<IvyArtifactName> getArtifacts() {
         return artifactNames;
     }
 
-    public DependencyMetadata withRequestedVersion(String requestedVersion) {
+    @Override
+    public LocalOriginDependencyMetadata withRequestedVersion(String requestedVersion) {
         if (requestedVersion.equals(requested.getVersion())) {
             return this;
         }
@@ -142,7 +159,7 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
     }
 
     @Override
-    public DependencyMetadata withTarget(ComponentSelector target) {
+    public LocalOriginDependencyMetadata withTarget(ComponentSelector target) {
         if (target instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleTarget = (ModuleComponentSelector) target;
             ModuleVersionSelector requestedVersion = DefaultModuleVersionSelector.newSelector(moduleTarget.getGroup(), moduleTarget.getModule(), moduleTarget.getVersion());
@@ -154,14 +171,7 @@ public class LocalComponentDependencyMetadata implements DependencyMetadata {
         }
     }
 
-    private DependencyMetadata copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
+    private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
         return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
-    }
-
-    public DependencyMetadata withChanging() {
-        if (isChanging()) {
-            return this;
-        }
-        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, true, transitive);
     }
 }

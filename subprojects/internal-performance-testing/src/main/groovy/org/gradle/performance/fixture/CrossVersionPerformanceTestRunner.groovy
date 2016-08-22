@@ -23,9 +23,6 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.performance.measure.Amount
-import org.gradle.performance.measure.DataAmount
-import org.gradle.performance.measure.Duration
 import org.gradle.performance.results.CrossVersionPerformanceResults
 import org.gradle.performance.results.DataReporter
 import org.gradle.performance.results.MeasuredOperationList
@@ -57,8 +54,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     int maxPermSizeMB = 256
 
     List<String> targetVersions = []
-    Amount<Duration> maxExecutionTimeRegression = Duration.millis(0)
-    Amount<DataAmount> maxMemoryRegression = DataAmount.bytes(0)
 
     BuildExperimentListener buildExperimentListener
 
@@ -106,12 +101,10 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
 
         baselineVersions.each { it ->
             def baselineVersion = results.baseline(it)
-            baselineVersion.maxExecutionTimeRegression = maxExecutionTimeRegression
-            baselineVersion.maxMemoryRegression = maxMemoryRegression
-            runVersion(buildContext.distribution(baselineVersion.version), workingDir, baselineVersion.results)
+            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
         }
 
-        runVersion(current, workingDir, results.current)
+        runVersion(current, perVersionWorkingDirectory('current'), results.current)
 
         results.endTime = System.currentTimeMillis()
 
@@ -123,6 +116,16 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         results.assertCurrentVersionHasNotRegressed()
 
         return results
+    }
+
+    protected File perVersionWorkingDirectory(String version) {
+        def perVersion = new File(workingDir, version)
+        if (!perVersion.exists()) {
+            perVersion.mkdirs()
+        } else {
+            throw new IllegalArgumentException("Didn't expect to find an existing directory at $perVersion")
+        }
+        perVersion
     }
 
     static LinkedHashSet<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions) {
@@ -199,7 +202,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 gradleOpts(gradleOptsInUse as String[])
                 useDaemon(this.useDaemon)
             }
-
+        builder.workingDirectory = workingDir
         def spec = builder.build()
 
         experimentRunner.run(spec, results)

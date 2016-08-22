@@ -19,6 +19,7 @@ package org.gradle.integtests.composite
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
+
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
@@ -145,6 +146,40 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         action      | buildArtifacts
         "resolving" | false
         "building"  | true
+    }
+
+    @Unroll
+    def "when configuration fails included build with #name substitutions is configured only once "() {
+        given:
+        dependency "org.test:buildB:1.0"
+
+        if (name == "discovered") {
+            includeBuild buildB
+        } else {
+            includeBuild buildB, """
+                substitute module("org.test:buildB") with project(":")
+    """
+        }
+
+        and:
+        buildB.buildFile << """
+            println 'Configured buildB'
+            throw new RuntimeException('Configuration failed for buildB')
+"""
+
+        when:
+        fails(buildA, ":jar")
+
+        then:
+        output.count('Configured buildB') == 1
+
+        and:
+        failure.assertHasFileName("Build file '${buildB.buildFile}'")
+        failure.assertHasDescription("A problem occurred evaluating root project 'buildB'.")
+        failure.assertHasCause("Configuration failed for buildB")
+
+        where:
+        name << ["discovered", "declared"]
     }
 
     def "configures included build only once when building multiple artifacts"() {

@@ -56,7 +56,7 @@ public interface ComponentResolveMetadata {
      */
     ComponentResolveMetadata withSource(ModuleSource source);
 
-    List<DependencyMetadata> getDependencies();
+    List<? extends DependencyMetadata> getDependencies();
 
     /**
      * Returns the names of all of the configurations for this component.

@@ -25,14 +25,20 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheAccess;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * A minimal file set snapshotter is different from the default file collection snapshotter in that it creates a snapshot for every file
@@ -47,14 +53,33 @@ public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter
         this.fileSystem = fileSystem;
     }
 
+    @SuppressWarnings("Since15")
     @Override
     protected void visitFiles(FileCollection input, List<FileTreeElement> fileTreeElements, List<FileTreeElement> missingFiles) {
         for (File file : input.getFiles()) {
-            if (file.exists()) {
-                fileTreeElements.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
+            BasicFileAttributes fileAttributes = getFileAttributes(file);
+            if (fileAttributes != null) {
+                fileTreeElements.add(createFileVisitDetails(file, fileAttributes));
             } else {
                 missingFiles.add(new MissingFileVisitDetails(file));
             }
+        }
+    }
+
+    @SuppressWarnings("Since15")
+    private DefaultFileVisitDetails createFileVisitDetails(File file, BasicFileAttributes fileAttributes) {
+        return new DefaultFileVisitDetails(file, new RelativePath(!fileAttributes.isDirectory(), file.getName()), new AtomicBoolean(), fileSystem, fileSystem, fileAttributes.isDirectory(), fileAttributes.lastModifiedTime().toMillis(), fileAttributes.size());
+    }
+
+    @SuppressWarnings("Since15")
+    private BasicFileAttributes getFileAttributes(File file) {
+        try {
+            // Reading the file attributes replaces 4 separate system "stat" calls with a single call
+            return Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+        } catch (NoSuchFileException e) { // The api isn't optimal for performance because a non-existent file throws an exception
+            return null;
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

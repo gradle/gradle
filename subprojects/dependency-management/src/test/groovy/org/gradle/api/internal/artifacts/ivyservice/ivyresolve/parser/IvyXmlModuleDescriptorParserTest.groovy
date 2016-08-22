@@ -15,11 +15,14 @@
  */
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser
+
+import com.google.common.collect.LinkedHashMultimap
+import com.google.common.collect.SetMultimap
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
-import org.gradle.internal.component.external.descriptor.Dependency
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.IvyDependencyMetadata
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile
@@ -418,19 +421,19 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md.dependencies[0].confMappings == ["a": ["a"]]
-        md.dependencies[1].confMappings == ["a": ["other"]]
-        md.dependencies[2].confMappings == ["*": ["@"]]
-        md.dependencies[3].confMappings == ["a": ["other"], "%": ["@"]]
-        md.dependencies[4].confMappings == ["*": ["@"], "!a": ["@"]]
-        md.dependencies[5].confMappings == ["a": ["*"]]
-        md.dependencies[6].confMappings == ["a": ["one", "two", "three"], "b": ["three"], "*": ["four"], "%": ["none"]]
-        md.dependencies[7].confMappings == ["a": ["#"]]
-        md.dependencies[8].confMappings == ["a": ["a"], "%": ["@"]]
-        md.dependencies[9].confMappings == ["a": ["a"], "*": ["b"], "!a": ["b"]]
-        md.dependencies[10].confMappings == ["*": ["*"]]
-        md.dependencies[11].confMappings == ["*": ["*"]]
-        md.dependencies[12].confMappings == ["*": ["*"]]
+        md.dependencies[0].confMappings == map("a": ["a"])
+        md.dependencies[1].confMappings == map("a": ["other"])
+        md.dependencies[2].confMappings == map("*": ["@"])
+        md.dependencies[3].confMappings == map("a": ["other"], "%": ["@"])
+        md.dependencies[4].confMappings == map("*": ["@"], "!a": ["@"])
+        md.dependencies[5].confMappings == map("a": ["*"])
+        md.dependencies[6].confMappings == map("a": ["one", "two", "three"], "b": ["three"], "*": ["four"], "%": ["none"])
+        md.dependencies[7].confMappings == map("a": ["#"])
+        md.dependencies[8].confMappings == map("a": ["a"], "%": ["@"])
+        md.dependencies[9].confMappings == map("a": ["a"], "*": ["b"], "!a": ["b"])
+        md.dependencies[10].confMappings == map("*": ["*"])
+        md.dependencies[11].confMappings == map("*": ["*"])
+        md.dependencies[12].confMappings == map("*": ["*"])
     }
 
     def "parses dependency config mappings with defaults"() {
@@ -465,14 +468,14 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md.dependencies[0].confMappings == ["a": ["a1"]]
-        md.dependencies[1].confMappings == ["a": ["a1"]]
-        md.dependencies[2].confMappings == ["a": ["a1"]]
-        md.dependencies[3].confMappings == ["b": ["b1", "b2"]]
-        md.dependencies[4].confMappings == ["a": ["other"]]
-        md.dependencies[5].confMappings == ["*": ["@"]]
-        md.dependencies[6].confMappings == ["c": ["other"]]
-        md.dependencies[7].confMappings == ["a": ["a1"]]
+        md.dependencies[0].confMappings == map("a": ["a1"])
+        md.dependencies[1].confMappings == map("a": ["a1"])
+        md.dependencies[2].confMappings == map("a": ["a1"])
+        md.dependencies[3].confMappings == map("b": ["b1", "b2"])
+        md.dependencies[4].confMappings == map("a": ["other"])
+        md.dependencies[5].confMappings == map("*": ["@"])
+        md.dependencies[6].confMappings == map("c": ["other"])
+        md.dependencies[7].confMappings == map("a": ["a1"])
 
     }
 
@@ -584,11 +587,11 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         DefaultModuleComponentIdentifier.newId(group, module, version)
     }
 
-    def verifyFullDependencies(Collection<Dependency> dependencies) {
+    def verifyFullDependencies(Collection<IvyDependencyMetadata> dependencies) {
         // no conf def => equivalent to *->*
-        Dependency dd = getDependency(dependencies, "mymodule2")
+        def dd = getDependency(dependencies, "mymodule2")
         assert dd.requested == newSelector("myorg", "mymodule2", "2.0")
-        assert dd.confMappings == ["*": ["*"]]
+        assert dd.confMappings == map("*": ["*"])
         assert !dd.changing
         assert dd.transitive
         assert dd.dependencyArtifacts.empty
@@ -602,49 +605,49 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         dd = getDependency(dependencies, "yourmodule1")
         assert dd.requested == newSelector("yourorg", "yourmodule1", "1.1")
         assert dd.dynamicConstraintVersion == "1+"
-        assert dd.confMappings == [myconf1: ["myconf1"]]
+        assert dd.confMappings == map(myconf1: ["myconf1"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1"
         dd = getDependency(dependencies, "yourmodule2")
         assert dd.requested == newSelector("yourorg", "yourmodule2", "2+")
-        assert dd.confMappings == [myconf1: ["yourconf1"]]
+        assert dd.confMappings == map(myconf1: ["yourconf1"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule3")
         assert dd.requested == newSelector("yourorg", "yourmodule3", "3.1")
-        assert dd.confMappings == [myconf1: ["yourconf1", "yourconf2"]]
+        assert dd.confMappings == map(myconf1: ["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1, myconf2->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule4")
         assert dd.requested == newSelector("yourorg", "yourmodule4", "4.1")
-        assert dd.confMappings == [myconf1:["yourconf1", "yourconf2"], myconf2:["yourconf1", "yourconf2"]]
+        assert dd.confMappings == map(myconf1:["yourconf1", "yourconf2"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="myconf1->yourconf1 | myconf2->yourconf1, yourconf2"
         dd = getDependency(dependencies, "yourmodule5")
         assert dd.requested == newSelector("yourorg", "yourmodule5", "5.1")
-        assert dd.confMappings == [myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"]]
+        assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // conf="*->@"
         dd = getDependency(dependencies, "yourmodule11")
         assert dd.requested == newSelector("yourorg", "yourmodule11", "11.1")
-        assert dd.confMappings == ["*":["@"]]
+        assert dd.confMappings == map("*":["@"])
         assert dd.dependencyArtifacts.empty
 
         // Conf mappings as nested elements
         dd = getDependency(dependencies, "yourmodule6")
         assert dd.requested == newSelector("yourorg", "yourmodule6", "latest.integration")
-        assert dd.confMappings == [myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"]]
+        assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // Conf mappings as deeply nested elements
         dd = getDependency(dependencies, "yourmodule7")
         assert dd.requested == newSelector("yourorg", "yourmodule7", "7.1")
-        assert dd.confMappings == [myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"]]
+        assert dd.confMappings == map(myconf1:["yourconf1"], myconf2:["yourconf1", "yourconf2"])
         assert dd.dependencyArtifacts.empty
 
         // Dependency artifacts
@@ -671,6 +674,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         true
     }
 
+    protected SetMultimap<String, String> map(Map<String, List<String>> map) {
+        SetMultimap<String, String> result = LinkedHashMultimap.create()
+        for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+            result.putAll(entry.key, entry.value)
+        }
+        return result
+    }
 
     protected void assertArtifacts(String configuration, List<String> artifactNames) {
         def configurationArtifactNames = artifacts(configuration)*.artifactName*.name
@@ -685,13 +695,13 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assert conf.extendsFrom as Set == exts as Set
     }
 
-    protected static Dependency getDependency(Collection<Dependency> dependencies, String name) {
+    protected static IvyDependencyMetadata getDependency(Collection<IvyDependencyMetadata> dependencies, String name) {
         def found = dependencies.find { it.requested.name == name }
         assert found != null
         return found
     }
 
-    protected static void assertDependencyArtifact(Dependency dd, String name, List<String> confs) {
+    protected static void assertDependencyArtifact(IvyDependencyMetadata dd, String name, List<String> confs) {
         def artifact = dd.dependencyArtifacts.find { it.artifactName.name == name }
         assert artifact != null
         assert artifact.configurations == confs as Set

@@ -22,10 +22,10 @@ import org.gradle.api.artifacts.ModuleVersionSelector
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
-import org.gradle.internal.component.external.descriptor.Dependency
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -51,11 +51,11 @@ abstract class AbstractGradlePomModuleDescriptorParserTest extends Specification
         parser.parseMetaData(parseContext, pomFile, true)
     }
 
-    protected void hasDefaultDependencyArtifact(Dependency descriptor) {
+    protected void hasDefaultDependencyArtifact(DependencyMetadata descriptor) {
         assert descriptor.dependencyArtifacts.empty
     }
 
-    protected void hasDependencyArtifact(Dependency descriptor, String name, String type, String ext, String classifier = null) {
+    protected void hasDependencyArtifact(DependencyMetadata descriptor, String name, String type, String ext, String classifier = null) {
         def artifact = single(descriptor.dependencyArtifacts).artifactName
         assert artifact.name == name
         assert artifact.type == type
