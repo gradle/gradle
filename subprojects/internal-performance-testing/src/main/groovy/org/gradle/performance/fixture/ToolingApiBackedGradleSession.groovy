@@ -47,6 +47,7 @@ class ToolingApiBackedGradleSession implements GradleSession {
                 .daemonBaseDir(testDirectoryProvider.testDirectory.file("daemon"))
                 .forProjectDirectory(invocation.workingDirectory)
                 .useInstallation(invocation.gradleDistribution.gradleHomeDir)
+                .useGradleUserHomeDir(testDirectoryProvider.testDirectory.file("gradleUserHome"))
                 .connect()
     }
 

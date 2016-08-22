@@ -57,6 +57,7 @@ class GradleExecuterBackedSession implements GradleSession {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
 
         def executer = invocation.gradleDistribution.executer(testDirectoryProvider).
+            requireOwnGradleUserHomeDir().
             requireGradleDistribution().
             requireIsolatedDaemons().
             expectDeprecationWarning().
