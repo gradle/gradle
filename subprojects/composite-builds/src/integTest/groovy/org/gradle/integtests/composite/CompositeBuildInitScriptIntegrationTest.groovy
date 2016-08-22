@@ -23,18 +23,10 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
  * Tests for init-script usage with a composite build.
  */
 class CompositeBuildInitScriptIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
 
     def setup() {
-        buildA = singleProjectBuild("buildA") {
-            buildFile << """
-                apply plugin: 'java'
-                dependencies {
-                    compile 'org.test:buildB:1.0'
-                }
-"""
-        }
+        dependency 'org.test:buildB:1.0'
 
         buildB = singleProjectBuild("buildB") {
             buildFile << """
@@ -47,7 +39,7 @@ allprojects { project ->
     project.ext.initProperty = "foo"
 }
 """
-        builds = [buildA, buildB]
+        includedBuilds << buildB
     }
 
     @NotYetImplemented // `--init-script` argument is not passed to included builds.

@@ -17,37 +17,27 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenModule
-
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
 class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
     MavenModule publishedModuleB
     List arguments = []
-    MavenFileRepository mavenRepo
 
     def setup() {
-        mavenRepo = new MavenFileRepository(file("maven-repo"))
         publishedModuleB = mavenRepo.module("org.test", "buildB", "1.0").publish()
+        new ResolveTestFixture(buildA.buildFile).prepare()
 
-        buildA = singleProjectBuild("buildA") {
-            buildFile << """
-                apply plugin: 'java'
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-
-                task resolve(type: Copy) {
-                    from configurations.compile
-                    into 'libs'
-                }
+        buildA.buildFile << """
+            task resolve(type: Copy) {
+                from configurations.compile
+                into 'libs'
+            }
 """
-        }
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
@@ -56,7 +46,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 }
 """
         }
-        builds = [buildA, buildB]
+        includedBuilds << buildB
     }
 
     def "builds single artifact for substituted dependency"() {
@@ -143,7 +133,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 apply plugin: 'java'
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         resolveArtifacts()
@@ -168,7 +158,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 apply plugin: 'java'
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         resolveArtifacts()
@@ -383,7 +373,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 }
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         buildB.buildFile << """
             configurations {
@@ -422,7 +412,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
             }
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         resolveArtifactsFails()
@@ -486,7 +476,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
                 }
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         resolveArtifactsFails()
@@ -494,14 +484,6 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         then:
         failure.assertHasDescription("Execution failed for task ':jar'")
             .assertHasCause("jar task failed")
-    }
-
-    def dependency(String notation) {
-        buildA.buildFile << """
-            dependencies {
-                compile '${notation}'
-            }
-"""
     }
 
     private void resolveArtifacts() {

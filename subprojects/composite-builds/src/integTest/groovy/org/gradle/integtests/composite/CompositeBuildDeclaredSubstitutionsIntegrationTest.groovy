@@ -18,34 +18,19 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.maven.MavenFileRepository
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
 class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
     BuildTestFile buildC
-    MavenFileRepository mavenRepo
     ResolveTestFixture resolve
     def buildArgs = []
 
     def setup() {
-        mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.test", "buildB", "1.0").publish()
         mavenRepo.module("org.test", "b2", "1.0").publish()
 
-        buildA = multiProjectBuild("buildA", ['a1', 'a2']) {
-            buildFile << """
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                allprojects {
-                    apply plugin: 'java'
-                    configurations { compile }
-                }
-"""
-        }
         resolve = new ResolveTestFixture(buildA.buildFile)
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
@@ -157,26 +142,8 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
-    def dependency(String notation) {
-        buildA.buildFile << """
-            dependencies {
-                compile '${notation}'
-            }
-"""
-    }
-
-    def includeBuild(File build, def mappings = "") {
-        buildA.settingsFile << """
-            includeBuild('${build.toURI()}') {
-                dependencySubstitution {
-                    $mappings
-                }
-            }
-"""
-
-    }
-
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
+        def resolve = new ResolveTestFixture(buildA.buildFile)
         resolve.prepare()
         execute(buildA, ":checkDeps", buildArgs)
         resolve.expectGraph {

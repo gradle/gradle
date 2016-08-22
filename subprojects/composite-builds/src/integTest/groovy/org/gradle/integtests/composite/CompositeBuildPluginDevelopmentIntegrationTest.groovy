@@ -18,26 +18,16 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.maven.MavenFileRepository
 /**
  * Tests for plugin development scenarios within a composite build.
  */
 // TODO:DAZ Need to work out what's holding onto the file handles
 @LeaksFileHandles
 class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
     BuildTestFile pluginBuild
-    MavenFileRepository mavenRepo
 
     def setup() {
-        mavenRepo = new MavenFileRepository(file("maven-repo"))
-        buildA = singleProjectBuild("buildA") {
-            buildFile << """
-                apply plugin: 'java'
-"""
-        }
-
         buildB = singleProjectBuild("buildB") {
             buildFile << """
                 apply plugin: 'java'

@@ -21,24 +21,16 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
 class CompositeBuildDetectionIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
 
     def setup() {
-        buildA = singleProjectBuild("buildA") {
-            buildFile << """
-                apply plugin: 'java'
-                dependencies {
-                    compile 'org.test:buildB:1.0'
-                }
-"""
-        }
+        dependency('org.test:buildB:1.0')
         buildB = singleProjectBuild("buildB") {
             buildFile << """
                 apply plugin: 'java'
 """
         }
-        builds = [buildA, buildB]
+        includedBuilds << buildB
     }
 
     def "can detect composite build"() {
