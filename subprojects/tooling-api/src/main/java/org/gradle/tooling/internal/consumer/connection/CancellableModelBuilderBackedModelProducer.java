@@ -52,6 +52,9 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
 
     @Override
     public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+        if (!versionDetails.maySupportModel(elementType)) {
+            throw Exceptions.unsupportedModel(elementType, versionDetails.getVersion());
+        }
         BuildResult<InternalModelResults<T>> result = builder.run(new BuildMultiModelAction<T>(adapter, versionDetails, modelMapping, elementType, operationParameters), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
         return result.getModel();
     }

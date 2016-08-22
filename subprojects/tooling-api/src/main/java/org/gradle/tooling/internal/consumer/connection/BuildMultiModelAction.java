@@ -26,6 +26,11 @@ import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
+import org.gradle.tooling.model.BuildModel;
+import org.gradle.tooling.model.HasGradleProject;
+import org.gradle.tooling.model.HierarchicalElement;
+import org.gradle.tooling.model.ProjectModel;
+import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
@@ -49,18 +54,53 @@ class BuildMultiModelAction<T> extends HasCompatibilityMapping implements Intern
     public InternalModelResults<T> execute(InternalBuildController buildController) {
         InternalModelResults<T> results = new InternalModelResults<T>();
         try {
-            BuildResult<GradleBuild> gradleBuild = Cast.uncheckedCast(buildController.getModel(null, modelMapping.getModelIdentifierFromModelType(GradleBuild.class)));
-            for (BasicGradleProject project : gradleBuild.getModel().getProjects()) {
-                try {
-                    results.addProjectModel(operationParameters.getProjectDir(), project.getPath(), getProjectModel(buildController, project));
-                } catch (RuntimeException e) {
-                    results.addProjectFailure(operationParameters.getProjectDir(), project.getPath(), e);
-                }
+            if (ProjectModel.class.isAssignableFrom(elementType)) {
+                getProjectModels(buildController, results);
+            } else if (HierarchicalElement.class.isAssignableFrom(elementType) && HasGradleProject.class.isAssignableFrom(elementType)) {
+                getModelsFromHierarchy(buildController, results);
+            } else {
+                getBuildModel(buildController, results);
             }
         } catch (RuntimeException e) {
             results.addBuildFailure(operationParameters.getProjectDir(), e);
         }
         return results;
+    }
+
+    private void getBuildModel(InternalBuildController buildController, InternalModelResults<T> results) {
+        try {
+            BuildResult<T> model = Cast.uncheckedCast(buildController.getModel(null, modelIdentifier));
+            results.addBuildModel(operationParameters.getProjectDir(), model.getModel());
+        } catch (RuntimeException e) {
+            results.addBuildFailure(operationParameters.getProjectDir(), e);
+        }
+    }
+
+    private void getModelsFromHierarchy(InternalBuildController buildController, InternalModelResults<T> results) {
+        try {
+            T model = Cast.uncheckedCast(buildController.getModel(null, modelIdentifier).getModel());
+            addModelsFromHierarchy(model, results);
+        } catch (RuntimeException e) {
+            results.addBuildFailure(operationParameters.getProjectDir(), e);
+        }
+    }
+
+    private void addModelsFromHierarchy(T model, InternalModelResults<T> results) {
+        results.addProjectModel(operationParameters.getProjectDir(), ((HasGradleProject) model).getGradleProject().getPath(), model);
+        for (HierarchicalElement child : ((HierarchicalElement) model).getChildren()) {
+            addModelsFromHierarchy(Cast.<T>uncheckedCast(child), results);
+        }
+    }
+
+    private void getProjectModels(InternalBuildController buildController, InternalModelResults<T> results) {
+        BuildResult<GradleBuild> gradleBuild = Cast.uncheckedCast(buildController.getModel(null, modelMapping.getModelIdentifierFromModelType(GradleBuild.class)));
+        for (BasicGradleProject project : gradleBuild.getModel().getProjects()) {
+            try {
+                results.addProjectModel(operationParameters.getProjectDir(), project.getPath(), getProjectModel(buildController, project));
+            } catch (RuntimeException e) {
+                results.addProjectFailure(operationParameters.getProjectDir(), project.getPath(), e);
+            }
+        }
     }
 
     private T getProjectModel(InternalBuildController buildController, BasicGradleProject project) {
