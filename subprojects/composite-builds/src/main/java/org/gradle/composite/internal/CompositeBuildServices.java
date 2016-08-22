@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.initialization.GradleLauncherFactory;
+import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildFactory;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.reflect.Instantiator;
@@ -57,8 +58,12 @@ public class CompositeBuildServices implements PluginServiceRegistry {
             return new DefaultCompositeContextBuilder(context);
         }
 
-        public ProjectArtifactBuilder createCompositeProjectArtifactBuilder(CompositeBuildContext compositeBuildContext) {
-            return new CompositeProjectArtifactBuilder(compositeBuildContext);
+        public IncludedBuildExecuter createIncludedBuildExecuter(CompositeBuildContext context) {
+            return new DefaultIncludedBuildExecuter(context);
+        }
+
+        public ProjectArtifactBuilder createCompositeProjectArtifactBuilder(IncludedBuildExecuter includedBuildExecuter) {
+            return new CompositeProjectArtifactBuilder(includedBuildExecuter);
         }
     }
 
