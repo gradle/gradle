@@ -307,7 +307,7 @@
             task when you run a build.
         </para>
         <para>How does incremental build work? And what does it take to make use of it in your own
-            custom tasks? Let’s take a look.
+            tasks? Let’s take a look.
         </para>
     
         <section id="sec:task_inputs_outputs">
@@ -335,8 +335,9 @@
             </para>
             <para>As part of incremental build, Gradle tests whether any of the task inputs or outputs
                 have changed since the last build. If they haven’t, Gradle can consider the task up to
-                date and therefore skip it. Also note that incremental build won’t work unless a task
-                has at least one task output, although tasks usually have at least one input as well.
+                date and therefore skip executing its actions. Also note that incremental build won’t
+                work unless a task has at least one task output, although tasks usually have at least
+                one input as well.
             </para>
             <para>What this means for build authors is simple: you need to tell Gradle which task
                 properties are inputs and which are outputs. If a task property affects the output, be
@@ -357,10 +358,10 @@
                 <orderedlist>
                     <listitem>Create typed fields or properties (via getter methods) for each of your
                         task inputs and outputs</listitem>
-                    <listitem>Add the appropriate annotation to each of those fields and getter methods
+                    <listitem>Add the appropriate annotation to each of those fields or getter methods
                     </listitem>
                 </orderedlist>
-                <para>Gradle supports three main categories of input and output:</para>
+                <para>Gradle supports three main categories of inputs and outputs:</para>
                 <itemizedlist>
                     <listitem><para>Simple values</para>
                         <para>Things like strings and numbers. More generally, a simple value can have
@@ -534,7 +535,8 @@
                         <td><literal>@Console</literal></td>
                         <td>Any type</td>
                         <td>Indicates that the property is neither an input nor an output. It simply
-                            affects the console output of the task in some way.</td>
+                            affects the console output of the task in some way, such as increasing or
+                            decreasing the verbosity of the task.</td>
                     </tr>
 
                     <tr>
@@ -546,39 +548,48 @@
 
                     <tr>
                         <td><literal>@SkipWhenEmpty</literal></td>
-
                         <td></td>
                         <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
                             to tell Gradle to skip the task if the corresponding file collection or
                             directory are empty.
                         </td>
                     </tr>
+                    <tr>
+                        <td><literal>@Optional</literal></td>
+                        <td></td>
+                        <td>Used with any of the other incremental build annotations listed in the
+                            <apilink class="org.gradle.api.tasks.Optional"/> API documentation.
+                            This annotation disables validation checks on the corresponding property.
+                            See <xref linkend="sec:task_input_output_validation"/> for more details.
+                        </td>
+                    </tr>
                     <tfoot>
                         <tr>
                             <td colspan="3"><emphasis role="bold">*</emphasis> In fact, <literal>File</literal>
-                                can be any type accepted by <literal>Project.file()</literal> and
-                                <literal>FileCollection</literal> can be any type accepted by
-                                <literal>Project.files()</literal>. This includes instances of
-                                <literal>Callable</literal>, such as closures, allowing for lazy
-                                evaluation of the property values.
+                                can be any type accepted by
+                                <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/>
+                                and <literal>FileCollection</literal> can be any type accepted by
+                                <apilink class="org.gradle.api.Project" method="files(java.lang.Object[])"/>.
+                                This includes instances of <literal>Callable</literal>, such as closures,
+                                allowing for lazy evaluation of the property values.
                             </td>
                         </tr>
                     </tfoot>
                 </table>
 
-                <para>The last two annotations in the table are a special case as they don’t declare
-                    either task inputs or task outputs. So why use them? Because you can make use of
-                    the Java Gradle Plugin Development plugin to help you develop and publish your own
-                    plugins. And this plugin will check whether any properties of your custom task
-                    classes lack an annotation. This protects you against forgetting to add an appropriate
+                <para>The <apilink class="org.gradle.api.tasks.Console"/> and
+                    <apilink class="org.gradle.api.tasks.Internal"/> annotations in the table are special
+                    cases as they don’t declare either task inputs or task outputs. So why use them? It's
+                    so that you can take advantage of the <link linkend="javaGradle_plugin">Java Gradle
+                    Plugin Development plugin</link> to help you develop and publish your own plugins.
+                    This plugin checks whether any properties of your custom task classes lack an
+                    incremental buildannotation. This protects you from forgetting to add an appropriate
                     annotation during development.
                 </para>
 
                 <para>Custom task classes are an easy way to bring your own build logic into the arena
-                    of incremental build, but you don’t always have that option. Perhaps you are working
-                    with a task whose source you can’t modify or with an ad-hoc task. In either case,
-                    you can still take advantage of incremental build by using the <literal>TaskInputs</literal>
-                    and <literal>TaskOutputs</literal> runtime APIs.
+                    of incremental build, but you don’t always have that option. That's why Gradle also
+                    provides an alternative API that can be used with any tasks, which we look at next.
                 </para>
             </section>
 
@@ -586,7 +597,8 @@
                 <title>Runtime API</title>
                 <para>When you don’t have access to the source for a custom task class, there is no way
                     to add any of the annotations we covered in the previous section. Fortunately, Gradle
-                    provides a runtime API that provides access to the same functionality.
+                    provides a runtime API for scenarios just like that. It can also be used for ad-hoc
+                    tasks, as you'll see next.
                 </para>
 
                 <section id="sec:runtime_api_for_adhoc">
@@ -595,16 +607,17 @@
                         are available on every Gradle task:</para>
                     <itemizedlist>
                         <listitem>
-                            <literal>inputs</literal> of type <apilink class="org.gradle.api.tasks.TaskInputs"/>
+                            <apilink class="org.gradle.api.Task" method="getInputs()"/> of type <apilink class="org.gradle.api.tasks.TaskInputs"/>
                         </listitem>
                         <listitem>
-                            <literal>outputs</literal> of type <apilink class="org.gradle.api.tasks.TaskOutputs"/>
+                            <apilink class="org.gradle.api.Task" method="getOutputs()"/> of type <apilink class="org.gradle.api.tasks.TaskOutputs"/>
                         </listitem>
                     </itemizedlist>
                     <para>These objects have methods that allow you to specify files, directories and
                         values which constitute the task’s inputs and outputs. In fact, the runtime API
                         has almost feature parity with the annotations. All it lacks is validation of
                         whether declared files are actually files and declared directories are directories.
+                        Nor will it create output directories if they don't exist. But that's it.
                     </para>
                     <para>Let’s take the template processing example from before and see how it would
                         look as an ad-hoc task that uses the runtime API:</para>
@@ -636,9 +649,12 @@
                         <literal>dir()</literal> and <literal>dirs()</literal> methods don’t validate
                         the type of file object at the given path (file or directory), unlike the annotations.
                     </para>
-                    <para>One notable hole in the runtime API currently is the lack of support for nested
-                        values. That’s why the example uses two <literal>property()</literal> declarations
-                        for the template data. 
+                    <para>One notable difference between the runtime API and the annotations is the
+                        lack of a method that corresponds directly to <literal>@Nested</literal>.
+                        That’s why the example uses two <literal>property()</literal> declarations
+                        for the template data, one for each <literal>TemplateData</literal> property.
+                        You should utilize the same technique when using the runtime API with nested
+                        values.
                     </para>
                 </section>
 
@@ -679,7 +695,7 @@
                         documentation, but we’ll show you a simple example here to give you an idea of
                         what you can do.
                     </para>
-                    <para>Let’s say we don’t want to run the <literal>processTemplates()</literal> task
+                    <para>Let’s say we don’t want to run the <literal>processTemplates</literal> task
                         if there are no source files, regardless of whether it’s a clean build or not.
                         After all, if there are no source files, there’s nothing for the task to do. The
                         builder allows us to configure this like so:
@@ -696,6 +712,11 @@
                         a <literal>skipWhenEmpty()</literal> method. By calling this method, we tell
                         Gradle that the task should be considered up to date if the corresponding input
                         file collection is empty, even if the task hasn't run before.
+                    </para>
+                    <para>Prior to Gradle 3.0, you had to use the <literal>TaskInputs.source()</literal>
+                        and <literal>TaskInputs.sourceDir()</literal> methods to get the same behavior
+                        as with <literal>skipWhenEmpty()</literal>. These methods are now deprecated and
+                        should not be used with Gradle 3.0 and above.
                     </para>
                     <para>Now that you have seen both the annotations and the runtime API, you may be
                         wondering which API you should be using. Our recommendation is to use the
