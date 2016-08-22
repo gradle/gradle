@@ -22,6 +22,20 @@ TBD: faster for Android builds
 
 Gradle now recognizes changes in the order of files for classpath properties as a reason to mark a task like `JavaCompile` out-of-date. The new `@OrderSensitive` annotation can be used on task input properties to turn this feature on in custom tasks.
 
+### Sync can preserve files
+
+With the [Sync](dsl/org.gradle.api.tasks.Sync.html) task it is now possible to preserve files that already exist in the destination directory.
+
+    task sync(type: Sync) {
+        from 'source'
+        into 'dest'
+        preserve {
+            include 'extraDir/**'
+            include 'dir1/**'
+            exclude 'dir1/extra.txt'
+        }
+    }
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
