@@ -59,7 +59,7 @@ public class BuildExperimentRunner {
         BuildEventTimestampCollector buildEventTimestampCollector = new BuildEventTimestampCollector("build/buildEventTimestamps.txt");
         GCLoggingCollector gcCollector = new GCLoggingCollector();
         PerformanceCounterCollector performanceCounterCollector = new PerformanceCounterCollector();
-        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, performanceCounterCollector, new CompilationLoggingCollector());
+        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, performanceCounterCollector, new CompilationLoggingCollector(), new HonestProfilerCollector());
     }
 
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {
