@@ -62,28 +62,44 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     private static final String ELEMENT_PREFIX = "\tat ";
 
     private static void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
-        final String lineSeperator = SystemProperties.getInstance().getLineSeparator();
+        final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
 
         if (isTraceLoggingEnabled()) {
             // append full stack trace
             for (StackTraceElement frame : stack) {
-                message.append(lineSeperator);
-                message.append(ELEMENT_PREFIX);
-                message.append(frame.toString());
+                appendStackTraceElement(frame, message, lineSeparator);
             }
-        } else {
-            boolean first = true;
-            for (StackTraceElement frame : stack) {
-                if (first // only append the root element...
-                    || isGradleScriptElement(frame) // ... and elements originating from Gradle script files
-                    ) {
-                    message.append(lineSeperator);
-                    message.append(ELEMENT_PREFIX);
-                    message.append(frame.toString());
-                    first = false;
-                }
+            return;
+        }
+
+        for (StackTraceElement element : stack) {
+            if (isGradleScriptElement(element)) {
+                // only print first Gradle script stack trace element
+                appendStackTraceElement(element, message, lineSeparator);
+                return;
             }
         }
+
+        // there was no Gradle script stack trace element
+        // warning must have happened while executing an applied plugin
+        int elementCount = stack.size();
+        if (elementCount == 0) {
+            return; // or there is no stack information at all
+        }
+        if (elementCount >= 2) {
+            // this is the element above the method causing the deprecation warning
+            // it's the most reasonable heuristic we have at this point
+            appendStackTraceElement(stack.get(1), message, lineSeparator);
+            return;
+        }
+        // let's print what we got
+        appendStackTraceElement(stack.get(0), message, lineSeparator);
+    }
+
+    private static void appendStackTraceElement(StackTraceElement frame, StringBuilder message, String lineSeparator) {
+        message.append(lineSeparator);
+        message.append(ELEMENT_PREFIX);
+        message.append(frame.toString());
     }
 
     private static boolean isGradleScriptElement(StackTraceElement element) {

@@ -29,8 +29,10 @@ import spock.lang.Unroll
 @Subject(LoggingDeprecatedFeatureHandler)
 class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final outputEventListener = new CollectingTestOutputEventListener()
-    @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
-    @Rule SetSystemProperties systemProperties = new SetSystemProperties()
+    @Rule
+    final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+    @Rule
+    SetSystemProperties systemProperties = new SetSystemProperties()
     final locationReporter = Mock(UsageLocationReporter)
     final handler = new LoggingDeprecatedFeatureHandler(locationReporter)
 
@@ -50,11 +52,11 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     }
 
     @Unroll
-    def 'logs fake call with #deprecationTracePropertyName=#deprecationTraceProperty'() {
-        System.setProperty(deprecationTracePropertyName, ''+deprecationTraceProperty)
+    def 'logs fake call Gradle script element first and #deprecationTracePropertyName=#deprecationTraceProperty'() {
+        System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
 
         when:
-        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('fake', createFakeStackTrace()))
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('fake', fakeStackTrace))
         def events = outputEventListener.events
 
         then:
@@ -65,26 +67,26 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         //println message
 
         message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
-        message.contains('SimulatedJavaCallLocation.create')
         message.contains('some.GradleScript.foo')
-        message.contains('some.KotlinGradleScript')
-        if(deprecationTraceProperty) {
-            assert message.contains('java.lang.reflect.Method.invoke')
+
+        if (deprecationTraceProperty) {
+            assert message.contains('SimulatedJavaCallLocation.create')
+            assert message.count('java.lang.reflect.Method.invoke') == 3
             assert message.contains('some.Class.withoutSource')
             assert message.contains('some.Class.withNativeMethod')
+            assert message.contains('some.KotlinGradleScript')
         } else {
+            assert !message.contains('SimulatedJavaCallLocation.create')
             assert !message.contains('java.lang.reflect.Method.invoke')
             assert !message.contains('some.Class.withoutSource')
             assert !message.contains('some.Class.withNativeMethod')
+            assert !message.contains('some.KotlinGradleScript')
         }
 
         where:
         deprecationTraceProperty << [true, false]
         deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
-    }
-
-    List<StackTraceElement> createFakeStackTrace() {
-        [
+        fakeStackTrace = [
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
             new StackTraceElement('some.Class', 'withoutSource', null, -1),
@@ -94,6 +96,142 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
             new StackTraceElement('some.KotlinGradleScript', 'foo', 'GradleScript.gradle.kts', 31337),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
         ] as ArrayList<StackTraceElement>
+    }
+
+    @Unroll
+    def 'logs fake call Gradle Kotlin script element first and #deprecationTracePropertyName=#deprecationTraceProperty'() {
+        System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
+
+        when:
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('fake', fakeStackTrace))
+        def events = outputEventListener.events
+
+        then:
+        events.size() == 1
+
+        and:
+        def message = events[0].message
+        //println message
+
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.contains('some.KotlinGradleScript')
+
+        if (deprecationTraceProperty) {
+            assert message.contains('SimulatedJavaCallLocation.create')
+            assert message.count('java.lang.reflect.Method.invoke') == 3
+            assert message.contains('some.Class.withoutSource')
+            assert message.contains('some.Class.withNativeMethod')
+            assert message.contains('some.GradleScript.foo')
+        } else {
+            assert !message.contains('SimulatedJavaCallLocation.create')
+            assert !message.contains('java.lang.reflect.Method.invoke')
+            assert !message.contains('some.Class.withoutSource')
+            assert !message.contains('some.Class.withNativeMethod')
+            assert !message.contains('some.GradleScript.foo')
+        }
+
+        where:
+        deprecationTraceProperty << [true, false]
+        deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        fakeStackTrace = [
+            new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+            new StackTraceElement('some.Class', 'withoutSource', null, -1),
+            new StackTraceElement('some.Class', 'withNativeMethod', null, -2),
+            new StackTraceElement('some.KotlinGradleScript', 'foo', 'GradleScript.gradle.kts', 31337),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+            new StackTraceElement('some.GradleScript', 'foo', 'GradleScript.gradle', 1337),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+        ] as ArrayList<StackTraceElement>
+    }
+
+    @Unroll
+    def 'logs fake call without Gradle script elements and #deprecationTracePropertyName=#deprecationTraceProperty'() {
+        System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
+
+        when:
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('fake', fakeStackTrace))
+        def events = outputEventListener.events
+
+        then:
+        events.size() == 1
+
+        and:
+        def message = events[0].message
+        //println message
+
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.contains('some.ArbitraryClass.withSource')
+
+        if (deprecationTraceProperty) {
+            assert message.contains('SimulatedJavaCallLocation.create')
+            assert message.count('java.lang.reflect.Method.invoke') == 3
+            assert message.contains('some.Class.withoutSource')
+            assert message.contains('some.Class.withNativeMethod')
+        } else {
+            assert !message.contains('SimulatedJavaCallLocation.create')
+            assert !message.contains('java.lang.reflect.Method.invoke')
+            assert !message.contains('some.Class.withoutSource')
+            assert !message.contains('some.Class.withNativeMethod')
+        }
+
+        where:
+        deprecationTraceProperty << [true, false]
+        deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        fakeStackTrace = [
+            new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
+            new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+            new StackTraceElement('some.Class', 'withoutSource', null, -1),
+            new StackTraceElement('some.Class', 'withNativeMethod', null, -2),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+            new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
+        ] as ArrayList<StackTraceElement>
+    }
+
+    @Unroll
+    def 'logs fake call with a single stack trace element and #deprecationTracePropertyName=#deprecationTraceProperty'() {
+        System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
+
+        when:
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('fake', fakeStackTrace))
+        def events = outputEventListener.events
+
+        then:
+        events.size() == 1
+
+        and:
+        def message = events[0].message
+        //println message
+
+        message.startsWith(TextUtil.toPlatformLineSeparators('fake\n'))
+        message.contains('some.ArbitraryClass.withSource')
+
+        where:
+        deprecationTraceProperty << [true, false]
+        deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        fakeStackTrace = [
+            new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
+        ]
+    }
+
+    @Unroll
+    def 'logs fake call without stack trace elements and #deprecationTracePropertyName=#deprecationTraceProperty'() {
+        System.setProperty(deprecationTracePropertyName, '' + deprecationTraceProperty)
+
+        when:
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('fake', []))
+        def events = outputEventListener.events
+
+        then:
+        events.size() == 1
+
+        and:
+        events[0].message == 'fake'
+
+        where:
+        deprecationTraceProperty << [true, false]
+        deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
     def "location reporter can prepend text"() {
