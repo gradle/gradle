@@ -49,6 +49,22 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
         execute(buildA, ":delegate")
 
         then:
+        executed ":buildB:logProject"
+        output.contains("Executing build 'buildB' project ':' task ':logProject'")
+    }
+
+    def "can depend on task in root project of included build"() {
+        when:
+        buildA.buildFile << """
+    task delegate {
+        dependsOn 'buildB::logProject'
+    }
+"""
+
+        execute(buildA, ":delegate")
+
+        then:
+        executed ":buildB:logProject"
         output.contains("Executing build 'buildB' project ':' task ':logProject'")
     }
 
@@ -64,6 +80,47 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
         execute(buildA, ":delegate")
 
         then:
+        executed ":buildB:b1:logProject"
+        output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
+    }
+
+    def "can depend on task in subproject of included build"() {
+        when:
+        buildA.buildFile << """
+    task delegate {
+        dependsOn 'buildB::b1:logProject'
+    }
+"""
+
+        execute(buildA, ":delegate")
+
+        then:
+        executed ":buildB:b1:logProject"
+        output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
+    }
+
+    def "can depend on multiple tasks of included build"() {
+        when:
+        buildA.buildFile << """
+    task delegate {
+        dependsOn 'delegate1', 'delegate2'
+    }
+
+    task delegate1 {
+        dependsOn 'buildB::logProject'
+        dependsOn 'buildB::b1:logProject'
+    }
+
+    task delegate2 {
+        dependsOn 'buildB::logProject'
+    }
+"""
+
+        execute(buildA, ":delegate")
+
+        then:
+        executed ":buildB:logProject", ":buildB:b1:logProject"
+        output.contains("Executing build 'buildB' project ':' task ':logProject'")
         output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 }
