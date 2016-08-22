@@ -56,13 +56,13 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
     }
 
     @Unroll('Project #buildSize native build #changeType')
-    def "build with changes"(String buildSize, String changeType, String changedFile, Closure changeClosure, String fastestVersion) {
+    def "build with changes"(String buildSize, String changeType, String changedFile, Closure changeClosure, List<String> targetVersions) {
         given:
         runner.testId = "native build ${buildSize} ${changeType}"
         runner.testProject = "${buildSize}NativeMonolithic"
         runner.tasksToRun = ['build']
         runner.args = ["--parallel", "--max-workers=4"]
-        runner.targetVersions = [fastestVersion]
+        runner.targetVersions = targetVersions
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
         runner.warmUpRuns = 5
@@ -116,10 +116,10 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // source file change causes a single project, single source set, single file to be recompiled.
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
-        buildSize | changeType              | changedFile                       | changeClosure        | fastestVersion
-        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource  | '2.14.1'
-        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader   | '2.14.1'
-        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs     | '2.11'
+        buildSize | changeType              | changedFile                       | changeClosure        | targetVersions
+        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource  | ['2.14.1']
+        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader   | ['2.14.1']
+        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs     | ['2.11', '2.12', '2.13', '2.14.1']
     }
 
     void changeCSource(File file, String originalContent) {
