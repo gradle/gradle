@@ -17,13 +17,17 @@
 package org.gradle.tooling.internal.consumer.connection
 
 import org.gradle.tooling.BuildAction
-import org.gradle.tooling.UnknownModelException
 import org.gradle.tooling.UnsupportedVersionException
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter
 import org.gradle.tooling.internal.adapter.ViewBuilder
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping
-import org.gradle.tooling.internal.protocol.*
+import org.gradle.tooling.internal.protocol.BuildResult
+import org.gradle.tooling.internal.protocol.ConfigurableConnection
+import org.gradle.tooling.internal.protocol.ConnectionMetaDataVersion1
+import org.gradle.tooling.internal.protocol.ConnectionVersion4
+import org.gradle.tooling.internal.protocol.ModelBuilder
+import org.gradle.tooling.internal.protocol.ModelIdentifier
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -81,21 +85,6 @@ class ModelBuilderBackedConsumerConnectionTest extends Specification {
         1 * modelMapping.getModelIdentifierFromModelType(GradleProject) >> modelIdentifier
         1 * target.getModel(modelIdentifier, parameters) >> Stub(BuildResult)
         _ * adapter.builder(_) >> Stub(ViewBuilder)
-    }
-
-    def "maps internal unknown model exception to API exception"() {
-        def modelIdentifier = Stub(ModelIdentifier)
-
-        given:
-        _ * modelMapping.getModelIdentifierFromModelType(GradleProject) >> modelIdentifier
-        _ * target.getModel(modelIdentifier, parameters) >> { throw new InternalUnsupportedModelException() }
-
-        when:
-        connection.run(GradleProject, parameters)
-
-        then:
-        UnknownModelException e = thrown()
-        e.message == /No model of type 'GradleProject' is available in this build./
     }
 
     def "builds GradleBuild model by converting GradleProject"() {

@@ -21,8 +21,8 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
-import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
@@ -32,13 +32,15 @@ public class ModelBuilderBackedModelProducer extends HasCompatibilityMapping imp
     private final VersionDetails versionDetails;
     private final ModelMapping modelMapping;
     private final ModelBuilder builder;
+    private InternalBuildActionExecutor actionExecutor;
 
-    public ModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder) {
+    public ModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder, InternalBuildActionExecutor actionExecutor) {
         super(versionDetails);
         this.adapter = adapter;
         this.versionDetails = versionDetails;
         this.modelMapping = modelMapping;
         this.builder = builder;
+        this.actionExecutor = actionExecutor;
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
@@ -46,18 +48,18 @@ public class ModelBuilderBackedModelProducer extends HasCompatibilityMapping imp
             throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
         }
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
-        BuildResult<?> result;
-        try {
-            result = builder.getModel(modelIdentifier, operationParameters);
-        } catch (InternalUnsupportedModelException e) {
-            throw Exceptions.unknownModel(type, e);
-        }
+        BuildResult<?> result = builder.getModel(modelIdentifier, operationParameters);
         return applyCompatibilityMapping(adapter.builder(type), operationParameters.getBuildIdentifier()).build(result.getModel());
     }
 
     @Override
     public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
-        //TODO implement this to support GradleConnection against Gradle 1.6-1.8
-        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), versionDetails.getVersion(), "3.1");
+        if (actionExecutor == null) {
+            throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), versionDetails.getVersion(), "1.8");
+        } else {
+            BuildResult<InternalModelResults<T>> result = actionExecutor.run(new BuildMultiModelAction<T>(adapter, versionDetails, modelMapping, elementType, operationParameters), operationParameters);
+            return result.getModel();
+        }
+
     }
 }

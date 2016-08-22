@@ -16,10 +16,13 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import com.google.common.collect.ImmutableList;
+import org.gradle.internal.Cast;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.GradleBuildConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 import org.gradle.tooling.internal.gradle.DefaultGradleBuild;
+import org.gradle.tooling.internal.protocol.InternalModelResult;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
@@ -44,9 +47,22 @@ public class GradleBuildAdapterProducer implements ModelProducer {
         return delegate.produceModel(type, operationParameters);
     }
 
+    /*
+     * Since this compatibility adapter is only used for older Gradle versions that don't support composite builds,
+     * it is enough to fetch the GradleBuild model for the single build.
+     */
     @Override
     public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
-        //TODO implement this to support GradleConnection against older Gradle versions
-        throw new UnsupportedOperationException();
+        if (elementType.equals(GradleBuild.class)) {
+            InternalModelResult<T> result;
+            try {
+                GradleBuild gradleBuild = produceModel(GradleBuild.class, operationParameters);
+                result = Cast.uncheckedCast(InternalModelResult.model(operationParameters.getProjectDir(), gradleBuild));
+            } catch (RuntimeException e) {
+                result = InternalModelResult.failure(operationParameters.getProjectDir(), e);
+            }
+            return new InternalModelResults<T>(ImmutableList.of(result));
+        }
+        return delegate.produceModels(elementType, operationParameters);
     }
 }

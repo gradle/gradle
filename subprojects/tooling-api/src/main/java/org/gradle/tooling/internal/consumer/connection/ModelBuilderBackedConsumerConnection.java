@@ -37,9 +37,9 @@ public class ModelBuilderBackedConsumerConnection extends AbstractPost12Consumer
     public ModelBuilderBackedConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R16VersionDetails(delegate.getMetaData().getVersion()));
         ModelBuilder builder = (ModelBuilder) delegate;
-        ModelProducer modelProducer =  new ModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, builder);
+        ModelProducer modelProducer =  new ModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, builder, null);
         modelProducer = new GradleBuildAdapterProducer(adapter, modelProducer, this);
-        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), modelProducer);
+        modelProducer = new BuildInvocationsAdapterProducer(adapter, modelProducer);
         this.modelProducer = modelProducer;
         this.actionRunner = new UnsupportedActionRunner(getVersionDetails().getVersion());
     }

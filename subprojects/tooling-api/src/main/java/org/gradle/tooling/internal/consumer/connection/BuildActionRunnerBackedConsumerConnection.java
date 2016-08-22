@@ -45,7 +45,7 @@ public class BuildActionRunnerBackedConsumerConnection extends AbstractPost12Con
         super(delegate, new R12VersionDetails(delegate.getMetaData().getVersion()));
         ModelProducer consumerConnectionBackedModelProducer = new BuildActionRunnerBackedModelProducer(adapter, getVersionDetails(), modelMapping,  (BuildActionRunner) delegate, this);
         ModelProducer producerWithGradleBuild = new GradleBuildAdapterProducer(adapter, consumerConnectionBackedModelProducer, this);
-        modelProducer = new BuildInvocationsAdapterProducer(adapter, getVersionDetails(), producerWithGradleBuild);
+        modelProducer = new BuildInvocationsAdapterProducer(adapter, producerWithGradleBuild);
         actionRunner = new UnsupportedActionRunner(getVersionDetails().getVersion());
     }
 

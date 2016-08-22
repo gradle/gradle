@@ -52,7 +52,8 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
 
     @Override
     public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
-        //TODO implement this to support GradleConnection against Gradle 1.8-3.0
-        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), versionDetails.getVersion(), "3.1");
+        BuildResult<InternalModelResults<T>> result = builder.run(new BuildMultiModelAction<T>(adapter, versionDetails, modelMapping, elementType, operationParameters), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
+        return result.getModel();
     }
+
 }

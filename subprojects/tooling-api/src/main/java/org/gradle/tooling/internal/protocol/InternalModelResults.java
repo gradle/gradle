@@ -16,6 +16,9 @@
 
 package org.gradle.tooling.internal.protocol;
 
+import com.google.common.collect.Lists;
+
+import java.io.File;
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.List;
@@ -28,6 +31,26 @@ public class InternalModelResults<T> implements Iterable<InternalModelResult<T>>
 
     public InternalModelResults(List<InternalModelResult<T>> results) {
         this.results = results;
+    }
+
+    public InternalModelResults() {
+        this.results = Lists.newArrayList();
+    }
+
+    public void addBuildModel(File rootDir, T model) {
+        results.add(new InternalModelResult<T>(rootDir, null, model, null));
+    }
+
+    public void addProjectModel(File rootDir, String projectPath, T model) {
+        results.add(new InternalModelResult<T>(rootDir, projectPath, model, null));
+    }
+
+    public void addBuildFailure(File rootDir, RuntimeException failure) {
+        results.add(new InternalModelResult<T>(rootDir, null, null, failure));
+    }
+
+    public void addProjectFailure(File rootDir, String projectPath, RuntimeException failure) {
+        results.add(new InternalModelResult<T>(rootDir, projectPath, null , failure));
     }
 
     @Override

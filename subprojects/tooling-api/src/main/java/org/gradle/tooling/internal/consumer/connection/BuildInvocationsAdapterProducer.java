@@ -16,40 +16,55 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
+import com.google.common.collect.Lists;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.internal.protocol.InternalModelResult;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
-import org.gradle.tooling.model.internal.Exceptions;
+
+import java.util.List;
 
 public class BuildInvocationsAdapterProducer implements ModelProducer {
     private final ProtocolToModelAdapter adapter;
-    private final VersionDetails versionDetails;
     private final ModelProducer delegate;
 
-    public BuildInvocationsAdapterProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelProducer delegate) {
+    public BuildInvocationsAdapterProducer(ProtocolToModelAdapter adapter, ModelProducer delegate) {
         this.adapter = adapter;
-        this.versionDetails = versionDetails;
         this.delegate = delegate;
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
         if (type.equals(BuildInvocations.class)) {
-            if (!versionDetails.maySupportModel(GradleProject.class)) {
-                throw Exceptions.unsupportedModel(type, versionDetails.getVersion());
-            }
             GradleProject gradleProject = delegate.produceModel(GradleProject.class, operationParameters);
             return adapter.adapt(type, new BuildInvocationsConverter().convert(gradleProject));
         }
         return delegate.produceModel(type, operationParameters);
     }
 
+
     @Override
     public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
-        //TODO implement this to support GradleConnection against older Gradle versions
-        throw new UnsupportedOperationException();
+        if (elementType.equals(BuildInvocations.class)) {
+            List<InternalModelResult<T>> buildInvocations = Lists.newArrayList();
+            try {
+                InternalModelResults<GradleProject> gradleProjects = delegate.produceModels(GradleProject.class, operationParameters);
+                BuildInvocationsConverter converter = new BuildInvocationsConverter();
+                for (InternalModelResult<GradleProject> gradleProject : gradleProjects) {
+                    if (gradleProject.getFailure() == null) {
+                        T buildInvocation = adapter.adapt(elementType, converter.convert(gradleProject.getModel()));
+                        buildInvocations.add(InternalModelResult.model(gradleProject.getRootDir(), gradleProject.getProjectPath(), buildInvocation));
+                    } else {
+                        buildInvocations.add(InternalModelResult.<T>failure(gradleProject.getRootDir(), gradleProject.getProjectPath(), gradleProject.getFailure()));
+                    }
+                }
+            } catch (RuntimeException e) {
+                buildInvocations.add(InternalModelResult.<T>failure(operationParameters.getProjectDir(), e));
+            }
+            return new InternalModelResults<T>(buildInvocations);
+        }
+        return delegate.produceModels(elementType, operationParameters);
     }
 }
