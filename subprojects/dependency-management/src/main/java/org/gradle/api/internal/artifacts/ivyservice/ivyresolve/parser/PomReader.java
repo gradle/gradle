@@ -266,13 +266,24 @@ public class PomReader implements PomParent {
         importedDependencyMgts.putAll(inherited);
     }
 
+    private void checkNotNull(String value, String name) {
+        checkNotNull(value, name, null);
+    }
+
+    private void checkNotNull(String value, String name, String element) {
+        if (value == null) {
+            String attributeName = element == null ? name : element + " " + name;
+            throw new IllegalArgumentException("Missing required attribute: " + attributeName);
+        }
+    }
+
     public String getGroupId() {
         String groupId = getFirstChildText(projectElement , GROUP_ID);
         if (groupId == null) {
             groupId = getFirstChildText(parentElement, GROUP_ID);
         }
+        checkNotNull(groupId, GROUP_ID);
         return replaceProps(groupId);
-
     }
 
     public String getParentGroupId() {
@@ -280,6 +291,7 @@ public class PomReader implements PomParent {
         if (groupId == null) {
             groupId = getFirstChildText(projectElement, GROUP_ID);
         }
+        checkNotNull(groupId, GROUP_ID);
         return replaceProps(groupId);
     }
 
@@ -288,6 +300,7 @@ public class PomReader implements PomParent {
         if (val == null) {
             val = getFirstChildText(parentElement, ARTIFACT_ID);
         }
+        checkNotNull(val, ARTIFACT_ID);
         return replaceProps(val);
     }
 
@@ -296,6 +309,7 @@ public class PomReader implements PomParent {
         if (val == null) {
             val = getFirstChildText(projectElement, ARTIFACT_ID);
         }
+        checkNotNull(val, ARTIFACT_ID);
         return replaceProps(val);
     }
 
@@ -486,7 +500,8 @@ public class PomReader implements PomParent {
          * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getGroupId()
          */
         public String getGroupId() {
-            String val = getFirstChildText(depElement , GROUP_ID);
+            String val = getFirstChildText(depElement, GROUP_ID);
+            checkNotNull(val, GROUP_ID, "dependency");
             return replaceProps(val);
         }
 
@@ -494,7 +509,8 @@ public class PomReader implements PomParent {
          * @see org.apache.ivy.plugins.parser.m2.PomDependencyMgt#getArtifaceId()
          */
         public String getArtifactId() {
-            String val = getFirstChildText(depElement , ARTIFACT_ID);
+            String val = getFirstChildText(depElement, ARTIFACT_ID);
+            checkNotNull(val, ARTIFACT_ID, "dependency");
             return replaceProps(val);
         }
 
