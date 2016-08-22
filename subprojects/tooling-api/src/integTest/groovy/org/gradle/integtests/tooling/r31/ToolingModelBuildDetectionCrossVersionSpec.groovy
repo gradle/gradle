@@ -16,14 +16,14 @@
 
 package org.gradle.integtests.tooling.r31
 
+import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion('>=2.0')
 @TargetGradleVersion(">=3.1")
-class ToolingModelBuildDetectionCrossVersionSpec extends ToolingApiSpecification {
+class ToolingModelBuildDetectionCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
 
     def setup() {
         settingsFile << 'rootProject.name = "root"'
