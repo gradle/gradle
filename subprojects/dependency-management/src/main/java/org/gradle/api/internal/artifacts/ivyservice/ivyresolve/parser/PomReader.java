@@ -501,7 +501,7 @@ public class PomReader implements PomParent {
          */
         public String getGroupId() {
             String val = getFirstChildText(depElement, GROUP_ID);
-            checkNotNull(val, GROUP_ID, "dependency");
+            checkNotNull(val, GROUP_ID, DEPENDENCY);
             return replaceProps(val);
         }
 
@@ -510,7 +510,7 @@ public class PomReader implements PomParent {
          */
         public String getArtifactId() {
             String val = getFirstChildText(depElement, ARTIFACT_ID);
-            checkNotNull(val, ARTIFACT_ID, "dependency");
+            checkNotNull(val, ARTIFACT_ID, DEPENDENCY);
             return replaceProps(val);
         }
 
