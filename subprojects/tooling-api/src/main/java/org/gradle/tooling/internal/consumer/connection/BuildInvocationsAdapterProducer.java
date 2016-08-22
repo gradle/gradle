@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import com.google.common.collect.Lists;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.consumer.converters.BuildInvocationsConverter;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
@@ -24,8 +23,6 @@ import org.gradle.tooling.internal.protocol.InternalModelResult;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.model.GradleProject;
 import org.gradle.tooling.model.gradle.BuildInvocations;
-
-import java.util.List;
 
 public class BuildInvocationsAdapterProducer implements ModelProducer {
     private final ProtocolToModelAdapter adapter;
@@ -48,22 +45,22 @@ public class BuildInvocationsAdapterProducer implements ModelProducer {
     @Override
     public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         if (elementType.equals(BuildInvocations.class)) {
-            List<InternalModelResult<T>> buildInvocations = Lists.newArrayList();
+            InternalModelResults<T> buildInvocations = new InternalModelResults<T>();
             try {
                 InternalModelResults<GradleProject> gradleProjects = delegate.produceModels(GradleProject.class, operationParameters);
                 BuildInvocationsConverter converter = new BuildInvocationsConverter();
                 for (InternalModelResult<GradleProject> gradleProject : gradleProjects) {
                     if (gradleProject.getFailure() == null) {
                         T buildInvocation = adapter.adapt(elementType, converter.convert(gradleProject.getModel()));
-                        buildInvocations.add(InternalModelResult.model(gradleProject.getRootDir(), gradleProject.getProjectPath(), buildInvocation));
+                        buildInvocations.addProjectModel(gradleProject.getRootDir(), gradleProject.getProjectPath(), buildInvocation);
                     } else {
-                        buildInvocations.add(InternalModelResult.<T>failure(gradleProject.getRootDir(), gradleProject.getProjectPath(), gradleProject.getFailure()));
+                        buildInvocations.addProjectFailure(gradleProject.getRootDir(), gradleProject.getProjectPath(), gradleProject.getFailure());
                     }
                 }
             } catch (RuntimeException e) {
-                buildInvocations.add(InternalModelResult.<T>failure(operationParameters.getProjectDir(), e));
+                buildInvocations.addBuildFailure(operationParameters.getProjectDir(), e);
             }
-            return new InternalModelResults<T>(buildInvocations);
+            return buildInvocations;
         }
         return delegate.produceModels(elementType, operationParameters);
     }

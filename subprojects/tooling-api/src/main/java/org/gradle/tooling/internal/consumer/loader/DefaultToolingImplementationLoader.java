@@ -95,7 +95,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
                 adaptedConnection = new CancellableConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof ModelBuilder && connection instanceof InternalBuildActionExecutor) {
                 adaptedConnection = new ActionAwareConsumerConnection(connection, modelMapping, adapter);
-            } else if (connection instanceof ModelBuilder) {
+            } else if (connection instanceof ModelBuilder && connection instanceof BuildActionRunner) {
                 adaptedConnection = new ModelBuilderBackedConsumerConnection(connection, modelMapping, adapter);
             } else if (connection instanceof BuildActionRunner) {
                 adaptedConnection = new BuildActionRunnerBackedConsumerConnection(connection, modelMapping, adapter);

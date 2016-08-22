@@ -38,7 +38,7 @@ class ModelBuilderBackedModelProducerTest extends Specification {
 
     def setup() {
         _ * versionDetails.getVersion() >> "1.0"
-        modelProducer = new ModelBuilderBackedModelProducer(adapter, versionDetails, mapping, builder, null);
+        modelProducer = new ModelBuilderBackedModelProducer(adapter, versionDetails, mapping, builder);
     }
 
     def "builder not triggered for unsupported Models"() {

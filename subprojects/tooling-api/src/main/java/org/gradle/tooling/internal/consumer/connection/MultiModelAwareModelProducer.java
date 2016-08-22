@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.consumer.connection;
 
-import com.google.common.collect.Lists;
 import org.gradle.internal.Cast;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
@@ -31,8 +30,6 @@ import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.protocol.InternalMultiModelAwareConnection;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
-
-import java.util.List;
 
 public class MultiModelAwareModelProducer extends HasCompatibilityMapping implements ModelProducer {
     private final ModelProducer delegate;
@@ -57,29 +54,26 @@ public class MultiModelAwareModelProducer extends HasCompatibilityMapping implem
 
     @Override
     public <T> InternalModelResults<T> produceModels(final Class<T> elementType, ConsumerOperationParameters operationParameters) {
-        BuildResult<?> result = buildModels(elementType, operationParameters);
-        Object models = result.getModel();
-        if (models instanceof InternalModelResults) {
-            List<InternalModelResult<T>> results = Lists.newArrayList();
-            for (InternalModelResult<?> original : (InternalModelResults<?>) models) {
-                if (original.getFailure() == null) {
-                    Object model = original.getModel();
-                    if (original.getProjectPath() == null) {
-                        DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(original.getRootDir());
+        BuildResult<?> buildResult = buildModels(elementType, operationParameters);
+        Object results = buildResult.getModel();
+        if (results instanceof InternalModelResults) {
+            for (InternalModelResult<Object> result : Cast.<InternalModelResults<Object>>uncheckedCast(results)) {
+                if (result.getFailure() == null) {
+                    Object model = result.getModel();
+                    if (result.getProjectPath() == null) {
+                        DefaultBuildIdentifier buildIdentifier = new DefaultBuildIdentifier(result.getRootDir());
                         T newModel = applyCompatibilityMapping(adapter.builder(elementType), buildIdentifier).build(model);
-                        results.add(InternalModelResult.model(original.getRootDir(), newModel));
+                        result.setModel(newModel);
                     } else {
-                        DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(original.getRootDir(), original.getProjectPath());
+                        DefaultProjectIdentifier projectIdentifier = new DefaultProjectIdentifier(result.getRootDir(), result.getProjectPath());
                         T newModel = applyCompatibilityMapping(adapter.builder(elementType), projectIdentifier).build(model);
-                        results.add(InternalModelResult.model(original.getRootDir(), original.getProjectPath(), newModel));
+                        result.setModel(newModel);
                     }
-                } else {
-                    results.add(Cast.<InternalModelResult<T>>uncheckedCast(original));
                 }
             }
-            return new InternalModelResults<T>(results);
+            return Cast.uncheckedCast(results);
         }
-        throw new UnsupportedOperationException(String.format("Produced result of type %s for model %s", result.getClass().getCanonicalName(), elementType.getName()));
+        throw new UnsupportedOperationException(String.format("Produced result of type %s for model %s", buildResult.getClass().getCanonicalName(), elementType.getName()));
     }
 
     private <T> BuildResult<?> buildModels(Class<T> type, ConsumerOperationParameters operationParameters) {

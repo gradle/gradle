@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,22 +21,26 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
+import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
+import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class ModelBuilderBackedModelProducer extends MultiModelFromSingleModelProducer implements ModelProducer {
+public class ModelBuilderAndActionExecutorBackedModelProducer extends HasCompatibilityMapping implements ModelProducer {
     private final ProtocolToModelAdapter adapter;
     private final VersionDetails versionDetails;
     private final ModelMapping modelMapping;
     private final ModelBuilder builder;
+    private InternalBuildActionExecutor actionExecutor;
 
-    public ModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder) {
+    public ModelBuilderAndActionExecutorBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder, InternalBuildActionExecutor actionExecutor) {
         super(versionDetails);
         this.adapter = adapter;
         this.versionDetails = versionDetails;
         this.modelMapping = modelMapping;
         this.builder = builder;
+        this.actionExecutor = actionExecutor;
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
@@ -46,5 +50,14 @@ public class ModelBuilderBackedModelProducer extends MultiModelFromSingleModelPr
         final ModelIdentifier modelIdentifier = modelMapping.getModelIdentifierFromModelType(type);
         BuildResult<?> result = builder.getModel(modelIdentifier, operationParameters);
         return applyCompatibilityMapping(adapter.builder(type), operationParameters.getBuildIdentifier()).build(result.getModel());
+    }
+
+    @Override
+    public <T> InternalModelResults<T> produceModels(Class<T> elementType, ConsumerOperationParameters operationParameters) {
+        if (!versionDetails.maySupportModel(elementType)) {
+            throw Exceptions.unsupportedModel(elementType, versionDetails.getVersion());
+        }
+        BuildResult<InternalModelResults<T>> result = actionExecutor.run(new BuildMultiModelAction<T>(adapter, versionDetails, modelMapping, elementType, operationParameters), operationParameters);
+        return result.getModel();
     }
 }

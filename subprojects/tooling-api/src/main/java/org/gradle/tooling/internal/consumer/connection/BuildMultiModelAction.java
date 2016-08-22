@@ -26,11 +26,9 @@ import org.gradle.tooling.internal.protocol.InternalBuildAction;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
-import org.gradle.tooling.model.BuildModel;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.ProjectModel;
-import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
@@ -69,8 +67,9 @@ class BuildMultiModelAction<T> extends HasCompatibilityMapping implements Intern
 
     private void getBuildModel(InternalBuildController buildController, InternalModelResults<T> results) {
         try {
-            BuildResult<T> model = Cast.uncheckedCast(buildController.getModel(null, modelIdentifier));
-            results.addBuildModel(operationParameters.getProjectDir(), model.getModel());
+            BuildResult<?> result = Cast.uncheckedCast(buildController.getModel(null, modelIdentifier));
+            T model = applyCompatibilityMapping(adapter.builder(elementType), operationParameters.getBuildIdentifier()).build(result.getModel());
+            results.addBuildModel(operationParameters.getProjectDir(), model);
         } catch (RuntimeException e) {
             results.addBuildFailure(operationParameters.getProjectDir(), e);
         }
@@ -78,7 +77,8 @@ class BuildMultiModelAction<T> extends HasCompatibilityMapping implements Intern
 
     private void getModelsFromHierarchy(InternalBuildController buildController, InternalModelResults<T> results) {
         try {
-            T model = Cast.uncheckedCast(buildController.getModel(null, modelIdentifier).getModel());
+            BuildResult<?> result = buildController.getModel(null, modelIdentifier);
+            T model = applyCompatibilityMapping(adapter.builder(elementType), operationParameters.getBuildIdentifier()).build(result.getModel());
             addModelsFromHierarchy(model, results);
         } catch (RuntimeException e) {
             results.addBuildFailure(operationParameters.getProjectDir(), e);
@@ -93,8 +93,9 @@ class BuildMultiModelAction<T> extends HasCompatibilityMapping implements Intern
     }
 
     private void getProjectModels(InternalBuildController buildController, InternalModelResults<T> results) {
-        BuildResult<GradleBuild> gradleBuild = Cast.uncheckedCast(buildController.getModel(null, modelMapping.getModelIdentifierFromModelType(GradleBuild.class)));
-        for (BasicGradleProject project : gradleBuild.getModel().getProjects()) {
+        BuildResult<?> gradleBuildResult = buildController.getModel(null, modelMapping.getModelIdentifierFromModelType(GradleBuild.class));
+        GradleBuild gradleBuild = applyCompatibilityMapping(adapter.builder(GradleBuild.class), operationParameters.getBuildIdentifier()).build(gradleBuildResult);
+        for (BasicGradleProject project : gradleBuild.getProjects()) {
             try {
                 results.addProjectModel(operationParameters.getProjectDir(), project.getPath(), getProjectModel(buildController, project));
             } catch (RuntimeException e) {
@@ -104,7 +105,7 @@ class BuildMultiModelAction<T> extends HasCompatibilityMapping implements Intern
     }
 
     private T getProjectModel(InternalBuildController buildController, BasicGradleProject project) {
-        BuildResult<T> result = Cast.uncheckedCast(buildController.getModel(project, modelIdentifier));
+        BuildResult<?> result = buildController.getModel(project, modelIdentifier);
         return applyCompatibilityMapping(adapter.builder(elementType), operationParameters.getBuildIdentifier()).build(result.getModel());
     }
 }
