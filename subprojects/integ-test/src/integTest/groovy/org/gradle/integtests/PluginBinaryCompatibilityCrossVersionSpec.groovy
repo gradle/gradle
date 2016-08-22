@@ -16,14 +16,12 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
 
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
 class PluginBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
-    @LeaksFileHandles("leaves `producer.jar` locked when run with daemon executer")
     def "plugin implemented in Groovy can use types converted from Groovy to Java"() {
         given:
         file("producer/build.gradle") << """

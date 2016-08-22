@@ -43,14 +43,12 @@ import org.gradle.plugins.ide.idea.GenerateIdeaModule
 import org.gradle.plugins.ide.idea.GenerateIdeaProject
 import org.gradle.plugins.ide.idea.GenerateIdeaWorkspace
 import org.gradle.plugins.signing.Sign
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
 import org.junit.Assume
 
 /**
  * Tests that task classes compiled against earlier versions of Gradle are still compatible.
  */
-@LeaksFileHandles
 class TaskSubclassingBinaryCompatibilityCrossVersionSpec extends CrossVersionIntegrationSpec {
     def "can use task subclass compiled using previous Gradle version"() {
         given:
