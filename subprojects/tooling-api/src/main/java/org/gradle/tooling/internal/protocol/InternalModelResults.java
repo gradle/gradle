@@ -27,15 +27,7 @@ import java.util.List;
  * The internal protocol for transferring {@link org.gradle.tooling.connection.ModelResults}
  */
 public class InternalModelResults<T> implements Iterable<InternalModelResult<T>>, Serializable {
-    private final List<InternalModelResult<T>> results;
-
-    public InternalModelResults(List<InternalModelResult<T>> results) {
-        this.results = results;
-    }
-
-    public InternalModelResults() {
-        this.results = Lists.newArrayList();
-    }
+    private final List<InternalModelResult<T>> results = Lists.newArrayList();
 
     public void addBuildModel(File rootDir, T model) {
         results.add(new InternalModelResult<T>(rootDir, null, model, null));
@@ -50,7 +42,7 @@ public class InternalModelResults<T> implements Iterable<InternalModelResult<T>>
     }
 
     public void addProjectFailure(File rootDir, String projectPath, RuntimeException failure) {
-        results.add(new InternalModelResult<T>(rootDir, projectPath, null , failure));
+        results.add(new InternalModelResult<T>(rootDir, projectPath, null, failure));
     }
 
     @Override

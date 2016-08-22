@@ -23,28 +23,12 @@ import java.io.Serializable;
  * The internal protocol for transferring {@link org.gradle.tooling.connection.ModelResult}s
  */
 public class InternalModelResult<T> implements Serializable {
-    File rootDir;
-    String projectPath;
-    T model;
-    RuntimeException failure;
+    private File rootDir;
+    private String projectPath;
+    private T model;
+    private RuntimeException failure;
 
-    public static <T> InternalModelResult<T> model(File rootDir, T model) {
-        return new InternalModelResult<T>(rootDir, null, model, null);
-    }
-
-    public static <T> InternalModelResult<T> model(File rootDir, String projectPath, T model) {
-        return new InternalModelResult<T>(rootDir, projectPath, model, null);
-    }
-
-    public static <T> InternalModelResult<T> failure(File rootDir, RuntimeException failure) {
-        return new InternalModelResult<T>(rootDir, null, null, failure);
-    }
-
-    public static <T> InternalModelResult<T> failure(File rootDir, String projectPath, RuntimeException failure) {
-        return new InternalModelResult<T>(rootDir, projectPath, null, failure);
-    }
-
-    public InternalModelResult(File rootDir, String projectPath, T model, RuntimeException failure) {
+    InternalModelResult(File rootDir, String projectPath, T model, RuntimeException failure) {
         this.rootDir = rootDir;
         this.projectPath = projectPath;
         this.model = model;
