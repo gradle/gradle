@@ -49,7 +49,8 @@ public class PackageListGenerator extends DefaultTask {
     public static final List<String> DEFAULT_EXCLUDES = Arrays.asList(
         "org/gradle",
         "java",
-        "javax",
+        "javax/xml",
+        "javax/inject",
         "groovy",
         "groovyjarjarantlr",
         "net/rubygrapefruit",
@@ -176,13 +177,13 @@ public class PackageListGenerator extends DefaultTask {
     private void processClassFile(ZipEntry zipEntry, Trie.Builder builder) throws IOException {
         int endIndex = zipEntry.getName().lastIndexOf("/");
         if (endIndex > 0) {
-            String className = zipEntry.getName().substring(0, endIndex);
+            String packageName = zipEntry.getName().substring(0, endIndex);
             for (String exclude : getExcludes()) {
-                if (className.startsWith(exclude)) {
+                if (zipEntry.getName().startsWith(exclude + "/")) {
                     return;
                 }
             }
-            builder.addWord(className);
+            builder.addWord(packageName);
         }
     }
 
