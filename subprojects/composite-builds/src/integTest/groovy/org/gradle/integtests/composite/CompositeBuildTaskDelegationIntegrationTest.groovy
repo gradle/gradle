@@ -20,6 +20,11 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
+ *
+ * TODO:
+ * - Check exception when build does not exist
+ * - Check exception when task does not exist for build
+ * - Check exception for invalid task selectors - 'build:::', 'build::foo::bar', 'build::', etc
  */
 class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB

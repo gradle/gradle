@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Task;
 
+// TODO:DAZ Maybe change this to allow return of `TaskDependency`, `Task` and/or maybe a reference to a task.
 public interface TaskResolver {
     Task resolveTask(String path);
 }

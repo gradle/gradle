@@ -23,6 +23,7 @@ import org.gradle.api.tasks.TaskContainer;
 
 public class CompositeConstructingTaskResolver implements ConstructingTaskResolver {
 
+    // TODO:DAZ Should return a reference to a task in another build, rather than relying on a synthetic delegating task.
     @Override
     public Task constructTask(final String path, TaskContainer tasks) {
         if (!path.contains("::")) {
@@ -35,6 +36,8 @@ public class CompositeConstructingTaskResolver implements ConstructingTaskResolv
             String[] split = path.split("::", 2);
             final String buildName = split[0];
             final String taskToExecute = ":" + split[1];
+
+            // TODO:DAZ Should probably be validating build name here, rather than waiting until execution
 
             task = tasks.create(path, CompositeBuildTaskDelegate.class, new Action<CompositeBuildTaskDelegate>() {
                 @Override
