@@ -38,6 +38,7 @@ public class BuildExperimentRunner {
     private final DataCollector dataCollector;
     private final GradleSessionProvider executerProvider;
     private final OperationTimer timer = new OperationTimer();
+    private final HonestProfilerCollector honestProfiler;
 
     public enum Phase {
         WARMUP,
@@ -59,7 +60,12 @@ public class BuildExperimentRunner {
         BuildEventTimestampCollector buildEventTimestampCollector = new BuildEventTimestampCollector("build/buildEventTimestamps.txt");
         GCLoggingCollector gcCollector = new GCLoggingCollector();
         PerformanceCounterCollector performanceCounterCollector = new PerformanceCounterCollector();
-        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, performanceCounterCollector, new CompilationLoggingCollector(), new HonestProfilerCollector());
+        honestProfiler = new HonestProfilerCollector();
+        dataCollector = new CompositeDataCollector(memoryInfoCollector, gcCollector, buildEventTimestampCollector, performanceCounterCollector, new CompilationLoggingCollector(), honestProfiler);
+    }
+
+    public HonestProfilerCollector getHonestProfiler() {
+        return honestProfiler;
     }
 
     public void run(BuildExperimentSpec experiment, MeasuredOperationList results) {

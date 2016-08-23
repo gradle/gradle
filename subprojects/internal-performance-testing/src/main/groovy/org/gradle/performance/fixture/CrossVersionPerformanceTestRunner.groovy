@@ -216,4 +216,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         gradleOptsInUse
     }
 
+    HonestProfilerCollector getHonestProfiler() {
+        return experimentRunner.honestProfiler
+    }
 }

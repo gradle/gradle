@@ -22,38 +22,55 @@ import org.gradle.performance.measure.MeasuredOperation
 
 @CompileStatic
 class HonestProfilerCollector implements DataCollector {
-    private static final boolean HONEST_PROFILER_ENABLED = System.getProperty("org.gradle.performance.honestprofiler") != null
-
+    boolean enabled = System.getProperty("org.gradle.performance.honestprofiler") != null
     int honestProfilerPort = 18080
     String honestProfilerHost = '127.0.0.1'
-    boolean profilerJvmOptionAdded
-    File honestProfilerLogFile
+    int maxFrames = 1024
+    int interval = 7
+    boolean initiallyStopped = true
+    boolean autoStartStop = true
+    private File logFile
+    private boolean profilerJvmOptionAdded
+
+    File getLogFile() {
+        logFile
+    }
 
     @Override
     public List<String> getAdditionalJvmOpts(File workingDir) {
-        List<String> jvmOpts = []
-        if (HONEST_PROFILER_ENABLED) {
-            def honestProfilerDir = new File(System.getenv("HP_HOME_DIR") ?: "${System.getProperty('user.home')}/tools/honest-profiler".toString())
+        if (enabled) {
+            def honestProfilerDir = locateHonestProfilerInstallation()
             def honestProfilerLibFile = new File(honestProfilerDir, OperatingSystem.current().getSharedLibraryName('lagent'))
             if (honestProfilerLibFile.exists()) {
-                honestProfilerLogFile = new File(workingDir, "honestprofiler.log").absoluteFile
-                def hpProperties = [
-                    interval: 7,
-                    maxFrames: 1024,
-                    logPath: honestProfilerLogFile.path,
-                    port: honestProfilerPort,
-                    host: honestProfilerHost,
-                    start: 0
-                ]
-                def propertiesString = hpProperties.collect { k, v -> "$k=$v".toString() }.join(',')
-                def hpJvmOption = "-agentpath:${honestProfilerLibFile.absolutePath}=${propertiesString}".toString()
-                jvmOpts << hpJvmOption
+                logFile = new File(workingDir, "honestprofiler.log").absoluteFile
                 profilerJvmOptionAdded = true
+                return [buildJvmOption(logFile, honestProfilerLibFile)]
             } else {
                 System.err.println("Could not find Honest Profiler agent library at ${honestProfilerLibFile.absolutePath}")
             }
         }
-        return jvmOpts;
+        return Collections.emptyList()
+    }
+
+    private File locateHonestProfilerInstallation() {
+        new File(System.getenv("HP_HOME_DIR") ?: "${System.getProperty('user.home')}/tools/honest-profiler".toString())
+    }
+
+    private String buildJvmOption(File logFile, File honestProfilerLibFile) {
+        def hpProperties = [
+            interval: interval,
+            maxFrames: maxFrames,
+            logPath: logFile.path
+        ]
+        if (initiallyStopped) {
+            hpProperties += [
+                port: honestProfilerPort,
+                host: honestProfilerHost,
+                start: 0
+            ]
+        }
+        def propertiesString = hpProperties.collect { k, v -> "$k=$v".toString() }.join(',')
+        "-agentpath:${honestProfilerLibFile.absolutePath}=${propertiesString}".toString()
     }
 
     @Override
@@ -63,18 +80,18 @@ class HonestProfilerCollector implements DataCollector {
 
     @Override
     public void collect(BuildExperimentInvocationInfo invocationInfo, MeasuredOperation operation) {
-        if (profilerJvmOptionAdded) {
+        if (autoStartStop && profilerJvmOptionAdded) {
             if (invocationInfo.iterationNumber == invocationInfo.iterationMax) {
                 switch (invocationInfo.phase) {
                     case BuildExperimentRunner.Phase.WARMUP:
                         // enable honest-profiler after warmup
-                        startHonestProfiler()
+                        start()
                         break
                     case BuildExperimentRunner.Phase.MEASUREMENT:
-                        sendCommand('stop')
+                        stop()
                         // copy file after last measurement
-                        if (honestProfilerLogFile.exists()) {
-                            LogFiles.copyLogFile(honestProfilerLogFile, invocationInfo, "honestprofiler_", ".log");
+                        if (logFile.exists()) {
+                            LogFiles.copyLogFile(logFile, invocationInfo, "honestprofiler_", ".log");
                         }
                         break
                 }
@@ -82,12 +99,15 @@ class HonestProfilerCollector implements DataCollector {
         }
     }
 
-    void startHonestProfiler() {
-        // start profiling by sending "start" to controlling socket
+    void start() {
         sendCommand('start')
     }
 
-    void sendCommand(String command) {
+    void stop() {
+        sendCommand('stop')
+    }
+
+    private void sendCommand(String command) {
         def socket = new Socket(honestProfilerHost, honestProfilerPort)
         try {
             socket.outputStream.withStream { output ->
