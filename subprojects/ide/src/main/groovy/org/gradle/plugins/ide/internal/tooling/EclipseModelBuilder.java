@@ -54,6 +54,7 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderContext;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -87,15 +88,15 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
     }
 
     @Override
-    public void addModels(String modelName, Project project, Map<String, Object> models) {
+    public void addModels(String modelName, Project project, ToolingModelBuilderContext context) {
         DefaultEclipseProject eclipseProject = buildAll(modelName, project);
-        addModels(eclipseProject, models);
+        addModels(project, eclipseProject, context);
     }
 
-    private void addModels(DefaultEclipseProject eclipseProject, Map<String, Object> models) {
-        models.put(eclipseProject.getPath(), eclipseProject);
+    private void addModels(Project root, DefaultEclipseProject eclipseProject, ToolingModelBuilderContext context) {
+        context.addModel(root.findProject(eclipseProject.getPath()), eclipseProject);
         for (DefaultEclipseProject childProject : eclipseProject.getChildren()) {
-            addModels(childProject, models);
+            addModels(root, childProject, context);
         }
     }
 

@@ -24,10 +24,10 @@ import org.gradle.plugins.ide.internal.tooling.model.LaunchableGradleTask;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.internal.gradle.PartialGradleProject;
 import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedSet;
 
 import static org.gradle.plugins.ide.internal.tooling.ToolingModelBuilderSupport.buildFromTask;
@@ -52,15 +52,15 @@ public class GradleProjectBuilder implements ProjectToolingModelBuilder {
     }
 
     @Override
-    public void addModels(String modelName, Project project, Map<String, Object> models) {
+    public void addModels(String modelName, Project project, ToolingModelBuilderContext context) {
         DefaultGradleProject gradleProject = buildAll(project);
-        addModels(gradleProject, models);
+        addModels(project, gradleProject, context);
     }
 
-    private void addModels(PartialGradleProject gradleProject, Map<String, Object> models) {
-        models.put(gradleProject.getPath(), gradleProject);
+    private void addModels(Project root, PartialGradleProject gradleProject, ToolingModelBuilderContext context) {
+        context.addModel(root.findProject(gradleProject.getPath()),  gradleProject);
         for (PartialGradleProject childProject : gradleProject.getChildren()) {
-            addModels(childProject, models);
+            addModels(root, childProject, context);
         }
     }
 

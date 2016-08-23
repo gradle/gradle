@@ -17,12 +17,9 @@
 package org.gradle.tooling.provider.model.internal;
 
 import org.gradle.api.Project;
-import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
-/**
- * {@link ToolingModelBuilder} that builds models that pertain to a particular project.
- */
-public interface ProjectToolingModelBuilder extends ToolingModelBuilder {
-    void addModels(String modelName, Project project, ToolingModelBuilderContext context);
+public interface ToolingModelBuilderContext {
+    void addModel(Project project, Object model);
 
+    void addFailure(Project project, RuntimeException failure);
 }

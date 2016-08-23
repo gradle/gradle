@@ -19,8 +19,6 @@ package org.gradle.tooling.provider.model.internal;
 import org.gradle.api.Project;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
-import java.util.Map;
-
 /**
  * A basic implementation for {@link ProjectToolingModelBuilder} that just walks the project
  * hierarchy and builds the requested model for each project.
@@ -28,10 +26,14 @@ import java.util.Map;
 public abstract class RecursiveProjectToolingModelBuilder implements ToolingModelBuilder, ProjectToolingModelBuilder {
 
     @Override
-    public void addModels(String modelName, Project project, Map<String, Object> models) {
-        models.put(project.getPath(), buildAll(modelName, project));
+    public void addModels(String modelName, Project project, ToolingModelBuilderContext context) {
+        try {
+            context.addModel(project, buildAll(modelName, project));
+        } catch (RuntimeException e) {
+            context.addFailure(project, e);
+        }
         for (Project childProject : project.getChildProjects().values()) {
-            addModels(modelName, childProject, models);
+            addModels(modelName, childProject, context);
         }
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
@@ -29,8 +28,8 @@ import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderContext;
 
-import java.util.Map;
 import java.util.Set;
 
 public class BuildModelsActionRunner extends AbstractBuildModelActionRunner {
@@ -76,11 +75,8 @@ public class BuildModelsActionRunner extends AbstractBuildModelActionRunner {
     private void collectModels(GradleInternal gradle, String modelName, InternalModelResults<Object> models) {
         ToolingModelBuilder builder = getToolingModelBuilder(gradle, modelName);
         if (builder instanceof ProjectToolingModelBuilder) {
-            Map<String, Object> modelsByPath = Maps.newLinkedHashMap();
-            ((ProjectToolingModelBuilder) builder).addModels(modelName, gradle.getDefaultProject(), modelsByPath);
-            for (Map.Entry<String, Object> entry : modelsByPath.entrySet()) {
-                models.addProjectModel(gradle.getRootProject().getProjectDir(), entry.getKey(), entry.getValue());
-            }
+            ToolingModelBuilderContext context = new DefaultToolingModelBuilderContext(models);
+            ((ProjectToolingModelBuilder) builder).addModels(modelName, gradle.getDefaultProject(), context);
         } else {
             Object buildScopedModel = builder.buildAll(modelName, gradle.getDefaultProject());
             models.addBuildModel(gradle.getRootProject().getProjectDir(), buildScopedModel);
