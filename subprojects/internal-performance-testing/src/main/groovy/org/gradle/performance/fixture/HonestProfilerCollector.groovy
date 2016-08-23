@@ -17,6 +17,7 @@
 package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
+import org.apache.commons.io.FileUtils
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
 
@@ -31,6 +32,7 @@ class HonestProfilerCollector implements DataCollector {
     boolean autoStartStop = true
     private File logFile
     private boolean profilerJvmOptionAdded
+    File logDirectory
 
     File getLogFile() {
         logFile
@@ -90,8 +92,9 @@ class HonestProfilerCollector implements DataCollector {
                     case BuildExperimentRunner.Phase.MEASUREMENT:
                         stop()
                         // copy file after last measurement
-                        if (logFile.exists()) {
-                            LogFiles.copyLogFile(logFile, invocationInfo, "honestprofiler_", ".hpl");
+                        if (logFile.exists() && logDirectory) {
+                            def destFile = new File(logDirectory, LogFiles.createFileNameForBuildInvocation(invocationInfo, "honestprofiler_", ".hpl"))
+                            FileUtils.copyFile(logFile, destFile)
                         }
                         break
                 }
