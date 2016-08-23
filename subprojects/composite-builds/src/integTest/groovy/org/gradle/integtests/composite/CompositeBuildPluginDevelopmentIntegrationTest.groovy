@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.test.fixtures.maven.MavenFileRepository
 
 /**
  * Tests for plugin development scenarios within a composite build.
