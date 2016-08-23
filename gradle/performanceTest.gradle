@@ -231,7 +231,7 @@ plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
     }
 }
 
-tasks.withType(PerformanceTest) {
+tasks.withType(PerformanceTest) { task ->
     doFirst {
         if (task.channel) {
             performanceReport.systemProperty 'org.gradle.performance.execution.channel', task.channel
