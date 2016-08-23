@@ -121,7 +121,7 @@ performanceTestTasks.all { PerformanceTest task ->
     testClassesDir = sourceSets.performanceTest.output.classesDir
     classpath = sourceSets.performanceTest.runtimeClasspath
     dependsOn( prepareSamples, { rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
-    finalizedBy performanceReport
+    finalizedBy cleanPerformanceReport, performanceReport
 
     if (project.findProperty('org.gradle.performance.baselines')) {
         systemProperty 'org.gradle.performance.baselines', project.getProperty('org.gradle.performance.baselines')
@@ -138,6 +138,9 @@ performanceTestTasks.all { PerformanceTest task ->
             jvmArgs '-Xmx4g'
         } else {
             println "not increasing JVM heap size due to use of 32bit JVM"
+        }
+        if (task.channel) {
+            performanceReport.systemProperty 'org.gradle.performance.execution.channel', task.channel
         }
     }
 }
@@ -230,15 +233,6 @@ plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
         }
     }
 }
-
-tasks.withType(PerformanceTest) { task ->
-    doFirst {
-        if (task.channel) {
-            performanceReport.systemProperty 'org.gradle.performance.execution.channel', task.channel
-        }
-    }
-}
-
 
 class PerformanceReport extends JavaExec {
     @Input
