@@ -304,7 +304,6 @@
             <sample id="generatorTask" dir="userguide/tasks/incrementalBuild/noInputsAndOutputs" title="A generator task">
                 <sourcefile file="build.gradle"/>
                 <output args="transform" ignoreExtraLines="true"/>
-                <output args="transform" ignoreExtraLines="true"/>
             </sample>
             <para>Notice that Gradle executes this task a second time, and does not skip the task even though nothing has
                 changed. Our example task was defined using an action closure. Gradle has no idea what the closure does and
