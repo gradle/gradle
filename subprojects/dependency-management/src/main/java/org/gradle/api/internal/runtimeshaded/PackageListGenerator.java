@@ -179,7 +179,7 @@ public class PackageListGenerator extends DefaultTask {
         if (endIndex > 0) {
             String packageName = zipEntry.getName().substring(0, endIndex);
             for (String exclude : getExcludes()) {
-                if (zipEntry.getName().startsWith(exclude + "/")) {
+                if ((packageName + "/").startsWith(exclude + "/")) {
                     return;
                 }
             }
