@@ -54,6 +54,10 @@ public class DefaultAuthenticationContainerTest extends Specification {
         DefaultTestAuthentication(String name, Class type) {
             super(name, type)
         }
+
+        public boolean requiresCredentials() {
+            return true;
+        }
     }
 
     static class DefaultCustomTestAuthentication extends DefaultTestAuthentication implements CustomTestAuthentication {
