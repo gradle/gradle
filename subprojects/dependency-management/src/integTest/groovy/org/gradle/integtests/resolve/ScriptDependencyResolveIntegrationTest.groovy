@@ -17,8 +17,10 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.test.fixtures.file.LeaksFileHandles
 
 class ScriptDependencyResolveIntegrationTest extends AbstractDependencyResolutionTest {
+    @LeaksFileHandles("Puts gradle user home in integration test dir")
     def "root component identifier has the correct type when resolving a script classpath"() {
         given:
         def module = mavenRepo().module("org.gradle", "test", "1.45")
