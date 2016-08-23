@@ -126,6 +126,24 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
         }
     }
 
+    def "can leave target versions unspecified"() {
+        given:
+        def runner = runner()
+        runner.targetVersions = null
+
+        when:
+        def results = runner.run()
+
+        then:
+        !results.baselineVersions
+        1 * experimentRunner.run(_, _) >> { BuildExperimentSpec spec, MeasuredOperationList result ->
+            assert result.name == 'Current Gradle'
+            result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
+        }
+        1 * reporter.report(_)
+        0 * _._
+    }
+
     def "can use 'nightly' baseline version to refer to most recently snapshot version and exclude most recent release"() {
         given:
         releases.mostRecentSnapshot >> buildContext.distribution(MOST_RECENT_SNAPSHOT)

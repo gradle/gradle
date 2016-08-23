@@ -73,9 +73,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         if (workingDir == null) {
             throw new IllegalStateException("Working directory has not been specified")
         }
-        if (!targetVersions) {
-            throw new IllegalStateException("Target versions have not been specified")
-        }
 
         def scenarioSelector = new TestScenarioSelector()
         Assume.assumeTrue(scenarioSelector.shouldRun(testId, [testProject].toSet(), (ResultsStore) reporter))
@@ -97,11 +94,13 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             channel: ResultsStoreHelper.determineChannel()
         )
 
-        LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions)
+        if(targetVersions) {
+            LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions)
 
-        baselineVersions.each { it ->
-            def baselineVersion = results.baseline(it)
-            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
+            baselineVersions.each { it ->
+                def baselineVersion = results.baseline(it)
+                runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
+            }
         }
 
         runVersion(current, perVersionWorkingDirectory('current'), results.current)
