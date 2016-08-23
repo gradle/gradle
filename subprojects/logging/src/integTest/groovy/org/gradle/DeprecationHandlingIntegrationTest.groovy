@@ -17,15 +17,31 @@
 package org.gradle
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
-    @Ignore("This would break with Gradle 4.0.")
-    def "upToDateWhen deprecation is detected."() {
+    //@Ignore("This test will likely break with Gradle 4.0. Find some new deprecation in that case.")
+    def "upToDateWhen deprecation is detected - without full stacktrace."() {
         buildFile << """
 task binZip(type: Zip) {
-    outputs.file('build/some').upToDateWhen { false }
+    outputs.file('build/some').upToDateWhen { false } // line 3
+    into('some')
+}
+"""
+        when:
+        executer.expectDeprecationWarning().withNoFullDeprecationStackTrace()
+        run()
+
+        then:
+        output.contains('build.gradle:3)')
+        output.count('\tat') == 1
+    }
+
+    //@Ignore("This test will likely break with Gradle 4.0. Find some new deprecation in that case.")
+    def "upToDateWhen deprecation is detected - with full stacktrace."() {
+        buildFile << """
+task binZip(type: Zip) {
+    outputs.file('build/some').upToDateWhen { false } // line 3
     into('some')
 }
 """
@@ -35,13 +51,14 @@ task binZip(type: Zip) {
 
         then:
         output.contains('build.gradle:3)')
+        output.count('\tat') > 1
     }
 
     def "reports first usage of deprecated feature from a build script"() {
         buildFile << """
+someFeature()
+someFeature()
 
-someFeature()
-someFeature()
 task broken(type: DeprecatedTask) {
     otherFeature()
 }
