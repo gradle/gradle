@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
-import org.gradle.tooling.provider.model.internal.ProjectSensitiveToolingModelBuilder;
 
 public class BuildModelActionRunner extends AbstractBuildModelActionRunner {
     @Override
@@ -34,10 +33,6 @@ public class BuildModelActionRunner extends AbstractBuildModelActionRunner {
 
     private Object getModel(GradleInternal gradle, String modelName) {
         ToolingModelBuilder builder = getToolingModelBuilder(gradle, modelName);
-        if (builder instanceof ProjectSensitiveToolingModelBuilder) {
-            return ((ProjectSensitiveToolingModelBuilder) builder).buildAll(modelName, gradle.getDefaultProject(), true);
-        } else {
-            return builder.buildAll(modelName, gradle.getDefaultProject());
-        }
+        return builder.buildAll(modelName, gradle.getDefaultProject());
     }
 }

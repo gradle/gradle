@@ -102,6 +102,12 @@ TBD: Previously, when the target Ivy module did not define a 'runtime', 'compile
 
 TBD: As a result of performance improvements, the result includes fewer `ResolvedDependency` nodes, as some nodes are merged. Previous versions of Gradle would include a `compile`, `runtime` and `master` node for transitive Maven dependencies. Gradle now includes a single `runtime` node. The same modules and artifacts are included in the result, and in the same order.
 
+### BuildInvocations model is always returned for the connected project
+
+In previous Gradle versions, when connected to a sub-project and asking for the `BuildInvocations` model using a `ProjectConnection`,
+the `BuildInvocations` model for the root project was returned instead. This violates the contract of `ProjectConnection`. Gradle will now
+return the `BuildInvocations` model of the project that the `ProjectConnection` is connected to.
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.
