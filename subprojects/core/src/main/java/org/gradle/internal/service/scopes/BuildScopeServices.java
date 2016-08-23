@@ -124,6 +124,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -307,7 +308,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
-                                                                BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor, ServiceRegistry serviceRegistry) {
+                                                                BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
+                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(new BuildLayoutFactory()),
             settingsProcessor,
@@ -315,7 +317,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 gradleLauncherFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 cacheRepository,
-                buildOperationExecutor),
+                buildOperationExecutor,
+                cachedClasspathTransformer),
             buildLoader,
             serviceRegistry
         );

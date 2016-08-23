@@ -21,6 +21,7 @@ import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
+import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.progress.BuildOperationDetails
 import org.gradle.internal.progress.BuildOperationExecutor
@@ -37,7 +38,8 @@ class BuildSourceBuilderTest extends Specification {
     def classLoaderScope = Mock(ClassLoaderScope)
     def cacheRepository = Mock(CacheRepository)
     def executor = Mock(BuildOperationExecutor)
-    def buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [launcherFactory, classLoaderScope,  cacheRepository, executor])
+    def transformer = Mock(CachedClasspathTransformer)
+    def buildSourceBuilder = Spy(BuildSourceBuilder, constructorArgs: [launcherFactory, classLoaderScope,  cacheRepository, executor, transformer])
 
     def parameter = new StartParameter()
 
