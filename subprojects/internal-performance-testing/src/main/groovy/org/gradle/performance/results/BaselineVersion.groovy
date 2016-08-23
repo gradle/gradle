@@ -29,8 +29,8 @@ class BaselineVersion implements VersionResults {
     // To give us < 0.3% odds of a falsely identified regression.
     // https://en.wikipedia.org/wiki/Standard_deviation#Rules_for_normally_distributed_data
     static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("3.0")
-    // We want to ignore regressions of less than 1% over the baseline.
-    static final BigDecimal MINIMUM_REGRESSION_PERCENTAGE = new BigDecimal("0.01")
+    // We want to ignore regressions of less than 2% over the baseline.
+    static final BigDecimal MINIMUM_REGRESSION_PERCENTAGE = new BigDecimal("0.02")
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
 
@@ -39,7 +39,7 @@ class BaselineVersion implements VersionResults {
         results.name = "Gradle $version"
     }
 
-    String getSpeedStatsAgainst(String displayName, MeasuredOperationList current) {
+    String getSpeedStatsAgainst(String displayName, MeasuredOperationList current, Boolean useDaemon) {
         def sb = new StringBuilder()
         def thisVersionAverage = results.totalTime.average
         def currentVersionAverage = current.totalTime.average
@@ -52,7 +52,7 @@ class BaselineVersion implements VersionResults {
 
             def diff = currentVersionAverage - thisVersionAverage
             def desc = diff > Duration.millis(0) ? "slower" : "faster"
-            sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxExecutionTimeRegression().format()}\n")
+            sb.append("Difference: ${diff.abs().format()} $desc (${toMillis(diff.abs())}), ${PrettyCalculator.percentChange(currentVersionAverage, thisVersionAverage)}%, max regression: ${getMaxExecutionTimeRegression(useDaemon).format()}\n")
             sb.append(current.speedStats)
             sb.append(results.speedStats)
             sb.append("\n")
@@ -85,18 +85,18 @@ class BaselineVersion implements VersionResults {
         }
     }
 
-    boolean fasterThan(MeasuredOperationList current) {
-        results.totalTime && current.totalTime.average - results.totalTime.average > getMaxExecutionTimeRegression()
+    boolean fasterThan(MeasuredOperationList current, Boolean useDaemon) {
+        results.totalTime && current.totalTime.average - results.totalTime.average > getMaxExecutionTimeRegression(useDaemon)
     }
 
     boolean usesLessMemoryThan(MeasuredOperationList current) {
         results.totalMemoryUsed && current.totalMemoryUsed.average - results.totalMemoryUsed.average > getMaxMemoryRegression()
     }
 
-    Amount<Duration> getMaxExecutionTimeRegression() {
+    Amount<Duration> getMaxExecutionTimeRegression(Boolean useDaemon) {
         def allowedPercentageRegression = results.totalTime.average * MINIMUM_REGRESSION_PERCENTAGE
         def allowedStatisticalRegression = results.totalTime.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
-        allowedStatisticalRegression > allowedPercentageRegression ? allowedStatisticalRegression : allowedPercentageRegression
+        useDaemon || (allowedStatisticalRegression > allowedPercentageRegression) ? allowedStatisticalRegression : allowedPercentageRegression
     }
 
     Amount<DataAmount> getMaxMemoryRegression() {
