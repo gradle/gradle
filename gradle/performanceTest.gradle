@@ -139,9 +139,6 @@ performanceTestTasks.all { PerformanceTest task ->
         } else {
             println "not increasing JVM heap size due to use of 32bit JVM"
         }
-        if (task.channel) {
-            performanceReport.systemProperty 'org.gradle.performance.execution.channel', task.channel
-        }
     }
 }
 
@@ -233,6 +230,15 @@ plugins.withType(org.gradle.plugins.ide.idea.IdeaPlugin) {
         }
     }
 }
+
+tasks.withType(PerformanceTest) {
+    doFirst {
+        if (task.channel) {
+            performanceReport.systemProperty 'org.gradle.performance.execution.channel', task.channel
+        }
+    }
+}
+
 
 class PerformanceReport extends JavaExec {
     @Input
