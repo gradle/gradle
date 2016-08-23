@@ -22,6 +22,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.initialization.ReportedException;
+import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
@@ -41,6 +42,9 @@ public class BuildModelsActionRunner extends AbstractBuildModelActionRunner {
 
     @Override
     protected Object getModelResult(GradleInternal gradle, String modelName) {
+        if (!gradle.getDefaultProject().equals(gradle.getRootProject())) {
+            throw new GradleConnectionException("GradleConnection can only be used to connect to the root project of a build.");
+        }
         return getAllModels(gradle, modelName);
     }
 
