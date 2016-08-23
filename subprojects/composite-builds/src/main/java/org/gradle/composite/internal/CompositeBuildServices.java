@@ -17,7 +17,6 @@
 package org.gradle.composite.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeConstructingTaskResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.tasks.ConstructingTaskResolver;

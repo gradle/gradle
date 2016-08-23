@@ -45,7 +45,7 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
     def "can delegate to task in root project of included build"() {
         when:
         buildA.buildFile << """
-    task delegate(type: org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildTaskDelegate) {
+    task delegate(type: org.gradle.composite.internal.CompositeBuildTaskDelegate) {
         build = 'buildB'
         task = ':logProject'
     }
@@ -76,7 +76,7 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
     def "can delegate to task in subproject of included build"() {
         when:
         buildA.buildFile << """
-    task delegate(type: org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeBuildTaskDelegate) {
+    task delegate(type: org.gradle.composite.internal.CompositeBuildTaskDelegate) {
         build = 'buildB'
         task = ':b1:logProject'
     }
