@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.authentication;
+/**
+ * Classes related to transport authentication protocols for S3.
+ *
+ * @since 3.1
+ */
+@org.gradle.api.Incubating
+package org.gradle.authentication.aws;
 
-import org.gradle.api.NonExtensible;
-import org.gradle.api.credentials.Credentials;
-import org.gradle.authentication.Authentication;
 
-@NonExtensible
-public interface AuthenticationInternal extends Authentication {
-    boolean supports(Credentials credentials);
-
-    Credentials getCredentials();
-
-    void setCredentials(Credentials credentials);
-
-    Class<? extends Authentication> getType();
-
-    boolean requiresCredentials();
-}
