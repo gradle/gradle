@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.authentication;
-
-import org.gradle.authentication.aws.AwsIamAuthentication;
-
-public class DefaultAwsIamAuthentication extends AbstractAuthentication implements AwsIamAuthentication {
-    public DefaultAwsIamAuthentication(String name) {
-        super(name, AwsIamAuthentication.class);
-    }
-
-    @Override
-    public boolean requiresCredentials() {
-        return false;
-    }
-}
-
+/**
+ * Classes related to transport authentication protocols for HTTP.
+ *
+ * @since 2.7
+ */
+@org.gradle.api.Incubating
+package org.gradle.authentication.aws;
