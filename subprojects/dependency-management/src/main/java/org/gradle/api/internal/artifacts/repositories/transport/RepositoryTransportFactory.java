@@ -134,10 +134,10 @@ public class RepositoryTransportFactory {
                     throw new InvalidUserDataException(String.format("Credentials type of '%s' is not supported by authentication scheme %s",
                         credentials.getClass().getSimpleName(), authentication));
                 }
-            }
-            
-            if (needCredentials == true) {
-                throw new InvalidUserDataException("You cannot configure authentication schemes for this repository type if no credentials are provided.");
+            } else {
+                if (needCredentials) {
+                    throw new InvalidUserDataException("You cannot configure authentication schemes for this repository type if no credentials are provided.");
+                }
             }
 
             if (!configuredAuthenticationTypes.add(authenticationInternal.getType())) {

@@ -121,7 +121,7 @@ class RepositoryTransportFactoryTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserDataException)
-        ex.message == "You cannot configure authentication schemes for a repository if no credentials are provided."
+        ex.message == "You cannot configure authentication schemes for this repository type if no credentials are provided."
     }
 
     def "should throw when specifying multiple authentication schemes of the same type"() {
@@ -140,18 +140,34 @@ class RepositoryTransportFactoryTest extends Specification {
         GoodCredentialsAuthentication(String name) {
             super(name, Authentication, GoodCredentials)
         }
+
+        boolean requiresCredentials() {
+            return true;
+        }
+
     }
 
     private class BadCredentialsAuthentication extends AbstractAuthentication {
         BadCredentialsAuthentication(String name) {
             super(name, Authentication, BadCredentials)
         }
+
+        boolean requiresCredentials() {
+            return true;
+        }
+
     }
 
     private class NoCredentialsAuthentication extends AbstractAuthentication {
         NoCredentialsAuthentication(String name) {
             super(name, Authentication)
         }
+
+        boolean requiresCredentials() {
+            return false;
+        }
+
+
     }
 
     private interface GoodCredentials extends Credentials {}

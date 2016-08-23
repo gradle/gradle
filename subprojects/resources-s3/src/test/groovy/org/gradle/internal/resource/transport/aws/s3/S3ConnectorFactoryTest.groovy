@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.aws.s3
 
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
+import org.gradle.internal.authentication.AllSchemesAuthentication
 import spock.lang.Specification
 
 class S3ConnectorFactoryTest extends Specification {
@@ -27,7 +28,8 @@ class S3ConnectorFactoryTest extends Specification {
         setup:
         def resourceConnectorSpecification = Mock(ResourceConnectorSpecification)
         1 * resourceConnectorSpecification.getCredentials(AwsCredentials) >> null
-
+        1 * resourceConnectorSpecification.getAuthentications() >> [ new AllSchemesAuthentication(null) ]
+        
         when:
         factory.createResourceConnector(resourceConnectorSpecification)
 
