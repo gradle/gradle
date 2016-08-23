@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.devel.impldeps
 
-import groovy.transform.NotYetImplemented
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Issue
 
@@ -120,7 +119,6 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
     }
 
     @Issue("GRADLE-3525")
-    @NotYetImplemented // Need to update wrapper to nightly to include changes in PackageListGenerator
     def "can use newer Servlet API"() {
         when:
         buildFile << testableGroovyProject()
