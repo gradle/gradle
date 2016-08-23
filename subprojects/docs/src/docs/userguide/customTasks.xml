@@ -138,7 +138,7 @@
         <section id="sec:using_your_task_class_in_another_project">
             <title>Using your task class in another project</title>
             <para>To use a task class in a build script, you need to add the class to the build script's classpath. To
-                do this, you use a <literal>buildscript { }</literal> block, as described in <xref linkend="sec:external_dependencies"/>.
+                do this, you use a <literal>buildscript { }</literal> block, as described in <xref linkend="sec:build_script_external_dependencies"/>.
                 The following example shows how you might do this when the JAR containing the task class has been published
                 to a local repository:
             </para>

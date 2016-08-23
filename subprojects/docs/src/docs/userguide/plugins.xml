@@ -336,7 +336,7 @@
                 <para>
                     Binary plugins that have been published as external jar files can be added to a project by adding the plugin to the
                     build script classpath and then applying the plugin.  External jars can be added to the build script classpath
-                    using the <code>buildscript {}</code> block as described in <xref linkend="sec:external_dependencies" />.
+                    using the <code>buildscript {}</code> block as described in <xref linkend="sec:build_script_external_dependencies" />.
                 </para>
                 <sample id="applyPluginBuildscript" dir="plugins/buildscript" title="Applying a plugin with the buildscript block">
                     <sourcefile file="build.gradle" snippet="buildscript_block" />

@@ -87,7 +87,7 @@
             </varlistentry>
             <varlistentry>
                 <term><literal>org.gradle.daemon.performance.enable-monitoring</literal></term>
-                <listitem><para>When set to false, Gradle will not monitor the memory usage of running daemons. See <xref linkend="what_can_go_wrong_with_daemon"/>.</para>
+                <listitem><para>When set to false, Gradle will not monitor the memory usage of running daemons. See <xref linkend="sec:what_can_go_wrong_with_daemon"/>.</para>
                 </listitem>
             </varlistentry>
         </para>
