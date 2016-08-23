@@ -19,7 +19,6 @@ package org.gradle.internal.featurelifecycle
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.util.SetSystemProperties
-import org.gradle.util.SingleMessageLogger
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -85,7 +84,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         where:
         deprecationTraceProperty << [true, false]
-        deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
         fakeStackTrace = [
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
@@ -132,7 +131,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         where:
         deprecationTraceProperty << [true, false]
-        deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
         fakeStackTrace = [
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
             new StackTraceElement('java.lang.reflect.Method', 'invoke', 'Method.java', 498),
@@ -177,7 +176,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         where:
         deprecationTraceProperty << [true, false]
-        deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
         fakeStackTrace = [
             new StackTraceElement('org.gradle.internal.featurelifecycle.SimulatedJavaCallLocation', 'create', 'SimulatedJavaCallLocation.java', 25),
             new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
@@ -209,7 +208,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         where:
         deprecationTraceProperty << [true, false]
-        deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
         fakeStackTrace = [
             new StackTraceElement('some.ArbitraryClass', 'withSource', 'ArbitraryClass.java', 42),
         ]
@@ -231,7 +230,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         where:
         deprecationTraceProperty << [true, false]
-        deprecationTracePropertyName = SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
     }
 
     def "location reporter can prepend text"() {

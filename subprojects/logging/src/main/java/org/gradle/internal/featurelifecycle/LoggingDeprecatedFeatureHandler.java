@@ -17,7 +17,6 @@
 package org.gradle.internal.featurelifecycle;
 
 import org.gradle.internal.SystemProperties;
-import org.gradle.util.SingleMessageLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +26,8 @@ import java.util.Locale;
 import java.util.Set;
 
 public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler {
+    public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
+
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
@@ -117,7 +118,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     }
 
     private static boolean isTraceLoggingEnabled() {
-        return Boolean.getBoolean(SingleMessageLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
+        return Boolean.getBoolean(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
     }
 
 }
