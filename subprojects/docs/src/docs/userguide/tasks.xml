@@ -330,8 +330,8 @@
                 content of the source files and the minimum version of the Java runtime you want to 
                 run the code on. That makes them task inputs. But whether the compilation runs in a
                 forked process or not, determined by the <literal>fork</literal> property, has no
-                impact on what bytecode gets generated. So <literal>fork</literal> is a plain task
-                property.
+                impact on what bytecode gets generated. In Gradle terminology, <literal>fork</literal>
+                is just an internal task property.
             </para>
             <para>As part of incremental build, Gradle tests whether any of the task inputs or outputs
                 have changed since the last build. If they haven’t, Gradle can consider the task up to
@@ -450,7 +450,7 @@
                 <para>These annotated properties mean that Gradle will skip the task if none of the source
                     files, template engine, model data or generated files have changed since the previous
                     time Gradle executed the task. This will often save a significant amount of time. You
-                    can learn how Gradle detects <xref linkend="sec:how_does_inc_build_work">changes later</xref>.
+                    can learn how Gradle detects <link linkend="sec:how_does_inc_build_work">changes later</link>.
                 </para>
 
                 <para>This example is particularly interesting because it works with collections of source
@@ -458,7 +458,7 @@
                     source files again or just the modified one? That depends on the task implementation.
                     If the latter, then the task itself is incremental, but that’s a different feature to
                     the one we’re discussing here. Gradle does help task implementers with this via its
-                    <xref linkend="incremental_tasks">incremental task inputs</xref> feature.
+                    <link linkend="incremental_tasks">incremental task inputs</link> feature.
                 </para>
 
                 <para>Now that you have seen some of the input and output annotations in practice, let’s
@@ -560,7 +560,8 @@
                         <td>Used with any of the other incremental build annotations listed in the
                             <apilink class="org.gradle.api.tasks.Optional"/> API documentation.
                             This annotation disables validation checks on the corresponding property.
-                            See <xref linkend="sec:task_input_output_validation"/> for more details.
+                            See <link linkend="sec:task_input_output_validation">the section on validation</link>
+                            for more details.
                         </td>
                     </tr>
                     <tfoot>
@@ -720,7 +721,7 @@
                     </para>
                     <para>Now that you have seen both the annotations and the runtime API, you may be
                         wondering which API you should be using. Our recommendation is to use the
-                        annotations wherever possible, and it’s sometime worth creating a custom task
+                        annotations wherever possible, and it’s sometimes worth creating a custom task
                         class just so that you can make use of them. The runtime API is more for situations
                         in which you can’t use the annotations.
                     </para>
@@ -808,8 +809,8 @@
                         will put Gradle into a state in which it continually checks for changes and executes
                         the requested tasks when it encounters such changes.
                     </para>
-                    <para>You can find out more about this feature in <xref linkend="continous_build_start_stop">
-                        elsewhere in the user guide</xref>.
+                    <para>You can find out more about this feature in <link linkend="continuous_build">
+                        elsewhere in the user guide</link>.
                     </para>
                 </section>
             </section>
