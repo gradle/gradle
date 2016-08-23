@@ -19,6 +19,7 @@ import com.google.common.collect.Maps;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.UnknownProjectException;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.initialization.Settings;
@@ -34,6 +35,7 @@ import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 
@@ -58,7 +60,7 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoaderScope rootClassLoaderScope;
     private final ServiceRegistry services;
-    private final Map<File, IncludedBuild> includedBuilds = Maps.newLinkedHashMap();
+    private final Map<File, ConfigurableIncludedBuild> includedBuilds = Maps.newLinkedHashMap();
 
     public DefaultSettings(ServiceRegistryFactory serviceRegistryFactory, GradleInternal gradle,
                            ClassLoaderScope classLoaderScope, ClassLoaderScope rootClassLoaderScope, File settingsDir,
@@ -242,13 +244,13 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public void includeBuild(Object rootProject) {
-        includeBuild(rootProject, Actions.<IncludedBuild>doNothing());
+        includeBuild(rootProject, Actions.<ConfigurableIncludedBuild>doNothing());
     }
 
     @Override
-    public void includeBuild(Object rootProject, Action<IncludedBuild> configuration) {
+    public void includeBuild(Object rootProject, Action<ConfigurableIncludedBuild> configuration) {
         File projectDir = getFileResolver().resolve(rootProject);
-        IncludedBuild build = includedBuilds.get(projectDir);
+        ConfigurableIncludedBuild build = includedBuilds.get(projectDir);
         if (build == null) {
             build = getIncludedBuildFactory().createBuild(projectDir);
             includedBuilds.put(projectDir, build);
@@ -258,6 +260,6 @@ public class DefaultSettings extends AbstractPluginAware implements SettingsInte
 
     @Override
     public Map<File, IncludedBuild> getIncludedBuilds() {
-        return includedBuilds;
+        return Cast.uncheckedCast(includedBuilds);
     }
 }
