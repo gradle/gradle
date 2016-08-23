@@ -42,7 +42,7 @@ class HonestProfilerCollector implements DataCollector {
             def honestProfilerDir = locateHonestProfilerInstallation()
             def honestProfilerLibFile = new File(honestProfilerDir, OperatingSystem.current().getSharedLibraryName('lagent'))
             if (honestProfilerLibFile.exists()) {
-                logFile = new File(workingDir, "honestprofiler.log").absoluteFile
+                logFile = new File(workingDir, "honestprofiler.hpl").absoluteFile
                 profilerJvmOptionAdded = true
                 return [buildJvmOption(logFile, honestProfilerLibFile)]
             } else {
@@ -91,7 +91,7 @@ class HonestProfilerCollector implements DataCollector {
                         stop()
                         // copy file after last measurement
                         if (logFile.exists()) {
-                            LogFiles.copyLogFile(logFile, invocationInfo, "honestprofiler_", ".log");
+                            LogFiles.copyLogFile(logFile, invocationInfo, "honestprofiler_", ".hpl");
                         }
                         break
                 }

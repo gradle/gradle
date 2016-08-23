@@ -119,7 +119,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
                         if (invocationInfo.iterationNumber == invocationInfo.iterationMax || (invocationInfo.iterationMax % 2 == 1 && invocationInfo.iterationNumber == invocationInfo.iterationMax - 1)) {
                             // last invocation, copy log file
                             def tmpDir = new File(System.getProperty("java.io.tmpdir"))
-                            def destFile = new File(tmpDir, LogFiles.createFileNameForBuildInvocation(invocationInfo, "honestprofiler_", ".log"))
+                            def destFile = new File(tmpDir, LogFiles.createFileNameForBuildInvocation(invocationInfo, "honestprofiler_", ".hpl"))
                             println "Copying honestprofiler log to $destFile"
                             FileUtils.copyFile(runner.honestProfiler.logFile, destFile)
                         }
