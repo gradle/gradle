@@ -168,7 +168,11 @@ public class BuildExperimentRunner {
         if (experiment.getInvocationCount() != null) {
             return experiment.getInvocationCount();
         }
-        return 20;
+        if (usesDaemon(experiment)) {
+            return 20;
+        } else {
+            return 40;
+        }
     }
 
     protected int warmupsForExperiment(BuildExperimentSpec experiment) {
@@ -179,14 +183,21 @@ public class BuildExperimentRunner {
         if (experiment.getWarmUpCount() != null) {
             return experiment.getWarmUpCount();
         }
-        // Use more invocations to warmup when using the daemon, to allow the JVM to warm things up
+        if (usesDaemon(experiment)) {
+            return 10;
+        } else {
+            return 1;
+        }
+    }
+
+    private boolean usesDaemon(BuildExperimentSpec experiment) {
         InvocationSpec invocation = experiment.getInvocation();
         if (invocation instanceof GradleInvocationSpec) {
             if (((GradleInvocationSpec) invocation).getBuildWillRunInDaemon()) {
-                return 10;
+                return true;
             }
         }
-        return 1;
+        return false;
     }
 
     // the JIT compiler seems to wait for idle period before compiling
