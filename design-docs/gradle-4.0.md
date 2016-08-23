@@ -1,5 +1,174 @@
 # Gradle 4.0
 
+Gradle 4.0 is the next major Gradle release that offers the opportunity to make breaking changes to the public interface of Gradle.
+This document captures a laundry list of ideas to consider before shipping Gradle 4.0.
+
+The main focus should be cleaning up the public API of Gradle. In order to do this there is
+some preparation needed in the course of 3.x.
+
+# High priority stories
+
+These are things which should be done for 4.0 and we should start preparing
+for those right now.
+
+## Public API cleanups
+
+The following stories should make our public API smaller and more concise.
+They all would benefit from some kind of static code analysis exhibiting.
+Ideally, when starting with the first of these stories, we 
+should get the necessary infrastructure in place to automatically
+find the problems we want to address and to prevent the situation
+from getting worse.
+
+### Remove API methods that are added by the DSL decoration
+
+Some model types hand-code the DSL conventions in their API. We should remove these and let the DSL decoration take care of this, to simplify these
+types and to offer a more consistent DSL.
+
+* Remove all methods that accept a `Closure` when an `Action` overload is available. Add missing overloads where appropriate.
+* Remove all methods that accept a `String` or `Object` when a enum overload is available. Add missing overloads where appropriate.
+* Remove CharSequence -> Enum conversion code in `DefaultTestLogging`.
+* Remove all set methods that contain no custom logic.
+* Formally document the Closure → Action coercion mechanism
+    - Needs to be prominent enough that casual DSL ref readers understand this (perhaps such Action args are annotated in DSL ref)
+    
+We still need to think about how to best handle this change so that it does
+not cause much pain in the community. We need to think about
+
+ - What does it look like for the compiler
+ - Dynamic Groovy Scripts
+ - Statically compiled Groovy Scripts
+ - Build Scripts
+ - Could be similar with what we do in Gradle Script Kotlin
+
+Possible Strategies could be
+
+ - Continue doing the decoration at Runtime
+ - Just Communicate by documentation and simply remove with 4.0
+ - Add a check to the plugin-plugin 
+
+### Remove external types from public API
+
+This includes especially
+ 
+ - Groovy types, e.g. `Closure`
+ - Ivy types
+ - Maven types
+ 
+Currently, the Ivy and Maven types are part of the public API of the
+old stable publishing plugins. As soon as `maven-publish` and `ivy-publish`
+are stable then these will go away automatically
+ 
+### Remove internal types from the public API
+
+The kind of problems we want to fix here fall into three categories:
+
+- Internal types which are not in an internal package
+- Internal types which are visible in the public API but shouldn’t be
+- Internal API that should be public
+
+For 4.0 we should at least get an overview of the situation and fix the
+easy violations
+ 
+### Remove no-set setters
+
+We often have methods to set a property without starting with `set`. For example
+the following two snippets are equivalent:
+```groovy
+ear {
+    appDirName 'src/main/app'
+}
+```
+
+and
+
+```groovy
+ear {
+    appDirName = 'src/main/app'
+}
+```
+
+We should just deprecate those no-set setters in Gradle 3.x and remove them for Gradle 4.0
+
+## Remove `leftShift` (`<<`) operator on Task
+
+Add a new method -> `???`
+
+We need to kick off the discussion now how this method should be called.
+There should be an alternative to `doLast`. The easiest call would be `do`
+but there is probably a better name.
+
+For 4.0 we need to just remove the `leftShift` operator.
+
+## Remove Gradle GUI
+
+It is now straight forward to implement a rich UI using the Gradle tooling API.
+
+* Remove the remaining Open API interfaces and stubs.
+* Remove the `openApi` project.
+* Remove the Gradle GUI itself after deprecating it in 3.x
+
+## Isolate dependencies to Java 5 and Java 6
+
+Currently, many projects are limited to Java 5 and Java 6 because of the project structure. Only then entry points
+need to run on Java 5 to be able to give a meaningful error message. For Java 6 it is enough that we can run tests
+there. If we isolate the necessary classes to dedicated subprojects we can use Java 7 in more places in our code base.
+The same is true for the next Java version upgrade.
+
+This also makes it possible to upgrade Guava from `guava-jdk5` to a current version.
+
+## Remove support for convention objects
+
+Extension objects have been available for over 5 years and are now an established pattern. Supporting the 
+mix-in of properties and methods in using convention objects also has implications for performance
+(more places to look for properties, requires reflective lookup) and statically compiled DSL
+(more places to look for data).
+
+We still need to think more about this story - especially how we should handle
+ConventionMapping. We probably would make ConventionMapping public and document
+its usage until we have a better solution.
+
+* Migrate core plugins to use extensions.
+* Remove `Convention` type.
+
+## Configuration API tidy-ups
+
+* Remove `getUploadTaskName()`
+* Remove `getAll()`
+
+## Container API tidy-ups
+
+* Remove the specialised subclasses of `UnknownDomainObjectException` and the overridden methods that exist simply to declare this from `PluginContainer`, `ArtifactRepositoryContainer`,
+  `ConfigurationContainer`, `TaskCollection`.
+* Remove the specialised methods such as `whenTaskAdded()` from `PluginCollection`, `TaskCollection`
+* Remove the `extends T` upper bound on the type variable of `DomainObjectCollection.withType()`.
+* Remove the type variable from `ReportContainer`
+* Move `ReportContainer.ImmutableViolationException` to make top level.
+
+## Deprecate and remove unintended behaviour for container configuration closures
+
+When the configuration closure for an element of a container fails with any MethodMissingException, we attempt to invoke the method on the owner of the closure (e.g. the Project).
+This allows for the following constructs to work:
+```
+configurations {
+    repositories {
+        mavenCentral()
+    }
+    someConf {
+        allprojects { }
+    }
+}
+```
+
+The corresponding code is in ConfigureDelegate and has been reintroduced for backwards compatibility (https://github.com/gradle/gradle/commit/79d084e16050b02cc566f71df3c3ad7a342b9c5a ).
+
+This behaviour should be deprecated and then removed in 4.0.
+
+We still need to think about with what to replace this exactly. We still want to
+forbid thing like in the example above but allow other use cases.
+
+# Low priority stories
+
 ## Remove duplicate types
 
 - `Jar` and `Jar`
@@ -23,22 +192,6 @@ Currently, we look first for a method and if not found, look for a property with
 - Methods inherited from an ancestor project can silently shadow these properties.
 - Method matching is inconsistent with how methods are matched on POJO/POGO objects, where a method is selected only when the args can be coerced to those accepted by the method, and if not, searching continues with the next object. Should do something similar for property-as-a-method matching.
 - Type conversion is not applied to the parameters to a closure, or to static methods
-
-## Isolate dependencies to Java 5 and Java 6
-
-Currently, many projects are limited to Java 5 and Java 6 because of the project structure. Only then entry points
-need to run on Java 5 to be able to give a meaningful error message. For Java 6 it is enough that we can run tests
-there. If we isolate the necessary classes to dedicated subprojects we can use Java 7 in more places in our code base.
-The same is true for the next Java version upgrade.
-
-This also makes it possible to upgrade Guava from `guava-jdk5` to a current version.
-
-## Remove Gradle GUI
-
-It is now straight forward to implement a rich UI using the Gradle tooling API.
-
-* Remove the remaining Open API interfaces and stubs.
-* Remove the `openApi` project.
 
 ## Drop support for using old wrapper or old Gradle runtime versions
 
@@ -76,11 +229,6 @@ Now we have real incremental Java compilation, remove the `CompileOptions.useDep
 ## Remove `group` and `status` from project
 
 Alternatively, default the group to `null` and status to `integration`.
-
-## Remove the Ant-task based Scala compiler
-
-* Change the default for `useAnt` to `false` and deprecate the `useAnt` property.
-* Do a better job of matching up the target jvm version with the scala compiler backend.
 
 ## Don't inject tools.jar into the system ClassLoader
 
@@ -128,18 +276,6 @@ The old dependency result graph is expensive in terms of heap usage. We should r
 * Remove methods that use `ResolvedDependency` and `UnresolvedDependency`.
 * Keep `ResolvedArtifact` and replace it later, as it is not terribly expensive to keep.
 
-## Remove API methods that are added by the DSL decoration
-
-Some model types hand-code the DSL conventions in their API. We should remove these and let the DSL decoration take care of this, to simplify these
-types and to offer a more consistent DSL.
-
-* Remove all methods that accept a `Closure` when an `Action` overload is available. Add missing overloads where appropriate.
-* Remove all methods that accept a `String` or `Object` when a enum overload is available. Add missing overloads where appropriate.
-* Remove CharSequence -> Enum conversion code in `DefaultTestLogging`.
-* Remove all set methods that contain no custom logic.
-* Formally document the Closure → Action coercion mechanism
-    - Needs to be prominent enough that casual DSL ref readers understand this (perhaps such Action args are annotated in DSL ref)
-
 ## Tooling API clean ups
 
 * `LongRunningOperation.withArguments()` should be called `setArguments()` for consistency.
@@ -150,7 +286,6 @@ types and to offer a more consistent DSL.
 
 ## Clean up `Task` DSL and hierarchy
 
-* Remove the `<<` operator.
 * Inline `ConventionTask` and `AbstractTask` into `DefaultTask`.
 * Remove `Task.dependsOnTaskDidWork()`.
 * Mix `TaskInternal` in during decoration and remove references to internal types from `DefaultTask` and `AbstractTask`
@@ -162,32 +297,11 @@ types and to offer a more consistent DSL.
 * Remove `PomFilterContainer.getActivePomFilters()`.
 * Move rhino worker classes off public API
 
-## Remove support for convention objects
-
-Extension objects have been available for over 5 years and are now an established pattern. Supporting the mix-in of properties and methods in using convention objects also has implications for performance (more places to look for properties, requires reflective lookup) and statically compiled DSL (more places to look for data)
-
-* Migrate core plugins to use extensions.
-* Remove `Convention` type.
-
 ## Project no longer inherits from its parent project
 
 * Project should not delegate to its build script for missing properties or methods.
 * Project should not delegate to its parent for missing properties or methods.
 * Project build script classpath should not inherit anything from parent project.
-
-## Configuration API tidy-ups
-
-* Remove `getUploadTaskName()`
-* Remove `getAll()`
-
-## Container API tidy-ups
-
-* Remove the specialised subclasses of `UnknownDomainObjectException` and the overridden methods that exist simply to declare this from `PluginContainer`, `ArtifactRepositoryContainer`,
-  `ConfigurationContainer`, `TaskCollection`.
-* Remove the specialised methods such as `whenTaskAdded()` from `PluginCollection`, `TaskCollection`
-* Remove the `extends T` upper bound on the type variable of `DomainObjectCollection.withType()`.
-* Remove the type variable from `ReportContainer`
-* Move `ReportContainer.ImmutableViolationException` to make top level.
 
 ## Dependency API tidy-ups
 
@@ -212,25 +326,6 @@ Extension objects have been available for over 5 years and are now an establishe
 * Remove `Settings.startParameter`. Can use `gradle.startParameter` instead.
 * Remove `AbstractOptions`.
 * Replace `ShowStacktrace.INTERNAL_EXCEPTIONS` with `NONE`.
-
-## Deprecate and remove unintended behaviour for container configuration closures
-
-When the configuration closure for an element of a container fails with any MethodMissingException, we attempt to invoke the method on the owner of the closure (e.g. the Project).
-This allows for the following constructs to work:
-```
-configurations {
-    repositories {
-        mavenCentral()
-    }
-    someConf {
-        allprojects { }
-    }
-}
-```
-
-The corresponding code is in ConfigureDelegate and has been reintroduced for backwards compatibility (https://github.com/gradle/gradle/commit/79d084e16050b02cc566f71df3c3ad7a342b9c5a ).
-
-This behaviour should be deprecated and then removed in 4.0.
 
 ## Signing plugin tidy-ups
 
