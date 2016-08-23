@@ -29,6 +29,8 @@ class BaselineVersion implements VersionResults {
     // To give us < 0.3% odds of a falsely identified regression.
     // https://en.wikipedia.org/wiki/Standard_deviation#Rules_for_normally_distributed_data
     static final BigDecimal NUM_STANDARD_ERRORS_FROM_MEAN = new BigDecimal("3.0")
+    // We want to ignore regressions of less than 1% over the baseline.
+    static final BigDecimal MINIMUM_REGRESSION_PERCENTAGE = new BigDecimal("0.01")
     final String version
     final MeasuredOperationList results = new MeasuredOperationList()
 
@@ -92,7 +94,9 @@ class BaselineVersion implements VersionResults {
     }
 
     Amount<Duration> getMaxExecutionTimeRegression() {
-        results.totalTime.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
+        def allowedPercentageRegression = results.totalTime.average * MINIMUM_REGRESSION_PERCENTAGE
+        def allowedStatisticalRegression = results.totalTime.standardErrorOfMean * NUM_STANDARD_ERRORS_FROM_MEAN
+        allowedStatisticalRegression > allowedPercentageRegression ? allowedStatisticalRegression : allowedPercentageRegression
     }
 
     Amount<DataAmount> getMaxMemoryRegression() {
