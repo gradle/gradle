@@ -17,11 +17,8 @@
 package org.gradle.integtests.tooling.r31
 
 import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
-import org.gradle.integtests.tooling.fixture.ConfigurableOperation
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.gradle.GradleBuild
 
 @ToolingApiVersion('>=2.0')

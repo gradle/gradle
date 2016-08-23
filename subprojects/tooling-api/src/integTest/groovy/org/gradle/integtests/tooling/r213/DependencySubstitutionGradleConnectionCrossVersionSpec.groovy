@@ -111,7 +111,7 @@ compile
         builds << buildC
 
         when:
-        withGradleConnection(defineComposite(builds)) { connection ->
+        withGradleConnection(includeBuilds(builds)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.setStandardError(stdErr)
@@ -133,7 +133,7 @@ compile
     }
 
     private Object dependencies() {
-        withGradleConnection(defineComposite(builds)) { connection ->
+        withGradleConnection(includeBuilds(builds)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.forTasks(buildA, "dependencies")

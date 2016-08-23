@@ -20,17 +20,13 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.connection.GradleConnection
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector
-import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
-import spock.lang.Ignore
 
-class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnectionToolingApiSpecification {
+class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     TestFile rootSingle
     TestFile rootMulti
 
@@ -39,7 +35,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
         rootMulti = multiProjectBuild("B", ['x', 'y'])
     }
 
-    def "GradleConnection provides identified models for single project build"() {
+    def "Provides identified models for single project build"() {
         when:
         def gradleProjects = getUnwrappedModelsWithGradleConnection(rootSingle, EclipseProject)*.gradleProject
         def models = getUnwrappedModelsWithGradleConnection(rootSingle, modelType)
@@ -53,7 +49,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
         modelType << modelsHavingGradleProjectIdentifier
     }
 
-    def "GradleConnection provides identified models for multi-project build"() {
+    def "Provides identified models for multi-project build"() {
         when:
         def gradleProjects = getUnwrappedModelsWithGradleConnection(rootMulti, EclipseProject)*.gradleProject
         def models = getUnwrappedModelsWithGradleConnection(rootMulti, modelType)
@@ -66,9 +62,9 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
         modelType << modelsHavingGradleProjectIdentifier
     }
 
-    def "GradleConnection provides identified models for composite build"() {
+    def "Provides identified models for composite build"() {
         when:
-        def composite = defineComposite(rootMulti, rootSingle)
+        def composite = includeBuilds(rootMulti, rootSingle)
         def gradleProjects = getUnwrappedModelsWithGradleConnection(composite, EclipseProject)*.gradleProject
         def models = getUnwrappedModelsWithGradleConnection(composite, modelType)
 
@@ -82,7 +78,7 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
 
     def "all Launchables are identified when obtained from GradleConnection"() {
         when:
-        def composite = defineComposite(rootMulti, rootSingle)
+        def composite = includeBuilds(rootMulti, rootSingle)
         def buildInvocationsSet = getUnwrappedModelsWithGradleConnection(composite, BuildInvocations)
 
         then:
@@ -96,37 +92,10 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
         }
     }
 
-    @TargetGradleVersion(">=2.13")
-    def "ProjectConnection provides identified models for single project build"() {
-        when:
-        def gradleProject = getModelWithProjectConnection(rootSingle, GradleProject)
-        def model = getModelWithProjectConnection(rootSingle, modelType)
-
-        then:
-        assertSameIdentifiers(gradleProject, model)
-
-        where:
-        modelType << modelsHavingGradleProjectIdentifier
-    }
-
-    @Ignore("Test fails sporadically")
-    @TargetGradleVersion(">=2.13")
-    def "ProjectConnection with custom action provides identified models for multi-project build"() {
-        when:
-        def gradleProjects = getModelsWithProjectConnectionAndCustomAction(rootMulti, GradleProject)
-        def models = getModelsWithProjectConnectionAndCustomAction(rootMulti, modelType)
-
-        then:
-        assertSameIdentifiers(gradleProjects, models)
-
-        where:
-        modelType << modelsHavingGradleProjectIdentifier
-    }
-
     @TargetGradleVersion('>=1.2 <1.12')
     def "decent error message for Gradle version that doesn't expose publications"() {
         when:
-        def modelResults = withGradleConnection([rootMulti, rootSingle]) { GradleConnection connection ->
+        def modelResults = withGradleConnection(includeBuilds(rootMulti, rootSingle)) { GradleConnection connection ->
             def modelBuilder = connection.models(ProjectPublications)
             modelBuilder.get()
         }.asList()
@@ -148,13 +117,6 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends GradleConnection
         def gradleProjectIdentifiers = gradleProjects.collect { it.projectIdentifier } as Set
         def modelIdentifiers = models.collect { it.projectIdentifier } as Set
         assert gradleProjectIdentifiers == modelIdentifiers
-    }
-
-    private getModelsWithProjectConnectionAndCustomAction(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
-        FetchProjectModelsBuildAction buildAction = new FetchProjectModelsBuildAction(modelType)
-        withProjectConnection(rootDir, searchUpwards) { connection ->
-            connection.action(buildAction).run()
-        }
     }
 
     private static getModelsHavingGradleProjectIdentifier() {

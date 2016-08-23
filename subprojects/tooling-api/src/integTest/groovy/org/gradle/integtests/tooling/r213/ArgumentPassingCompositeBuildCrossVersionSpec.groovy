@@ -32,7 +32,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional command-line arguments for project properties when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = defineComposite(builds)
+        def composite = includeBuilds(builds)
 
         when:
         def modelResults = withGradleConnection(composite) { connection ->
@@ -57,7 +57,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional command-line arguments for project properties when executing tasks"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = defineComposite(builds)
+        def composite = includeBuilds(builds)
 
         when:
         withGradleConnection(composite) { connection ->
@@ -81,7 +81,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional command-line arguments for system properties when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = defineComposite(builds)
+        def composite = includeBuilds(builds)
 
         when:
         def modelResults = withGradleConnection(composite) { connection ->
@@ -106,7 +106,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional command-line arguments for system properties when executing tasks"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = defineComposite(builds)
+        def composite = includeBuilds(builds)
 
         when:
         withGradleConnection(composite) { connection ->
@@ -129,7 +129,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional jvm arguments when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = defineComposite(builds)
+        def composite = includeBuilds(builds)
 
         when:
         def modelResults = withGradleConnection(composite) { connection ->
@@ -154,7 +154,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional jvm arguments"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = defineComposite(builds)
+        def composite = includeBuilds(builds)
 
         when:
         withGradleConnection(composite) { connection ->
@@ -180,7 +180,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         File javaHome = new File("not/javahome")
         javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = defineComposite(builds)
+        def composite = includeBuilds(builds)
 
         when:
         def modelResults = withGradleConnection(composite) { connection ->
@@ -207,7 +207,7 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         File javaHome = new File("not/javahome")
         javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = defineComposite(builds)
+        def composite = includeBuilds(builds)
 
         when:
         withGradleConnection(composite) { connection ->

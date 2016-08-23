@@ -114,7 +114,7 @@ allprojects {
 """
         }
         when:
-        withGradleConnection(defineComposite(singleProjectBuild, multiProjectBuild)) { connection ->
+        withGradleConnection(includeBuilds(singleProjectBuild, multiProjectBuild)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks("hello")
             buildLauncher.run()
@@ -146,7 +146,7 @@ task hello {
             })
         }
         when:
-        withGradleConnection(defineComposite(builds)) { connection ->
+        withGradleConnection(includeBuilds(builds)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "hello")
             buildLauncher.setStandardOutput(System.out)
@@ -184,7 +184,7 @@ task hello {
         def build3 = singleProjectBuild("build3")
 
         when:
-        withGradleConnection(defineComposite(build1, build2, build3)) { connection ->
+        withGradleConnection(includeBuilds(build1, build2, build3)) { connection ->
             Task task
             connection.getModels(modelType).each { modelresult ->
                 def identifier = getBuildIdentifier(modelresult, modelType)
@@ -223,7 +223,7 @@ task hello {
                 jarTaskFromBuild3 = modelresult.model.getTasks().find { it.name == 'jar' }
             }
         }
-        withGradleConnection(defineComposite(build1, build2)) { connection ->
+        withGradleConnection(includeBuilds(build1, build2)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forLaunchables(jarTaskFromBuild3)
             buildLauncher.run()
@@ -242,7 +242,7 @@ task hello {
             buildFile << "apply plugin: 'java'"
         }
         when:
-        withGradleConnection(defineComposite(build1, build2)) { connection ->
+        withGradleConnection(includeBuilds(build1, build2)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks("jar")
         }
@@ -343,7 +343,7 @@ task hello {
             })
         }
         when:
-        withGradleConnection(defineComposite(builds)) { connection ->
+        withGradleConnection(includeBuilds(builds)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "hello")
             buildLauncher.setStandardOutput(System.out)

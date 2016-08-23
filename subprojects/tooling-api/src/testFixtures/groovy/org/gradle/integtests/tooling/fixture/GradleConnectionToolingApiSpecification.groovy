@@ -18,24 +18,17 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.gradle.integtests.tooling.r213.FetchProjectModelsBuildAction
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
 import org.gradle.tooling.connection.ModelResults
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector
-import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.eclipse.EclipseProject
-import org.gradle.util.GradleVersion
 import org.junit.runner.RunWith
 
 @ToolingApiVersion(ToolingApiVersions.SUPPORTS_GRADLE_CONNECTION)
 @TargetGradleVersion(">=1.2")
 @RunWith(ToolingApiCompatibilitySuiteRunner)
-abstract class GradleConnectionToolingApiSpecification extends AbstractToolingApiSpecification {
+class GradleConnectionToolingApiSpecification extends AbstractToolingApiSpecification {
 
     protected <T> T withGradleConnection(TestFile projectDir, @DelegatesTo(GradleConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.connection.GradleConnection"]) Closure<T> cl = {}) {
         GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
@@ -55,17 +48,6 @@ abstract class GradleConnectionToolingApiSpecification extends AbstractToolingAp
 
     protected <T> List<T> unwrap(Iterable<ModelResult<T>> modelResults) {
         modelResults.collect { it.model }
-    }
-
-    protected <T> T withProjectConnection(TestFile projectDir, boolean searchUpwards = true, @DelegatesTo(ProjectConnection) Closure<T> cl = {}) {
-        GradleConnector connector = toolingApi.connector()
-        connector.forProjectDirectory(projectDir.absoluteFile)
-        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
-        return toolingApi.withConnection(cl)
-    }
-
-    protected <T> T getModelWithProjectConnection(TestFile rootDir, Class<T> modelType, boolean searchUpwards = true) {
-        return withProjectConnection(rootDir, searchUpwards) { it.getModel(modelType) }
     }
 
     protected assertFailure(Throwable failure, String... messages) {

@@ -113,19 +113,19 @@ abstract class AbstractToolingApiSpecification extends Specification {
         new BuildTestFixture(projectDir).multiProjectBuild(projectName, subprojects, cl)
     }
 
-    def defineComposite(File target, File... includedBuilds) {
-        defineComposite(target, includedBuilds as List)
+    def includeBuilds(File target, File... includedBuilds) {
+        includeBuilds(target, includedBuilds as List)
     }
 
-    def defineComposite(List<File> builds) {
+    def includeBuilds(List<File> builds) {
         if (builds != null && !builds.isEmpty()) {
-            defineComposite(builds.head(), builds.tail())
+            includeBuilds(builds.head(), builds.tail())
         } else {
             throw new IllegalArgumentException("Can't define a composite with null or empty list")
         }
     }
 
-    def defineComposite(File target, List<File> includedBuilds) {
-        new BuildTestFixture(projectDir).defineComposite(target, includedBuilds)
+    def includeBuilds(File target, List<File> includedBuilds) {
+        new BuildTestFixture(projectDir).includeBuilds(target, includedBuilds)
     }
 }

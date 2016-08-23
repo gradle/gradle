@@ -29,7 +29,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def multiBuild1 = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
         def multiBuild2 = multiProjectBuild("multi-build-2", ['a2', 'b2', 'c2'])
         when:
-        def models = getUnwrappedModelsWithGradleConnection(defineComposite(multiBuild1, multiBuild2), EclipseProject)
+        def models = getUnwrappedModelsWithGradleConnection(includeBuilds(multiBuild1, multiBuild2), EclipseProject)
 
         then:
         models.size() == 8
@@ -43,7 +43,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def singleBuild2 = singleProjectBuild("single-build-2")
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(defineComposite(singleBuild1, singleBuild2), EclipseProject)
+        def models = getUnwrappedModelsWithGradleConnection(includeBuilds(singleBuild1, singleBuild2), EclipseProject)
 
         then:
         models.size() == 2
@@ -89,7 +89,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def multiBuild = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(defineComposite(singleBuild, multiBuild), EclipseProject)
+        def models = getUnwrappedModelsWithGradleConnection(includeBuilds(singleBuild, multiBuild), EclipseProject)
 
         then:
         models.size() == 5
@@ -101,7 +101,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         given:
         def singleBuild = singleProjectBuild("single-build")
         def multiBuild = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
-        def composite = defineComposite(singleBuild, multiBuild)
+        def composite = includeBuilds(singleBuild, multiBuild)
         GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
         connector.forRootDirectory(composite)
         def connection = connector.build()

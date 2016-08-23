@@ -24,7 +24,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
-import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 
 import static org.gradle.util.CollectionUtils.single
 
@@ -162,7 +161,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
     }
 
     private ArrayList<EclipseProject> loadEclipseProjectModels() {
-        def eclipseProjects = getUnwrappedModelsWithGradleConnection(defineComposite(builds), EclipseProject)
+        def eclipseProjects = getUnwrappedModelsWithGradleConnection(includeBuilds(builds), EclipseProject)
         assert eclipseProjects.size() == 4
         eclipseProjectA = eclipseProjects.find { it.projectDirectory.absoluteFile == buildA.absoluteFile }
         eclipseProjectB1 = eclipseProjects.find { it.projectDirectory.absoluteFile == buildB.file('b1').absoluteFile }
@@ -172,7 +171,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
     }
 
     private List<IdeaModule> loadIdeaModuleModels() {
-        def ideaProjects = getUnwrappedModelsWithGradleConnection(defineComposite(builds), IdeaProject)
+        def ideaProjects = getUnwrappedModelsWithGradleConnection(includeBuilds(builds), IdeaProject)
         def ideaModules = ideaProjects*.modules.flatten() as List<IdeaModule>
         assert ideaModules.size() == 4
         ideaModuleA = ideaModules.find { it.gradleProject.projectIdentifier == new DefaultProjectIdentifier(buildA, ":") }

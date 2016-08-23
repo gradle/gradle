@@ -20,7 +20,6 @@ import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecifica
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.tooling.connection.GradleConnection
 import org.gradle.util.GradleVersion
 
 /**
@@ -38,7 +37,7 @@ class CustomModelsCompositeBuildCrossVersionSpec extends GradleConnectionTooling
     @TargetGradleVersion(">=1.2 <1.6")
     def "decent error message for Gradle version that doesn't support custom models"() {
         when:
-        def modelResults = getModelsWithGradleConnection(defineComposite(rootSingle, rootMulti), CustomModel)
+        def modelResults = getModelsWithGradleConnection(includeBuilds(rootSingle, rootMulti), CustomModel)
 
         then:
         modelResults.size() == 2
@@ -52,7 +51,7 @@ class CustomModelsCompositeBuildCrossVersionSpec extends GradleConnectionTooling
     @TargetGradleVersion(">=1.6")
     def "decent error message for unknown custom model"() {
         when:
-        def modelResults = getModelsWithGradleConnection(defineComposite(rootSingle, rootMulti), CustomModel)
+        def modelResults = getModelsWithGradleConnection(includeBuilds(rootSingle, rootMulti), CustomModel)
 
         then:
         def expectedMessage = GradleVersion.current() < GradleVersion.version("2.14") ? "Could not fetch models of type 'CustomModel' using client-side composite connection." : 'No model of type \'CustomModel\' is available in this build.'
@@ -101,7 +100,7 @@ apply plugin: CustomPlugin
         rootMulti.buildFile << buildContent
 
         when:
-        def modelResults = getModelsWithGradleConnection(defineComposite(rootSingle, rootMulti), CustomModel)
+        def modelResults = getModelsWithGradleConnection(includeBuilds(rootSingle, rootMulti), CustomModel)
 
         then:
         modelResults.size() == 2

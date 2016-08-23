@@ -61,7 +61,7 @@ class ModelsWithGradleBuildIdentifierCrossVersionSpec extends GradleConnectionTo
 
     def "GradleConnection provides identified model for composite build"() {
         when:
-        def composite = defineComposite(rootSingle, rootMulti)
+        def composite = includeBuilds(rootSingle, rootMulti)
         def gradleBuilds = getUnwrappedModelsWithGradleConnection(composite, GradleBuild)
         def models = getUnwrappedModelsWithGradleConnection(composite, modelType)
 

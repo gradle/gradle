@@ -30,7 +30,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         given:
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
-        withGradleConnection(defineComposite(builds)) { GradleConnection connection ->
+        withGradleConnection(includeBuilds(builds)) { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setStandardOutput(stdOutStream)
             modelBuilder.setStandardError(stdErrStream)
@@ -54,7 +54,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         given:
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
-        withGradleConnection(defineComposite(builds)) { connection ->
+        withGradleConnection(includeBuilds(builds)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "log")
             buildLauncher.setStandardOutput(stdOutStream)
@@ -86,7 +86,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         given:
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
-        withGradleConnection(defineComposite(builds)) { GradleConnection connection ->
+        withGradleConnection(includeBuilds(builds)) { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.forTasks("log")
             modelBuilder.setStandardOutput(stdOutStream)
@@ -106,7 +106,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         given:
         def builds = createBuildsThatLogMessages(numberOfParticipants)
         when:
-        withGradleConnection(defineComposite(builds)) { connection ->
+        withGradleConnection(includeBuilds(builds)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "alwaysUpToDate")
             buildLauncher.setStandardOutput(stdOutStream)
@@ -128,7 +128,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         InputStream stdIn = new ByteArrayInputStream(("Hello Gradle\n"*numberOfParticipants).bytes)
         def builds = createBuildsThatExpectInput(numberOfParticipants)
         when:
-        withGradleConnection(defineComposite(builds)) { connection ->
+        withGradleConnection(includeBuilds(builds)) { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "log")
             buildLauncher.setStandardInput(stdIn)
@@ -148,7 +148,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends GradleConnectionTooli
         InputStream stdIn = new ByteArrayInputStream(("Hello Gradle\n"*numberOfParticipants).bytes)
         def builds = createBuildsThatExpectInput(numberOfParticipants)
         when:
-        def modelRequests = withGradleConnection(defineComposite(builds)) { GradleConnection connection ->
+        def modelRequests = withGradleConnection(includeBuilds(builds)) { GradleConnection connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setStandardInput(stdIn)
             modelBuilder.setStandardOutput(stdOutStream)

@@ -42,7 +42,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
             buildFile << "throw new GradleException('Different failure in C')"
         }
         when:
-        withGradleConnection(defineComposite(rootDirB, rootDirA, rootDirC)) { connection ->
+        withGradleConnection(includeBuilds(rootDirB, rootDirA, rootDirC)) { connection ->
             modelResults = connection.getModels(EclipseProject)
         }
 
@@ -72,7 +72,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
         def rootDirB = multiProjectBuild("B", ['bx', 'by'])
 
         when:
-        withGradleConnection(defineComposite(rootDirA, rootDirB)) { connection ->
+        withGradleConnection(includeBuilds(rootDirA, rootDirB)) { connection ->
             modelResults = connection.getModels(EclipseProject)
         }
 
@@ -153,7 +153,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
         def otherPerBuildModelResults = []
         def ideaProjects = []
 
-        withGradleConnection(defineComposite(rootDirA, rootDirB)) {
+        withGradleConnection(includeBuilds(rootDirA, rootDirB)) {
             modelResults = it.getModels(EclipseProject)
             otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
             otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier

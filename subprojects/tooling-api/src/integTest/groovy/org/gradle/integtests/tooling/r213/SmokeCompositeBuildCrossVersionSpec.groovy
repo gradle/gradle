@@ -15,11 +15,12 @@
  */
 
 package org.gradle.integtests.tooling.r213
+
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.model.eclipse.EclipseProject
+
 /**
  * Basic tests for building and retrieving models from a composite.
  */
