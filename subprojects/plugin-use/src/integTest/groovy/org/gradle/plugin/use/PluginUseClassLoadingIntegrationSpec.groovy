@@ -20,10 +20,12 @@ import org.gradle.api.Project
 import org.gradle.api.specs.AndSpec
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.plugin.use.resolve.service.PluginResolutionServiceTestServer
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.junit.Rule
 import spock.lang.Issue
 
+@LeaksFileHandles
 class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
 
     public static final String PLUGIN_ID = "org.myplugin"
