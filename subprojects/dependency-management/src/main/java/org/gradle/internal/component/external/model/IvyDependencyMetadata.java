@@ -16,12 +16,16 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -30,6 +34,7 @@ import org.gradle.internal.component.model.DefaultDependencyMetadata;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -40,14 +45,16 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
     private final boolean changing;
     private final boolean transitive;
     private final SetMultimap<String, String> confs;
+    private final List<Exclude> excludes;
 
     public IvyDependencyMetadata(ModuleVersionSelector requested, String dynamicConstraintVersion, boolean force, boolean changing, boolean transitive, Multimap<String, String> confMappings, List<Artifact> artifacts, List<Exclude> excludes) {
-        super(requested, artifacts, excludes);
+        super(requested, artifacts);
         this.dynamicConstraintVersion = dynamicConstraintVersion;
         this.force = force;
         this.changing = changing;
         this.transitive = transitive;
         this.confs = ImmutableSetMultimap.copyOf(confMappings);
+        this.excludes = ImmutableList.copyOf(excludes);
     }
 
     public IvyDependencyMetadata(ModuleVersionSelector requested, ListMultimap<String, String> confMappings) {
@@ -61,7 +68,7 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
 
     @Override
     protected DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
-        return new IvyDependencyMetadata(newRequested, dynamicConstraintVersion, force, changing, transitive, confs, getDependencyArtifacts(), getDependencyExcludes());
+        return new IvyDependencyMetadata(newRequested, dynamicConstraintVersion, force, changing, transitive, confs, getDependencyArtifacts(), excludes);
     }
 
     @Override
@@ -169,4 +176,25 @@ public class IvyDependencyMetadata extends DefaultDependencyMetadata {
         }
         targetConfigurations.add(configuration);
     }
+
+    public List<Exclude> getDependencyExcludes() {
+        return excludes;
+    }
+
+    @Override
+    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
+        return excludes.isEmpty() ? ModuleExclusions.excludeNone() : ModuleExclusions.excludeAny(getExcludes(fromConfiguration.getHierarchy()));
+    }
+
+    private List<Exclude> getExcludes(Collection<String> configurations) {
+        List<Exclude> rules = Lists.newArrayList();
+        for (Exclude exclude : excludes) {
+            Set<String> ruleConfigurations = exclude.getConfigurations();
+            if (include(ruleConfigurations, configurations)) {
+                rules.add(exclude);
+            }
+        }
+        return rules;
+    }
+
 }

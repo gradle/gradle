@@ -45,7 +45,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -103,69 +102,8 @@ public class GradlePomModuleDescriptorBuilder {
         .put("test", MavenScope.Test)
         .put("system", MavenScope.System)
         .build();
-    private static final Map<MavenScope, ConfMapper> MAVEN2_CONF_MAPPING = new HashMap<MavenScope, ConfMapper>();
     private static final Pattern TIMESTAMP_PATTERN = Pattern.compile("(.+)-\\d{8}\\.\\d{6}-\\d+");
-
-    interface ConfMapper {
-        void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional);
-    }
-
-    static {
-        MAVEN2_CONF_MAPPING.put(MavenScope.Compile, new ConfMapper() {
-            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
-                if (isOptional) {
-                    dd.put("optional", "compile(*)");
-                    dd.put("optional", "master(*)");
-
-                } else {
-                    dd.put("compile", "compile(*)");
-                    dd.put("compile", "master(*)");
-                    dd.put("runtime", "runtime(*)");
-                }
-            }
-        });
-        MAVEN2_CONF_MAPPING.put(MavenScope.Provided, new ConfMapper() {
-            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
-                if (isOptional) {
-                    dd.put("optional", "compile(*)");
-                    dd.put("optional", "runtime(*)");
-                    dd.put("optional", "master(*)");
-                } else {
-                    dd.put("provided", "compile(*)");
-                    dd.put("provided", "runtime(*)");
-                    dd.put("provided", "master(*)");
-                }
-            }
-        });
-        MAVEN2_CONF_MAPPING.put(MavenScope.Runtime, new ConfMapper() {
-            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
-                if (isOptional) {
-                    dd.put("optional", "compile(*)");
-                    dd.put("optional", "runtime(*)");
-                    dd.put("optional", "master(*)");
-
-                } else {
-                    dd.put("runtime", "compile(*)");
-                    dd.put("runtime", "runtime(*)");
-                    dd.put("runtime", "master(*)");
-                }
-            }
-        });
-        MAVEN2_CONF_MAPPING.put(MavenScope.Test, new ConfMapper() {
-            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
-                //optional doesn't make sense in the test scope
-                dd.put("test", "compile(*)");
-                dd.put("test", "runtime(*)");
-                dd.put("test", "master(*)");
-            }
-        });
-        MAVEN2_CONF_MAPPING.put(MavenScope.System, new ConfMapper() {
-            public void addMappingConfs(ListMultimap<String, String> dd, boolean isOptional) {
-                //optional doesn't make sense in the system scope
-                dd.put("system", "master(*)");
-            }
-        });
-    }
+    private static final String[] WILDCARD = new String[]{"*"};
 
     private final VersionSelectorScheme defaultVersionSelectorScheme;
     private final VersionSelectorScheme mavenVersionSelectorScheme;
@@ -230,11 +168,7 @@ public class GradlePomModuleDescriptorBuilder {
             return;
         }
 
-        // TODO - this is constant
-        ConfMapper mapping = MAVEN2_CONF_MAPPING.get(scope);
-        ListMultimap<String, String> confMappings = ArrayListMultimap.create();
         boolean optional = dep.isOptional();
-        mapping.addMappingConfs(confMappings, optional);
 
         List<Artifact> artifacts = Lists.newArrayList();
         boolean hasClassifier = dep.getClassifier() != null && dep.getClassifier().length() > 0;
@@ -264,13 +198,11 @@ public class GradlePomModuleDescriptorBuilder {
         if (excluded.isEmpty()) {
             excluded = getDependencyMgtExclusions(dep);
         }
-        Set<String> confs = confMappings.keySet();
-        String[] confArray = confs.toArray(new String[confs.size()]);
         for (ModuleIdentifier excludedModule : excluded) {
             DefaultExclude rule = new DefaultExclude(
                 excludedModule.getGroup(),
                 excludedModule.getName(),
-                confArray,
+                WILDCARD,
                 PatternMatchers.EXACT);
             excludes.add(rule);
         }

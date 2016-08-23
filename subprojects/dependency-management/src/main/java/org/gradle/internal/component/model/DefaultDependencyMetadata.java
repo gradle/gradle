@@ -18,15 +18,12 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.local.model.DefaultProjectDependencyMetadata;
@@ -36,18 +33,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultDependencyMetadata implements DependencyMetadata {
+public abstract class DefaultDependencyMetadata implements DependencyMetadata {
     private final ModuleVersionSelector requested;
     private final Set<IvyArtifactName> artifacts;
     private final List<Artifact> dependencyArtifacts;
-    private final List<Exclude> excludes;
     private final ModuleComponentSelector selector;
 
-    public DefaultDependencyMetadata(ModuleVersionSelector requested, List<Artifact> artifacts, List<Exclude> excludes) {
+    protected DefaultDependencyMetadata(ModuleVersionSelector requested, List<Artifact> artifacts) {
         this.requested = requested;
         dependencyArtifacts = ImmutableList.copyOf(artifacts);
         this.artifacts = map(dependencyArtifacts);
-        this.excludes = ImmutableList.copyOf(excludes);
         selector = DefaultModuleComponentSelector.newSelector(requested.getGroup(), requested.getName(), requested.getVersion());
     }
 
@@ -65,22 +60,6 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
     @Override
     public ModuleVersionSelector getRequested() {
         return requested;
-    }
-
-    @Override
-    public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        return excludes.isEmpty() ? ModuleExclusions.excludeNone() : ModuleExclusions.excludeAny(getExcludes(fromConfiguration.getHierarchy()));
-    }
-
-    private List<Exclude> getExcludes(Collection<String> configurations) {
-        List<Exclude> rules = Lists.newArrayList();
-        for (Exclude exclude : excludes) {
-            Set<String> ruleConfigurations = exclude.getConfigurations();
-            if (include(ruleConfigurations, configurations)) {
-                rules.add(exclude);
-            }
-        }
-        return rules;
     }
 
     @Override
@@ -103,7 +82,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         return artifacts;
     }
 
-    private boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {
+    protected boolean include(Iterable<String> configurations, Collection<String> acceptedConfigurations) {
         for (String configuration : configurations) {
             if (configuration.equals("*")) {
                 return true;
@@ -146,39 +125,7 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
         }
     }
 
-    @Override
-    public String getDynamicConstraintVersion() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isChanging() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isTransitive() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isForce() {
-        throw new UnsupportedOperationException();
-    }
-
-    protected DependencyMetadata withRequested(ModuleVersionSelector newRequested) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<String> getModuleConfigurations() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        throw new UnsupportedOperationException();
-    }
+    protected abstract DependencyMetadata withRequested(ModuleVersionSelector newRequested);
 
     @Override
     public ComponentSelector getSelector() {
@@ -187,9 +134,5 @@ public class DefaultDependencyMetadata implements DependencyMetadata {
 
     public List<Artifact> getDependencyArtifacts() {
         return dependencyArtifacts;
-    }
-
-    public List<Exclude> getDependencyExcludes() {
-        return excludes;
     }
 }
