@@ -16,6 +16,10 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
+import java.io.InputStream;
+import java.net.URI;
+import java.util.List;
+
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
@@ -41,10 +45,6 @@ import org.gradle.internal.resource.transport.http.HttpProxySettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.util.List;
-
 public class S3Client {
     private static final Logger LOGGER = LoggerFactory.getLogger(S3Client.class);
 
@@ -57,14 +57,20 @@ public class S3Client {
         this.amazonS3Client = amazonS3Client;
     }
 
-    public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
+    public S3Client(S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
-        AWSCredentials credentials = awsCredentials == null ? null : new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
-        amazonS3Client = createAmazonS3Client(credentials);
+        amazonS3Client = new AmazonS3Client(createConnectionProperties());
+        setAmazonS3ConnectionEndpoint();
     }
 
-    private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
-        AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
+    public S3Client(AwsCredentials awsCredentials, S3ConnectionProperties s3ConnectionProperties) {
+        this.s3ConnectionProperties = s3ConnectionProperties;
+        AWSCredentials credentials = new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
+        amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
+        setAmazonS3ConnectionEndpoint();
+    }
+
+    private void setAmazonS3ConnectionEndpoint() {
         S3ClientOptions.Builder clientOptionsBuilder = S3ClientOptions.builder();
         Optional<URI> endpoint = s3ConnectionProperties.getEndpoint();
         if (endpoint.isPresent()) {
@@ -72,6 +78,10 @@ public class S3Client {
             clientOptionsBuilder.setPathStyleAccess(true);
         }
         amazonS3Client.setS3ClientOptions(clientOptionsBuilder.build());
+    }
+
+    private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
+        AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
         return amazonS3Client;
     }
 

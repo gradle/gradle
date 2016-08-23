@@ -16,25 +16,17 @@
 
 package org.gradle.internal.authentication;
 
-import org.gradle.api.credentials.Credentials;
-import org.gradle.authentication.Authentication;
+import org.gradle.api.artifacts.repositories.PasswordCredentials;
+import org.gradle.authentication.aws.AwsIamAuthentication;
 
-/**
- * Authentication scheme representing all supported schemes for a given protocol
- */
-public class AllSchemesAuthentication extends AbstractAuthentication {
-    public AllSchemesAuthentication(Credentials credentials) {
-        super("all", Authentication.class);
-        this.setCredentials(credentials);
-    }
-
-    @Override
-    public boolean supports(Credentials credentials) {
-        return true;
+public class DefaultAwsIamAuthentication extends AbstractAuthentication implements AwsIamAuthentication {
+    public DefaultAwsIamAuthentication(String name) {
+        super(name, AwsIamAuthentication.class);
     }
 
     @Override
     public boolean requiresCredentials() {
-        return true;
+        return false;
     }
 }
+

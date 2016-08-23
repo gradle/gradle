@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.authentication.http;
+package org.gradle.authentication.aws;
 
 import org.gradle.api.Incubating;
 import org.gradle.authentication.Authentication;
 
 /**
- * Authentication scheme for basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.
+ * Authentication scheme for digest access authentication over HTTP.
  */
-
 @Incubating
-public interface BasicAuthentication extends Authentication {
+public interface AwsIamAuthentication extends Authentication {
 }
+
+
