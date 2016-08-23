@@ -24,20 +24,13 @@ import spock.lang.Unroll
  * Tests for resolving dependency graph with substitution within a composite build.
  */
 class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
     BuildTestFile buildC
     ResolveTestFixture resolve
     def buildArgs = []
 
     def setup() {
-        buildA = singleProjectBuild("buildA") {
-            buildFile << """
-                apply plugin: 'java'
-"""
-        }
         resolve = new ResolveTestFixture(buildA.buildFile)
-
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
@@ -207,24 +200,6 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
         and:
         executed(":buildB:jar", ":buildB:b1:jar")
         output.count('Configured buildB') == 1
-    }
-
-    def dependency(String notation) {
-        buildA.buildFile << """
-            dependencies {
-                compile '${notation}'
-            }
-"""
-    }
-
-    def includeBuild(File build, def mappings = "") {
-        buildA.settingsFile << """
-            includeBuild('${build.toURI()}') {
-                dependencySubstitution {
-                    $mappings
-                }
-            }
-"""
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {

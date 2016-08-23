@@ -80,7 +80,7 @@ public class SocketInetAddress implements InetEndpoint {
         }
 
         private InetAddress readAddress(Decoder decoder) throws IOException {
-            return InetAddress.getByAddress(decoder.readString(), decoder.readBinary());
+            return InetAddress.getByAddress(decoder.readBinary());
         }
 
         @Override
@@ -90,7 +90,6 @@ public class SocketInetAddress implements InetEndpoint {
         }
 
         private void writeAddress(Encoder encoder, SocketInetAddress address) throws IOException {
-            encoder.writeString(address.address.getHostName());
             encoder.writeBinary(address.address.getAddress());
         }
     }

@@ -18,34 +18,19 @@ package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
-import org.gradle.test.fixtures.maven.MavenFileRepository
 import spock.lang.Unroll
 
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
 class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuildIntegrationTest {
-    BuildTestFile buildA
     BuildTestFile buildB
-    MavenFileRepository mavenRepo
     ResolveTestFixture resolve
     def buildArgs = []
 
     def setup() {
-        mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.test", "buildB", "1.0").publish()
 
-        buildA = multiProjectBuild("buildA", ['a1', 'a2']) {
-            buildFile << """
-                repositories {
-                    maven { url "${mavenRepo.uri}" }
-                }
-                allprojects {
-                    apply plugin: 'java'
-                    configurations { compile }
-                }
-"""
-        }
         resolve = new ResolveTestFixture(buildA.buildFile)
 
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
@@ -60,7 +45,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                 }
 """
         }
-        builds = [buildA, buildB]
+        includedBuilds << buildB
     }
 
     def "reports failure to configure one participant build"() {
@@ -70,7 +55,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                 throw new RuntimeException('exception thrown on configure')
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         checkDependenciesFails()
@@ -84,7 +69,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         given:
         def buildC = singleProjectBuild("buildC")
         buildC.settingsFile.text = "rootProject.name = 'buildB'"
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         checkDependenciesFails()
@@ -148,7 +133,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
                 compile "org.test:buildC:1.0"
             }
 """
-        builds = []
+        includedBuilds = []
 
         when:
         checkDependencies()
@@ -326,7 +311,7 @@ include ':b1:b11'
                 apply plugin: 'java'
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         checkDependencies()
@@ -566,7 +551,7 @@ afterEvaluate {
             group = 'org.test'
             version = '1.0'
 """
-        builds << buildC
+        includedBuilds << buildC
 
         when:
         checkDependencies()
@@ -591,7 +576,7 @@ afterEvaluate {
                 }
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {
@@ -624,7 +609,7 @@ afterEvaluate {
                 }
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {
@@ -651,7 +636,7 @@ afterEvaluate {
                 apply plugin: 'java'
             }
 """
-        builds << buildC
+        includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {
@@ -702,7 +687,7 @@ afterEvaluate {
                 }
 """
         }
-        builds << buildC
+        includedBuilds << buildC
 
         buildB.buildFile << """
             dependencies {
@@ -720,7 +705,7 @@ afterEvaluate {
     def "handles unused participant with no defined configurations"() {
         given:
         def buildC = singleProjectBuild("buildC")
-        builds << buildC
+        includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {
@@ -742,7 +727,7 @@ afterEvaluate {
     def "reports failure when substituted project does not have requested configuration"() {
         given:
         def buildC = singleProjectBuild("buildC")
-        builds << buildC
+        includedBuilds << buildC
 
         buildA.buildFile << """
             dependencies {

@@ -55,14 +55,13 @@ public class MavenDependencyKey {
         }
 
         MavenDependencyKey that = (MavenDependencyKey) o;
-
+        if (!groupId.equals(that.groupId)) {
+            return false;
+        }
         if (!artifactId.equals(that.artifactId)) {
             return false;
         }
         if (classifier != null ? !classifier.equals(that.classifier) : that.classifier != null) {
-            return false;
-        }
-        if (!groupId.equals(that.groupId)) {
             return false;
         }
         if (type != null ? !type.equals(that.type) : that.type != null) {

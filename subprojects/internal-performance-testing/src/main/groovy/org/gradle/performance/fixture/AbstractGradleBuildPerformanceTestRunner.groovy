@@ -107,4 +107,8 @@ abstract class AbstractGradleBuildPerformanceTestRunner<R extends PerformanceTes
     protected static String determineChannel() {
         ResultsStoreHelper.determineChannel()
     }
+
+    HonestProfilerCollector getHonestProfiler() {
+        return experimentRunner.honestProfiler
+    }
 }

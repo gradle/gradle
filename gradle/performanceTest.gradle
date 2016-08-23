@@ -123,6 +123,11 @@ performanceTestTasks.all { PerformanceTest task ->
     dependsOn( prepareSamples, { rootProject.getTasksByName('publishLocalArchives', true) }, ':distributions:binZip')
     finalizedBy performanceReport
 
+    project.task("clean${task.name.capitalize()}", type: Delete) {
+        delete task.outputs
+        dependsOn cleanPerformanceReport
+    }
+
     if (project.findProperty('org.gradle.performance.baselines')) {
         systemProperty 'org.gradle.performance.baselines', project.getProperty('org.gradle.performance.baselines')
     }
@@ -206,6 +211,9 @@ configure([performanceTest, performanceExperiment, fullPerformanceTest, performa
     if (project.hasProperty('org.gradle.performance.hotspotlog')) {
         systemProperties['org.gradle.performance.hotspotlog'] = '1'
     }
+    if (project.hasProperty('org.gradle.performance.honestprofiler')) {
+        systemProperties['org.gradle.performance.honestprofiler'] = '1'
+    }
     if (project.hasProperty('performanceTest.verbose')) {
         testLogging.showStandardStreams = true
     }
@@ -282,6 +290,6 @@ tasks.withType(PerformanceTest) { task ->
         def cleanTestResultsZipTask = tasks.create(name: "clean${testResultsZipTask.name.capitalize()}", type: Delete) {
             delete testResultsZipTask.archivePath
         }
-        tasks.getByName("clean${task.name.capitalize()}").finalizedBy cleanTestResultsZipTask
+        tasks.getByName("clean${task.name.capitalize()}").dependsOn cleanTestResultsZipTask
     }
 }
