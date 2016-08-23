@@ -24,33 +24,32 @@ import org.gradle.internal.composite.CompositeContextBuilder;
 
 public class DefaultCompositeContextBuilder implements CompositeContextBuilder {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(DefaultCompositeContextBuilder.class);
+    private final DefaultIncludedBuilds allIncludedBuilds;
     private final CompositeBuildContext context;
 
-    public DefaultCompositeContextBuilder(CompositeBuildContext context) {
+    public DefaultCompositeContextBuilder(DefaultIncludedBuilds allIncludedBuilds, CompositeBuildContext context) {
+        this.allIncludedBuilds = allIncludedBuilds;
         this.context = context;
     }
 
     @Override
     public void addToCompositeContext(Iterable<IncludedBuild> includedBuilds) {
-        doAddToCompositeContext(includedBuilds);
+        IncludedBuildDependencySubstitutionsBuilder contextBuilder = new IncludedBuildDependencySubstitutionsBuilder(context);
+        for (IncludedBuild includedBuild : includedBuilds) {
+            allIncludedBuilds.registerBuild(includedBuild);
+            doAddToCompositeContext((IncludedBuildInternal) includedBuild, contextBuilder);
+        }
     }
 
-    private void doAddToCompositeContext(Iterable<IncludedBuild> includedBuilds) {
-        IncludedBuildDependencySubstitutionsBuilder contextBuilder = new IncludedBuildDependencySubstitutionsBuilder(context);
-
-        for (IncludedBuild build : includedBuilds) {
-            IncludedBuildInternal buildInternal = (IncludedBuildInternal) build;
-            context.registerBuild(buildInternal.getName(), build);
-
-            DependencySubstitutionsInternal substitutions = buildInternal.resolveDependencySubstitutions();
-            if (!substitutions.hasRules()) {
-                // Configure the included build to discover substitutions
-                LOGGER.lifecycle("[composite-build] Configuring build: " + buildInternal.getProjectDir());
-                contextBuilder.build(buildInternal);
-            } else {
-                // Register the defined substitutions for included build
-                context.registerSubstitution(substitutions.getRuleAction());
-            }
+    private void doAddToCompositeContext(IncludedBuildInternal build, IncludedBuildDependencySubstitutionsBuilder contextBuilder) {
+        DependencySubstitutionsInternal substitutions = build.resolveDependencySubstitutions();
+        if (!substitutions.hasRules()) {
+            // Configure the included build to discover substitutions
+            LOGGER.lifecycle("[composite-build] Configuring build: " + build.getProjectDir());
+            contextBuilder.build(build);
+        } else {
+            // Register the defined substitutions for included build
+            context.registerSubstitution(substitutions.getRuleAction());
         }
     }
 }

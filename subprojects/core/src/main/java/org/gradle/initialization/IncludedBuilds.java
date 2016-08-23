@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.composite.internal;
+package org.gradle.initialization;
 
-import org.gradle.BuildResult;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
 
-public interface IncludedBuildInternal extends IncludedBuild {
-    DependencySubstitutionsInternal resolveDependencySubstitutions();
-    SettingsInternal initialize();
-    GradleInternal configure();
-    BuildResult execute(Iterable<String> tasks);
+public interface IncludedBuilds {
+    Iterable<IncludedBuild> getBuilds();
+    IncludedBuild getBuild(String name);
 }

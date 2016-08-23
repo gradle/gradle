@@ -18,6 +18,7 @@ package org.gradle.api.initialization;
 
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.DependencySubstitutions;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -28,7 +29,7 @@ import java.io.File;
  */
 @Incubating
 @HasInternalProtocol
-public interface IncludedBuild {
+public interface IncludedBuild extends Named {
     /**
      * The root directory of the included build.
      */

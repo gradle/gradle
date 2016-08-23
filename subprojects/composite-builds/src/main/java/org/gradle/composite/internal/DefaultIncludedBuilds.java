@@ -16,15 +16,26 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.BuildResult;
+import com.google.common.collect.Maps;
 import org.gradle.api.initialization.IncludedBuild;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
+import org.gradle.initialization.IncludedBuilds;
 
-public interface IncludedBuildInternal extends IncludedBuild {
-    DependencySubstitutionsInternal resolveDependencySubstitutions();
-    SettingsInternal initialize();
-    GradleInternal configure();
-    BuildResult execute(Iterable<String> tasks);
+import java.util.Map;
+
+public class DefaultIncludedBuilds implements IncludedBuilds {
+    private final Map<String, IncludedBuild> builds = Maps.newHashMap();
+
+    public void registerBuild(IncludedBuild build) {
+        builds.put(build.getName(), build);
+    }
+
+    @Override
+    public Iterable<IncludedBuild> getBuilds() {
+        return builds.values();
+    }
+
+    @Override
+    public IncludedBuild getBuild(String name) {
+        return builds.get(name);
+    }
 }
