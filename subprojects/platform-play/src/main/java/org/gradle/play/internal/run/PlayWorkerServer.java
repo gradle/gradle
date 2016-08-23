@@ -23,12 +23,8 @@ import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLConnection;
 import java.util.concurrent.CountDownLatch;
 
 public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Serializable {
