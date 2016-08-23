@@ -50,32 +50,41 @@ public class BuildModelsActionRunner extends AbstractBuildModelActionRunner {
 
     private InternalModelResults<Object> getAllModels(GradleInternal gradle, String modelName) {
         InternalModelResults<Object> compositeResults = new InternalModelResults<Object>();
+        collectModelsFromThisBuild(gradle, modelName, compositeResults);
+        collectModelsFromIncludedBuilds(gradle, modelName, compositeResults);
+        return compositeResults;
+    }
+
+    private void collectModelsFromThisBuild(GradleInternal gradle, String modelName, InternalModelResults<Object> compositeResults) {
         try {
             collectModels(gradle, modelName, compositeResults);
         } catch (RuntimeException e) {
             compositeResults.addBuildFailure(gradle.getRootProject().getProjectDir(), transformFailure(e));
         }
+    }
 
+    private void collectModelsFromIncludedBuilds(GradleInternal gradle, String modelName, InternalModelResults<Object> compositeResults) {
         if (!getBuildTypeAttributes(gradle).isNestedBuild()) {
             CompositeBuildContext compositeBuildContext = gradle.getServices().get(CompositeBuildContext.class);
             Set<? extends IncludedBuild> includedBuilds = compositeBuildContext.getIncludedBuilds();
 
-
             for (IncludedBuild includedBuild : includedBuilds) {
-                IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
-                GradleInternal includedGradle = includedBuildInternal.configure();
-                try {
-                    forceFullConfiguration(includedGradle);
-                    collectModels(includedGradle, modelName, compositeResults);
-                } catch (RuntimeException e) {
-                    compositeResults.addBuildFailure(includedBuild.getProjectDir(), transformFailure(e));
-                }
+                collectModelsFromIncludedBuild(modelName, compositeResults, includedBuild);
             }
         }
-        return compositeResults;
     }
 
-    //TODO let ToolingModelBuilder register results/failures instead of giving it a Map
+    private void collectModelsFromIncludedBuild(String modelName, InternalModelResults<Object> compositeResults, IncludedBuild includedBuild) {
+        IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
+        GradleInternal includedGradle = includedBuildInternal.configure();
+        try {
+            forceFullConfiguration(includedGradle);
+            collectModels(includedGradle, modelName, compositeResults);
+        } catch (RuntimeException e) {
+            compositeResults.addBuildFailure(includedBuild.getProjectDir(), transformFailure(e));
+        }
+    }
+
     private void collectModels(GradleInternal gradle, String modelName, InternalModelResults<Object> models) {
         ToolingModelBuilder builder = getToolingModelBuilder(gradle, modelName);
         if (builder instanceof ProjectToolingModelBuilder) {
