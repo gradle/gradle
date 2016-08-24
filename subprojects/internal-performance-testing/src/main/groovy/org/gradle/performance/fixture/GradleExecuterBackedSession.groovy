@@ -67,6 +67,7 @@ class GradleExecuterBackedSession implements GradleSession {
             withTasks(invocation.tasksToRun)
 
         if (withGradleOpts) {
+            executer.withBuildJvmOpts('-XX:+PerfDisableSharedMem') // reduce possible jitter caused by slow /tmp
             executer.withBuildJvmOpts(invocation.jvmOpts)
         }
 
