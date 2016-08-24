@@ -25,48 +25,56 @@ import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.FileLockManager;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.JarCache;
 import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.Collection;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultCachedClasspathTransformer implements CachedClasspathTransformer {
     private final PersistentCache cache;
-    private final JarCache jarCache;
-    private final CacheScopeMapping cacheScopeMapping;
-    private final Spec<File> alreadyCachedSpec;
+    private final Transformer<File, File> jarFileTransformer;
 
     public DefaultCachedClasspathTransformer(CacheRepository cacheRepository, JarCache jarCache, CacheScopeMapping cacheScopeMapping) {
-        this.jarCache = jarCache;
-        this.cacheScopeMapping = cacheScopeMapping;
         this.cache = cacheRepository
             .cache("jars-1")
             .withDisplayName("jars")
             .withCrossVersionCache()
             .withLockOptions(mode(FileLockManager.LockMode.None))
             .open();
-        this.alreadyCachedSpec = new AlreadyCachedSpec();
+        this.jarFileTransformer = new CachedJarFileTransformer(jarCache, cache, new AlreadyCachedSpec(cacheScopeMapping));
     }
 
     @Override
     public ClassPath transform(ClassPath classPath) {
-        return DefaultClassPath.of(CollectionUtils.collect(classPath.getAsFiles(), new Transformer<File, File>() {
+        return DefaultClassPath.of(CollectionUtils.collect(classPath.getAsFiles(), jarFileTransformer));
+    }
+
+    @Override
+    public Collection<URL> transform(Collection<URL> urls) {
+        return CollectionUtils.collect(urls, new Transformer<URL, URL>() {
             @Override
-            public File transform(final File original) {
-                if (original.isFile() && !alreadyCachedSpec.isSatisfiedBy(original)) {
-                    return cache.useCache("Locate Jar file", new Factory<File>() {
-                        public File create() {
-                            return jarCache.getCachedJar(original, Factories.constant(cache.getBaseDir()));
-                        }
-                    });
+            public URL transform(URL url) {
+                if (url.getProtocol().equals("file")) {
+                    try {
+                        return jarFileTransformer.transform(new File(url.toURI())).toURI().toURL();
+                    } catch (URISyntaxException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    } catch (MalformedURLException e) {
+                        throw UncheckedException.throwAsUncheckedException(e);
+                    }
                 } else {
-                    return original;
+                    return url;
                 }
             }
-        }));
+        });
     }
 
     @Override
@@ -74,10 +82,40 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         cache.close();
     }
 
-    private class AlreadyCachedSpec implements Spec<File> {
+    private static class CachedJarFileTransformer implements Transformer<File, File> {
+        private final JarCache jarCache;
+        private final PersistentCache cache;
+        private final Spec<File> alreadyCachedSpec;
+
+        CachedJarFileTransformer(JarCache jarCache, PersistentCache cache, Spec<File> alreadyCachedSpec) {
+            this.jarCache = jarCache;
+            this.cache = cache;
+            this.alreadyCachedSpec = alreadyCachedSpec;
+        }
+
+        @Override
+        public File transform(final File original) {
+            if (original.isFile() && !alreadyCachedSpec.isSatisfiedBy(original)) {
+                return cache.useCache("Locate Jar file", new Factory<File>() {
+                    public File create() {
+                        return jarCache.getCachedJar(original, Factories.constant(cache.getBaseDir()));
+                    }
+                });
+            } else {
+                return original;
+            }
+        }
+    }
+
+    private static class AlreadyCachedSpec implements Spec<File> {
+        private final String cacheRootDirName;
+
+        AlreadyCachedSpec(CacheScopeMapping cacheScopeMapping) {
+            this.cacheRootDirName = cacheScopeMapping.getBaseDirectory(null, "dummy", CacheBuilder.VersionStrategy.SharedCache).getParent();
+        }
+
         @Override
         public boolean isSatisfiedBy(File file) {
-            String cacheRootDirName = cacheScopeMapping.getBaseDirectory(null, "dummy", CacheBuilder.VersionStrategy.SharedCache).getParent();
             return file.getAbsolutePath().startsWith(cacheRootDirName);
         }
     }

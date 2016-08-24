@@ -16,19 +16,10 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.Transformer;
-import org.gradle.api.specs.Spec;
-import org.gradle.internal.Pair;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
-import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
-import org.gradle.util.CollectionUtils;
 
-import java.io.File;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collection;
 import java.util.List;
@@ -49,28 +40,10 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
                 throw new IllegalStateException("Expected exactly one parent ClassLoader");
             }
 
-            // urls on left will be file urls, all others on right
-            Pair<Collection<URL>, Collection<URL>> urls = CollectionUtils.partition(urlSpec.getClasspath(), new Spec<URL>() {
-                @Override
-                public boolean isSatisfiedBy(URL url) {
-                    return url.getProtocol().equals("file");
-                }
-            });
-            ClassPath classPath = DefaultClassPath.of(CollectionUtils.collect(urls.left(), new Transformer<File, URL>() {
-                @Override
-                public File transform(URL url) {
-                    try {
-                        return new File(url.toURI());
-                    } catch (URISyntaxException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-            }));
-
             // convert the file urls to cached jar files
-            ClassPath cachedClassPath = cachedClasspathTransformer.transform(classPath);
+            Collection<URL> cachedClassPathUrls = cachedClasspathTransformer.transform(urlSpec.getClasspath());
 
-            return new VisitableURLClassLoader(parents.get(0), CollectionUtils.addAll(cachedClassPath.getAsURLs(), urls.right()));
+            return new VisitableURLClassLoader(parents.get(0), cachedClassPathUrls);
         }
         return delegate.getClassLoaderFor(spec, parents);
     }

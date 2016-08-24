@@ -16,12 +16,21 @@
 
 package org.gradle.internal.classpath;
 
-import org.gradle.api.Transformer;
-
 import java.io.Closeable;
+import java.net.URL;
+import java.util.Collection;
 
 /**
  * Represents a transformer that takes a given ClassPath and transforms it to a ClassPath with cached jars
  */
-public interface CachedClasspathTransformer extends Transformer<ClassPath, ClassPath>, Closeable {
+public interface CachedClasspathTransformer extends Closeable {
+    /**
+     * Transform a ClassPath object to a ClassPath with cached jars
+     */
+    ClassPath transform(ClassPath classPath);
+
+    /**
+     * Transform a collection of urls to a new collection where the file urls are cached jars
+     */
+    Collection<URL> transform(Collection<URL> urls);
 }
