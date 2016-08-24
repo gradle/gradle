@@ -68,11 +68,11 @@ public class S3Client {
         this.s3ConnectionProperties = s3ConnectionProperties;
         AWSCredentials credentials = null;
         if (awsCredentials != null) {
-            if (awsCredentials.getToken() == null) {
+            if (awsCredentials.getSessionToken() == null) {
                 credentials =  new BasicAWSCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey());
             } else {
                    
-                credentials =  new BasicSessionCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey(), awsCredentials.getToken());
+                credentials =  new BasicSessionCredentials(awsCredentials.getAccessKey(), awsCredentials.getSecretKey(), awsCredentials.getSessionToken());
             }
         }
         amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());

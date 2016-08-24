@@ -47,11 +47,11 @@ public interface AwsCredentials extends Credentials {
     /**
      * Returns the secret key to use to authenticate with AWS.
      */
-    String getToken();
+    String getSessionToken();
 
     /**
      * Sets the secret key to use to authenticate with AWS.
      */
-    void setToken(String token);
+    void setSessionToken(String token);
 
 }
