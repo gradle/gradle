@@ -16,6 +16,7 @@
 
 package org.gradle.internal.featurelifecycle
 
+import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.util.SetSystemProperties
@@ -48,6 +49,19 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         and:
         events[0].message == 'feature1'
         events[1].message == 'feature2'
+    }
+
+    def 'deprecations are logged at WARN level'() {
+        when:
+        handler.deprecatedFeatureUsed(new DeprecatedFeatureUsage('feature', []))
+
+        then:
+        outputEventListener.events.size() == 1
+
+        and:
+        def event = outputEventListener.events[0]
+        event.message == 'feature'
+        event.logLevel == LogLevel.WARN
     }
 
     @Unroll
