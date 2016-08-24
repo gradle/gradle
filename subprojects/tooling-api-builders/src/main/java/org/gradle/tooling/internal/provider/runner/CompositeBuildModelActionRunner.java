@@ -55,7 +55,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-// TODO:DAZ It's not good that composite build does not share the execution pipeline with other requests
 // There's a lot of logic duplication that should be removed.
 public class CompositeBuildModelActionRunner implements CompositeBuildActionRunner {
     private static final org.gradle.api.logging.Logger LOGGER = Logging.getLogger(CompositeBuildModelActionRunner.class);

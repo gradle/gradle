@@ -72,7 +72,7 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
     }
 
     private ProjectComponentIdentifier getLocalIdentifier(ProjectComponentIdentifier projectIdentifier) {
-        // TODO:DAZ This is yet another place where we need a better id for project components in composite.
+        // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
         if (projectIdentifier.getProjectPath().contains("::")) {
             String[] parts = projectIdentifier.getProjectPath().split("::", 2);
             String buildName = parts[0];

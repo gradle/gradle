@@ -108,7 +108,6 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public BuildResult execute(Iterable<String> tasks) {
-        // TODO:DAZ Get rid of this when we remove TAPI-composite
         if (nestedLauncherFactory != null) {
             gradleLauncher = nestedLauncherFactory.create();
         }

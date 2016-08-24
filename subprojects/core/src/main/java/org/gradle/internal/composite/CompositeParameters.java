@@ -27,7 +27,6 @@ public class CompositeParameters implements Serializable {
     }
 
     public GradleParticipantBuild getTargetBuild() {
-        // TODO:DAZ This is not a great contract: should be explicit
         return builds.get(0);
     }
 

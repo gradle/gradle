@@ -24,7 +24,6 @@ import org.gradle.api.tasks.TaskReference;
 
 public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver {
 
-    // TODO:DAZ Should retain a reference to a task in another build, rather than relying on a synthetic delegating task.
     @Override
     public Task constructTask(final TaskReference reference, TaskContainer tasks) {
         if (!(reference instanceof IncludedBuildTaskReference)) {
