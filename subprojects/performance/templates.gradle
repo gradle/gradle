@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 task small(type: JvmProjectGeneratorTask, description: 'Generates a small project') {
 }
@@ -561,38 +560,3 @@ task mediumAndroidBuild(type: RemoteProject) {
     }
 }
 
-class RemoteProject extends DefaultTask {
-    @Input String remoteUri
-    @Input String branch
-    @OutputDirectory File outputDirectory = project.file("$project.buildDir/$name")
-
-    @TaskAction
-    void checkout() {
-        outputDirectory.deleteDir()
-        project.exec {
-            commandLine = ["git", "clone", "--depth", "1", "--branch", branch, remoteUri, outputDirectory.absolutePath]
-            if (OperatingSystem.current().windows) {
-                commandLine = ["cmd", "/c"] + commandLine
-            }
-        }
-        def perfTesting = project.project(':internalPerformanceTesting')
-        copyInitScript(perfTesting)
-        applyMeasurementPlugin(perfTesting)
-    }
-
-    private File copyInitScript(Project perfTesting) {
-        new File(outputDirectory, "init.gradle") << perfTesting.file("src/templates/init.gradle").text
-    }
-
-    private void applyMeasurementPlugin(Project perfTesting) {
-        new File(outputDirectory, "build.gradle").text = """buildscript {
-    dependencies {
-        classpath files("${perfTesting.buildDir}/libs/measurement-plugin.jar")
-    }
-}
-
-apply plugin: org.gradle.performance.plugin.MeasurementPlugin
-
-""" + new File(outputDirectory, "build.gradle").text
-    }
-}
