@@ -27,7 +27,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 apply plugin: 'jetty' // line 2
 """
         when:
-        executer.expectDeprecationWarning().withNoFullDeprecationStackTrace()
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         run()
 
         then:
@@ -61,7 +61,7 @@ task binZip(type: Zip) {
 }
 """
         when:
-        executer.expectDeprecationWarning().withNoFullDeprecationStackTrace()
+        executer.expectDeprecationWarning().withFullDeprecationStackTraceDisabled()
         run()
 
         then:

@@ -182,7 +182,7 @@ public interface GradleExecuter {
     /**
      * Don't activate full deprecation stack trace.
      */
-    GradleExecuter withNoFullDeprecationStackTrace();
+    GradleExecuter withFullDeprecationStackTraceDisabled();
 
     /**
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for

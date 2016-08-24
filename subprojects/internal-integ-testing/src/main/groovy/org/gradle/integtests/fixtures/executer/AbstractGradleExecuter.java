@@ -134,7 +134,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected boolean noExplicitTmpDir;
     protected boolean noExplicitNativeServicesDir;
-    protected boolean noFullDeprecationStackTrace;
+    protected boolean fullDeprecationStackTrace = true;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -262,8 +262,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (noExplicitNativeServicesDir) {
             executer.withNoExplicitNativeServicesDir();
         }
-        if (noFullDeprecationStackTrace) {
-            executer.withNoFullDeprecationStackTrace();
+        if (!fullDeprecationStackTrace) {
+            executer.withFullDeprecationStackTraceDisabled();
         }
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
@@ -709,7 +709,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
-        properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, ""+!noFullDeprecationStackTrace);
+        properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, ""+fullDeprecationStackTrace);
 
         if (!noExplicitTmpDir) {
             String tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
@@ -935,8 +935,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         return this;
     }
 
-    public GradleExecuter withNoFullDeprecationStackTrace() {
-        noFullDeprecationStackTrace = true;
+    public GradleExecuter withFullDeprecationStackTraceDisabled() {
+        fullDeprecationStackTrace = false;
         return this;
     }
 
