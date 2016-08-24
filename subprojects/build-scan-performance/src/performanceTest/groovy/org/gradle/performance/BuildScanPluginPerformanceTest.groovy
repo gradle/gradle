@@ -58,6 +58,9 @@ class BuildScanPluginPerformanceTest extends Specification {
     PrintStream originalSystemErr
     PrintStream originalSystemOut
 
+    private int warmupBuilds = 1
+    private int measuredBuilds = 7
+
     void setup() {
         def incomingDir = "../../incoming" // System.getProperty('incomingArtifactDir')
         assert incomingDir: "'incomingArtifactDir' system property is not set"
@@ -111,6 +114,8 @@ class BuildScanPluginPerformanceTest extends Specification {
 
 
         runner.baseline {
+            warmUpCount warmupBuilds
+            invocationCount measuredBuilds
             projectName(sourceProject)
             displayName(WITHOUT_PLUGIN_LABEL)
             invocation {
@@ -123,6 +128,8 @@ class BuildScanPluginPerformanceTest extends Specification {
         }
 
         runner.buildSpec {
+            warmUpCount warmupBuilds
+            invocationCount measuredBuilds
             projectName(sourceProject)
             displayName(WITH_PLUGIN_LABEL)
             invocation {
