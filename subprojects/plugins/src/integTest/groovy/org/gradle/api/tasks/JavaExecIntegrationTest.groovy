@@ -71,8 +71,7 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         ":run" in nonSkippedTasks
     }
 
-    @Issue("GRADLE-1483")
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @Issue(["GRADLE-1483", "GRADLE-3528"])
     def "when the user declares outputs it becomes incremental"() {
         given:
         buildFile << """

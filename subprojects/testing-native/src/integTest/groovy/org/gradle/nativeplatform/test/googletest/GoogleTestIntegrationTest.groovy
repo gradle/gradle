@@ -328,6 +328,7 @@ model {
         succeeds "runHelloTestGoogleTestExe"
     }
 
+    @Issue("GRADLE-3528")
     def "test suite skipped after successful run"() {
         given:
         useStandardConfig()

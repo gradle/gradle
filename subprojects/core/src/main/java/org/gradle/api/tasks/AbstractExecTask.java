@@ -174,7 +174,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     /**
      * {@inheritDoc}
      */
-    @Optional @Input
+    @Internal
     public Map<String, Object> getEnvironment() {
         return execAction.getEnvironment();
     }

@@ -20,6 +20,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
+import spock.lang.Issue
 
 class ExecIntegrationTest extends AbstractIntegrationSpec {
     @Rule
@@ -40,5 +41,45 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         run()
+    }
+
+    @Issue("GRADLE-3528")
+    def "when the user declares outputs it becomes incremental"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+
+            task run(type: Exec) {
+                inputs.files sourceSets.main.runtimeClasspath
+                ext.testFile = file("\$buildDir/out.txt")
+                outputs.file testFile
+                executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
+                args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
+                doLast {
+                    assert testFile.exists()
+                }
+            }
+        """.stripIndent()
+
+        when:
+        run "run"
+
+        then:
+        ":run" in nonSkippedTasks
+
+        when:
+        run "run"
+
+        then:
+        ":run" in skippedTasks
+
+        when:
+        file('build/out.txt').delete()
+
+        and:
+        run "run"
+
+        then:
+        ":run" in nonSkippedTasks
     }
 }
