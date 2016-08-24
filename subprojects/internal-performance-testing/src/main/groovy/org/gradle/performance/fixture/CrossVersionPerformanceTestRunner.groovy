@@ -97,7 +97,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         runVersion(current, perVersionWorkingDirectory('current'), results.current)
 
         if(targetVersions) {
-            LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions)
+            def baselineVersions = toBaselineVersions(releases, targetVersions)
 
             baselineVersions.each { it ->
                 def baselineVersion = results.baseline(it)
@@ -128,20 +128,17 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         perVersion
     }
 
-    static LinkedHashSet<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions) {
+    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions) {
         def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
         def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def baselineVersions = new LinkedHashSet<String>()
-        Set<String> overridenTargetVersions = Splitter.on(COMMA_OR_SEMICOLON)
-            .omitEmptyStrings()
-            .splitToList(System.getProperty('org.gradle.performance.baselines','').replace('defaults', targetVersions.join(',')))
-            .collect(new LinkedHashSet<String>()) {
-            it == 'nightly' ? mostRecentSnapshot : (it == 'last' ? mostRecentFinalRelease : it)
-        }
-        if (overridenTargetVersions) {
-            baselineVersions = overridenTargetVersions
+        def baselineVersions
+
+        def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
+        if (overrideBaselinesProperty) {
+            baselineVersions = resolveOverriddenVersions(overrideBaselinesProperty, targetVersions, mostRecentSnapshot, mostRecentFinalRelease)
         } else {
+            baselineVersions = new LinkedHashSet<String>()
             for (String version : targetVersions) {
                 if (version == 'last' || version == 'nightly' || version == currentBaseVersion) {
                     // These are all treated specially below
@@ -169,7 +166,42 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 }
             }
         }
+
         baselineVersions
+    }
+
+    private static Iterable<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions, String mostRecentSnapshot, String mostRecentFinalRelease) {
+        def versions = Splitter.on(COMMA_OR_SEMICOLON)
+            .omitEmptyStrings()
+            .splitToList(overrideBaselinesProperty)
+        expandSymbolicNames(versions, mostRecentFinalRelease, mostRecentSnapshot, targetVersions, 1)
+    }
+
+    private static Set<String> expandSymbolicNames(List<String> versions, String mostRecentFinalRelease, String mostRecentSnapshot, List<String> targetVersions, int recursionLevel) {
+        versions.inject(new LinkedHashSet<String>()) { Set<String> result, version ->
+            switch (version) {
+                case 'none':
+                    // skip it
+                    break
+                case 'defaults':
+                    if (recursionLevel == 1) {
+                        // expand defaults recursively once
+                        result.addAll(expandSymbolicNames(targetVersions, mostRecentFinalRelease, mostRecentSnapshot, targetVersions, recursionLevel + 1))
+                    } else {
+                        throw new IllegalArgumentException("'defaults' shouldn't be used recursively.")
+                    }
+                    break
+                case 'nightly':
+                    result << mostRecentSnapshot
+                    break
+                case 'last':
+                    result << mostRecentFinalRelease
+                    break
+                default:
+                    result << version
+            }
+            result
+        }
     }
 
     protected static GradleDistribution findRelease(ReleasedVersionDistributions releases, String requested) {
