@@ -94,6 +94,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             channel: ResultsStoreHelper.determineChannel()
         )
 
+        runVersion(current, perVersionWorkingDirectory('current'), results.current)
+
         if(targetVersions) {
             LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions)
 
@@ -103,7 +105,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
         }
 
-        runVersion(current, perVersionWorkingDirectory('current'), results.current)
 
         results.endTime = System.currentTimeMillis()
 
