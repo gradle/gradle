@@ -67,7 +67,7 @@ abstract class BaseJavalSourceFileUpdater extends BuildExperimentListenerAdapter
 
     @Override
     void beforeInvocation(BuildExperimentInvocationInfo invocationInfo) {
-        if (projects == null || projectDir != invocationInfo.projectDir) {
+        if (projectDir != invocationInfo.projectDir) {
             projectDir = invocationInfo.projectDir
 
             projects = projectDir.listFiles().findAll { it.directory && it.name.startsWith('project') }.sort { it.name }
