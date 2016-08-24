@@ -24,44 +24,28 @@ import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 // TODO:DAZ Split out the non-composite resolution stuff and name appropriately
 public class CompositeBuildIdeProjectResolver {
-    private final CompositeBuildContext discovered;
+    private final CompositeBuildContext compositeContext;
     private final LocalComponentRegistry registry;
     private final List<ProjectArtifactBuilder> artifactBuilders;
 
     public CompositeBuildIdeProjectResolver(ServiceRegistry services) {
-        List<CompositeBuildContext> registries = services.getAll(CompositeBuildContext.class);
-        if (!registries.isEmpty()) {
-            discovered = registries.iterator().next();
-        } else {
-            discovered = null;
-        }
+        compositeContext = services.get(CompositeBuildContext.class);
         registry = services.get(LocalComponentRegistry.class);
         artifactBuilders = services.getAll(ProjectArtifactBuilder.class);
     }
 
     public File getProjectDirectory(String projectPath) {
         ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newId(projectPath);
-        return getCompositeContext().getProjectDirectory(projectComponentIdentifier);
+        return compositeContext.getProjectDirectory(projectComponentIdentifier);
     }
 
     public Set<ProjectComponentIdentifier> getProjectsInComposite() {
-        if (discovered == null) {
-            return Collections.emptySet();
-        }
-        return getCompositeContext().getAllProjects();
-    }
-
-    private CompositeBuildContext getCompositeContext() {
-        if (discovered == null) {
-            throw new IllegalStateException("Not a composite");
-        }
-        return discovered;
+        return compositeContext.getAllProjects();
     }
 
     public LocalComponentArtifactMetadata resolveArtifact(ProjectComponentIdentifier project, String type) {
