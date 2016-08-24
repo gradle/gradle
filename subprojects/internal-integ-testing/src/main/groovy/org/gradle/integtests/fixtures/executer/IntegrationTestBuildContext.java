@@ -16,13 +16,8 @@
 
 package org.gradle.integtests.fixtures.executer;
 
-import org.gradle.api.JavaVersion;
-import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.os.OperatingSystem;
-import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.VersionNumber;
 
 import java.io.File;
 
@@ -30,8 +25,6 @@ import java.io.File;
  * Provides values that are set during the build, or defaulted when not running in a build context (e.g. IDE).
  */
 public class IntegrationTestBuildContext {
-
-    private GradleExecuterDecorator executerDecorator;
 
     public TestFile getGradleHomeDir() {
         return file("integTest.gradleHomeDir", null);
@@ -88,19 +81,7 @@ public class IntegrationTestBuildContext {
         return fatToolingApiJar;
     }
 
-    public GradleExecuterDecorator getExecuterDecorator() {
-        return executerDecorator;
-    }
-
-    public void setExecuterDecorator(GradleExecuterDecorator executerDecorator) {
-        this.executerDecorator = executerDecorator;
-    }
-
     public GradleDistribution distribution(String version) {
-        return decorateDistribution(doCreateDistribution(version));
-    }
-
-    private GradleDistribution doCreateDistribution(String version) {
         if (version.equals(getVersion().getVersion())) {
             return new UnderDevelopmentGradleDistribution();
         }
@@ -109,112 +90,6 @@ public class IntegrationTestBuildContext {
             return new BuildServerGradleDistribution(version, previousVersionDir.file(version));
         }
         return new ReleasedGradleDistribution(version, previousVersionDir.file(version));
-    }
-
-    private GradleDistribution decorateDistribution(final GradleDistribution distribution) {
-        return new GradleDistribution() {
-            @Override
-            public TestFile getGradleHomeDir() {
-                return distribution.getGradleHomeDir();
-            }
-
-            @Override
-            public TestFile getBinDistribution() {
-                return distribution.getBinDistribution();
-            }
-
-            @Override
-            public GradleVersion getVersion() {
-                return distribution.getVersion();
-            }
-
-            @Override
-            public GradleExecuter executer(TestDirectoryProvider testDirectoryProvider) {
-                return decorateExecuter(distribution.executer(testDirectoryProvider));
-            }
-
-            @Override
-            public boolean worksWith(Jvm jvm) {
-                return distribution.worksWith(jvm);
-            }
-
-            @Override
-            public boolean worksWith(OperatingSystem os) {
-                return distribution.worksWith(os);
-            }
-
-            @Override
-            public boolean isDaemonIdleTimeoutConfigurable() {
-                return distribution.isDaemonIdleTimeoutConfigurable();
-            }
-
-            @Override
-            public boolean isToolingApiSupported() {
-                return distribution.isToolingApiSupported();
-            }
-
-            @Override
-            public boolean isToolingApiTargetJvmSupported(JavaVersion javaVersion) {
-                return distribution.isToolingApiTargetJvmSupported(javaVersion);
-            }
-
-            @Override
-            public boolean isToolingApiNonAsciiOutputSupported() {
-                return distribution.isToolingApiNonAsciiOutputSupported();
-            }
-
-            @Override
-            public boolean isToolingApiLoggingInEmbeddedModeSupported() {
-                return distribution.isToolingApiLoggingInEmbeddedModeSupported();
-            }
-
-            @Override
-            public boolean isToolingApiDaemonBaseDirSupported() {
-                return distribution.isToolingApiDaemonBaseDirSupported();
-            }
-
-            @Override
-            public boolean isToolingApiEventsInEmbeddedModeSupported() {
-                return distribution.isToolingApiEventsInEmbeddedModeSupported();
-            }
-
-            @Override
-            public VersionNumber getArtifactCacheLayoutVersion() {
-                return distribution.getArtifactCacheLayoutVersion();
-            }
-
-            @Override
-            public boolean isOpenApiSupported() {
-                return distribution.isOpenApiSupported();
-            }
-
-            @Override
-            public boolean wrapperCanExecute(GradleVersion version) {
-                return distribution.wrapperCanExecute(version);
-            }
-
-            @Override
-            public boolean isSupportsSpacesInGradleAndJavaOpts() {
-                return distribution.isSupportsSpacesInGradleAndJavaOpts();
-            }
-
-            @Override
-            public boolean isFullySupportsIvyRepository() {
-                return distribution.isFullySupportsIvyRepository();
-            }
-
-            @Override
-            public boolean isWrapperSupportsGradleUserHomeCommandLineOption() {
-                return distribution.isWrapperSupportsGradleUserHomeCommandLineOption();
-            }
-        };
-    }
-
-    private GradleExecuter decorateExecuter(GradleExecuter executer) {
-        if (executerDecorator == null) {
-            return executer;
-        }
-        return executerDecorator.decorate(executer);
     }
 
     private static TestFile file(String propertyName, String defaultFile) {
@@ -226,7 +101,4 @@ public class IntegrationTestBuildContext {
         return new TestFile(new File(path));
     }
 
-    public interface GradleExecuterDecorator {
-        GradleExecuter decorate(GradleExecuter executer);
-    }
 }

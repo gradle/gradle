@@ -18,7 +18,9 @@ package org.gradle.performance.fixture
 
 import com.google.common.base.Splitter
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.executer.ExecuterDecoratingGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuterDecorator
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
@@ -56,6 +58,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> targetVersions = []
 
     BuildExperimentListener buildExperimentListener
+    GradleExecuterDecorator executerDecorator
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases) {
         this.reporter = reporter
@@ -228,7 +231,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .listener(buildExperimentListener)
             .invocation {
                 workingDirectory(workingDir)
-                distribution(dist)
+                distribution(new ExecuterDecoratingGradleDistribution(dist, executerDecorator))
                 tasksToRun(this.tasksToRun as String[])
                 args(this.args as String[])
                 gradleOpts(gradleOptsInUse as String[])

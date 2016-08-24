@@ -13,19 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.integtests.fixtures.executer;
 
-package org.gradle.performance
-
-import groovy.transform.CompileStatic
-import org.gradle.integtests.fixtures.executer.GradleExecuter
-
-@CompileStatic
-abstract class AbstractAndroidPerformanceTest extends AbstractCrossVersionPerformanceTest {
-    def setup() {
-        runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
-        runner.executerDecorator = { GradleExecuter executor ->
-            // todo: investigate why Android builds require this check disabled
-            executor.withEagerClassLoaderCreationCheckDisabled()
-        }
-    }
+public interface GradleExecuterDecorator {
+    GradleExecuter decorate(GradleExecuter executer);
 }
