@@ -20,12 +20,10 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.initialization.buildtype.MutableBuildTypeAttributes;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
@@ -43,9 +41,6 @@ public class BuildModelActionRunner implements BuildActionRunner {
 
         BuildModelAction buildModelAction = (BuildModelAction) action;
         GradleInternal gradle = buildController.getGradle();
-
-        boolean isModelRequest = !buildModelAction.getModelName().equals(ModelIdentifier.NULL_MODEL);
-        gradle.getServices().get(MutableBuildTypeAttributes.class).markToolingApiBuild(isModelRequest);
 
         if (buildModelAction.isRunTasks()) {
             buildController.run();

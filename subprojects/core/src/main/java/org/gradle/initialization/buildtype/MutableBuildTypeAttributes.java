@@ -23,6 +23,4 @@ public interface MutableBuildTypeAttributes extends BuildTypeAttributes {
     void markNestedBuild();
 
     void markCompositeBuild();
-
-    void markToolingApiBuild(boolean toolingModelRequest);
 }

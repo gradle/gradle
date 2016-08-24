@@ -19,8 +19,6 @@ package org.gradle.initialization.buildtype;
 public class DefaultBuildTypeAttributes implements MutableBuildTypeAttributes {
     private boolean compositeBuild;
     private boolean nestedBuild;
-    private boolean toolingApiBuild;
-    private boolean toolingModelRequest;
 
     @Override
     public boolean isNestedBuild() {
@@ -42,18 +40,4 @@ public class DefaultBuildTypeAttributes implements MutableBuildTypeAttributes {
         this.compositeBuild = true;
     }
 
-    @Override
-    public boolean isToolingApiBuild() {
-        return toolingApiBuild;
-    }
-
-    public void markToolingApiBuild(boolean toolingModelRequest) {
-        this.toolingApiBuild = true;
-        this.toolingModelRequest = toolingModelRequest;
-    }
-
-    @Override
-    public boolean isToolingModelRequest() {
-        return toolingModelRequest;
-    }
 }
