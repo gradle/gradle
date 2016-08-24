@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
@@ -53,7 +54,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public TaskReference task(String path) {
-        // TODO:DAZ Validate path starts with ':'
+        Preconditions.checkArgument(path.startsWith(":"), "Task path '%s' is not a qualified task path (e.g. ':task' or ':project:task').", path);
         return new IncludedBuildTaskReference(getName(), path);
     }
 

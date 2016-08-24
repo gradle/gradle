@@ -22,7 +22,7 @@ import spock.lang.Unroll
 /**
  * Tests for composite build delegating to tasks in an included build.
  */
-class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuildIntegrationTest {
+class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
 
     def setup() {
@@ -176,6 +176,22 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
 
         then:
         failure.assertHasDescription("Task 'does-not-exist' not found in root project 'buildB'.")
+    }
+
+    def "reports failure when task path is not qualified for included build"() {
+        when:
+        buildA.buildFile << """
+    task delegate {
+        dependsOn gradle.includedBuild('buildB').task('logProject')
+    }
+"""
+
+        and:
+        fails(buildA, "delegate")
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project 'buildA'.")
+        failure.assertHasCause("Task path 'logProject' is not a qualified task path (e.g. ':task' or ':project:task')")
     }
 
     def "reports failure when attempting to access included build when build is not a composite"() {
