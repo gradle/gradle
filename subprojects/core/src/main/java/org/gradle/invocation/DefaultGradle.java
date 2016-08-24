@@ -16,6 +16,7 @@
 
 package org.gradle.invocation;
 
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildListener;
@@ -38,7 +39,6 @@ import org.gradle.api.tasks.TaskCaching;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
-import org.gradle.initialization.IncludedBuilds;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -51,6 +51,8 @@ import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.NoSuchElementException;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
@@ -61,6 +63,7 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     private final ServiceRegistry services;
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
+    private final Collection<IncludedBuild> includedBuilds = Lists.newArrayList();
     private ActionBroadcast<Project> rootProjectActions = new ActionBroadcast<Project>();
 
     private final ClassLoaderScope classLoaderScope;
@@ -219,13 +222,22 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
     }
 
     @Override
-    public Iterable<IncludedBuild> getIncludedBuilds() {
-        return services.get(IncludedBuilds.class).getBuilds();
+    public Collection<IncludedBuild> getIncludedBuilds() {
+        return Collections.unmodifiableCollection(includedBuilds);
+    }
+
+    @Override
+    public void setIncludedBuilds(Collection<IncludedBuild> includedBuilds) {
+        this.includedBuilds.addAll(includedBuilds);
     }
 
     @Override
     public IncludedBuild includedBuild(final String name) {
-        for (IncludedBuild includedBuild : getIncludedBuilds()) {
+        if (includedBuilds.isEmpty()) {
+            throw new NoSuchElementException("Build is not a composite: it has no included builds.");
+        }
+
+        for (IncludedBuild includedBuild : includedBuilds) {
             if (includedBuild.getName().equals(name)) {
                 return includedBuild;
             }

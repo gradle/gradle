@@ -45,6 +45,8 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
 
         Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
         if (!includedBuilds.isEmpty()) {
+            gradle.setIncludedBuilds(includedBuilds);
+
             CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
             compositeContextBuilder.addToCompositeContext(includedBuilds);
 

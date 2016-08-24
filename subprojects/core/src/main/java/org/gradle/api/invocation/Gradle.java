@@ -28,6 +28,7 @@ import org.gradle.api.plugins.PluginAware;
 import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
+import java.util.Collection;
 
 /**
  * Represents an invocation of Gradle.
@@ -278,7 +279,7 @@ public interface Gradle extends PluginAware {
      * Returns the included builds for this build.
      */
     @Incubating
-    Iterable<IncludedBuild> getIncludedBuilds();
+    Collection<IncludedBuild> getIncludedBuilds();
 
     /**
      * Returns the included build with the specified name for this build.

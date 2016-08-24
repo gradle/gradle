@@ -17,6 +17,7 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import spock.lang.Unroll
 
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
@@ -148,5 +149,37 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
         executed ":buildB:logProject", ":buildC:logProject"
         output.contains("Executing build 'buildB' project ':' task ':logProject'")
         output.contains("Executing build 'buildC' project ':' task ':logProject'")
+    }
+
+    @Unroll
+    def "included build cannot reference tasks in #scenario"() {
+        when:
+        BuildTestFile buildC = singleProjectBuild("buildC") {
+            buildFile << """
+    task illegal {
+        dependsOn gradle.includedBuild('$buildName').task(':logProject')
+    }
+"""
+        }
+        includedBuilds << buildC
+
+        buildA.buildFile << """
+    task delegate {
+        dependsOn gradle.includedBuild('buildC').task(':illegal')
+    }
+    task logProject {}
+"""
+
+        then:
+        fails(buildA, ":delegate")
+
+        and:
+        failure.assertHasDescription("A problem occurred evaluating root project 'buildC'.")
+        failure.assertHasCause("Build is not a composite: it has no included builds.")
+
+        where:
+        scenario | buildName
+        "sibling" | "buildB"
+        "parent" | "buildA"
     }
 }

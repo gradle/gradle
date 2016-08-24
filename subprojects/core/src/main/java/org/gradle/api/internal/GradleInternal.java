@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 import org.gradle.BuildListener;
 import org.gradle.api.Action;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
@@ -26,6 +27,8 @@ import org.gradle.api.tasks.TaskCaching;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
+
+import java.util.Collection;
 
 /**
  * An internal interface for Gradle that exposed objects and concepts that are not intended for public
@@ -86,4 +89,6 @@ public interface GradleInternal extends Gradle {
      * Returns the task output caching configuration.
      */
     TaskCachingInternal getTaskCaching();
+
+    void setIncludedBuilds(Collection<IncludedBuild> includedBuilds);
 }
