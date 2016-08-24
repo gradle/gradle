@@ -21,7 +21,7 @@ import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.daemon.DaemonTestFixture.killIsolatedDaemons
 
-class BuildSrcPluginTest extends AbstractIntegrationSpec {
+class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2001")
     def "can use plugin from buildSrc that changes"() {
