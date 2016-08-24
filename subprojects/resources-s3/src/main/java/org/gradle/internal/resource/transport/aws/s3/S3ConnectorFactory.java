@@ -45,7 +45,6 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
 
     @Override
     public ExternalResourceConnector createResourceConnector(ResourceConnectorSpecification connectionDetails) {
-        
         Collection<? extends Authentication> authentications = connectionDetails.getAuthentications();
         // Since s3 transport supports only one type of credentials at a time, let's use the first one found.
         for (Authentication authentication : authentications) {
