@@ -47,7 +47,6 @@ import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMet
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
@@ -130,22 +129,16 @@ public class IdeaPlugin extends IdePlugin {
             }
         });
         for (Project project : projectsWithIml) {
-            AfterEvaluateHelper.afterEvaluateOrExecute(project, new Action<Project>() {
-                @Override
-                public void execute(Project project) {
-                    ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
-                    ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath());
-                    projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project));
-                }
-            });
+            ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
+            ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath());
+            projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project));
         }
     }
 
     private static LocalComponentArtifactMetadata createImlArtifact(ProjectComponentIdentifier projectId, Project project) {
         String moduleName = project.getExtensions().getByType(IdeaModel.class).getModule().getName();
         File imlFile = new File(project.getProjectDir(), moduleName + ".iml");
-        String taskName = project.getPath().equals(":") ? ":ideaModule" : project.getPath() + ":ideaModule";
-        Task byName = project.getTasks().getByPath(taskName);
+        Task byName = project.getTasks().getByName("ideaModule");
         PublishArtifact publishArtifact = new DefaultPublishArtifact(moduleName, "iml", "iml", null, null, imlFile, byName);
         return new PublishArtifactLocalArtifactMetadata(projectId, "idea.iml", publishArtifact);
     }

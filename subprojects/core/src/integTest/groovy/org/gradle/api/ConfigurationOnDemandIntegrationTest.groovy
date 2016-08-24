@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.IgnoreIf
+import spock.lang.Issue
+import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
 class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
@@ -511,22 +513,27 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":b", ":b:child", ":a")
     }
 
-    def "configures only dependend projects when the idea plugin is applied"() {
+    @Unroll
+    @Issue('GRADLE-3534')
+    def "configures only requested projects when the #plugin plugin is applied"() {
         settingsFile << "include 'a', 'b'"
         file('b').mkdirs()
         buildFile << """
             allprojects {
-                apply plugin: 'idea'
+                apply plugin: '${plugin}'
             }
             subprojects {
                 apply plugin: 'java'
             }
-        """
+        """.stripIndent()
 
         when:
         run ':a:build'
 
         then:
         fixture.assertProjectsConfigured(':', ':a')
+
+        where:
+        plugin << ['idea', 'eclipse']
     }
 }
