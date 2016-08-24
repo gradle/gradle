@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.api.tasks;
 
-import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.Named;
 
 /**
- * A resolver for task references: for now a task reference must be a fully-fledged Task instance.
+ * A lightweight reference to a task.
  */
-public interface ConstructingTaskResolver {
-    /**
-     * Attempt to construct a task with the given path, returning null if the path is not recognized.
-     */
-    Task constructTask(String path, TaskContainer tasks);
+public interface TaskReference extends Named {
 }

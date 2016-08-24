@@ -62,7 +62,7 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
         when:
         buildA.buildFile << """
     task delegate {
-        dependsOn 'buildB::logProject'
+        dependsOn gradle.services.get(org.gradle.initialization.IncludedBuilds).getBuild('buildB').task(':logProject')
     }
 """
 
@@ -93,7 +93,7 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
         when:
         buildA.buildFile << """
     task delegate {
-        dependsOn 'buildB::b1:logProject'
+        dependsOn gradle.services.get(org.gradle.initialization.IncludedBuilds).getBuild('buildB').task(':b1:logProject')
     }
 """
 
@@ -107,17 +107,18 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
     def "can depend on multiple tasks of included build"() {
         when:
         buildA.buildFile << """
+    def buildB = gradle.services.get(org.gradle.initialization.IncludedBuilds).getBuild('buildB')
     task delegate {
         dependsOn 'delegate1', 'delegate2'
     }
 
     task delegate1 {
-        dependsOn 'buildB::logProject'
-        dependsOn 'buildB::b1:logProject'
+        dependsOn buildB.task(':logProject')
+        dependsOn buildB.task(':b1:logProject')
     }
 
     task delegate2 {
-        dependsOn 'buildB::logProject'
+        dependsOn buildB.task(':logProject')
     }
 """
 

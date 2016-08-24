@@ -21,6 +21,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.TaskReference;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.util.GUtil;
 
@@ -77,12 +78,15 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 if (callableResult != null) {
                     queue.add(0, callableResult);
                 }
+            } else if (resolver != null && dependency instanceof TaskReference) {
+                context.add(resolver.resolveTask((TaskReference) dependency));
             } else if (resolver != null && dependency instanceof CharSequence) {
                 context.add(resolver.resolveTask(dependency.toString()));
             } else {
                 List<String> formats = new ArrayList<String>();
                 if (resolver != null) {
                     formats.add("A String or CharSequence task name or path");
+                    formats.add("A TaskReference instance");
                 }
                 formats.add("A Task instance");
                 formats.add("A Buildable instance");

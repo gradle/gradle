@@ -19,7 +19,7 @@ package org.gradle.composite.internal;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.tasks.ConstructingTaskResolver;
+import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildFactory;
@@ -49,8 +49,8 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     private static class CompositeBuildGlobalScopeServices {
-        public ConstructingTaskResolver createResolver() {
-            return new CompositeConstructingTaskResolver();
+        public TaskReferenceResolver createResolver() {
+            return new IncludedBuildTaskReferenceResolver();
         }
     }
 

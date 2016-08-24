@@ -17,6 +17,7 @@
 package org.gradle.api.initialization;
 
 import org.gradle.api.Named;
+import org.gradle.api.tasks.TaskReference;
 
 import java.io.File;
 
@@ -28,4 +29,9 @@ public interface IncludedBuild extends Named {
      * The root directory of the included build.
      */
     File getProjectDir();
+
+    /**
+     * Produces a reference to a task in the included build.
+     */
+    TaskReference task(String path);
 }
