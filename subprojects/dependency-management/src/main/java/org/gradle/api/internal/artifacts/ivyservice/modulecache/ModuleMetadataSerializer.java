@@ -84,6 +84,7 @@ public class ModuleMetadataSerializer {
 
         private void write(MavenModuleResolveMetadata metadata) throws IOException {
             encoder.writeByte(TYPE_MAVEN);
+            writeInfoSection(metadata);
             writeSharedInfo(metadata);
             writeNullableString(metadata.getSnapshotTimestamp());
             writeNullableString(metadata.getPackaging());
@@ -92,14 +93,13 @@ public class ModuleMetadataSerializer {
 
         private void write(IvyModuleResolveMetadata metadata) throws IOException {
             encoder.writeByte(TYPE_IVY);
+            writeInfoSection(metadata);
+            writeConfigurations(metadata.getConfigurationDefinitions().values());
             writeSharedInfo(metadata);
         }
 
         private void writeSharedInfo(ModuleComponentResolveMetadata metadata) throws IOException {
-            writeId(metadata.getComponentId());
             ModuleDescriptorState md = metadata.getDescriptor();
-            writeInfoSection(md);
-            writeConfigurations(md.getConfigurations());
             writeArtifacts(md.getArtifacts());
             writeDependencies(metadata.getDependencies());
             writeExcludeRules(md.getExcludes());
@@ -111,7 +111,10 @@ public class ModuleMetadataSerializer {
             writeString(componentIdentifier.getVersion());
         }
 
-        private void writeInfoSection(ModuleDescriptorState md) throws IOException {
+        private void writeInfoSection(ModuleComponentResolveMetadata metadata) throws IOException {
+            writeId(metadata.getComponentId());
+
+            ModuleDescriptorState md = metadata.getDescriptor();
             ModuleComponentIdentifier componentIdentifier = md.getComponentIdentifier();
             writeId(componentIdentifier);
             writeString(md.getStatus());
@@ -290,15 +293,13 @@ public class ModuleMetadataSerializer {
         }
 
         private void readSharedInfo() throws IOException {
-            id = readId();
-            readInfoSection();
-            readConfigurations();
             readArtifacts();
             readDependencies();
             readAllExcludes();
         }
 
         private MutableModuleComponentResolveMetadata readMaven() throws IOException {
+            readInfoSection();
             readSharedInfo();
             String snapshotTimestamp = readNullableString();
             String packaging = readNullableString();
@@ -309,11 +310,15 @@ public class ModuleMetadataSerializer {
         }
 
         private MutableModuleComponentResolveMetadata readIvy() throws IOException {
+            readInfoSection();
+            readConfigurations();
             readSharedInfo();
             return new DefaultMutableIvyModuleResolveMetadata(id, md);
         }
 
         private void readInfoSection() throws IOException {
+            id = readId();
+
             ModuleComponentIdentifier componentIdentifier = readId();
             String status = readString();
             boolean generated = readBoolean();

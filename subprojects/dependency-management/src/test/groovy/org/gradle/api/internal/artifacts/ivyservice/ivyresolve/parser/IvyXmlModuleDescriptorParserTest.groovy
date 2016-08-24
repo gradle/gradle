@@ -62,7 +62,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
-        md.configurations*.name == ["default"]
+        md.configurations.keySet() == ["default"] as Set
         md.dependencies.empty
 
         artifact()
@@ -88,7 +88,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
-        md.configurations*.name == ["default"]
+        md.configurations.keySet() == ["default"] as Set
         md.dependencies.empty
 
         def artifact = artifact()
@@ -117,7 +117,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
-        md.configurations*.name == ["A", "B"]
+        md.configurations.keySet() == ["A", "B"] as Set
         md.dependencies.empty
 
         def artifact = artifact()
@@ -319,7 +319,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
-        md.configurations*.name == ["default"]
+        md.configurations.keySet() == ["default"] as Set
 
         md.dependencies.size() == 1
         def dependency = md.dependencies.first()

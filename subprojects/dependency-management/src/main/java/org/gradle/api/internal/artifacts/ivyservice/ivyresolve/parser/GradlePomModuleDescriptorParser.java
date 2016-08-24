@@ -70,7 +70,7 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         doParsePom(parserSettings, mdBuilder, pomReader);
 
         ModuleDescriptorState moduleDescriptor = mdBuilder.getModuleDescriptor();
-        if(pomReader.getRelocation() != null) {
+        if (pomReader.getRelocation() != null) {
             return new DefaultMutableMavenModuleResolveMetadata(moduleDescriptor, "pom", true);
         }
         return new DefaultMutableMavenModuleResolveMetadata(moduleDescriptor, pomReader.getPackaging(), false);

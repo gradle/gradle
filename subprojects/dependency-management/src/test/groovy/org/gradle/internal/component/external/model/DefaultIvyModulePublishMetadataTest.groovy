@@ -45,7 +45,7 @@ class DefaultIvyModulePublishMetadataTest extends Specification {
 
         then:
         metadata.moduleDescriptor.configurations.size() == 1
-        Configuration conf = metadata.moduleDescriptor.configurations[0]
+        Configuration conf = metadata.moduleDescriptor.configurations["configName"]
         conf.name == "configName"
         conf.extendsFrom == ["one", "three", "two"]
         conf.visible

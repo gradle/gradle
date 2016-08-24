@@ -48,6 +48,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<String> statusScheme;
     @Nullable
     private final ModuleSource moduleSource;
+    private final Map<String, Configuration> configurationDefinitions;
     private final Map<String, DefaultConfigurationMetadata> configurations;
     @Nullable
     private final List<ModuleComponentArtifactMetadata> artifacts;
@@ -62,11 +63,12 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         moduleSource = null;
         status = moduleDescriptor.getStatus();
         statusScheme = DEFAULT_STATUS_SCHEME;
+        configurationDefinitions = moduleDescriptor.getConfigurations();
         dependencies = Collections.emptyList();
         artifacts = null;
         excludes = moduleDescriptor.getExcludes();
-        configurations = populateConfigurationsFromDescriptor(moduleDescriptor);
-        populateArtifactsFromDescriptor(componentIdentifier, moduleDescriptor);
+        configurations = populateConfigurationsFromDescriptor();
+        populateArtifactsFromDescriptor();
     }
 
     protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
@@ -77,18 +79,19 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         status = metadata.getStatus();
         statusScheme = metadata.getStatusScheme();
         moduleSource = metadata.getSource();
+        configurationDefinitions = metadata.getConfigurationDefinitions();
         dependencies = metadata.getDependencies();
         excludes = descriptor.getExcludes();
         artifacts = metadata.getArtifacts();
-        configurations = populateConfigurationsFromDescriptor(descriptor);
+        configurations = populateConfigurationsFromDescriptor();
         if (artifacts != null) {
             populateArtifacts(artifacts);
         } else {
-            populateArtifactsFromDescriptor(componentIdentifier, descriptor);
+            populateArtifactsFromDescriptor();
         }
     }
 
-    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, ModuleSource source) {
+    protected AbstractModuleComponentResolveMetadata(AbstractModuleComponentResolveMetadata metadata, @Nullable ModuleSource source) {
         this.descriptor = metadata.getDescriptor();
         this.componentIdentifier = metadata.getComponentId();
         this.moduleVersionIdentifier = metadata.getId();
@@ -96,6 +99,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         status = metadata.getStatus();
         statusScheme = metadata.getStatusScheme();
         moduleSource = source;
+        configurationDefinitions = metadata.getConfigurationDefinitions();
         dependencies = metadata.getDependencies();
         excludes = metadata.excludes;
         artifacts = metadata.artifacts;
@@ -154,9 +158,9 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         }
     }
 
-    private void populateArtifactsFromDescriptor(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor) {
+    private void populateArtifactsFromDescriptor() {
         for (Artifact artifact : descriptor.getArtifacts()) {
-            ModuleComponentArtifactMetadata artifactMetadata = new DefaultModuleComponentArtifactMetadata(componentId, artifact.getArtifactName());
+            ModuleComponentArtifactMetadata artifactMetadata = new DefaultModuleComponentArtifactMetadata(componentIdentifier, artifact.getArtifactName());
             for (String configuration : artifact.getConfigurations()) {
                 configurations.get(configuration).artifacts.add(artifactMetadata);
             }
@@ -177,28 +181,33 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         return dependencies;
     }
 
+    @Override
+    public Map<String, Configuration> getConfigurationDefinitions() {
+        return configurationDefinitions;
+    }
+
     public DefaultConfigurationMetadata getConfiguration(final String name) {
         return configurations.get(name);
     }
 
-    private Map<String, DefaultConfigurationMetadata> populateConfigurationsFromDescriptor(ModuleDescriptorState moduleDescriptor) {
-        Set<String> configurationsNames = moduleDescriptor.getConfigurationsNames();
+    private Map<String, DefaultConfigurationMetadata> populateConfigurationsFromDescriptor() {
+        Set<String> configurationsNames = configurationDefinitions.keySet();
         Map<String, DefaultConfigurationMetadata> configurations = new HashMap<String, DefaultConfigurationMetadata>(configurationsNames.size());
         for (String configName : configurationsNames) {
-            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, moduleDescriptor, configurations);
+            DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations);
             configuration.populateDependencies(dependencies);
             configuration.populateExcludeRulesFromDescriptor(excludes);
         }
         return configurations;
     }
 
-    private DefaultConfigurationMetadata populateConfigurationFromDescriptor(String name, ModuleDescriptorState moduleDescriptor, Map<String, DefaultConfigurationMetadata> configurations) {
+    private DefaultConfigurationMetadata populateConfigurationFromDescriptor(String name, Map<String, Configuration> configurationDefinitions, Map<String, DefaultConfigurationMetadata> configurations) {
         DefaultConfigurationMetadata populated = configurations.get(name);
         if (populated != null) {
             return populated;
         }
 
-        Configuration descriptorConfiguration = moduleDescriptor.getConfiguration(name);
+        Configuration descriptorConfiguration = configurationDefinitions.get(name);
         List<String> extendsFrom = descriptorConfiguration.getExtendsFrom();
         boolean transitive = descriptorConfiguration.isTransitive();
         boolean visible = descriptorConfiguration.isVisible();
@@ -213,14 +222,14 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
                 name,
                 transitive,
                 visible,
-                Collections.singletonList(populateConfigurationFromDescriptor(extendsFrom.get(0), moduleDescriptor, configurations))
+                Collections.singletonList(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations))
             );
             configurations.put(name, populated);
             return populated;
         }
         List<DefaultConfigurationMetadata> hierarchy = new ArrayList<DefaultConfigurationMetadata>(extendsFrom.size());
         for (String confName : extendsFrom) {
-            hierarchy.add(populateConfigurationFromDescriptor(confName, moduleDescriptor, configurations));
+            hierarchy.add(populateConfigurationFromDescriptor(confName, configurationDefinitions, configurations));
         }
         populated = new DefaultConfigurationMetadata(
             componentIdentifier,

@@ -128,7 +128,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
     }
 
     private static void printConfigurations(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
-        Collection<Configuration> configurations = descriptor.getConfigurations();
+        Collection<Configuration> configurations = descriptor.getConfigurations().values();
         if (!configurations.isEmpty()) {
             writer.startElement("configurations");
             for (Configuration configuration : configurations) {

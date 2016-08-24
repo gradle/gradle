@@ -29,7 +29,7 @@ public class DefaultMutableIvyModuleResolveMetadata extends AbstractMutableModul
     }
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor) {
-        super(componentIdentifier, descriptor);
+        super(componentIdentifier, descriptor, descriptor.getConfigurations());
     }
 
     public DefaultMutableIvyModuleResolveMetadata(ModuleComponentResolveMetadata metadata) {

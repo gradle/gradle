@@ -21,6 +21,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.ModuleSource
 
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
@@ -29,10 +30,17 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         return new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor)
     }
 
+    @Override
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, Set<IvyArtifactName> artifacts) {
+        return new DefaultMutableIvyModuleResolveMetadata(id, artifacts)
+    }
+
     def "initialises values from descriptor state and defaults"() {
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
         descriptor.branch = "b"
+        descriptor.addConfiguration("runtime", true, true, [])
+        descriptor.addConfiguration("default", true, true, ["runtime"])
 
         expect:
         def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor)
@@ -57,6 +65,12 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         immutable.generated
         immutable.branch == "b"
         !immutable.changing
+        immutable.configurationNames == ["runtime", "default"] as Set
+        immutable.getConfiguration("runtime")
+        immutable.getConfiguration("default")
+        immutable.getConfiguration("default").hierarchy == ["runtime", "default"] as Set
+        immutable.getConfiguration("default").transitive
+        immutable.getConfiguration("default").visible
 
         and:
         def copy = immutable.asMutable()

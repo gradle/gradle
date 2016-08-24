@@ -23,6 +23,7 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.DependencyMetadata
+import org.gradle.internal.component.model.IvyArtifactName
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -32,6 +33,8 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     def moduleDescriptor = new MutableModuleDescriptorState(id, "status", false)
 
     abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor);
+
+    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, Set<IvyArtifactName> artifacts);
 
     MutableModuleComponentResolveMetadata getMetadata() {
         return createMetadata(id, moduleDescriptor)
@@ -77,6 +80,22 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         copy.dependencies[1].requested == newSelector("org", "another", "1.2")
     }
 
+    def "can create default metadata"() {
+        def artifact1 = Stub(IvyArtifactName)
+        def artifact2 = Stub(IvyArtifactName)
+
+        def metadata = createMetadata(id, [artifact1, artifact2] as Set)
+
+        expect:
+        metadata.componentId == id
+
+        def immutable = metadata.asImmutable()
+        immutable.componentId == id
+        immutable.generated
+        immutable.getConfiguration("default")
+        immutable.getConfiguration("default").artifacts.collect { it.name } == [artifact1, artifact2]
+    }
+
     def "can replace the dependencies for the module"() {
         def dependency1 = Stub(DependencyMetadata)
         def dependency2 = Stub(DependencyMetadata)
@@ -97,8 +116,8 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
     def "can replace the artifacts for the module version"() {
         when:
-        configuration("conf")
-        artifact("ignore-me", "conf")
+        configuration("runtime")
+        artifact("ignore-me", "runtime")
         def metadata = getMetadata()
         def a1 = metadata.artifact("jar", "jar", null)
         def a2 = metadata.artifact("pom", "pom", null)
@@ -107,7 +126,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
         then:
         def immutable = metadata.asImmutable()
         immutable.artifacts == [a1, a2]
-        immutable.getConfiguration("conf").artifacts == [a1, a2] as Set
+        immutable.getConfiguration("runtime").artifacts == [a1, a2] as Set
 
         def copy = immutable.asMutable()
         copy.artifacts == [a1, a2]

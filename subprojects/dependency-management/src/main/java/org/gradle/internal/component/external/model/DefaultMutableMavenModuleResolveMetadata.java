@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model;
 
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.model.IvyArtifactName;
@@ -32,6 +33,9 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     private boolean relocated;
     private String snapshotTimestamp;
 
+    /**
+     * Creates default metadata given a set of artifacts.
+     */
     public DefaultMutableMavenModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
         this(componentIdentifier, MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
     }
@@ -41,7 +45,7 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
     }
 
     public DefaultMutableMavenModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor, String packaging, boolean relocated) {
-        super(componentIdentifier, descriptor);
+        super(componentIdentifier, descriptor, GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS);
         this.packaging = packaging;
         this.relocated = relocated;
     }

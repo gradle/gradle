@@ -21,12 +21,36 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
+import org.gradle.internal.component.model.IvyArtifactName
 import org.gradle.internal.component.model.ModuleSource
 
 class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
     AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
         return new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "jar", false)
+    }
+
+    @Override
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, Set<IvyArtifactName> artifacts) {
+        return new DefaultMutableMavenModuleResolveMetadata(id, artifacts)
+    }
+
+    def "defines configurations for maven scopes and several usage buckets"() {
+        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def descriptor = new MutableModuleDescriptorState(id, "2", true)
+
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, descriptor, "packaging", true)
+
+        expect:
+        def immutable = metadata.asImmutable()
+        immutable.configurationNames == ["compile", "runtime", "test", "provided", "system", "optional", "master", "default", "javadoc", "sources"] as Set
+        immutable.getConfiguration("compile").hierarchy == ["compile"] as Set
+        immutable.getConfiguration("runtime").hierarchy == ["compile", "runtime"] as Set
+        immutable.getConfiguration("master").hierarchy == ["master"] as Set
+        immutable.getConfiguration("test").hierarchy == ["compile", "runtime", "test"] as Set
+        immutable.getConfiguration("default").hierarchy == ["master", "runtime", "compile", "default"] as Set
+        immutable.getConfiguration("provided").hierarchy == ["provided"] as Set
+        immutable.getConfiguration("optional").hierarchy == ["optional"] as Set
     }
 
     def "initialises values from descriptor state and defaults"() {
