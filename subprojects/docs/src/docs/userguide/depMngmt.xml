@@ -861,13 +861,8 @@
                 </tr>
                 <tr>
                     <td><literal>s3</literal></td>
-                    <td>access key/secret key</td>
+                    <td>access key/secret key/session token or Environment variables</td>
                 </tr>
-                <tr>
-                    <td><literal>s3</literal></td>
-                    <td>IAM/Env dependent</td>
-                </tr>
-
             </table>
             <para>To define a repository use the <literal>repositories</literal> configuration block. Within the <literal>repositories</literal> closure,
                 a Maven repository is declared with <literal>maven</literal>. An Ivy repository is declared with <literal>ivy</literal>. The transport protocol

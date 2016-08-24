@@ -37,6 +37,8 @@ repositories {
         credentials(AwsCredentials) {
             accessKey "someKey"
             secretKey "someSecret"
+            // optional
+            sessionToken "someSTSToken"
         }
     }
 
@@ -45,6 +47,8 @@ repositories {
         credentials(AwsCredentials) {
             accessKey "someKey"
             secretKey "someSecret"
+            // optional
+            sessionToken "someSTSToken"
         }
     }
 }
