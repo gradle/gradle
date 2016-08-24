@@ -84,7 +84,7 @@ public class CrossVersionPerformanceResults extends PerformanceTestResult {
     }
 
     void assertCurrentVersionHasNotRegressed() {
-        def slower = checkBaselineVersion({ it.fasterThan(current, daemon) }, { it.getSpeedStatsAgainst(displayName, current, daemon) })
+        def slower = checkBaselineVersion({ it.fasterThan(current) }, { it.getSpeedStatsAgainst(displayName, current) })
         def larger = checkBaselineVersion({ it.usesLessMemoryThan(current) }, { it.getMemoryStatsAgainst(displayName, current) })
         assertEveryBuildSucceeds()
         if (slower && larger && whatToCheck().speed() && whatToCheck().memory()) {

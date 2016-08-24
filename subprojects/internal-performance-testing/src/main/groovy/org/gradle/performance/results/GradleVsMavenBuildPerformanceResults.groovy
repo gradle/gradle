@@ -17,7 +17,6 @@
 package org.gradle.performance.results
 
 class GradleVsMavenBuildPerformanceResults extends CrossBuildPerformanceResults {
-    private static final Boolean USES_THE_DAEMON = true;
 
     void assertComparesWithMaven(double maxTimeDifference, double maxMemoryDifference) {
         builds.groupBy { it.displayName - 'Gradle ' - 'Maven ' }.each { scenario, infos ->
@@ -25,12 +24,12 @@ class GradleVsMavenBuildPerformanceResults extends CrossBuildPerformanceResults 
             def maven = buildResults[infos.find { it.displayName.startsWith 'Maven ' }]
             def baselineVersion = new BaselineVersion("Maven")
             baselineVersion.results.addAll(maven)
-            def stats = [baselineVersion.getSpeedStatsAgainst("Gradle", gradle, USES_THE_DAEMON), baselineVersion.getMemoryStatsAgainst("Gradle", gradle)]
+            def stats = [baselineVersion.getSpeedStatsAgainst("Gradle", gradle), baselineVersion.getMemoryStatsAgainst("Gradle", gradle)]
             stats.each {
                 println it
             }
 
-            def mavenIsFaster = baselineVersion.fasterThan(gradle, USES_THE_DAEMON)
+            def mavenIsFaster = baselineVersion.fasterThan(gradle)
             if (mavenIsFaster) {
                 throw new AssertionError(stats[0])
             }
