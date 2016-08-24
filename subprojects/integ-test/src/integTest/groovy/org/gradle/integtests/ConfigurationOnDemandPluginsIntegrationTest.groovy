@@ -17,6 +17,8 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
 import spock.lang.Issue
@@ -25,26 +27,29 @@ import spock.lang.Unroll
 class ConfigurationOnDemandPluginsIntegrationTest extends AbstractIntegrationSpec {
     @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
 
-    def setup() {
-        file("gradle.properties") << "org.gradle.configureondemand=true"
+    BuildTestFile multiProjectBuild(projectName, subprojects, @DelegatesTo(BuildTestFile) cl) {
+        def build = new BuildTestFixture(temporaryFolder.testDirectory).multiProjectBuild(projectName, subprojects, cl)
+        inDirectory(build)
+        return build
     }
 
     @Unroll
     @Issue('GRADLE-3534')
     def "configures only requested projects when the #plugin plugin is applied"() {
-        settingsFile << "include 'a', 'b'"
-        file('b').mkdirs()
-        buildFile << """
-            allprojects {
-                apply plugin: '${plugin}'
-            }
-            subprojects {
-                apply plugin: 'java'
-            }
-        """.stripIndent()
+        given:
+        multiProjectBuild('multi', ['a', 'b']) {
+            buildFile << """
+                allprojects {
+                    apply plugin: '${plugin}'
+                }
+                subprojects {
+                    apply plugin: 'java'
+                }
+            """.stripIndent()
+        }
 
         when:
-        run ':a:build'
+        run '--configure-on-demand', ':a:build'
 
         then:
         fixture.assertProjectsConfigured(':', ':a')
