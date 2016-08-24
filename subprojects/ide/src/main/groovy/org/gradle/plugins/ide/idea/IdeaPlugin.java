@@ -47,6 +47,7 @@ import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMet
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
+import org.gradle.plugins.ide.eclipse.internal.AfterEvaluateHelper;
 import org.gradle.plugins.ide.idea.internal.IdeaNameDeduper;
 import org.gradle.plugins.ide.idea.internal.IdeaScalaConfigurer;
 import org.gradle.plugins.ide.idea.model.IdeaLanguageLevel;
@@ -129,9 +130,14 @@ public class IdeaPlugin extends IdePlugin {
             }
         });
         for (Project project : projectsWithIml) {
-            ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
-            ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath());
-            projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project));
+            AfterEvaluateHelper.afterEvaluateOrExecute(project, new Action<Project>() {
+                @Override
+                public void execute(Project project) {
+                    ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
+                    ProjectComponentIdentifier projectId = DefaultProjectComponentIdentifier.newId(project.getPath());
+                    projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project));
+                }
+            });
         }
     }
 

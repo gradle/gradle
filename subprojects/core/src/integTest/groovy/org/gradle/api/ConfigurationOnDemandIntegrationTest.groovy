@@ -510,4 +510,23 @@ allprojects {
         result.assertTasksExecuted(":a:one")
         fixture.assertProjectsConfigured(":", ":b", ":b:child", ":a")
     }
+
+    def "configures only dependend projects when the idea plugin is applied"() {
+        settingsFile << "include 'a', 'b'"
+        file('b').mkdirs()
+        buildFile << """
+            allprojects {
+                apply plugin: 'idea'
+            }
+            subprojects {
+                apply plugin: 'java'
+            }
+        """
+
+        when:
+        run ':a:build'
+
+        then:
+        fixture.assertProjectsConfigured(':', ':a')
+    }
 }
