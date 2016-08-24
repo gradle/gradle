@@ -273,7 +273,7 @@ public class PomReader implements PomParent {
     private void checkNotNull(String value, String name, String element) {
         if (value == null) {
             String attributeName = element == null ? name : element + " " + name;
-            throw new IllegalArgumentException("Missing required attribute: " + attributeName);
+            throw new RuntimeException("Missing required attribute: " + attributeName);
         }
     }
 
