@@ -18,54 +18,62 @@ package org.gradle.integtests.tooling.r213
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.tooling.GradleConnectionException
+import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.model.eclipse.EclipseProject
 /**
  * Tests composites with multiple participants.
  */
 class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
-    def "can create composite of a two multi-project builds"() {
+
+    def "can create a composite of two single-project builds"() {
         given:
-        def multiBuild1 = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
-        def multiBuild2 = multiProjectBuild("multi-build-2", ['a2', 'b2', 'c2'])
+        def singleBuild1 = singleProjectBuildInSubfolder("single-build-1")
+        def singleBuild2 = singleProjectBuildInSubfolder("single-build-2")
+        includeBuilds(singleBuild1, singleBuild2)
+
         when:
-        def models = getUnwrappedModelsWithGradleConnection(includeBuilds(multiBuild1, multiBuild2), EclipseProject)
+        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
 
         then:
-        models.size() == 8
-        rootProjects(models).size() == 2
-        containsProjects(models, [':', ':a1', ':b1', ':c1', ':', ':a2', ':b2', ':c2'])
+        models.size() == 3
+        rootProjects(models).size() == 3
+        containsProjects(models, [':', ':', ':'])
     }
 
-    def "failures from multiple builds is still seen as a single failure of the composite"() {
+    def "can create composite of a two multi-project builds"() {
         given:
-        def singleBuild1 = singleProjectBuild("single-build-1")
-        def singleBuild2 = singleProjectBuild("single-build-2")
+        def multiBuild1 = multiProjectBuildInSubFolder("multi-build-1", ['a1', 'b1', 'c1'])
+        def multiBuild2 = multiProjectBuildInSubFolder("multi-build-2", ['a2', 'b2', 'c2'])
+        includeBuilds(multiBuild1, multiBuild2)
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(includeBuilds(singleBuild1, singleBuild2), EclipseProject)
+        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
 
         then:
-        models.size() == 2
-        rootProjects(models).size() == 2
-        containsProjects(models, [':', ':'])
+        models.size() == 9
+        rootProjects(models).size() == 3
+        containsProjects(models, [':', ':', ':a1', ':b1', ':c1', ':', ':a2', ':b2', ':c2'])
     }
 
     // Validation of composite is disabled
     @NotYetImplemented
     def "fails when two projects becoming overlapping projects"() {
         given:
-        def singleBuild1 = singleProjectBuild("single-build-1")
-        def singleBuild2 = singleProjectBuild("single-build-2")
-
-        def connection = createComposite(singleBuild1, singleBuild2)
+        def singleBuild1 = singleProjectBuildInSubfolder("single-build-1")
+        def singleBuild2 = singleProjectBuildInSubfolder("single-build-2")
+        includeBuilds(singleBuild1, singleBuild2)
+        GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
+        connector.forRootDirectory(projectDir)
+        GradleConnection connection = connector.build()
 
         when:
         def models = unwrap(connection.getModels(EclipseProject))
+
         then:
-        models.size() == 2
-        containsProjects(models, [':', ':'])
-        rootProjects(models).size() == 2
+        models.size() == 3
+        containsProjects(models, [':', ':', ':'])
+        rootProjects(models).size() == 3
 
         when:
         // make singleBuild2 overlap with singleBuild1
@@ -85,62 +93,59 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
 
     def "can create composite of a single-project and multi-project builds"() {
         given:
-        def singleBuild = singleProjectBuild("single-build-1")
-        def multiBuild = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
+        def singleBuild = singleProjectBuildInSubfolder("single-build-1")
+        def multiBuild = multiProjectBuildInSubFolder("multi-build-1", ['a1', 'b1', 'c1'])
+        includeBuilds(singleBuild, multiBuild)
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(includeBuilds(singleBuild, multiBuild), EclipseProject)
+        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
 
         then:
-        models.size() == 5
-        rootProjects(models).size() == 2
-        containsProjects(models, [':', ':', ':a1', ':b1', ':c1'])
+        models.size() == 6
+        rootProjects(models).size() == 3
+        containsProjects(models, [':', ':', ':', ':a1', ':b1', ':c1'])
     }
 
     def "sees changes to composite build when projects are added"() {
         given:
-        def singleBuild = singleProjectBuild("single-build")
-        def multiBuild = multiProjectBuild("multi-build-1", ['a1', 'b1', 'c1'])
-        def composite = includeBuilds(singleBuild, multiBuild)
+        def singleBuild = singleProjectBuildInSubfolder("single-build")
+        def multiBuild = multiProjectBuildInSubFolder("multi-build-1", ['a1', 'b1', 'c1'])
+        includeBuilds(singleBuild, multiBuild)
         GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
-        connector.forRootDirectory(composite)
+        connector.forRootDirectory(projectDir)
         def connection = connector.build()
 
         when:
         def firstRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
-        firstRetrieval.size() == 5
-        rootProjects(firstRetrieval).size() == 2
-        containsProjects(firstRetrieval, [':', ':', ':a1', ':b1', ':c1'])
+        firstRetrieval.size() == 6
+        rootProjects(firstRetrieval).size() == 3
+        containsProjects(firstRetrieval, [':', ':', ':', ':a1', ':b1', ':c1'])
 
         when:
         // make single-project a multi-project build
-        populate("single-build") {
-            settingsFile << """
-                include 'a2'
-"""
-        }
+        singleBuild.settingsFile << "include 'a2'"
+
         and:
         def secondRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
-        secondRetrieval.size() == 6
-        rootProjects(secondRetrieval).size() == 2
-        containsProjects(secondRetrieval, [':', ':a2', ':', ':a1', ':b1', ':c1'])
+        secondRetrieval.size() == 7
+        rootProjects(secondRetrieval).size() == 3
+        containsProjects(secondRetrieval, [':', ':', ':a2', ':', ':a1', ':b1', ':c1'])
 
         when:
         // adding more projects to multi-project build
-        populate("single-build") {
-            file("settings.gradle") << "include 'b2', 'c2'"
-        }
+        singleBuild.settingsFile << "include 'b2', 'c2'"
+
         and:
         def thirdRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
-        thirdRetrieval.size() == 8
-        rootProjects(thirdRetrieval).size() == 2
-        containsProjects(thirdRetrieval, [':', ':a2', ':b2', ':c2', ':', ':a1', ':b1', ':c1'])
+        thirdRetrieval.size() == 9
+        rootProjects(thirdRetrieval).size() == 3
+        containsProjects(thirdRetrieval, [':', ':', ':a2', ':b2', ':c2', ':', ':a1', ':b1', ':c1'])
 
         when:
         // remove one participant
@@ -165,6 +170,7 @@ class MultiProjectCompositeBuildCrossVersionSpec extends GradleConnectionTooling
 
     void containsProjects(models, projects) {
         def projectsFoundByPath = models.collect { it.gradleProject.path }
-        assert projectsFoundByPath.containsAll(projects)
+        assert projectsFoundByPath.size() == projects.size()
+        assert projectsFoundByPath.containsAll(projects) // TODO (donat) shouldn't the project ordering be always the same?
     }
 }

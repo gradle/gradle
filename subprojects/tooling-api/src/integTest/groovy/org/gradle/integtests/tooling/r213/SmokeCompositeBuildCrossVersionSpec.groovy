@@ -29,11 +29,12 @@ class SmokeCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpec
     @NotYetImplemented
     def "throws IllegalArgumentException when trying to add overlapping participants"() {
         given:
-        def project = projectDir("project")
+        def project = projectDir.file("project")
         def overlapping = project.file("overlapping").createDir()
+        includeBuilds(project, overlapping)
 
         when:
-        getModelsWithGradleConnection(defineComposite(project, overlapping), EclipseProject)
+        getModelsWithGradleConnection(EclipseProject)
 
         then:
         thrown(IllegalArgumentException)
@@ -41,7 +42,7 @@ class SmokeCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpec
 
     def "throws IllegalArgumentException when trying to retrieve a non-model type"() {
         when:
-        getModelsWithGradleConnection(projectDir.createDir('project'), Object)
+        getModelsWithGradleConnection(Object)
 
         then:
         thrown(IllegalArgumentException)
@@ -49,11 +50,10 @@ class SmokeCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpec
 
     def "throws IllegalStateException when using a closed connection"() {
         given:
-        def project = populate("project") {
-            settingsFile << "rootProject.name = 'project'"
-        }
+        singleProjectBuildInSubfolder("project")
+
         when:
-        withGradleConnection(project) { connection ->
+        withGradleConnection { connection ->
             def models = connection.getModels(EclipseProject)
             connection.close()
             def modelsAgain = connection.getModels(EclipseProject)
@@ -65,13 +65,12 @@ class SmokeCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpec
 
     def "propagates errors when trying to retrieve models"() {
         given:
-        def project = populate("project") {
-            settingsFile << "rootProject.name = '${rootProjectName}'"
+        singleProjectBuildInSubfolder("project") {
             buildFile << "throw new RuntimeException()"
         }
 
         when:
-        getUnwrappedModelsWithGradleConnection(project, EclipseProject)
+        getUnwrappedModelsWithGradleConnection(EclipseProject)
 
         then:
         def e = thrown(GradleConnectionException)
@@ -79,8 +78,11 @@ class SmokeCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpec
     }
 
     def "fails to retrieve model when participant is not a Gradle project"() {
+        setup:
+        projectDir.deleteDir()
+
         when:
-        getUnwrappedModelsWithGradleConnection(projectDir.file("project-does-not-exist"), EclipseProject)
+        getUnwrappedModelsWithGradleConnection(EclipseProject)
 
         then:
         def e = thrown(GradleConnectionException)
@@ -91,17 +93,14 @@ class SmokeCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpec
 
     def "does not search upwards for projects"() {
         given:
-        def rootDir = projectDir.createDir("root")
-        rootDir.file("settings.gradle") << "include 'project', 'a', 'b', 'c'"
-        def project = rootDir.createDir("project")
-        project.createFile("build.gradle")
+        projectDir.parentFile.file('settings.gradle') << "include 'project', 'a', 'b', 'c'"
 
         when:
-        def models = getModelsWithGradleConnection(project, EclipseProject)
+        def models = getModelsWithGradleConnection(EclipseProject)
 
         then:
         // should only find 'project', not the other projects defined in root.
         models.size() == 1
-        models[0].model.projectDirectory == project
+        models[0].model.projectDirectory == projectDir
     }
 }

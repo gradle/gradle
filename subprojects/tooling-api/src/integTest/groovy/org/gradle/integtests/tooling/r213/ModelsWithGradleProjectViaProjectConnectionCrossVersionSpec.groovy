@@ -18,58 +18,64 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
+import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.GradleBuild
 
 class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends ProjectConnectionToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
 
-    TestFile rootSingle
-    TestFile rootMulti
-
-    void setup() {
-        rootSingle = singleProjectBuild("A")
-        rootMulti = multiProjectBuild("B", ['x', 'y'])
-    }
-
     def "Provides identified GradleBuild"() {
+        setup:
+        multiProjectBuildInRootFolder("B", ['x', 'y'])
+
         when:
-        def gradleBuild = getModel(rootMulti, GradleBuild)
+        def gradleBuild = getModel(GradleBuild)
 
         then:
-        gradleBuild.buildIdentifier == new DefaultBuildIdentifier(rootMulti)
+        gradleBuild.buildIdentifier == new DefaultBuildIdentifier(projectDir)
     }
 
     def "Provides all GradleProjects for root of single project build"() {
+        setup:
+        singleProjectBuildInRootFolder("A")
+
         when:
-        def gradleProjects = toGradleProjects(getModel(rootSingle, modelType))
+        def gradleProjects = toGradleProjects(getModel(modelType))
 
         then:
         gradleProjects.size() == 1
-        hasProject(gradleProjects, rootSingle, ':', 'A')
+        hasProject(gradleProjects, projectDir, ':', 'A')
 
         where:
         modelType << buildScopedModels
     }
 
     def "Provides all GradleProjects for root of multi-project build"() {
+        setup:
+        multiProjectBuildInRootFolder("B", ['x', 'y'])
+
         when:
-        def gradleProjects = toGradleProjects(getModel(rootMulti, modelType))
+        def gradleProjects = toGradleProjects(getModel(modelType))
 
         then:
         gradleProjects.size() == 3
-        hasParentProject(gradleProjects, rootMulti, ':', 'B', [':x', ':y'])
-        hasChildProject(gradleProjects, rootMulti, ':x', 'x', ':')
-        hasChildProject(gradleProjects, rootMulti, ':y', 'y', ':')
+        hasParentProject(gradleProjects, projectDir, ':', 'B', [':x', ':y'])
+        hasChildProject(gradleProjects, projectDir, ':x', 'x', ':')
+        hasChildProject(gradleProjects, projectDir, ':y', 'y', ':')
 
         where:
         modelType << buildScopedModels
     }
 
     def "Provides all GradleProjects for subproject of multi-project build"() {
+        setup:
+        multiProjectBuildInRootFolder("B", ['x', 'y'])
+
         when:
-        def rootDir = rootMulti.file("x")
+        def rootDir = projectDir.file("x")
         def gradleProjects = toGradleProjects(getModel(rootDir, modelType))
 
         then:
@@ -83,30 +89,37 @@ class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends Projec
     }
 
     def "Provides GradleProject for root of single project build"() {
+        setup:
+        singleProjectBuildInRootFolder("A")
+
         when:
-        GradleProject project = toGradleProject(getModel(rootSingle, modelType))
+        GradleProject project = toGradleProject(getModel(modelType))
 
         then:
-        assertProject(project, rootSingle, ':', 'A', null, [])
+        assertProject(project, projectDir, ':', 'A', null, [])
 
         where:
         modelType << projectScopedModels
     }
 
     def "Provides GradleProject for root of multi-project build"() {
+        setup:
+        multiProjectBuildInRootFolder("B", ['x', 'y'])
+
         when:
-        GradleProject project = toGradleProject(getModel(rootMulti, modelType))
+        GradleProject project = toGradleProject(getModel(modelType))
 
         then:
-        assertProject(project, rootMulti, ':', 'B', null, [':x', ':y'])
+        assertProject(project, projectDir, ':', 'B', null, [':x', ':y'])
 
         where:
         modelType << projectScopedModels
     }
 
     def "Provides GradleProject for subproject of multi-project build"() {
-        given:
-        def rootDir = rootMulti.file("x")
+        setup:
+        multiProjectBuildInRootFolder("B", ['x', 'y'])
+        def rootDir = projectDir.file("x")
 
         when: "GradleProject is requested directly"
         GradleProject project = toGradleProject(getModel(rootDir, GradleProject))
@@ -122,8 +135,11 @@ class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends Projec
     }
 
     def "Provides GradleProject for subproject of multi-project build with --no-search-upwards"() {
+        setup:
+        multiProjectBuildInRootFolder("B", ['x', 'y'])
+        def rootDir = projectDir.file("x")
+
         when:
-        def rootDir = rootMulti.file("x")
         GradleProject project = toGradleProject(getModel(rootDir, modelType, false))
 
         then:
@@ -131,5 +147,16 @@ class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends Projec
 
         where:
         modelType << projectScopedModels
+    }
+
+    private <T> T getModel(TestFile rootDir, Class<T> modelType, boolean searchUpwards = true) {
+        return withConnection(rootDir, searchUpwards) { it.getModel(modelType) }
+    }
+
+    private <T> T withConnection(TestFile projectDir, boolean searchUpwards, Closure<T> cl) {
+        GradleConnector connector = toolingApi.connector()
+        connector.forProjectDirectory(projectDir.absoluteFile)
+        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
+        return toolingApi.withConnection(cl)
     }
 }

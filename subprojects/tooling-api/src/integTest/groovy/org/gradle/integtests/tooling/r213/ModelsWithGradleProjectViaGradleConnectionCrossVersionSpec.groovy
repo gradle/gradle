@@ -23,56 +23,64 @@ import org.gradle.tooling.model.gradle.GradleBuild
 
 class ModelsWithGradleProjectViaGradleConnectionCrossVersionSpec extends GradleConnectionToolingApiSpecification implements ModelsWithGradleProjectSpecFixtures {
 
-    TestFile rootSingle
-    TestFile rootMulti
-
-    void setup() {
-        rootSingle = singleProjectBuild("A")
-        rootMulti = multiProjectBuild("B", ['x', 'y'])
-    }
-
     def "Provides identified GradleBuild for each build"() {
+        setup:
+        TestFile rootSingle = singleProjectBuildInSubfolder("A")
+        TestFile rootMulti = multiProjectBuildInSubFolder("B", ['x', 'y'])
+        includeBuilds(rootMulti, rootSingle)
+
         when:
-        def gradleBuilds = getUnwrappedModelsWithGradleConnection(includeBuilds(rootMulti, rootSingle), GradleBuild)
+        def gradleBuilds = getUnwrappedModelsWithGradleConnection(GradleBuild)
 
         then:
-        gradleBuilds.size() == 2
+        gradleBuilds.size() == 3
         gradleBuilds.find { it.buildIdentifier == new DefaultBuildIdentifier(rootSingle) }
         gradleBuilds.find { it.buildIdentifier == new DefaultBuildIdentifier(rootMulti) }
     }
 
     def "Provides GradleProjects for single project build"() {
+        setup:
+        singleProjectBuildInRootFolder("A")
+
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(rootSingle, modelType).collect { toGradleProject(it) }
+        def gradleProjects = getUnwrappedModelsWithGradleConnection(modelType).collect { toGradleProject(it) }
 
         then:
         gradleProjects.size() == 1
-        hasProject(gradleProjects, rootSingle, ':', 'A')
+        hasProject(gradleProjects, projectDir, ':', 'A')
 
         where:
         modelType << projectScopedModels
     }
 
     def "Provides GradleProjects for multi-project build"() {
+        setup:
+        multiProjectBuildInRootFolder("B", ['x', 'y'])
+
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(rootMulti, modelType).collect { toGradleProject(it) }
+        def gradleProjects = getUnwrappedModelsWithGradleConnection(modelType).collect { toGradleProject(it) }
 
         then:
         gradleProjects.size() == 3
-        hasParentProject(gradleProjects, rootMulti, ':', 'B', [':x', ':y'])
-        hasChildProject(gradleProjects, rootMulti, ':x', 'x', ':')
-        hasChildProject(gradleProjects, rootMulti, ':y', 'y', ':')
+        hasParentProject(gradleProjects, projectDir, ':', 'B', [':x', ':y'])
+        hasChildProject(gradleProjects, projectDir, ':x', 'x', ':')
+        hasChildProject(gradleProjects, projectDir, ':y', 'y', ':')
 
         where:
         modelType << projectScopedModels
     }
 
     def "Provides GradleProjects for composite build"() {
+        setup:
+        TestFile rootSingle = singleProjectBuildInSubfolder("A")
+        TestFile rootMulti = multiProjectBuildInSubFolder("B", ['x', 'y'])
+        includeBuilds(rootSingle, rootMulti)
+
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(includeBuilds(rootSingle, rootMulti), modelType).collect { toGradleProject(it) }
+        def gradleProjects = getUnwrappedModelsWithGradleConnection(modelType).collect { toGradleProject(it) }
 
         then:
-        gradleProjects.size() == 4
+        gradleProjects.size() == 5
         hasProject(gradleProjects, rootSingle, ':', 'A')
         hasParentProject(gradleProjects, rootMulti, ':', 'B', [':x', ':y'])
         hasChildProject(gradleProjects, rootMulti, ':x', 'x', ':')

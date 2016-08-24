@@ -45,7 +45,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
         def mavenRepo = new MavenFileRepository(file("maven-repo"))
         publishedModuleB1 = mavenRepo.module("org.test", "b1", "1.0").publish()
 
-        buildA = singleProjectBuild("buildA") {
+        buildA = singleProjectBuildInSubfolder("buildA") {
             buildFile << """
         apply plugin: 'java'
         dependencies {
@@ -56,7 +56,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
         }
 """
 }
-        buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
+        buildB = multiProjectBuildInSubFolder("buildB", ['b1', 'b2']) {
             buildFile << """
         allprojects {
             apply plugin: 'java'
@@ -64,6 +64,7 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
 """
 }
         builds << buildA << buildB
+        includeBuilds(builds)
     }
 
     def "EclipseProject model has dependencies substituted in composite"() {
@@ -161,8 +162,8 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
     }
 
     private ArrayList<EclipseProject> loadEclipseProjectModels() {
-        def eclipseProjects = getUnwrappedModelsWithGradleConnection(includeBuilds(builds), EclipseProject)
-        assert eclipseProjects.size() == 4
+        def eclipseProjects = getUnwrappedModelsWithGradleConnection(EclipseProject)
+        assert eclipseProjects.size() == 5
         eclipseProjectA = eclipseProjects.find { it.projectDirectory.absoluteFile == buildA.absoluteFile }
         eclipseProjectB1 = eclipseProjects.find { it.projectDirectory.absoluteFile == buildB.file('b1').absoluteFile }
         assert eclipseProjectA != null
@@ -171,9 +172,9 @@ class ToolingModelDependenciesCompositeCrossVersionSpec extends GradleConnection
     }
 
     private List<IdeaModule> loadIdeaModuleModels() {
-        def ideaProjects = getUnwrappedModelsWithGradleConnection(includeBuilds(builds), IdeaProject)
+        def ideaProjects = getUnwrappedModelsWithGradleConnection(IdeaProject)
         def ideaModules = ideaProjects*.modules.flatten() as List<IdeaModule>
-        assert ideaModules.size() == 4
+        assert ideaModules.size() == 5
         ideaModuleA = ideaModules.find { it.gradleProject.projectIdentifier == new DefaultProjectIdentifier(buildA, ":") }
         ideaModuleB1 = ideaModules.find { it.gradleProject.projectIdentifier == new DefaultProjectIdentifier(buildB, ":b1") }
         assert ideaModuleA != null

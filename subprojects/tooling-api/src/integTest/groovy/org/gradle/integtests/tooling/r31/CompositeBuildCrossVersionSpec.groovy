@@ -33,7 +33,7 @@ class CompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecifica
         """
 
         when:
-        def models = getModelsWithGradleConnection(projectDir, GradleProject)
+        def models = getModelsWithGradleConnection(GradleProject)
 
         then:
         models*.model*.name == ['root', 'my-lib']

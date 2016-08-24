@@ -18,10 +18,8 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
 import org.junit.runner.RunWith
 
@@ -36,13 +34,6 @@ abstract class ProjectConnectionToolingApiSpecification extends AbstractToolingA
 
     public <T> T withConnection(GradleConnector connector, @DelegatesTo(ProjectConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.ProjectConnection"]) Closure<T> cl) {
         toolingApi.withConnection(connector, cl)
-    }
-
-    public <T> T withConnection(TestFile projectDir, boolean searchUpwards = true, @DelegatesTo(ProjectConnection) Closure<T> cl = {}) {
-        GradleConnector connector = toolingApi.connector()
-        connector.forProjectDirectory(projectDir.absoluteFile)
-        ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
-        return toolingApi.withConnection(cl)
     }
 
     def connector() {
@@ -71,8 +62,8 @@ abstract class ProjectConnectionToolingApiSpecification extends AbstractToolingA
         }
     }
 
-    public <T> T getModel(TestFile rootDir, Class<T> modelType, boolean searchUpwards = true) {
-        return withConnection(rootDir, searchUpwards) { it.getModel(modelType) }
+    public <T> T getModel(Class<T> modelType) {
+        return withConnection { it.getModel(modelType) }
     }
 
     /**

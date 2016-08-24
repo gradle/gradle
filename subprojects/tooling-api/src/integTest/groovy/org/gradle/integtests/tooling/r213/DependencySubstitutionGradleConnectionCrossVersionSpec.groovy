@@ -42,7 +42,7 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends GradleConne
         mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.test", "buildB", "1.0").publish()
 
-        buildA = singleProjectBuild("buildA") {
+        buildA = singleProjectBuildInSubfolder("buildA") {
             buildFile << """
         configurations { compile }
         dependencies {
@@ -53,12 +53,13 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends GradleConne
         }
 """
         }
-        buildB = singleProjectBuild("buildB") {
+        buildB = singleProjectBuildInSubfolder("buildB") {
             buildFile << """
         apply plugin: 'java'
 """
         }
         builds << buildA << buildB
+        includeBuilds(builds)
     }
 
     def "dependencies report shows external dependencies substituted with project dependencies"() {
@@ -78,7 +79,7 @@ compile
     def "dependencies report displays failure for dependency that cannot be resolved in composite"() {
         given:
         // Add a project that makes 'buildB' ambiguous in the composite
-        def buildC = multiProjectBuild('buildC', ['buildB'])
+        def buildC = multiProjectBuildInSubFolder('buildC', ['buildB'])
         builds << buildC
 
         when:
@@ -103,7 +104,7 @@ compile
                 compile "org.test:buildC:1.0"
             }
 """
-        def buildC = singleProjectBuild('buildC') {
+        def buildC = singleProjectBuildInSubfolder('buildC') {
             buildFile << """
                 apply plugin: 'java'
 """
@@ -111,7 +112,7 @@ compile
         builds << buildC
 
         when:
-        withGradleConnection(includeBuilds(builds)) { connection ->
+        withGradleConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.setStandardError(stdErr)
@@ -133,7 +134,7 @@ compile
     }
 
     private Object dependencies() {
-        withGradleConnection(includeBuilds(builds)) { connection ->
+        withGradleConnection{ connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.forTasks(buildA, "dependencies")

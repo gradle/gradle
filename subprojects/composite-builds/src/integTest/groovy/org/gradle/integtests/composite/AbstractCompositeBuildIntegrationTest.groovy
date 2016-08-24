@@ -103,10 +103,10 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(rootDir).singleProjectBuild(projectName, cl)
+        new BuildTestFixture(rootDir).singleProjectBuild(projectName, rootDir.file(projectName), cl)
     }
 
     def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(rootDir).multiProjectBuild(projectName, subprojects, cl)
+        new BuildTestFixture(rootDir).multiProjectBuild(projectName, rootDir.file(projectName), subprojects, cl)
     }
 }

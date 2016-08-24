@@ -25,10 +25,10 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def "can create composite of a single multi-project build"() {
         given:
-        def multiBuild = multiProjectBuild("multi-build", ['a', 'b', 'c'])
+        multiProjectBuildInRootFolder("multi-build", ['a', 'b', 'c'])
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(multiBuild, EclipseProject)
+        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
 
         then:
         models.size() == 4
@@ -38,10 +38,10 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
 
     def "can create composite of a single single-project build"() {
         given:
-        def singleBuild = singleProjectBuild("single-build")
+        singleProjectBuildInRootFolder("single-build")
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(singleBuild, EclipseProject)
+        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
 
         then:
         models.size() == 1
@@ -51,20 +51,20 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
 
     def "participant is always treated as root of a build"() {
         given:
-        def badParentDir = multiProjectBuild("bad-parent", ['a', 'b', 'c']) {
+        multiProjectBuildInRootFolder("bad-parent", ['a', 'b', 'c']) {
             buildFile << """
                 allprojects {
                     throw new RuntimeException("Badly configured project")
                 }
 """
         }
-        def goodChildProject = badParentDir.file("c").createDir()
+        def goodChildProject = file("c").createDir()
         goodChildProject.file("build.gradle") <<"""
             apply plugin: 'java'
 """
 
         when:
-        def models = getUnwrappedModelsWithGradleConnection(goodChildProject)
+        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
 
         then:
         models.size() == 1
@@ -76,13 +76,13 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
 
     def "sees changes to composite build when projects are added"() {
         given:
-        def singleBuild = singleProjectBuild("single-build")
+        singleProjectBuildInRootFolder("single-build")
         GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
-        connector.forRootDirectory(singleBuild)
-        def composite = connector.build()
+        connector.forRootDirectory(projectDir)
+        def connection = connector.build()
 
         when:
-        def firstRetrieval = unwrap(composite.getModels(EclipseProject))
+        def firstRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
         firstRetrieval.size() == 1
@@ -91,11 +91,10 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
 
         when:
         // make project a multi-project build
-        singleBuild.settingsFile << """
-                include 'a'
-"""
+        settingsFile << "include 'a'"
+
         and:
-        def secondRetrieval = unwrap(composite.getModels(EclipseProject))
+        def secondRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
         secondRetrieval.size() == 2
@@ -104,9 +103,10 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
 
         when:
         // adding more projects to multi-project build
-        singleBuild.settingsFile << "include 'b', 'c'"
+        settingsFile << "include 'b', 'c'"
+
         and:
-        def thirdRetrieval = unwrap(composite.getModels(EclipseProject))
+        def thirdRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
         thirdRetrieval.size() == 4
@@ -115,10 +115,10 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
 
         when:
         // remove the existing project
-        singleBuild.deleteDir()
+        projectDir.deleteDir()
 
         and:
-        def fourthRetrieval = unwrap(composite.getModels(EclipseProject))
+        def fourthRetrieval = unwrap(connection.getModels(EclipseProject))
 
         then:
         def e = thrown(GradleConnectionException)
@@ -127,7 +127,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
             "The root project is not yet available for build")
 
         cleanup:
-        composite?.close()
+        connection?.close()
     }
 
     Iterable<EclipseProject> rootProjects(Iterable<EclipseProject> projects) {

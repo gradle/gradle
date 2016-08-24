@@ -25,20 +25,20 @@ import spock.lang.Ignore
 class ExecuteTaskModelBuilderCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def "can call tasks before building composite model"() {
         given:
-        def singleBuild = populate("single") {
-            settingsFile << "rootProject.name = '${rootProjectName}'"
+        singleProjectBuildInRootFolder("single") {
             buildFile << """
-        apply plugin: 'java'
+                apply plugin: 'java'
 
-        description = "not set"
+                description = "not set"
 
-        task setDescription() << {
-            project.description = "Set from task"
+                task setDescription() << {
+                    project.description = "Set from task"
+                }
+            """
         }
-"""
-        }
+
         when:
-        def modelResults = withGradleConnection(singleBuild) { connection ->
+        def modelResults = withGradleConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.forTasks("setDescription")
             modelBuilder.get()

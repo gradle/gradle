@@ -34,15 +34,17 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
 
     def "can correlate exceptions in composite with multiple single-project participants"() {
         given:
-        def rootDirA = singleProjectBuild("A") {
+        def rootDirA = singleProjectBuildInSubfolder("A") {
             buildFile << "throw new GradleException('Failure in A')"
         }
-        def rootDirB = singleProjectBuild("B")
-        def rootDirC = singleProjectBuild("C") {
+        def rootDirB = singleProjectBuildInSubfolder("B")
+        def rootDirC = singleProjectBuildInSubfolder("C") {
             buildFile << "throw new GradleException('Different failure in C')"
         }
+        includeBuilds(rootDirB, rootDirA, rootDirC)
+
         when:
-        withGradleConnection(includeBuilds(rootDirB, rootDirA, rootDirC)) { connection ->
+        withGradleConnection { connection ->
             modelResults = connection.getModels(EclipseProject)
         }
 
@@ -64,15 +66,16 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
 
     def "can correlate exceptions in composite with multiple multi-project participants"() {
         given:
-        def rootDirA = multiProjectBuild("A", ['ax', 'ay']) {
+        def rootDirA = multiProjectBuildInSubFolder("A", ['ax', 'ay']) {
             file("ax/build.gradle") << """
                 throw new GradleException("Failure in A::ax")
 """
         }
-        def rootDirB = multiProjectBuild("B", ['bx', 'by'])
+        def rootDirB = multiProjectBuildInSubFolder("B", ['bx', 'by'])
+        includeBuilds(rootDirA, rootDirB)
 
         when:
-        withGradleConnection(includeBuilds(rootDirA, rootDirB)) { connection ->
+        withGradleConnection { connection ->
             modelResults = connection.getModels(EclipseProject)
         }
 
@@ -91,19 +94,20 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
 
     def "can correlate models in a single project, single participant composite"() {
         given:
-        def rootDirA = singleProjectBuild("A")
+        singleProjectBuildInRootFolder("A")
 
         when:
         Iterable<IdeaProject> ideaProjects = []
-        withGradleConnection(rootDirA) {
+        withGradleConnection {
             modelResults = it.getModels(EclipseProject)
             ideaProjects = it.getModels(IdeaProject)*.model
         }
+
         then:
         // We can locate the root project by its project identifier
-        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':'), "A", ":")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(projectDir, ':'), "A", ":")
         // We can locate all projects (just one in this case) by the build identifier for the participant
-        assertSingleEclipseProject(findModelsByBuildIdentifier(rootDirA), "A", ":")
+        assertSingleEclipseProject(findModelsByBuildIdentifier(projectDir), "A", ":")
 
         and:
         ideaProjects.size() == 1
@@ -112,13 +116,13 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
 
     def "can correlate models in a multi-project, single participant composite"() {
         given:
-        def rootDirA = multiProjectBuild("A", ['x', 'y'])
+        multiProjectBuildInRootFolder("A", ['x', 'y'])
 
         when:
         def otherHierarchicalModelResults = []
         def otherPerBuildModelResults = []
         def ideaProjects = []
-        withGradleConnection(rootDirA) {
+        withGradleConnection {
             modelResults = it.getModels(EclipseProject)
             otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
             otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier
@@ -127,12 +131,12 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
 
         then:
         // We can locate each project by its project identifier
-        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':'), "A", ":")
-        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':x'), "A", ":x")
-        assertSingleEclipseProject(findModelsByProjectIdentifier(rootDirA, ':y'), "A", ":y")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(projectDir, ':'), "A", ":")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(projectDir, ':x'), "A", ":x")
+        assertSingleEclipseProject(findModelsByProjectIdentifier(projectDir, ':y'), "A", ":y")
 
         // We can locate all projects by the build identifier for the participant
-        assertContainsEclipseProjects(findModelsByBuildIdentifier(rootDirA), "A", ":", ":x", ":y")
+        assertContainsEclipseProjects(findModelsByBuildIdentifier(projectDir), "A", ":", ":x", ":y")
 
         and:
         containSameIdentifiers(otherHierarchicalModelResults)
@@ -145,15 +149,16 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
 
     def "can correlate models in a single and multi-project, multi-participant composite"() {
         given:
-        def rootDirA = singleProjectBuild("A")
-        def rootDirB = multiProjectBuild("B", ['x', 'y'])
+        def rootDirA = singleProjectBuildInSubfolder("A")
+        def rootDirB = multiProjectBuildInSubFolder("B", ['x', 'y'])
+        includeBuilds(rootDirA, rootDirB)
 
         when:
         def otherHierarchicalModelResults = []
         def otherPerBuildModelResults = []
         def ideaProjects = []
 
-        withGradleConnection(includeBuilds(rootDirA, rootDirB)) {
+        withGradleConnection {
             modelResults = it.getModels(EclipseProject)
             otherHierarchicalModelResults = it.getModels(GradleProject)*.model*.projectIdentifier
             otherPerBuildModelResults = it.getModels(BuildInvocations)*.model*.projectIdentifier
@@ -174,7 +179,7 @@ class ModelResultCompositeBuildCrossVersionSpec extends GradleConnectionToolingA
         containSameIdentifiers(otherPerBuildModelResults)
 
         and:
-        ideaProjects.size() == 2
+        ideaProjects.size() == 3
         containSameIdentifiers(ideaModuleProjectIdentifiers(ideaProjects))
     }
 

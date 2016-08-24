@@ -181,9 +181,9 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends GradleConnectionToo
     }
 
     private void requestModels(List<File> builds) {
-        def composite = includeBuilds(builds)
+        includeBuilds(builds)
 
-        withGradleConnection(composite) { connection ->
+        withGradleConnection { connection ->
             getModels(connection.models(EclipseProject), progressListenerForComposite)
         }
 
@@ -197,7 +197,7 @@ class ProgressListenerCompositeBuildCrossVersionSpec extends GradleConnectionToo
     }
 
     private void executeFirstBuild(List<File> builds) {
-        withGradleConnection(includeBuilds(builds)) { connection ->
+        withGradleConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "jar")
             buildLauncher.addProgressListener(progressListenerForComposite)

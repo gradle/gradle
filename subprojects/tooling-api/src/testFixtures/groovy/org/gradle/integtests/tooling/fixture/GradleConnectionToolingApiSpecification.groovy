@@ -18,7 +18,6 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
 import org.gradle.tooling.connection.ModelResult
@@ -30,20 +29,20 @@ import org.junit.runner.RunWith
 @RunWith(ToolingApiCompatibilitySuiteRunner)
 class GradleConnectionToolingApiSpecification extends AbstractToolingApiSpecification {
 
-    protected <T> T withGradleConnection(TestFile projectDir, @DelegatesTo(GradleConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.connection.GradleConnection"]) Closure<T> cl = {}) {
+    protected <T> T withGradleConnection(@DelegatesTo(GradleConnection) @ClosureParams(value = SimpleType, options = ["org.gradle.tooling.connection.GradleConnection"]) Closure<T> cl = {}) {
         GradleConnectionBuilder connector = toolingApi.gradleConnectionBuilder()
         connector.forRootDirectory(projectDir)
         return toolingApi.withGradleConnection(connector, cl)
     }
 
-    protected <T> ModelResults<T> getModelsWithGradleConnection(TestFile projectDir, Class<T> modelType) {
-        withGradleConnection(projectDir) { connection ->
+    protected <T> ModelResults<T> getModelsWithGradleConnection(Class<T> modelType) {
+        withGradleConnection { connection ->
             return connection.getModels(modelType)
         }
     }
 
-    protected <T> List<T> getUnwrappedModelsWithGradleConnection(TestFile projectDir, Class<T> modelType) {
-        unwrap(getModelsWithGradleConnection(projectDir, modelType))
+    protected <T> List<T> getUnwrappedModelsWithGradleConnection(Class<T> modelType) {
+        unwrap(getModelsWithGradleConnection(modelType))
     }
 
     protected <T> List<T> unwrap(Iterable<ModelResult<T>> modelResults) {

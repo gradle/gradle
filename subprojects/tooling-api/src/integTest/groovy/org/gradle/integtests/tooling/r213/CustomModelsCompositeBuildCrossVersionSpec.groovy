@@ -26,21 +26,17 @@ import org.gradle.util.GradleVersion
  * Tooling client requests custom model type for every project in a composite
  */
 class CustomModelsCompositeBuildCrossVersionSpec extends GradleConnectionToolingApiSpecification {
-    TestFile rootSingle
-    TestFile rootMulti
-
-    void setup() {
-        rootSingle = singleProjectBuild("A")
-        rootMulti = multiProjectBuild("B", ['x', 'y'])
-    }
 
     @TargetGradleVersion(">=1.2 <1.6")
     def "decent error message for Gradle version that doesn't support custom models"() {
+        setup:
+        includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
+
         when:
-        def modelResults = getModelsWithGradleConnection(includeBuilds(rootSingle, rootMulti), CustomModel)
+        def modelResults = getModelsWithGradleConnection(CustomModel)
 
         then:
-        modelResults.size() == 2
+        modelResults.size() == 3
         modelResults.each {
             def e = it.failure
             assert e.message.contains('does not support building a model of type \'CustomModel\'.')
@@ -50,12 +46,15 @@ class CustomModelsCompositeBuildCrossVersionSpec extends GradleConnectionTooling
 
     @TargetGradleVersion(">=1.6")
     def "decent error message for unknown custom model"() {
+        setup:
+        includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
+
         when:
-        def modelResults = getModelsWithGradleConnection(includeBuilds(rootSingle, rootMulti), CustomModel)
+        def modelResults = getModelsWithGradleConnection(CustomModel)
 
         then:
         def expectedMessage = GradleVersion.current() < GradleVersion.version("2.14") ? "Could not fetch models of type 'CustomModel' using client-side composite connection." : 'No model of type \'CustomModel\' is available in this build.'
-        modelResults.size() == 2
+        modelResults.size() == 3
         modelResults.each {
             def e = it.failure
             assert e.message.contains(expectedMessage)
@@ -64,6 +63,7 @@ class CustomModelsCompositeBuildCrossVersionSpec extends GradleConnectionTooling
 
     @TargetGradleVersion(">=1.6")
     def "can retrieve custom models for root projects in composite"() {
+        setup:
         def buildContent = """
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.tooling.provider.model.ToolingModelBuilder
@@ -96,14 +96,17 @@ class CustomPlugin implements Plugin<Project> {
 
 apply plugin: CustomPlugin
 """
+        TestFile rootSingle = singleProjectBuildInSubfolder("A")
+        TestFile rootMulti = multiProjectBuildInSubFolder("B", ['x', 'y'])
         rootSingle.buildFile << buildContent
         rootMulti.buildFile << buildContent
+        includeBuilds(rootSingle, rootMulti)
 
         when:
-        def modelResults = getModelsWithGradleConnection(includeBuilds(rootSingle, rootMulti), CustomModel)
+        def modelResults = getModelsWithGradleConnection(CustomModel)
 
         then:
-        modelResults.size() == 2
+        modelResults.size() == 3
         modelResults.each { result ->
             assert result.failure == null
             assert result.model.value == 'greetings'

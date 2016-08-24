@@ -32,16 +32,17 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional command-line arguments for project properties when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = includeBuilds(builds)
+        includeBuilds(builds)
 
         when:
-        def modelResults = withGradleConnection(composite) { connection ->
+        def modelResults = withGradleConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withArguments("-PprojectProperty=foo")
             modelBuilder.get()
         }
+
         then:
-        modelResults.size() == numberOfParticipants + numberOfSubprojects.sum()
+        modelResults.size() == numberOfParticipants + numberOfSubprojects.sum() + 1
         modelResults.each {
             it.model.description == "Set from project property = foo"
         }
@@ -57,10 +58,10 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional command-line arguments for project properties when executing tasks"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = includeBuilds(builds)
+        includeBuilds(builds)
 
         when:
-        withGradleConnection(composite) { connection ->
+        withGradleConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-PprojectProperty=foo")
@@ -81,16 +82,16 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional command-line arguments for system properties when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = includeBuilds(builds)
+        includeBuilds(builds)
 
         when:
-        def modelResults = withGradleConnection(composite) { connection ->
+        def modelResults = withGradleConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withArguments("-DsystemProperty=foo")
             modelBuilder.get()
         }
         then:
-        modelResults.size() == numberOfParticipants + numberOfSubprojects.sum()
+        modelResults.size() == numberOfParticipants + numberOfSubprojects.sum() + 1
         modelResults.each {
             it.model.description == "Set from system property = foo"
         }
@@ -106,10 +107,10 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional command-line arguments for system properties when executing tasks"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = includeBuilds(builds)
+        includeBuilds(builds)
 
         when:
-        withGradleConnection(composite) { connection ->
+        withGradleConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "run")
             buildLauncher.withArguments("-DsystemProperty=foo")
@@ -129,16 +130,16 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional jvm arguments when loading models"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = includeBuilds(builds)
+        includeBuilds(builds)
 
         when:
-        def modelResults = withGradleConnection(composite) { connection ->
+        def modelResults = withGradleConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setJvmArguments("-DsystemProperty=foo")
             modelBuilder.get()
         }
         then:
-        modelResults.size() == numberOfParticipants + numberOfSubprojects.sum()
+        modelResults.size() == numberOfParticipants + numberOfSubprojects.sum() + 1
         modelResults.each {
             it.model.description == "Set from system property = foo"
         }
@@ -154,10 +155,10 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
     def "can pass additional jvm arguments"() {
         given:
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = includeBuilds(builds)
+        includeBuilds(builds)
 
         when:
-        withGradleConnection(composite) { connection ->
+        withGradleConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.forTasks(builds[0], "run")
             buildLauncher.setJvmArguments("-DsystemProperty=foo")
@@ -180,10 +181,10 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         File javaHome = new File("not/javahome")
         javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = includeBuilds(builds)
+        includeBuilds(builds)
 
         when:
-        def modelResults = withGradleConnection(composite) { connection ->
+        def modelResults = withGradleConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.setJavaHome(javaHome)
             modelBuilder.get()
@@ -207,10 +208,10 @@ class ArgumentPassingCompositeBuildCrossVersionSpec extends GradleConnectionTool
         File javaHome = new File("not/javahome")
         javaHome.mkdirs()
         def builds = createBuilds(numberOfParticipants, numberOfSubprojects)
-        def composite = includeBuilds(builds)
+        includeBuilds(builds)
 
         when:
-        withGradleConnection(composite) { connection ->
+        withGradleConnection { connection ->
             BuildLauncher buildLauncher = connection.newBuild()
             buildLauncher.setJavaHome(javaHome)
             buildLauncher.forTasks(builds[0], "run")

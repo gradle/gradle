@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
@@ -27,19 +26,15 @@ import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
 class ModelsWithGradleProjectIdentifierViaProjectConnectionCrossVersionSpec extends ProjectConnectionToolingApiSpecification {
-    TestFile rootSingle
-    TestFile rootMulti
-
-    void setup() {
-        rootSingle = singleProjectBuild("A")
-        rootMulti = multiProjectBuild("B", ['x', 'y'])
-    }
 
     @TargetGradleVersion(">=2.13")
     def "ProjectConnection provides identified models for single project build"() {
+        setup:
+        singleProjectBuildInRootFolder("A")
+
         when:
-        def gradleProject = getModel(rootSingle, GradleProject)
-        def model = getModel(rootSingle, modelType)
+        def gradleProject = getModel(GradleProject)
+        def model = getModel(modelType)
 
         then:
         assertSameIdentifiers(gradleProject, model)
@@ -51,9 +46,12 @@ class ModelsWithGradleProjectIdentifierViaProjectConnectionCrossVersionSpec exte
     @Ignore("Test fails sporadically")
     @TargetGradleVersion(">=2.13")
     def "ProjectConnection with custom action provides identified models for multi-project build"() {
+        setup:
+        multiProjectBuildInRootFolder("B", ['x', 'y'])
+
         when:
-        def gradleProjects = getModelsWithProjectConnectionAndCustomAction(rootMulti, GradleProject)
-        def models = getModelsWithProjectConnectionAndCustomAction(rootMulti, modelType)
+        def gradleProjects = getModelsWithProjectConnectionAndCustomAction(GradleProject)
+        def models = getModelsWithProjectConnectionAndCustomAction(modelType)
 
         then:
         assertSameIdentifiers(gradleProjects, models)
@@ -66,11 +64,9 @@ class ModelsWithGradleProjectIdentifierViaProjectConnectionCrossVersionSpec exte
         assert gradleProject.projectIdentifier == model.projectIdentifier
     }
 
-    private getModelsWithProjectConnectionAndCustomAction(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
+    private getModelsWithProjectConnectionAndCustomAction(Class modelType) {
         FetchProjectModelsBuildAction buildAction = new FetchProjectModelsBuildAction(modelType)
-        withConnection (rootDir, searchUpwards) { connection ->
-            connection.action(buildAction).run()
-        }
+        withConnection { connection -> connection.action(buildAction).run() }
     }
 
     private static getModelsHavingGradleProjectIdentifier() {

@@ -82,10 +82,12 @@ class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def build3 = populate("build-3") {
             buildFile << buildFileText
         }
+        includeBuilds(build1, build2, build3)
+
         when:
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
-        withGradleConnection(includeBuilds(build1, build2, build3)) { connection ->
+        withGradleConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withCancellationToken(cancellationToken.token())
             modelBuilder.withArguments("-PwaitForCancellation")
@@ -126,11 +128,13 @@ class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def build2 = populate("build-2") {
             buildFile << buildFileText
         }
+        includeBuilds(build1, build2,)
+
         when:
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
         cancellationToken.cancel()
-        withGradleConnection(includeBuilds(build1, build2)) { connection ->
+        withGradleConnection { connection ->
             def modelBuilder = connection.models(EclipseProject)
             modelBuilder.withCancellationToken(cancellationToken.token())
             modelBuilder.get(resultHandler)
@@ -157,11 +161,13 @@ class CancellationCompositeBuildCrossVersionSpec extends GradleConnectionTooling
         def build2 = populate("build-2") {
             buildFile << buildFileText
         }
+        includeBuilds(build1, build2)
+
         when:
         def cancellationToken = GradleConnector.newCancellationTokenSource()
         def resultHandler = new ResultCollector()
         cancellationToken.cancel()
-        withGradleConnection(includeBuilds(build1, build2)) { connection ->
+        withGradleConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.forTasks(build1, "run")
             buildLauncher.withCancellationToken(cancellationToken.token())

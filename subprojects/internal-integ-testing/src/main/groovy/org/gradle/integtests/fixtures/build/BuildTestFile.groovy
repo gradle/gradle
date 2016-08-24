@@ -19,15 +19,9 @@ package org.gradle.integtests.fixtures.build
 import org.gradle.test.fixtures.file.TestFile
 
 class BuildTestFile extends TestFile {
-    private final String projectName
 
-    BuildTestFile(TestFile rootDir, String projectName) {
-        super(rootDir, [projectName])
-        this.projectName = projectName
-    }
-
-    String getRootProjectName() {
-        projectName
+    BuildTestFile(TestFile rootDir) {
+        super(rootDir)
     }
 
     TestFile getBuildFile() {
@@ -38,7 +32,4 @@ class BuildTestFile extends TestFile {
         file("settings.gradle")
     }
 
-    void addChildDir(String name) {
-        file(name).file("build.gradle") << "// Dummy child build"
-    }
 }

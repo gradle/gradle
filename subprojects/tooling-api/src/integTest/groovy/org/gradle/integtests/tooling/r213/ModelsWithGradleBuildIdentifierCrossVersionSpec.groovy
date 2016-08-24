@@ -16,25 +16,20 @@
 
 
 package org.gradle.integtests.tooling.r213
-import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 
-import org.gradle.test.fixtures.file.TestFile
+import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.GradleBuild
 
 class ModelsWithGradleBuildIdentifierCrossVersionSpec extends GradleConnectionToolingApiSpecification {
-    TestFile rootSingle
-    TestFile rootMulti
-
-    def setup() {
-        rootSingle = singleProjectBuild("A")
-        rootMulti = multiProjectBuild("B", ['x', 'y'])
-    }
 
     def "GradleConnection provides identified model for single project build"() {
+        setup:
+        singleProjectBuildInRootFolder("A")
+
         when:
-        def gradleBuilds = getUnwrappedModelsWithGradleConnection(rootSingle, GradleBuild)
-        def models = getUnwrappedModelsWithGradleConnection(rootSingle, modelType)
+        def gradleBuilds = getUnwrappedModelsWithGradleConnection(GradleBuild)
+        def models = getUnwrappedModelsWithGradleConnection(modelType)
 
         then:
         gradleBuilds.size() == 1
@@ -46,9 +41,12 @@ class ModelsWithGradleBuildIdentifierCrossVersionSpec extends GradleConnectionTo
     }
 
     def "GradleConnection provides identified model for multi-project build"() {
+        setup:
+        multiProjectBuildInRootFolder("B", ['x', 'y'])
+
         when:
-        def gradleBuilds = getUnwrappedModelsWithGradleConnection(rootMulti, GradleBuild)
-        def models = getUnwrappedModelsWithGradleConnection(rootMulti, modelType)
+        def gradleBuilds = getUnwrappedModelsWithGradleConnection(GradleBuild)
+        def models = getUnwrappedModelsWithGradleConnection(modelType)
 
         then:
         gradleBuilds.size() == 1
@@ -61,9 +59,9 @@ class ModelsWithGradleBuildIdentifierCrossVersionSpec extends GradleConnectionTo
 
     def "GradleConnection provides identified model for composite build"() {
         when:
-        def composite = includeBuilds(rootSingle, rootMulti)
-        def gradleBuilds = getUnwrappedModelsWithGradleConnection(composite, GradleBuild)
-        def models = getUnwrappedModelsWithGradleConnection(composite, modelType)
+        includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
+        def gradleBuilds = getUnwrappedModelsWithGradleConnection(GradleBuild)
+        def models = getUnwrappedModelsWithGradleConnection(modelType)
 
         then:
         gradleBuilds.size() == models.size()

@@ -32,7 +32,7 @@ class IntegratedCompositeBuildCrossVersionSpec extends GradleConnectionToolingAp
     @IgnoreIf({GradleContextualExecuter.embedded})
     def "warning when using integrated composite"() {
         given:
-        def buildA = singleProjectBuild("buildA")
+        def buildA = singleProjectBuildInSubfolder("buildA")
         def participantPath = TextUtil.normaliseFileSeparators(buildA.absolutePath)
 
         def tapiProject = file("tapi")

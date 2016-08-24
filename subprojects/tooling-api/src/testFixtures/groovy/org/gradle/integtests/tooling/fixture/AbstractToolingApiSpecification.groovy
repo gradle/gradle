@@ -101,31 +101,32 @@ abstract class AbstractToolingApiSpecification extends Specification {
         projectDir.file(path)
     }
 
-    def populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
+    BuildTestFile populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
         new BuildTestFixture(projectDir).populate(projectName, cl)
     }
 
-    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(projectDir).singleProjectBuild(projectName, cl)
+    TestFile singleProjectBuildInSubfolder(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).singleProjectBuild(projectName, projectDir.file(projectName), cl)
     }
 
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(projectDir).multiProjectBuild(projectName, subprojects, cl)
+    TestFile singleProjectBuildInRootFolder(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).singleProjectBuild(projectName, projectDir, cl)
     }
 
-    def includeBuilds(File target, File... includedBuilds) {
-        includeBuilds(target, includedBuilds as List)
+    TestFile multiProjectBuildInSubFolder(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).multiProjectBuild(projectName, projectDir.file(projectName), subprojects, cl)
     }
 
-    def includeBuilds(List<File> builds) {
-        if (builds != null && !builds.isEmpty()) {
-            includeBuilds(builds.head(), builds.tail())
-        } else {
-            throw new IllegalArgumentException("Can't define a composite with null or empty list")
-        }
+    void multiProjectBuildInRootFolder(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        new BuildTestFixture(projectDir).multiProjectBuild(projectName, projectDir, subprojects, cl)
     }
 
-    def includeBuilds(File target, List<File> includedBuilds) {
-        new BuildTestFixture(projectDir).includeBuilds(target, includedBuilds)
+    def includeBuilds(File... includedBuilds) {
+        includeBuilds(includedBuilds as List)
     }
+
+    def includeBuilds(List<File> includedBuilds) {
+        new BuildTestFixture(projectDir).includeBuilds(includedBuilds)
+    }
+
 }

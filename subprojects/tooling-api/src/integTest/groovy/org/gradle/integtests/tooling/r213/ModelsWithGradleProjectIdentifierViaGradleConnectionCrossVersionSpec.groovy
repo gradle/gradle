@@ -19,7 +19,6 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
-import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
@@ -27,18 +26,14 @@ import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
 
 class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec extends GradleConnectionToolingApiSpecification {
-    TestFile rootSingle
-    TestFile rootMulti
-
-    void setup() {
-        rootSingle = singleProjectBuild("A")
-        rootMulti = multiProjectBuild("B", ['x', 'y'])
-    }
 
     def "Provides identified models for single project build"() {
+        setup:
+        singleProjectBuildInRootFolder("A")
+
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(rootSingle, EclipseProject)*.gradleProject
-        def models = getUnwrappedModelsWithGradleConnection(rootSingle, modelType)
+        def gradleProjects = getUnwrappedModelsWithGradleConnection(EclipseProject)*.gradleProject
+        def models = getUnwrappedModelsWithGradleConnection(modelType)
 
         then:
         gradleProjects.size() == 1
@@ -50,9 +45,12 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
     }
 
     def "Provides identified models for multi-project build"() {
+        setup:
+        multiProjectBuildInRootFolder("B", ['x', 'y'])
+
         when:
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(rootMulti, EclipseProject)*.gradleProject
-        def models = getUnwrappedModelsWithGradleConnection(rootMulti, modelType)
+        def gradleProjects = getUnwrappedModelsWithGradleConnection(EclipseProject)*.gradleProject
+        def models = getUnwrappedModelsWithGradleConnection(modelType)
 
         then:
         gradleProjects.size() == models.size()
@@ -63,10 +61,12 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
     }
 
     def "Provides identified models for composite build"() {
+        setup:
+        includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
+
         when:
-        def composite = includeBuilds(rootMulti, rootSingle)
-        def gradleProjects = getUnwrappedModelsWithGradleConnection(composite, EclipseProject)*.gradleProject
-        def models = getUnwrappedModelsWithGradleConnection(composite, modelType)
+        def gradleProjects = getUnwrappedModelsWithGradleConnection(EclipseProject)*.gradleProject
+        def models = getUnwrappedModelsWithGradleConnection(modelType)
 
         then:
         gradleProjects.size() == models.size()
@@ -77,9 +77,11 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
     }
 
     def "all Launchables are identified when obtained from GradleConnection"() {
+        setup:
+        includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
+
         when:
-        def composite = includeBuilds(rootMulti, rootSingle)
-        def buildInvocationsSet = getUnwrappedModelsWithGradleConnection(composite, BuildInvocations)
+        def buildInvocationsSet = getUnwrappedModelsWithGradleConnection(BuildInvocations)
 
         then:
         buildInvocationsSet.each { BuildInvocations buildInvocations ->
@@ -94,8 +96,11 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
 
     @TargetGradleVersion('>=1.2 <1.12')
     def "decent error message for Gradle version that doesn't expose publications"() {
+        setup:
+        includeBuilds(multiProjectBuildInSubFolder("B", ['x', 'y']), singleProjectBuildInSubfolder("A"))
+
         when:
-        def modelResults = withGradleConnection(includeBuilds(rootMulti, rootSingle)) { GradleConnection connection ->
+        def modelResults = withGradleConnection { GradleConnection connection ->
             def modelBuilder = connection.models(ProjectPublications)
             modelBuilder.get()
         }.asList()

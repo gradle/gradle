@@ -28,10 +28,10 @@ class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends GradleC
     @TargetGradleVersion("<1.2")
     def "build execution fails for pre 1.2 providers"() {
         given:
-        def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
+        multiProjectBuildInRootFolder("single-build", ['a', 'b', 'c'])
 
         when:
-        withGradleConnection(singleBuild) { GradleConnection connection ->
+        withGradleConnection { GradleConnection connection ->
             connection.newBuild().run()
         }
 
@@ -44,10 +44,10 @@ class ToolingApiUnsupportedVersionCompositeBuildCrossVersionSpec extends GradleC
     @TargetGradleVersion("<1.2")
     def "model retrieval fails for pre 1.2 providers"() {
         given:
-        def singleBuild = multiProjectBuild("single-build", ['a', 'b', 'c'])
+        multiProjectBuildInRootFolder("single-build", ['a', 'b', 'c'])
 
         when:
-        getUnwrappedModelsWithGradleConnection(singleBuild, EclipseProject)
+        getUnwrappedModelsWithGradleConnection(EclipseProject)
 
         then:
         UnsupportedVersionException e = thrown()
