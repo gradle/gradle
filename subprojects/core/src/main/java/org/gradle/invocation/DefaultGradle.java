@@ -23,6 +23,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -37,6 +38,7 @@ import org.gradle.api.tasks.TaskCaching;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.initialization.IncludedBuilds;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -49,6 +51,7 @@ import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.util.NoSuchElementException;
 
 public class DefaultGradle extends AbstractPluginAware implements GradleInternal {
     private ProjectInternal rootProject;
@@ -213,6 +216,21 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     public Gradle getGradle() {
         return this;
+    }
+
+    @Override
+    public Iterable<IncludedBuild> getIncludedBuilds() {
+        return services.get(IncludedBuilds.class).getBuilds();
+    }
+
+    @Override
+    public IncludedBuild includedBuild(final String name) {
+        for (IncludedBuild includedBuild : getIncludedBuilds()) {
+            if (includedBuild.getName().equals(name)) {
+                return includedBuild;
+            }
+        }
+        throw new NoSuchElementException("No included build '" + name + "' found.");
     }
 
     public ServiceRegistry getServices() {

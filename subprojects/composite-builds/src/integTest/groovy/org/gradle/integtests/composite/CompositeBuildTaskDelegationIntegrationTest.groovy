@@ -24,7 +24,6 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
  * TODO:
  * - Check exception when build does not exist
  * - Check exception when task does not exist for build
- * - Check exception for invalid task selectors - 'build:::', 'build::foo::bar', 'build::', etc
  */
 class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
@@ -62,7 +61,7 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
         when:
         buildA.buildFile << """
     task delegate {
-        dependsOn gradle.services.get(org.gradle.initialization.IncludedBuilds).getBuild('buildB').task(':logProject')
+        dependsOn gradle.includedBuild('buildB').task(':logProject')
     }
 """
 
@@ -93,7 +92,7 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
         when:
         buildA.buildFile << """
     task delegate {
-        dependsOn gradle.services.get(org.gradle.initialization.IncludedBuilds).getBuild('buildB').task(':b1:logProject')
+        dependsOn gradle.includedBuild('buildB').task(':b1:logProject')
     }
 """
 
@@ -107,7 +106,7 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
     def "can depend on multiple tasks of included build"() {
         when:
         buildA.buildFile << """
-    def buildB = gradle.services.get(org.gradle.initialization.IncludedBuilds).getBuild('buildB')
+    def buildB = gradle.includedBuild('buildB')
     task delegate {
         dependsOn 'delegate1', 'delegate2'
     }
@@ -128,5 +127,26 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
         executed ":buildB:logProject", ":buildB:b1:logProject"
         output.contains("Executing build 'buildB' project ':' task ':logProject'")
         output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
+    }
+
+    def "can depend on task with name in all included builds"() {
+        when:
+        BuildTestFile buildC = singleProjectBuild("buildC") {
+            buildFile.text = buildB.buildFile.text
+        }
+        includedBuilds << buildC
+
+        buildA.buildFile << """
+    task delegate {
+        dependsOn gradle.includedBuilds*.task(':logProject')
+    }
+"""
+
+        execute(buildA, ":delegate")
+
+        then:
+        executed ":buildB:logProject", ":buildC:logProject"
+        output.contains("Executing build 'buildB' project ':' task ':logProject'")
+        output.contains("Executing build 'buildC' project ':' task ':logProject'")
     }
 }
