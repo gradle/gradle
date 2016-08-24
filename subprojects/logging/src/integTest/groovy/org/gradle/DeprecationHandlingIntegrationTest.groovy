@@ -21,6 +21,38 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
     //@Ignore("This test will likely break with Gradle 4.0. Find some new deprecation in that case.")
+    def "jetty deprecation is detected - without full stacktrace."() {
+
+        buildFile << """
+apply plugin: 'jetty' // line 2
+"""
+        when:
+        executer.expectDeprecationWarning().withNoFullDeprecationStackTrace()
+        run()
+
+        then:
+        output.contains('The Jetty plugin has been deprecated')
+        output.contains('build.gradle:2)')
+        output.count('\tat') == 1
+    }
+
+    //@Ignore("This test will likely break with Gradle 4.0. Find some new deprecation in that case.")
+    def "jetty deprecation is detected - with full stacktrace."() {
+
+        buildFile << """
+apply plugin: 'jetty' // line 2
+"""
+        when:
+        executer.expectDeprecationWarning()
+        run()
+
+        then:
+        output.contains('The Jetty plugin has been deprecated')
+        output.contains('build.gradle:2)')
+        output.count('\tat') > 1
+    }
+
+    //@Ignore("This test will likely break with Gradle 4.0. Find some new deprecation in that case.")
     def "upToDateWhen deprecation is detected - without full stacktrace."() {
         buildFile << """
 task binZip(type: Zip) {
