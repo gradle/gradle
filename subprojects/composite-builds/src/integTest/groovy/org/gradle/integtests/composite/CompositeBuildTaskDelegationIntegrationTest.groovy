@@ -20,11 +20,7 @@ import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Unroll
 
 /**
- * Tests for resolving dependency artifacts with substitution within a composite build.
- *
- * TODO:
- * - Check exception when build does not exist
- * - Check exception when task does not exist for build
+ * Tests for composite build delegating to tasks in an included build.
  */
 class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
@@ -151,6 +147,53 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildC' project ':' task ':logProject'")
     }
 
+    def "reports failure when included build does not exist for composite"() {
+        when:
+        buildA.buildFile << """
+    task delegate {
+        dependsOn gradle.includedBuild('does-not-exist').task(':anything')
+    }
+"""
+
+        and:
+        fails(buildA, ":delegate")
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project 'buildA'.")
+        failure.assertHasCause("Included build 'does-not-exist' not found.")
+    }
+
+    def "reports failure when task does not exist for included build"() {
+        when:
+        buildA.buildFile << """
+    task delegate {
+        dependsOn gradle.includedBuild('buildB').task(':does-not-exist')
+    }
+"""
+
+        and:
+        fails(buildA, ":delegate")
+
+        then:
+        failure.assertHasDescription("Task 'does-not-exist' not found in root project 'buildB'.")
+    }
+
+    def "reports failure when attempting to access included build when build is not a composite"() {
+        when:
+        buildB.buildFile << """
+    task delegate {
+        dependsOn gradle.includedBuild('does-not-exist').task(':anything')
+    }
+"""
+
+        and:
+        fails(buildB, ":delegate")
+
+        then:
+        failure.assertHasDescription("A problem occurred evaluating root project 'buildB'.")
+        failure.assertHasCause("Build is not a composite: it has no included builds.")
+    }
+
     @Unroll
     def "included build cannot reference tasks in #scenario"() {
         when:
@@ -178,8 +221,8 @@ class CompositeBuildTaskDelegationIntegrationTest extends AbstractCompositeBuild
         failure.assertHasCause("Build is not a composite: it has no included builds.")
 
         where:
-        scenario | buildName
+        scenario  | buildName
         "sibling" | "buildB"
-        "parent" | "buildA"
+        "parent"  | "buildA"
     }
 }

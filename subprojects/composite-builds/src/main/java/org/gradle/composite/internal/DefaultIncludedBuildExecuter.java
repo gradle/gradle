@@ -44,7 +44,7 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
     }
 
     @Override
-    public void execute(ProjectComponentIdentifier buildIdentifier, Iterable<String> taskNames) {
+    public synchronized void execute(ProjectComponentIdentifier buildIdentifier, Iterable<String> taskNames) {
         String buildName = getBuildName(buildIdentifier);
         buildStarted(buildName);
         try {
@@ -61,14 +61,14 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
         return buildIdentifier.getProjectPath().split("::", 2)[0];
     }
 
-    private synchronized void buildStarted(String build) {
+    private void buildStarted(String build) {
         if (!executingBuilds.add(build)) {
             ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(build + "::");
             throw new ModuleVersionResolveException(selector, "Dependency cycle including project " + selector.getProjectPath());
         }
     }
 
-    private synchronized void buildCompleted(String project) {
+    private void buildCompleted(String project) {
         executingBuilds.remove(project);
     }
 
