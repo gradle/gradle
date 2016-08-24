@@ -22,10 +22,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
-import org.gradle.internal.Cast;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.nativeplatform.DependentSourceSet;
@@ -37,11 +34,12 @@ import org.gradle.model.RuleSource;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelTypes;
 import org.gradle.nativeplatform.internal.NativeBinarySpecInternal;
+import org.gradle.nativeplatform.internal.NativeDependentBinariesResolutionStrategy;
 import org.gradle.nativeplatform.plugins.NativeComponentPlugin;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
 import org.gradle.nativeplatform.test.internal.DefaultNativeTestSuiteBinarySpec;
-import org.gradle.nativeplatform.test.internal.NativeDependentTestSuiteBinariesResolutionStrategy;
+import org.gradle.nativeplatform.test.internal.NativeDependentBinariesResolutionStrategyTestSupport;
 import org.gradle.nativeplatform.test.internal.NativeTestSuiteBinarySpecInternal;
 import org.gradle.nativeplatform.test.tasks.RunTestExecutable;
 import org.gradle.platform.base.BinaryContainer;
@@ -107,10 +105,9 @@ public class NativeBinariesTestPlugin implements Plugin<Project> {
         }
 
         @Defaults
-        void registerNativeDependentTestSuiteBinariesResolutionStrategy(DependentBinariesResolver resolver, ServiceRegistry serviceRegistry) {
-            ProjectRegistry<ProjectInternal> projectRegistry = Cast.uncheckedCast(serviceRegistry.get(ProjectRegistry.class));
-            ProjectModelResolver projectModelResolver = serviceRegistry.get(ProjectModelResolver.class);
-            resolver.register(new NativeDependentTestSuiteBinariesResolutionStrategy(projectRegistry, projectModelResolver));
+        void registerNativeDependentBinariesResolutionStrategyTestSupport(DependentBinariesResolver resolver) {
+            NativeDependentBinariesResolutionStrategy nativeStrategy = resolver.getStrategy(NativeDependentBinariesResolutionStrategy.NAME, NativeDependentBinariesResolutionStrategy.class);
+            nativeStrategy.setTestSupport(new NativeDependentBinariesResolutionStrategyTestSupport());
         }
 
         @Finalize

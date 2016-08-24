@@ -26,12 +26,18 @@ import java.util.List;
 
 public class BaseDependentBinariesResolutionStrategy extends AbstractDependentBinariesResolutionStrategy {
 
+    public static final String NAME = "base";
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ProjectModelResolver projectModelResolver;
 
     public BaseDependentBinariesResolutionStrategy(ProjectRegistry<ProjectInternal> projectRegistry, ProjectModelResolver projectModelResolver) {
         this.projectRegistry = projectRegistry;
         this.projectModelResolver = projectModelResolver;
+    }
+
+    @Override
+    public String getName() {
+        return NAME;
     }
 
     @Nullable

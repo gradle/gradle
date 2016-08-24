@@ -16,11 +16,19 @@
 
 package org.gradle.platform.base.internal.dependents;
 
+import org.gradle.api.Nullable;
+import org.gradle.platform.base.internal.BinarySpecInternal;
+
 /**
  * Resolve dependent binaries.
  */
-public interface DependentBinariesResolver extends DependentBinariesResolutionStrategy {
+public interface DependentBinariesResolver {
+
+    DependentBinariesResolutionResult resolve(BinarySpecInternal target);
 
     void register(DependentBinariesResolutionStrategy strategy);
+
+    @Nullable
+    <T extends DependentBinariesResolutionStrategy> T getStrategy(String name, Class<T> type);
 
 }

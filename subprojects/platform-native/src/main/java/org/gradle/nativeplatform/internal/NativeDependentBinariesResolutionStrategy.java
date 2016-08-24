@@ -22,7 +22,6 @@ import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Nullable;
-import org.gradle.api.Project;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
@@ -45,7 +44,6 @@ import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedRes
 
 import java.io.StringWriter;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +52,12 @@ import java.util.Stack;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class NativeDependentBinariesResolutionStrategy extends AbstractDependentBinariesResolutionStrategy {
+
+    public interface TestSupport {
+        boolean isTestSuite(BinarySpecInternal target);
+
+        List<NativeBinarySpecInternal> getTestDependencies(NativeBinarySpecInternal nativeBinary);
+    }
 
     private static class State {
         private final Map<NativeBinarySpecInternal, Set<NativeBinarySpecInternal>> dependencies = Maps.newLinkedHashMap();
@@ -80,9 +84,12 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         }
     }
 
+    public static final String NAME = "native";
+
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ProjectModelResolver projectModelResolver;
 
+    private TestSupport testSupport;
     private State cachedState;
 
     public NativeDependentBinariesResolutionStrategy(ProjectRegistry<ProjectInternal> projectRegistry, ProjectModelResolver projectModelResolver) {
@@ -91,6 +98,15 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         checkNotNull(projectModelResolver, "ProjectModelResolver must not be null");
         this.projectRegistry = projectRegistry;
         this.projectModelResolver = projectModelResolver;
+    }
+
+    @Override
+    public String getName() {
+        return NAME;
+    }
+
+    public void setTestSupport(TestSupport testSupport) {
+        this.testSupport = testSupport;
     }
 
     @Nullable
@@ -126,9 +142,12 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
                 for (NativeBinarySpecInternal binary : allBinariesOf(components.withType(VariantComponentSpec.class))) {
                     state.registerBinary(binary);
                 }
-            }
-            for (NativeBinarySpecInternal extraBinary : getExtraBinaries(project, projectModelResolver)) {
-                state.registerBinary(extraBinary);
+                ModelMap<Object> testSuites = modelRegistry.find("testSuites", ModelTypes.modelMap(Object.class));
+                if (testSuites != null) {
+                    for (NativeBinarySpecInternal binary : allBinariesOf(testSuites.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class))) {
+                        state.registerBinary(binary);
+                    }
+                }
             }
         }
 
@@ -140,21 +159,20 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
                     state.dependencies.get(nativeBinary).add((NativeBinarySpecInternal) libraryBinary);
                 }
             }
-            state.dependencies.get(nativeBinary).addAll(getExtraDependents(nativeBinary));
+            if (testSupport != null) {
+                state.dependencies.get(nativeBinary).addAll(testSupport.getTestDependencies(nativeBinary));
+            }
         }
 
         return state;
     }
 
-    protected List<NativeBinarySpecInternal> getExtraBinaries(Project project, ProjectModelResolver projectModelResolver) {
-        return Collections.emptyList();
+    @Override
+    protected boolean isTestSuite(BinarySpecInternal target) {
+        return testSupport != null && testSupport.isTestSuite(target);
     }
 
-    protected List<NativeBinarySpecInternal> getExtraDependents(NativeBinarySpecInternal nativeBinary) {
-        return Collections.emptyList();
-    }
-
-    protected List<NativeBinarySpecInternal> allBinariesOf(ModelMap<VariantComponentSpec> components) {
+    private List<NativeBinarySpecInternal> allBinariesOf(ModelMap<VariantComponentSpec> components) {
         List<NativeBinarySpecInternal> binaries = Lists.newArrayList();
         for (VariantComponentSpec nativeComponent : components) {
             for (NativeBinarySpecInternal nativeBinary : nativeComponent.getBinaries().withType(NativeBinarySpecInternal.class)) {

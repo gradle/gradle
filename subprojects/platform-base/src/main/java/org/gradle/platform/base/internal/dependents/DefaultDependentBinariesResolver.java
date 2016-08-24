@@ -18,28 +18,37 @@ package org.gradle.platform.base.internal.dependents;
 
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
+import org.gradle.internal.Cast;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class DefaultDependentBinariesResolver implements DependentBinariesResolver {
 
-    private final List<DependentBinariesResolutionStrategy> strategies = Lists.newArrayList();
+    private final Map<String, DependentBinariesResolutionStrategy> strategies = Maps.newLinkedHashMap();
+
 
     @Override
     public void register(DependentBinariesResolutionStrategy strategy) {
         checkNotNull(strategy, "strategy must not be null");
-        strategies.add(strategy);
+        strategies.put(strategy.getName(), strategy);
+    }
+
+    @Override
+    public <T extends DependentBinariesResolutionStrategy> T getStrategy(String name, Class<T> type) {
+        return Cast.cast(type, strategies.get(name));
     }
 
     @Override
     public DependentBinariesResolutionResult resolve(BinarySpecInternal target) {
         List<DependentBinariesResolvedResult> roots = Lists.newArrayList();
-        for (DependentBinariesResolutionStrategy strategy : strategies) {
+        for (DependentBinariesResolutionStrategy strategy : strategies.values()) {
             DependentBinariesResolutionResult result = strategy.resolve(target);
             roots.add(result.getRoot());
         }

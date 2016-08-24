@@ -16,12 +16,13 @@
 
 package org.gradle.platform.base.internal.dependents;
 
+import org.gradle.api.Named;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 
 /**
  * Strategy to resolve dependent binaries.
  */
-public interface DependentBinariesResolutionStrategy {
+public interface DependentBinariesResolutionStrategy extends Named {
 
     DependentBinariesResolutionResult resolve(BinarySpecInternal target);
 
