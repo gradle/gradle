@@ -196,17 +196,8 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         def versions = Splitter.on(COMMA_OR_SEMICOLON)
             .omitEmptyStrings()
             .splitToList(overrideBaselinesProperty)
-        // groovy doesn't have flatMap, so use groovy's inject for similar purpose
-        versions.inject(new LinkedHashSet<String>()) { Set<String> result, version ->
-            if (version == 'defaults') {
-                result.addAll(targetVersions)
-            } else {
-                result.add(version)
-            }
-            result
-        }
+        versions.collectMany([] as Set) { version -> version == 'defaults' ? targetVersions : [version] }
     }
-
 
     protected static GradleDistribution findRelease(ReleasedVersionDistributions releases, String requested) {
         GradleDistribution best = null
