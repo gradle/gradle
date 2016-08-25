@@ -8,6 +8,9 @@
       <option name="checkoutMode" value="ON_AGENT" />
       <option name="cleanBuild" value="true" />
     </options>
+    <disabled-settings>
+      <setting-ref ref="RUNNER_1092" />
+    </disabled-settings>
     <parameters>
       <param name="gradle.artifactory.password" value="zxx8f71132c6b59798ab62c2f0fa024850d" spec="password display='hidden'" />
       <param name="gradle.artifactory.user" value="cbeams" />
