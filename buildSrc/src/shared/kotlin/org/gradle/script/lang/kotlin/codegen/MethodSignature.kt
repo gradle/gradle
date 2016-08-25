@@ -39,27 +39,23 @@ data class MethodSignature(
                     nextTypeParameterName = name
                 }
 
-                override fun visitClassBound(): SignatureVisitor {
-                    return visitInterfaceBound()
-                }
+                override fun visitClassBound(): SignatureVisitor =
+                    visitInterfaceBound()
 
-                override fun visitInterfaceBound(): SignatureVisitor {
-                    return JvmTypeBuilder {
+                override fun visitInterfaceBound(): SignatureVisitor =
+                    JvmTypeBuilder {
                         typeParameters.add(TypeParameter(nextTypeParameterName!!, it))
                     }
-                }
 
-                override fun visitParameterType(): SignatureVisitor {
-                    return JvmTypeBuilder {
+                override fun visitParameterType(): SignatureVisitor =
+                    JvmTypeBuilder {
                         parameters.add(it)
                     }
-                }
 
-                override fun visitReturnType(): SignatureVisitor {
-                    return JvmTypeBuilder() {
+                override fun visitReturnType(): SignatureVisitor =
+                    JvmTypeBuilder() {
                         returnType = it
                     }
-                }
             })
             return MethodSignature(parameters, returnType!!, typeParameters)
         }
@@ -150,11 +146,10 @@ internal class JvmTypeBuilder(val onEnd: (JvmType) -> Unit) : SignatureVisitor(O
         onEnd(GenericTypeVariable(name))
     }
 
-    override fun visitArrayType(): SignatureVisitor {
-        return JvmTypeBuilder {
+    override fun visitArrayType(): SignatureVisitor =
+        JvmTypeBuilder {
             onEnd(ArrayType(it))
         }
-    }
 
     override fun visitInnerClassType(name: String) {
         TODO()
@@ -165,11 +160,10 @@ internal class JvmTypeBuilder(val onEnd: (JvmType) -> Unit) : SignatureVisitor(O
         type = ClassType(name)
     }
 
-    override fun visitTypeArgument(wildcard: Char): SignatureVisitor {
-        return JvmTypeBuilder {
+    override fun visitTypeArgument(wildcard: Char): SignatureVisitor =
+        JvmTypeBuilder {
             typeArguments.add(it)
         }
-    }
 
     override fun visitTypeArgument() {
         typeArguments.add(WildcardType.Instance)

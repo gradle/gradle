@@ -33,15 +33,13 @@ data class ClassSignature(val typeParameters: List<TypeParameter>) {
                     nextTypeParameterName = name
                 }
 
-                override fun visitClassBound(): SignatureVisitor {
-                    return visitInterfaceBound()
-                }
+                override fun visitClassBound(): SignatureVisitor =
+                    visitInterfaceBound()
 
-                override fun visitInterfaceBound(): SignatureVisitor {
-                    return JvmTypeBuilder {
+                override fun visitInterfaceBound(): SignatureVisitor =
+                    JvmTypeBuilder {
                         typeParameters.add(TypeParameter(nextTypeParameterName!!, it))
                     }
-                }
             })
             return ClassSignature(typeParameters)
         }
