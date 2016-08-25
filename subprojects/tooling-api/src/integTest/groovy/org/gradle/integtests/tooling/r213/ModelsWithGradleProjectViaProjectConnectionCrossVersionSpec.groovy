@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.tooling.r213
 
-import groovy.transform.CompileStatic
 import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector

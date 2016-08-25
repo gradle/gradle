@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
-import spock.lang.Ignore
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 

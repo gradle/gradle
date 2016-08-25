@@ -54,11 +54,11 @@ public class BuildModelsActionRunner implements BuildActionRunner {
         BuildModelsAction buildModelsAction = (BuildModelsAction) action;
         GradleInternal gradle = buildController.getGradle();
 
+        String modelName = buildModelsAction.getModelName();
         InternalModelResults<Object> compositeResults = new InternalModelResults<Object>();
         try {
             buildController.configure();
             forceFullConfiguration(gradle);
-            String modelName = buildModelsAction.getModelName();
             collectModelsFromThisBuild(gradle, modelName, compositeResults);
             collectModelsFromIncludedBuilds(gradle, modelName, compositeResults);
         } catch (RuntimeException e) {

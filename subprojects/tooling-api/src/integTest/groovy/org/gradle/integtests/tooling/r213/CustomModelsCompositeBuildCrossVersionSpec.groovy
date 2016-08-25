@@ -19,8 +19,6 @@ package org.gradle.integtests.tooling.r213
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.r16.CustomModel
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 
 /**
  * Tooling client requests custom model type for every project in a composite
