@@ -52,27 +52,22 @@ public class BuildModelsActionRunner implements BuildActionRunner {
         }
 
         BuildModelsAction buildModelsAction = (BuildModelsAction) action;
+        GradleInternal gradle = buildController.getGradle();
 
         InternalModelResults<Object> compositeResults = new InternalModelResults<Object>();
-        GradleInternal gradle = configureTopLevelBuild(buildController, compositeResults);
-        String modelName = buildModelsAction.getModelName();
-        collectModelsFromThisBuild(gradle, modelName, compositeResults);
-        collectModelsFromIncludedBuilds(gradle, modelName, compositeResults);
+        try {
+            buildController.configure();
+            forceFullConfiguration(gradle);
+            String modelName = buildModelsAction.getModelName();
+            collectModelsFromThisBuild(gradle, modelName, compositeResults);
+            collectModelsFromIncludedBuilds(gradle, modelName, compositeResults);
+        } catch (RuntimeException e) {
+            compositeResults.addBuildFailure(getRootDir(gradle), transformFailure(e));
+        }
 
         PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
         BuildActionResult result = new BuildActionResult(payloadSerializer.serialize(compositeResults), null);
         buildController.setResult(result);
-    }
-
-    private GradleInternal configureTopLevelBuild(BuildController buildController, InternalModelResults<Object> compositeResults) {
-        GradleInternal gradle = buildController.getGradle();
-        try {
-            buildController.configure();
-            forceFullConfiguration(gradle);
-        } catch (RuntimeException e) {
-            compositeResults.addBuildFailure(getRootDir(gradle), transformFailure(e));
-        }
-        return gradle;
     }
 
     private void forceFullConfiguration(GradleInternal gradle) {
