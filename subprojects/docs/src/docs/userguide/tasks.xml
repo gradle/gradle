@@ -309,7 +309,7 @@
         <para>How does incremental build work? And what does it take to make use of it in your own
             tasks? Let’s take a look.
         </para>
-    
+
         <section id="sec:task_inputs_outputs">
             <title>Task inputs and outputs</title>
             <para>In the most common case, a task takes some inputs and generates some outputs. If we
@@ -327,7 +327,7 @@
 
             <para>An important characteristic of an input is that it affects one or more outputs, as
                 you can see from the previous figure. Different bytecode is generated depending on the
-                content of the source files and the minimum version of the Java runtime you want to 
+                content of the source files and the minimum version of the Java runtime you want to
                 run the code on. That makes them task inputs. But whether the compilation runs in a
                 forked process or not, determined by the <literal>fork</literal> property, has no
                 impact on what bytecode gets generated. In Gradle terminology, <literal>fork</literal>
@@ -450,7 +450,7 @@
                 <para>These annotated properties mean that Gradle will skip the task if none of the source
                     files, template engine, model data or generated files have changed since the previous
                     time Gradle executed the task. This will often save a significant amount of time. You
-                    can learn how Gradle detects <link linkend="sec:how_does_inc_build_work">changes later</link>.
+                    can learn how Gradle detects <link linkend="sec:how_does_it_work">changes later</link>.
                 </para>
 
                 <para>This example is particularly interesting because it works with collections of source
@@ -684,7 +684,7 @@
                         will add inputs and outputs rather than replace them.
                     </para>
                 </section>
-                
+
                 <section id="sec:runtime_api_configuration">
                     <title>Fine-grained configuration</title>
                     <para>The runtime API methods only allow you to declare your inputs and outputs in
