@@ -560,3 +560,7 @@ task mediumAndroidBuild(type: RemoteProject) {
     }
 }
 
+task largeAndroidBuild(type: RemoteProject) {
+    remoteUri = 'https://github.com/gradle/perf-android-large.git'
+    branch = 'master'
+}

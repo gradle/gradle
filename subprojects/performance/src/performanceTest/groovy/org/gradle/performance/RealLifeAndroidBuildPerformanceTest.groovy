@@ -44,5 +44,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractAndroidPerformanceTest
         testProject          | tasks
         'mediumAndroidBuild' | ['help']
         'mediumAndroidBuild' | ['clean', 'assemble']
+        'largeAndroidBuild'  | ['help']
+        'largeAndroidBuild'  | ['clean', 'assemble']
     }
 }
