@@ -17,6 +17,7 @@
 package codegen
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
@@ -28,10 +29,10 @@ open class GenerateClasspathManifest : DefaultTask() {
     var outputDirectory: File? = null
 
     @Input
-    val compileOnly = project.configurations.getByName("compileOnly")
+    val compileOnly = project.configurations.getByName("compileOnly")!!
 
     @Input
-    val runtime = project.configurations.getByName("runtime")
+    val runtime = project.configurations.getByName("runtime")!!
 
     val outputFile: File
         @OutputFile
@@ -39,7 +40,7 @@ open class GenerateClasspathManifest : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        val projects = join(compileOnly.dependencies.map { it.name })
+        val projects = join(compileOnly.dependencies.filterIsInstance<ExternalModuleDependency>().map { it.name })
         val runtime = join(runtime.files.map { it.name })
         write("projects=$projects\nruntime=$runtime\n")
     }

@@ -15,9 +15,10 @@ version = "0.3.2-SNAPSHOT"
 val kotlinVersion by extra.properties
 
 dependencies {
-    compileOnly(gradle("core"))
-    compileOnly(gradle("process-services"))
-    compileOnly(gradle("tooling-api"))
+    compileOnly(gradleApi())
+    // compileOnly(gradle("core"))
+    // compileOnly(gradle("process-services"))
+    // compileOnly(gradle("tooling-api"))
 
     compile("org.codehaus.groovy:groovy-all:2.4.7")
     compile("org.slf4j:slf4j-api:1.7.10")
