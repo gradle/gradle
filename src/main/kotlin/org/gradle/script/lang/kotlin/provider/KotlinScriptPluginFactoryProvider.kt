@@ -24,11 +24,10 @@ import javax.inject.Inject
 class KotlinScriptPluginFactoryProvider @Inject constructor(
     val classPathProvider: KotlinScriptClassPathProvider) : ScriptPluginFactoryProvider {
 
-    override fun getFor(fileName: String): ScriptPluginFactory? {
-        return when {
+    override fun getFor(fileName: String): ScriptPluginFactory? =
+        when {
             fileName.endsWith(".kts") -> KotlinScriptPluginFactory(classPathProvider)
             else -> null
         }
-    }
 }
 
