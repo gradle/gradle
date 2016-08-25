@@ -89,6 +89,7 @@ class BuildControllerAdapter implements BuildController {
         try {
             result = buildController.getModel(originalTarget, modelIdentifier);
         } catch (InternalUnsupportedModelException e) {
+            //TODO we should be mapping exceptions here just like we do for model requests
             throw Exceptions.unknownModel(modelType, e);
         }
 
