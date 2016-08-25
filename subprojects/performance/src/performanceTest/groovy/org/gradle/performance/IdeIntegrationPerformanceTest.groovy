@@ -39,9 +39,9 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
 
         where:
         testProject       | targetVersions
-        "small"           | ['2.0', '2.8', 'last']
-        "multi"           | ['2.8', 'last']
-        "lotDependencies" | ['2.8', 'last']
+        "small"           | ['last']
+        "multi"           | ['last']
+        "lotDependencies" | ['last']
     }
 
     @Unroll("Project '#testProject' idea")
@@ -61,8 +61,8 @@ class IdeIntegrationPerformanceTest extends AbstractCrossVersionPerformanceTest 
 
         where:
         testProject       | targetVersions
-        "small"           | ['2.0', '2.8', 'last']
-        "multi"           | ['2.8', 'last']
-        "lotDependencies" | ['2.8', 'last']
+        "small"           | ['last']
+        "multi"           | ['last']
+        "lotDependencies" | ['last']
     }
 }
