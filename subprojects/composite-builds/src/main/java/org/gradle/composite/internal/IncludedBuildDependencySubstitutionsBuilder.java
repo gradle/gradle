@@ -23,7 +23,8 @@ import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class IncludedBuildDependencySubstitutionsBuilder {
     private final CompositeBuildContext context;
@@ -41,9 +42,9 @@ public class IncludedBuildDependencySubstitutionsBuilder {
 
     private void registerProject(String buildName, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
-        ProjectComponentIdentifier originalIdentifier = DefaultProjectComponentIdentifier.newId(project.getPath());
+        ProjectComponentIdentifier originalIdentifier = newProjectId(project.getPath());
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
-        ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(createExternalProjectPath(buildName, project.getPath()));
+        ProjectComponentIdentifier componentIdentifier = newProjectId(createExternalProjectPath(buildName, project.getPath()));
         context.registerSubstitution(originalComponent.getId(), componentIdentifier);
     }
 

@@ -19,14 +19,15 @@ package org.gradle.api.internal.artifacts.component;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class DefaultComponentIdentifierFactory implements ComponentIdentifierFactory {
     public ComponentIdentifier createComponentIdentifier(Module module) {
         String projectPath = module.getProjectPath();
 
         if(projectPath != null) {
-            return new DefaultProjectComponentIdentifier(projectPath);
+            return newProjectId(projectPath);
         }
 
         return new DefaultModuleComponentIdentifier(module.getGroup(), module.getName(), module.getVersion());

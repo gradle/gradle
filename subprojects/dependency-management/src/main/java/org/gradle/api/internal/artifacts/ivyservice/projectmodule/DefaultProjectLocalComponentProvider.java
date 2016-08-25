@@ -26,9 +26,10 @@ import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.Configuratio
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class DefaultProjectLocalComponentProvider implements ProjectLocalComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
@@ -51,7 +52,7 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
     private LocalComponentMetadata getLocalComponentMetaData(ProjectInternal project) {
         Module module = project.getModule();
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
-        ComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(project.getPath());
+        ComponentIdentifier componentIdentifier = newProjectId(project.getPath());
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus());
         metaDataBuilder.addConfigurations(metaData, project.getConfigurations());
         return metaData;
@@ -78,7 +79,7 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
             String buildName = parts[0];
             String rootProjectName = projectRegistry.getProject(":").getName();
             if (rootProjectName.equals(buildName)) {
-                return DefaultProjectComponentIdentifier.newId(":" + parts[1]);
+                return newProjectId(":" + parts[1]);
             }
         }
         return projectIdentifier;

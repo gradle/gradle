@@ -21,7 +21,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     private final String projectPath;
     private final String displayName;
 
-    public DefaultProjectComponentIdentifier(String projectPath) {
+    private DefaultProjectComponentIdentifier(String projectPath) {
         assert projectPath != null : "project path cannot be null";
         this.projectPath = projectPath;
         displayName = "project " + projectPath;
@@ -63,7 +63,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return displayName;
     }
 
-    public static ProjectComponentIdentifier newId(String projectPath) {
+    public static ProjectComponentIdentifier newProjectId(String projectPath) {
         return new DefaultProjectComponentIdentifier(projectPath);
     }
 }

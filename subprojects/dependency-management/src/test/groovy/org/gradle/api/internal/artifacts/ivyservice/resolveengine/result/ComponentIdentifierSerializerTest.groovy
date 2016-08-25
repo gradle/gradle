@@ -21,8 +21,9 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultLibraryBinaryIdentifier
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.serialize.SerializerSpec
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
 
 class ComponentIdentifierSerializerTest extends SerializerSpec {
     ComponentIdentifierSerializer serializer = new ComponentIdentifierSerializer()
@@ -63,7 +64,7 @@ class ComponentIdentifierSerializerTest extends SerializerSpec {
 
     def "serializes BuildComponentIdentifier"() {
         given:
-        ProjectComponentIdentifier selection = new DefaultProjectComponentIdentifier(':myPath')
+        ProjectComponentIdentifier selection = newProjectId(':myPath')
 
         when:
         ProjectComponentIdentifier result = serialize(selection, serializer)

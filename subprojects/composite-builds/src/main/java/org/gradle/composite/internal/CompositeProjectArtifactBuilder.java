@@ -21,10 +21,11 @@ import com.google.common.collect.Multimap;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.initialization.IncludedBuildExecuter;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 
 import java.util.Collection;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     private final Multimap<ProjectComponentIdentifier, String> tasksForBuild = LinkedHashMultimap.create();
@@ -62,7 +63,7 @@ class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
         // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
         ProjectComponentIdentifier project = artifact.getComponentId();
         String buildName = project.getProjectPath().split("::", 2)[0];
-        return DefaultProjectComponentIdentifier.newId(buildName + "::");
+        return newProjectId(buildName + "::");
     }
 
 }

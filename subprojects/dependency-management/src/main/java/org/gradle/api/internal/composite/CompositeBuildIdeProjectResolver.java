@@ -19,13 +19,14 @@ package org.gradle.api.internal.composite;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.service.ServiceRegistry;
 
 import java.io.File;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 // TODO:DAZ Split out the non-composite resolution stuff and name appropriately
 public class CompositeBuildIdeProjectResolver {
@@ -40,7 +41,7 @@ public class CompositeBuildIdeProjectResolver {
     }
 
     public File getProjectDirectory(String projectPath) {
-        ProjectComponentIdentifier projectComponentIdentifier = DefaultProjectComponentIdentifier.newId(projectPath);
+        ProjectComponentIdentifier projectComponentIdentifier = newProjectId(projectPath);
         return compositeContext.getProjectDirectory(projectComponentIdentifier);
     }
 

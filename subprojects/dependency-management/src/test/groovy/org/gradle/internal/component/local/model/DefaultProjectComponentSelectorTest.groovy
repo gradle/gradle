@@ -21,6 +21,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import spock.lang.Specification
 import spock.lang.Unroll
 
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
 import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultProjectComponentSelectorTest extends Specification {
@@ -81,7 +82,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
     def "matches id (#projectPath)"() {
         expect:
         ProjectComponentSelector defaultBuildComponentSelector = new DefaultProjectComponentSelector(':myProjectPath1')
-        ProjectComponentIdentifier defaultBuildComponentIdentifier = new DefaultProjectComponentIdentifier(projectPath)
+        ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId(projectPath)
         defaultBuildComponentSelector.matchesStrictly(defaultBuildComponentIdentifier) == matchesId
 
         where:

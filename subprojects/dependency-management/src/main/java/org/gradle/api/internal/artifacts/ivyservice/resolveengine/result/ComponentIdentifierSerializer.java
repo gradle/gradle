@@ -29,12 +29,14 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
+
 public class ComponentIdentifierSerializer implements Serializer<ComponentIdentifier> {
     public ComponentIdentifier read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 
         if(Implementation.BUILD.getId() == id) {
-            return new DefaultProjectComponentIdentifier(decoder.readString());
+            return newProjectId(decoder.readString());
         } else if(Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {

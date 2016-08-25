@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -26,6 +25,8 @@ import org.gradle.internal.resolve.ModuleVersionResolveException
 import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
 
 class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
@@ -39,7 +40,7 @@ class ProjectDependencyResolverTest extends Specification {
         def dependencyMetaData = Stub(DependencyMetadata) {
             getSelector() >> DefaultProjectComponentSelector.newSelector(":project")
         }
-        def id = DefaultProjectComponentIdentifier.newId(":project")
+        def id = newProjectId(":project")
 
         when:
         resolver.resolve(dependencyMetaData, result)
@@ -54,7 +55,7 @@ class ProjectDependencyResolverTest extends Specification {
         setup:
         def componentMetaData = Mock(LocalComponentMetadata)
         def result = Mock(BuildableComponentResolveResult)
-        def projectComponentId = new DefaultProjectComponentIdentifier(":projectPath")
+        def projectComponentId = newProjectId(":projectPath")
 
         when:
         resolver.resolve(projectComponentId, new DefaultComponentOverrideMetadata(), result)
@@ -92,7 +93,7 @@ class ProjectDependencyResolverTest extends Specification {
 
     def "adds failure to resolution result if project does not exist"() {
         def result = Mock(BuildableComponentResolveResult)
-        def componentIdentifier = new DefaultProjectComponentIdentifier(":doesnotexist")
+        def componentIdentifier = newProjectId(":doesnotexist")
         def overrideMetaData = Mock(ComponentOverrideMetadata)
 
         when:

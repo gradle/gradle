@@ -28,7 +28,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.internal.component.local.model.DefaultLocalComponentMetadata;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.local.model.LocalComponentArtifactMetadata;
 import org.gradle.internal.component.local.model.LocalComponentMetadata;
@@ -39,6 +38,8 @@ import org.gradle.internal.component.model.LocalOriginDependencyMetadata;
 
 import java.io.File;
 import java.util.Set;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class IncludedBuildDependencyMetadataBuilder {
     private final CompositeBuildContext context;
@@ -56,10 +57,10 @@ public class IncludedBuildDependencyMetadataBuilder {
 
     private void registerProject(String buildName, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
-        ProjectComponentIdentifier originalIdentifier = DefaultProjectComponentIdentifier.newId(project.getPath());
+        ProjectComponentIdentifier originalIdentifier = newProjectId(project.getPath());
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
 
-        ProjectComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(createExternalProjectPath(buildName, project.getPath()));
+        ProjectComponentIdentifier componentIdentifier = newProjectId(createExternalProjectPath(buildName, project.getPath()));
         LocalComponentMetadata compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent);
 
         context.register(componentIdentifier, compositeComponent, project.getProjectDir());
