@@ -809,8 +809,7 @@
                         will put Gradle into a state in which it continually checks for changes and executes
                         the requested tasks when it encounters such changes.
                     </para>
-                    <para>You can find out more about this feature in <link linkend="continuous_build">
-                        elsewhere in the user guide</link>.
+                    <para>You can find out more about this feature in <xref linkend="continuous_build"/>.
                     </para>
                 </section>
             </section>
