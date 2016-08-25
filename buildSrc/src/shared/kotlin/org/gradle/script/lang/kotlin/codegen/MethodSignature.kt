@@ -71,8 +71,7 @@ sealed class JvmType {
 data class PrimitiveType(val descriptor: Char) : JvmType() {
 
     override val kotlinTypeName: String
-        get() =
-        when (descriptor) {
+        get() = when (descriptor) {
             'V' -> "Unit"
             'Z' -> "Boolean"
             'C' -> "Char"
@@ -133,6 +132,7 @@ class WildcardType : JvmType() {
  * ) )</li>
  */
 internal class JvmTypeBuilder(val onEnd: (JvmType) -> Unit) : SignatureVisitor(Opcodes.ASM5) {
+
     var type: JvmType? = null
     val typeArguments = arrayListOf<JvmType>()
 
@@ -176,4 +176,3 @@ internal class JvmTypeBuilder(val onEnd: (JvmType) -> Unit) : SignatureVisitor(O
         })
     }
 }
-

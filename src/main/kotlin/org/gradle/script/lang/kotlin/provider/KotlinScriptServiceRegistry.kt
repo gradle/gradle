@@ -51,5 +51,3 @@ object KotlinScriptBuildServices {
         jarCache: GeneratedGradleJarCache) =
         KotlinScriptClassPathProvider(classPathRegistry, dependencyFactory, jarCache)
 }
-
-

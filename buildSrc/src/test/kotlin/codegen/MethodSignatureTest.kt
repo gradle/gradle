@@ -42,5 +42,3 @@ class MethodSignatureTest {
                     returnType = GenericType(ClassType("java/lang/Iterable"), listOf(GenericTypeVariable("T"))))))
     }
 }
-
-
