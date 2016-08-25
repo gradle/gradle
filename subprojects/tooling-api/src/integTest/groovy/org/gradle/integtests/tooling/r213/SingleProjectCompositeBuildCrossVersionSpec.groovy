@@ -49,31 +49,6 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
         containsProjects(models, [':'])
     }
 
-    def "participant is always treated as root of a build"() {
-        given:
-        multiProjectBuildInRootFolder("bad-parent", ['a', 'b', 'c']) {
-            buildFile << """
-                allprojects {
-                    throw new RuntimeException("Badly configured project")
-                }
-"""
-        }
-        def goodChildProject = file("c").createDir()
-        goodChildProject.file("build.gradle") <<"""
-            apply plugin: 'java'
-"""
-
-        when:
-        def models = getUnwrappedModelsWithGradleConnection(EclipseProject)
-
-        then:
-        models.size() == 1
-        EclipseProject project = models.get(0)
-        project.gradleProject.parent == null
-        project.gradleProject.path == ':'
-        project.projectDirectory == goodChildProject
-    }
-
     def "sees changes to composite build when projects are added"() {
         given:
         singleProjectBuildInRootFolder("single-build")
@@ -91,7 +66,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
 
         when:
         // make project a multi-project build
-        settingsFile << "include 'a'"
+        settingsFile << "\ninclude 'a'"
 
         and:
         def secondRetrieval = unwrap(connection.getModels(EclipseProject))
@@ -103,7 +78,7 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
 
         when:
         // adding more projects to multi-project build
-        settingsFile << "include 'b', 'c'"
+        settingsFile << "\ninclude 'b', 'c'"
 
         and:
         def thirdRetrieval = unwrap(connection.getModels(EclipseProject))
@@ -118,13 +93,11 @@ class SingleProjectCompositeBuildCrossVersionSpec extends GradleConnectionToolin
         projectDir.deleteDir()
 
         and:
-        def fourthRetrieval = unwrap(connection.getModels(EclipseProject))
+        unwrap(connection.getModels(EclipseProject))
 
         then:
         def e = thrown(GradleConnectionException)
-        assertFailure(e,
-            "Could not fetch models of type 'EclipseProject'",
-            "The root project is not yet available for build")
+        assertFailure(e, "Project directory '$projectDir' does not exist.")
 
         cleanup:
         connection?.close()
