@@ -60,7 +60,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         ProjectComponentIdentifier originalIdentifier = newProjectId(project.getPath());
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
 
-        ProjectComponentIdentifier componentIdentifier = newProjectId(createExternalProjectPath(buildName, project.getPath()));
+        ProjectComponentIdentifier componentIdentifier = newProjectId(buildName, project.getPath());
         LocalComponentMetadata compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent);
 
         context.register(componentIdentifier, compositeComponent, project.getProjectDir());

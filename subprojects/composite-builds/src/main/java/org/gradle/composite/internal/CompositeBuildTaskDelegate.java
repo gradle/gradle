@@ -51,7 +51,7 @@ public class CompositeBuildTaskDelegate extends DefaultTask {
     @TaskAction
     public void executeTaskInOtherBuild() {
         IncludedBuildExecuter builder = getServices().get(IncludedBuildExecuter.class);
-        ProjectComponentIdentifier id = newProjectId(build + "::");
+        ProjectComponentIdentifier id = newProjectId(build, ":");
         builder.execute(id, Collections.singleton(task));
     }
 }

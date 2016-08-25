@@ -303,8 +303,7 @@ public class IdeaProject {
     }
 
     private void includeModulesFromComposite(Project xmlProject) {
-        // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
-        ProjectComponentIdentifier thisProjectId = newProjectId(project.getRootProject().getName() + ":" + project.getPath());
+        ProjectComponentIdentifier thisProjectId = newProjectId(project.getRootProject().getName(), project.getPath());
         PathFactory pathFactory = getPathFactory();
         Set<ProjectComponentIdentifier> projectsInComposite = moduleToProjectMapper.getProjectsInComposite();
         for (ProjectComponentIdentifier otherProjectId : projectsInComposite) {

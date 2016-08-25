@@ -66,4 +66,17 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     public static ProjectComponentIdentifier newProjectId(String projectPath) {
         return new DefaultProjectComponentIdentifier(projectPath);
     }
+
+    public static ProjectComponentIdentifier newProjectId(String build, String projectPath) {
+        return new DefaultProjectComponentIdentifier(build + ":" + projectPath);
+    }
+
+    public static ProjectComponentIdentifier rootId(ProjectComponentIdentifier projectComponentIdentifier) {
+        String path = projectComponentIdentifier.getProjectPath();
+        if (path.contains("::")) {
+            String buildName = path.split("::", 2)[0];
+            return newProjectId(buildName, ":");
+        }
+        return newProjectId(":");
+    }
 }
