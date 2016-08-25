@@ -29,6 +29,8 @@ import org.gradle.script.lang.kotlin.codegen.isApiClassEntry
 import org.gradle.script.lang.kotlin.codegen.requiresExtension
 import org.gradle.script.lang.kotlin.support.asm.eraseMethodsMatching
 
+import org.gradle.util.GFileUtils.moveFile
+
 import java.io.File
 
 class KotlinScriptClassPathProvider(
@@ -62,9 +64,16 @@ class KotlinScriptClassPathProvider(
         }
 
     private fun kotlinGradleApiFrom(gradleApiJar: File): File =
-        jarCache["script-kotlin-api", {
-            generateKotlinGradleApiAt(it, gradleApiJar)
+        jarCache["script-kotlin-api", { outputJar ->
+            val tempFile = tempFileFor(outputJar)
+            generateKotlinGradleApiAt(tempFile, gradleApiJar)
+            moveFile(tempFile, outputJar)
         }]
+
+    private fun tempFileFor(outputJar: File): File =
+        createTempFile(outputJar.name, ".tmp").apply {
+            deleteOnExit()
+        }
 
     private fun generateKotlinGradleApiAt(outputFile: File, gradleApiJar: File) {
         gradleApiJar.inputStream().use { input ->
