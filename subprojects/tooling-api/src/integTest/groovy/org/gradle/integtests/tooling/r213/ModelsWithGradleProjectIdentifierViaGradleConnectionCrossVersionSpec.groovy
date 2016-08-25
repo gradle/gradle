@@ -60,6 +60,7 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
         modelType << modelsHavingGradleProjectIdentifier
     }
 
+    @TargetGradleVersion(">=3.1")
     def "Provides identified models for composite build"() {
         setup:
         includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
@@ -76,6 +77,7 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
         modelType << modelsHavingGradleProjectIdentifier
     }
 
+    @TargetGradleVersion(">=3.1")
     def "all Launchables are identified when obtained from GradleConnection"() {
         setup:
         includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
@@ -97,7 +99,7 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
     @TargetGradleVersion('>=1.2 <1.12')
     def "decent error message for Gradle version that doesn't expose publications"() {
         setup:
-        includeBuilds(multiProjectBuildInSubFolder("B", ['x', 'y']), singleProjectBuildInSubfolder("A"))
+        singleProjectBuildInRootfolder("A")
 
         when:
         def modelResults = withGradleConnection { GradleConnection connection ->
@@ -106,7 +108,7 @@ class ModelsWithGradleProjectIdentifierViaGradleConnectionCrossVersionSpec exten
         }.asList()
 
         then:
-        modelResults.size() == 2
+        modelResults.size() == 1
         modelResults.each {
             def e = it.failure
             assert e.message.contains('does not support building a model of type \'ProjectPublications\'.')

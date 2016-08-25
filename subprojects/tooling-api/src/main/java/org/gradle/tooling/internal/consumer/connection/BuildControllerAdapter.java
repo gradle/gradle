@@ -20,8 +20,11 @@ import org.gradle.tooling.BuildController;
 import org.gradle.tooling.UnknownModelException;
 import org.gradle.tooling.internal.adapter.ObjectGraphAdapter;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier;
+import org.gradle.tooling.internal.consumer.converters.BasicGradleProjectIdentifierMixin;
 import org.gradle.tooling.internal.consumer.converters.FixedProjectIdentifierProvider;
+import org.gradle.tooling.internal.consumer.converters.GradleProjectIdentifierMixin;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.protocol.BuildResult;
 import org.gradle.tooling.internal.protocol.InternalBuildController;
@@ -92,7 +95,10 @@ class BuildControllerAdapter implements BuildController {
         if (rootDir != null) {
             //TODO shouldn't we be applying HasCompatibilityMapping#applyCompatibilityMapping here?
             FixedProjectIdentifierProvider identifierProvider = new FixedProjectIdentifierProvider(new DefaultProjectIdentifier(rootDir, getProjectPath(target)));
-            return identifierProvider.applyTo(resultAdapter.builder(modelType)).build(result.getModel());
+            ViewBuilder<T> viewBuilder = resultAdapter.builder(modelType);
+            viewBuilder.mixInTo(GradleProject.class, new GradleProjectIdentifierMixin(identifierProvider.getBuildIdentifier()));
+            viewBuilder.mixInTo(BasicGradleProject.class, new BasicGradleProjectIdentifierMixin(identifierProvider.getBuildIdentifier()));
+            return identifierProvider.applyTo(viewBuilder).build(result.getModel());
         }
         return resultAdapter.adapt(modelType, result.getModel());
     }
