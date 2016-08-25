@@ -16,9 +16,13 @@
 package org.gradle.internal.classloader;
 
 import org.gradle.api.Nullable;
+import org.gradle.internal.UncheckedException;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 
 public abstract class ClassLoaderUtils {
     public static void tryClose(@Nullable ClassLoader classLoader) {
@@ -28,6 +32,22 @@ public abstract class ClassLoaderUtils {
             } catch (IOException ignore) {
                 // do nothing.
             }
+        }
+    }
+
+    public static void disableUrlConnectionCaching() {
+        // fix problems in updating jar files by disabling default caching of URL connections.
+        // URLConnection default caching should be disabled since it causes jar file locking issues and JVM crashes in updating jar files.
+        // Changes to jar files won't be noticed in all cases when caching is enabled.
+        // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.
+        try {
+            URL url = new URL("jar:file://valid_jar_url_syntax.jar!/");
+            URLConnection urlConnection = url.openConnection();
+            urlConnection.setDefaultUseCaches(false);
+        } catch (MalformedURLException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        } catch (IOException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 }

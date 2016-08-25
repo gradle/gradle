@@ -14,15 +14,29 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.buildtype;
+package org.gradle.composite.internal;
 
-/**
- * A very simple way to configure the build type attributes. It would be better if this state was based on other services.
- */
-public interface MutableBuildTypeAttributes extends BuildTypeAttributes {
-    void markNestedBuild();
+import org.gradle.api.tasks.TaskReference;
 
-    void markCompositeBuild();
+public class IncludedBuildTaskReference implements TaskReference {
+    private final String buildName;
+    private final String taskPath;
 
-    void markToolingApiBuild(boolean toolingModelRequest);
+    public IncludedBuildTaskReference(String buildName, String taskPath) {
+        this.buildName = buildName;
+        this.taskPath = taskPath;
+    }
+
+    @Override
+    public String getName() {
+        return buildName + ":" + taskPath;
+    }
+
+    public String getBuildName() {
+        return buildName;
+    }
+
+    public String getTaskPath() {
+        return taskPath;
+    }
 }

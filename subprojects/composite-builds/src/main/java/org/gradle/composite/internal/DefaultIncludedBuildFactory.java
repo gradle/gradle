@@ -18,7 +18,7 @@ package org.gradle.composite.internal;
 
 import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
@@ -48,14 +48,14 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
     }
 
     @Override
-    public IncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext) {
+    public ConfigurableIncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext) {
         Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, requestContext, sharedServices);
         Factory<GradleLauncher> nestedFactory = requestContext == null ? null : new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, null, sharedServices);
         return instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, nestedFactory);
     }
 
     @Override
-    public IncludedBuild createBuild(File buildDirectory) {
+    public ConfigurableIncludedBuild createBuild(File buildDirectory) {
         return createBuild(buildDirectory, null);
     }
 

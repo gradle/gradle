@@ -24,6 +24,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DefaultDependencySubstitutions;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal;
+import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
 
@@ -48,6 +49,12 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     public File getProjectDir() {
         return projectDir;
+    }
+
+    @Override
+    public TaskReference task(String path) {
+        // TODO:DAZ Validate path starts with ':'
+        return new IncludedBuildTaskReference(getName(), path);
     }
 
     @Override

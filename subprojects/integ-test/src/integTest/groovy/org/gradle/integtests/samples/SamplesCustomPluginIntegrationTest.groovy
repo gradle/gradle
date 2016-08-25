@@ -18,7 +18,6 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.junit.Rule
 
 class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
@@ -41,7 +40,6 @@ class SamplesCustomPluginIntegrationTest extends AbstractIntegrationSpec {
         result.assertTestClassesExecuted('org.gradle.GreetingTaskTest', 'org.gradle.GreetingPluginTest')
     }
 
-    @LeaksFileHandles
     public void canPublishAndUsePluginAndTestImplementations() {
         given:
         using m2 //uploadArchives is leaking to ~/.m2 folder

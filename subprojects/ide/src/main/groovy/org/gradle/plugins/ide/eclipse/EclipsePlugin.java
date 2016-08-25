@@ -137,8 +137,7 @@ public class EclipsePlugin extends IdePlugin {
 
     private static LocalComponentArtifactMetadata createArtifact(String extension, ProjectComponentIdentifier projectId, String projectName, Project project) {
         File projectFile = new File(project.getProjectDir(), "." + extension);
-        String taskName = project.getPath().equals(":") ? ":eclipseProject" : project.getPath() + ":eclipseProject";
-        Task byName = project.getTasks().getByPath(taskName);
+        Task byName = project.getTasks().getByName("eclipseProject");
         String type = "eclipse." + extension;
         PublishArtifact publishArtifact = new DefaultPublishArtifact(projectName, extension, type, null, null, projectFile, byName);
         return new PublishArtifactLocalArtifactMetadata(projectId, type, publishArtifact);

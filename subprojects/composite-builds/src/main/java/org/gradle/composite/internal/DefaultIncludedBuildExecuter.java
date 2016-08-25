@@ -22,8 +22,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
-import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.initialization.IncludedBuildExecuter;
+import org.gradle.initialization.IncludedBuilds;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
@@ -35,56 +35,56 @@ import java.util.Set;
 class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuildExecuter.class);
 
-    private final Set<ProjectComponentIdentifier> executingBuilds = Sets.newHashSet();
-    private final Multimap<ProjectComponentIdentifier, String> executedTasks = LinkedHashMultimap.create();
-    private final CompositeBuildContext compositeBuildContext;
+    private final Set<String> executingBuilds = Sets.newHashSet();
+    private final Multimap<String, String> executedTasks = LinkedHashMultimap.create();
+    private final IncludedBuilds includedBuilds;
 
-    public DefaultIncludedBuildExecuter(CompositeBuildContext compositeBuildContext) {
-        this.compositeBuildContext = compositeBuildContext;
+    public DefaultIncludedBuildExecuter(IncludedBuilds includedBuilds) {
+        this.includedBuilds = includedBuilds;
     }
 
     @Override
     public void execute(ProjectComponentIdentifier buildIdentifier, Iterable<String> taskNames) {
-        checkBuildIdentifier(buildIdentifier);
-        buildStarted(buildIdentifier);
+        String buildName = getBuildName(buildIdentifier);
+        buildStarted(buildName);
         try {
-            doBuild(buildIdentifier, taskNames);
+            doBuild(buildName, taskNames);
         } finally {
-            buildCompleted(buildIdentifier);
+            buildCompleted(buildName);
         }
     }
 
-    // TODO:DAZ More id crap
-    private void checkBuildIdentifier(ProjectComponentIdentifier buildIdentifier) {
+    private String getBuildName(ProjectComponentIdentifier buildIdentifier) {
         if (!buildIdentifier.getProjectPath().endsWith("::")) {
             throw new IllegalArgumentException(buildIdentifier + " is not a build identifier");
         }
+        return buildIdentifier.getProjectPath().split("::", 2)[0];
     }
 
-    private synchronized void buildStarted(ProjectComponentIdentifier build) {
+    private synchronized void buildStarted(String build) {
         if (!executingBuilds.add(build)) {
-            ProjectComponentSelector selector = new DefaultProjectComponentSelector(build.getProjectPath());
-            throw new ModuleVersionResolveException(selector, "Dependency cycle including " + build);
+            ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(build + "::");
+            throw new ModuleVersionResolveException(selector, "Dependency cycle including project " + selector.getProjectPath());
         }
     }
 
-    private synchronized void buildCompleted(ProjectComponentIdentifier project) {
+    private synchronized void buildCompleted(String project) {
         executingBuilds.remove(project);
     }
 
-    private void doBuild(ProjectComponentIdentifier buildId, Iterable<String> taskPaths) {
+    private void doBuild(String buildName, Iterable<String> taskPaths) {
         List<String> tasksToExecute = Lists.newArrayList();
         for (String taskPath : taskPaths) {
-            if (executedTasks.put(buildId, taskPath)) {
+            if (executedTasks.put(buildName, taskPath)) {
                 tasksToExecute.add(taskPath);
             }
         }
         if (tasksToExecute.isEmpty()) {
             return;
         }
-        LOGGER.info("Executing " + buildId + " tasks " + taskPaths);
+        LOGGER.info("Executing " + buildName + " tasks " + taskPaths);
 
-        IncludedBuildInternal build = (IncludedBuildInternal) compositeBuildContext.getBuild(buildId);
+        IncludedBuildInternal build = (IncludedBuildInternal) includedBuilds.getBuild(buildName);
         build.execute(tasksToExecute);
     }
 

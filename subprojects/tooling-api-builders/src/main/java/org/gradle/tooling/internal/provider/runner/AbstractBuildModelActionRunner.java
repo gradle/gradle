@@ -20,12 +20,10 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.execution.ProjectConfigurer;
-import org.gradle.initialization.buildtype.MutableBuildTypeAttributes;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
@@ -49,8 +47,6 @@ abstract class AbstractBuildModelActionRunner implements BuildActionRunner {
         final String modelName = buildModelAction.getModelName();
         final GradleInternal gradle = buildController.getGradle();
 
-        maybeMarkAsModelRequest(gradle, modelName);
-
         if (buildModelAction.isRunTasks()) {
             buildController.run();
         } else {
@@ -68,12 +64,6 @@ abstract class AbstractBuildModelActionRunner implements BuildActionRunner {
     protected abstract Object getModelResult(GradleInternal gradle, String modelName);
 
     protected abstract boolean canHandle(BuildModelAction buildModelAction);
-
-    private void maybeMarkAsModelRequest(GradleInternal gradle, String modelName) {
-        MutableBuildTypeAttributes buildTypeAttributes = getBuildTypeAttributes(gradle);
-        boolean isModelRequest = !modelName.equals(ModelIdentifier.NULL_MODEL);
-        buildTypeAttributes.markToolingApiBuild(isModelRequest);
-    }
 
     final GradleInternal forceFullConfiguration(GradleInternal gradle) {
         gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
@@ -98,8 +88,4 @@ abstract class AbstractBuildModelActionRunner implements BuildActionRunner {
         return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
     }
 
-
-    MutableBuildTypeAttributes getBuildTypeAttributes(GradleInternal gradle) {
-        return gradle.getServices().get(MutableBuildTypeAttributes.class);
-    }
 }

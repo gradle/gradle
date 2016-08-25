@@ -113,7 +113,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
                     exclude 'somePreservedDir/also-not-preserved.txt'
                 }
             }
-        '''
+        '''.stripIndent()
 
         when:
         run 'sync'
@@ -146,7 +146,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
                     include 'preserved.txt'
                 }
             }
-        '''
+        '''.stripIndent()
 
         when:
         run 'sync'
@@ -181,7 +181,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
                 from 'source'
                 into 'dest'
             }
-        '''
+        '''.stripIndent()
 
         when:
         run 'sync'
@@ -195,6 +195,45 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skippedTasks.empty
+    }
+
+    @NotYetImplemented
+    def 'sync is not up to date when the preserve filter is changed'() {
+        given:
+        defaultSourceFileTree()
+        file('dest').create {
+            preserved { file('some-preserved-file.txt') }
+        }
+
+        buildScript '''
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+                preserve {
+                    include 'preserved'
+                }
+            }
+        '''.stripIndent()
+
+        when:
+        run 'sync'
+
+        then:
+        skippedTasks.empty
+        file('dest/preserved').exists()
+
+        when:
+        buildScript '''
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+            }
+        '''.stripIndent()
+        run 'sync'
+
+        then:
+        skippedTasks.empty
+        !file('dest/preserved').exists()
     }
 
     def 'default excludes are removed with non-preserved directories'(String preserved) {
@@ -220,7 +259,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
                   ${preserved}
                 }
             }
-        """
+        """.stripIndent()
 
         when:
         run 'sync'
@@ -249,7 +288,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
                     include 'preservedDir'
                 }
             }
-        '''
+        '''.stripIndent()
 
         when:
         run 'sync'

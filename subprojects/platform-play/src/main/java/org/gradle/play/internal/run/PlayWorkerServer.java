@@ -19,15 +19,12 @@ package org.gradle.play.internal.run;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.net.URLClassLoader;
-import java.net.URLConnection;
 import java.util.concurrent.CountDownLatch;
 
 public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWorkerServerProtocol, Serializable {
@@ -70,7 +67,7 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
     }
 
     private void run() {
-        disableUrlConnectionCaching();
+        ClassLoaderUtils.disableUrlConnectionCaching();
         final Thread thread = Thread.currentThread();
         final ClassLoader previousContextClassLoader = thread.getContextClassLoader();
         final ClassLoader classLoader = new URLClassLoader(new DefaultClassPath(runSpec.getClasspath()).getAsURLArray(), null);
@@ -83,22 +80,6 @@ public class PlayWorkerServer implements Action<WorkerProcessContext>, PlayRunWo
             throw UncheckedException.throwAsUncheckedException(e);
         } finally {
             thread.setContextClassLoader(previousContextClassLoader);
-        }
-    }
-
-    private void disableUrlConnectionCaching() {
-        // fix problems in updating jar files by disabling default caching of URL connections.
-        // URLConnection default caching should be disabled since it causes jar file locking issues and JVM crashes in updating jar files.
-        // Changes to jar files won't be noticed in all cases when caching is enabled.
-        // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.
-        try {
-            URL url = new URL("jar:file://valid_jar_url_syntax.jar!/");
-            URLConnection urlConnection = url.openConnection();
-            urlConnection.setDefaultUseCaches(false);
-        } catch (MalformedURLException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 

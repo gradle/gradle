@@ -19,6 +19,7 @@ import org.gradle.testing.DistributedPerformanceTest
 import org.gradle.testing.PerformanceTest
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 apply plugin: 'java'
 
@@ -259,6 +260,10 @@ tasks.withType(ProjectGeneratorTask) {
     doFirst {
         templateArgs.measurementPluginJarFile = project.tasks.findByPath(':internalPerformanceTesting:measurementPluginJar')?.archivePath
     }
+}
+
+tasks.withType(RemoteProject).all {
+    dependsOn ':internalPerformanceTesting:measurementPluginJar'
 }
 
 // add task that zips the junit xml test report files to a zip file

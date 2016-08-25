@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization.buildtype;
+package org.gradle.internal.classpath;
+
+import java.io.Closeable;
+import java.net.URL;
+import java.util.Collection;
 
 /**
- * Allows a plugin to detect various aspects about the type of build being executed.
+ * Represents a transformer that takes a given ClassPath and transforms it to a ClassPath with cached jars
  */
-public interface BuildTypeAttributes {
+public interface CachedClasspathTransformer extends Closeable {
     /**
-     * Is the build 'nested' within another build? Examples of nested builds are: buildSrc, GradleBuild task, included build.
+     * Transform a ClassPath object to a ClassPath with cached jars
      */
-    boolean isNestedBuild();
+    ClassPath transform(ClassPath classPath);
 
     /**
-     * Is this build a composite build?
+     * Transform a collection of urls to a new collection where the file urls are cached jars
      */
-    boolean isCompositeBuild();
-
-    /**
-     * Was this build triggered by the Tooling API?
-     */
-    boolean isToolingApiBuild();
-
-    /**
-     * Is this build a tooling model request?
-     */
-    boolean isToolingModelRequest();
+    Collection<URL> transform(Collection<URL> urls);
 }

@@ -18,7 +18,9 @@ package org.gradle.performance.fixture
 
 import com.google.common.base.Splitter
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.executer.ExecuterDecoratingGradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuterDecorator
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
@@ -56,6 +58,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> targetVersions = []
 
     BuildExperimentListener buildExperimentListener
+    GradleExecuterDecorator executerDecorator
 
     CrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases) {
         this.reporter = reporter
@@ -72,9 +75,6 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         }
         if (workingDir == null) {
             throw new IllegalStateException("Working directory has not been specified")
-        }
-        if (!targetVersions) {
-            throw new IllegalStateException("Target versions have not been specified")
         }
 
         def scenarioSelector = new TestScenarioSelector()
@@ -97,14 +97,17 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             channel: ResultsStoreHelper.determineChannel()
         )
 
-        LinkedHashSet baselineVersions = toBaselineVersions(releases, targetVersions)
+        runVersion(current, perVersionWorkingDirectory('current'), results.current)
 
-        baselineVersions.each { it ->
-            def baselineVersion = results.baseline(it)
-            runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
+        if(targetVersions) {
+            def baselineVersions = toBaselineVersions(releases, targetVersions)
+
+            baselineVersions.each { it ->
+                def baselineVersion = results.baseline(it)
+                runVersion(buildContext.distribution(baselineVersion.version), perVersionWorkingDirectory(baselineVersion.version), baselineVersion.results)
+            }
         }
 
-        runVersion(current, perVersionWorkingDirectory('current'), results.current)
 
         results.endTime = System.currentTimeMillis()
 
@@ -128,20 +131,17 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         perVersion
     }
 
-    static LinkedHashSet<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions) {
+    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions) {
         def mostRecentFinalRelease = releases.mostRecentFinalRelease.version.version
         def mostRecentSnapshot = releases.mostRecentSnapshot.version.version
         def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-        def baselineVersions = new LinkedHashSet<String>()
-        Set<String> overridenTargetVersions = Splitter.on(COMMA_OR_SEMICOLON)
-            .omitEmptyStrings()
-            .splitToList(System.getProperty('org.gradle.performance.baselines','').replace('defaults', targetVersions.join(',')))
-            .collect(new LinkedHashSet<String>()) {
-            it == 'nightly' ? mostRecentSnapshot : (it == 'last' ? mostRecentFinalRelease : it)
-        }
-        if (overridenTargetVersions) {
-            baselineVersions = overridenTargetVersions
+        def baselineVersions
+
+        def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
+        if (overrideBaselinesProperty) {
+            baselineVersions = resolveOverriddenVersions(overrideBaselinesProperty, targetVersions, mostRecentSnapshot, mostRecentFinalRelease)
         } else {
+            baselineVersions = new LinkedHashSet<String>()
             for (String version : targetVersions) {
                 if (version == 'last' || version == 'nightly' || version == currentBaseVersion) {
                     // These are all treated specially below
@@ -169,7 +169,42 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
                 }
             }
         }
+
         baselineVersions
+    }
+
+    private static Iterable<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions, String mostRecentSnapshot, String mostRecentFinalRelease) {
+        def versions = Splitter.on(COMMA_OR_SEMICOLON)
+            .omitEmptyStrings()
+            .splitToList(overrideBaselinesProperty)
+        expandSymbolicNames(versions, mostRecentFinalRelease, mostRecentSnapshot, targetVersions, 1)
+    }
+
+    private static Set<String> expandSymbolicNames(List<String> versions, String mostRecentFinalRelease, String mostRecentSnapshot, List<String> targetVersions, int recursionLevel) {
+        versions.inject(new LinkedHashSet<String>()) { Set<String> result, version ->
+            switch (version) {
+                case 'none':
+                    // skip it
+                    break
+                case 'defaults':
+                    if (recursionLevel == 1) {
+                        // expand defaults recursively once
+                        result.addAll(expandSymbolicNames(targetVersions, mostRecentFinalRelease, mostRecentSnapshot, targetVersions, recursionLevel + 1))
+                    } else {
+                        throw new IllegalArgumentException("'defaults' shouldn't be used recursively.")
+                    }
+                    break
+                case 'nightly':
+                    result << mostRecentSnapshot
+                    break
+                case 'last':
+                    result << mostRecentFinalRelease
+                    break
+                default:
+                    result << version
+            }
+            result
+        }
     }
 
     protected static GradleDistribution findRelease(ReleasedVersionDistributions releases, String requested) {
@@ -196,7 +231,7 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             .listener(buildExperimentListener)
             .invocation {
                 workingDirectory(workingDir)
-                distribution(dist)
+                distribution(new ExecuterDecoratingGradleDistribution(dist, executerDecorator))
                 tasksToRun(this.tasksToRun as String[])
                 args(this.args as String[])
                 gradleOpts(gradleOptsInUse as String[])

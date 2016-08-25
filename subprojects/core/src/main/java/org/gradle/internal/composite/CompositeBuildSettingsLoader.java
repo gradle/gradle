@@ -22,7 +22,6 @@ import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.IncludedBuildFactory;
-import org.gradle.initialization.buildtype.MutableBuildTypeAttributes;
 import org.gradle.initialization.SettingsLoader;
 import org.gradle.internal.service.ServiceRegistry;
 
@@ -45,11 +44,10 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
 
         Collection<IncludedBuild> includedBuilds = getIncludedBuilds(gradle.getStartParameter(), settings);
         if (!includedBuilds.isEmpty()) {
+            gradle.setIncludedBuilds(includedBuilds);
+
             CompositeContextBuilder compositeContextBuilder = buildServices.get(CompositeContextBuilder.class);
             compositeContextBuilder.addToCompositeContext(includedBuilds);
-
-            MutableBuildTypeAttributes buildTypeAttributes = buildServices.get(MutableBuildTypeAttributes.class);
-            buildTypeAttributes.markCompositeBuild();
         }
 
         return settings;

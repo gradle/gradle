@@ -257,7 +257,7 @@ org.gradle.api.internal.tasks.CompileServices"""
     def "remaps resources"() {
         given:
         def noRelocationResources = ['org/gradle/reporting/report.js',
-                                      'javax/servlet/http/LocalStrings.properties']
+                                      'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib']
         def duplicateResources = ['aQute/libg/tuple/packageinfo',
                                     'org/joda/time/tz/data/Africa/Abidjan']
         def onlyRelocatedResources = ['com/sun/jna/win32-amd64/jnidispatch.dll']

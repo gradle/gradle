@@ -24,6 +24,7 @@ import org.gradle.cache.internal.FileLockManager;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.internal.Factory;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.progress.BuildOperationDetails;
@@ -44,18 +45,20 @@ public class BuildSourceBuilder {
     private final ClassLoaderScope classLoaderScope;
     private final CacheRepository cacheRepository;
     private final BuildOperationExecutor buildOperationExecutor;
+    private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor) {
+    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderScope classLoaderScope, CacheRepository cacheRepository, BuildOperationExecutor buildOperationExecutor, CachedClasspathTransformer cachedClasspathTransformer) {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.classLoaderScope = classLoaderScope;
         this.cacheRepository = cacheRepository;
         this.buildOperationExecutor = buildOperationExecutor;
+        this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
     public ClassLoaderScope buildAndCreateClassLoader(StartParameter startParameter) {
         ClassPath classpath = createBuildSourceClasspath(startParameter);
         ClassLoaderScope childScope = classLoaderScope.createChild(startParameter.getCurrentDir().getAbsolutePath());
-        childScope.export(classpath);
+        childScope.export(cachedClasspathTransformer.transform(classpath));
         childScope.lock();
         return childScope;
     }

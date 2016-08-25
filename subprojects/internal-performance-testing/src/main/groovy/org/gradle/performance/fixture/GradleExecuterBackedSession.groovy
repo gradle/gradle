@@ -53,6 +53,7 @@ class GradleExecuterBackedSession implements GradleSession {
     void cleanup() {
         createExecuter(null, false).withTasks().withArgument("--stop").run()
     }
+
     private GradleExecuter createExecuter(GradleInvocationCustomizer invocationCustomizer, boolean withGradleOpts) {
         def invocation = invocationCustomizer ? invocationCustomizer.customize(this.invocation) : this.invocation
 
@@ -67,6 +68,7 @@ class GradleExecuterBackedSession implements GradleSession {
             withTasks(invocation.tasksToRun)
 
         if (withGradleOpts) {
+            executer.withBuildJvmOpts('-XX:+PerfDisableSharedMem') // reduce possible jitter caused by slow /tmp
             executer.withBuildJvmOpts(invocation.jvmOpts)
         }
 

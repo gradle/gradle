@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.api.tasks.TaskReference;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
@@ -155,20 +156,20 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (!GUtil.isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
+        return getByPath(path);
+    }
 
-        Task task = findByPath(path);
-        if (task != null) {
-            return task;
-        }
-
-        for (ConstructingTaskResolver taskResolver : project.getServices().getAll(ConstructingTaskResolver.class)) {
-            Task constructed = taskResolver.constructTask(path, this);
+    @Override
+    public Task resolveTask(TaskReference reference) {
+        for (TaskReferenceResolver taskResolver : project.getServices().getAll(TaskReferenceResolver.class)) {
+            Task constructed = taskResolver.constructTask(reference, this);
             if (constructed != null) {
                 return constructed;
             }
         }
 
-        throw new UnknownTaskException(String.format("Task with path '%s' not found in %s.", path, project));
+        // TODO:DAZ Better exception message
+        throw new UnknownTaskException(String.format("Task '%s' not found in %s.", reference.getName(), project));
     }
 
     public Task getByPath(String path) throws UnknownTaskException {

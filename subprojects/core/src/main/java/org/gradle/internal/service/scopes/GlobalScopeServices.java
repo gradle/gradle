@@ -366,5 +366,4 @@ public class GlobalScopeServices {
     DependencyInjectingInstantiator.ConstructorCache createConstructorCache() {
         return new DependencyInjectingInstantiator.ConstructorCache();
     }
-
 }

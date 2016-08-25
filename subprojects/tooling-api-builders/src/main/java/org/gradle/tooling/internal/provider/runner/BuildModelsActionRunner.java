@@ -31,6 +31,7 @@ import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderContext;
 
+import java.util.Collection;
 import java.util.Set;
 
 public class BuildModelsActionRunner extends AbstractBuildModelActionRunner {
@@ -64,13 +65,8 @@ public class BuildModelsActionRunner extends AbstractBuildModelActionRunner {
     }
 
     private void collectModelsFromIncludedBuilds(GradleInternal gradle, String modelName, InternalModelResults<Object> compositeResults) {
-        if (!getBuildTypeAttributes(gradle).isNestedBuild()) {
-            CompositeBuildContext compositeBuildContext = gradle.getServices().get(CompositeBuildContext.class);
-            Set<? extends IncludedBuild> includedBuilds = compositeBuildContext.getIncludedBuilds();
-
-            for (IncludedBuild includedBuild : includedBuilds) {
-                collectModelsFromIncludedBuild(modelName, compositeResults, includedBuild);
-            }
+        for (IncludedBuild includedBuild : gradle.getIncludedBuilds()) {
+            collectModelsFromIncludedBuild(modelName, compositeResults, includedBuild);
         }
     }
 

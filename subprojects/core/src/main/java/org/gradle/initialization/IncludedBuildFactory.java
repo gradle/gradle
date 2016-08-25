@@ -16,11 +16,11 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.initialization.ConfigurableIncludedBuild;
 
 import java.io.File;
 
 public interface IncludedBuildFactory {
-    IncludedBuild createBuild(File buildDirectory);
-    IncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext);
+    ConfigurableIncludedBuild createBuild(File buildDirectory);
+    ConfigurableIncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext);
 }

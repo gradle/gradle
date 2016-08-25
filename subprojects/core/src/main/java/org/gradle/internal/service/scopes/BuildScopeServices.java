@@ -93,7 +93,6 @@ import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildRequestMetaData;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
-import org.gradle.initialization.buildtype.DefaultBuildTypeAttributes;
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultExceptionAnalyser;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
@@ -104,7 +103,6 @@ import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.MultipleBuildFailuresExceptionAnalyser;
-import org.gradle.initialization.buildtype.MutableBuildTypeAttributes;
 import org.gradle.initialization.NotifyingSettingsProcessor;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
@@ -124,6 +122,7 @@ import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -197,10 +196,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
         return listenerManager.createChild();
-    }
-
-    protected MutableBuildTypeAttributes createBuildTypeAttributes() {
-        return new DefaultBuildTypeAttributes();
     }
 
     protected BuildOperationExecutor createBuildOperationExecutor(ListenerManager listenerManager, TimeProvider timeProvider, ProgressLoggerFactory progressLoggerFactory) {
@@ -307,7 +302,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, GradleLauncherFactory gradleLauncherFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
-                                                                BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor, ServiceRegistry serviceRegistry) {
+                                                                BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
+                                                                ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer) {
         return new DefaultSettingsLoaderFactory(
             new DefaultSettingsFinder(new BuildLayoutFactory()),
             settingsProcessor,
@@ -315,7 +311,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
                 gradleLauncherFactory,
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
                 cacheRepository,
-                buildOperationExecutor),
+                buildOperationExecutor,
+                cachedClasspathTransformer),
             buildLoader,
             serviceRegistry
         );

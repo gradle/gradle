@@ -516,7 +516,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * {@inheritDoc}
      */
     @Override
-    // @Optional @Input
     @Internal
     public Map<String, Object> getEnvironment() {
         return forkOptions.getEnvironment();

@@ -14,36 +14,34 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
+package org.gradle.composite.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.ConstructingTaskResolver;
+import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskReference;
 
-public class CompositeConstructingTaskResolver implements ConstructingTaskResolver {
+public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver {
 
-    // TODO:DAZ Should return a reference to a task in another build, rather than relying on a synthetic delegating task.
+    // TODO:DAZ Should retain a reference to a task in another build, rather than relying on a synthetic delegating task.
     @Override
-    public Task constructTask(final String path, TaskContainer tasks) {
-        if (!path.contains("::")) {
+    public Task constructTask(final TaskReference reference, TaskContainer tasks) {
+        if (!(reference instanceof IncludedBuildTaskReference)) {
             return null;
         }
+
+        final IncludedBuildTaskReference ref = (IncludedBuildTaskReference) reference;
+        String path = ref.getName();
 
         Task task = tasks.findByName(path);
 
         if (task == null) {
-            String[] split = path.split("::", 2);
-            final String buildName = split[0];
-            final String taskToExecute = ":" + split[1];
-
-            // TODO:DAZ Should probably be validating build name here, rather than waiting until execution
-
             task = tasks.create(path, CompositeBuildTaskDelegate.class, new Action<CompositeBuildTaskDelegate>() {
                 @Override
                 public void execute(CompositeBuildTaskDelegate compositeBuildTaskDelegate) {
-                    compositeBuildTaskDelegate.setBuild(buildName);
-                    compositeBuildTaskDelegate.setTask(taskToExecute);
+                    compositeBuildTaskDelegate.setBuild(ref.getBuildName());
+                    compositeBuildTaskDelegate.setTask(ref.getTaskPath());
                 }
             });
         }

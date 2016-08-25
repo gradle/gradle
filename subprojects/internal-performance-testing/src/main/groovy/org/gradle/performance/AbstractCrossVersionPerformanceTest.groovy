@@ -36,7 +36,7 @@ class AbstractCrossVersionPerformanceTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new PerformanceTestDirectoryProvider()
     static def resultStore = new CrossVersionResultsStore()
 
-    final def runner = new CrossVersionPerformanceTestRunner(
+    final CrossVersionPerformanceTestRunner runner = new CrossVersionPerformanceTestRunner(
         new BuildExperimentRunner(new GradleSessionProvider(tmpDir)), resultStore, new ReleasedVersionDistributions())
 
     def setup() {

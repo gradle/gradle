@@ -31,16 +31,24 @@ class CompositeBuildDetectionIntegrationTest extends AbstractCompositeBuildInteg
 """
         }
         includedBuilds << buildB
+
+        def detectionMethods = """
+            def isComposite(gradle) {
+                !gradle.includedBuilds.empty
+            }
+            def isNested(gradle) {
+                gradle.parent != null
+            }
+"""
+        buildA.buildFile << detectionMethods
+        buildB.buildFile << detectionMethods
     }
 
     def "can detect composite build"() {
         when:
         buildA.buildFile << """
-            import org.gradle.initialization.buildtype.BuildTypeAttributes
-            def buildType = gradle.services.get(BuildTypeAttributes)
-
-            assert buildType.compositeBuild
-            assert !buildType.nestedBuild
+            assert isComposite(gradle)
+            assert !isNested(gradle)
 """
 
         then:
@@ -50,15 +58,11 @@ class CompositeBuildDetectionIntegrationTest extends AbstractCompositeBuildInteg
     def "included build is flagged as a nested build without composite parent on initial configuration"() {
         when:
         buildB.buildFile << """
-            import org.gradle.initialization.buildtype.BuildTypeAttributes
+            assert !isComposite(gradle)
+            assert isNested(gradle)
 
-            def buildType = gradle.services.get(BuildTypeAttributes)
-            assert !buildType.compositeBuild
-            assert buildType.nestedBuild
-
-            def parentBuildType = gradle.parent.services.get(BuildTypeAttributes)
-            assert !parentBuildType.compositeBuild
-            assert !parentBuildType.nestedBuild
+            assert isComposite(gradle.parent)
+            assert !isNested(gradle.parent)
 """
 
         then:
@@ -76,15 +80,11 @@ class CompositeBuildDetectionIntegrationTest extends AbstractCompositeBuildInteg
 """
 
         buildB.buildFile << """
-            import org.gradle.initialization.buildtype.BuildTypeAttributes
+            assert !isComposite(gradle)
+            assert isNested(gradle)
 
-            def buildType = gradle.services.get(BuildTypeAttributes)
-            assert !buildType.compositeBuild
-            assert buildType.nestedBuild
-
-            def parentBuildType = gradle.parent.services.get(BuildTypeAttributes)
-            assert parentBuildType.compositeBuild
-            assert !parentBuildType.nestedBuild
+            assert isComposite(gradle.parent)
+            assert !isNested(gradle.parent)
 """
 
         then:

@@ -17,12 +17,10 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.test.fixtures.file.LeaksFileHandles
+
 /**
  * Tests for plugin development scenarios within a composite build.
  */
-// TODO:DAZ Need to work out what's holding onto the file handles
-@LeaksFileHandles
 class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBuildIntegrationTest {
     BuildTestFile buildB
     BuildTestFile pluginBuild

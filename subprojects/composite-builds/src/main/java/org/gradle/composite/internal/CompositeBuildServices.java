@@ -17,13 +17,13 @@
 package org.gradle.composite.internal;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.artifacts.ivyservice.projectmodule.CompositeConstructingTaskResolver;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.api.internal.composite.CompositeBuildContext;
-import org.gradle.api.internal.tasks.ConstructingTaskResolver;
+import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuildFactory;
+import org.gradle.initialization.IncludedBuilds;
 import org.gradle.internal.composite.CompositeContextBuilder;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistration;
@@ -49,8 +49,8 @@ public class CompositeBuildServices implements PluginServiceRegistry {
     }
 
     private static class CompositeBuildGlobalScopeServices {
-        public ConstructingTaskResolver createResolver() {
-            return new CompositeConstructingTaskResolver();
+        public TaskReferenceResolver createResolver() {
+            return new IncludedBuildTaskReferenceResolver();
         }
     }
 
@@ -59,16 +59,20 @@ public class CompositeBuildServices implements PluginServiceRegistry {
             return new DefaultIncludedBuildFactory(instantiator, startParameter, gradleLauncherFactory, serviceRegistry);
         }
 
-        public CompositeBuildContext createCompositeBuildContext() {
-            return new DefaultBuildableCompositeBuildContext();
+        public DefaultIncludedBuilds createIncludedBuilds() {
+            return new DefaultIncludedBuilds();
         }
 
-        public CompositeContextBuilder createCompositeContextBuilder(CompositeBuildContext context) {
-            return new DefaultCompositeContextBuilder(context);
+        public CompositeBuildContext createCompositeBuildContext(IncludedBuilds includedBuilds) {
+            return new DefaultBuildableCompositeBuildContext(includedBuilds);
         }
 
-        public IncludedBuildExecuter createIncludedBuildExecuter(CompositeBuildContext context) {
-            return new DefaultIncludedBuildExecuter(context);
+        public CompositeContextBuilder createCompositeContextBuilder(DefaultIncludedBuilds includedBuilds, CompositeBuildContext context) {
+            return new DefaultCompositeContextBuilder(includedBuilds, context);
+        }
+
+        public IncludedBuildExecuter createIncludedBuildExecuter(IncludedBuilds includedBuilds) {
+            return new DefaultIncludedBuildExecuter(includedBuilds);
         }
 
         public ProjectArtifactBuilder createCompositeProjectArtifactBuilder(IncludedBuildExecuter includedBuildExecuter) {

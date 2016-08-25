@@ -16,43 +16,21 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.internal.FileLockManager;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classloader.ClassLoaderSpec;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 
-import java.io.Closeable;
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
-
-public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFactory, Closeable {
+public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFactory {
     private final PayloadClassLoaderFactory delegate;
-    private final JarCache jarCache;
-    private final PersistentCache cache;
+    private final CachedClasspathTransformer cachedClasspathTransformer;
 
-    public DaemonSidePayloadClassLoaderFactory(PayloadClassLoaderFactory delegate, JarCache jarCache, CacheRepository cacheRepository) {
+    public DaemonSidePayloadClassLoaderFactory(PayloadClassLoaderFactory delegate, CachedClasspathTransformer cachedClasspathTransformer) {
         this.delegate = delegate;
-        this.jarCache = jarCache;
-        cache = cacheRepository
-                .cache("jars-1")
-                .withDisplayName("jars")
-                .withCrossVersionCache()
-                .withLockOptions(mode(FileLockManager.LockMode.None))
-                .open();
-    }
-
-    public void close() {
-        cache.close();
+        this.cachedClasspathTransformer = cachedClasspathTransformer;
     }
 
     public ClassLoader getClassLoaderFor(ClassLoaderSpec spec, List<? extends ClassLoader> parents) {
@@ -61,30 +39,11 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
             if (parents.size() != 1) {
                 throw new IllegalStateException("Expected exactly one parent ClassLoader");
             }
-            List<URL> cachedClassPath = new ArrayList<URL>(urlSpec.getClasspath().size());
-            for (URL url : urlSpec.getClasspath()) {
-                if (url.getProtocol().equals("file")) {
-                    try {
-                        final File file = new File(url.toURI());
-                        if (file.isFile()) {
-                            File cached = cache.useCache("Locate Jar file", new Factory<File>() {
-                                public File create() {
-                                    return jarCache.getCachedJar(file, Factories.constant(cache.getBaseDir()));
-                                }
-                            });
-                            cachedClassPath.add(cached.toURI().toURL());
-                            continue;
-                        }
-                    } catch (MalformedURLException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    } catch (URISyntaxException e) {
-                        throw UncheckedException.throwAsUncheckedException(e);
-                    }
-                }
-                cachedClassPath.add(url);
-            }
 
-            return new VisitableURLClassLoader(parents.get(0), cachedClassPath);
+            // convert the file urls to cached jar files
+            Collection<URL> cachedClassPathUrls = cachedClasspathTransformer.transform(urlSpec.getClasspath());
+
+            return new VisitableURLClassLoader(parents.get(0), cachedClassPathUrls);
         }
         return delegate.getClassLoaderFor(spec, parents);
     }

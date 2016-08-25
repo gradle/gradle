@@ -17,7 +17,7 @@ import org.gradle.testing.performance.generator.DependencyGenerator
 import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.MonolithicNativeProjectGeneratorTask
 import org.gradle.testing.performance.generator.tasks.NativeProjectGeneratorTask
-import org.gradle.testing.performance.generator.tasks.ProjectGeneratorTask
+import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 task small(type: JvmProjectGeneratorTask, description: 'Generates a small project') {
 }
@@ -545,7 +545,18 @@ configure([nativeMonolithicOverlapping, nativeMonolithic, smallNativeMonolithic,
 }
 
 tasks.withType(JvmProjectGeneratorTask) {
-    if(project.hasProperty("springDmPluginVersion")) {
+    if (project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion
     }
 }
+
+task mediumAndroidBuild(type: RemoteProject) {
+    remoteUri = 'git@github.com:gradle/perf-android-medium.git'
+    branch = 'cc-gradle-profile'
+
+    doLast {
+        // WordPress specific setup
+        file("$outputDirectory/WordPress/gradle.properties") << file("$outputDirectory/WordPress/gradle.properties-example").text
+    }
+}
+
