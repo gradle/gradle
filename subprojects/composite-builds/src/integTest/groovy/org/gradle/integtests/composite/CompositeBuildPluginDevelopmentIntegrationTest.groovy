@@ -63,7 +63,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         buildA.settingsFile << """
             includeBuild('${buildB.toURI()}') {
                 dependencySubstitution { // By declaring substitutions, don't need to pre-configure
-                    substitute module("org.test:buildB") with project("buildB::")
+                    substitute module("org.test:buildB") with project(":")
                 }
             }
             includeBuild('${pluginBuild.toURI()}')
@@ -100,7 +100,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             includeBuild('${pluginBuild.toURI()}') {
                 dependencySubstitution {
                     // Only substitute version 1.0 with project dependency. This allows this project to build with the published dependency.
-                    substitute module("org.test:pluginC:1.0") with project("pluginC::")
+                    substitute module("org.test:pluginC:1.0") with project(":")
                 }
             }
 """
