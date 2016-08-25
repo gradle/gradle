@@ -199,7 +199,7 @@ class StandardStreamCompositeBuildCrossVersionSpec extends CompositeToolingApiSp
     private List createBuilds(int numberOfParticipants, String buildFileText) {
         def builds = []
         numberOfParticipants.times {
-            builds << populate("build-${it}") {
+            builds << singleProjectBuild("build-${it}") {
                 buildFile << buildFileText
             }
         }
