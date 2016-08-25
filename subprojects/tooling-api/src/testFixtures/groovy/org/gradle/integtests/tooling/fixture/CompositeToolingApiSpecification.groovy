@@ -18,8 +18,8 @@ package org.gradle.integtests.tooling.fixture
 
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
-import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.connection.GradleConnectionBuilder
@@ -111,16 +111,20 @@ abstract class CompositeToolingApiSpecification extends AbstractToolingApiSpecif
         rootDir.file(path)
     }
 
+    BuildTestFixture getBuildTestFixture() {
+        new BuildTestFixture(temporaryFolder).withBuildInSubDir()
+    }
+
     def populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
-        new BuildTestFixture(rootDir).populate(projectName, cl)
+        buildTestFixture.populate(projectName, cl)
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(rootDir).singleProjectBuild(projectName, cl)
+        buildTestFixture.singleProjectBuild(projectName, cl)
     }
 
     def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(rootDir).multiProjectBuild(projectName, subprojects, cl)
+        buildTestFixture.multiProjectBuild(projectName, subprojects, cl)
     }
 
     TestFile projectDir(String project) {

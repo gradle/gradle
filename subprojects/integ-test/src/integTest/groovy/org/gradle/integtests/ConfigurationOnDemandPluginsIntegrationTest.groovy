@@ -17,8 +17,6 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
 import org.junit.Rule
 import spock.lang.Issue
@@ -26,12 +24,6 @@ import spock.lang.Unroll
 
 class ConfigurationOnDemandPluginsIntegrationTest extends AbstractIntegrationSpec {
     @Rule ProjectLifecycleFixture fixture = new ProjectLifecycleFixture(executer, temporaryFolder)
-
-    BuildTestFile multiProjectBuild(projectName, subprojects, @DelegatesTo(BuildTestFile) cl) {
-        def build = new BuildTestFixture(temporaryFolder.testDirectory).multiProjectBuild(projectName, subprojects, cl)
-        inDirectory(build)
-        return build
-    }
 
     @Unroll
     @Issue('GRADLE-3534')
@@ -46,10 +38,12 @@ class ConfigurationOnDemandPluginsIntegrationTest extends AbstractIntegrationSpe
                     apply plugin: 'java'
                 }
             """.stripIndent()
+
+            gradlePropertiesFile << "org.gradle.configureondemand=true"
         }
 
         when:
-        run '--configure-on-demand', ':a:build'
+        run ':a:build'
 
         then:
         fixture.assertProjectsConfigured(':', ':a')

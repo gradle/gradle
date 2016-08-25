@@ -16,7 +16,16 @@
 package org.gradle.integtests.fixtures
 
 import org.gradle.api.Action
-import org.gradle.integtests.fixtures.executer.*
+import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
+import org.gradle.integtests.fixtures.executer.ArtifactBuilder
+import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.integtests.fixtures.executer.GradleDistribution
+import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -43,6 +52,7 @@ class AbstractIntegrationSpec extends Specification {
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
     GradleExecuter executer = new GradleContextualExecuter(distribution, temporaryFolder)
+    BuildTestFixture buildTestFixture = new BuildTestFixture(temporaryFolder)
 
 //    @Rule
     M2Installation m2 = new M2Installation(temporaryFolder)
@@ -65,6 +75,13 @@ class AbstractIntegrationSpec extends Specification {
         testDirectory.file('settings.gradle')
     }
 
+    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        buildTestFixture.singleProjectBuild(projectName, cl)
+    }
+
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        buildTestFixture.multiProjectBuild(projectName, subprojects, cl)
+    }
     protected TestNameTestDirectoryProvider getTestDirectoryProvider() {
         temporaryFolder
     }

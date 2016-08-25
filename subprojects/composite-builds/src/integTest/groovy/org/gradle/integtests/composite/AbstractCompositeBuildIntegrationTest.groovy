@@ -19,7 +19,6 @@ package org.gradle.integtests.composite
 import com.google.common.collect.Lists
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.test.fixtures.file.TestFile
 /**
  * Tests for composite build.
@@ -37,6 +36,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
                 }
 """
         }
+        buildTestFixture.withBuildInSubDir()
     }
 
     def dependency(BuildTestFile sourceBuild = buildA, String notation) {
@@ -100,13 +100,5 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
 
     TestFile getRootDir() {
         temporaryFolder.testDirectory
-    }
-
-    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(rootDir).singleProjectBuild(projectName, cl)
-    }
-
-    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
-        new BuildTestFixture(rootDir).multiProjectBuild(projectName, subprojects, cl)
     }
 }
