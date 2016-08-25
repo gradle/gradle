@@ -35,12 +35,12 @@ import java.util.zip.ZipOutputStream
 
 typealias ZipInputStreamEntryPredicate = ZipInputStreamEntry.() -> Boolean
 
-fun eraseMethodsMatching(predicate: MethodPredicate,
-                         input: InputStream,
-                         output: OutputStream,
-                         shouldTransformEntry: ZipInputStreamEntryPredicate = { zipEntry.name.endsWith(".class") }) {
+fun removeMethodsMatching(predicate: MethodPredicate,
+                          input: InputStream,
+                          output: OutputStream,
+                          shouldTransformEntry: ZipInputStreamEntryPredicate = { zipEntry.name.endsWith(".class") }) {
     transformClasses(input, output, shouldTransformEntry) { classVisitor ->
-        MethodErasingVisitor(predicate, classVisitor)
+        MethodRemovingVisitor(predicate, classVisitor)
     }
 }
 
@@ -83,7 +83,7 @@ fun transformClass(inputStream: InputStream, decorator: (ClassVisitor) -> ClassV
     return classWriter.toByteArray()
 }
 
-class MethodErasingVisitor(
+class MethodRemovingVisitor(
     val predicate: MethodPredicate,
     classVisitor: ClassVisitor) : ClassVisitor(Opcodes.ASM5, classVisitor) {
 

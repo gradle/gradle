@@ -22,7 +22,7 @@ fun ZipInputStreamEntry.isApiClassEntry() =
         && zipEntry.name.startsWith("org/gradle/api/")
         && !zipEntry.name.contains("/internal/")
 
-fun requiresExtension(method: MethodDescriptor) =
+fun conflictsWithExtension(method: MethodDescriptor) =
     method.isPublic && !method.isSynthetic && hasLastParameterOfTypeAction(method)
 
 fun hasLastParameterOfTypeAction(method: MethodDescriptor) =

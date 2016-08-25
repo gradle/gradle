@@ -21,7 +21,7 @@ import org.gradle.script.lang.kotlin.codegen.GenericType
 import org.gradle.script.lang.kotlin.codegen.JvmType
 import org.gradle.script.lang.kotlin.codegen.MethodDescriptor
 import org.gradle.script.lang.kotlin.codegen.isActionClassType
-import org.gradle.script.lang.kotlin.codegen.requiresExtension
+import org.gradle.script.lang.kotlin.codegen.conflictsWithExtension
 
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
@@ -137,7 +137,7 @@ import org.gradle.api.Action
             .asSequence()
             .filterIsInstance<MethodNode>()
             .map { MethodDescriptor(it.name, it.signature ?: it.desc, it.access) }
-            .filter(::requiresExtension)
+            .filter(::conflictsWithExtension)
 
     private fun write(text: String) = writer.write(text)
 }

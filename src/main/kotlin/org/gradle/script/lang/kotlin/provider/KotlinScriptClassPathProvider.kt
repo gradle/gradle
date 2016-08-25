@@ -26,8 +26,8 @@ import org.gradle.api.internal.cache.GeneratedGradleJarCache
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.script.lang.kotlin.codegen.isApiClassEntry
-import org.gradle.script.lang.kotlin.codegen.requiresExtension
-import org.gradle.script.lang.kotlin.support.asm.eraseMethodsMatching
+import org.gradle.script.lang.kotlin.codegen.conflictsWithExtension
+import org.gradle.script.lang.kotlin.support.asm.removeMethodsMatching
 
 import org.gradle.util.GFileUtils.moveFile
 
@@ -78,8 +78,8 @@ class KotlinScriptClassPathProvider(
     private fun generateKotlinGradleApiAt(outputFile: File, gradleApiJar: File) {
         gradleApiJar.inputStream().use { input ->
             outputFile.outputStream().use { output ->
-                eraseMethodsMatching(
-                    ::requiresExtension,
+                removeMethodsMatching(
+                    ::conflictsWithExtension,
                     input.buffered(),
                     output.buffered(),
                     shouldTransformEntry = { isApiClassEntry() })
