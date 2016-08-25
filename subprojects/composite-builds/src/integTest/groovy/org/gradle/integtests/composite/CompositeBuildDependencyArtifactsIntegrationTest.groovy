@@ -356,6 +356,38 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         assertResolved buildB.file('b1/build/libs/b1-1.0.jar'), buildB.file('b2/build/libs/b2-1.0.jar')
     }
 
+
+    def "build dependency artifacts only once when depended on by different subprojects"() {
+        given:
+        def buildC = singleProjectBuild("buildC") {
+            buildFile << """
+                apply plugin: 'java'
+"""
+        }
+
+        buildB.buildFile << """
+            project(':b1') {
+                dependencies {
+                    compile 'org.test:buildC:1.0'
+                }
+            }
+            project(':b2') {
+                dependencies {
+                    compile 'org.test:buildC:1.0'
+                }
+            }
+"""
+        buildB.settingsFile << """
+            includeBuild '${buildC.toURI()}'
+"""
+
+        when:
+        execute(buildB, "jar")
+
+        then:
+        executed ":buildC:jar", ":b2:jar", ":b1:jar"
+    }
+
     def "builds multiple configurations for the same project via separate dependency paths"() {
         given:
         buildA.buildFile << """

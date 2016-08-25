@@ -43,6 +43,7 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
         this.includedBuilds = includedBuilds;
     }
 
+    // TODO Allow parallel execution of different included builds
     @Override
     public synchronized void execute(ProjectComponentIdentifier buildIdentifier, Iterable<String> taskNames) {
         String buildName = getBuildName(buildIdentifier);
