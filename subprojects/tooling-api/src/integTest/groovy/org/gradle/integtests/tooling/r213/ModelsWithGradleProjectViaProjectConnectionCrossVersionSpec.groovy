@@ -16,9 +16,11 @@
 
 package org.gradle.integtests.tooling.r213
 
+import groovy.transform.CompileStatic
 import org.gradle.integtests.tooling.fixture.ProjectConnectionToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
@@ -74,8 +76,10 @@ class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends Projec
         setup:
         multiProjectBuildInRootFolder("B", ['x', 'y'])
 
-        when:
         def rootDir = projectDir.file("x")
+
+        when:
+
         def gradleProjects = toGradleProjects(getModel(rootDir, modelType))
 
         then:
@@ -150,13 +154,13 @@ class ModelsWithGradleProjectViaProjectConnectionCrossVersionSpec extends Projec
     }
 
     private <T> T getModel(TestFile rootDir, Class<T> modelType, boolean searchUpwards = true) {
-        return withConnection(rootDir, searchUpwards) { it.getModel(modelType) }
+        return withConnection(rootDir, searchUpwards) { ProjectConnection it ->it.getModel(modelType) } as T
     }
 
     private <T> T withConnection(TestFile projectDir, boolean searchUpwards, Closure<T> cl) {
         GradleConnector connector = toolingApi.connector()
         connector.forProjectDirectory(projectDir.absoluteFile)
         ((DefaultGradleConnector) connector).searchUpwards(searchUpwards)
-        return toolingApi.withConnection(cl)
+        return toolingApi.withConnection(connector, cl)
     }
 }

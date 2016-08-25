@@ -17,6 +17,7 @@ package org.gradle.integtests.tooling.r213
 
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier
 import org.gradle.tooling.internal.connection.DefaultProjectIdentifier
+import org.gradle.tooling.internal.gradle.BasicGradleProject
 import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.HasGradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
@@ -27,11 +28,11 @@ import org.gradle.tooling.model.idea.IdeaProject
 
 trait ModelsWithGradleProjectSpecFixtures {
 
-    static List<?> getProjectScopedModels() {
+    static List<Class<?>> getProjectScopedModels() {
         [GradleProject, EclipseProject, HierarchicalEclipseProject]
     }
 
-    static List<?> getBuildScopedModels() {
+    static List<Class<?>> getBuildScopedModels() {
         [GradleBuild, IdeaProject, BasicIdeaProject]
     }
 
@@ -76,7 +77,7 @@ trait ModelsWithGradleProjectSpecFixtures {
         throw new IllegalArgumentException("Model type does not provide GradleProject")
     }
 
-    static def toGradleProjects(def buildScopeModel) {
+    static Set<? extends BasicGradleProject> toGradleProjects(def buildScopeModel) {
         if (buildScopeModel instanceof GradleBuild) {
             return buildScopeModel.projects
         }
