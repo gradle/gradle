@@ -76,11 +76,16 @@ public class IvyModuleDescriptorConverter {
         for (ExcludeRule excludeRule : ivyDescriptor.getAllExcludeRules()) {
             addExcludeRule(state, excludeRule);
         }
-        for (DependencyDescriptor dependencyDescriptor : ivyDescriptor.getDependencies()) {
-            addDependency(state, dependencyDescriptor);
-        }
 
         return state;
+    }
+
+    public static List<IvyDependencyMetadata> extractDependencies(ModuleDescriptor ivyDescriptor) {
+        List<IvyDependencyMetadata> result = Lists.newArrayListWithCapacity(ivyDescriptor.getDependencies().length);
+        for (DependencyDescriptor dependencyDescriptor : ivyDescriptor.getDependencies()) {
+            addDependency(result, dependencyDescriptor);
+        }
+        return result;
     }
 
     public static List<Configuration> extractConfigurations(ModuleDescriptor ivyDescriptor) {
@@ -103,7 +108,7 @@ public class IvyModuleDescriptorConverter {
         state.addExclude(forIvyExclude(excludeRule));
     }
 
-    private static void addDependency(MutableModuleDescriptorState state, DependencyDescriptor dependencyDescriptor) {
+    private static void addDependency(List<IvyDependencyMetadata> result, DependencyDescriptor dependencyDescriptor) {
         ModuleRevisionId revisionId = dependencyDescriptor.getDependencyRevisionId();
         ModuleVersionSelector requested = DefaultModuleVersionSelector.newSelector(revisionId.getOrganisation(), revisionId.getName(), revisionId.getRevision());
 
@@ -123,7 +128,7 @@ public class IvyModuleDescriptorConverter {
             excludes.add(forIvyExclude(excludeRule));
         }
 
-        state.addDependency(new IvyDependencyMetadata(
+        result.add(new IvyDependencyMetadata(
             requested,
             dependencyDescriptor.getDynamicConstraintDependencyRevisionId().getRevision(),
             false,

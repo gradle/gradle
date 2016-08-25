@@ -65,7 +65,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
-        md.dependencies.empty
+        metadata.dependencies.empty
 
         artifact()
     }
@@ -91,7 +91,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
-        md.dependencies.empty
+        metadata.dependencies.empty
 
         def artifact = artifact()
         artifact.artifactName.name == "mymodule"
@@ -120,7 +120,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
         metadata.configurationDefinitions.keySet() == ["A", "B"] as Set
-        md.dependencies.empty
+        metadata.dependencies.empty
 
         def artifact = artifact()
         artifact.artifactName.name == 'mymodule'
@@ -274,9 +274,9 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         assertArtifacts("myconf3", ["myartifact1", "myartifact3", "myartifact4"])
         assertArtifacts("myconf4", ["myartifact1"])
 
-        md.dependencies.size() == 13
+        metadata.dependencies.size() == 13
 
-        verifyFullDependencies(md.dependencies)
+        verifyFullDependencies(metadata.dependencies)
 
         def rules = md.excludes
         rules.size() == 2
@@ -323,8 +323,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.status == "integration"
         metadata.configurationDefinitions.keySet() == ["default"] as Set
 
-        md.dependencies.size() == 1
-        def dependency = md.dependencies.first()
+        metadata.dependencies.size() == 1
+        def dependency = metadata.dependencies.first()
         dependency.requested == newSelector("deporg", "depname", "deprev")
     }
 
@@ -352,7 +352,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
 
         when:
         parse(parseContext, file)
-        def dependency = md.dependencies.first()
+        def dependency = metadata.dependencies.first()
 
         then:
         dependency.confMappings.keySet() == ["myconf"] as Set
@@ -423,19 +423,19 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md.dependencies[0].confMappings == map("a": ["a"])
-        md.dependencies[1].confMappings == map("a": ["other"])
-        md.dependencies[2].confMappings == map("*": ["@"])
-        md.dependencies[3].confMappings == map("a": ["other"], "%": ["@"])
-        md.dependencies[4].confMappings == map("*": ["@"], "!a": ["@"])
-        md.dependencies[5].confMappings == map("a": ["*"])
-        md.dependencies[6].confMappings == map("a": ["one", "two", "three"], "b": ["three"], "*": ["four"], "%": ["none"])
-        md.dependencies[7].confMappings == map("a": ["#"])
-        md.dependencies[8].confMappings == map("a": ["a"], "%": ["@"])
-        md.dependencies[9].confMappings == map("a": ["a"], "*": ["b"], "!a": ["b"])
-        md.dependencies[10].confMappings == map("*": ["*"])
-        md.dependencies[11].confMappings == map("*": ["*"])
-        md.dependencies[12].confMappings == map("*": ["*"])
+        metadata.dependencies[0].confMappings == map("a": ["a"])
+        metadata.dependencies[1].confMappings == map("a": ["other"])
+        metadata.dependencies[2].confMappings == map("*": ["@"])
+        metadata.dependencies[3].confMappings == map("a": ["other"], "%": ["@"])
+        metadata.dependencies[4].confMappings == map("*": ["@"], "!a": ["@"])
+        metadata.dependencies[5].confMappings == map("a": ["*"])
+        metadata.dependencies[6].confMappings == map("a": ["one", "two", "three"], "b": ["three"], "*": ["four"], "%": ["none"])
+        metadata.dependencies[7].confMappings == map("a": ["#"])
+        metadata.dependencies[8].confMappings == map("a": ["a"], "%": ["@"])
+        metadata.dependencies[9].confMappings == map("a": ["a"], "*": ["b"], "!a": ["b"])
+        metadata.dependencies[10].confMappings == map("*": ["*"])
+        metadata.dependencies[11].confMappings == map("*": ["*"])
+        metadata.dependencies[12].confMappings == map("*": ["*"])
     }
 
     def "parses dependency config mappings with defaults"() {
@@ -470,14 +470,14 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         parse(parseContext, file)
 
         then:
-        md.dependencies[0].confMappings == map("a": ["a1"])
-        md.dependencies[1].confMappings == map("a": ["a1"])
-        md.dependencies[2].confMappings == map("a": ["a1"])
-        md.dependencies[3].confMappings == map("b": ["b1", "b2"])
-        md.dependencies[4].confMappings == map("a": ["other"])
-        md.dependencies[5].confMappings == map("*": ["@"])
-        md.dependencies[6].confMappings == map("c": ["other"])
-        md.dependencies[7].confMappings == map("a": ["a1"])
+        metadata.dependencies[0].confMappings == map("a": ["a1"])
+        metadata.dependencies[1].confMappings == map("a": ["a1"])
+        metadata.dependencies[2].confMappings == map("a": ["a1"])
+        metadata.dependencies[3].confMappings == map("b": ["b1", "b2"])
+        metadata.dependencies[4].confMappings == map("a": ["other"])
+        metadata.dependencies[5].confMappings == map("*": ["@"])
+        metadata.dependencies[6].confMappings == map("c": ["other"])
+        metadata.dependencies[7].confMappings == map("a": ["a1"])
 
     }
 

@@ -23,6 +23,7 @@ import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 import spock.lang.Specification
 
@@ -33,11 +34,12 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
     def moduleDescriptor = new MutableModuleDescriptorState(id, "status", false)
     def configurations = []
+    def dependencies = []
 
-    abstract AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations)
+    abstract AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies)
 
     ModuleComponentResolveMetadata getMetadata() {
-        return createMetadata(id, moduleDescriptor, configurations)
+        return createMetadata(id, moduleDescriptor, configurations, dependencies)
     }
 
     def "has useful string representation"() {
@@ -136,11 +138,11 @@ abstract class AbstractModuleComponentResolveMetadataTest extends Specification 
     }
 
     def dependency(String org, String module, String version) {
-        moduleDescriptor.addDependency(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of()))
+        dependencies.add(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of()))
     }
 
     def dependency(String org, String module, String version, String fromConf, String toConf) {
-        moduleDescriptor.addDependency(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of(fromConf, toConf)))
+        dependencies.add(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of(fromConf, toConf)))
     }
 
     def artifact(String name, List<String> confs = []) {

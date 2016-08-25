@@ -20,7 +20,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -29,11 +28,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Pieces of an ivy module descriptor, which are here as we migrate away from the Ivy model
+ */
 public class ModuleDescriptorState {
     // The identifier extracted from the descriptor itself. May be different to the id of the containing module
     private final ModuleComponentIdentifier componentIdentifier;
     protected final List<Exclude> excludes;
-    protected final List<DependencyMetadata> dependencies;
     private final List<Artifact> artifacts = Lists.newArrayList();
     private final String status;
     private final boolean generated;
@@ -51,7 +52,6 @@ public class ModuleDescriptorState {
         this.generated = generated;
         extraInfo = Maps.newHashMap();
         excludes = Lists.newArrayList();
-        dependencies = Lists.newArrayList();
     }
 
     public ModuleComponentIdentifier getComponentIdentifier() {
@@ -102,10 +102,6 @@ public class ModuleDescriptorState {
         Artifact newArtifact = new Artifact(artifactName);
         artifacts.add(newArtifact);
         return newArtifact;
-    }
-
-    public List<DependencyMetadata> getDependencies() {
-        return dependencies;
     }
 
     public List<Exclude> getExcludes() {

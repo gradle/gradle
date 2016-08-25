@@ -33,13 +33,14 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
     def moduleDescriptor = new MutableModuleDescriptorState(id, "status", false)
     def configurations = []
+    def dependencies = []
 
-    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations)
+    abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies)
 
     abstract AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, Set<IvyArtifactName> artifacts);
 
     MutableModuleComponentResolveMetadata getMetadata() {
-        return createMetadata(id, moduleDescriptor, configurations)
+        return createMetadata(id, moduleDescriptor, configurations, dependencies)
     }
 
     def "can replace identifiers"() {
@@ -90,12 +91,14 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
 
         expect:
         metadata.componentId == id
+        metadata.dependencies.empty
 
         def immutable = metadata.asImmutable()
         immutable.componentId == id
         immutable.generated
         immutable.getConfiguration("default")
         immutable.getConfiguration("default").artifacts.collect { it.name } == [artifact1, artifact2]
+        immutable.dependencies.empty
     }
 
     def "can replace the dependencies for the module"() {
@@ -135,7 +138,7 @@ abstract class AbstractMutableModuleComponentResolveMetadataTest extends Specifi
     }
 
     def dependency(String org, String module, String version) {
-        moduleDescriptor.addDependency(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of()))
+        dependencies.add(new IvyDependencyMetadata(newSelector(org, module, version), ImmutableListMultimap.of()))
     }
 
     def configuration(String name, List<String> extendsFrom = []) {

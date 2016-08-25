@@ -29,6 +29,7 @@ import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.external.model.MutableMavenModuleResolveMetadata;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +39,7 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -70,10 +72,11 @@ public final class GradlePomModuleDescriptorParser extends AbstractModuleDescrip
         doParsePom(parserSettings, mdBuilder, pomReader);
 
         ModuleDescriptorState moduleDescriptor = mdBuilder.getModuleDescriptor();
+        List<DependencyMetadata> dependencies = mdBuilder.getDependencies();
         if (pomReader.getRelocation() != null) {
-            return new DefaultMutableMavenModuleResolveMetadata(moduleDescriptor, "pom", true);
+            return new DefaultMutableMavenModuleResolveMetadata(moduleDescriptor, "pom", true, dependencies);
         }
-        return new DefaultMutableMavenModuleResolveMetadata(moduleDescriptor, pomReader.getPackaging(), false);
+        return new DefaultMutableMavenModuleResolveMetadata(moduleDescriptor, pomReader.getPackaging(), false, dependencies);
     }
 
     private void doParsePom(DescriptorParseContext parserSettings, GradlePomModuleDescriptorBuilder mdBuilder, PomReader pomReader) throws IOException, SAXException {

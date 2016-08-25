@@ -16,13 +16,16 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorBuilder;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
+import java.util.Collection;
 import java.util.Set;
 
 import static org.gradle.internal.component.external.model.DefaultMavenModuleResolveMetadata.JAR_PACKAGINGS;
@@ -37,15 +40,15 @@ public class DefaultMutableMavenModuleResolveMetadata extends AbstractMutableMod
      * Creates default metadata given a set of artifacts.
      */
     public DefaultMutableMavenModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> artifacts) {
-        this(componentIdentifier, MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts), "jar", false);
+        this(componentIdentifier, MutableModuleDescriptorState.createModuleDescriptor(componentIdentifier, artifacts), "jar", false, ImmutableList.<DependencyMetadata>of());
     }
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated) {
-        this(moduleDescriptor.getComponentIdentifier(), moduleDescriptor, packaging, relocated);
+    public DefaultMutableMavenModuleResolveMetadata(ModuleDescriptorState moduleDescriptor, String packaging, boolean relocated, Collection<DependencyMetadata> dependencies) {
+        this(moduleDescriptor.getComponentIdentifier(), moduleDescriptor, packaging, relocated, dependencies);
     }
 
-    public DefaultMutableMavenModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor, String packaging, boolean relocated) {
-        super(componentIdentifier, descriptor, GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS);
+    public DefaultMutableMavenModuleResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState descriptor, String packaging, boolean relocated, Collection<? extends DependencyMetadata> dependencies) {
+        super(componentIdentifier, descriptor, GradlePomModuleDescriptorBuilder.MAVEN2_CONFIGURATIONS, ImmutableList.copyOf(dependencies));
         this.packaging = packaging;
         this.relocated = relocated;
     }

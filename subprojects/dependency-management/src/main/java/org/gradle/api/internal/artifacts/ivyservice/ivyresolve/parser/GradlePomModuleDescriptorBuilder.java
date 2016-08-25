@@ -38,6 +38,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.external.model.MavenDependencyMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
+import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
@@ -79,13 +80,17 @@ public class GradlePomModuleDescriptorBuilder {
     private final VersionSelectorScheme mavenVersionSelectorScheme;
 
     private MutableModuleDescriptorState descriptor;
-
+    private List<DependencyMetadata> dependencies = Lists.newArrayList();
     private final PomReader pomReader;
 
     public GradlePomModuleDescriptorBuilder(PomReader pomReader, VersionSelectorScheme gradleVersionSelectorScheme, VersionSelectorScheme mavenVersionSelectorScheme) {
         this.defaultVersionSelectorScheme = gradleVersionSelectorScheme;
         this.mavenVersionSelectorScheme = mavenVersionSelectorScheme;
         this.pomReader = pomReader;
+    }
+
+    public List<DependencyMetadata> getDependencies() {
+        return dependencies;
     }
 
     public ModuleDescriptorState getModuleDescriptor() {
@@ -174,7 +179,7 @@ public class GradlePomModuleDescriptorBuilder {
             excludes.add(rule);
         }
 
-        descriptor.addDependency(new MavenDependencyMetadata(scope, optional, selector, artifacts, excludes));
+        dependencies.add(new MavenDependencyMetadata(scope, optional, selector, artifacts, excludes));
     }
 
     private String convertVersionFromMavenSyntax(String version) {
@@ -274,7 +279,7 @@ public class GradlePomModuleDescriptorBuilder {
             }
         }
 
-        descriptor.addDependency(new IvyDependencyMetadata(selector, confMappings));
+        dependencies.add(new IvyDependencyMetadata(selector, confMappings));
     }
 
     private String getDefaultVersion(PomDependencyData dep) {

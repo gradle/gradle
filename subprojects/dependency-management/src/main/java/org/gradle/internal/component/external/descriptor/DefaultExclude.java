@@ -54,6 +54,11 @@ public class DefaultExclude implements Exclude {
     }
 
     @Override
+    public String toString() {
+        return "{exclude moduleId: " + moduleId + ", artifact: " + artifact + "}";
+    }
+
+    @Override
     public ModuleIdentifier getModuleId() {
         return moduleId;
     }

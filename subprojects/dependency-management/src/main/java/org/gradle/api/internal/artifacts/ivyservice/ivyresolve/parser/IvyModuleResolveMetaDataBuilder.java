@@ -22,6 +22,7 @@ import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
+import org.gradle.internal.component.external.model.IvyDependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.util.List;
@@ -45,6 +46,7 @@ class IvyModuleResolveMetaDataBuilder {
             descriptorState.addArtifact(artifact.getArtifactName(), artifact.getConfigurations());
         }
         List<Configuration> configurations = IvyModuleDescriptorConverter.extractConfigurations(ivyDescriptor);
-        return new DefaultMutableIvyModuleResolveMetadata(descriptorState.getComponentIdentifier(), descriptorState, configurations);
+        List<IvyDependencyMetadata> dependencies = IvyModuleDescriptorConverter.extractDependencies(ivyDescriptor);
+        return new DefaultMutableIvyModuleResolveMetadata(descriptorState.getComponentIdentifier(), descriptorState, configurations, dependencies);
     }
 }

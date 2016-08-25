@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -26,7 +27,6 @@ import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -46,12 +46,12 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
     @Nullable
     private List<ModuleComponentArtifactMetadata> artifacts;
 
-    protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor, Map<String, Configuration> configurations) {
+    protected AbstractMutableModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleDescriptorState moduleDescriptor, Map<String, Configuration> configurations, List<? extends DependencyMetadata> dependencies) {
         this.descriptor = moduleDescriptor;
         this.componentId = componentIdentifier;
         this.id = DefaultModuleVersionIdentifier.newId(componentIdentifier);
         this.status = moduleDescriptor.getStatus();
-        this.dependencies = moduleDescriptor.getDependencies();
+        this.dependencies = dependencies;
         this.configurationDefinitions = configurations;
     }
 
@@ -148,7 +148,7 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
 
     @Override
     public void setArtifacts(Iterable<? extends ModuleComponentArtifactMetadata> artifacts) {
-        this.artifacts = CollectionUtils.toList(artifacts);
+        this.artifacts = ImmutableList.copyOf(artifacts);
     }
 
     @Override
@@ -158,6 +158,6 @@ abstract class AbstractMutableModuleComponentResolveMetadata implements MutableM
 
     @Override
     public void setDependencies(Iterable<? extends DependencyMetadata> dependencies) {
-        this.dependencies = CollectionUtils.toList(dependencies);
+        this.dependencies = ImmutableList.copyOf(dependencies);
     }
 }
