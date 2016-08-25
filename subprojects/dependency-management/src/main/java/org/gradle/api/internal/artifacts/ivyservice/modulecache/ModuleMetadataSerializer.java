@@ -311,9 +311,9 @@ public class ModuleMetadataSerializer {
 
         private MutableModuleComponentResolveMetadata readIvy() throws IOException {
             readInfoSection();
-            readConfigurations();
+            List<Configuration> configurations = readConfigurations();
             readSharedInfo();
-            return new DefaultMutableIvyModuleResolveMetadata(id, md);
+            return new DefaultMutableIvyModuleResolveMetadata(id, md, configurations);
         }
 
         private void readInfoSection() throws IOException {
@@ -345,19 +345,22 @@ public class ModuleMetadataSerializer {
             }
         }
 
-        private void readConfigurations() throws IOException {
+        private List<Configuration> readConfigurations() throws IOException {
             int len = readCount();
+            List<Configuration> configurations = new ArrayList<Configuration>(len);
             for (int i = 0; i < len; i++) {
-                readConfiguration();
+                Configuration configuration = readConfiguration();
+                configurations.add(configuration);
             }
+            return configurations;
         }
 
-        private void readConfiguration() throws IOException {
+        private Configuration readConfiguration() throws IOException {
             String name = readString();
             boolean transitive = readBoolean();
             boolean visible = readBoolean();
             List<String> extendsFrom = readStringList();
-            md.addConfiguration(name, transitive, visible, extendsFrom);
+            return new Configuration(name, transitive, visible, extendsFrom);
         }
 
         private void readArtifacts() throws IOException {

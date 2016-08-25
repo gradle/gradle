@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -26,7 +27,7 @@ import org.gradle.internal.component.model.ModuleSource
 
 class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
-    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations) {
         return new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "jar", false)
     }
 
@@ -51,6 +52,21 @@ class DefaultMutableMavenModuleResolveMetadataTest extends AbstractMutableModule
         immutable.getConfiguration("default").hierarchy == ["master", "runtime", "compile", "default"] as Set
         immutable.getConfiguration("provided").hierarchy == ["provided"] as Set
         immutable.getConfiguration("optional").hierarchy == ["optional"] as Set
+    }
+
+    def "default metadata"() {
+        def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, [] as Set)
+
+        expect:
+        metadata.packaging == 'jar'
+        !metadata.relocated
+
+        def immutable = metadata.asImmutable()
+        immutable.generated
+        immutable.packaging == 'jar'
+        !immutable.relocated
+        immutable.configurationNames == ["compile", "runtime", "test", "provided", "system", "optional", "master", "default", "javadoc", "sources"] as Set
     }
 
     def "initialises values from descriptor state and defaults"() {

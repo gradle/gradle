@@ -17,9 +17,6 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.Nullable;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
-import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.model.ModuleSource;
 
 import java.util.Arrays;
@@ -31,13 +28,6 @@ public class DefaultMavenModuleResolveMetadata extends AbstractModuleComponentRe
     private final String packaging;
     private final boolean relocated;
     private final String snapshotTimestamp;
-
-    public DefaultMavenModuleResolveMetadata(ModuleComponentIdentifier componentId, ModuleDescriptorState descriptor, String packaging, boolean relocated) {
-        super(componentId, DefaultModuleVersionIdentifier.newId(componentId), descriptor);
-        this.packaging = packaging;
-        this.relocated = relocated;
-        this.snapshotTimestamp = null;
-    }
 
     DefaultMavenModuleResolveMetadata(MutableMavenModuleResolveMetadata metadata) {
         super(metadata);

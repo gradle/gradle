@@ -70,9 +70,9 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
 
         ModuleDescriptorState descriptor = metadata.getModuleDescriptor();
         printInfoTag(descriptor, writer);
-        printConfigurations(descriptor, writer);
+        printConfigurations(metadata, writer);
         printPublications(metadata.getArtifacts(), writer);
-        printDependencies(descriptor, metadata.getDependencies(), writer);
+        printDependencies(metadata, writer);
 
         writer.endElement();
     }
@@ -127,8 +127,8 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    private static void printConfigurations(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
-        Collection<Configuration> configurations = descriptor.getConfigurations().values();
+    private void printConfigurations(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
+        Collection<Configuration> configurations = metadata.getConfigurations().values();
         if (!configurations.isEmpty()) {
             writer.startElement("configurations");
             for (Configuration configuration : configurations) {
@@ -138,7 +138,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    private static void printConfiguration(Configuration conf, SimpleXmlWriter writer) throws IOException {
+    private void printConfiguration(Configuration conf, SimpleXmlWriter writer) throws IOException {
         writer.startElement("conf");
         writer.attribute("name", conf.getName());
         writer.attribute("visibility", conf.isVisible() ? "public" : "private");
@@ -169,18 +169,19 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         writer.endElement();
     }
 
-    private void printDependencies(ModuleDescriptorState descriptor, Collection<LocalOriginDependencyMetadata> dependencies, SimpleXmlWriter writer) throws IOException {
+    private void printDependencies(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
+        Collection<LocalOriginDependencyMetadata> dependencies = metadata.getDependencies();
         if (dependencies.size() > 0) {
             writer.startElement("dependencies");
             for (LocalOriginDependencyMetadata dd : dependencies) {
-                printDependency(descriptor, dd, writer);
+                printDependency(metadata, dd, writer);
             }
-            printAllExcludes(descriptor, writer);
+            printAllExcludes(metadata, writer);
             writer.endElement();
         }
     }
 
-    protected void printDependency(ModuleDescriptorState descriptor, LocalOriginDependencyMetadata dep, SimpleXmlWriter writer) throws IOException {
+    protected void printDependency(IvyModulePublishMetadata metadata, LocalOriginDependencyMetadata dep, SimpleXmlWriter writer) throws IOException {
         writer.startElement("dependency");
 
         ModuleVersionSelector requested = dep.getRequested();
@@ -205,7 +206,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             printDependencyArtifact(writer, dependencyArtifact, dep.getModuleConfiguration());
         }
 
-        printDependencyExcludeRules(descriptor, writer, dep.getExcludes());
+        printDependencyExcludeRules(metadata, writer, dep.getExcludes());
 
         writer.endElement();
     }
@@ -214,8 +215,8 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         return dependency.getModuleConfiguration() + "->" + dependency.getDependencyConfiguration();
     }
 
-    private static void printAllExcludes(ModuleDescriptorState descriptor, SimpleXmlWriter writer) throws IOException {
-        List<Exclude> excludes = descriptor.getExcludes();
+    private static void printAllExcludes(IvyModulePublishMetadata metadata, SimpleXmlWriter writer) throws IOException {
+        List<Exclude> excludes = metadata.getModuleDescriptor().getExcludes();
         for (Exclude exclude : excludes) {
             writer.startElement("exclude");
             writer.attribute("org", exclude.getModuleId().getGroup());
@@ -224,7 +225,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.attribute("type", exclude.getArtifact().getType());
             writer.attribute("ext", exclude.getArtifact().getExtension());
             Set<String> ruleConfs = exclude.getConfigurations();
-            if (!descriptor.getConfigurationsNames().equals(ruleConfs)) {
+            if (!metadata.getConfigurations().keySet().equals(ruleConfs)) {
                 writer.attribute("conf", Joiner.on(',').join(ruleConfs));
             }
             writer.attribute("matcher", exclude.getMatcher());
@@ -232,7 +233,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
         }
     }
 
-    private static void printDependencyExcludeRules(ModuleDescriptorState descriptor, SimpleXmlWriter writer,
+    private static void printDependencyExcludeRules(IvyModulePublishMetadata metadata, SimpleXmlWriter writer,
                                                     Collection<Exclude> excludes) throws IOException {
         for (Exclude exclude : excludes) {
             writer.startElement("exclude");
@@ -242,7 +243,7 @@ public class IvyXmlModuleDescriptorWriter implements IvyModuleDescriptorWriter {
             writer.attribute("type", exclude.getArtifact().getType());
             writer.attribute("ext", exclude.getArtifact().getExtension());
             Set<String> ruleConfs = exclude.getConfigurations();
-            if (!descriptor.getConfigurationsNames().equals(ruleConfs)) {
+            if (!metadata.getConfigurations().keySet().equals(ruleConfs)) {
                 writer.attribute("conf", Joiner.on(',').join(ruleConfs));
             }
             writer.attribute("matcher", exclude.getMatcher());

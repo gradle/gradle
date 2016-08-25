@@ -55,22 +55,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
     private final List<? extends DependencyMetadata> dependencies;
     private final List<Exclude> excludes;
 
-    protected AbstractModuleComponentResolveMetadata(ModuleComponentIdentifier componentIdentifier, ModuleVersionIdentifier moduleVersionIdentifier, ModuleDescriptorState moduleDescriptor) {
-        this.descriptor = moduleDescriptor;
-        this.componentIdentifier = componentIdentifier;
-        this.moduleVersionIdentifier = moduleVersionIdentifier;
-        changing = false;
-        moduleSource = null;
-        status = moduleDescriptor.getStatus();
-        statusScheme = DEFAULT_STATUS_SCHEME;
-        configurationDefinitions = moduleDescriptor.getConfigurations();
-        dependencies = Collections.emptyList();
-        artifacts = null;
-        excludes = moduleDescriptor.getExcludes();
-        configurations = populateConfigurationsFromDescriptor();
-        populateArtifactsFromDescriptor();
-    }
-
     protected AbstractModuleComponentResolveMetadata(MutableModuleComponentResolveMetadata metadata) {
         this.descriptor = metadata.getDescriptor();
         this.componentIdentifier = metadata.getComponentId();

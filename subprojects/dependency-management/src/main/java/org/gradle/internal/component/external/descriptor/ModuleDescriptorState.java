@@ -32,7 +32,6 @@ import java.util.Set;
 public class ModuleDescriptorState {
     // The identifier extracted from the descriptor itself. May be different to the id of the containing module
     private final ModuleComponentIdentifier componentIdentifier;
-    protected final Map<String, Configuration> configurations;
     protected final List<Exclude> excludes;
     protected final List<DependencyMetadata> dependencies;
     private final List<Artifact> artifacts = Lists.newArrayList();
@@ -51,7 +50,6 @@ public class ModuleDescriptorState {
         this.status = status;
         this.generated = generated;
         extraInfo = Maps.newHashMap();
-        configurations = Maps.newHashMap();
         excludes = Lists.newArrayList();
         dependencies = Lists.newArrayList();
     }
@@ -81,18 +79,6 @@ public class ModuleDescriptorState {
 
     public String getStatus() {
         return status;
-    }
-
-    public Set<String> getConfigurationsNames() {
-        return configurations.keySet();
-    }
-
-    public Configuration getConfiguration(String name) {
-        return configurations.get(name);
-    }
-
-    public Map<String, Configuration> getConfigurations() {
-        return configurations;
     }
 
     public List<Artifact> getArtifacts() {

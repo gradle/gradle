@@ -18,6 +18,7 @@ package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
+import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.model.ComponentResolveMetadata
@@ -26,8 +27,8 @@ import org.gradle.internal.component.model.ModuleSource
 
 class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleComponentResolveMetadataTest {
     @Override
-    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
-        return new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor)
+    AbstractMutableModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations) {
+        return new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor, configurations)
     }
 
     @Override
@@ -39,11 +40,11 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def id = DefaultModuleComponentIdentifier.newId("group", "module", "version")
         def descriptor = new MutableModuleDescriptorState(id, "2", true)
         descriptor.branch = "b"
-        descriptor.addConfiguration("runtime", true, true, [])
-        descriptor.addConfiguration("default", true, true, ["runtime"])
+        configuration("runtime", [])
+        configuration("default", ["runtime"])
 
         expect:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor, configurations)
         metadata.componentId == id
         metadata.id == DefaultModuleVersionIdentifier.newId(id)
         metadata.status == "2"
@@ -90,7 +91,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor, [])
         metadata.componentId = newId
         metadata.source = source
         metadata.status = "3"
@@ -131,7 +132,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor, [])
         def immutable = metadata.asImmutable()
         def copy = immutable.asMutable()
         copy.componentId = newId
@@ -174,7 +175,7 @@ class DefaultMutableIvyModuleResolveMetadataTest extends AbstractMutableModuleCo
         def source = Stub(ModuleSource)
 
         when:
-        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor)
+        def metadata = new DefaultMutableIvyModuleResolveMetadata(id, descriptor, [])
         def immutable = metadata.asImmutable()
 
         metadata.componentId = newId

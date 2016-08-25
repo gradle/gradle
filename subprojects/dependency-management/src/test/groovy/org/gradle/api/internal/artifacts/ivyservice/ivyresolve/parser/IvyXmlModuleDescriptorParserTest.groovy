@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.IvyDependencyMetadata
+import org.gradle.internal.component.external.model.MutableIvyModuleResolveMetadata
 import org.gradle.internal.resource.local.DefaultLocallyAvailableExternalResource
 import org.gradle.internal.resource.local.DefaultLocallyAvailableResource
 import org.gradle.test.fixtures.file.TestFile
@@ -45,6 +46,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     DescriptorParseContext parseContext = Mock()
 
     ModuleDescriptorState md
+    MutableIvyModuleResolveMetadata metadata
 
     def "parses minimal Ivy descriptor"() throws Exception {
         when:
@@ -62,7 +64,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
-        md.configurations.keySet() == ["default"] as Set
+        metadata.configurationDefinitions.keySet() == ["default"] as Set
         md.dependencies.empty
 
         artifact()
@@ -88,7 +90,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
-        md.configurations.keySet() == ["default"] as Set
+        metadata.configurationDefinitions.keySet() == ["default"] as Set
         md.dependencies.empty
 
         def artifact = artifact()
@@ -117,7 +119,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
-        md.configurations.keySet() == ["A", "B"] as Set
+        metadata.configurationDefinitions.keySet() == ["A", "B"] as Set
         md.dependencies.empty
 
         def artifact = artifact()
@@ -259,7 +261,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md.extraInfo.size() == 1
         md.extraInfo.get(new NamespaceId("http://ant.apache.org/ivy/extra", "someExtra")) == "56576"
 
-        md.configurations.size() == 5
+        metadata.configurationDefinitions.size() == 5
         assertConf("myconf1", "desc 1", true, new String[0])
         assertConf("myconf2", "desc 2", true, new String[0])
         assertConf("myconf3", "desc 3", false, new String[0])
@@ -319,7 +321,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         md != null
         md.componentIdentifier == componentId("myorg", "mymodule", "myrev")
         md.status == "integration"
-        md.configurations.keySet() == ["default"] as Set
+        metadata.configurationDefinitions.keySet() == ["default"] as Set
 
         md.dependencies.size() == 1
         def dependency = md.dependencies.first()
@@ -571,7 +573,8 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     }
 
     private void parse(DescriptorParseContext parseContext, TestFile file) {
-        md = parser.parseMetaData(parseContext, file).descriptor
+        metadata = parser.parseMetaData(parseContext, file)
+        md = metadata.descriptor
     }
 
     private artifact() {
@@ -688,7 +691,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     }
 
     protected void assertConf(String name, String desc, boolean visible, String[] exts) {
-        def conf = md.getConfiguration(name)
+        def conf = metadata.configurationDefinitions[name]
         assert conf != null : "configuration not found: " + name
         assert conf.name == name
         assert conf.visible == visible

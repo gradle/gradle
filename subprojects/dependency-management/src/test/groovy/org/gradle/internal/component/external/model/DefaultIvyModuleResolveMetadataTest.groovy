@@ -17,13 +17,13 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
 
 class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
-
     @Override
-    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
-        return new DefaultIvyModuleResolveMetadata(new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor))
+    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations) {
+        return new DefaultIvyModuleResolveMetadata(new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor, configurations))
     }
 
     def "builds and caches the configuration meta-data from the module descriptor"() {
@@ -55,7 +55,7 @@ class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolve
     def "getBranch returns branch from moduleDescriptor" () {
         setup:
         moduleDescriptor.setBranch(expectedBranch)
-        def metadataWithBranch = new DefaultIvyModuleResolveMetadata(new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor))
+        def metadataWithBranch = new DefaultIvyModuleResolveMetadata(new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor, []))
 
         expect:
         metadataWithBranch.branch == expectedBranch
