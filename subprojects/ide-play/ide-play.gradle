@@ -19,6 +19,8 @@ dependencies {
     compile project(':core')
     compile project(":ide")
     compile project(':platformPlay')
+
+    integTestRuntime project(':compositeBuilds')
 }
 
 useTestFixtures()
