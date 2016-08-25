@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.tooling.fixture
 
-import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -38,7 +37,6 @@ import org.slf4j.LoggerFactory
 
 import java.util.concurrent.TimeUnit
 
-@CompileStatic
 class ToolingApi implements TestRule {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
 
