@@ -546,6 +546,12 @@ task nativeDependents(type: NativeProjectWithDepsGeneratorTask) {
     resources.from(resolveTemplate("init.gradle"))
 }
 
+task nativeDependentsDeep(type: NativeProjectWithDepsGeneratorTask) {
+    resources.from(fileTree(resolveTemplate("native-dependents-resources")))
+    resources.from(resolveTemplate("init.gradle"))
+    generateDeepHierarchy = true
+}
+
 tasks.withType(JvmProjectGeneratorTask) {
     if(project.hasProperty("springDmPluginVersion")) {
         templateArgs['springDmPluginVersion'] = springDmPluginVersion

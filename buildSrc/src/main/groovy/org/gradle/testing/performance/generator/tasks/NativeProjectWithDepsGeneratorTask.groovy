@@ -64,6 +64,19 @@ class NativeProjectWithDepsGeneratorTask extends ProjectGeneratorTask {
     int numberOfComponents = 4
 
     /**
+     * Should we generate a deep and wide hierarchy ("worst case" scenario) or only a wide hierarchy?
+     * <p>
+     *     With a wide hierarchy, each group of libraries depend only on each other. There's a limited depth (~7) and
+     *     several projects.  This tries to replicate a project with many subgroups of interconnected components.
+     * <p>
+     *     With a deep and wide hierarchy, each subproject is formed as above, except each group of libraries depend on
+     *     the previous group as well.  This means each group of libraries is deeper than the last.  This tries to
+     *     replicate a project with many common libraries that are used extensively.
+     */
+    @Input
+    boolean generateDeepHierarchy = false
+
+    /**
      * Extra files that should be copied into the root directory
      *
      * These files do not have any filtering/expanding done to them.
@@ -108,7 +121,7 @@ class NativeProjectWithDepsGeneratorTask extends ProjectGeneratorTask {
      */
     @InputFiles
     Jar getMeasurementPlugin() {
-        project.tasks.findByPath(':internalPerformanceTesting:measurementPluginJar')
+        (Jar)project.tasks.findByPath(':internalPerformanceTesting:measurementPluginJar')
     }
 
     @TaskAction
@@ -160,10 +173,19 @@ class NativeProjectWithDepsGeneratorTask extends ProjectGeneratorTask {
         // Library projects are generated with source, tests and headers
         allLibraries.eachWithIndex { List<String> libraries, int libraryGroupIdx ->
             libraries.eachWithIndex { String subprojectName, int idx ->
+                List<String> dependentProjects = []
+                if (generateDeepHierarchy) {
+                    // Each "layer" of libraries depends on the layer before it.
+                    // This should generate a deep and wide dependency tree
+                    if (libraryGroupIdx > 0) {
+                        dependentProjects.addAll(allLibraries.get(libraryGroupIdx-1))
+                    }
+                }
 
                 // Depend on all projects after this one.
                 // With the number of projects we generate, this gives us a ~7-layer deep dependency graph
-                def dependentProjects = libraries.drop(idx+1)
+                // within a group of libraries
+                dependentProjects.addAll(libraries.drop(idx+1))
 
                 generateLibrarySubproject(subprojectName,
                         new File(projectTemplate, "lib.cpp"), new File(projectTemplate, "header.h"), new File(projectTemplate, "test_main.cpp"),

@@ -47,9 +47,11 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
 
         where:
         testProject        | subprojectPath | taskName                | maxExecutionTimeRegression
-        "nativeDependents" | ':libA0'       | 'buildDependentsLibA00' | millis(1000) // has the most dependent components
-        "nativeDependents" | ':libA6'       | 'buildDependentsLibA60' | millis(1000) // has a few dependent components
-        "nativeDependents" | ':exeA0'       | 'buildDependentsExeA00' | millis(1000) // has no dependent components
+        "nativeDependents"     | ':libA0' | 'buildDependentsLibA00' | millis(1000) // has the most dependent components
+        "nativeDependents"     | ':libA6' | 'buildDependentsLibA60' | millis(1000) // has a few dependent components
+        "nativeDependents"     | ':exeA0' | 'buildDependentsExeA00' | millis(1000) // has no dependent components
+        "nativeDependentsDeep" | ':libA0' | 'buildDependentsLibA00' | millis(1000) // has the most dependent components
+        "nativeDependentsDeep" | ':exeA0' | 'buildDependentsExeA00' | millis(1000) // has no dependent components
     }
 
     @Unroll("Project '#testProject' measuring build dependents report speed for #subprojectPath")
@@ -73,9 +75,11 @@ class NativeBuildDependentsPerformanceTest extends AbstractCrossVersionPerforman
         result.assertCurrentVersionHasNotRegressed()
 
         where:
-        testProject        | subprojectPath | maxExecutionTimeRegression
-        "nativeDependents" | ':libA0'       | millis(1000) // has the most dependent components
-        "nativeDependents" | ':libA6'       | millis(1000) // has a few dependent components
-        "nativeDependents" | ':exeA0'       | millis(1000) // has no dependent components
+        testProject            | subprojectPath | maxExecutionTimeRegression
+        "nativeDependents"     | ':libA0'       | millis(1000) // has the most dependent components
+        "nativeDependents"     | ':libA6'       | millis(1000) // has a few dependent components
+        "nativeDependents"     | ':exeA0'       | millis(1000) // has no dependent components
+        "nativeDependentsDeep" | ':libA0'       | millis(1000) // has the most dependent components
+        "nativeDependentsDeep" | ':exeA0'       | millis(1000) // has no dependent components
     }
 }
