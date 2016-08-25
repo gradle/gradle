@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.tooling.fixture
 
+import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -37,6 +38,7 @@ import org.slf4j.LoggerFactory
 
 import java.util.concurrent.TimeUnit
 
+@CompileStatic
 class ToolingApi implements TestRule {
     private static final Logger LOGGER = LoggerFactory.getLogger(ToolingApi)
 
@@ -120,8 +122,8 @@ class ToolingApi implements TestRule {
         }
 
         // Verify that the exception carries the calling thread's stack information
-        def currentThreadStack = Thread.currentThread().stackTrace as List
-        while (!currentThreadStack.empty && (currentThreadStack[0].className != ToolingApi.name || currentThreadStack[0].methodName != 'withConnectionRaw')) {
+        List<StackTraceElement> currentThreadStack = Thread.currentThread().stackTrace as List
+        while (!currentThreadStack.empty && (currentThreadStack[0].className != ToolingApi.name || currentThreadStack[0].methodName != 'withConnectionRaw' && currentThreadStack[0].methodName != 'withGradleConnectionRaw')) {
             currentThreadStack.remove(0)
         }
         assert currentThreadStack.size() > 1
@@ -146,7 +148,7 @@ class ToolingApi implements TestRule {
     }
 
     GradleConnector connector() {
-        DefaultGradleConnector connector = GradleConnector.newConnector()
+        DefaultGradleConnector connector = GradleConnector.newConnector() as DefaultGradleConnector
         connector.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
         if (useSeparateDaemonBaseDir) {
             connector.daemonBaseDir(new File(daemonBaseDir.path))
@@ -222,7 +224,7 @@ class ToolingApi implements TestRule {
     }
 
     GradleConnectionBuilder gradleConnectionBuilder() {
-        GradleConnectionBuilderInternal builder = GradleConnector.newGradleConnection()
+        GradleConnectionBuilderInternal builder = GradleConnector.newGradleConnection() as GradleConnectionBuilderInternal
         builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
         if (useSeparateDaemonBaseDir) {
             builder.daemonBaseDir(new File(daemonBaseDir.path))

@@ -27,22 +27,19 @@ import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSepara
 /**
  * Dependency substitution is performed for composite build accessed via the `GradleConnection` API.
  */
-@TargetGradleVersion(">=1.4")
-@Ignore("Requires composite task execution")
-// Dependencies task fails for missing dependencies with older Gradle versions
+@TargetGradleVersion(">=3.1")
 class DependencySubstitutionGradleConnectionCrossVersionSpec extends GradleConnectionToolingApiSpecification {
     def stdOut = new ByteArrayOutputStream()
     def stdErr = new ByteArrayOutputStream()
     def buildA
     def buildB
-    def builds = []
     def mavenRepo
 
     def setup() {
         mavenRepo = new MavenFileRepository(file("maven-repo"))
         mavenRepo.module("org.test", "buildB", "1.0").publish()
 
-        buildA = singleProjectBuildInSubfolder("buildA") {
+        buildA = singleProjectBuildInRootFolder("buildA") {
             buildFile << """
         configurations { compile }
         dependencies {
@@ -58,8 +55,7 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends GradleConne
         apply plugin: 'java'
 """
         }
-        builds << buildA << buildB
-        includeBuilds(builds)
+        includeBuilds(buildB)
     }
 
     def "dependencies report shows external dependencies substituted with project dependencies"() {
@@ -80,7 +76,7 @@ compile
         given:
         // Add a project that makes 'buildB' ambiguous in the composite
         def buildC = multiProjectBuildInSubFolder('buildC', ['buildB'])
-        builds << buildC
+        includeBuilds buildC
 
         when:
         dependencies()
@@ -109,14 +105,14 @@ compile
                 apply plugin: 'java'
 """
         }
-        builds << buildC
+        includeBuilds buildC
 
         when:
         withGradleConnection { connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
             buildLauncher.setStandardError(stdErr)
-            buildLauncher.forTasks(buildA, "printConfiguration")
+            buildLauncher.forTasks("printConfiguration")
             buildLauncher.run()
         }
 
@@ -137,7 +133,7 @@ compile
         withGradleConnection{ connection ->
             def buildLauncher = connection.newBuild()
             buildLauncher.setStandardOutput(stdOut)
-            buildLauncher.forTasks(buildA, "dependencies")
+            buildLauncher.forTasks("dependencies")
             buildLauncher.run()
         }
     }
