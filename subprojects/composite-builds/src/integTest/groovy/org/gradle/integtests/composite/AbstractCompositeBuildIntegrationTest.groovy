@@ -28,6 +28,7 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
     List includedBuilds = []
 
     def setup() {
+        buildTestFixture.withBuildInSubDir()
         buildA = singleProjectBuild("buildA") {
             buildFile << """
                 apply plugin: 'java'
@@ -36,7 +37,6 @@ abstract class AbstractCompositeBuildIntegrationTest extends AbstractIntegration
                 }
 """
         }
-        buildTestFixture.withBuildInSubDir()
     }
 
     def dependency(BuildTestFile sourceBuild = buildA, String notation) {
