@@ -16,23 +16,73 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.execution.ProjectConfigurer;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.invocation.BuildController;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
+import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.UnknownModelException;
 
-public class BuildModelActionRunner extends AbstractBuildModelActionRunner {
-    @Override
-    protected boolean canHandle(BuildModelAction buildModelAction) {
-        return !buildModelAction.isAllModels();
-    }
+public class BuildModelActionRunner implements BuildActionRunner {
 
     @Override
-    protected Object getModelResult(GradleInternal gradle, String modelName) {
-        return getModel(gradle, modelName);
+    public void run(final BuildAction action, final BuildController buildController) {
+        if (!(action instanceof BuildModelAction)) {
+            return;
+        }
+
+        final BuildModelAction buildModelAction = (BuildModelAction) action;
+
+        final String modelName = buildModelAction.getModelName();
+        final GradleInternal gradle = buildController.getGradle();
+
+        if (buildModelAction.isRunTasks()) {
+            buildController.run();
+        } else {
+            buildController.configure();
+            forceFullConfiguration(gradle);
+        }
+
+        Object modelResult = getModel(modelName, gradle);
+
+        final PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
+        BuildActionResult result = new BuildActionResult(payloadSerializer.serialize(modelResult), null);
+        buildController.setResult(result);
     }
 
-    private Object getModel(GradleInternal gradle, String modelName) {
+    private Object getModel(String modelName, GradleInternal gradle) {
         ToolingModelBuilder builder = getToolingModelBuilder(gradle, modelName);
         return builder.buildAll(modelName, gradle.getDefaultProject());
+    }
+
+    private GradleInternal forceFullConfiguration(GradleInternal gradle) {
+        gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
+        for (Project project : gradle.getRootProject().getAllprojects()) {
+            ProjectInternal projectInternal = (ProjectInternal) project;
+            projectInternal.getTasks().discoverTasks();
+            projectInternal.bindAllModelRules();
+        }
+        return gradle;
+    }
+
+    private ToolingModelBuilder getToolingModelBuilder(GradleInternal gradle, String modelName) {
+        ToolingModelBuilderRegistry builderRegistry = getToolingModelBuilderRegistry(gradle);
+        try {
+            return builderRegistry.getBuilder(modelName);
+        } catch (UnknownModelException e) {
+            throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
+        }
+    }
+
+    private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
+        return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
     }
 }

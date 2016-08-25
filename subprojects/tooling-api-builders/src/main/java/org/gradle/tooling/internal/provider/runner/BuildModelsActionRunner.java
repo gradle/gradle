@@ -17,39 +17,73 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.api.BuildCancelledException;
+import org.gradle.api.Project;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.composite.internal.IncludedBuildInternal;
+import org.gradle.execution.ProjectConfigurer;
 import org.gradle.initialization.ReportedException;
+import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.invocation.BuildActionRunner;
+import org.gradle.internal.invocation.BuildController;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.internal.protocol.BuildExceptionVersion1;
 import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
+import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
+import org.gradle.tooling.internal.provider.BuildActionResult;
 import org.gradle.tooling.internal.provider.BuildModelAction;
+import org.gradle.tooling.internal.provider.BuildModelsAction;
+import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
+import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderContext;
 
-public class BuildModelsActionRunner extends AbstractBuildModelActionRunner {
+public class BuildModelsActionRunner implements BuildActionRunner {
 
     @Override
-    protected boolean canHandle(BuildModelAction buildModelAction) {
-        return buildModelAction.isAllModels();
-    }
-
-    @Override
-    protected Object getModelResult(GradleInternal gradle, String modelName) {
-        if (!gradle.getDefaultProject().equals(gradle.getRootProject())) {
-            throw new GradleConnectionException("GradleConnection can only be used to connect to the root project of a build.");
+    public void run(final BuildAction action, final BuildController buildController) {
+        if (!(action instanceof BuildModelsAction)) {
+            return;
         }
-        return getAllModels(gradle, modelName);
-    }
 
-    private InternalModelResults<Object> getAllModels(GradleInternal gradle, String modelName) {
+        BuildModelsAction buildModelsAction = (BuildModelsAction) action;
+
         InternalModelResults<Object> compositeResults = new InternalModelResults<Object>();
+        forceFullConfiguration(buildController, buildModelsAction, compositeResults);
+        GradleInternal gradle = buildController.getGradle();
+        ensureConnectedToRootProject(gradle);
+        String modelName = buildModelsAction.getModelName();
         collectModelsFromThisBuild(gradle, modelName, compositeResults);
         collectModelsFromIncludedBuilds(gradle, modelName, compositeResults);
-        return compositeResults;
+
+        PayloadSerializer payloadSerializer = gradle.getServices().get(PayloadSerializer.class);
+        BuildActionResult result = new BuildActionResult(payloadSerializer.serialize(compositeResults), null);
+        buildController.setResult(result);
+    }
+
+    private void ensureConnectedToRootProject(GradleInternal gradle) {
+        if (!gradle.getDefaultProject().equals(gradle.getRootProject())) {
+            throw new GradleConnectionException("GradleConnection must be connected to the root project of a build.");
+        }
+    }
+
+    private void forceFullConfiguration(BuildController buildController, BuildModelsAction buildModelsAction, InternalModelResults<Object> compositeResults) {
+        try {
+            GradleInternal gradle = buildController.getGradle();
+            buildController.configure();
+            gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
+            for (Project project : gradle.getRootProject().getAllprojects()) {
+                ProjectInternal projectInternal = (ProjectInternal) project;
+                projectInternal.getTasks().discoverTasks();
+                projectInternal.bindAllModelRules();
+            }
+        } catch (RuntimeException e) {
+            compositeResults.addBuildFailure(buildModelsAction.getStartParameter().getProjectDir(), transformFailure(e));
+        }
     }
 
     private void collectModelsFromThisBuild(GradleInternal gradle, String modelName, InternalModelResults<Object> compositeResults) {
@@ -70,7 +104,12 @@ public class BuildModelsActionRunner extends AbstractBuildModelActionRunner {
         IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
         GradleInternal includedGradle = includedBuildInternal.configure();
         try {
-            forceFullConfiguration(includedGradle);
+            includedGradle.getServices().get(ProjectConfigurer.class).configureHierarchy(includedGradle.getRootProject());
+            for (Project project : includedGradle.getRootProject().getAllprojects()) {
+                ProjectInternal projectInternal = (ProjectInternal) project;
+                projectInternal.getTasks().discoverTasks();
+                projectInternal.bindAllModelRules();
+            }
             collectModels(includedGradle, modelName, compositeResults);
         } catch (RuntimeException e) {
             compositeResults.addBuildFailure(includedBuild.getProjectDir(), transformFailure(e));
@@ -108,5 +147,18 @@ public class BuildModelsActionRunner extends AbstractBuildModelActionRunner {
             t = t.getCause();
         }
         return new BuildExceptionVersion1(e.getCause());
+    }
+
+    private ToolingModelBuilder getToolingModelBuilder(GradleInternal gradle, String modelName) {
+        ToolingModelBuilderRegistry builderRegistry = getToolingModelBuilderRegistry(gradle);
+        try {
+            return builderRegistry.getBuilder(modelName);
+        } catch (UnknownModelException e) {
+            throw (InternalUnsupportedModelException) new InternalUnsupportedModelException().initCause(e);
+        }
+    }
+
+    private ToolingModelBuilderRegistry getToolingModelBuilderRegistry(GradleInternal gradle) {
+        return gradle.getDefaultProject().getServices().get(ToolingModelBuilderRegistry.class);
     }
 }

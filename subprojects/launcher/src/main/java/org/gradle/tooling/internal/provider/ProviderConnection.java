@@ -109,20 +109,22 @@ public class ProviderConnection {
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, false, listenerConfig.clientSubscriptions);
+        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
     }
 
     public Object buildModels(String modelName, BuildCancellationToken cancellationToken, ProviderOperationParameters providerParameters) {
-        List<String> tasks = providerParameters.getTasks();
-        if (modelName.equals(ModelIdentifier.NULL_MODEL) && tasks == null) {
-            throw new IllegalArgumentException("No model type or tasks specified.");
+        if (providerParameters.getTasks() != null) {
+            throw new IllegalArgumentException("Running tasks in a multi-model request is not supported");
+        }
+        if (modelName.equals(ModelIdentifier.NULL_MODEL)) {
+            throw new IllegalArgumentException("No model type specified.");
         }
         Parameters params = initParams(providerParameters);
 
         StartParameter startParameter = new ProviderStartParameterConverter().toStartParameter(providerParameters, params.properties);
         ProgressListenerConfiguration listenerConfig = ProgressListenerConfiguration.from(providerParameters);
-        BuildAction action = new BuildModelAction(startParameter, modelName, tasks != null, true, listenerConfig.clientSubscriptions);
+        BuildAction action = new BuildModelsAction(startParameter, modelName, listenerConfig.clientSubscriptions);
         return run(action, cancellationToken, listenerConfig, providerParameters, params);
     }
 

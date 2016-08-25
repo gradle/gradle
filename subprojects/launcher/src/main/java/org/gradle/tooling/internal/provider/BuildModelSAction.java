@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,14 @@ package org.gradle.tooling.internal.provider;
 
 import org.gradle.StartParameter;
 
-public class BuildModelAction extends SubscribableBuildAction {
+public class BuildModelsAction extends SubscribableBuildAction {
     private final StartParameter startParameter;
     private final String modelName;
-    private final boolean runTasks;
 
-    public BuildModelAction(StartParameter startParameter, String modelName, boolean runTasks, BuildClientSubscriptions clientSubscriptions) {
+    public BuildModelsAction(StartParameter startParameter, String modelName, BuildClientSubscriptions clientSubscriptions) {
         super(clientSubscriptions);
         this.startParameter = startParameter;
         this.modelName = modelName;
-        this.runTasks = runTasks;
     }
 
     @Override
@@ -36,9 +34,5 @@ public class BuildModelAction extends SubscribableBuildAction {
 
     public String getModelName() {
         return modelName;
-    }
-
-    public boolean isRunTasks() {
-        return runTasks;
     }
 }
