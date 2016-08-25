@@ -40,14 +40,14 @@ public class CancellableConsumerConnection extends AbstractPost12ConsumerConnect
     public CancellableConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, new R21VersionDetails(delegate.getMetaData().getVersion()));
         InternalCancellableConnection connection = (InternalCancellableConnection) delegate;
-        modelProducer = createModelProducer(connection, modelMapping, adapter);
         actionRunner = new CancellableActionRunner(connection);
+        modelProducer = createModelProducer(connection, modelMapping, adapter);
     }
 
     protected ModelProducer createModelProducer(InternalCancellableConnection connection, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         return new PluginClasspathInjectionSupportedCheckModelProducer(
             getVersionDetails().getVersion(),
-            new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection)
+            new CancellableModelBuilderBackedModelProducer(adapter, getVersionDetails(), modelMapping, connection, actionRunner)
         );
     }
 

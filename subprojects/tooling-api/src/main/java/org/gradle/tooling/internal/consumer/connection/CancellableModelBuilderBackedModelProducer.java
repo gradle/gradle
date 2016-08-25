@@ -32,13 +32,15 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
     protected final VersionDetails versionDetails;
     protected final ModelMapping modelMapping;
     private final InternalCancellableConnection builder;
+    private final ActionRunner actionRunner;
 
-    public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCancellableConnection builder) {
+    public CancellableModelBuilderBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, InternalCancellableConnection builder, ActionRunner actionRunner) {
         super(versionDetails);
         this.adapter = adapter;
         this.versionDetails = versionDetails;
         this.modelMapping = modelMapping;
         this.builder = builder;
+        this.actionRunner = actionRunner;
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
@@ -55,8 +57,7 @@ public class CancellableModelBuilderBackedModelProducer extends HasCompatibility
         if (!versionDetails.maySupportModel(elementType)) {
             throw Exceptions.unsupportedModel(elementType, versionDetails.getVersion());
         }
-        BuildResult<InternalModelResults<T>> result = builder.run(new BuildMultiModelAction<T>(adapter, versionDetails, modelMapping, elementType, operationParameters), new BuildCancellationTokenAdapter(operationParameters.getCancellationToken()), operationParameters);
-        return result.getModel();
+        return actionRunner.run(new BuildMultiModelAction<T>(elementType, operationParameters), operationParameters);
     }
 
 }

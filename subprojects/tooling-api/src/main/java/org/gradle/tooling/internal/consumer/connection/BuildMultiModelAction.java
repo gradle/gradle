@@ -17,39 +17,29 @@
 package org.gradle.tooling.internal.consumer.connection;
 
 import org.gradle.internal.Cast;
-import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.BuildAction;
+import org.gradle.tooling.BuildController;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
-import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
-import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalBuildAction;
-import org.gradle.tooling.internal.protocol.InternalBuildController;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
-import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.HasGradleProject;
 import org.gradle.tooling.model.HierarchicalElement;
 import org.gradle.tooling.model.ProjectModel;
 import org.gradle.tooling.model.gradle.BasicGradleProject;
 import org.gradle.tooling.model.gradle.GradleBuild;
 
-class BuildMultiModelAction<T> extends HasCompatibilityMapping implements InternalBuildAction<InternalModelResults<T>> {
-    private final ProtocolToModelAdapter adapter;
-    private final ModelMapping modelMapping;
-    private final Class<T> elementType;
-    private final ConsumerOperationParameters operationParameters;
-    private final ModelIdentifier modelIdentifier;
+import java.io.File;
 
-    BuildMultiModelAction(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, Class<T> elementType, ConsumerOperationParameters operationParameters) {
-        super(versionDetails);
-        this.adapter = adapter;
-        this.modelMapping = modelMapping;
+class BuildMultiModelAction<T> implements BuildAction<InternalModelResults<T>> {
+    private final Class<T> elementType;
+    private final File rootProject;
+
+    BuildMultiModelAction(Class<T> elementType, ConsumerOperationParameters operationParameters) {
         this.elementType = elementType;
-        this.operationParameters = operationParameters;
-        this.modelIdentifier = modelMapping.getModelIdentifierFromModelType(elementType);
+        this.rootProject = operationParameters.getProjectDir();
     }
 
     @Override
-    public InternalModelResults<T> execute(InternalBuildController buildController) {
+    public InternalModelResults<T> execute(BuildController buildController) {
         InternalModelResults<T> results = new InternalModelResults<T>();
         try {
             if (ProjectModel.class.isAssignableFrom(elementType)) {
@@ -60,52 +50,47 @@ class BuildMultiModelAction<T> extends HasCompatibilityMapping implements Intern
                 getBuildModel(buildController, results);
             }
         } catch (RuntimeException e) {
-            results.addBuildFailure(operationParameters.getProjectDir(), e);
+            results.addBuildFailure(rootProject, e);
         }
         return results;
     }
 
-    private void getBuildModel(InternalBuildController buildController, InternalModelResults<T> results) {
+    private void getBuildModel(BuildController buildController, InternalModelResults<T> results) {
         try {
-            BuildResult<?> result = Cast.uncheckedCast(buildController.getModel(null, modelIdentifier));
-            T model = applyCompatibilityMapping(adapter.builder(elementType), operationParameters.getBuildIdentifier()).build(result.getModel());
-            results.addBuildModel(operationParameters.getProjectDir(), model);
+            results.addBuildModel(rootProject, buildController.getModel(elementType));
         } catch (RuntimeException e) {
-            results.addBuildFailure(operationParameters.getProjectDir(), e);
+            results.addBuildFailure(rootProject, e);
         }
     }
 
-    private void getModelsFromHierarchy(InternalBuildController buildController, InternalModelResults<T> results) {
+    private void getModelsFromHierarchy(BuildController buildController, InternalModelResults<T> results) {
         try {
-            BuildResult<?> result = buildController.getModel(null, modelIdentifier);
-            T model = applyCompatibilityMapping(adapter.builder(elementType), operationParameters.getBuildIdentifier()).build(result.getModel());
+            T model = buildController.getModel(elementType);
             addModelsFromHierarchy(model, results);
         } catch (RuntimeException e) {
-            results.addBuildFailure(operationParameters.getProjectDir(), e);
+            results.addBuildFailure(rootProject, e);
         }
     }
 
     private void addModelsFromHierarchy(T model, InternalModelResults<T> results) {
-        results.addProjectModel(operationParameters.getProjectDir(), ((HasGradleProject) model).getGradleProject().getPath(), model);
+        results.addProjectModel(rootProject, ((HasGradleProject) model).getGradleProject().getPath(), model);
         for (HierarchicalElement child : ((HierarchicalElement) model).getChildren()) {
             addModelsFromHierarchy(Cast.<T>uncheckedCast(child), results);
         }
     }
 
-    private void getProjectModels(InternalBuildController buildController, InternalModelResults<T> results) {
-        BuildResult<?> gradleBuildResult = buildController.getModel(null, modelMapping.getModelIdentifierFromModelType(GradleBuild.class));
-        GradleBuild gradleBuild = applyCompatibilityMapping(adapter.builder(GradleBuild.class), operationParameters.getBuildIdentifier()).build(gradleBuildResult);
+    private void getProjectModels(BuildController buildController, InternalModelResults<T> results) {
+        GradleBuild gradleBuild = buildController.getBuildModel();
         for (BasicGradleProject project : gradleBuild.getProjects()) {
             try {
-                results.addProjectModel(operationParameters.getProjectDir(), project.getPath(), getProjectModel(buildController, project));
+                results.addProjectModel(rootProject, project.getPath(), getProjectModel(buildController, project));
             } catch (RuntimeException e) {
-                results.addProjectFailure(operationParameters.getProjectDir(), project.getPath(), e);
+                results.addProjectFailure(rootProject, project.getPath(), e);
             }
         }
     }
 
-    private T getProjectModel(InternalBuildController buildController, BasicGradleProject project) {
-        BuildResult<?> result = buildController.getModel(project, modelIdentifier);
-        return applyCompatibilityMapping(adapter.builder(elementType), operationParameters.getBuildIdentifier()).build(result.getModel());
+    private T getProjectModel(BuildController buildController, BasicGradleProject project) {
+        return buildController.getModel(project, elementType);
     }
 }

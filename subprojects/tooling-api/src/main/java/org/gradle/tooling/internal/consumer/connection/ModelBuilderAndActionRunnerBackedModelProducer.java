@@ -21,26 +21,25 @@ import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParamete
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
 import org.gradle.tooling.internal.protocol.BuildResult;
-import org.gradle.tooling.internal.protocol.InternalBuildActionExecutor;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.protocol.ModelBuilder;
 import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.model.internal.Exceptions;
 
-public class ModelBuilderAndActionExecutorBackedModelProducer extends HasCompatibilityMapping implements ModelProducer {
+public class ModelBuilderAndActionRunnerBackedModelProducer extends HasCompatibilityMapping implements ModelProducer {
     private final ProtocolToModelAdapter adapter;
     private final VersionDetails versionDetails;
     private final ModelMapping modelMapping;
     private final ModelBuilder builder;
-    private InternalBuildActionExecutor actionExecutor;
+    private ActionRunner actionRunner;
 
-    public ModelBuilderAndActionExecutorBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder, InternalBuildActionExecutor actionExecutor) {
+    public ModelBuilderAndActionRunnerBackedModelProducer(ProtocolToModelAdapter adapter, VersionDetails versionDetails, ModelMapping modelMapping, ModelBuilder builder, ActionRunner actionRunner) {
         super(versionDetails);
         this.adapter = adapter;
         this.versionDetails = versionDetails;
         this.modelMapping = modelMapping;
         this.builder = builder;
-        this.actionExecutor = actionExecutor;
+        this.actionRunner = actionRunner;
     }
 
     public <T> T produceModel(Class<T> type, ConsumerOperationParameters operationParameters) {
@@ -57,7 +56,6 @@ public class ModelBuilderAndActionExecutorBackedModelProducer extends HasCompati
         if (!versionDetails.maySupportModel(elementType)) {
             throw Exceptions.unsupportedModel(elementType, versionDetails.getVersion());
         }
-        BuildResult<InternalModelResults<T>> result = actionExecutor.run(new BuildMultiModelAction<T>(adapter, versionDetails, modelMapping, elementType, operationParameters), operationParameters);
-        return result.getModel();
+        return actionRunner.run(new BuildMultiModelAction<T>(elementType, operationParameters), operationParameters);
     }
 }

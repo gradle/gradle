@@ -42,13 +42,12 @@ public class ActionAwareConsumerConnection extends AbstractPost12ConsumerConnect
 
     public ActionAwareConsumerConnection(ConnectionVersion4 delegate, ModelMapping modelMapping, ProtocolToModelAdapter adapter) {
         super(delegate, getVersionDetails(delegate.getMetaData().getVersion()));
-        ModelProducer modelProducer =  new ModelBuilderAndActionExecutorBackedModelProducer(adapter, getVersionDetails(), modelMapping, (ModelBuilder) delegate, (InternalBuildActionExecutor) delegate);
+        this.actionRunner = new InternalBuildActionExecutorBackedActionRunner((InternalBuildActionExecutor) delegate);
+        ModelProducer modelProducer =  new ModelBuilderAndActionRunnerBackedModelProducer(adapter, getVersionDetails(), modelMapping, (ModelBuilder) delegate, actionRunner);
         if (!getVersionDetails().maySupportModel(BuildInvocations.class)) {
             modelProducer = new BuildInvocationsAdapterProducer(adapter, modelProducer);
-
         }
         this.modelProducer = modelProducer;
-        this.actionRunner = new InternalBuildActionExecutorBackedActionRunner((InternalBuildActionExecutor) delegate);
     }
 
     @Override
