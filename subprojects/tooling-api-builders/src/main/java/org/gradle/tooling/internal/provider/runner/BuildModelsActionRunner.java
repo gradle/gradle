@@ -33,7 +33,6 @@ import org.gradle.tooling.internal.protocol.InternalBuildCancelledException;
 import org.gradle.tooling.internal.protocol.InternalModelResults;
 import org.gradle.tooling.internal.protocol.InternalUnsupportedModelException;
 import org.gradle.tooling.internal.provider.BuildActionResult;
-import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.internal.provider.BuildModelsAction;
 import org.gradle.tooling.internal.provider.PayloadSerializer;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
@@ -41,6 +40,8 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry;
 import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderContext;
+
+import java.io.File;
 
 public class BuildModelsActionRunner implements BuildActionRunner {
 
@@ -53,9 +54,7 @@ public class BuildModelsActionRunner implements BuildActionRunner {
         BuildModelsAction buildModelsAction = (BuildModelsAction) action;
 
         InternalModelResults<Object> compositeResults = new InternalModelResults<Object>();
-        forceFullConfiguration(buildController, buildModelsAction, compositeResults);
-        GradleInternal gradle = buildController.getGradle();
-        ensureConnectedToRootProject(gradle);
+        GradleInternal gradle = configureTopLevelBuild(buildController, compositeResults);
         String modelName = buildModelsAction.getModelName();
         collectModelsFromThisBuild(gradle, modelName, compositeResults);
         collectModelsFromIncludedBuilds(gradle, modelName, compositeResults);
@@ -65,32 +64,38 @@ public class BuildModelsActionRunner implements BuildActionRunner {
         buildController.setResult(result);
     }
 
-    private void ensureConnectedToRootProject(GradleInternal gradle) {
-        if (!gradle.getDefaultProject().equals(gradle.getRootProject())) {
-            throw new GradleConnectionException("GradleConnection must be connected to the root project of a build.");
+    private GradleInternal configureTopLevelBuild(BuildController buildController, InternalModelResults<Object> compositeResults) {
+        GradleInternal gradle = buildController.getGradle();
+        try {
+            buildController.configure();
+            forceFullConfiguration(gradle);
+        } catch (RuntimeException e) {
+            compositeResults.addBuildFailure(getRootDir(gradle), transformFailure(e));
         }
+        return gradle;
     }
 
-    private void forceFullConfiguration(BuildController buildController, BuildModelsAction buildModelsAction, InternalModelResults<Object> compositeResults) {
-        try {
-            GradleInternal gradle = buildController.getGradle();
-            buildController.configure();
-            gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
-            for (Project project : gradle.getRootProject().getAllprojects()) {
-                ProjectInternal projectInternal = (ProjectInternal) project;
-                projectInternal.getTasks().discoverTasks();
-                projectInternal.bindAllModelRules();
-            }
-        } catch (RuntimeException e) {
-            compositeResults.addBuildFailure(buildModelsAction.getStartParameter().getProjectDir(), transformFailure(e));
+    private void forceFullConfiguration(GradleInternal gradle) {
+        gradle.getServices().get(ProjectConfigurer.class).configureHierarchy(gradle.getRootProject());
+        for (Project project : gradle.getRootProject().getAllprojects()) {
+            ProjectInternal projectInternal = (ProjectInternal) project;
+            projectInternal.getTasks().discoverTasks();
+            projectInternal.bindAllModelRules();
         }
     }
 
     private void collectModelsFromThisBuild(GradleInternal gradle, String modelName, InternalModelResults<Object> compositeResults) {
+        ensureConnectedToRootProject(gradle);
         try {
             collectModels(gradle, modelName, compositeResults);
         } catch (RuntimeException e) {
-            compositeResults.addBuildFailure(gradle.getRootProject().getProjectDir(), transformFailure(e));
+            compositeResults.addBuildFailure(getRootDir(gradle), transformFailure(e));
+        }
+    }
+
+    private void ensureConnectedToRootProject(GradleInternal gradle) {
+        if (!gradle.getDefaultProject().equals(gradle.getRootProject())) {
+            throw new GradleConnectionException("GradleConnection must be connected to the root project of a build.");
         }
     }
 
@@ -102,14 +107,9 @@ public class BuildModelsActionRunner implements BuildActionRunner {
 
     private void collectModelsFromIncludedBuild(String modelName, InternalModelResults<Object> compositeResults, IncludedBuild includedBuild) {
         IncludedBuildInternal includedBuildInternal = (IncludedBuildInternal) includedBuild;
-        GradleInternal includedGradle = includedBuildInternal.configure();
         try {
-            includedGradle.getServices().get(ProjectConfigurer.class).configureHierarchy(includedGradle.getRootProject());
-            for (Project project : includedGradle.getRootProject().getAllprojects()) {
-                ProjectInternal projectInternal = (ProjectInternal) project;
-                projectInternal.getTasks().discoverTasks();
-                projectInternal.bindAllModelRules();
-            }
+            GradleInternal includedGradle = includedBuildInternal.configure();
+            forceFullConfiguration(includedGradle);
             collectModels(includedGradle, modelName, compositeResults);
         } catch (RuntimeException e) {
             compositeResults.addBuildFailure(includedBuild.getProjectDir(), transformFailure(e));
@@ -123,14 +123,21 @@ public class BuildModelsActionRunner implements BuildActionRunner {
             ((ProjectToolingModelBuilder) builder).addModels(modelName, gradle.getDefaultProject(), context);
         } else {
             Object buildScopedModel = builder.buildAll(modelName, gradle.getDefaultProject());
-            models.addBuildModel(gradle.getRootProject().getProjectDir(), buildScopedModel);
+            models.addBuildModel(getRootDir(gradle), buildScopedModel);
         }
     }
 
-    //TODO get rid of duplication between this and DaemonBuildActionExecuter
+    private File getRootDir(GradleInternal gradle) {
+        try {
+            return gradle.getRootProject().getProjectDir();
+        } catch (IllegalStateException e) {
+            return gradle.getStartParameter().getProjectDir();
+        }
+    }
+
     private RuntimeException transformFailure(RuntimeException e) {
         if (e instanceof BuildCancelledException) {
-            return new InternalBuildCancelledException(e.getCause());
+            throw new InternalBuildCancelledException(e.getCause());
         }
         if (e instanceof ReportedException) {
             return unwrap((ReportedException) e);
@@ -142,7 +149,7 @@ public class BuildModelsActionRunner implements BuildActionRunner {
         Throwable t = e.getCause();
         while (t != null) {
             if (t instanceof BuildCancelledException) {
-                return new InternalBuildCancelledException(e.getCause());
+                throw new InternalBuildCancelledException(e.getCause());
             }
             t = t.getCause();
         }
