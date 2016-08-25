@@ -19,10 +19,13 @@ package org.gradle.internal.component.local.model
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.internal.component.external.descriptor.DefaultExclude
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.component.model.IvyArtifactName
@@ -193,6 +196,27 @@ class DefaultLocalComponentMetadataTest extends Specification {
         metadata.getConfiguration("conf").dependencies == [dependency1]
         metadata.getConfiguration("child").dependencies == [dependency1, dependency2]
         metadata.getConfiguration("other").dependencies.isEmpty()
+    }
+
+    def "builds and caches exclude rules for a configuration"() {
+        given:
+        metadata.addConfiguration("compile", null, [] as Set, ["compile"] as Set, true, true, Stub(TaskDependency))
+        metadata.addConfiguration("runtime", null, ["compile"] as Set, ["compile", "runtime"] as Set, true, true, Stub(TaskDependency))
+
+        def rule1 = new DefaultExclude("group1", "module1", ["compile"] as String[], PatternMatchers.EXACT)
+        def rule2 = new DefaultExclude("group1", "module1", ["runtime"] as String[], PatternMatchers.EXACT)
+        def rule3 = new DefaultExclude("group1", "module1", ["other"] as String[], PatternMatchers.EXACT)
+
+        metadata.addExclude(rule1)
+        metadata.addExclude(rule2)
+        metadata.addExclude(rule3)
+
+        expect:
+        def config = metadata.getConfiguration("runtime")
+
+        def exclusions = config.exclusions
+        exclusions == ModuleExclusions.excludeAny(rule1, rule2)
+        exclusions.is(config.exclusions)
     }
 
     def artifactName() {

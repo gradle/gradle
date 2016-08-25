@@ -16,9 +16,12 @@
 
 package org.gradle.internal.component.external.model;
 
+import com.google.common.collect.Lists;
 import org.gradle.api.Nullable;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
@@ -180,7 +183,6 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         for (String configName : configurationsNames) {
             DefaultConfigurationMetadata configuration = populateConfigurationFromDescriptor(configName, configurationDefinitions, configurations);
             configuration.populateDependencies(dependencies);
-            configuration.populateExcludeRulesFromDescriptor(excludes);
         }
         return configurations;
     }
@@ -197,7 +199,7 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         boolean visible = descriptorConfiguration.isVisible();
         if (extendsFrom.isEmpty()) {
             // tail
-            populated = new DefaultConfigurationMetadata(componentIdentifier, name, transitive, visible);
+            populated = new DefaultConfigurationMetadata(componentIdentifier, name, transitive, visible, excludes);
             configurations.put(name, populated);
             return populated;
         } else if (extendsFrom.size() == 1) {
@@ -206,7 +208,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
                 name,
                 transitive,
                 visible,
-                Collections.singletonList(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations))
+                Collections.singletonList(populateConfigurationFromDescriptor(extendsFrom.get(0), configurationDefinitions, configurations)),
+                excludes
             );
             configurations.put(name, populated);
             return populated;
@@ -220,7 +223,8 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             name,
             transitive,
             visible,
-            hierarchy
+            hierarchy,
+            excludes
         );
 
         configurations.put(name, populated);
@@ -233,22 +237,23 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
         private final List<DefaultConfigurationMetadata> parents;
         private final List<DependencyMetadata> configDependencies = new ArrayList<DependencyMetadata>();
         private final Set<ComponentArtifactMetadata> artifacts = new LinkedHashSet<ComponentArtifactMetadata>();
-        private final Set<Exclude> configExcludes = new LinkedHashSet<Exclude>();
+        private final ModuleExclusion exclusions;
         private final boolean transitive;
         private final boolean visible;
         private final Set<String> hierarchy;
 
-        private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<DefaultConfigurationMetadata> parents) {
+        private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<DefaultConfigurationMetadata> parents, List<Exclude> excludes) {
             this.componentId = componentId;
             this.name = name;
             this.parents = parents;
             this.transitive = transitive;
             this.visible = visible;
             this.hierarchy = calculateHierarchy();
+            this.exclusions = filterExcludes(excludes);
         }
 
-        private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible) {
-            this(componentId, name, transitive, visible, null);
+        private DefaultConfigurationMetadata(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, List<Exclude> excludes) {
+            this(componentId, name, transitive, visible, null, excludes);
         }
 
         @Override
@@ -325,20 +330,22 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return false;
         }
 
-        public Set<Exclude> getExcludes() {
-            return configExcludes;
+        public ModuleExclusion getExclusions() {
+            return exclusions;
         }
 
-        private void populateExcludeRulesFromDescriptor(Iterable<Exclude> excludes) {
+        private ModuleExclusion filterExcludes(Iterable<Exclude> excludes) {
             Set<String> hierarchy = getHierarchy();
+            List<Exclude> filtered = Lists.newArrayList();
             for (Exclude exclude : excludes) {
                 for (String config : exclude.getConfigurations()) {
                     if (hierarchy.contains(config)) {
-                        this.configExcludes.add(exclude);
+                        filtered.add(exclude);
                         break;
                     }
                 }
             }
+            return ModuleExclusions.excludeAny(filtered);
         }
 
         public Set<ComponentArtifactMetadata> getArtifacts() {
