@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.provider.runner;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.composite.internal.IncludedBuildInternal;
 import org.gradle.initialization.ReportedException;
 import org.gradle.tooling.GradleConnectionException;
@@ -30,9 +29,6 @@ import org.gradle.tooling.internal.provider.BuildModelAction;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderContext;
-
-import java.util.Collection;
-import java.util.Set;
 
 public class BuildModelsActionRunner extends AbstractBuildModelActionRunner {
 

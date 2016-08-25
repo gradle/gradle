@@ -18,6 +18,7 @@
 package org.gradle.integtests.tooling.r213
 
 import org.gradle.integtests.tooling.fixture.GradleConnectionToolingApiSpecification
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.tooling.model.build.BuildEnvironment
 import org.gradle.tooling.model.gradle.GradleBuild
 
@@ -57,6 +58,7 @@ class ModelsWithGradleBuildIdentifierCrossVersionSpec extends GradleConnectionTo
         modelType << modelsHavingGradleBuildIdentifier
     }
 
+    @TargetGradleVersion(">=3.1")
     def "GradleConnection provides identified model for composite build"() {
         when:
         includeBuilds(singleProjectBuildInSubfolder("A"), multiProjectBuildInSubFolder("B", ['x', 'y']))
