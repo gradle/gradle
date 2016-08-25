@@ -142,14 +142,14 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
         sleepBefore = 1000L // fails on Linux when set to 1L
     }
 
-    def "url connections are not cached by default"() {
+    def "url connection caching is not disabled by default"() {
         given:
         buildFile << """
             task checkUrlConnectionCaching {
                 doLast {
                     URL url = new URL("jar:file://valid_jar_url_syntax.jar!/")
                     URLConnection urlConnection = url.openConnection()
-                    assert !urlConnection.defaultUseCaches
+                    assert urlConnection.defaultUseCaches
                 }
             }
         """
