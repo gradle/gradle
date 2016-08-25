@@ -11,8 +11,8 @@ import org.junit.rules.TemporaryFolder
 import org.objectweb.asm.tree.ClassNode
 
 import java.io.StringWriter
-import kotlin.reflect.KClass
 
+import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 
 class GenerateActionExtensionsTest {
