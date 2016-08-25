@@ -1,0 +1,5 @@
+:clean
+:compileJava
+:instrumentClasses2
+
+BUILD SUCCESSFUL

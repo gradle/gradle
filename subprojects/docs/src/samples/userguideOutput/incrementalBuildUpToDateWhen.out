@@ -1,0 +1,4 @@
+:compileJava
+:alwaysInstrumentClasses
+
+BUILD SUCCESSFUL
