@@ -36,6 +36,7 @@ import org.gradle.internal.resolve.result.DefaultBuildableArtifactSetResolveResu
 import org.gradle.internal.resolve.result.DefaultBuildableComponentArtifactsResolveResult
 import org.gradle.internal.resolve.result.DefaultBuildableComponentIdResolveResult
 import org.gradle.jvm.JarBinarySpec
+import org.gradle.jvm.JvmBinarySpec
 import org.gradle.jvm.JvmLibrarySpec
 import org.gradle.jvm.internal.DefaultJarFile
 import org.gradle.jvm.internal.DefaultJavaPlatformVariantAxisCompatibility
@@ -92,7 +93,9 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
         def libraryAdapter = new JvmLocalLibraryMetaDataAdapter()
         def errorMessageBuilder = new DefaultLibraryResolutionErrorMessageBuilder(variants, schemaStore)
         def variantDimensionSelectorFactories = [DefaultVariantAxisCompatibilityFactory.of(JavaPlatform, new DefaultJavaPlatformVariantAxisCompatibility())]
-        resolver = new LocalLibraryDependencyResolver(JarBinarySpec, projectModelResolver, variantDimensionSelectorFactories, variants, schemaStore, libraryAdapter, errorMessageBuilder)
+        VariantSelector variantSelector = new JvmVariantSelector(variantDimensionSelectorFactories, JvmBinarySpec.class, schemaStore, variants);
+
+        resolver = new LocalLibraryDependencyResolver(JarBinarySpec, projectModelResolver, new DefaultLocalLibraryResolver(), variantSelector, libraryAdapter, errorMessageBuilder)
         metadata = Mock(DependencyMetadata)
         selector = Mock(LibraryComponentSelector)
         requested = Mock(ModuleVersionSelector)
@@ -253,7 +256,6 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
                 def runtimeJar = newDefaultJarFile("runtimeJar")
                 runtimeJar.setFile(new File('runtime.jar'))
 
-                def binaries = Mock(ModelMap)
                 def binary = Mock(JarBinarySpecInternal)
                 binary.publicType >> JarBinarySpec
                 binary.id >> new DefaultLibraryBinaryIdentifier(project.path, library, 'foo')
@@ -270,12 +272,7 @@ class JvmLocalLibraryDependencyResolverTest extends Specification {
                 binary.library >> lib
                 binary.inputs >> toDomainObjectSet(LanguageSourceSet)
                 binary.sources >> sources
-                def values = [binary]
-                binaries.values() >> { values }
-                binaries.withType(JarBinarySpec) >> {
-                     values as ModelMap
-                }
-                lib.binaries >> binaries
+                lib.variants >> [binary]
                 lib
             }
             map.values() >> librarySpecs
