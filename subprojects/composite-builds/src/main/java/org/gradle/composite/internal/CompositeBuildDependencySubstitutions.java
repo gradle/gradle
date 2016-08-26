@@ -65,7 +65,7 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
             ProjectComponentIdentifier replacement = getReplacementFor(selector);
             if (replacement != null) {
                 dependencySubstitution.useTarget(
-                    DefaultProjectComponentSelector.newSelector(replacement.getProjectPath()),
+                    DefaultProjectComponentSelector.newSelector(replacement),
                     VersionSelectionReasons.COMPOSITE_BUILD);
             }
         }

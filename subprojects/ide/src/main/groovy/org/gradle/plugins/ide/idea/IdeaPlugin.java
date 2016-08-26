@@ -131,7 +131,7 @@ public class IdeaPlugin extends IdePlugin {
         });
         for (Project project : projectsWithIml) {
             ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
-            ProjectComponentIdentifier projectId = newProjectId(project.getPath());
+            ProjectComponentIdentifier projectId = newProjectId(project);
             projectComponentProvider.registerAdditionalArtifact(projectId, createImlArtifact(projectId, project));
         }
     }

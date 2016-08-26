@@ -15,7 +15,9 @@
  */
 package org.gradle.internal.component.local.model;
 
+import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifier {
     private final String projectPath;
@@ -69,6 +71,18 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
 
     public static ProjectComponentIdentifier newProjectId(String build, String projectPath) {
         return new DefaultProjectComponentIdentifier(build + ":" + projectPath);
+    }
+
+    public static ProjectComponentIdentifier newProjectId(String build, ProjectComponentIdentifier projectId) {
+        return new DefaultProjectComponentIdentifier(build + ":" + projectId.getProjectPath());
+    }
+
+    public static ProjectComponentIdentifier newProjectId(ProjectComponentSelector selector) {
+        return new DefaultProjectComponentIdentifier(selector.getProjectPath());
+    }
+
+    public static ProjectComponentIdentifier newProjectId(Project project) {
+        return new DefaultProjectComponentIdentifier(project.getPath());
     }
 
     public static ProjectComponentIdentifier rootId(ProjectComponentIdentifier projectComponentIdentifier) {

@@ -56,9 +56,10 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof ProjectComponentSelector) {
             ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
-            ProjectComponentIdentifier project = newProjectId(selector.getProjectPath());
+            ProjectComponentIdentifier project = newProjectId(selector);
             LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(project);
             if (componentMetaData == null) {
+                // TODO:DAZ use ProjectId for reporting (or selector)
                 result.failed(new ModuleVersionResolveException(selector, "project '" + project.getProjectPath() + "' not found."));
             } else {
                 result.resolved(componentMetaData);
@@ -69,10 +70,12 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
     @Override
     public void resolve(ComponentIdentifier identifier, ComponentOverrideMetadata componentOverrideMetadata, BuildableComponentResolveResult result) {
         if (identifier instanceof ProjectComponentIdentifier) {
-            LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent((ProjectComponentIdentifier) identifier);
+            ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
+            LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
             if (componentMetaData == null) {
-                String projectPath = ((ProjectComponentIdentifier) identifier).getProjectPath();
-                result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectPath), "project '" + projectPath + "' not found."));
+                String projectPath = projectId.getProjectPath();
+                // TODO:DAZ Use the projectId in the exception message, too
+                result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), "project '" + projectPath + "' not found."));
             } else {
                 result.resolved(componentMetaData);
             }

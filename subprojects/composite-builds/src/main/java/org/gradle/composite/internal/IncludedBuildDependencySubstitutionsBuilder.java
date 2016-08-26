@@ -42,9 +42,9 @@ public class IncludedBuildDependencySubstitutionsBuilder {
 
     private void registerProject(String buildName, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
-        ProjectComponentIdentifier originalIdentifier = newProjectId(project.getPath());
+        ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
-        ProjectComponentIdentifier componentIdentifier = newProjectId(buildName, project.getPath());
+        ProjectComponentIdentifier componentIdentifier = newProjectId(buildName, originalIdentifier);
         context.registerSubstitution(originalComponent.getId(), componentIdentifier);
     }
 

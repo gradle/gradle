@@ -130,7 +130,7 @@ public class EclipsePlugin extends IdePlugin {
 
     private static void registerEclipseArtifacts(Project project) {
         ProjectLocalComponentProvider projectComponentProvider = ((ProjectInternal) project).getServices().get(ProjectLocalComponentProvider.class);
-        ProjectComponentIdentifier projectId = newProjectId(project.getPath());
+        ProjectComponentIdentifier projectId = newProjectId(project);
         String projectName = project.getExtensions().getByType(EclipseModel.class).getProject().getName();
         projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("project", projectId, projectName, project));
         projectComponentProvider.registerAdditionalArtifact(projectId, createArtifact("classpath", projectId, projectName, project));
