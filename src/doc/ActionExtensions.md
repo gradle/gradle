@@ -359,15 +359,15 @@ Lorem ipsum.
 
 # org.gradle.api.artifacts.dsl.RepositoryHandler.maven(org.gradle.api.artifacts.repositories.MavenArtifactRepository.() -> Unit)
 
-Lorem ipsum.
+Adds and configures a Maven repository.
 
-@param action
+@param configuration The Maven repository configuration
 
 # org.gradle.api.artifacts.dsl.RepositoryHandler.ivy(org.gradle.api.artifacts.repositories.IvyArtifactRepository.() -> Unit)
 
-Lorem ipsum.
+Adds and configures an Ivy repository.
 
-@param action
+@param configuration The Ivy repository configuration
 
 # org.gradle.api.artifacts.dsl.DependencyHandler.components(org.gradle.api.artifacts.dsl.ComponentMetadataHandler.() -> Unit)
 
