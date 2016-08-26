@@ -43,9 +43,9 @@ public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest ext
     public static class AndroidStudioExperimentSpec extends org.gradle.performance.AbstractToolingApiCrossVersionPerformanceTest.ToolingApiExperimentSpec {
         AbstractAndroidStudioMockupCrossVersionPerformanceTest test
 
-        void action(String className, String methodName) {
+        void action(String className) {
             action {
-                test.tapiClassLoader.loadClass(className).invokeMethod(methodName, it)
+                test.tapiClassLoader.loadClass(className).invokeMethod('withProjectConnection', it)
             }
         }
 

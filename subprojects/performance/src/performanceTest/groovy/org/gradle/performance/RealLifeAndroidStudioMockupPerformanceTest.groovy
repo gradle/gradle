@@ -29,7 +29,7 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         given:
 
         experiment(template, "simulate Android Studio $template synchronization") {
-            action('org.gradle.performance.android.SyncAction', 'sync')
+            action 'org.gradle.performance.android.SyncAction'
         }
 
         when:

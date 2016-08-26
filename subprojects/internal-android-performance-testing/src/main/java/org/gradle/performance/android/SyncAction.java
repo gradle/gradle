@@ -22,7 +22,7 @@ import org.gradle.tooling.ProjectConnection;
 import java.util.Map;
 
 public class SyncAction {
-    public static void sync(ProjectConnection connect) {
+    public static void withProjectConnection(ProjectConnection connect) {
 
         System.out.println("* Running sync");
 
