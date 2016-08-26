@@ -27,6 +27,7 @@ task generateKotlinDependencyExtensions(type: codegen.GenerateKotlinDependencyEx
 task generateExtensions {
     dependsOn generateConfigurationExtensions
     dependsOn generateKotlinDependencyExtensions
+    dependsOn tasks.generateActionExtensions
 }
 sourceSets {
     main.kotlin.srcDirs += apiExtensionsOutputDir
@@ -104,7 +105,7 @@ tasks.addRule('Pattern: check-<SAMPLE>') { taskName ->
 task checkSamples {
     description 'Checks all samples'
     file('samples').eachDir {
-        if (!it.name.contains('android') && it.name != 'copy') {
+        if (!it.name.contains('android')) {
             dependsOn "check-${it.name}"
         }
     }

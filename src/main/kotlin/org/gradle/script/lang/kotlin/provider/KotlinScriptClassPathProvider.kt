@@ -58,7 +58,7 @@ class KotlinScriptClassPathProvider(
     private fun gradleApiFiles() =
         gradleApiDependency().resolve().map {
             when {
-//              it.name.startsWith("gradle-api-") -> kotlinGradleApiFrom(it)
+                it.name.startsWith("gradle-api-") -> kotlinGradleApiFrom(it)
                 else -> it
             }
         }

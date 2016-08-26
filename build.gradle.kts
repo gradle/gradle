@@ -34,6 +34,11 @@ dependencies {
     testCompile("com.nhaarman:mockito-kotlin:0.5.2")
 }
 
+task<org.gradle.script.lang.kotlin.codegen.tasks.GenerateActionExtensions>("generateActionExtensions") {
+    outputFile = file("src/generated/kotlin/org/gradle/script/lang/kotlin/ActionExtensions.kt")
+    docSource = file("src/doc/ActionExtensions.md")
+}
+
 tasks.withType<Jar> {
     from(the<JavaPluginConvention>().sourceSets.getByName("main").allSource)
     manifest.attributes.apply {
