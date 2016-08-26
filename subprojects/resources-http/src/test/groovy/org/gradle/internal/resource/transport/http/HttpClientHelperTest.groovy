@@ -16,19 +16,15 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.HttpEntity
-import org.apache.http.ProtocolVersion
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpRequestBase
 import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.message.BasicStatusLine
 import org.apache.http.ssl.SSLContexts
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
-import spock.lang.Specification
 
-class HttpClientHelperTest extends Specification {
+class HttpClientHelperTest extends AbstractHttpClientTest {
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
 
     def "throws HttpRequestException if an IO error occurs during a request"() {
@@ -51,21 +47,16 @@ class HttpClientHelperTest extends Specification {
         def client = new HttpClientHelper(httpSettings)
         CloseableHttpClient httpClient = Mock()
         client.client = httpClient
-        CloseableHttpResponse response = Mock()
-        HttpEntity entity = Mock()
-        InputStream content = Mock()
+        MockedHttpResponse mockedHttpResponse = mockedHttpResponse()
 
         when:
         client.performRequest(new HttpGet("http://gradle.org"))
 
         then:
-        1 * httpClient.execute(_, _) >> response
-        _ * response.getStatusLine() >> new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 400, "I'm broken")
-        1 * response.close()
-        1 * response.getEntity() >> entity
-        1 * entity.isStreaming() >> true
-        1 * entity.content >> content
-        1 * content.close()
+        interaction {
+            1 * httpClient.execute(_, _) >> mockedHttpResponse.response
+            assertIsClosedCorrectly(mockedHttpResponse)
+        }
     }
 
     private HttpSettings getHttpSettings() {

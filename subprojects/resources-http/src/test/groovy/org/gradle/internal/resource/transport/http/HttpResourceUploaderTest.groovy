@@ -16,35 +16,24 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.HttpEntity
-import org.apache.http.ProtocolVersion
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.message.BasicStatusLine
 import org.gradle.internal.resource.local.LocalResource
-import spock.lang.Specification
 
-class HttpResourceUploaderTest extends Specification {
+class HttpResourceUploaderTest extends AbstractHttpClientTest {
 
     def 'uploader closes the request'() {
         given:
         HttpClientHelper client = Mock()
         LocalResource resource = Mock()
-        CloseableHttpResponse response = Mock()
-        HttpEntity entity = Mock()
-        InputStream content = Mock()
+        MockedHttpResponse mockedHttpResponse = mockedHttpResponse()
 
         when:
         new HttpResourceUploader(client).upload(resource, new URI("http://somewhere.org/somehow"))
 
         then:
-        1 * client.performHttpRequest(_) >> response
-        _ * response.getStatusLine() >> new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 400, "I'm broken")
-        1 * response.close()
-        1 * response.getEntity() >> entity
-        1 * entity.isStreaming() >> true
-        1 * entity.content >> content
-        1 * content.close()
-
+        interaction {
+            1 * client.performHttpRequest(_) >> mockedHttpResponse.response
+            assertIsClosedCorrectly(mockedHttpResponse)
+        }
         IOException exception = thrown()
         exception.message.contains('Could not PUT')
     }

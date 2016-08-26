@@ -21,9 +21,8 @@ import org.apache.http.HttpEntity
 import org.apache.http.HttpHeaders
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.message.BasicHeader
-import spock.lang.Specification
 
-class HttpResponseResourceTest extends Specification {
+class HttpResponseResourceTest extends AbstractHttpClientTest {
 
     def sourceUrl = new URI("http://gradle.org")
     def method = "GET"
@@ -74,18 +73,15 @@ class HttpResponseResourceTest extends Specification {
 
     def "close closes the response"() {
         given:
-        HttpEntity entity = Mock()
-        InputStream content = Mock()
+        def mockedHttpResponse = mockedHttpResponse(response)
 
         when:
         resource().close()
 
         then:
-        1 * response.close()
-        1 * response.getEntity() >> entity
-        1 * entity.isStreaming() >> true
-        1 * entity.content >> content
-        1 * content.close()
+        interaction {
+            assertIsClosedCorrectly(mockedHttpResponse)
+        }
     }
 
     HttpResponseResource resource() {
