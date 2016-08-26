@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -62,7 +63,8 @@ class ExtraPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds ':a:a1:checkTestProp'
     }
 
-    def 'extra properties are can be overridden on child projects'() {
+    @Issue('GRADLE-3530')
+    def 'extra properties can be overridden on child projects'() {
         given:
         multiProjectBuild('extra-properties', ['a', 'b']) {
             buildFile << """
