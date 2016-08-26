@@ -26,13 +26,13 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
-    def canExecuteJava() {
+    def 'can execute java'() {
         given:
-        buildFile << """
+        buildFile << '''
             apply plugin: 'java'
 
             task javaexecTask(type: JavaExec, dependsOn: classes) {
-                ext.testFile = file("\$buildDir/\$name")
+                ext.testFile = file("$buildDir/$name")
                 classpath(sourceSets.main.output.classesDir)
                 main = 'org.gradle.TestMain'
                 args projectDir, testFile
@@ -43,7 +43,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task javaexecByMethod(dependsOn: classes) {
-                ext.testFile = file("\$buildDir/\$name")
+                ext.testFile = file("$buildDir/$name")
                 doFirst {
                     javaexec {
                         assert !(delegate instanceof ExtensionAware)
@@ -56,23 +56,23 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                     assert testFile.exists()
                 }
             }
-        """.stripIndent()
+        '''.stripIndent()
 
         expect:
         succeeds 'javaexecTask', 'javaexecByMethod'
 
     }
 
-    def canExecuteCommands() {
+    def 'can execute commands'() {
         given:
-        buildFile << """
+        buildFile << '''
             import org.gradle.internal.jvm.Jvm
 
             apply plugin: 'java'
 
             task execTask(type: Exec) {
                 dependsOn sourceSets.main.runtimeClasspath
-                ext.testFile = file("\$buildDir/\$name")
+                ext.testFile = file("$buildDir/$name")
                 executable = Jvm.current().getJavaExecutable()
                 args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
                 doLast {
@@ -83,7 +83,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
             task execByMethod {
                 dependsOn sourceSets.main.runtimeClasspath
-                ext.testFile = file("\$buildDir/\$name")
+                ext.testFile = file("$buildDir/$name")
                 doFirst {
                     exec {
                         executable Jvm.current().getJavaExecutable()
@@ -95,7 +95,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                     assert testFile.exists()
                 }
             }
-        """.stripIndent()
+        '''.stripIndent()
 
         expect:
         succeeds 'execTask', 'execByMethod'
@@ -104,12 +104,12 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     @Issue("GRADLE-3528")
     def "when the user declares outputs it becomes incremental"() {
         given:
-        buildFile << """
+        buildFile << '''
             apply plugin: 'java'
 
             task run(type: Exec) {
                 inputs.files sourceSets.main.runtimeClasspath
-                ext.testFile = file("\$buildDir/out.txt")
+                ext.testFile = file("$buildDir/out.txt")
                 outputs.file testFile
                 executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
                 args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
@@ -117,7 +117,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                     assert testFile.exists()
                 }
             }
-        """.stripIndent()
+        '''.stripIndent()
 
         when:
         run "run"
