@@ -249,6 +249,7 @@ task retrieve(type: Sync) {
     @Issue("GRADLE-3524")
     @NotYetImplemented
     def "cacheChangingModulesFor inherits to an extension of the configuration"() {
+        given:
         buildFile << """
 repositories {
     maven { url "${mavenHttpRepo.uri}" }
@@ -304,6 +305,7 @@ task retrieve(type: Sync) {
         run 'retrieve'
 
         then:
+        server.resetExpectations()
         file('libs/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(uniqueVersionModule.artifactFile).assertHasChangedSince(uniqueJarSnapshot)
         file('libs/nonunique-1.0-SNAPSHOT.jar').assertIsCopyOf(nonUniqueVersionModule.artifactFile).assertHasChangedSince(nonUniqueJarSnapshot)
     }
