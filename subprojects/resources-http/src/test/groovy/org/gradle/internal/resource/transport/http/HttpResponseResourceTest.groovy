@@ -72,6 +72,22 @@ class HttpResponseResourceTest extends Specification {
         resource().getHeaderValue("X-No-Such-Header") == null
     }
 
+    def "close closes the response"() {
+        given:
+        HttpEntity entity = Mock()
+        InputStream content = Mock()
+
+        when:
+        resource().close()
+
+        then:
+        1 * response.close()
+        1 * response.getEntity() >> entity
+        1 * entity.isStreaming() >> true
+        1 * entity.content >> content
+        1 * content.close()
+    }
+
     HttpResponseResource resource() {
         new HttpResponseResource(method, sourceUrl, response)
     }

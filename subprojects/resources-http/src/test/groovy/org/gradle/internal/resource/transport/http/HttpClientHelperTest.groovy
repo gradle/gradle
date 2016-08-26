@@ -16,9 +16,13 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.apache.http.HttpEntity
+import org.apache.http.ProtocolVersion
 import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpRequestBase
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.message.BasicStatusLine
 import org.apache.http.ssl.SSLContexts
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
@@ -41,6 +45,27 @@ class HttpClientHelperTest extends Specification {
         then:
         HttpRequestException e = thrown()
         e.cause.message == "ouch"
+    }
+
+    def "response is closed if an error occurs during a request"() {
+        def client = new HttpClientHelper(httpSettings)
+        CloseableHttpClient httpClient = Mock()
+        client.client = httpClient
+        CloseableHttpResponse response = Mock()
+        HttpEntity entity = Mock()
+        InputStream content = Mock()
+
+        when:
+        client.performRequest(new HttpGet("http://gradle.org"))
+
+        then:
+        1 * httpClient.execute(_, _) >> response
+        _ * response.getStatusLine() >> new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), 400, "I'm broken")
+        1 * response.close()
+        1 * response.getEntity() >> entity
+        1 * entity.isStreaming() >> true
+        1 * entity.content >> content
+        1 * content.close()
     }
 
     private HttpSettings getHttpSettings() {
