@@ -627,8 +627,6 @@
                             title="Ad-hoc task">
                         <sourcefile file="build.gradle" snippet="ad-hoc-task"/>
                         <output args="processTemplatesAdHoc" ignoreExtraLines="true" ignoreLineOrder="true"/>
-                        <output args="processTemplatesAdHoc" ignoreExtraLines="true" ignoreLineOrder="true"
-                                outputFile="incrementalAdHocTaskUpToDate.out"/>
                     </sample>
                     <para>As before, there’s much to talk about. To begin with, you should really write
                         a custom task class for this as it’s a non-trivial implementation that has
