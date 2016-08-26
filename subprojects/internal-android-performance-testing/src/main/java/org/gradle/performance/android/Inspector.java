@@ -99,8 +99,12 @@ public class Inspector {
 
     private void inspect(JavaLibrary javaLibrary) {
         javaLibsByEquality.add(javaLibrary);
-        javaLibsByFile.putIfAbsent(javaLibrary.getJarFile(), javaLibrary);
-        javaLibsByIdentity.putIfAbsent(javaLibrary, javaLibrary);
+        if (!javaLibsByFile.containsKey(javaLibrary.getJarFile())) {
+            javaLibsByFile.put(javaLibrary.getJarFile(), javaLibrary);
+        }
+        if (!javaLibsByFile.containsKey(javaLibrary)) {
+            javaLibsByIdentity.put(javaLibrary, javaLibrary);
+        }
         unpack(javaLibrary, javaLibsBackingByIdentity);
         for (JavaLibrary library : javaLibrary.getDependencies()) {
             inspect(library);
