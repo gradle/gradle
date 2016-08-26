@@ -258,21 +258,30 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             import org.gradle.MessageType
 
-            task helloWorld {
-                inputs.property('messageType', MessageType.HELLO_WORLD)
+            task createFile {
+                ext.messageType = MessageType.HELLO_WORLD
+                ext.outputFile = file('output.txt')
+                inputs.property('messageType', messageType)
+                outputs.file(outputFile)
 
                 doLast {
-                    println 'Hello world!'
+                    outputFile << messageType
                 }
             }
         """
 
         when:
-        succeeds 'helloWorld'
+        succeeds 'createFile'
 
         then:
+        executedTasks == [':createFile']
         skippedTasks.empty
-        executedTasks == [':helloWorld']
-        result.assertOutputContains('Hello world!')
+
+        when:
+        succeeds 'createFile'
+
+        then:
+        executedTasks == [':createFile']
+        skippedTasks == [':createFile'] as Set
     }
 }
