@@ -77,4 +77,8 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     public static ProjectComponentSelector newSelector(String projectPath) {
         return new DefaultProjectComponentSelector(projectPath);
     }
+
+    public static ProjectComponentSelector newSelector(String build, String projectPath) {
+        return new DefaultProjectComponentSelector(build + ":" + projectPath);
+    }
 }

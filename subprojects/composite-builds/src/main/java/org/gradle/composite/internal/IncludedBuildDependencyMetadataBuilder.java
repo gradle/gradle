@@ -91,8 +91,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         for (LocalOriginDependencyMetadata dependency : originalComponentMetadata.getDependencies()) {
             if (dependency.getSelector() instanceof ProjectComponentSelector) {
                 ProjectComponentSelector requested = (ProjectComponentSelector) dependency.getSelector();
-                String externalPath = createExternalProjectPath(buildName, requested.getProjectPath());
-                ProjectComponentSelector externalizedSelector = DefaultProjectComponentSelector.newSelector(externalPath);
+                ProjectComponentSelector externalizedSelector = DefaultProjectComponentSelector.newSelector(buildName, requested.getProjectPath());
                 dependency = dependency.withTarget(externalizedSelector);
             }
             compositeComponentMetadata.addDependency(dependency);
@@ -102,10 +101,6 @@ public class IncludedBuildDependencyMetadataBuilder {
         }
 
         return compositeComponentMetadata;
-    }
-
-    private String createExternalProjectPath(String buildName, String projectPath) {
-        return buildName + ":" + projectPath;
     }
 
     private LocalComponentArtifactMetadata createCompositeCopy(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifactMetaData) {

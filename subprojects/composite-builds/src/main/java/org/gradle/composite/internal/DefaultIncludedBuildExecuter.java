@@ -65,8 +65,8 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
         // Ensure that a particular build is never executing concurrently
         // TODO:DAZ We might need to hold a lock per-build for the parallel build case
         if (!executingBuilds.add(build)) {
-            ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(build + "::");
-            throw new ModuleVersionResolveException(selector, "Dependency cycle including project " + selector.getProjectPath());
+            ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(build, ":");
+            throw new ModuleVersionResolveException(selector, "Dependency cycle including " + selector.getDisplayName());
         }
     }
 

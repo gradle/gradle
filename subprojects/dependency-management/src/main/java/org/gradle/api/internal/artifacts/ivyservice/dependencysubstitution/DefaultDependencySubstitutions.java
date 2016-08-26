@@ -182,8 +182,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
         @Override
         public void convert(String notation, NotationConvertResult<? super ProjectComponentSelector> result) throws TypeConversionException {
-            // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
-            result.converted(DefaultProjectComponentSelector.newSelector(buildName + ":" + notation));
+            result.converted(DefaultProjectComponentSelector.newSelector(buildName, notation));
         }
     }
 
