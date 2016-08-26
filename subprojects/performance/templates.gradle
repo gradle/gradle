@@ -564,3 +564,13 @@ task largeAndroidBuild(type: RemoteProject) {
     remoteUri = 'https://github.com/gradle/perf-android-large.git'
     branch = 'master'
 }
+
+// The Android Studio performance tests use custom model classes which need to be found in
+// a dedicated project in order for the classpath to be setup properly
+def androidRemoteProjects = tasks.withType(RemoteProject).matching { it.name =~ /Android/ }
+androidRemoteProjects.all {
+    dependsOn project(':internalAndroidPerformanceTesting').buildClassPath
+    doLast {
+        file("$outputDirectory/tapi-classpath.txt") << project(':internalAndroidPerformanceTesting').buildClassPath.outputFile.text
+    }
+}

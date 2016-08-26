@@ -80,6 +80,7 @@ def buckets = [
         ":buildScanPerformance",
         ":internalIntegTesting",
         ":internalPerformanceTesting",
+	":internalAndroidPerformanceTesting",
         ":processServices",
         ":installationBeacon",
     ],
