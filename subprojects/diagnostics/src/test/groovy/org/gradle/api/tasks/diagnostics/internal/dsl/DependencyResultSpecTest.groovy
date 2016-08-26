@@ -66,7 +66,7 @@ class DependencyResultSpecTest extends Specification {
 
     def "does not match for dependencies other than requested ModuleComponentSelector"() {
         expect:
-        !new DependencyResultSpec(notation).isSatisfiedBy(newDependency(new DefaultProjectComponentSelector(":myPath"), "org.foo", "foo-core", "1.22"))
+        !new DependencyResultSpec(notation).isSatisfiedBy(newDependency(DefaultProjectComponentSelector.newSelector(":myPath"), "org.foo", "foo-core", "1.22"))
 
         where:
         notation << ['1.+']

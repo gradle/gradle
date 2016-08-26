@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 public class DefaultProjectComponentSelector implements ProjectComponentSelector {
     private final String projectPath;
 
-    public DefaultProjectComponentSelector(String projectPath) {
+    private DefaultProjectComponentSelector(String projectPath) {
         assert projectPath != null : "project path cannot be null";
         this.projectPath = projectPath;
     }

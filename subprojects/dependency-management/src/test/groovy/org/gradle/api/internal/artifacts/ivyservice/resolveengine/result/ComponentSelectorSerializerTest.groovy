@@ -52,7 +52,7 @@ public class ComponentSelectorSerializerTest extends SerializerSpec {
 
     def "serializes BuildComponentSelector"() {
         given:
-        ProjectComponentSelector selection = new DefaultProjectComponentSelector(':myPath')
+        ProjectComponentSelector selection = DefaultProjectComponentSelector.newSelector(':myPath')
 
         when:
         ProjectComponentSelector result = serialize(selection, serializer)

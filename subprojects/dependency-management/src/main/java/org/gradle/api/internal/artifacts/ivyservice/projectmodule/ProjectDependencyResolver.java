@@ -72,7 +72,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent((ProjectComponentIdentifier) identifier);
             if (componentMetaData == null) {
                 String projectPath = ((ProjectComponentIdentifier) identifier).getProjectPath();
-                result.failed(new ModuleVersionResolveException(new DefaultProjectComponentSelector(projectPath), "project '" + projectPath + "' not found."));
+                result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectPath), "project '" + projectPath + "' not found."));
             } else {
                 result.resolved(componentMetaData);
             }

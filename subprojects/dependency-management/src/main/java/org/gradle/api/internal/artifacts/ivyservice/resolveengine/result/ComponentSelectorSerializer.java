@@ -31,7 +31,7 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
         byte id = decoder.readByte();
 
         if (Implementation.BUILD.getId() == id) {
-            return new DefaultProjectComponentSelector(decoder.readString());
+            return DefaultProjectComponentSelector.newSelector(decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
