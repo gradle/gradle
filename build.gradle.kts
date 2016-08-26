@@ -49,7 +49,7 @@ tasks.withType<Jar> {
 
 configure<PublishingExtension> {
     publications {
-        it.create<MavenPublication>("mavenJava") {
+        create<MavenPublication>("mavenJava") {
             from(components.getByName("java"))
         }
     }
