@@ -17,6 +17,8 @@ dependencies {
     runtime libraries.log4j_to_slf4j
     runtime libraries.jcl_to_slf4j
 
+    testFixturesCompile project(":core")
+
     testCompile project(":internalTesting")
     testRuntime project(":jetty") // needed by DeprecationHandlingIntegrationTest
 }
