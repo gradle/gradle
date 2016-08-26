@@ -1,4 +1,4 @@
-package codegen
+package org.gradle.script.lang.kotlin.codegen
 
 import org.gradle.script.lang.kotlin.codegen.ClassType
 import org.gradle.script.lang.kotlin.codegen.GenericType

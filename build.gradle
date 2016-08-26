@@ -24,19 +24,9 @@ task generateKotlinDependencyExtensions(type: codegen.GenerateKotlinDependencyEx
     embeddedKotlinVersion = kotlinVersion
     gradleScriptKotlinRepository = kotlinRepo
 }
-task generateActionExtensions(type: codegen.GenerateActionExtensions) {
-    outputFile = new File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/ActionExtensions.kt")
-    docSource = file("src/doc/ActionExtensions.md")
-}
-task copySharedSources(type: Copy) {
-    from 'buildSrc/src/shared/kotlin'
-    into apiExtensionsOutputDir
-}
 task generateExtensions {
     dependsOn generateConfigurationExtensions
     dependsOn generateKotlinDependencyExtensions
-    dependsOn generateActionExtensions
-    dependsOn copySharedSources
 }
 sourceSets {
     main.kotlin.srcDirs += apiExtensionsOutputDir
@@ -114,7 +104,7 @@ tasks.addRule('Pattern: check-<SAMPLE>') { taskName ->
 task checkSamples {
     description 'Checks all samples'
     file('samples').eachDir {
-        if (!it.name.contains('android')) {
+        if (!it.name.contains('android') && it.name != 'copy') {
             dependsOn "check-${it.name}"
         }
     }

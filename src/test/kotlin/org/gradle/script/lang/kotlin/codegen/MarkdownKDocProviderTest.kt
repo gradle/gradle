@@ -1,4 +1,4 @@
-package codegen
+package org.gradle.script.lang.kotlin.codegen
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat

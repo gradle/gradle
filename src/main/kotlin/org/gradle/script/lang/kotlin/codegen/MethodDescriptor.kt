@@ -16,11 +16,20 @@
 
 package org.gradle.script.lang.kotlin.codegen
 
-import org.objectweb.asm.ClassReader
-import org.objectweb.asm.tree.ClassNode
-import java.io.InputStream
+import org.objectweb.asm.Opcodes
 
-fun classNodeFor(input: InputStream) =
-    ClassNode().apply {
-        ClassReader(input).accept(this, ClassReader.SKIP_DEBUG + ClassReader.SKIP_FRAMES)
+data class MethodDescriptor(val name: String, val signatureOrDesc: String, val access: Int) {
+
+    val signature by lazy {
+        MethodSignature.from(signatureOrDesc)
     }
+
+    val isPublic: Boolean
+        get() = hasAccessFlag(Opcodes.ACC_PUBLIC)
+
+    val isSynthetic: Boolean
+        get() = hasAccessFlag(Opcodes.ACC_SYNTHETIC)
+
+    private fun hasAccessFlag(flag: Int) =
+        access.and(flag) == flag
+}

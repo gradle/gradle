@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package codegen
+package org.gradle.script.lang.kotlin.codegen.tasks
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+
+import org.gradle.script.lang.kotlin.codegen.ActionExtensionWriter
+import org.gradle.script.lang.kotlin.codegen.MarkdownKDocProvider
 import org.gradle.script.lang.kotlin.codegen.classNodeFor
 
 import org.gradle.script.lang.kotlin.codegen.forEachZipEntryIn

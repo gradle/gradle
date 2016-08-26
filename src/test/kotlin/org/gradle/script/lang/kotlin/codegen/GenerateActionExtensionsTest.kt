@@ -1,6 +1,10 @@
-package codegen
+package org.gradle.script.lang.kotlin.codegen
+
+import org.gradle.api.Project
+import org.gradle.api.plugins.PluginContainer
 
 import org.gradle.script.lang.kotlin.codegen.classNodeFor
+
 import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -25,7 +29,7 @@ class GenerateActionExtensionsTest {
 
         assertThat(
             extensionsFor(
-                classNodeOf<org.gradle.api.Project>()),
+                classNodeOf<Project>()),
             endsWith("""
 package org.gradle.script.lang.kotlin
 
@@ -69,7 +73,7 @@ fun org.gradle.api.Project.copySpec(p0: org.gradle.api.file.CopySpec.() -> Unit)
 
         assertThat(
             extensionsFor(
-                classNodeOf<org.gradle.api.plugins.PluginContainer>()),
+                classNodeOf<PluginContainer>()),
             endsWith("""
 fun org.gradle.api.plugins.PluginContainer.withId(p0: String, p1: org.gradle.api.Plugin<*>.() -> Unit): Unit =
 	withId(p0, Action { it.p1() })
@@ -92,7 +96,7 @@ Lorem ipsum.
 
         assertThat(
             extensionsFor(
-                classNodeOf<org.gradle.api.plugins.PluginContainer>(),
+                classNodeOf<PluginContainer>(),
                 kDocProvider),
             endsWith("""
 /**

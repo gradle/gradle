@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package codegen
+package org.gradle.script.lang.kotlin.codegen
 
 typealias KDocProvider = (String) -> KDoc?
 
