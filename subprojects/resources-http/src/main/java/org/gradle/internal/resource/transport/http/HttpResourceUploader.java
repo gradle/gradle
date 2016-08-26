@@ -38,12 +38,15 @@ public class HttpResourceUploader implements ExternalResourceUploader {
         HttpPut method = new HttpPut(destination);
         final RepeatableInputStreamEntity entity = new RepeatableInputStreamEntity(resource, ContentType.APPLICATION_OCTET_STREAM);
         method.setEntity(entity);
-        CloseableHttpResponse response = http.performHttpRequest(method);
-        HttpClientUtils.closeQuietly(response);
-        if (!http.wasSuccessful(response)) {
-            throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s",
+        CloseableHttpResponse response = null;
+        try {
+            response = http.performHttpRequest(method);
+            if (!http.wasSuccessful(response)) {
+                throw new IOException(String.format("Could not PUT '%s'. Received status code %s from server: %s",
                     destination, response.getStatusLine().getStatusCode(), response.getStatusLine().getReasonPhrase()));
+            }
+        } finally {
+            HttpClientUtils.closeQuietly(response);
         }
-
     }
 }
