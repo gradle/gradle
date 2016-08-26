@@ -102,7 +102,7 @@ public class Inspector {
         if (!javaLibsByFile.containsKey(javaLibrary.getJarFile())) {
             javaLibsByFile.put(javaLibrary.getJarFile(), javaLibrary);
         }
-        if (!javaLibsByFile.containsKey(javaLibrary)) {
+        if (!javaLibsByIdentity.containsKey(javaLibrary)) {
             javaLibsByIdentity.put(javaLibrary, javaLibrary);
         }
         unpack(javaLibrary, javaLibsBackingByIdentity);
