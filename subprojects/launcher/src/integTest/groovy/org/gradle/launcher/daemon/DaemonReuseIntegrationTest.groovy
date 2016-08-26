@@ -193,7 +193,7 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemons.size() == 3
 
         and:
-        assert ! build3.standardOutput.contains(DaemonMessages.WAITING_ON_CANCELED)
+        !build3.standardOutput.contains(DaemonMessages.WAITING_ON_CANCELED)
     }
 
     String getUrl(String event) {

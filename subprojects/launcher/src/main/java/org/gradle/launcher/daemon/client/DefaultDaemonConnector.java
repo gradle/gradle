@@ -16,7 +16,6 @@
 package org.gradle.launcher.daemon.client;
 
 import com.google.common.base.Preconditions;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -43,7 +42,6 @@ import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -156,37 +154,13 @@ public class DefaultDaemonConnector implements DaemonConnector {
             while (connection == null && System.currentTimeMillis() < waitUntil) {
                 try {
                     sleep(200);
-                    Collection<DaemonInfo> nowAvailableDaemons = checkCanceledDaemonsForIdle(compatibleCanceledDaemons);
-                    if (!nowAvailableDaemons.isEmpty()) {
-                        connection = findConnection(CollectionUtils.toList(nowAvailableDaemons));
-                    }
+                    connection = connectToIdleDaemon(daemonRegistry.getIdle(), constraint);
                 } catch (InterruptedException e) {
                     throw UncheckedException.throwAsUncheckedException(e);
                 }
             }
         }
         return connection;
-    }
-
-    private Collection<DaemonInfo> checkCanceledDaemonsForIdle(Collection<DaemonInfo> canceledDaemons) {
-        Collection<DaemonInfo> idle = daemonRegistry.getIdle();
-        // See if any canceled daemons are now idle
-        CollectionUtils.SetDiff<DaemonInfo> setDiff = CollectionUtils.diffSetsBy(CollectionUtils.toSet(idle), CollectionUtils.toSet(canceledDaemons), new Transformer<String, DaemonInfo>() {
-            @Override
-            public String transform(DaemonInfo daemonInfo) {
-                return daemonInfo.getContext().getUid();
-            }
-        });
-        if (!setDiff.common.isEmpty()) {
-            return CollectionUtils.collect(setDiff.common, new Transformer<DaemonInfo, Pair<DaemonInfo, DaemonInfo>>() {
-                @Override
-                public DaemonInfo transform(Pair<DaemonInfo, DaemonInfo> daemonInfoDaemonInfoPair) {
-                    return daemonInfoDaemonInfoPair.getLeft();
-                }
-            });
-        } else {
-            return Collections.emptySet();
-        }
     }
 
     private Pair<Collection<DaemonInfo>, Collection<DaemonInfo>> partitionByState(final Collection<DaemonInfo> daemons, final DaemonStateControl.State state) {
