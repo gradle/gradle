@@ -16,15 +16,15 @@
 
 package org.gradle.internal.resource.transport.http;
 
-import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.client.utils.HttpClientUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.util.EntityUtils;
 import org.gradle.api.UncheckedIOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,26 +46,26 @@ public class HttpClientHelper implements Closeable {
         this.settings = settings;
     }
 
-    public HttpResponse performRawHead(String source) {
+    public CloseableHttpResponse performRawHead(String source) {
         return performRequest(new HttpHead(source));
     }
 
-    public HttpResponse performHead(String source) {
+    public CloseableHttpResponse performHead(String source) {
         return processResponse(source, "HEAD", performRawHead(source));
     }
 
-    public HttpResponse performRawGet(String source) {
+    public CloseableHttpResponse performRawGet(String source) {
         return performRequest(new HttpGet(source));
     }
 
-    public HttpResponse performGet(String source) {
+    public CloseableHttpResponse performGet(String source) {
         return processResponse(source, "GET", performRawGet(source));
     }
 
-    public HttpResponse performRequest(HttpRequestBase request) {
+    public CloseableHttpResponse performRequest(HttpRequestBase request) {
         String method = request.getMethod();
 
-        HttpResponse response;
+        CloseableHttpResponse response;
         try {
             response = executeGetOrHead(request);
         } catch (IOException e) {
@@ -75,34 +75,34 @@ public class HttpClientHelper implements Closeable {
         return response;
     }
 
-    protected HttpResponse executeGetOrHead(HttpRequestBase method) throws IOException {
-        HttpResponse httpResponse = performHttpRequest(method);
+    protected CloseableHttpResponse executeGetOrHead(HttpRequestBase method) throws IOException {
+        CloseableHttpResponse httpResponse = performHttpRequest(method);
         // Consume content for non-successful, responses. This avoids the connection being left open.
         if (!wasSuccessful(httpResponse)) {
-            EntityUtils.consume(httpResponse.getEntity());
+            HttpClientUtils.closeQuietly(httpResponse);
             return httpResponse;
         }
         return httpResponse;
     }
 
-    public boolean wasMissing(HttpResponse response) {
+    public boolean wasMissing(CloseableHttpResponse response) {
         int statusCode = response.getStatusLine().getStatusCode();
         return statusCode == 404;
     }
 
-    public boolean wasSuccessful(HttpResponse response) {
+    public boolean wasSuccessful(CloseableHttpResponse response) {
         int statusCode = response.getStatusLine().getStatusCode();
         return statusCode >= 200 && statusCode < 400;
     }
 
-    public HttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
+    public CloseableHttpResponse performHttpRequest(HttpRequestBase request) throws IOException {
         // Without this, HTTP Client prohibits multiple redirects to the same location within the same context
         httpContext.removeAttribute(HttpClientContext.REDIRECT_LOCATIONS);
         LOGGER.debug("Performing HTTP {}: {}", request.getMethod(), request.getURI());
         return getClient().execute(request, httpContext);
     }
 
-    private HttpResponse processResponse(String source, String method, HttpResponse response) {
+    private CloseableHttpResponse processResponse(String source, String method, CloseableHttpResponse response) {
         if (wasMissing(response)) {
             LOGGER.info("Resource missing. [HTTP {}: {}]", method, source);
             return null;

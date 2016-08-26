@@ -16,7 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
-import org.apache.http.HttpResponse
+import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.HttpGet
 import org.apache.http.client.methods.HttpRequestBase
 import org.apache.http.ssl.SSLContexts
@@ -30,7 +30,7 @@ class HttpClientHelperTest extends Specification {
     def "throws HttpRequestException if an IO error occurs during a request"() {
         def client = new HttpClientHelper(httpSettings) {
             @Override
-            protected HttpResponse executeGetOrHead(HttpRequestBase method) {
+            protected CloseableHttpResponse executeGetOrHead(HttpRequestBase method) {
                 throw new IOException("ouch")
             }
         }
