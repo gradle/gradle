@@ -72,8 +72,8 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
 
     private void validateIncludedBuild(DefaultIncludedBuild includedBuild, File buildDirectory) {
         SettingsInternal settings = includedBuild.initialize();
-        if (!settings.getRootDir().equals(buildDirectory)) {
-            throw new InvalidUserDataException(String.format("Included build '%s' is not the root of the build.", buildDirectory.getName()));
+        if (!new File(settings.getSettingsDir(), "settings.gradle").exists()) {
+            throw new InvalidUserDataException(String.format("Included build '%s' must have a 'settings.gradle' file.", buildDirectory.getName()));
         }
         if (!settings.getIncludedBuilds().isEmpty()) {
             throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", includedBuild.getName()));
@@ -125,6 +125,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         private StartParameter createStartParameter(File buildDirectory) {
             StartParameter includedBuildStartParam = buildStartParam.newBuild();
             includedBuildStartParam.setProjectDir(buildDirectory);
+            includedBuildStartParam.setSearchUpwards(false);
             // TODO:DAZ Consider if we still really need this
             includedBuildStartParam.setConfigureOnDemand(false);
             return includedBuildStartParam;

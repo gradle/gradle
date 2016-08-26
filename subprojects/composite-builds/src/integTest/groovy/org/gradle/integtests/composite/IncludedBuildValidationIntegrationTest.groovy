@@ -17,7 +17,6 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
-
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
  */
@@ -69,7 +68,7 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
 
         and:
         failure.assertHasDescription("A problem occurred evaluating settings 'buildA'.")
-        failure.assertHasCause("Included build 'b1' is not the root of the build.")
+        failure.assertHasCause("Included build 'b1' must have a 'settings.gradle' file.")
     }
 
     def "reports failure when included build is itself a composite"() {
