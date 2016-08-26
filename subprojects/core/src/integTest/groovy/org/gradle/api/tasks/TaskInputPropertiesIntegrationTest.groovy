@@ -244,4 +244,35 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds "b" assertTasksExecuted ":a", ":b"
     }
+
+    def "can use Enum from buildSrc as input property"() {
+        given:
+        file("buildSrc/src/main/java/org/gradle/MessageType.java") << """
+            package org.gradle;
+
+            public enum MessageType {
+                HELLO_WORLD
+            }
+        """
+
+        buildFile << """
+            import org.gradle.MessageType
+
+            task helloWorld {
+                inputs.property('messageType', MessageType.HELLO_WORLD)
+
+                doLast {
+                    println 'Hello world!'
+                }
+            }
+        """
+
+        when:
+        succeeds 'helloWorld'
+
+        then:
+        skippedTasks.empty
+        executedTasks == [':helloWorld']
+        result.assertOutputContains('Hello world!')
+    }
 }
