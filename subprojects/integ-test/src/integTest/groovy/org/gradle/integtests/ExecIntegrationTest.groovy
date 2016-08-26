@@ -28,19 +28,77 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
     def canExecuteJava() {
         given:
-        buildFile << file("canExecuteJava.gradle").text
+        buildFile << """
+            apply plugin: 'java'
+
+            task javaexecTask(type: JavaExec, dependsOn: classes) {
+                ext.testFile = file("\$buildDir/\$name")
+                classpath(sourceSets.main.output.classesDir)
+                main = 'org.gradle.TestMain'
+                args projectDir, testFile
+                doLast {
+                    assert testFile.exists()
+                }
+                assert delegate instanceof ExtensionAware
+            }
+
+            task javaexecByMethod(dependsOn: classes) {
+                ext.testFile = file("\$buildDir/\$name")
+                doFirst {
+                    javaexec {
+                        assert !(delegate instanceof ExtensionAware)
+                        classpath(sourceSets.main.output.classesDir)
+                        main 'org.gradle.TestMain'
+                        args projectDir, testFile
+                    }
+                }
+                doLast {
+                    assert testFile.exists()
+                }
+            }
+        """.stripIndent()
 
         expect:
-        run()
+        succeeds 'javaexecTask', 'javaexecByMethod'
 
     }
 
     def canExecuteCommands() {
         given:
-        buildFile << file("canExecuteCommands.gradle").text
+        buildFile << """
+            import org.gradle.internal.jvm.Jvm
+
+            apply plugin: 'java'
+
+            task execTask(type: Exec) {
+                dependsOn sourceSets.main.runtimeClasspath
+                ext.testFile = file("\$buildDir/\$name")
+                executable = Jvm.current().getJavaExecutable()
+                args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
+                doLast {
+                    assert testFile.exists()
+                }
+                assert delegate instanceof ExtensionAware
+            }
+
+            task execByMethod {
+                dependsOn sourceSets.main.runtimeClasspath
+                ext.testFile = file("\$buildDir/\$name")
+                doFirst {
+                    exec {
+                        executable Jvm.current().getJavaExecutable()
+                        args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
+                        assert !(delegate instanceof ExtensionAware)
+                    }
+                }
+                doLast {
+                    assert testFile.exists()
+                }
+            }
+        """.stripIndent()
 
         expect:
-        run()
+        succeeds 'execTask', 'execByMethod'
     }
 
     @Issue("GRADLE-3528")
