@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -245,6 +246,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "b" assertTasksExecuted ":a", ":b"
     }
 
+    @Ignore
+    @Issue("GRADLE-3537")
     def "can use Enum from buildSrc as input property"() {
         given:
         file("buildSrc/src/main/java/org/gradle/MessageType.java") << """
