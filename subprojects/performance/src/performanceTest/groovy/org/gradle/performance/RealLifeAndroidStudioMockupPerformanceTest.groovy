@@ -17,10 +17,11 @@
 package org.gradle.performance
 
 import org.gradle.performance.categories.AndroidPerformanceTest
+import org.gradle.performance.categories.Experiment
 import org.junit.experimental.categories.Category
 import spock.lang.Unroll
 
-@Category([AndroidPerformanceTest])
+@Category([AndroidPerformanceTest, Experiment])
 class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMockupCrossVersionPerformanceTest {
 
     @Unroll
