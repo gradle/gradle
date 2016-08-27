@@ -16,6 +16,8 @@
 
 package org.gradle.nativeplatform.internal;
 
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
@@ -48,6 +50,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -88,9 +93,12 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
 
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ProjectModelResolver projectModelResolver;
+    private final Cache<String, State> stateCache = CacheBuilder.<String, State>newBuilder()
+        .maximumSize(1)
+        .expireAfterAccess(10, TimeUnit.SECONDS)
+        .build();
 
     private TestSupport testSupport;
-    private State cachedState;
 
     public NativeDependentBinariesResolutionStrategy(ProjectRegistry<ProjectInternal> projectRegistry, ProjectModelResolver projectModelResolver) {
         super();
@@ -125,10 +133,16 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
     }
 
     private State getState() {
-        if (cachedState == null) {
-            cachedState = buildState();
+        try {
+            return stateCache.get("state", new Callable<State>() {
+                @Override
+                public State call() {
+                    return buildState();
+                }
+            });
+        } catch (ExecutionException ex) {
+            throw new RuntimeException("Unable to build native dependent binaries resolution cache", ex);
         }
-        return cachedState;
     }
 
     private State buildState() {
