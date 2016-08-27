@@ -37,7 +37,7 @@ class DefaultProjectComponentSelectorTest extends Specification {
 
     def "is instantiated with null constructor parameter value"() {
         when:
-        DefaultProjectComponentSelector.newSelector(null)
+        DefaultProjectComponentSelector.newSelector((String) null)
 
         then:
         Throwable t = thrown(AssertionError)
