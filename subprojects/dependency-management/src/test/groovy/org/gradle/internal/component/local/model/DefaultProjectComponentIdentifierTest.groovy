@@ -35,7 +35,7 @@ class DefaultProjectComponentIdentifierTest extends Specification {
 
     def "is instantiated with null constructor parameter value"() {
         when:
-        newProjectId(null)
+        newProjectId((String) null)
 
         then:
         Throwable t = thrown(AssertionError)
