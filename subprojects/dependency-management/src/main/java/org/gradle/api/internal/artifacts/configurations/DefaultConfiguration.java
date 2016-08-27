@@ -416,8 +416,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void markReferencedProjectConfigurationsObserved(final InternalState requestedState) {
         for (ResolvedProjectConfiguration projectResult : cachedResolverResults.getResolvedLocalComponents().getResolvedProjectConfigurations()) {
-            ProjectInternal project = projectFinder.findProject(projectResult.getId().getProjectPath());
-            if (project != null) {
+            if (projectResult.getId().getBuild().isCurrentBuild()) {
+                ProjectInternal project = projectFinder.getProject(projectResult.getId().getProjectPath());
                 ConfigurationInternal targetConfig = (ConfigurationInternal) project.getConfigurations().getByName(projectResult.getTargetConfiguration());
                 targetConfig.markAsObserved(requestedState);
             }

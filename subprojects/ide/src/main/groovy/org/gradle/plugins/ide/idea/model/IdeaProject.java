@@ -29,8 +29,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
-
 /**
  * Enables fine-tuning project details (*.ipr file) of the IDEA plugin.
  * <p>
@@ -303,13 +301,9 @@ public class IdeaProject {
     }
 
     private void includeModulesFromComposite(Project xmlProject) {
-        ProjectComponentIdentifier thisProjectId = newProjectId(project.getRootProject().getName(), project.getPath());
         PathFactory pathFactory = getPathFactory();
         Set<ProjectComponentIdentifier> projectsInComposite = moduleToProjectMapper.getProjectsInComposite();
         for (ProjectComponentIdentifier otherProjectId : projectsInComposite) {
-            if (thisProjectId.equals(otherProjectId)) {
-                continue;
-            }
             File imlFile = moduleToProjectMapper.resolveArtifactFile(otherProjectId, "iml");
             if (imlFile != null) {
                 xmlProject.getModulePaths().add(pathFactory.relativePath("PROJECT_DIR", imlFile));

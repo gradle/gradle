@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,29 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.artifacts.component;
 
 import org.gradle.api.Incubating;
 
 /**
- * Criteria for selecting a component instance that is built as part of the current build.
- *
- * @since 1.10
+ * Identifies a Gradle build.
  */
 @Incubating
-public interface ProjectComponentSelector extends ComponentSelector {
+public interface BuildIdentifier {
     /**
-     * Identifies the build to select a project from.
-     *
-     * @return The build identifier
+     * The name of the build.
      */
-    BuildIdentifier getBuild();
+    String getName();
 
     /**
-     * The path of the project to select the component from.
-     *
-     * @return Project path
-     * @since 1.10
+     * Is this build the one that's currently executing?
      */
-    String getProjectPath();
+    boolean isCurrentBuild();
+
+    // TODO:DAZ Add the root directory.
 }

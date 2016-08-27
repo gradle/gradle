@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -29,14 +30,15 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.IOException;
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
-
 public class ComponentIdentifierSerializer implements Serializer<ComponentIdentifier> {
+    private final BuildIdentifierSerializer buildIdentifierSerializer = new BuildIdentifierSerializer();
+
     public ComponentIdentifier read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 
         if(Implementation.BUILD.getId() == id) {
-            return newProjectId(decoder.readString());
+            BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
+            return new DefaultProjectComponentIdentifier(buildIdentifier, decoder.readString());
         } else if(Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentIdentifier(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
@@ -60,6 +62,8 @@ public class ComponentIdentifierSerializer implements Serializer<ComponentIdenti
         } else if(value instanceof DefaultProjectComponentIdentifier) {
             ProjectComponentIdentifier projectComponentIdentifier = (ProjectComponentIdentifier)value;
             encoder.writeByte(Implementation.BUILD.getId());
+            BuildIdentifier build = projectComponentIdentifier.getBuild();
+            buildIdentifierSerializer.write(encoder, build);
             encoder.writeString(projectComponentIdentifier.getProjectPath());
         } else if(value instanceof DefaultLibraryBinaryIdentifier) {
             LibraryBinaryIdentifier libraryIdentifier = (LibraryBinaryIdentifier)value;

@@ -634,7 +634,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Module version 'org.test:b1:1.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
+        failure.assertHasCause("Module version 'org.test:b1:1.0' is not unique in composite: can be provided by [project buildB::b1, project buildC::b1].")
     }
 
     def "reports failure to resolve dependencies when substitution is ambiguous within single participant"() {
@@ -661,7 +661,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Module version 'org.test:c1:1.0' is not unique in composite: can be provided by projects [buildC::c1, buildC::nested:c1].")
+        failure.assertHasCause("Module version 'org.test:c1:1.0' is not unique in composite: can be provided by [project buildC::c1, project buildC::nested:c1].")
     }
 
     def "reports failure to resolve dependencies when transitive dependency substitution is ambiguous"() {
@@ -672,7 +672,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Module version 'org.test:b1:2.0' is not unique in composite: can be provided by projects [buildB::b1, buildC::b1].")
+        failure.assertHasCause("Module version 'org.test:b1:2.0' is not unique in composite: can be provided by [project buildB::b1, project buildC::b1].")
     }
 
     def "resolve transitive project dependency that is ambiguous in the composite"() {

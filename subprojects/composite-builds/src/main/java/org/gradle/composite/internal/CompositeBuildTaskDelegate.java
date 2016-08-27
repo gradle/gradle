@@ -18,9 +18,11 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.initialization.IncludedBuildExecuter;
+import org.gradle.initialization.IncludedBuilds;
 
 import java.util.Collections;
 
@@ -50,8 +52,10 @@ public class CompositeBuildTaskDelegate extends DefaultTask {
 
     @TaskAction
     public void executeTaskInOtherBuild() {
+        IncludedBuilds includedBuilds = getServices().get(IncludedBuilds.class);
         IncludedBuildExecuter builder = getServices().get(IncludedBuildExecuter.class);
-        ProjectComponentIdentifier id = newProjectId(build, ":");
+        IncludedBuild includedBuild = includedBuilds.getBuild(build);
+        ProjectComponentIdentifier id = newProjectId(includedBuild, ":");
         builder.execute(id, Collections.singleton(task));
     }
 }

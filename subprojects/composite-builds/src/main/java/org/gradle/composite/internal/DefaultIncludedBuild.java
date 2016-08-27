@@ -76,7 +76,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     public DependencySubstitutionsInternal resolveDependencySubstitutions() {
         if (dependencySubstitutions == null) {
-            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(getName());
+            dependencySubstitutions = DefaultDependencySubstitutions.forIncludedBuild(this);
 
             for (Action<? super DependencySubstitutions> action : dependencySubstitutionActions) {
                 action.execute(dependencySubstitutions);

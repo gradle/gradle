@@ -19,6 +19,7 @@ package org.gradle.composite.internal;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.DependencySubstitution;
@@ -92,7 +93,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     public void register(ProjectComponentIdentifier project, LocalComponentMetadata localComponentMetadata, File projectDirectory) {
         if (projectMetadata.containsKey(project)) {
-            String failureMessage = String.format("Project path '%s' is not unique in composite.", project.getProjectPath());
+            String failureMessage = StringUtils.capitalize(project.getDisplayName()) +" is not unique in composite.";
             throw new GradleException(failureMessage);
         }
         projectMetadata.put(project, new RegisteredProject(localComponentMetadata, projectDirectory));
@@ -149,12 +150,11 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
         ensureRegistered(build);
     }
 
-    private IncludedBuildInternal getBuild(ProjectComponentIdentifier projectComponentIdentifier) {
-        String[] split = projectComponentIdentifier.getProjectPath().split("::", 2);
-        if (split.length == 1) {
+    private IncludedBuildInternal getBuild(ProjectComponentIdentifier projectId) {
+        if (projectId.getBuild().isCurrentBuild()) {
             return null;
         }
-        return (IncludedBuildInternal) includedBuilds.getBuild(split[0]);
+        return (IncludedBuildInternal) includedBuilds.getBuild(projectId.getBuild().getName());
     }
 
     private void ensureRegistered(IncludedBuildInternal build) {

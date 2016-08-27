@@ -22,6 +22,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
 import org.gradle.api.internal.composite.CompositeBuildContext;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -51,17 +52,17 @@ public class IncludedBuildDependencyMetadataBuilder {
     public void build(IncludedBuildInternal build) {
         Gradle gradle = build.configure();
         for (Project project : gradle.getRootProject().getAllprojects()) {
-            registerProject(build.getName(), (ProjectInternal) project);
+            registerProject(build, (ProjectInternal) project);
         }
     }
 
-    private void registerProject(String buildName, ProjectInternal project) {
+    private void registerProject(IncludedBuild build, ProjectInternal project) {
         LocalComponentRegistry localComponentRegistry = project.getServices().get(LocalComponentRegistry.class);
         ProjectComponentIdentifier originalIdentifier = newProjectId(project);
         DefaultLocalComponentMetadata originalComponent = (DefaultLocalComponentMetadata) localComponentRegistry.getComponent(originalIdentifier);
 
-        ProjectComponentIdentifier componentIdentifier = newProjectId(buildName, originalIdentifier);
-        LocalComponentMetadata compositeComponent = createCompositeCopy(buildName, componentIdentifier, originalComponent);
+        ProjectComponentIdentifier componentIdentifier = newProjectId(build, project.getPath());
+        LocalComponentMetadata compositeComponent = createCompositeCopy(build, componentIdentifier, originalComponent);
 
         context.register(componentIdentifier, compositeComponent, project.getProjectDir());
         for (LocalComponentArtifactMetadata artifactMetaData : localComponentRegistry.getAdditionalArtifacts(originalIdentifier)) {
@@ -69,7 +70,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         }
     }
 
-    private LocalComponentMetadata createCompositeCopy(String buildName, ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
+    private LocalComponentMetadata createCompositeCopy(IncludedBuild build, ProjectComponentIdentifier componentIdentifier, DefaultLocalComponentMetadata originalComponentMetadata) {
         DefaultLocalComponentMetadata compositeComponentMetadata = new DefaultLocalComponentMetadata(originalComponentMetadata.getId(), componentIdentifier, originalComponentMetadata.getStatus());
 
         for (String configurationName : originalComponentMetadata.getConfigurationNames()) {
@@ -91,8 +92,7 @@ public class IncludedBuildDependencyMetadataBuilder {
         for (LocalOriginDependencyMetadata dependency : originalComponentMetadata.getDependencies()) {
             if (dependency.getSelector() instanceof ProjectComponentSelector) {
                 ProjectComponentSelector requested = (ProjectComponentSelector) dependency.getSelector();
-                ProjectComponentSelector externalizedSelector = DefaultProjectComponentSelector.newSelector(buildName, requested);
-                dependency = dependency.withTarget(externalizedSelector);
+                dependency = dependency.withTarget(DefaultProjectComponentSelector.newSelector(build, requested));
             }
             compositeComponentMetadata.addDependency(dependency);
         }
