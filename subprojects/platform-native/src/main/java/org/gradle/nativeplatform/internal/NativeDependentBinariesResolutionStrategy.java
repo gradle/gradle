@@ -97,6 +97,10 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         .maximumSize(1)
         .expireAfterAccess(10, TimeUnit.SECONDS)
         .build();
+    private final Cache<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>> resultsCache = CacheBuilder.<NativeBinarySpecInternal, List<DependentBinariesResolvedResult>>newBuilder()
+        .maximumSize(3000)
+        .expireAfterAccess(10, TimeUnit.SECONDS)
+        .build();
 
     private TestSupport testSupport;
 
@@ -128,8 +132,7 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
 
     private List<DependentBinariesResolvedResult> resolveDependentBinaries(NativeBinarySpecInternal target) {
         State state = getState();
-        Stack<NativeBinarySpecInternal> stack = new Stack<NativeBinarySpecInternal>();
-        return buildResolvedResult(target, state, stack);
+        return buildResolvedResult(target, state);
     }
 
     private State getState() {
@@ -196,18 +199,28 @@ public class NativeDependentBinariesResolutionStrategy extends AbstractDependent
         return binaries;
     }
 
-    private List<DependentBinariesResolvedResult> buildResolvedResult(NativeBinarySpecInternal target, State state, Stack<NativeBinarySpecInternal> stack) {
+    private List<DependentBinariesResolvedResult> buildResolvedResult(final NativeBinarySpecInternal target, State state) {
+        Stack<NativeBinarySpecInternal> stack = new Stack<NativeBinarySpecInternal>();
+        return doBuildResolvedResult(target, state, stack);
+    }
+
+    private List<DependentBinariesResolvedResult> doBuildResolvedResult(final NativeBinarySpecInternal target, State state, Stack<NativeBinarySpecInternal> stack) {
         if (stack.contains(target)) {
             onCircularDependencies(state, stack, target);
         }
+        List<DependentBinariesResolvedResult> result = resultsCache.getIfPresent(target);
+        if (result != null) {
+            return result;
+        }
         stack.push(target);
-        List<DependentBinariesResolvedResult> result = Lists.newArrayList();
+        result = Lists.newArrayList();
         List<NativeBinarySpecInternal> dependents = state.getDependents(target);
         for (NativeBinarySpecInternal dependent : dependents) {
-            List<DependentBinariesResolvedResult> children = buildResolvedResult(dependent, state, stack);
+            List<DependentBinariesResolvedResult> children = doBuildResolvedResult(dependent, state, stack);
             result.add(new DefaultDependentBinariesResolvedResult(dependent.getId(), dependent.getProjectScopedName(), dependent.isBuildable(), isTestSuite(dependent), children));
         }
         stack.pop();
+        resultsCache.put(target, result);
         return result;
     }
 
