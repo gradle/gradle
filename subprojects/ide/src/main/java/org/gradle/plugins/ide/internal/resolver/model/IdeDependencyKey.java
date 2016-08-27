@@ -107,17 +107,17 @@ public abstract class IdeDependencyKey<T extends IdeDependency, R> {
 
         @Override
         protected int dependencyHashCode() {
-            return ideDependency.getProjectPath().hashCode();
+            return ideDependency.getProjectId().hashCode();
         }
 
         @Override
         protected boolean isSameDependency(IdeDependency otherDependency) {
-            return otherDependency instanceof IdeProjectDependency && Objects.equal(ideDependency.getProjectPath(), ((IdeProjectDependency) otherDependency).getProjectPath());
+            return otherDependency instanceof IdeProjectDependency && Objects.equal(ideDependency.getProjectId(), ((IdeProjectDependency) otherDependency).getProjectId());
         }
 
         @Override
         public String toString() {
-            return "ProjectDependencyKey{" + ideDependency.getProjectPath() + "}";
+            return "ProjectDependencyKey{" + ideDependency.getProjectId() + "}";
         }
     }
 

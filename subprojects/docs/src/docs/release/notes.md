@@ -96,6 +96,8 @@ in the next major Gradle version (Gradle 4.0). See the User guide section on the
 
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
+- `org.gradle.plugins.ide.eclipse.model.ProjectDependency.setGradlePath()` has been deprecated without replacement.
+
 <!--
 ### Example deprecation
 -->

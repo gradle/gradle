@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import groovy.util.Node;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 
 import java.util.Map;
 
@@ -31,7 +32,7 @@ public class ModuleDependency implements Dependency {
 
     private String name;
     private String scope;
-    private String gradlePath;
+    private ProjectComponentIdentifier gradleProjectId;
     private boolean exported;
 
     public ModuleDependency(String name, String scope) {
@@ -69,13 +70,13 @@ public class ModuleDependency implements Dependency {
     }
 
     @Incubating
-    public String getGradlePath() {
-        return gradlePath;
+    public ProjectComponentIdentifier getGradleProjectId() {
+        return gradleProjectId;
     }
 
     @Incubating
-    public void setGradlePath(String gradlePath) {
-        this.gradlePath = gradlePath;
+    public void setGradleProjectId(ProjectComponentIdentifier gradleProjectId) {
+        this.gradleProjectId = gradleProjectId;
     }
 
     public boolean isExported() {

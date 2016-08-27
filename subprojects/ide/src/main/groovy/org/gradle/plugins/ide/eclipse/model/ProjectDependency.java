@@ -18,13 +18,17 @@ package org.gradle.plugins.ide.eclipse.model;
 
 import com.google.common.base.Preconditions;
 import groovy.util.Node;
+import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+
+import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 /**
  * A classpath entry representing a project dependency.
  */
 public class ProjectDependency extends AbstractClasspathEntry {
 
-    private String gradlePath;
+    private ProjectComponentIdentifier projectId;
 
     public ProjectDependency(Node node) {
         super(node);
@@ -34,15 +38,31 @@ public class ProjectDependency extends AbstractClasspathEntry {
     public ProjectDependency(String path, String gradlePath) {
         super(path);
         assertPathIsValid();
-        this.gradlePath = gradlePath;
+        setProjectIdFromGradlePath(gradlePath);
+    }
+
+    public ProjectDependency(ProjectComponentIdentifier projectId, String path) {
+        super(path);
+        assertPathIsValid();
+        this.projectId = projectId;
+    }
+
+    private void setProjectIdFromGradlePath(String gradlePath) {
+        this.projectId = gradlePath == null ? null : newProjectId(gradlePath);
     }
 
     public String getGradlePath() {
-        return gradlePath;
+        return projectId == null ? null : projectId.getProjectPath();
     }
 
+    @Deprecated
     public void setGradlePath(String gradlePath) {
-        this.gradlePath = gradlePath;
+        setProjectIdFromGradlePath(gradlePath);
+    }
+
+    @Incubating
+    public ProjectComponentIdentifier getGradleProjectId() {
+        return projectId;
     }
 
     private void assertPathIsValid() {

@@ -36,10 +36,6 @@ public class IdeProjectDependency extends IdeDependency {
         return projectId;
     }
 
-    public String getProjectPath() {
-        return projectId.getProjectPath();
-    }
-
     public String getProjectName() {
         return projectName;
     }

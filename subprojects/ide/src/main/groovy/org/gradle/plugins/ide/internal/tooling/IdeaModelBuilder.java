@@ -140,7 +140,7 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 ModuleDependency d = (ModuleDependency) dependency;
                 DefaultIdeaModule targetModule = modules.get(d.getName());
                 File targetProjectDirectory = targetModule == null
-                    ? compositeProjectMapper.getProjectDirectory(d.getGradlePath())
+                    ? compositeProjectMapper.getProjectDirectory(d.getGradleProjectId())
                     : targetModule.getGradleProject().getProjectDirectory();
                 DefaultIdeaModuleDependency defaultDependency = new DefaultIdeaModuleDependency()
                     .setExported(d.isExported())

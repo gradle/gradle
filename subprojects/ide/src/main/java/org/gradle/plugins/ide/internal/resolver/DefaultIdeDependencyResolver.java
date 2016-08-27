@@ -32,6 +32,7 @@ import org.gradle.api.artifacts.result.ResolvedComponentResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.plugins.ide.internal.resolver.model.IdeExtendedRepoFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeLocalFileDependency;
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency;
@@ -62,13 +63,13 @@ public class DefaultIdeDependencyResolver implements IdeDependencyResolver {
         });
         List<IdeProjectDependency> ideProjectDependencies = new ArrayList<IdeProjectDependency>();
 
+        ProjectComponentIdentifier thisProjectId = DefaultProjectComponentIdentifier.newProjectId(project);
         for (ResolvedComponentResult projectComponent : projectComponents) {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) projectComponent.getId();
-            String resolvedProjectPath = projectId.getProjectPath();
-            if (project.getPath().equals(resolvedProjectPath)) {
+            if (thisProjectId.equals(projectId)) {
                 continue;
             }
-            Project resolvedProject = project.findProject(resolvedProjectPath);
+            Project resolvedProject = project.findProject(projectId.getProjectPath());
             if (resolvedProject == null) {
                 ideProjectDependencies.add(new IdeProjectDependency(projectId));
             } else {
