@@ -29,6 +29,8 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
+import org.gradle.internal.classloader.VisitableURLClassLoader
+
 import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromTemplate
 
 import org.slf4j.Logger
@@ -48,6 +50,7 @@ class KotlinBuildScriptCompiler(
     val baseScope: ClassLoaderScope,
     val targetScope: ClassLoaderScope,
     gradleApi: ClassPath,
+    val gradleApiExtensions: ClassPath,
     val gradleScriptKotlinJars: ClassPath,
     val logger: Logger) {
 
@@ -143,7 +146,7 @@ class KotlinBuildScriptCompiler(
      * standard library types.
      */
     private fun isolatedKotlinClassLoaderFor(parentClassLoader: ClassLoader): PostDelegatingClassLoader {
-        val isolatedClassPath = scriptClassPath + gradleScriptKotlinJars + buildSrc
+        val isolatedClassPath = scriptClassPath + gradleScriptKotlinJars + buildSrc + gradleApiExtensions
         val isolatedClassLoader = PostDelegatingClassLoader(parentClassLoader, isolatedClassPath)
         exportTo(targetScope, isolatedClassLoader)
         return isolatedClassLoader
@@ -161,10 +164,14 @@ class KotlinBuildScriptCompiler(
 
     private fun defaultClassLoaderFor(scope: ClassLoaderScope) =
         scope.run {
-            export(KotlinBuildScript::class.java.classLoader)
+            export(extensionsClassLoader)
             lock()
             localClassLoader
         }
+
+    val extensionsClassLoader by lazy {
+        VisitableURLClassLoader(KotlinBuildScript::class.java.classLoader, gradleApiExtensions)
+    }
 
     private fun compileBuildscriptSection(buildscriptRange: IntRange, classLoader: ClassLoader) =
         compileKotlinScript(

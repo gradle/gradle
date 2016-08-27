@@ -27,7 +27,6 @@ task generateKotlinDependencyExtensions(type: codegen.GenerateKotlinDependencyEx
 task generateExtensions {
     dependsOn generateConfigurationExtensions
     dependsOn generateKotlinDependencyExtensions
-    dependsOn tasks.generateActionExtensions
 }
 sourceSets {
     main.kotlin.srcDirs += apiExtensionsOutputDir

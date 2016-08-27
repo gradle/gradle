@@ -19,7 +19,7 @@ import java.io.StringWriter
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 
-class GenerateActionExtensionsTest {
+class ActionExtensionWriterTest {
 
     @JvmField
     @Rule val projectDir = TemporaryFolder()

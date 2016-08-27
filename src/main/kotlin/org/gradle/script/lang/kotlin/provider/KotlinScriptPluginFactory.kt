@@ -57,7 +57,9 @@ class KotlinScriptPluginFactory(val classPathProvider: KotlinScriptClassPathProv
         KotlinBuildScriptCompiler(
             scriptSource, topLevelScript, scriptHandler as ScriptHandlerInternal,
             baseScope, targetScope,
-            classPathProvider.gradleApi, classPathProvider.gradleScriptKotlinJars,
+            classPathProvider.gradleApi,
+            classPathProvider.gradleApiExtensions,
+            classPathProvider.gradleScriptKotlinJars,
             logger)
 
     private fun inClassPathMode() =

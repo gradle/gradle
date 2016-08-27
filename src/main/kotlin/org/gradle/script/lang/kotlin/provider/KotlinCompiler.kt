@@ -24,6 +24,7 @@ import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
+import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileScript
 import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 
@@ -47,14 +48,52 @@ import org.slf4j.Logger
 import java.io.File
 
 fun compileKotlinScript(scriptFile: File,
-                        scriptDef: KotlinScriptDefinition, classLoader: ClassLoader, log: Logger): Class<*> {
-    val messageCollector = messageCollectorFor(log)
+                        scriptDef: KotlinScriptDefinition,
+                        classLoader: ClassLoader,
+                        log: Logger): Class<*> {
+    withRootDisposable { rootDisposable ->
+        withMessageCollectorFor(log) { messageCollector ->
+            val configuration = compilerConfigurationFor(messageCollector, scriptFile).apply {
+                setModuleName("buildscript")
+                addScriptDefinition(scriptDef)
+            }
+            val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable)
+            return compileScript(environment, classLoader)
+                ?: throw IllegalStateException("Internal error: unable to compile script, see log for details")
+        }
+    }
+}
+
+fun compileToJar(outputJar: File,
+                 sourceFile: File,
+                 logger: Logger,
+                 classPath: List<File> = emptyList()): Boolean {
+    withRootDisposable { disposable ->
+        withMessageCollectorFor(logger) { messageCollector ->
+            val configuration = compilerConfigurationFor(messageCollector, sourceFile).apply {
+                setModuleName(sourceFile.nameWithoutExtension)
+                setOutputJar(outputJar)
+                addJvmClasspathRoots(classPath)
+            }
+            val environment = kotlinCoreEnvironmentFor(configuration, disposable)
+            return compileBunchOfSources(environment)
+        }
+    }
+}
+
+inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
     val rootDisposable = newDisposable()
     try {
-        val configuration = compilerConfigFor(scriptFile, scriptDef, messageCollector)
-        val environment = kotlinCoreEnvironmentFor(configuration, rootDisposable)
-        return compileScript(environment, classLoader)
-            ?: throw IllegalStateException("Internal error: unable to compile script, see log for details")
+        return action(rootDisposable)
+    } finally {
+        dispose(rootDisposable)
+    }
+}
+
+inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
+    val messageCollector = messageCollectorFor(log)
+    try {
+        return action(messageCollector)
     } catch (ex: CompilationException) {
         messageCollector.report(
             CompilerMessageSeverity.EXCEPTION,
@@ -62,25 +101,32 @@ fun compileKotlinScript(scriptFile: File,
             MessageUtil.psiElementToMessageLocation(ex.element))
 
         throw IllegalStateException("Internal error: ${OutputMessageUtil.renderException(ex)}")
-    } finally {
-        dispose(rootDisposable)
     }
 }
 
-private fun compilerConfigFor(sourceFile: File, scriptDef: KotlinScriptDefinition,
-                              messageCollector: MessageCollector) =
+fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFile: File): CompilerConfiguration =
     CompilerConfiguration().apply {
         addKotlinSourceRoots(listOf(sourceFile.canonicalPath))
         addJvmClasspathRoots(PathUtil.getJdkClassesRoots())
-        add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, scriptDef)
-        put(CommonConfigurationKeys.MODULE_NAME, "buildscript")
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
-private fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable) =
+private fun CompilerConfiguration.setOutputJar(outputJar: File) {
+    put(JVMConfigurationKeys.OUTPUT_JAR, outputJar)
+}
+
+private fun CompilerConfiguration.setModuleName(name: String) {
+    put(CommonConfigurationKeys.MODULE_NAME, name)
+}
+
+private fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition) {
+    add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, scriptDef)
+}
+
+fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable) =
     KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 
-private fun messageCollectorFor(log: Logger): MessageCollector =
+fun messageCollectorFor(log: Logger): MessageCollector =
     object : MessageCollector {
         override fun hasErrors(): Boolean = false
 

@@ -25,11 +25,18 @@ import org.gradle.api.internal.cache.GeneratedGradleJarCache
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+
+import org.gradle.script.lang.kotlin.codegen.ActionExtensionWriter
+import org.gradle.script.lang.kotlin.codegen.classNodeFor
 import org.gradle.script.lang.kotlin.codegen.isApiClassEntry
 import org.gradle.script.lang.kotlin.codegen.conflictsWithExtension
+import org.gradle.script.lang.kotlin.codegen.forEachZipEntryIn
+import org.gradle.script.lang.kotlin.loggerFor
 import org.gradle.script.lang.kotlin.support.asm.removeMethodsMatching
 
 import org.gradle.util.GFileUtils.moveFile
+
+import org.jetbrains.kotlin.utils.addToStdlib.singletonList
 
 import java.io.File
 
@@ -46,6 +53,13 @@ class KotlinScriptClassPathProvider(
     }
 
     /**
+     * Generated extensions to the Gradle API.
+     */
+    val gradleApiExtensions: ClassPath by lazy {
+        gradleApi.filter { it.name.startsWith("gradle-script-kotlin-extensions-") }
+    }
+
+    /**
      * gradle-script-kotlin.jar plus kotlin libraries.
      */
     val gradleScriptKotlinJars: ClassPath by lazy {
@@ -56,22 +70,49 @@ class KotlinScriptClassPathProvider(
      * Returns the generated Gradle API jar plus supporting files such as groovy-all.jar.
      */
     private fun gradleApiFiles() =
-        gradleApiDependency().resolve().map {
+        gradleApiDependency().resolve().flatMap {
             when {
-                it.name.startsWith("gradle-api-") -> kotlinGradleApiFrom(it)
-                else -> it
+                it.name.startsWith("gradle-api-") ->
+                    listOf(
+                        kotlinGradleApiFrom(it),
+                        kotlinGradleApiExtensionsFrom(it))
+                else ->
+                    it.singletonList()
             }
         }
 
     private fun kotlinGradleApiFrom(gradleApiJar: File): File =
         jarCache["script-kotlin-api", { outputJar ->
-            val tempFile = tempFileFor(outputJar)
+            val tempFile = tempFileFor(outputJar, ".tmp")
             generateKotlinGradleApiAt(tempFile, gradleApiJar)
             moveFile(tempFile, outputJar)
         }]
 
-    private fun tempFileFor(outputJar: File): File =
-        createTempFile(outputJar.name, ".tmp").apply {
+    private fun kotlinGradleApiExtensionsFrom(gradleApiJar: File): File =
+        jarCache["script-kotlin-extensions", { outputJar ->
+            val tempSourceFile = tempFileFor(outputJar, ".kt")
+            writeActionExtensionsTo(tempSourceFile, gradleApiJar)
+            compileToJar(
+                outputJar,
+                tempSourceFile,
+                loggerFor<KotlinScriptClassPathProvider>(),
+                classPath = listOf(gradleApiJar))
+        }]
+
+    private fun writeActionExtensionsTo(kotlinFile: File, gradleApiJar: File) {
+        kotlinFile.bufferedWriter().use { writer ->
+            val extensionWriter = ActionExtensionWriter(writer)
+            forEachZipEntryIn(gradleApiJar) {
+                if (isApiClassEntry()) {
+                    val classNode = classNodeFor(zipInputStream)
+                    extensionWriter.writeExtensionsFor(classNode)
+                }
+            }
+        }
+    }
+
+    private fun tempFileFor(outputJar: File, suffix: String): File =
+        createTempFile(outputJar.name, suffix).apply {
             deleteOnExit()
         }
 
