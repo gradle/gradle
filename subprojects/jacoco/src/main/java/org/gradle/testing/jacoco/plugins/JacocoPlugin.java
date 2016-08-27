@@ -179,21 +179,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
             public void execute(final Report report) {
                 ConventionMapping mapping = ((IConventionAware) report).getConventionMapping();
                 mapping.map("enabled", Callables.returning(report.getName().equals("html")));
-                if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                    mapping.map("destination", new Callable<File>() {
-                        @Override
-                        public File call() {
-                            return new File(extension.getReportsDir(), reportTask.getName() + "/" + report.getName());
-                        }
-                    });
-                } else {
-                    mapping.map("destination", new Callable<File>() {
-                        @Override
-                        public File call() {
-                            return new File(extension.getReportsDir(), reportTask.getName() + "/" + reportTask.getName() + "." + report.getName());
-                        }
-                    });
-                }
+                mapDestination(report, extension, reportTask);
             }
         });
     }
@@ -227,24 +213,28 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         taskMapping.getConventionValue(reportTask.getReports(), "reports", false).all(new Action<Report>() {
             @Override
             public void execute(final Report report) {
-                ConventionMapping reportMapping = ((IConventionAware) report).getConventionMapping();
-                // reportMapping.map('enabled', Callables.returning(true));
-                if (report.getOutputType().equals(Report.OutputType.DIRECTORY)) {
-                    reportMapping.map("destination", new Callable<File>() {
-                        @Override
-                        public File call() {
-                            return new File(extension.getReportsDir(), task.getName() + "/" + report.getName());
-                        }
-                    });
-                } else {
-                    reportMapping.map("destination", new Callable<File>() {
-                        @Override
-                        public File call() {
-                            return new File(extension.getReportsDir(), task.getName() + "/" + reportTask.getName() + "." + report.getName());
-                        }
-                    });
-                }
+                mapDestination(report, extension, reportTask);
             }
         });
     }
+
+    private void mapDestination(final Report report, final JacocoPluginExtension extension, final JacocoReport reportTask) {
+        final ConventionMapping mapping = ((IConventionAware) report).getConventionMapping();
+        if (Report.OutputType.DIRECTORY.equals(report.getOutputType())) {
+            mapping.map("destination", new Callable<File>() {
+                @Override
+                public File call() {
+                    return new File(extension.getReportsDir(), reportTask.getName() + "/" + report.getName());
+                }
+            });
+        } else {
+            mapping.map("destination", new Callable<File>() {
+                @Override
+                public File call() {
+                    return new File(extension.getReportsDir(), reportTask.getName() + "/" + reportTask.getName() + "." + report.getName());
+                }
+            });
+        }
+    }
+
 }
