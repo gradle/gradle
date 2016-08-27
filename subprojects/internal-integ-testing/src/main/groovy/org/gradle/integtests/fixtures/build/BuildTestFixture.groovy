@@ -43,16 +43,15 @@ class BuildTestFixture {
 
     def populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
         def project = buildInRootDir ? new BuildTestFile(rootDir, projectName) : new BuildTestFile(rootDir.file(projectName), projectName)
+        project.settingsFile << """
+                    rootProject.name = '${projectName}'
+                """
         project.with(cl)
         project
     }
 
     def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
         def project = populate(projectName) {
-            settingsFile << """
-                    rootProject.name = '${rootProjectName}'
-                """
-
             buildFile << """
                     group = 'org.test'
                     version = '1.0'
@@ -67,7 +66,6 @@ class BuildTestFixture {
         String subprojectList = subprojects.collect({ "'$it'" }).join(',')
         def rootMulti = populate(projectName) {
             settingsFile << """
-                    rootProject.name = '${rootProjectName}'
                     include ${subprojectList}
                 """
 
