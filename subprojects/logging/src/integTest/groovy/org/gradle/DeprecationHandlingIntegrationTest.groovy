@@ -184,6 +184,7 @@ someFeature()
     // ######################################################################
 
     def "DeprecatedPlugin and DeprecatedTask - without full stacktrace."() {
+        given:
         buildFile << """import org.gradle.internal.deprecated.DeprecatedPlugin
 import org.gradle.internal.deprecated.DeprecatedTask
 
@@ -225,6 +226,7 @@ task broken(type: DeprecatedTask) << {
     // ######################################################################
 
     def "DeprecatedPlugin and DeprecatedTask - with full stacktrace."() {
+        given:
         buildFile << """import org.gradle.internal.deprecated.DeprecatedPlugin
 import org.gradle.internal.deprecated.DeprecatedTask
 
@@ -264,6 +266,7 @@ task broken(type: DeprecatedTask) << {
     // ######################################################################
 
     def "DeprecatedPlugin from init script - without full stacktrace."() {
+        given:
         def initScript = file("init.gradle") << """import org.gradle.internal.deprecated.DeprecatedPlugin
 allprojects {
     apply plugin: DeprecatedPlugin // line 3
@@ -287,6 +290,7 @@ allprojects {
     // ######################################################################
 
     def "DeprecatedPlugin from applied script - without full stacktrace."() {
+        given:
         file("project.gradle") << """import org.gradle.internal.deprecated.DeprecatedPlugin
 apply plugin:  DeprecatedPlugin // line 2
 """
@@ -313,6 +317,7 @@ allprojects {
     // ######################################################################
 
     def "DeprecatedPlugin from applied script - with full stacktrace."() {
+        given:
         file("project.gradle") << """import org.gradle.internal.deprecated.DeprecatedPlugin
 apply plugin:  DeprecatedPlugin // line 2
 """
