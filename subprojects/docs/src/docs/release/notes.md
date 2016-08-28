@@ -145,6 +145,15 @@ experience a different dependency graph than observed with earlier versions of G
 We do not need [JNA](https://github.com/java-native-access/jna) anymore so we removed this library from
 the Gradle distribution. Plugin authors relying on the library being present now need to ship their own.
 
+### Tooling API models have missing dependency information when importing composite builds
+
+When a composite build is imported via the Gradle Tooling API, then certain fields may not be populated:
+
+- `EclipseProjectDependency.getTargetProject` will be `null` for a project substituted in the composite: use `EclipseProject.getTarget` instead.
+- `IdeaModuelDependency.getDependencyModule` will be `null` for a project substituted in the composite: use `IdeaModuleDependency.getTarget` instead.
+
+TODO:DAZ Revisit if this breakage is necessary and/or reasonable. We might just deprecate these methods.
+
 ### Dependency resolution changes when a Maven module dependency is substituted with a Gradle project dependency
 
 TBD: Previously, the result would include dependencies and artifacts from all configurations of the target project, such as test compilation and runtime dependencies.
