@@ -92,7 +92,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     @InheritConstructors
     public static class ToolingApiExperimentSpec extends BuildExperimentSpec {
         List<String> targetVersions = []
-        List<File> extraTestClassPath
+        List<File> extraTestClassPath = []
 
         Closure<?> action
 
