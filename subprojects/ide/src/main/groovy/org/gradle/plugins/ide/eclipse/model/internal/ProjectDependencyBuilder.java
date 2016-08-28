@@ -30,16 +30,17 @@ public class ProjectDependencyBuilder {
     }
 
     public ProjectDependency build(IdeProjectDependency dependency) {
-        return buildProjectDependency(determineProjectName(dependency), dependency.getProjectId());
+        return buildProjectDependency(determineTargetProjectPath(dependency), dependency.getProjectId());
     }
 
-    private String determineProjectName(IdeProjectDependency dependency) {
+    private String determineTargetProjectPath(IdeProjectDependency dependency) {
         ComponentArtifactMetadata eclipseProjectArtifact = ideProjectResolver.resolveArtifact(dependency.getProjectId(), "eclipse.project");
-        return eclipseProjectArtifact == null ? dependency.getProjectName() : eclipseProjectArtifact.getName().getName();
+        String targetProjectName = eclipseProjectArtifact == null ? dependency.getProjectName() : eclipseProjectArtifact.getName().getName();
+        return "/" + targetProjectName;
     }
 
-    private ProjectDependency buildProjectDependency(String name, ProjectComponentIdentifier projectId) {
-        final ProjectDependency out = new ProjectDependency(projectId, "/" + name);
+    private ProjectDependency buildProjectDependency(String path, ProjectComponentIdentifier projectId) {
+        final ProjectDependency out = new ProjectDependency(projectId, path);
         out.setExported(false);
         return out;
     }

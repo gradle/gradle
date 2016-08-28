@@ -22,6 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
@@ -55,11 +56,11 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
 import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -71,7 +72,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
 
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject result;
-    private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
+    private final List<DefaultEclipseProject> eclipseProjects = Lists.newArrayList();
     private TasksFactory tasksFactory;
     private DefaultGradleProject<?> rootGradleProject;
     private Project currentProject;
@@ -148,7 +149,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         if (project == currentProject) {
             result = eclipseProject;
         }
-        projectMapping.put(project.getPath(), eclipseProject);
+        eclipseProjects.add(eclipseProject);
     }
 
     private void populate(Project project) {
@@ -184,14 +185,16 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 externalDependencies.add(dependency);
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
+                // TODO:DAZ By removing the leading "/", this is no longer a "path" as defined by Eclipse
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
-                DefaultEclipseProject targetProject = projectMapping.get(projectDependency.getGradlePath());
                 DefaultEclipseProjectDependency dependency;
-                if (targetProject == null) {
+                DefaultEclipseProject targetProject = findEclipseProjectByName(path);
+                if (targetProject != null) {
+                    dependency = new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
+                } else {
+                    // TODO:DAZ Maybe remove this altogether?
                     File projectDirectory = compositeProjectMapper.getProjectDirectory(projectDependency.getGradleProjectId());
                     dependency = new DefaultEclipseProjectDependency(path, projectDirectory, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
-                } else {
-                    dependency = new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
                 }
                 projectDependencies.add(dependency);
             } else if (entry instanceof SourceFolder) {
@@ -209,7 +212,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             }
         }
 
-        DefaultEclipseProject eclipseProject = projectMapping.get(project.getPath());
+        DefaultEclipseProject eclipseProject = findEclipseProject(project);
         eclipseProject.setClasspath(externalDependencies);
         eclipseProject.setProjectDependencies(projectDependencies);
         eclipseProject.setSourceDirectories(sourceDirectories);
@@ -257,6 +260,24 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         for (Project childProject : project.getChildProjects().values()) {
             populate(childProject);
         }
+    }
+
+    private DefaultEclipseProject findEclipseProject(final Project project) {
+        return CollectionUtils.findFirst(eclipseProjects, new Spec<DefaultEclipseProject>() {
+            @Override
+            public boolean isSatisfiedBy(DefaultEclipseProject element) {
+                return element.getPath().equals(project.getPath());
+            }
+        });
+    }
+
+    private DefaultEclipseProject findEclipseProjectByName(final String eclipseProjectName) {
+        return CollectionUtils.findFirst(eclipseProjects, new Spec<DefaultEclipseProject>() {
+            @Override
+            public boolean isSatisfiedBy(DefaultEclipseProject element) {
+                return element.getName().equals(eclipseProjectName);
+            }
+        });
     }
 
     private static List<DefaultClasspathAttribute> createAttributes(AbstractClasspathEntry classpathEntry) {
