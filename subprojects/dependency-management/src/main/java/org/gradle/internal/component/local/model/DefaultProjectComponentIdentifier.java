@@ -76,14 +76,12 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return projectId.getBuild().isCurrentBuild() ? projectId.getProjectPath() : projectId.getBuild().getName() + ":" + projectId.getProjectPath();
     }
 
+    // TODO:DAZ Need to get rid of usages of this, so we always have a true build id
     public static ProjectComponentIdentifier newProjectId(String projectPath) {
         return new DefaultProjectComponentIdentifier(new CurrentBuildIdentifier(), projectPath);
     }
 
     public static ProjectComponentIdentifier newProjectId(IncludedBuild build, String projectPath) {
-        if (build == null) {
-            return newProjectId(projectPath);
-        }
         BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getName());
         return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
     }

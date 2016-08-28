@@ -85,6 +85,7 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return getDisplayName();
     }
 
+    // TODO:DAZ Need to get rid of usages of this, so we always have a true build id
     public static ProjectComponentSelector newSelector(String projectPath) {
         return new DefaultProjectComponentSelector(new CurrentBuildIdentifier(), projectPath);
     }
@@ -94,9 +95,6 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
     }
 
     public static ProjectComponentSelector newSelector(IncludedBuild build, String projectPath) {
-        if (build == null) {
-            return newSelector(projectPath);
-        }
         return new DefaultProjectComponentSelector(new DefaultBuildIdentifier(build.getName()), projectPath);
     }
 
