@@ -38,22 +38,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         includedBuilds << buildB
     }
 
-    def "can delegate to task in root project of included build"() {
-        when:
-        buildA.buildFile << """
-    task delegate(type: org.gradle.composite.internal.CompositeBuildTaskDelegate) {
-        build = 'buildB'
-        task = ':logProject'
-    }
-"""
-
-        execute(buildA, ":delegate")
-
-        then:
-        executed ":buildB:logProject"
-        output.contains("Executing build 'buildB' project ':' task ':logProject'")
-    }
-
     def "can depend on task in root project of included build"() {
         when:
         buildA.buildFile << """
@@ -67,22 +51,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         then:
         executed ":buildB:logProject"
         output.contains("Executing build 'buildB' project ':' task ':logProject'")
-    }
-
-    def "can delegate to task in subproject of included build"() {
-        when:
-        buildA.buildFile << """
-    task delegate(type: org.gradle.composite.internal.CompositeBuildTaskDelegate) {
-        build = 'buildB'
-        task = ':b1:logProject'
-    }
-"""
-
-        execute(buildA, ":delegate")
-
-        then:
-        executed ":buildB:b1:logProject"
-        output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 
     def "can depend on task in subproject of included build"() {

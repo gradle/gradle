@@ -142,6 +142,29 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         }
     }
 
+    def "substitutes external dependency with project dependency from same participant build"() {
+        given:
+        dependency "org.test:buildB:1.0"
+        dependency buildB, "org.test:b2:1.0"
+
+        when:
+        includeBuild buildB, """
+            substitute module("org.test:buildB") with project(":")
+            substitute module("org.test:b2:1.0") with project(":b2")
+"""
+
+        then:
+        resolvedGraph {
+            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+                compositeSubstitute()
+                edge("org.test:b2:1.0", "project buildB::b2", "org.test:b2:2.0") {
+                    compositeSubstitute()
+                }
+
+            }
+        }
+    }
+
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
         def resolve = new ResolveTestFixture(buildA.buildFile)
         resolve.prepare()

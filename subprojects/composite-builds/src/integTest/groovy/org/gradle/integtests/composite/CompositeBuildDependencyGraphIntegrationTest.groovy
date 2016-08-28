@@ -17,9 +17,9 @@
 package org.gradle.integtests.composite
 
 import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
-
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
@@ -687,6 +687,34 @@ afterEvaluate {
             edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
                 compositeSubstitute()
                 project("buildB::b1", "org.test:b1:2.0") {}
+            }
+        }
+    }
+
+    def "substitutes dependency when included build name is the same as composite build name"() {
+        given:
+        buildA.buildFile << """
+            dependencies {
+                compile "org.test:c1:1.0"
+            }
+"""
+
+        def buildC = new BuildTestFixture(file("hierarchy")).multiProjectBuild("buildA", ['c1', 'c2']) {
+            buildFile << """
+                subprojects {
+                    apply plugin: 'java'
+                }
+"""
+        }
+        includedBuilds = [buildC]
+
+        when:
+        checkDependencies()
+
+        then:
+        checkGraph {
+            edge("org.test:c1:1.0", "project buildA::c1", "org.test:c1:1.0") {
+                compositeSubstitute()
             }
         }
     }

@@ -21,14 +21,21 @@ import org.gradle.test.fixtures.file.TestFile
 
 class BuildTestFixture {
     private final TestDirectoryProvider provider
+    private final TestFile rootDir
     private boolean buildInRootDir = true
 
     BuildTestFixture(TestDirectoryProvider provider) {
         this.provider = provider
+        this.rootDir = null
+    }
+
+    BuildTestFixture(TestFile rootDir) {
+        this.provider = null
+        this.rootDir = rootDir
     }
 
     TestFile getRootDir() {
-        provider.testDirectory
+        return rootDir ?: provider.testDirectory
     }
 
     BuildTestFixture withBuildInRootDir() {
@@ -42,7 +49,7 @@ class BuildTestFixture {
     }
 
     def populate(String projectName, @DelegatesTo(BuildTestFile) Closure cl) {
-        def project = buildInRootDir ? new BuildTestFile(rootDir, projectName) : new BuildTestFile(rootDir.file(projectName), projectName)
+        def project = buildInRootDir ? new BuildTestFile(getRootDir(), projectName) : new BuildTestFile(getRootDir().file(projectName), projectName)
         project.settingsFile << """
                     rootProject.name = '${projectName}'
                 """
