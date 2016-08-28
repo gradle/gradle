@@ -45,7 +45,6 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     private final IncludedBuilds includedBuilds;
     private final Set<File> configuredBuilds = Sets.newHashSet();
-    private final Set<ProjectComponentIdentifier> projects = Sets.newHashSet();
     private final Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> provided = Sets.newHashSet();
     private final Map<ProjectComponentIdentifier, RegisteredProject> projectMetadata = Maps.newHashMap();
     private final List<Action<DependencySubstitution>> substitutionRules = Lists.newArrayList();
@@ -82,12 +81,7 @@ public class DefaultBuildableCompositeBuildContext implements CompositeBuildCont
 
     @Override
     public void registerSubstitution(ModuleVersionIdentifier moduleId, ProjectComponentIdentifier project) {
-        if (projects.contains(project)) {
-            String failureMessage = String.format("Project path '%s' is not unique in composite.", project.getProjectPath());
-            throw new GradleException(failureMessage);
-        }
-        LOGGER.info("Registering project '" + project + "' in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
-        projects.add(project);
+        LOGGER.info("Registering " + project + " in composite build. Will substitute for module '" + moduleId.getModule() + "'.");
         provided.add(Pair.of(moduleId, project));
     }
 

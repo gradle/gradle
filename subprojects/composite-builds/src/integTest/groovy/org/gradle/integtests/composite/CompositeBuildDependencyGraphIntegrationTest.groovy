@@ -65,7 +65,7 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
             .assertHasCause("exception thrown on configure")
     }
 
-    def "reports failure for duplicate project path"() {
+    def "reports failure for duplicate included build name"() {
         given:
         def buildC = singleProjectBuild("buildC")
         buildC.settingsFile.text = "rootProject.name = 'buildB'"
@@ -75,7 +75,20 @@ class CompositeBuildDependencyGraphIntegrationTest extends AbstractCompositeBuil
         checkDependenciesFails()
 
         then:
-        failure.assertHasDescription("Project path 'buildB::' is not unique in composite.")
+        failure.assertHasDescription("Included build 'buildB' is not unique in composite.")
+    }
+
+    def "reports failure for included build name that conflicts with subproject name"() {
+        given:
+        buildA.settingsFile << """
+            include 'buildB'
+"""
+
+        when:
+        checkDependenciesFails()
+
+        then:
+        failure.assertHasDescription("Included build 'buildB' clashes with subproject of the same name.")
     }
 
     def "does no substitution when no project matches external dependencies"() {
