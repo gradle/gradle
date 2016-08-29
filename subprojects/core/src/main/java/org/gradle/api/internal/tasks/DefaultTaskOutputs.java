@@ -54,11 +54,9 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
-    private static final AndSpec<TaskInternal> EMPTY_AND_SPEC = new AndSpec<TaskInternal>();
-
     private final FileCollection allOutputFiles;
-    private AndSpec<TaskInternal> upToDateSpec = EMPTY_AND_SPEC;
-    private AndSpec<TaskInternal> cacheIfSpec = EMPTY_AND_SPEC;
+    private AndSpec<TaskInternal> upToDateSpec = AndSpec.empty();
+    private AndSpec<TaskInternal> cacheIfSpec = AndSpec.empty();
     private TaskExecutionHistory history;
     private final List<BasePropertySpec> filePropertiesInternal = Lists.newArrayList();
     private SortedSet<TaskOutputFilePropertySpec> fileProperties;
