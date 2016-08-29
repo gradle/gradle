@@ -26,19 +26,18 @@ import org.gradle.api.initialization.IncludedBuild;
 public class DefaultProjectComponentSelector implements ProjectComponentSelector {
     private final BuildIdentifier build;
     private final String projectPath;
+    private final String displayName;
 
     public DefaultProjectComponentSelector(BuildIdentifier build, String projectPath) {
         assert build != null : "build cannot be null";
         assert projectPath != null : "project path cannot be null";
         this.build = build;
         this.projectPath = projectPath;
+        this.displayName = "project " + DefaultProjectComponentIdentifier.fullPath(build, projectPath);
     }
 
     public String getDisplayName() {
-        if (!build.isCurrentBuild()) {
-            return "project " + build.getName() + ":" + projectPath;
-        }
-        return "project " + projectPath;
+        return displayName;
     }
 
     @Override

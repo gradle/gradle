@@ -32,7 +32,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         assert projectPath != null : "project path cannot be null";
         this.buildIdentifier = buildIdentifier;
         this.projectPath = projectPath;
-        displayName = "project " + fullPath(this);
+        displayName = "project " + fullPath(buildIdentifier, projectPath);
     }
 
     public String getDisplayName() {
@@ -72,8 +72,16 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return displayName;
     }
 
-    private static String fullPath(ProjectComponentIdentifier projectId) {
-        return projectId.getBuild().isCurrentBuild() ? projectId.getProjectPath() : projectId.getBuild().getName() + ":" + projectId.getProjectPath();
+    static String fullPath(BuildIdentifier build, String projectPath) {
+        if (build.isCurrentBuild()) {
+            return projectPath;
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append(":").append(build.getName());
+        if (projectPath.length() > 1) {
+            builder.append(projectPath);
+        }
+        return builder.toString();
     }
 
     // TODO:DAZ Need to get rid of usages of this, so we always have a true build id

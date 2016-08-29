@@ -453,7 +453,7 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifactsFails()
 
         then:
-        failure.assertHasCause("Dependency cycle including project buildB::")
+        failure.assertHasCause("Dependency cycle including project :buildB")
     }
 
     def "reports failure to build artifacts with cycle involving substituted subproject dependency"() {

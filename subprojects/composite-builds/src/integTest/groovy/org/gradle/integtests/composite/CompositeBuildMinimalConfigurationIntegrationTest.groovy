@@ -64,7 +64,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
         }
@@ -85,7 +85,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
         }
@@ -120,10 +120,10 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:buildC:1.0", "project buildC::", "org.test:buildC:1.0") {
+            edge("org.test:buildC:1.0", "project :buildC", "org.test:buildC:1.0") {
                 compositeSubstitute()
             }
         }
@@ -189,10 +189,10 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
 
         then:
         resolvedGraph {
-            edge("org.test:buildB:1.0", "project buildB::", "org.test:buildB:2.0") {
+            edge("org.test:buildB:1.0", "project :buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
             }
-            edge("org.test:b1:1.0", "project buildB::b1", "org.test:b1:2.0") {
+            edge("org.test:b1:1.0", "project :buildB:b1", "org.test:b1:2.0") {
                 compositeSubstitute()
             }
         }
