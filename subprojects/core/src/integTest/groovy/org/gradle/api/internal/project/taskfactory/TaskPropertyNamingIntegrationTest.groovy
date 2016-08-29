@@ -71,10 +71,10 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
                 doLast {
                     inputs.fileProperties.each { property ->
-                        println "Input: \${property.propertyName} \${property.propertyFiles.files*.name}"
+                        println "Input: \${property.propertyName} \${property.propertyFiles.files*.name.sort()}"
                     }
                     outputs.fileProperties.each { property ->
-                        println "Output: \${property.propertyName} \${property.propertyFiles.files*.name}"
+                        println "Output: \${property.propertyName} \${property.propertyFiles.files*.name.sort()}"
                     }
                 }
             }
