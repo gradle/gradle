@@ -41,6 +41,10 @@ With the [Sync](dsl/org.gradle.api.tasks.Sync.html) task it is now possible to p
 For the [Wrapper](userguide/gradle_wrapper.html#sec:wrapper_generation) task, it is now possible to select a distribution type other than the default of `bin` by using `--distribution-type`.
 
     gradle wrapper --distribution-type all
+    
+### Initial support for Play 2.5.x
+
+Initial support for [Play 2.5.x](userguide/play_plugin.html#sec:play_limitations) has been added.
 
 ## Promoted features
 
