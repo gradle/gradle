@@ -29,6 +29,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
+    private static boolean traceLoggingEnabled;
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
 
@@ -102,8 +103,24 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
         return false;
     }
 
-    private static boolean isTraceLoggingEnabled() {
-        return Boolean.getBoolean(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
+    /**
+     * Whether or not deprecated features should print a full stack trace.
+     *
+     * This property can be overridden by setting the ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+     * system property.
+     *
+     * @param traceLoggingEnabled if trace logging should be enabled.
+     */
+    public static void setTraceLoggingEnabled(boolean traceLoggingEnabled) {
+        LoggingDeprecatedFeatureHandler.traceLoggingEnabled = traceLoggingEnabled;
+    }
+
+    static boolean isTraceLoggingEnabled() {
+        String value = System.getProperty(ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME);
+        if(value == null) {
+            return traceLoggingEnabled;
+        }
+        return Boolean.parseBoolean(value);
     }
 
 }

@@ -21,6 +21,7 @@ import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.deployment.internal.DeploymentRegistry;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -28,6 +29,7 @@ import org.gradle.execution.BuildExecuter;
 import org.gradle.internal.buildevents.BuildLogger;
 import org.gradle.internal.buildevents.TaskExecutionLogger;
 import org.gradle.internal.event.ListenerManager;
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -145,6 +147,14 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         }
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
+        ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
+        switch (showStacktrace) {
+            case ALWAYS:
+            case ALWAYS_FULL:
+                LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(true);
+            default:
+                LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
+        }
         DeprecationLogger.useLocationReporter(usageLocationReporter);
 
         SettingsLoaderFactory settingsLoaderFactory = serviceRegistry.get(SettingsLoaderFactory.class);

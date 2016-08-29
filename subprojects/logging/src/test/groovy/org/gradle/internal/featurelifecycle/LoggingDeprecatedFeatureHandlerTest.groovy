@@ -291,4 +291,48 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         events.size() == 1
         events[0].message == TextUtil.toPlatformLineSeparators('location\nfeature')
     }
+
+    @Unroll
+    def 'Setting #deprecationTracePropertyName=#deprecationTraceProperty overrides setTraceLoggingEnabled value.'() {
+        given:
+        System.setProperty(deprecationTracePropertyName, deprecationTraceProperty)
+
+        when:
+        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(true)
+
+        then:
+        LoggingDeprecatedFeatureHandler.isTraceLoggingEnabled() == expectedResult
+
+        when:
+        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false)
+
+        then:
+        LoggingDeprecatedFeatureHandler.isTraceLoggingEnabled() == expectedResult
+
+        where:
+        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+        deprecationTraceProperty << ['true', 'false', 'foo']
+        expectedResult << [true, false, false]
+    }
+
+    @Unroll
+    def 'Undefined #deprecationTracePropertyName does not influence setTraceLoggingEnabled value.'() {
+        given:
+        System.clearProperty(deprecationTracePropertyName)
+
+        when:
+        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(true)
+
+        then:
+        LoggingDeprecatedFeatureHandler.isTraceLoggingEnabled()
+
+        when:
+        LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false)
+
+        then:
+        !LoggingDeprecatedFeatureHandler.isTraceLoggingEnabled()
+
+        where:
+        deprecationTracePropertyName = LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME
+    }
 }
