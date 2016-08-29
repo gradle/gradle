@@ -81,6 +81,8 @@ publishing {
   
     def "can publish to a S3 Maven repository with IAM"() {
         given:
+        System.setProperty('aws.accessKeyId', 'someKey')
+        System.setProperty('aws.secretKey', 'someSecret')
         def mavenRepo = new MavenS3Repository(server, file("repo"), "/maven", "tests3Bucket")
         settingsFile << 'rootProject.name = "publishS3Test"'
         buildFile << """
@@ -95,7 +97,7 @@ publishing {
         maven {
             url "${mavenRepo.uri}"
             authentication {
-               awsIam(AwsIamCredentials)
+               awsIam(AwsIamAuthentication)
             }
         }
     }
