@@ -22,6 +22,8 @@ import org.gradle.tooling.ProjectConnection;
 import java.util.Map;
 
 public class SyncAction {
+    // DO NOT change the signature of this method: it is a convention used in
+    // our internal performance testing infrastructure
     public static void withProjectConnection(ProjectConnection connect) {
 
         System.out.println("* Running sync");

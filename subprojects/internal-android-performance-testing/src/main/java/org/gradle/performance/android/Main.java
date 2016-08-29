@@ -32,6 +32,7 @@ public class Main {
         OptionParser parser = new OptionParser();
         ArgumentAcceptingOptionSpec<String> projectFlag = parser.accepts("project-dir", "Gradle project directory").withRequiredArg();
         ArgumentAcceptingOptionSpec<String> gradleInstallFlag = parser.accepts("gradle-install", "Gradle installation to run the build with").withRequiredArg();
+        OptionSpecBuilder sync = parser.accepts("sync", "Simulate Gradle project synchronization");
         OptionSpecBuilder embeddedFlag = parser.accepts("embedded", "Run build in-process");
         OptionSet options = parser.parse(args);
         if (!options.has(projectFlag)) {
@@ -44,8 +45,11 @@ public class Main {
         File buildDir = new File(options.valueOf(projectFlag));
         File gradleInstallDir = options.hasArgument(gradleInstallFlag) ? new File(options.valueOf(gradleInstallFlag)) : null;
         boolean embedded = options.hasArgument(embeddedFlag);
-
-        fetch(buildDir, gradleInstallDir, embedded);
+        boolean hasSimulation = options.has(sync);
+        if (options.has(sync) || hasSimulation) {
+            // defaults to 'sync', which is the only mode right now, hence the weird test above
+            fetch(buildDir, gradleInstallDir, embedded);
+        }
         System.exit(0);
     }
 

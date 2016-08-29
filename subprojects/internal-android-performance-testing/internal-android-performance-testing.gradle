@@ -43,6 +43,7 @@ class BuildClassPath extends DefaultTask {
 apply plugin: 'application'
 
 mainClassName = 'org.gradle.performance.android.Main'
+applicationName = 'android-test-app'
 
 [distZip, distTar]*.baseName = 'android-test-app'
 
