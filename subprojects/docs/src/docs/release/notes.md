@@ -36,6 +36,12 @@ With the [Sync](dsl/org.gradle.api.tasks.Sync.html) task it is now possible to p
         }
     }
 
+### The distribution type can be selected by the Wrapper task
+
+For the [Wrapper](userguide/gradle_wrapper.html#sec:wrapper_generation) task, it is now possible to select a distribution type other than the default of `bin` by using `--distribution-type`.
+
+    gradle wrapper --distribution-type all
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
