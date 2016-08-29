@@ -46,6 +46,8 @@ mainClassName = 'org.gradle.performance.android.Main'
 
 [distZip, distTar]*.baseName = 'android-test-app'
 
+project(':distributions').buildDists.dependsOn distZip
+
 /*
 
 Sample task that would download the application
@@ -53,10 +55,10 @@ Sample task that would download the application
 task downloadTestApp {
     doLast {
         def props = new Properties()
-        props.load(new URL('https://builds.gradle.org/repository/download/Gradle_Release_CommitPhase_BuildDistributions/.lastSuccessful/build-receipt.properties?guest=1').newInputStream())
+        props.load(new URL('https://builds.gradle.org/repository/download/Gradle_Master_CommitPhase_BuildDistributions/.lastSuccessful/build-receipt.properties?guest=1').newInputStream())
         def version = java.net.URLEncoder.encode(props.get('versionNumber'), 'utf-8')
         new File("$buildDir/android-testapp.zip").withOutputStream { out ->
-            new URL("https://builds.gradle.org/repository/download/Gradle_Release_CommitPhase_BuildDistributions/.lastSuccessful/distributions/android-test-app-${version}-bin.zip?guest=1").eachByte(1024) { buffer, len ->
+            new URL("https://builds.gradle.org/repository/download/Gradle_Master_CommitPhase_BuildDistributions/.lastSuccessful/distributions/android-test-app-${version}-bin.zip?guest=1").eachByte(1024) { buffer, len ->
                 out.write(buffer, 0, len)
             }
         }
