@@ -64,6 +64,6 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
             }
         }
 
-        throw new IllegalArgumentException("AwsCredentials must be set for S3 backed repository.");
+        throw new IllegalArgumentException("S3 resource should either specify AwsIamAutentication or provide some AwsCredentials.");
     }
 }
