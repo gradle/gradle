@@ -97,7 +97,7 @@ task broken(type: DeprecatedTask) << {
         output.count('The deprecated task has been deprecated') == 1
 
         and:
-        output.count('\tat') > 4 // this should be 3
+        output.count('\tat') > 3
     }
 
     // ######################################################################
