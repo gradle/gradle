@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.SelfResolvingDependency
 
 import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
-import org.gradle.api.internal.cache.GeneratedGradleJarCache
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -40,10 +39,12 @@ import org.jetbrains.kotlin.utils.addToStdlib.singletonList
 
 import java.io.File
 
+typealias JarCache = (String, (File) -> Unit) -> File
+
 class KotlinScriptClassPathProvider(
     val classPathRegistry: ClassPathRegistry,
     val dependencyFactory: DependencyFactory,
-    val jarCache: GeneratedGradleJarCache) {
+    val jarCache: JarCache) {
 
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar.
@@ -82,14 +83,14 @@ class KotlinScriptClassPathProvider(
         }
 
     private fun kotlinGradleApiFrom(gradleApiJar: File): File =
-        jarCache["script-kotlin-api", { outputJar ->
+        jarCache("script-kotlin-api") { outputJar ->
             val tempFile = tempFileFor(outputJar, ".tmp")
             generateKotlinGradleApiAt(tempFile, gradleApiJar)
             moveFile(tempFile, outputJar)
-        }]
+        }
 
     private fun kotlinGradleApiExtensionsFrom(gradleApiJar: File): File =
-        jarCache["script-kotlin-extensions", { outputJar ->
+        jarCache("script-kotlin-extensions") { outputJar ->
             val tempSourceFile = tempFileFor(outputJar, ".kt")
             writeActionExtensionsTo(tempSourceFile, gradleApiJar)
             compileToJar(
@@ -97,7 +98,7 @@ class KotlinScriptClassPathProvider(
                 tempSourceFile,
                 loggerFor<KotlinScriptClassPathProvider>(),
                 classPath = listOf(gradleApiJar))
-        }]
+        }
 
     private fun writeActionExtensionsTo(kotlinFile: File, gradleApiJar: File) {
         kotlinFile.bufferedWriter().use { writer ->

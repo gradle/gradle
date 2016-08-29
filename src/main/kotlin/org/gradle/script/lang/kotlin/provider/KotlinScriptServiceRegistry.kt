@@ -49,5 +49,12 @@ object KotlinScriptBuildServices {
         classPathRegistry: ClassPathRegistry,
         dependencyFactory: DependencyFactory,
         jarCache: GeneratedGradleJarCache) =
-        KotlinScriptClassPathProvider(classPathRegistry, dependencyFactory, jarCache)
+        KotlinScriptClassPathProvider(classPathRegistry, dependencyFactory, versionedJarCacheFor(jarCache))
+
+    private fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
+        { id, creator -> jarCache["$id-$gradleScriptKotlinVersion", creator] }
+
+    private val gradleScriptKotlinVersion by lazy {
+        javaClass.`package`.implementationVersion
+    }
 }
