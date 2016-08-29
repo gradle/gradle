@@ -335,7 +335,9 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     }
 
     @Inject
-    protected DocumentationRegistry getDocumentationRegistry() { throw new UnsupportedOperationException(); }
+    protected DocumentationRegistry getDocumentationRegistry() {
+        throw new UnsupportedOperationException();
+    }
 
     private static class TaskNameCollectorVisitor extends ClassVisitor {
         private final Collection<String> classNames;
