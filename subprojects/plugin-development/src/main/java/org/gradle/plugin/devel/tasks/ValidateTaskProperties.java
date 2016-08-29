@@ -33,6 +33,7 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.project.taskfactory.TaskPropertyValidationAccess;
 import org.gradle.api.tasks.Input;
@@ -206,9 +207,9 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
         } else {
             if (hasErrors || getFailOnWarning()) {
                 if (getIgnoreFailures()) {
-                    getLogger().warn("Task property validation finished with errors:{}", toMessageList(problemMessages));
+                    getLogger().warn("Task property validation finished with errors. See {} for more information on how to annotate task properties.{}", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations"), toMessageList(problemMessages));
                 } else {
-                    throw new TaskValidationException("Task property validation failed", toExceptionList(problemMessages));
+                    throw new TaskValidationException(String.format("Task property validation failed. See %s for more information on how to annotate task properties.", getDocumentationRegistry().getDocumentationFor("more_about_tasks", "sec:task_input_output_annotations")), toExceptionList(problemMessages));
                 }
             } else {
                 getLogger().warn("Task property validation finished with warnings:{}", toMessageList(problemMessages));
@@ -332,6 +333,9 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     protected ClassLoaderFactory getClassLoaderFactory() {
         throw new UnsupportedOperationException();
     }
+
+    @Inject
+    protected DocumentationRegistry getDocumentationRegistry() { throw new UnsupportedOperationException(); }
 
     private static class TaskNameCollectorVisitor extends ClassVisitor {
         private final Collection<String> classNames;
