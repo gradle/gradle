@@ -81,7 +81,7 @@ public class ShadedJar extends DefaultTask {
     }
 
     /**
-     * Retain only those classes in the keep package hierachies, plus any classes that are reachable from these classes.
+     * Retain only those classes in the keep package hierarchies, plus any classes that are reachable from these classes.
      */
     @Input
     public Set<String> getKeepPackages() {
