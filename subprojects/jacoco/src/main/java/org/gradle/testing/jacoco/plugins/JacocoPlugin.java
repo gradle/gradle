@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.internal.ConventionMapping;
@@ -179,7 +180,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
             public void execute(final Report report) {
                 ConventionMapping mapping = ((IConventionAware) report).getConventionMapping();
                 mapping.map("enabled", Callables.returning(report.getName().equals("html")));
-                mapDestination(report, extension, reportTask);
+                mapDestination(extension, reportTask, reportTask, report);
             }
         });
     }
@@ -213,28 +214,27 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         taskMapping.getConventionValue(reportTask.getReports(), "reports", false).all(new Action<Report>() {
             @Override
             public void execute(final Report report) {
-                mapDestination(report, extension, reportTask);
+                mapDestination(extension, task, reportTask, report);
             }
         });
     }
 
-    private void mapDestination(final Report report, final JacocoPluginExtension extension, final JacocoReport reportTask) {
+    private void mapDestination(final JacocoPluginExtension extension, final Task reportedTask, final JacocoReport reportTask, final Report report) {
         final ConventionMapping mapping = ((IConventionAware) report).getConventionMapping();
         if (Report.OutputType.DIRECTORY.equals(report.getOutputType())) {
             mapping.map("destination", new Callable<File>() {
                 @Override
                 public File call() {
-                    return new File(extension.getReportsDir(), reportTask.getName() + "/" + report.getName());
+                    return new File(extension.getReportsDir(), reportedTask.getName() + "/" + report.getName());
                 }
             });
         } else {
             mapping.map("destination", new Callable<File>() {
                 @Override
                 public File call() {
-                    return new File(extension.getReportsDir(), reportTask.getName() + "/" + reportTask.getName() + "." + report.getName());
+                    return new File(extension.getReportsDir(), reportedTask.getName() + "/" + reportTask.getName() + "." + report.getName());
                 }
             });
         }
     }
-
 }
