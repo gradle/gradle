@@ -34,9 +34,6 @@ public class ModuleFactoryDelegate {
     }
 
     public void prepareDelegation(Closure configureClosure) {
-        if (configureClosure == null) {
-            return;
-        }
         ClientModuleConfigureDelegate delegate = new ClientModuleConfigureDelegate(clientModule, this);
         configureClosure.setDelegate(delegate);
         configureClosure.setResolveStrategy(Closure.DELEGATE_FIRST);

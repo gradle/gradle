@@ -47,15 +47,19 @@ public class DefaultDependencyFactory implements DependencyFactory {
 
     public ClientModule createModule(Object dependencyNotation, Closure configureClosure) {
         ClientModule clientModule = clientModuleNotationParser.parseNotation(dependencyNotation);
-        ModuleFactoryDelegate moduleFactoryDelegate = new ModuleFactoryDelegate(clientModule, this);
-        moduleFactoryDelegate.prepareDelegation(configureClosure);
         if (configureClosure != null) {
-            configureClosure.call();
+            configureModule(clientModule, configureClosure);
         }
         return clientModule;
     }
 
     public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map) {
         return projectDependencyFactory.createFromMap(projectFinder, map);
+    }
+
+    private void configureModule(ClientModule clientModule, Closure configureClosure) {
+        ModuleFactoryDelegate moduleFactoryDelegate = new ModuleFactoryDelegate(clientModule, this);
+        moduleFactoryDelegate.prepareDelegation(configureClosure);
+        configureClosure.call();
     }
 }
