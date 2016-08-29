@@ -167,6 +167,26 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         nonSkippedTasks.contains ":compileJava"
     }
 
+    def "cacheable task with multiple outputs doesn't get cached"() {
+        buildFile << """
+            compileJava.outputs.files files("output1.txt", "output2.txt")
+            compileJava.doLast {
+                file("output1.txt") << "data"
+                file("output2.txt") << "data"
+            }
+        """
+
+        runWithCache "compileJava"
+        runWithCache "clean"
+
+        when:
+        succeedsWithCache "compileJava", "--info"
+        then:
+        // :compileJava is not cached, but :jar is still cached as its inputs haven't changed
+        nonSkippedTasks.contains ":compileJava"
+        output.contains "Not caching task ':compileJava' because it declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
+    }
+
     def "non-cacheable task with cache enabled gets cached"() {
         file("input.txt") << "data"
         buildFile << """

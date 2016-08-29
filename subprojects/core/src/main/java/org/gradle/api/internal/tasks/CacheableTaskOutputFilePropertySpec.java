@@ -16,5 +16,12 @@
 
 package org.gradle.api.internal.tasks;
 
-public interface TaskOutputFilePropertySpec extends TaskFilePropertySpec {
+import java.io.File;
+
+public interface CacheableTaskOutputFilePropertySpec extends TaskOutputFilePropertySpec {
+    enum OutputType {
+        FILE, DIRECTORY
+    }
+    File getOutputFile();
+    OutputType getOutputType();
 }

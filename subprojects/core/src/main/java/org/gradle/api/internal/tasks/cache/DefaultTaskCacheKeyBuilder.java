@@ -102,6 +102,11 @@ public class DefaultTaskCacheKeyBuilder implements TaskCacheKeyBuilder {
         public String getHashCode() {
             return hashCode.toString();
         }
+
+        @Override
+        public String toString() {
+            return hashCode.toString();
+        }
     }
 
     private static void log(String type, Object value) {

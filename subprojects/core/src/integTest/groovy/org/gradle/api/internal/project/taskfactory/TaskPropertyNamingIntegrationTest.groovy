@@ -49,8 +49,10 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
                 @OutputFile File outputFile
                 @OutputFiles FileCollection outputFiles
+                @OutputFiles Map<String, File> namedOutputFiles
                 @OutputDirectory File outputDirectory
                 @OutputDirectories FileCollection outputDirectories
+                @OutputFiles Map<String, File> namedOutputDirectories
             }
 
             task myTask(type: MyTask) {
@@ -66,8 +68,10 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
                 outputFile = file("output.txt")
                 outputFiles = files("output1.txt", "output2.txt")
+                namedOutputFiles = [one: file("output-one.txt"), two: file("output-two.txt")]
                 outputDirectory = file("outputs")
                 outputDirectories = files("outputs1", "outputs2")
+                namedOutputDirectories = [one: file("outputs-one"), two: file("outputs-two")]
 
                 doLast {
                     inputs.fileProperties.each { property ->
@@ -86,13 +90,14 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Input: inputFile [input.txt]"
         output.contains "Input: inputFiles [input1.txt, input2.txt]"
         output.contains "Input: nested.inputFile [input-nested.txt]"
-        output.contains "Output: nested.outputFiles\$1 [output-nested-1.txt]"
-        output.contains "Output: nested.outputFiles\$2 [output-nested-2.txt]"
-        output.contains "Output: outputDirectories\$1 [outputs1]"
-        output.contains "Output: outputDirectories\$2 [outputs2]"
+        output.contains "Output: namedOutputDirectories.one [outputs-one]"
+        output.contains "Output: namedOutputDirectories.two [outputs-two]"
+        output.contains "Output: namedOutputFiles.one [output-one.txt]"
+        output.contains "Output: namedOutputFiles.two [output-two.txt]"
+        output.contains "Output: nested.outputFiles [output-nested-1.txt, output-nested-2.txt]"
+        output.contains "Output: outputDirectories [outputs1, outputs2]"
         output.contains "Output: outputDirectory [outputs]"
         output.contains "Output: outputFile [output.txt]"
-        output.contains "Output: outputFiles\$1 [output1.txt]"
-        output.contains "Output: outputFiles\$2 [output2.txt]"
+        output.contains "Output: outputFiles [output1.txt, output2.txt]"
     }
 }
