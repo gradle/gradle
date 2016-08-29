@@ -495,13 +495,13 @@
 
                     <tr>
                         <td><literal>@InputFiles</literal></td>
-                        <td><literal>FileCollection</literal>*</td>
-                        <td>A collection of input files (no directories)</td>
+                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td>An iterable of input files (no directories)</td>
                     </tr>
 
                     <tr>
                         <td><literal>@OutputFile</literal></td>
-                        <td><literal>FileCollection</literal>*</td>
+                        <td><literal>File</literal>*</td>
                         <td>A single output file (not directory)</td>
                     </tr>
 
@@ -513,14 +513,14 @@
 
                     <tr>
                         <td><literal>@OutputFiles</literal></td>
-                        <td><literal>FileCollection</literal>*</td>
-                        <td>A collection of output files (no directories)</td>
+                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td>An iterable of output files (no directories)</td>
                     </tr>
 
                     <tr>
                         <td><literal>@OutputDirectories</literal></td>
-                        <td><literal>FileCollection</literal>*</td>
-                        <td>A collection of output directories (no files)</td>
+                        <td><literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td>An iterable of output directories (no files)</td>
                     </tr>
 
                     <tr>
@@ -550,7 +550,7 @@
                         <td><literal>@SkipWhenEmpty</literal></td>
                         <td></td>
                         <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
-                            to tell Gradle to skip the task if the corresponding file collection or
+                            to tell Gradle to skip the task if the corresponding iterable of files or
                             directory are empty.
                         </td>
                     </tr>
@@ -569,7 +569,7 @@
                             <td colspan="3"><emphasis role="bold">*</emphasis> In fact, <literal>File</literal>
                                 can be any type accepted by
                                 <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/>
-                                and <literal>FileCollection</literal> can be any type accepted by
+                                and <literal>Iterable&lt;File&gt;</literal> can be any type accepted by
                                 <apilink class="org.gradle.api.Project" method="files(java.lang.Object[])"/>.
                                 This includes instances of <literal>Callable</literal>, such as closures,
                                 allowing for lazy evaluation of the property values.
