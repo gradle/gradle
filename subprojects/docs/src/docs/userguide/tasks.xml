@@ -572,7 +572,9 @@
                                 and <literal>Iterable&lt;File&gt;</literal> can be any type accepted by
                                 <apilink class="org.gradle.api.Project" method="files(java.lang.Object[])"/>.
                                 This includes instances of <literal>Callable</literal>, such as closures,
-                                allowing for lazy evaluation of the property values.
+                                allowing for lazy evaluation of the property values. Be aware that the types
+                                <literal>FileCollection</literal> and <literal>FileTree</literal> are
+                                <literal>Iterable&lt;File&gt;</literal>s.
                             </td>
                         </tr>
                     </tfoot>
