@@ -29,7 +29,9 @@ class RealLifeAndroidStudioMockupPerformanceTest extends AbstractAndroidStudioMo
         given:
 
         experiment(template, "simulate Android Studio $template synchronization") {
-            action 'org.gradle.performance.android.SyncAction'
+            action('org.gradle.performance.android.SyncAction') {
+                jvmArguments = ['-Xmx2g']
+            }
         }
 
         when:

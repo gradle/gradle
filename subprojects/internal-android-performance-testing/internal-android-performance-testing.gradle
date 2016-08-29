@@ -49,10 +49,6 @@ applicationName = 'android-test-app'
 
 project(':distributions').buildDists.dependsOn distZip
 
-/*
-
-Sample task that would download the application
-
 task downloadTestApp {
     doLast {
         def props = new Properties()
@@ -61,8 +57,8 @@ task downloadTestApp {
         new File("$buildDir/android-testapp.zip").withOutputStream { out ->
             new URL("https://builds.gradle.org/repository/download/Gradle_Master_CommitPhase_BuildDistributions/.lastSuccessful/distributions/android-test-app-${version}-bin.zip?guest=1").eachByte(1024) { buffer, len ->
                 out.write(buffer, 0, len)
+                print '.'
             }
         }
     }
 }
-*/

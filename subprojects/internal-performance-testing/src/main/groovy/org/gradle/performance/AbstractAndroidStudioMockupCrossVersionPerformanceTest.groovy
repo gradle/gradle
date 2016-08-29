@@ -17,8 +17,9 @@ package org.gradle.performance
 
 import groovy.transform.CompileStatic
 import groovy.transform.InheritConstructors
+import org.gradle.api.Action
 import org.gradle.performance.fixture.TestProjectLocator
-
+import org.gradle.tooling.BuildActionExecuter
 /**
  * This is the base class for performance tests aimed at simulating what happens in Android Studio. In particular, it will
  * use the Tooling API to synchronize project or run builds.
@@ -44,8 +45,17 @@ public abstract class AbstractAndroidStudioMockupCrossVersionPerformanceTest ext
         AbstractAndroidStudioMockupCrossVersionPerformanceTest test
 
         void action(String className) {
+            action(className, null)
+        }
+
+        void action(String className, @DelegatesTo(value=BuildActionExecuter, strategy = Closure.DELEGATE_FIRST) Closure config) {
             action {
-                test.tapiClassLoader.loadClass(className).invokeMethod('withProjectConnection', it)
+                def proxy = { exec ->
+                    config.delegate = exec
+                    config.resolveStrategy = Closure.DELEGATE_FIRST
+                    config.call()
+                }.asType(it.class.classLoader.loadClass(Action.name))
+                test.tapiClassLoader.loadClass(className).invokeMethod('withProjectConnection', [it, proxy] as Object[])
             }
         }
 

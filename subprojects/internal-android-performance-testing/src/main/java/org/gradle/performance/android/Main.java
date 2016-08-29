@@ -69,7 +69,7 @@ public class Main {
         ProjectConnection connect = gradleConnector.connect();
         try {
             for (int i = 0; i < 5; i++) {
-                SyncAction.withProjectConnection(connect);
+                SyncAction.withProjectConnection(connect, null);
             }
         } finally {
             connect.close();
