@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -233,7 +234,11 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
 
         List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<DefaultEclipseBuildCommand>();
         for (BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
-            buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), b.getArguments()));
+            Map<String, String> arguments = Maps.newLinkedHashMap();
+            for (Map.Entry<String, String> entry : b.getArguments().entrySet()) {
+                arguments.put(convertGString(entry.getKey()), convertGString(entry.getValue()));
+            }
+            buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), arguments));
         }
         eclipseProject.setBuildCommands(buildCommands);
         EclipseJdt jdt = eclipseModel.getJdt();
@@ -257,10 +262,9 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
     private static List<DefaultClasspathAttribute> createAttributes(AbstractClasspathEntry classpathEntry) {
         List<DefaultClasspathAttribute> result = Lists.newArrayList();
         Map<String, Object> attributes = classpathEntry.getEntryAttributes();
-        attributes.entrySet();
         for (Map.Entry<String, Object> entry : attributes.entrySet()) {
             Object value = entry.getValue();
-            result.add(new DefaultClasspathAttribute(entry.getKey(), value == null ? "" : value.toString()));
+            result.add(new DefaultClasspathAttribute(convertGString(entry.getKey()), value == null ? "" : value.toString()));
         }
         return result;
     }
@@ -271,5 +275,15 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             result.add(new DefaultAccessRule(Integer.parseInt(accessRule.getKind()), accessRule.getPattern()));
         }
         return result;
+    }
+
+    /*
+     * Groovy manipulates the JVM to let GString extend String.
+     * Whenever we have a Set or Map containing Strings, it might also
+     * contain GStrings. This breaks deserialization on the client.
+     * This method forces GString to String conversion.
+     */
+    private static String convertGString(CharSequence original) {
+        return original.toString();
     }
 }
