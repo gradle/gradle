@@ -56,5 +56,5 @@ public interface ComponentModuleMetadataHandler {
      * @param rule a rule that applies to the components of the specified module
      * @since 2.2
      */
-    public void module(Object moduleNotation, Action<? super ComponentModuleMetadata> rule);
+    void module(Object moduleNotation, Action<? super ComponentModuleMetadata> rule);
 }
