@@ -42,14 +42,14 @@ task broken(type: DeprecatedTask) << {
         executer.expectDeprecationWarning()
         executer.expectDeprecationWarning()
         executer.expectDeprecationWarning()
-        executer.expectDeprecationWarning() // TODO: this line should be removed
+        executer.expectDeprecationWarning()
         run('deprecated', 'broken')
 
         then:
         output.contains('build.gradle:4)')
         output.contains('build.gradle:6)')
         output.contains('build.gradle:10)')
-        output.contains('(Native Method)') // TODO: this should not be printed.
+        !output.contains('(Native Method)')
 
         and:
         output.count('The DeprecatedPlugin plugin has been deprecated') == 1
@@ -58,7 +58,7 @@ task broken(type: DeprecatedTask) << {
         output.count('The deprecated task has been deprecated') == 1
 
         and:
-        output.count('\tat') == 4 // TODO: this should be 3
+        output.count('\tat') == 3
     }
 
     // ######################################################################

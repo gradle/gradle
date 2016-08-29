@@ -80,21 +80,6 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
                 return;
             }
         }
-
-        // there was no Gradle script stack trace element
-        // warning must have happened while executing an applied plugin
-        int elementCount = stack.size();
-        if (elementCount == 0) {
-            return; // or there is no stack information at all
-        }
-        if (elementCount >= 2) {
-            // this is the element above the method causing the deprecation warning
-            // it's the most reasonable heuristic we have at this point
-            appendStackTraceElement(stack.get(1), message, lineSeparator);
-            return;
-        }
-        // let's print what we got
-        appendStackTraceElement(stack.get(0), message, lineSeparator);
     }
 
     private static void appendStackTraceElement(StackTraceElement frame, StringBuilder message, String lineSeparator) {
