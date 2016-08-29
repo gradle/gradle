@@ -167,6 +167,11 @@ TBD: Previously, when the target Ivy module did not define a 'runtime', 'compile
 
 TBD: As a result of performance improvements, the result includes fewer `ResolvedDependency` nodes, as some nodes are merged. Previous versions of Gradle would include a `compile`, `runtime` and `master` node for transitive Maven dependencies. Gradle now includes a single `runtime` node. The same modules and artifacts are included in the result, and in the same order.
 
+### GradleConnection removed
+
+The incubtaing `GradleConnection` API has been removed in favor of composite builds defined in `settings.gradle`.
+New methods for fetching all models from a composite will be added to `ProjectConnection` in Gradle 3.2
+
 ## External contributions
 
 We would like to thank the following community members for making contributions to this release of Gradle.

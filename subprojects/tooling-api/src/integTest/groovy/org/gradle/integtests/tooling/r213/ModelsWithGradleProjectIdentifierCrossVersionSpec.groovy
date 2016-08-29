@@ -17,81 +17,26 @@
 
 package org.gradle.integtests.tooling.r213
 
-import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
+import org.gradle.integtests.fixtures.build.BuildTestFile
+import org.gradle.integtests.fixtures.build.BuildTestFixture
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.connection.GradleConnection
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.tooling.model.GradleProject
-import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.gradle.BuildInvocations
 import org.gradle.tooling.model.gradle.ProjectPublications
 import org.gradle.util.GradleVersion
 import spock.lang.Ignore
 
-class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeToolingApiSpecification {
+class ModelsWithGradleProjectIdentifierCrossVersionSpec extends ToolingApiSpecification {
     TestFile rootSingle
     TestFile rootMulti
 
     void setup() {
         rootSingle = singleProjectBuild("A")
         rootMulti = multiProjectBuild("B", ['x', 'y'])
-    }
-
-    def "GradleConnection provides identified models for single project build"() {
-        when:
-        def gradleProjects = getModelsWithGradleConnection([rootSingle], EclipseProject)*.gradleProject
-        def models = getModelsWithGradleConnection([rootSingle], modelType)
-
-        then:
-        gradleProjects.size() == 1
-        models.size() == 1
-        assertSameIdentifiers(gradleProjects[0], models[0])
-
-        where:
-        modelType << modelsHavingGradleProjectIdentifier
-    }
-
-    def "GradleConnection provides identified models for multi-project build"() {
-        when:
-        def gradleProjects = getModelsWithGradleConnection([rootMulti], EclipseProject)*.gradleProject
-        def models = getModelsWithGradleConnection([rootMulti], modelType)
-
-        then:
-        gradleProjects.size() == models.size()
-        assertSameIdentifiers(gradleProjects, models)
-
-        where:
-        modelType << modelsHavingGradleProjectIdentifier
-    }
-
-    def "GradleConnection provides identified models for composite build"() {
-        when:
-        def gradleProjects = getModelsWithGradleConnection([rootMulti, rootSingle], EclipseProject)*.gradleProject
-        def models = getModelsWithGradleConnection([rootMulti, rootSingle], modelType)
-
-        then:
-        gradleProjects.size() == models.size()
-        assertSameIdentifiers(gradleProjects, models)
-
-        where:
-        modelType << modelsHavingGradleProjectIdentifier
-    }
-
-    def "all Launchables are identified when obtained from GradleConnection"() {
-        when:
-        def buildInvocationsSet = getModelsWithGradleConnection([rootMulti, rootSingle], BuildInvocations)
-
-        then:
-        buildInvocationsSet.each { BuildInvocations buildInvocations ->
-            buildInvocations.taskSelectors.each {
-                buildInvocations.projectIdentifier == it.projectIdentifier
-            }
-            buildInvocations.tasks.each {
-                buildInvocations.projectIdentifier == it.projectIdentifier
-            }
-        }
     }
 
     @TargetGradleVersion(">=2.13")
@@ -120,24 +65,6 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
         where:
         modelType << modelsHavingGradleProjectIdentifier
     }
-
-    @TargetGradleVersion('>=1.2 <1.12')
-    def "decent error message for Gradle version that doesn't expose publications"() {
-        when:
-        def modelResults = withCompositeConnection([rootMulti, rootSingle]) { GradleConnection connection ->
-            def modelBuilder = connection.models(ProjectPublications)
-            modelBuilder.get()
-        }.asList()
-
-        then:
-        modelResults.size() == 2
-        modelResults.each {
-            def e = it.failure
-            assert e.message.contains('does not support building a model of type \'ProjectPublications\'.')
-            assert e.message.contains('Support for building \'ProjectPublications\' models was added in Gradle 1.12 and is available in all later versions.')
-        }
-    }
-
     private static void assertSameIdentifiers(def gradleProject, def model) {
         assert gradleProject.projectIdentifier == model.projectIdentifier
     }
@@ -146,13 +73,6 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
         def gradleProjectIdentifiers = gradleProjects.collect { it.projectIdentifier } as Set
         def modelIdentifiers = models.collect { it.projectIdentifier } as Set
         assert gradleProjectIdentifiers == modelIdentifiers
-    }
-
-    private List getModelsWithGradleConnection(List<TestFile> rootDirs, Class modelType) {
-        withCompositeConnection(rootDirs) { GradleConnection connection ->
-            def modelBuilder = connection.models(modelType)
-            modelBuilder.get()
-        }.asList()*.model
     }
 
     private getModelWithProjectConnection(TestFile rootDir, Class modelType = GradleProject, boolean searchUpwards = true) {
@@ -178,5 +98,22 @@ class ModelsWithGradleProjectIdentifierCrossVersionSpec extends CompositeTooling
             models += ProjectPublications
         }
         return models
+    }
+
+    static GradleVersion getTargetDistVersion() {
+        // Create a copy to work around classloader issues
+        GradleVersion.version(targetDist.version.version)
+    }
+
+    BuildTestFixture getBuildTestFixture() {
+        new BuildTestFixture(temporaryFolder).withBuildInSubDir()
+    }
+
+    def singleProjectBuild(String projectName, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        buildTestFixture.singleProjectBuild(projectName, cl)
+    }
+
+    def multiProjectBuild(String projectName, List<String> subprojects, @DelegatesTo(BuildTestFile) Closure cl = {}) {
+        buildTestFixture.multiProjectBuild(projectName, subprojects, cl)
     }
 }

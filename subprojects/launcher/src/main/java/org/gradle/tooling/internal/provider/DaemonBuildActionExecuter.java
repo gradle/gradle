@@ -21,12 +21,8 @@ import org.gradle.initialization.ReportedException;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.composite.CompositeParameters;
-import org.gradle.internal.composite.DefaultGradleParticipantBuild;
-import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.launcher.composite.DefaultCompositeBuildActionParameters;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
 import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -39,9 +35,7 @@ import org.gradle.tooling.internal.protocol.ModelIdentifier;
 import org.gradle.tooling.internal.provider.connection.ProviderOperationParameters;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
 public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOperationParameters> {
     private final BuildActionExecuter<BuildActionParameters> executer;
@@ -59,17 +53,8 @@ public class DaemonBuildActionExecuter implements BuildActionExecuter<ProviderOp
         }
         ClassPath classPath = DefaultClassPath.of(parameters.getInjectedPluginClasspath(Collections.<File>emptyList()));
 
-        List<GradleParticipantBuild> builds = parameters.getBuilds(null);
         BuildActionParameters actionParameters = new DefaultBuildActionParameters(daemonParameters.getEffectiveSystemProperties(),
             System.getenv(), SystemProperties.getInstance().getCurrentDir(), parameters.getBuildLogLevel(), daemonParameters.isEnabled(), continuous, false, classPath);
-        if (builds != null) {
-            List<GradleParticipantBuild> buildsCopy = new ArrayList<GradleParticipantBuild>();
-            for (GradleParticipantBuild build : builds) {
-                buildsCopy.add(new DefaultGradleParticipantBuild(build));
-            }
-            CompositeParameters compositeParameters = new CompositeParameters(buildsCopy);
-            actionParameters = new DefaultCompositeBuildActionParameters(actionParameters, compositeParameters);
-        }
         try {
             return executer.execute(action, buildRequestContext, actionParameters, contextServices);
         } catch (ReportedException e) {

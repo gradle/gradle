@@ -55,7 +55,7 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirec
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
@@ -66,7 +66,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class EclipseModelBuilder implements ProjectToolingModelBuilder {
+public class EclipseModelBuilder implements ToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
     private final CompositeBuildIdeProjectResolver compositeProjectMapper;
 
@@ -86,19 +86,6 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
             || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
-    }
-
-    @Override
-    public void addModels(String modelName, Project project, Map<String, Object> models) {
-        DefaultEclipseProject eclipseProject = buildAll(modelName, project);
-        addModels(eclipseProject, models);
-    }
-
-    private void addModels(DefaultEclipseProject eclipseProject, Map<String, Object> models) {
-        models.put(eclipseProject.getPath(), eclipseProject);
-        for (DefaultEclipseProject childProject : eclipseProject.getChildren()) {
-            addModels(childProject, models);
-        }
     }
 
     @Override
