@@ -20,14 +20,16 @@ import org.gradle.tooling.internal.protocol.DefaultIdeaModuleIdentifier;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 
-import java.io.File;
-
 @LegacyConsumerInterface("org.gradle.tooling.model.idea.IdeaModuleDependency")
 public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
+    private final String dependencyModuleName;
     private IdeaDependencyScope scope;
     private DefaultIdeaModule dependencyModule;
-    private File projectDirectory;
     private boolean exported;
+
+    public DefaultIdeaModuleDependency(String dependencyModuleName) {
+        this.dependencyModuleName = dependencyModuleName;
+    }
 
     public IdeaDependencyScope getScope() {
         return scope;
@@ -38,21 +40,16 @@ public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
         return this;
     }
 
+    public DefaultIdeaModuleIdentifier getTarget() {
+        return new DefaultIdeaModuleIdentifier(dependencyModuleName);
+    }
+
     public DefaultIdeaModule getDependencyModule() {
         return dependencyModule;
     }
 
-    public DefaultIdeaModuleIdentifier getTarget() {
-        return new DefaultIdeaModuleIdentifier(projectDirectory);
-    }
-
     public DefaultIdeaModuleDependency setDependencyModule(DefaultIdeaModule dependencyModule) {
         this.dependencyModule = dependencyModule;
-        return this;
-    }
-
-    public DefaultIdeaModuleDependency setProjectDirectory(File projectDirectory) {
-        this.projectDirectory = projectDirectory;
         return this;
     }
 

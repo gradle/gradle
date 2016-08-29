@@ -19,7 +19,6 @@ package org.gradle.tooling.internal.protocol;
 import com.google.common.base.Objects;
 import org.gradle.tooling.model.idea.IdeaModuleIdentifier;
 
-import java.io.File;
 import java.io.Serializable;
 
 public class DefaultIdeaModuleIdentifier implements IdeaModuleIdentifier, Serializable {
@@ -27,10 +26,6 @@ public class DefaultIdeaModuleIdentifier implements IdeaModuleIdentifier, Serial
 
     public DefaultIdeaModuleIdentifier(String identifier) {
         this.identifier = identifier;
-    }
-
-    public DefaultIdeaModuleIdentifier(File projectDir) {
-        this.identifier = projectDir.getAbsolutePath();
     }
 
     @Override
