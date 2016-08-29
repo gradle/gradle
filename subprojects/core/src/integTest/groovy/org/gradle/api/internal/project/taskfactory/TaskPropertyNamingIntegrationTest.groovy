@@ -24,6 +24,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
     @Issue("https://issues.gradle.org/browse/GRADLE-3538")
     def "names of annotated properties are used in property specs"() {
         file("input.txt").createNewFile()
+        file("input-nested.txt").createNewFile()
         file("input1.txt").createNewFile()
         file("input2.txt").createNewFile()
         file("inputs").createDir()
@@ -33,8 +34,15 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         file("inputs2").createDir()
 
         buildFile << """
+            class MyConfig {
+                @Input String inputString
+                @InputFile File inputFile
+                @OutputFiles Set<File> outputFiles
+            }
+
             class MyTask extends DefaultTask {
                 @Input String inputString
+                @Nested MyConfig nested = new MyConfig()
                 @InputFile File inputFile
                 @InputDirectory File inputDirectory
                 @InputFiles FileCollection inputFiles
@@ -47,6 +55,11 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
 
             task myTask(type: MyTask) {
                 inputString = "data"
+
+                nested.inputString = "data"
+                nested.inputFile = file("input-nested.txt")
+                nested.outputFiles = [file("output-nested-1.txt"), file("output-nested-2.txt")]
+
                 inputFile = file("input.txt")
                 inputDirectory = file("inputs")
                 inputFiles = files("input1.txt", "input2.txt")
@@ -72,6 +85,9 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
         output.contains "Input: inputDirectory [inputA.txt, inputB.txt]"
         output.contains "Input: inputFile [input.txt]"
         output.contains "Input: inputFiles [input1.txt, input2.txt]"
+        output.contains "Input: nested.inputFile [input-nested.txt]"
+        output.contains "Output: nested.outputFiles\$1 [output-nested-1.txt]"
+        output.contains "Output: nested.outputFiles\$2 [output-nested-2.txt]"
         output.contains "Output: outputDirectories\$1 [outputs1]"
         output.contains "Output: outputDirectories\$2 [outputs2]"
         output.contains "Output: outputDirectory [outputs]"
