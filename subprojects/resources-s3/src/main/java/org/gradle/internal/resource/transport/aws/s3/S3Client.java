@@ -89,11 +89,6 @@ public class S3Client {
         amazonS3Client.setS3ClientOptions(clientOptionsBuilder.build());
     }
 
-    private AmazonS3Client createAmazonS3Client(AWSCredentials credentials) {
-        AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, createConnectionProperties());
-        return amazonS3Client;
-    }
-
     private void checkRequiredJigsawModuleIsOnPath() {
         if (JavaVersion.current().isJava9Compatible()) {
             try {
