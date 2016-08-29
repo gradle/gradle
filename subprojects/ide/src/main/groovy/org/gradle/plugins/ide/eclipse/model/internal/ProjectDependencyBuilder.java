@@ -16,7 +16,6 @@
 
 package org.gradle.plugins.ide.eclipse.model.internal;
 
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
@@ -30,7 +29,7 @@ public class ProjectDependencyBuilder {
     }
 
     public ProjectDependency build(IdeProjectDependency dependency) {
-        return buildProjectDependency(determineTargetProjectPath(dependency), dependency.getProjectId());
+        return buildProjectDependency(determineTargetProjectPath(dependency));
     }
 
     private String determineTargetProjectPath(IdeProjectDependency dependency) {
@@ -39,8 +38,8 @@ public class ProjectDependencyBuilder {
         return "/" + targetProjectName;
     }
 
-    private ProjectDependency buildProjectDependency(String path, ProjectComponentIdentifier projectId) {
-        final ProjectDependency out = new ProjectDependency(projectId, path);
+    private ProjectDependency buildProjectDependency(String path) {
+        final ProjectDependency out = new ProjectDependency(path);
         out.setExported(false);
         return out;
     }

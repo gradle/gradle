@@ -15,44 +15,26 @@
  */
 package org.gradle.plugins.ide.internal.tooling.eclipse;
 
-import org.gradle.tooling.internal.protocol.eclipse.DefaultEclipseProjectIdentifier;
-
-import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
 public class DefaultEclipseProjectDependency extends DefaultEclipseDependency implements Serializable {
-    private final DefaultEclipseProjectIdentifier targetIdentifier;
     private final String path;
 
-    private final DefaultEclipseProject targetProject;
+    private DefaultEclipseProject targetProject;
 
-    /**
-     * Creates a dependency on an project in a different Gradle build.
-     */
-    public DefaultEclipseProjectDependency(String path, DefaultEclipseProject targetProject, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
-        super(exported, attributes, accessRules);
-        this.targetProject = targetProject;
-        this.path = path;
-        this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProject.getProjectDirectory());
-    }
-
-    /**
-     * Creates a dependency on an project in a different Gradle build.
-     */
-    public DefaultEclipseProjectDependency(String path, File targetProjectDirectory, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
+    public DefaultEclipseProjectDependency(String path, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
         super(exported, attributes, accessRules);
         this.targetProject = null;
         this.path = path;
-        this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProjectDirectory);
     }
 
     public DefaultEclipseProject getTargetProject() {
         return targetProject;
     }
 
-    public DefaultEclipseProjectIdentifier getTarget() {
-        return targetIdentifier;
+    public void setTargetProject(DefaultEclipseProject targetProject) {
+        this.targetProject = targetProject;
     }
 
     public String getPath() {
