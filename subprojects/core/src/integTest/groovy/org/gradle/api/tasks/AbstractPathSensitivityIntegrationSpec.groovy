@@ -41,15 +41,15 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         then:
         skippedTasks.empty
 
+        when:
         file("input.txt").renameTo(file("input-renamed.txt"))
-
         buildFile << """
             test {
                 sources = files("input-renamed.txt")
             }
         """
 
-        when:
+        cleanWorkspace()
         execute "test"
         then:
         skippedTasks.empty == !expectSkipped
@@ -86,9 +86,9 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         then:
         skippedTasks.empty
 
-        file("src/data1/input.txt").moveToDirectory(file("src/data2"))
-
         when:
+        file("src/data1/input.txt").moveToDirectory(file("src/data2"))
+        cleanWorkspace()
         execute "test"
         then:
         skippedTasks.empty == !expectSkipped
@@ -133,6 +133,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         then:
         skippedTasks.empty
 
+        when:
         file("src").renameTo(file("source"))
         buildFile << """
             test {
@@ -140,7 +141,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
             }
         """
 
-        when:
+        cleanWorkspace()
         execute "test"
         then:
         skippedTasks.empty == !expectSkipped
@@ -158,6 +159,8 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
     }
 
     abstract void execute(String... tasks)
+
+    abstract void cleanWorkspace()
 
     private void declareTestTaskWithPathSensitivity(PathSensitivity pathSensitivity, boolean orderSensitive) {
         file("buildSrc/src/main/groovy/TestTask.groovy") << """

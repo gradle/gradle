@@ -22,6 +22,13 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
     def setup() {
         // Make sure cache dir is empty for every test execution
         cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
+        buildFile << """
+            task clean {
+                doLast {
+                    delete(tasks*.outputs*.files)
+                }
+            }
+        """
     }
 
     @Override
@@ -29,5 +36,10 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
         executer.withArgument "-Dorg.gradle.cache.tasks=true"
         executer.withArgument "-Dorg.gradle.cache.tasks.directory=" + cacheDir.absolutePath
         succeeds tasks
+    }
+
+    @Override
+    void cleanWorkspace() {
+        run "clean"
     }
 }

@@ -21,4 +21,8 @@ class UpToDatePathSensitivityIntegrationTest extends AbstractPathSensitivityInte
     void execute(String... tasks) {
         succeeds tasks
     }
+
+    @Override
+    void cleanWorkspace() {
+    }
 }
