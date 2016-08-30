@@ -170,6 +170,30 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildC' project ':' task ':logProject'")
     }
 
+    def "substitutes dependency of included build when executed via task dependency"() {
+        given:
+        buildA.buildFile << """
+    task delegate {
+        dependsOn gradle.includedBuild('buildB').task(':jar')
+    }
+"""
+        buildB.buildFile << """
+    allprojects {
+        apply plugin: 'java'
+    }
+
+    dependencies {
+        compile "org.test:b1:1.0"
+    }
+"""
+
+        when:
+        execute(buildA, ":delegate")
+
+        then:
+        executed ":buildB:b1:jar", ":buildB:jar"
+    }
+
     def "reports failure when included build does not exist for composite"() {
         when:
         buildA.buildFile << """
