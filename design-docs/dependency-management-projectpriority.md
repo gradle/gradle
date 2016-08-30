@@ -11,24 +11,24 @@ The basic setup for the dependencies will be something like the following.
 Let us assume we have a dependency graph like this:
 
 <pre>
-    A ---> C
-     \     ^
-      \   /
-       V /
-        B
+    A ───────> C
+    │          ^
+    │          │
+    │          │
+    └───> B ───┘
 </pre>
 
-That means `A` depends on `B` and `C` and `B` depends on `C`.
+That means `A` depends on `B` and `C`, and `B` depends on `C`.
 
 The two situations where a dependency conflict as above occur are:
 
-1. Test code changes in a multi project build on a common project and a project using
+1. Working in a multi project build on a common project and a project using
   this project where not all intermediate dependencies are project dependencies.
   In our dependency graph `A` and `C` would be part of a multi project build, `A` having
   a project dependency on `B` and
   `B` would be a binary dependency of `A` with a binary dependency on `C`.
  
-2. Test code changes in a composite build on a common project and a project using
+2. Working in a composite build on a common project and a project using
   this project where not all intermediate dependencies are part of included builds.
   In our dependency graph `A` and `C` would be included builds of a composite build,
   `A` having its binary dependency on `C` substituted by a project dependency and
@@ -135,3 +135,9 @@ We need to test at least the following situations:
 * Activating `preferProjectModules` on a configuration and then check that
   this has no effect on an configuration extending from it.
 * The same tests in the composite build case
+* The same tests for doing dependency substitution
+
+### Open Issues
+
+* Do we potentially also have a touch point here for the native support?
+  We might have a similar situation with pre-built libraries.
