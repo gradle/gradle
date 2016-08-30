@@ -38,9 +38,12 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     // TODO:DAZ Get rid of this once we remove the "old" TAPI-based composites
     private final Factory<GradleLauncher> nestedLauncherFactory;
     private final List<Action<? super DependencySubstitutions>> dependencySubstitutionActions = Lists.newArrayList();
-    private GradleLauncher gradleLauncher;
     private DefaultDependencySubstitutions dependencySubstitutions;
-    private String name;
+
+    // State that must be purged together
+    private GradleLauncher gradleLauncher;
+    private SettingsInternal settings;
+    private GradleInternal gradle;
 
     public DefaultIncludedBuild(File projectDir, Factory<GradleLauncher> launcherFactory, Factory<GradleLauncher> nestedLauncherFactory) {
         this.projectDir = projectDir;
@@ -60,10 +63,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public synchronized String getName() {
-        if (name == null) {
-            name = initialize().getRootProject().getName();
-        }
-        return name;
+        return initialize().getRootProject().getName();
     }
 
     @Override
@@ -85,20 +85,25 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         return dependencySubstitutions;
     }
 
-    // TODO:DAZ Cache the `SettingsInternal` instance rather than relying on GradleLauncher to do it.
     @Override
     public SettingsInternal initialize() {
-        GradleLauncher gradleLauncher = getGradleLauncher();
-        gradleLauncher.load();
-        return gradleLauncher.getSettings();
+        if (settings == null) {
+            GradleLauncher gradleLauncher = getGradleLauncher();
+            gradleLauncher.load();
+            settings = gradleLauncher.getSettings();
+        }
+        return settings;
     }
 
-    // TODO:DAZ Cache the `GradleInternal` instance rather than relying on GradleLauncher to do it.
     @Override
     public GradleInternal configure() {
-        GradleLauncher gradleLauncher = getGradleLauncher();
-        gradleLauncher.getBuildAnalysis();
-        return gradleLauncher.getGradle();
+        if (gradle == null) {
+            GradleLauncher gradleLauncher = getGradleLauncher();
+            gradleLauncher.getBuildAnalysis();
+            settings = gradleLauncher.getSettings();
+            gradle = gradleLauncher.getGradle();
+        }
+        return gradle;
     }
 
     private GradleLauncher getGradleLauncher() {
@@ -120,8 +125,14 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
             return launcher.run();
         } finally {
             // Can no longer use a configured Gradle instance after tasks are executed.
-            gradleLauncher = null;
+            reset();
         }
+    }
+
+    private void reset() {
+        gradleLauncher = null;
+        gradle = null;
+        settings = null;
     }
 
     @Override
