@@ -16,11 +16,10 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
 
-class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
+class CachedTaskExecutionIntegrationTest extends AbstractCachedTaskExecutionIntegrationSpec {
     public static final String ORIGINAL_HELLO_WORLD = """
             public class Hello {
                 public static void main(String... args) {
@@ -36,12 +35,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-    File cacheDir
-
     def setup() {
         setupProjectInDirectory(testDirectory)
-
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
     }
 
     private static void setupProjectInDirectory(TestFile dir, String sourceDir = "main") {
