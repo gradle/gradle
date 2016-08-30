@@ -55,6 +55,6 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
 
     @Override
     public String toString() {
-        return "Build '" + name + "'";
+        return "build '" + name + "'";
     }
 }

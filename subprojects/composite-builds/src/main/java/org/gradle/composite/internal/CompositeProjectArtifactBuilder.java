@@ -18,11 +18,15 @@ package org.gradle.composite.internal;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.initialization.IncludedBuildExecuter;
+import org.gradle.initialization.ReportedException;
 import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.exceptions.Contextual;
+import org.gradle.internal.exceptions.LocationAwareException;
 
 import java.util.Collection;
 
@@ -49,7 +53,15 @@ class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
             ProjectComponentIdentifier buildId = getBuildIdentifier(compositeBuildArtifact);
             Collection<String> tasksToExecute = addTasksForBuild(buildId, compositeBuildArtifact);
+            execute(buildId, tasksToExecute);
+        }
+    }
+
+    public void execute(ProjectComponentIdentifier buildId, Collection<String> tasksToExecute) {
+        try {
             includedBuildExecuter.execute(buildId, tasksToExecute);
+        } catch (ReportedException e) {
+            throw contextualizeFailure(buildId, e);
         }
     }
 
@@ -60,6 +72,23 @@ class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
 
     private ProjectComponentIdentifier getBuildIdentifier(CompositeProjectComponentArtifactMetadata artifact) {
         return DefaultProjectComponentIdentifier.rootId(artifact.getComponentId());
+    }
+
+    private RuntimeException contextualizeFailure(ProjectComponentIdentifier buildId, ReportedException e) {
+        if (e.getCause() instanceof LocationAwareException) {
+            LocationAwareException lae = (LocationAwareException) e.getCause();
+            IncludedBuildArtifactException wrappedCause = new IncludedBuildArtifactException("Failed to build artifacts for " + buildId.getBuild(), lae.getCause());
+            LocationAwareException newLae = new LocationAwareException(wrappedCause, lae.getSourceDisplayName(), lae.getLineNumber());
+            return new ReportedException(newLae);
+        }
+        return e;
+    }
+
+    @Contextual
+    private static class IncludedBuildArtifactException extends GradleException {
+        public IncludedBuildArtifactException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 
 }

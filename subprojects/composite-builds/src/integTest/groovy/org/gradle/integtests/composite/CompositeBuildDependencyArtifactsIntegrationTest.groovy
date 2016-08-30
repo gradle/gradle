@@ -474,7 +474,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifactsFails()
 
         then:
-        failure.assertHasDescription("Circular dependency between the following tasks:")
+        failure
+            .assertHasDescription("Failed to build artifacts for build 'buildB'")
+            .assertHasCause("Circular dependency between the following tasks:")
     }
 
     def "reports failure to build dependent artifact"() {
@@ -490,7 +492,9 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifactsFails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':jar'")
+        failure
+            .assertHasDescription("Failed to build artifacts for build 'buildB'")
+            .assertHasCause("Execution failed for task ':jar'")
             .assertHasCause("jar task failed")
     }
 
@@ -517,7 +521,10 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
         resolveArtifactsFails()
 
         then:
-        failure.assertHasDescription("Execution failed for task ':jar'")
+        failure
+            .assertHasDescription("Failed to build artifacts for build 'buildB'")
+            .assertHasCause("Failed to build artifacts for build 'buildC'")
+            .assertHasCause("Execution failed for task ':jar'")
             .assertHasCause("jar task failed")
     }
 
