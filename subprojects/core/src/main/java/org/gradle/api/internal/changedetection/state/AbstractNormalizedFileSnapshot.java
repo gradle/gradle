@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Objects;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.internal.hash.HashUtil;
 
 public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSnapshot {
     private final IncrementalFileSnapshot snapshot;
@@ -40,25 +42,26 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     public int compareTo(NormalizedFileSnapshot o) {
         int result = getNormalizedPath().compareTo(o.getNormalizedPath());
         if (result == 0) {
-            result = compareHashCodes(this, o);
+            result = HashUtil.compareHashCodes(getSnapshot().getHash(), o.getSnapshot().getHash());
         }
         return result;
     }
 
-    static int compareHashCodes(NormalizedFileSnapshot a, NormalizedFileSnapshot b) {
-        int result;
-        byte[] hashCode = a.getSnapshot().getHash().asBytes();
-        byte[] oHashCode = b.getSnapshot().getHash().asBytes();
-        int len = hashCode.length;
-        result = len - oHashCode.length;
-        if (result == 0) {
-            for (int idx = 0; idx < len; idx++) {
-                result = hashCode[idx] - oHashCode[idx];
-                if (result != 0) {
-                    break;
-                }
-            }
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
         }
-        return result;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AbstractNormalizedFileSnapshot that = (AbstractNormalizedFileSnapshot) o;
+        return Objects.equal(getNormalizedPath(), that.getNormalizedPath())
+            && Objects.equal(snapshot, that.snapshot);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getNormalizedPath(), snapshot);
     }
 }

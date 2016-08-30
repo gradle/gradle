@@ -16,13 +16,9 @@
 
 package org.gradle.api.tasks
 
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-
-class AbstractCachedTaskExecutionIntegrationSpec extends AbstractIntegrationSpec {
-    File cacheDir
-
-    def setup() {
-        // Make sure cache dir is empty for every test execution
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
+class UpToDatePathSensitivityIntegrationTest extends AbstractPathSensitivityIntegrationSpec {
+    @Override
+    void execute(String... tasks) {
+        succeeds tasks
     }
 }
