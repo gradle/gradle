@@ -44,15 +44,30 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
     }
 
-    private static void setupProjectInDirectory(TestFile dir) {
+    private static void setupProjectInDirectory(TestFile dir, String sourceDir = "main") {
         dir.file("build.gradle") << """
             apply plugin: "java"
         """
 
-        dir.file("src/main/java/Hello.java") << ORIGINAL_HELLO_WORLD
-        dir.file("src/main/resources/resource.properties") << """
+        dir.file("src/$sourceDir/java/Hello.java") << ORIGINAL_HELLO_WORLD
+        dir.file("src/$sourceDir/resources/resource.properties") << """
             test=true
         """
+
+        if (sourceDir != "main") {
+            dir.file("build.gradle") << """
+                sourceSets {
+                    main {
+                        java {
+                            srcDir "src/$sourceDir/java"
+                        }
+                        resources {
+                            srcDir "src/$sourceDir/resources"
+                        }
+                    }
+                }
+            """
+        }
     }
 
     def "no task is re-executed when inputs are unchanged"() {
@@ -166,6 +181,26 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         remoteProjectDir.file("build/classes/main/Hello.class").exists()
 
         // Remove the project completely
+        remoteProjectDir.deleteDir()
+
+        when:
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.containsAll ":compileJava"
+        file("build/classes/main/Hello.class").exists()
+    }
+
+    def "compile task gets loaded from cache when source is moved to another directory"() {
+        def remoteProjectDir = file("remote-project")
+        setupProjectInDirectory(remoteProjectDir, "other-than-main")
+
+        when:
+        executer.inDirectory(remoteProjectDir)
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.empty
+        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+
         remoteProjectDir.deleteDir()
 
         when:
