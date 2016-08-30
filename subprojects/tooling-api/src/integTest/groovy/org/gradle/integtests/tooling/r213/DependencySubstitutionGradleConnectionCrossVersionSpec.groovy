@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.CompositeToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.RequiresIntegratedComposite
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.normaliseLineSeparators
 /**
@@ -62,7 +63,8 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeTo
         given:
         def expectedOutput = "org.test:buildB:1.0"
         if (isIntegratedComposite()) {
-            expectedOutput = "org.test:buildB:1.0 -> project :buildB"
+            String path = targetDistVersion <= GradleVersion.version("3.0") ? "buildB::" : ":buildB"
+            expectedOutput = "org.test:buildB:1.0 -> project " + path
         }
 
         when:
