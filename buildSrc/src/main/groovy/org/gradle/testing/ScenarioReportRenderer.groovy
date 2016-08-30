@@ -42,6 +42,8 @@ class ScenarioReportRenderer {
                 }
                 builds.eachWithIndex { build, idx ->
                     def rowClass = build.@status.toString().toLowerCase()
+                    def testResultFiles = testResultFilesForBuild.get(build.@id.text())
+                    def xmlResultFiles = testResultFiles.findAll { it.name.endsWith('.xml') }
                     tr(class: rowClass) {
                         td("${idx+1}. ${this.getScenarioId(build)}")
                         td {
@@ -57,9 +59,8 @@ class ScenarioReportRenderer {
                         }
                     }
                     if (failed) {
-                        def testResultXmlFiles = testResultFilesForBuild.get(build.@id.text())
-                        if (testResultXmlFiles) {
-                            for (File testResultXmlFile : testResultXmlFiles) {
+                        if (xmlResultFiles) {
+                            for (File testResultXmlFile : xmlResultFiles) {
                                 def testresult = new XmlSlurper().parse(testResultXmlFile)
                                 testresult.testcase.failure.each { failure ->
                                     tr(class: rowClass) {
