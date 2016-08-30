@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.test.fixtures.file.TestFile
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -38,16 +39,20 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     File cacheDir
 
     def setup() {
-        buildFile << """
+        setupProjectInDirectory(testDirectory)
+
+        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
+    }
+
+    private static void setupProjectInDirectory(TestFile dir) {
+        dir.file("build.gradle") << """
             apply plugin: "java"
         """
 
-        file("src/main/java/Hello.java") << ORIGINAL_HELLO_WORLD
-        file("src/main/resources/resource.properties") << """
+        dir.file("src/main/java/Hello.java") << ORIGINAL_HELLO_WORLD
+        dir.file("src/main/resources/resource.properties") << """
             test=true
         """
-
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
     }
 
     def "no task is re-executed when inputs are unchanged"() {
@@ -98,14 +103,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeedsWithCache "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
-        println "\n\n\n-----------------------------------------\n\n\n"
-
         when:
         file("src/main/java/Hello.java").text = CHANGED_HELLO_WORLD
         then:
         succeedsWithCache "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
-
-        println "\n\n\n-----------------------------------------\n\n\n"
 
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD
@@ -150,6 +151,28 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeedsWithCache "clean"
         then:
         nonSkippedTasks.contains ":clean"
+    }
+
+    def "task gets loaded from cache when it is executed from a different directory"() {
+        // Compile Java in a different copy of the project
+        def remoteProjectDir = file("remote-project")
+        setupProjectInDirectory(remoteProjectDir)
+
+        when:
+        executer.inDirectory(remoteProjectDir)
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.empty
+        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+
+        // Remove the project completely
+        remoteProjectDir.deleteDir()
+
+        when:
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.containsAll ":compileJava"
+        file("build/classes/main/Hello.class").exists()
     }
 
     def "cacheable task with cache disabled doesn't get cached"() {
