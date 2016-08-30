@@ -21,6 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskReference;
 
 public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver {
@@ -45,9 +46,14 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
                 }
             });
         }
-        CompositeBuildTaskDelegate delegateTask = (CompositeBuildTaskDelegate) task;
-        Preconditions.checkState(((CompositeBuildTaskDelegate) task).getBuild().equals(ref.getBuildName()));
-        delegateTask.addTask(ref.getTaskPath());
-        return task;
+
+        if (task instanceof CompositeBuildTaskDelegate) {
+            CompositeBuildTaskDelegate delegateTask = (CompositeBuildTaskDelegate) task;
+            Preconditions.checkState(((CompositeBuildTaskDelegate) task).getBuild().equals(ref.getBuildName()));
+            delegateTask.addTask(ref.getTaskPath());
+            return task;
+        }
+
+        throw new TaskInstantiationException("Cannot create delegating task '" + delegateTaskName + "' as task with same name already exists.");
     }
 }
