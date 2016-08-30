@@ -231,7 +231,9 @@ public class CrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             }
         builder.workingDirectory = workingDir
         def spec = builder.build()
-
+        if (experimentRunner.honestProfiler) {
+            experimentRunner.honestProfiler.sessionId = "${testId}-${dist.version.version}".replaceAll('[^a-zA-Z0-9.-]', '_').replaceAll('[_]+', '_')
+        }
         experimentRunner.run(spec, results)
     }
 

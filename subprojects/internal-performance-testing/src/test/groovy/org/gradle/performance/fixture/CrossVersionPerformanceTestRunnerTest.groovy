@@ -145,6 +145,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
             result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
         }
         1 * reporter.report(_)
+        1 * experimentRunner.getHonestProfiler()
         0 * _._
     }
 
@@ -164,6 +165,7 @@ class CrossVersionPerformanceTestRunnerTest extends ResultSpecification {
             result.add(operation(totalTime: Duration.seconds(10), totalMemoryUsed: DataAmount.kbytes(10)))
         }
         1 * reporter.report(_)
+        1 * experimentRunner.getHonestProfiler()
         0 * _._
     }
 
