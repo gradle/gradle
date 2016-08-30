@@ -85,6 +85,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         return dependencySubstitutions;
     }
 
+    // TODO:DAZ Cache the `SettingsInternal` instance rather than relying on GradleLauncher to do it.
     @Override
     public SettingsInternal initialize() {
         GradleLauncher gradleLauncher = getGradleLauncher();
@@ -92,6 +93,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
         return gradleLauncher.getSettings();
     }
 
+    // TODO:DAZ Cache the `GradleInternal` instance rather than relying on GradleLauncher to do it.
     @Override
     public GradleInternal configure() {
         GradleLauncher gradleLauncher = getGradleLauncher();

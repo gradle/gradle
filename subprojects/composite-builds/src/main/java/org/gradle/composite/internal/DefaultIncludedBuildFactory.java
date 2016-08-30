@@ -20,6 +20,7 @@ import com.google.common.collect.Sets;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
@@ -56,8 +57,8 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         Factory<GradleLauncher> nestedFactory = requestContext == null ? null : new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, null, sharedServices);
         DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, nestedFactory);
 
-        validateIncludedBuild(includedBuild, buildDirectory);
-        includedBuild.initialize();
+        SettingsInternal settingsInternal = includedBuild.initialize();
+        validateIncludedBuild(includedBuild, settingsInternal);
         return includedBuild;
     }
 
@@ -70,10 +71,9 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         }
     }
 
-    private void validateIncludedBuild(DefaultIncludedBuild includedBuild, File buildDirectory) {
-        SettingsInternal settings = includedBuild.initialize();
+    private void validateIncludedBuild(IncludedBuild includedBuild, SettingsInternal settings) {
         if (!new File(settings.getSettingsDir(), "settings.gradle").exists()) {
-            throw new InvalidUserDataException(String.format("Included build '%s' must have a 'settings.gradle' file.", buildDirectory.getName()));
+            throw new InvalidUserDataException(String.format("Included build '%s' must have a 'settings.gradle' file.", includedBuild.getName()));
         }
         if (!settings.getIncludedBuilds().isEmpty()) {
             throw new InvalidUserDataException(String.format("Included build '%s' cannot have included builds.", includedBuild.getName()));
