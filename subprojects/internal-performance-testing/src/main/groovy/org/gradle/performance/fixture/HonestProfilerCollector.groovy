@@ -18,13 +18,20 @@ package org.gradle.performance.fixture
 
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
+import org.apache.mina.util.AvailablePortFinder
+import org.gradle.internal.UncheckedException
+import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.performance.measure.MeasuredOperation
 
 @CompileStatic
 class HonestProfilerCollector implements DataCollector {
-    boolean enabled = System.getProperty("org.gradle.performance.honestprofiler") != null
-    int honestProfilerPort = 18080
+    // if set, this system property must point to the directory where log files will be copied
+    // and flame graphs generated
+    public static final String HONESTPROFILER_KEY = "org.gradle.performance.honestprofiler"
+
+    boolean enabled = System.getProperty(HONESTPROFILER_KEY) != null
+    int honestProfilerPort = AvailablePortFinder.getNextAvailable(18080)
     String honestProfilerHost = '127.0.0.1'
     int maxFrames = 1024
     int interval = 7
@@ -33,6 +40,12 @@ class HonestProfilerCollector implements DataCollector {
     private File logFile
     private boolean profilerJvmOptionAdded
     File logDirectory
+    FlameGraphSanitizer flameGraphSanitizer
+    String sessionId
+
+    HonestProfilerCollector() {
+        logDirectory = enabled ? new File(System.getProperty(HONESTPROFILER_KEY)) : null
+    }
 
     File getLogFile() {
         logFile
@@ -46,6 +59,15 @@ class HonestProfilerCollector implements DataCollector {
             if (honestProfilerLibFile.exists()) {
                 logFile = new File(workingDir, "honestprofiler.hpl").absoluteFile
                 profilerJvmOptionAdded = true
+                File flameGraphHomeDir = locateFlameGraphInstallation()
+                if (flameGraphHomeDir.exists()) {
+                    flameGraphSanitizer = new FlameGraphSanitizer(new FlameGraphSanitizer.RegexBasedSanitizerFunction(
+                        (~'build_([a-z0-9]+)'): 'build_',
+                        (~'settings_([a-z0-9]+)'): 'settings_',
+                        (~'org[.]gradle[.]'): '',
+                        (~'sun[.]reflect[.]GeneratedMethodAccessor[0-9]+'): 'GeneratedMethodAccessor'
+                    ))
+                }
                 return [buildJvmOption(logFile, honestProfilerLibFile)]
             } else {
                 System.err.println("Could not find Honest Profiler agent library at ${honestProfilerLibFile.absolutePath}")
@@ -54,8 +76,12 @@ class HonestProfilerCollector implements DataCollector {
         return Collections.emptyList()
     }
 
-    private File locateHonestProfilerInstallation() {
+    private static File locateHonestProfilerInstallation() {
         new File(System.getenv("HP_HOME_DIR") ?: "${System.getProperty('user.home')}/tools/honest-profiler".toString())
+    }
+
+    private static File locateFlameGraphInstallation() {
+        new File(System.getenv("FG_HOME_DIR") ?: "${System.getProperty('user.home')}/tools/FlameGraph".toString())
     }
 
     private String buildJvmOption(File logFile, File honestProfilerLibFile) {
@@ -92,14 +118,45 @@ class HonestProfilerCollector implements DataCollector {
                     case BuildExperimentRunner.Phase.MEASUREMENT:
                         stop()
                         // copy file after last measurement
-                        if (logFile.exists() && logDirectory) {
-                            def destFile = new File(logDirectory, LogFiles.createFileNameForBuildInvocation(invocationInfo, "honestprofiler_", ".hpl"))
+                        if (logFile.exists() && logDirectory!=null) {
+                            logDirectory.mkdirs()
+                            def destFile = new File(logDirectory, "honestprofiler_${sessionId}.hpl")
+                            def fgDestFile = new File(logDirectory, "honestprofiler_${sessionId}.txt")
+                            def svgDestFile = new File(logDirectory, "honestprofiler_${sessionId}.svg")
                             FileUtils.copyFile(logFile, destFile)
+                            if (flameGraphSanitizer) {
+                                def sanitizedOutput = new File(destFile.parentFile, "${fgDestFile.name}.sanitized")
+                                try {
+                                    invokeHonestProfilerConverter(destFile, fgDestFile)
+                                    flameGraphSanitizer.sanitize(fgDestFile, sanitizedOutput)
+                                    invokeFlameGraphGenerator(sanitizedOutput, svgDestFile)
+                                } catch (e) {
+                                    // make errors non fatal at this point
+                                    UncheckedException.throwAsUncheckedException(e)
+                                }
+                            }
                         }
                         break
                 }
             }
         }
+    }
+
+    private static void invokeFlameGraphGenerator(File sanitizedOutput, File svgDestFile) {
+        File flameGraphHomeDir = locateFlameGraphInstallation()
+        def process = ["$flameGraphHomeDir/flamegraph.pl", sanitizedOutput].execute()
+        def fos = svgDestFile.newOutputStream()
+        process.waitForProcessOutput(fos, System.err)
+        fos.close()
+    }
+
+    private static void invokeHonestProfilerConverter(File hpLogFile, File fgLogFile) {
+        File hpHome = locateHonestProfilerInstallation()
+        [Jvm.current().getExecutable('java').absolutePath,
+         '-cp', "${Jvm.current().getToolsJar().absolutePath}:${hpHome}/honest-profiler.jar",
+         'com.insightfullogic.honest_profiler.ports.console.FlameGraphDumperApplication',
+         hpLogFile.absolutePath,
+         fgLogFile.absolutePath].execute().waitFor()
     }
 
     void start() {
