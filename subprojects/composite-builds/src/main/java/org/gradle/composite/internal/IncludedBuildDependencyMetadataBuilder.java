@@ -50,7 +50,7 @@ public class IncludedBuildDependencyMetadataBuilder {
     }
 
     public void build(IncludedBuildInternal build) {
-        Gradle gradle = build.configure();
+        Gradle gradle = build.getConfiguredBuild();
         for (Project project : gradle.getRootProject().getAllprojects()) {
             registerProject(build, (ProjectInternal) project);
         }

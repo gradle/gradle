@@ -63,7 +63,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
 
     @Override
     public synchronized String getName() {
-        return initialize().getRootProject().getName();
+        return getLoadedSettings().getRootProject().getName();
     }
 
     @Override
@@ -86,7 +86,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     @Override
-    public SettingsInternal initialize() {
+    public SettingsInternal getLoadedSettings() {
         if (settings == null) {
             GradleLauncher gradleLauncher = getGradleLauncher();
             gradleLauncher.load();
@@ -96,7 +96,7 @@ public class DefaultIncludedBuild implements IncludedBuildInternal {
     }
 
     @Override
-    public GradleInternal configure() {
+    public GradleInternal getConfiguredBuild() {
         if (gradle == null) {
             GradleLauncher gradleLauncher = getGradleLauncher();
             gradleLauncher.getBuildAnalysis();

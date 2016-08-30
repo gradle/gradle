@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 
 public interface IncludedBuildInternal extends ConfigurableIncludedBuild {
     DependencySubstitutionsInternal resolveDependencySubstitutions();
-    SettingsInternal initialize();
-    GradleInternal configure();
+    SettingsInternal getLoadedSettings();
+    GradleInternal getConfiguredBuild();
     BuildResult execute(Iterable<String> tasks);
 }

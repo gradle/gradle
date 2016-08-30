@@ -57,7 +57,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         Factory<GradleLauncher> nestedFactory = requestContext == null ? null : new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, null, sharedServices);
         DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, nestedFactory);
 
-        SettingsInternal settingsInternal = includedBuild.initialize();
+        SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
         validateIncludedBuild(includedBuild, settingsInternal);
         return includedBuild;
     }
