@@ -2,19 +2,13 @@
 
 ## High-level goals
 
-Gradle normally handles version conflicts by picking the highest version a dependency.
+Gradle normally handles version conflicts by picking the highest version of a dependency.
 In rare cases this may result in a project dependency being replaced by a binary dependency, which
 may be counter-intuitive. The objective of this change is to make it 
 configurable to always prefer project dependencies.
 
-The situations where this happens boils down to the following two cases:
-
-* Execute a composite build where a dependency between
-  included builds is actually not included
-* Test code changes in a multi project build on a common project and a project using
-  this project where not all intermediate dependencies are project dependencies
-  
-This means the basic setup for the dependencies will be something like the following:
+The basic setup for the dependencies will be something like the following.
+Let us assume we have a dependency graph like this:
 
 <pre>
     A ---> C
@@ -23,17 +17,33 @@ This means the basic setup for the dependencies will be something like the follo
        V /
         B
 </pre>
-  
-Here `A` and `C` will be projects in a multi project build respectively included builds
-in a composited build and `B` will
-be a binary dependency.
 
+That means `A` depends on `B` and `C` and `B` depends on `C`.
+
+The two situations where a dependency conflict as above occur are:
+
+1. Test code changes in a multi project build on a common project and a project using
+  this project where not all intermediate dependencies are project dependencies.
+  In our dependency graph `A` and `C` would be part of a multi project build, `A` having
+  a project dependency on `B` and
+  `B` would be a binary dependency of `A` with a binary dependency on `C`.
+ 
+2. Test code changes in a composite build on a common project and a project using
+  this project where not all intermediate dependencies are part of included builds.
+  In our dependency graph `A` and `C` would be included builds of a composite build,
+  `A` having its binary dependency on `C` substituted by a project dependency and
+  `B` would be a binary dependency of `A` with a binary dependency on `C`.
+  
 We still want to keep the current behaviour for two reasons:
 
-* Changing the default behavior would probably break some builds
-* For use cases like performance testing it is still necessary to have
-  a binary dependency on an earlier version of the same project which
+1. Backwards compatibility. Changing the default behavior would probably break some builds.
+
+2. For use cases like performance testing it is still necessary to have
+  a binary dependency on an earlier version of a common project which
   should not be replaced by the project dependency.
+  For example given a performance test project `A` which has a project dependency
+  on a common module `C`. I want to performance test `B`, which has a binary dependency
+  on `C`. Then I want to test `B` with its binary dependency `C`.
   
 ## Story: User can prefer project modules for conflict resolution
 
@@ -50,7 +60,7 @@ The user is able to do the following:
 When this method is called, project modules are preferred over binary modules
 in conflict resolution.
 
-In more detail, let us assume that we have the following layout
+In more detail, let us assume that we have the following layout:
 
     settings.gradle
     projectA
@@ -101,7 +111,7 @@ we add
         }
     }
 
-to `projectA/build.gradle` then `projectA` is compiled against `project(:projectC)`.
+to `projectA/build.gradle` then `projectA` is compiled against `project(':projectC')`.
 
 ### Implementation
 
@@ -118,6 +128,10 @@ versions, forced dependencies and `preferProjectModules` settings.
 We need to test at least the following situations:
 
 * `A -> B -> C` with `B` being an external module
+* Include tests that check the current behavior, i.e. selecting the binary dependency `C`
+  over the project dependency `C`
 * Some more complicated dependency graph with at least five dependencies
 * Activating `preferProjectModules` for some projects and not for others
+* Activating `preferProjectModules` on a configuration and then check that
+  this has no effect on an configuration extending from it.
 * The same tests in the composite build case
