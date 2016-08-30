@@ -709,7 +709,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
-        properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, ""+fullDeprecationStackTrace);
+        properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
         if (!noExplicitTmpDir) {
             String tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
