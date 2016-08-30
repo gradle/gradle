@@ -77,13 +77,8 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
             return target;
         }
 
-        Gradle currentBuild = projectRegistry.getProject(":").getGradle();
-        if (currentBuild.getParent() == null) {
-            // We never have a substitution from the root build to another
-            return target;
-        }
-
         // See if this is a substitution into the current build
+        Gradle currentBuild = projectRegistry.getProject(":").getGradle();
         if (currentBuild.getRootProject().getName().equals(target.getBuild().getName())) {
             return DefaultProjectComponentSelector.newSelector(target.getProjectPath());
         }

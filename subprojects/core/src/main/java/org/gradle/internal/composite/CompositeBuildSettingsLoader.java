@@ -77,8 +77,11 @@ public class CompositeBuildSettingsLoader implements SettingsLoader {
             if (!names.add(buildName)) {
                 throw new GradleException("Included build '" + buildName + "' is not unique in composite.");
             }
+            if (settings.getRootProject().getName().equals(buildName)) {
+                throw new GradleException("Included build '" + buildName + "' collides with root project name.");
+            }
             if (settings.findProject(":" + buildName) != null) {
-                throw new GradleException("Included build '" + buildName + "' clashes with subproject of the same name.");
+                throw new GradleException("Included build '" + buildName + "' collides with subproject of the same name.");
             }
         }
         return builds;

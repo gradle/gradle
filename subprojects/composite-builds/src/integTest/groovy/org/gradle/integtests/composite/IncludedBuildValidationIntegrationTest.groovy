@@ -113,7 +113,18 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         fails(buildA, "help")
 
         then:
-        failure.assertHasDescription("Included build 'buildB' clashes with subproject of the same name.")
+        failure.assertHasDescription("Included build 'buildB' collides with subproject of the same name.")
     }
 
+    def "reports failure for included build name that conflicts with root project name"() {
+        def buildC = singleProjectBuild("buildC")
+        buildC.settingsFile.text = "rootProject.name = 'buildA'"
+        includedBuilds << buildC
+
+        when:
+        fails(buildA, "help")
+
+        then:
+        failure.assertHasDescription("Included build 'buildA' collides with root project name.")
+    }
 }
