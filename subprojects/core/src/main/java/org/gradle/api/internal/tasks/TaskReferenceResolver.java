@@ -21,7 +21,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskReference;
 
 /**
- * A resolver for task references: for now a task reference must be a fully-fledged Task instance.
+ * A resolver for task references, required to convert a task reference into a fully-fledged Task instance.
  *
  * It would be great if our task execution engine could natively understand task references.
  * For now we rely on synthetic delegating tasks to do the work.
