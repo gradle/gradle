@@ -62,7 +62,7 @@ class DependencySubstitutionGradleConnectionCrossVersionSpec extends CompositeTo
         given:
         def expectedOutput = "org.test:buildB:1.0"
         if (isIntegratedComposite()) {
-            expectedOutput = "org.test:buildB:1.0 -> project buildB::"
+            expectedOutput = "org.test:buildB:1.0 -> project :buildB"
         }
 
         when:
