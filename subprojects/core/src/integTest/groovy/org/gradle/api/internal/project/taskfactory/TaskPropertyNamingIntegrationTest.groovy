@@ -52,7 +52,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 @OutputFiles Map<String, File> namedOutputFiles
                 @OutputDirectory File outputDirectory
                 @OutputDirectories FileCollection outputDirectories
-                @OutputFiles Map<String, File> namedOutputDirectories
+                @OutputDirectories Map<String, File> namedOutputDirectories
             }
 
             task myTask(type: MyTask) {
