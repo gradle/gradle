@@ -233,10 +233,6 @@ public class DefaultGradle extends AbstractPluginAware implements GradleInternal
 
     @Override
     public IncludedBuild includedBuild(final String name) {
-        if (includedBuilds.isEmpty()) {
-            throw new NoSuchElementException("Build is not a composite: it has no included builds.");
-        }
-
         for (IncludedBuild includedBuild : includedBuilds) {
             if (includedBuild.getName().equals(name)) {
                 return includedBuild;
