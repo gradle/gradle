@@ -94,6 +94,61 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 
+    def "executes tasks only once for included build"() {
+        when:
+        buildA.buildFile << """
+    def buildB = gradle.includedBuild('buildB')
+    task delegate {
+        dependsOn buildB.task(':b1:logProject')
+        dependsOn buildB.task(':b2:logProject')
+    }
+"""
+        buildB.buildFile << """
+    project(":b1") {
+        logProject.dependsOn(':b2:logProject')
+    }
+"""
+
+        execute(buildA, ":delegate")
+
+        then:
+        executed ":buildB:b2:logProject", ":buildB:b1:logProject"
+        output.contains("Executing build 'buildB' project ':b2' task ':b2:logProject'")
+        output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
+    }
+
+    def "can depend on task from subproject of composing build"() {
+        given:
+        buildA.settingsFile << """
+    include 'a1'
+"""
+        buildA.buildFile << """
+    task("top-level") {
+        dependsOn ':a1:delegate'
+    }
+
+    project(':a1') {
+        task delegate {
+            dependsOn gradle.includedBuild('buildB').task(':logProject')
+        }
+    }
+"""
+
+        when:
+        execute(buildA, ":top-level")
+
+        then:
+        executed ":buildB:logProject"
+        output.contains("Executing build 'buildB' project ':' task ':logProject'")
+
+        when:
+        execute(buildA, "delegate")
+
+        then:
+        executed ":buildB:logProject"
+        output.contains("Executing build 'buildB' project ':' task ':logProject'")
+    }
+
     def "can depend on task with name in all included builds"() {
         when:
         BuildTestFile buildC = singleProjectBuild("buildC") {
