@@ -17,27 +17,27 @@
 package org.gradle.api.tasks;
 
 /**
- * Enumeration of different file path handling strategies for task properties.
+ * Enumeration of different path handling strategies for task properties.
  *
  * @see PathSensitive
  */
 public enum PathSensitivity {
     /**
-     * Consider the full path of files.
+     * Consider the full path of files and directories.
      */
     ABSOLUTE,
     /**
-     * Consider the path for each file relative to the root it was included via.
+     * Consider the path for each file or directory relative to the root it was included via.
      */
     RELATIVE,
 
     /**
-     * Consider only the name of files.
+     * Consider only the name of files and directories.
      */
     NAME_ONLY,
 
     /**
-     * Ignore file paths altogether.
+     * Ignore file paths and directories altogether.
      */
     NONE
 }

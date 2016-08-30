@@ -548,7 +548,7 @@
 
                     <tr>
                         <td><literal>@SkipWhenEmpty</literal></td>
-                        <td></td>
+                        <td/>
                         <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
                             to tell Gradle to skip the task if the corresponding iterable of files or
                             directory are empty.
@@ -556,12 +556,30 @@
                     </tr>
                     <tr>
                         <td><literal>@Optional</literal></td>
-                        <td></td>
+                        <td/>
                         <td>Used with any of the other incremental build annotations listed in the
                             <apilink class="org.gradle.api.tasks.Optional"/> API documentation.
                             This annotation disables validation checks on the corresponding property.
                             See <link linkend="sec:task_input_output_validation">the section on validation</link>
                             for more details.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><literal>@OrderSensitive</literal></td>
+                        <td/>
+                        <td>Used with <literal>@InputFiles</literal> or <literal>@InputDirectory</literal>
+                            to tell Gradle that a change in the order of the files should mark the task
+                            out-of-date.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><literal>@PathSensitive</literal></td>
+                        <td/>
+                        <td>Used with any input file property to tell Gradle to only consider the given
+                            part of the file paths as important. For example, if a property is annotated
+                            with <literal>@PathSensitive(PathSensitivity.NAME_ONLY)</literal>, then
+                            moving the files around without changing their contents will not make the
+                            task out-of-date.
                         </td>
                     </tr>
                     <tfoot>
