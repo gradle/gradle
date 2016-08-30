@@ -47,7 +47,8 @@ import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.exclude
  * </ul>
  */
 public class ModuleExclusions {
-    static final ExcludeNone EXCLUDE_NONE = new ExcludeNone();
+    private static final ExcludeNone EXCLUDE_NONE = new ExcludeNone();
+    private static final ExcludeAllModulesSpec EXCLUDE_ALL_MODULES_SPEC = new ExcludeAllModulesSpec();
 
     /**
      * Returns a spec that excludes nothing.
@@ -102,7 +103,7 @@ public class ModuleExclusions {
             } else if (!anyOrganisation) {
                 return new GroupNameExcludeSpec(moduleId.getGroup());
             } else {
-                return new ExcludeAllModulesSpec();
+                return EXCLUDE_ALL_MODULES_SPEC;
             }
         } else {
             return new ArtifactExcludeSpec(moduleId, artifact);
@@ -122,6 +123,9 @@ public class ModuleExclusions {
         if (two == EXCLUDE_NONE) {
             return one;
         }
+        if (one.equals(two)) {
+            return one;
+        }
 
         List<AbstractModuleExclusion> specs = new ArrayList<AbstractModuleExclusion>();
         ((AbstractModuleExclusion) one).unpackIntersection(specs);
@@ -131,7 +135,7 @@ public class ModuleExclusions {
     }
 
     /**
-     * Returns a spec that excludes only those modules and artifacts that are excluded by both of the supplied exclude rules.
+     * Returns a spec that excludes only those modules and artifacts that are excluded by _both_ of the supplied exclude rules.
      */
     public static ModuleExclusion union(ModuleExclusion one, ModuleExclusion two) {
         if (one == two) {
@@ -139,6 +143,9 @@ public class ModuleExclusions {
         }
         if (one == EXCLUDE_NONE || two == EXCLUDE_NONE) {
             return EXCLUDE_NONE;
+        }
+        if (one.equals(two)) {
+            return one;
         }
 
         List<AbstractModuleExclusion> specs = new ArrayList<AbstractModuleExclusion>();
@@ -172,7 +179,7 @@ public class ModuleExclusions {
      * Currently this is only implemented when both exclusions are `IntersectionExclusion`s.
      */
     private static AbstractModuleExclusion maybeMergeIntoUnion(ModuleExclusion one, ModuleExclusion two) {
-        if (one instanceof IntersectionExclusion && two instanceof  IntersectionExclusion) {
+        if (one instanceof IntersectionExclusion && two instanceof IntersectionExclusion) {
             return maybeMergeIntoUnion((IntersectionExclusion) one, (IntersectionExclusion) two);
         }
         return null;
@@ -296,5 +303,4 @@ public class ModuleExclusions {
             throw new UnsupportedOperationException(String.format("Cannot calculate intersection of exclude rules: %s, %s", spec1, spec2));
         }
     }
-
 }
