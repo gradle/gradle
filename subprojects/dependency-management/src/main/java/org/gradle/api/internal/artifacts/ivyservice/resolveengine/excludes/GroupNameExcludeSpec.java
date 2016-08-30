@@ -31,7 +31,7 @@ class GroupNameExcludeSpec extends AbstractModuleExclusion {
 
     @Override
     public String toString() {
-        return "group " + group;
+        return "{group " + group + "}";
     }
 
     @Override
