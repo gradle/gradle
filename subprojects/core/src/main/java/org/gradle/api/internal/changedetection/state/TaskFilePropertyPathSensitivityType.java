@@ -19,6 +19,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.api.tasks.PathSensitivity;
 
 public enum TaskFilePropertyPathSensitivityType {
     /**

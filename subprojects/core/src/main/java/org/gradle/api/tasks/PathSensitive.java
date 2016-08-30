@@ -14,30 +14,23 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.tasks;
+
+import org.gradle.api.Incubating;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Enumeration of different file path handling strategies for task properties.
- *
- * @see PathSensitive
+ * Annotates a task file property, specifying which part of the file paths should be considered during up-to-date checks.
  */
-public enum PathSensitivity {
-    /**
-     * Consider the full path of files.
-     */
-    ABSOLUTE,
-    /**
-     * Consider the path for each file relative to the root it was included via.
-     */
-    RELATIVE,
-
-    /**
-     * Consider only the name of files.
-     */
-    NAME_ONLY,
-
-    /**
-     * Ignore file paths altogether.
-     */
-    NONE
+@Incubating
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD, ElementType.FIELD})
+public @interface PathSensitive {
+    PathSensitivity value();
 }

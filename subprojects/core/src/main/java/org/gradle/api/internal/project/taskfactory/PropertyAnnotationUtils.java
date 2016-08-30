@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.internal.changedetection.state.PathSensitive;
-import org.gradle.api.internal.changedetection.state.PathSensitivity;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 
 public class PropertyAnnotationUtils {
     public static PathSensitivity getPathSensitivity(TaskPropertyActionContext context) {
