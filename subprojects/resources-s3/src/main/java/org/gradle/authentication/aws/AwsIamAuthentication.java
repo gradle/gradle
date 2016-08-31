@@ -20,7 +20,9 @@ import org.gradle.api.Incubating;
 import org.gradle.authentication.Authentication;
 
 /**
- * Authentication scheme for digest access authentication over HTTP.
+ * Authentication scheme for digest access authentication over S3.
+ *
+ * @since 3.1
  */
 @Incubating
 public interface AwsIamAuthentication extends Authentication {

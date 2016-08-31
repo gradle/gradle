@@ -15,9 +15,11 @@
  */
 
 /**
- * Classes related to transport authentication protocols for HTTP.
+ * Classes related to transport authentication protocols for S3.
  *
- * @since 2.7
+ * @since 3.1
  */
 @org.gradle.api.Incubating
 package org.gradle.authentication.aws;
+
+
