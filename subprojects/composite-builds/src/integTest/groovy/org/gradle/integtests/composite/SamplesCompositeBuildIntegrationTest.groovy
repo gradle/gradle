@@ -119,4 +119,24 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         executed ":greeting-plugin:jar", ":greetBob"
         outputContains("G'day Bob!!!")
     }
+
+    @UsesSample('compositeBuilds/declared-substitution')
+    def "can include build with declared substitution"() {
+        when:
+        executer.inDirectory(sample.dir.file("my-app"))
+            .withArguments("--settings-file", "settings-without-declared-substitution.gradle")
+        fails(':run')
+
+        then:
+        failure.assertHasDescription("Could not resolve all dependencies for configuration ':compileClasspath'.")
+            .assertHasCause("Cannot resolve external dependency org.sample:number-utils:1.0 because no repositories are defined.")
+
+        when:
+        executer.inDirectory(sample.dir.file("my-app"))
+        succeeds(':run')
+
+        then:
+        executed ":anonymous-library:jar", ":run"
+        outputContains("The answer is 42")
+    }
 }

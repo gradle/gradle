@@ -46,7 +46,7 @@ gradle --include-build ../my-utils run
 
 Using *dependency substitution*, the module dependencies on the util libraries are replaced by project dependencies on `my-utils`.
 
-### Convering `my-app` to a composite build
+### Converting `my-app` to a composite build
 
 It's possible to make the above arrangement persistent, by making `my-app` a composite build that includes `my-utils`. 
 
