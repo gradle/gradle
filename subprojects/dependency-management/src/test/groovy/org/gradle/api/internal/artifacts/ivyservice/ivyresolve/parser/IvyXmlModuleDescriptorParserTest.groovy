@@ -48,7 +48,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
     ModuleDescriptorState md
     MutableIvyModuleResolveMetadata metadata
 
-    def "parses minimal Ivy descriptor"() throws Exception {
+    def "parses minimal Ivy descriptor"() {
         when:
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
@@ -70,7 +70,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         artifact()
     }
 
-    def "adds implicit configurations"() throws Exception {
+    def "adds implicit configurations"() {
         when:
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
@@ -99,7 +99,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         artifact.configurations == ["default"] as Set
     }
 
-    def "adds implicit artifact when none declared"() throws Exception {
+    def "adds implicit artifact when none declared"() {
         when:
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
@@ -129,7 +129,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         artifact.configurations == ["A", "B"] as Set
     }
 
-    public void "fails when ivy.xml uses unknown version of descriptor format"() throws IOException {
+    def "fails when ivy.xml uses unknown version of descriptor format"() {
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="unknown">
     <info organisation="myorg"
@@ -147,7 +147,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         e.cause.message == "invalid version unknown"
     }
 
-    public void "fails when configuration extends an unknown configuration"() throws IOException {
+    def "fails when configuration extends an unknown configuration"() {
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
     <info organisation="myorg"
@@ -166,10 +166,85 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         then:
         def e = thrown(MetaDataParseException)
         e.message == "Could not parse Ivy file ${file}"
-        e.cause.message == "unknown configuration 'invalidConf'. It is extended by A"
+        e.cause.message == "Configuration 'A' extends configuration 'invalidConf' which is not declared."
     }
 
-    public void "fails when there is a cycle in configuration hierarchy"() throws IOException {
+    def "fails when artifact is mapped to an unknown configuration"() {
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <info organisation="myorg"
+          module="mymodule"
+          status="integration"
+    />
+    <configurations>
+        <conf name="A"/>
+    </configurations>
+    <publications>
+        <artifact conf="A,unknown"/>
+    </publications>
+</ivy-module>
+"""
+
+        when:
+        parse(parseContext, file)
+
+        then:
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse Ivy file ${file}"
+        e.cause.message == "Artifact mymodule.jar is mapped to configuration 'unknown' which is not declared."
+    }
+
+    def "fails when exclude is mapped to an unknown configuration"() {
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <info organisation="myorg"
+          module="mymodule"
+          status="integration"
+    />
+    <configurations>
+        <conf name="A"/>
+    </configurations>
+    <dependencies>
+        <exclude org="other" conf="A,unknown"/>
+    </dependencies>
+</ivy-module>
+"""
+
+        when:
+        parse(parseContext, file)
+
+        then:
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse Ivy file ${file}"
+        e.cause.message == "Exclude rule other#*!*.* is mapped to configuration 'unknown' which is not declared."
+    }
+
+    def "fails when dependency is mapped from an unknown configuration"() {
+        def file = temporaryFolder.file("ivy.xml") << """
+<ivy-module version="1.0">
+    <info organisation="myorg"
+          module="mymodule"
+          status="integration"
+    />
+    <configurations>
+        <conf name="A"/>
+    </configurations>
+    <dependencies>
+        <dependency name="other" rev="1.2" conf="A,unknown->%"/>
+    </dependencies>
+</ivy-module>
+"""
+
+        when:
+        parse(parseContext, file)
+
+        then:
+        def e = thrown(MetaDataParseException)
+        e.message == "Could not parse Ivy file ${file}"
+        e.cause.message.contains("Cannot add dependency 'myorg#other;1.2' to configuration 'unknown'")
+    }
+
+    def "fails when there is a cycle in configuration hierarchy"() {
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
     <info organisation="myorg"
@@ -192,7 +267,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         e.cause.message == "illegal cycle detected in configuration extension: A => B => A"
     }
 
-    public void "fails when descriptor contains badly formed XML"() {
+    def "fails when descriptor contains badly formed XML"() {
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
     <info
@@ -208,7 +283,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         e.cause.message.contains('"info"')
     }
 
-    public void "fails when descriptor does not match schema"() {
+    def "fails when descriptor does not match schema"() {
         def file = temporaryFolder.file("ivy.xml") << """
 <ivy-module version="1.0">
     <not-an-ivy-file/>
@@ -224,7 +299,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         e.cause.message.contains('unknown tag not-an-ivy-file')
     }
 
-    public void "fails when descriptor does declare module version id"() {
+    def "fails when descriptor does not declare module version id"() {
         def file = temporaryFolder.file("ivy.xml") << xml
         when:
         parse(parseContext, file)
@@ -242,7 +317,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         ]
     }
 
-    public void "parses a full Ivy descriptor"() throws Exception {
+    def "parses a full Ivy descriptor"() {
         def file = temporaryFolder.file("ivy.xml")
         file.text = resources.getResource("test-full.xml").text
 
@@ -286,7 +361,7 @@ class IvyXmlModuleDescriptorParserTest extends Specification {
         rules[1].configurations as List == ["myconf1", "myconf2", "myconf3", "myconf4", "myoldconf"]
     }
 
-    def "merges values from parent Ivy descriptor"() throws Exception {
+    def "merges values from parent Ivy descriptor"() {
         given:
         def parentFile = temporaryFolder.file("parent.xml") << """
 <ivy-module version="1.0">
