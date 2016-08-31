@@ -23,7 +23,7 @@ import java.util.Set;
 
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.authentication.Authentication;
-import org.gradle.authentication.aws.AwsIamAuthentication;
+import org.gradle.authentication.aws.AwsImAuthentication;
 import org.gradle.internal.authentication.AllSchemesAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification;
@@ -38,7 +38,7 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
     @Override
     public Set<Class<? extends Authentication>> getSupportedAuthentication() {
         Set<Class<? extends Authentication>> supported = new HashSet<Class<? extends Authentication>>();
-        supported.add(AwsIamAuthentication.class);
+        supported.add(AwsImAuthentication.class);
         supported.add(AllSchemesAuthentication.class);
         return supported;
     }
@@ -59,7 +59,7 @@ public class S3ConnectorFactory implements ResourceConnectorFactory {
                 return new S3ResourceConnector(new S3Client(awsCredentials, new S3ConnectionProperties()));
             }
 
-            if (authentication instanceof AwsIamAuthentication) {
+            if (authentication instanceof AwsImAuthentication) {
                 return new S3ResourceConnector(new S3Client(new S3ConnectionProperties()));
             }
         }

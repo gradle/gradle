@@ -16,11 +16,11 @@
 
 package org.gradle.internal.authentication;
 
-import org.gradle.authentication.aws.AwsIamAuthentication;
+import org.gradle.authentication.aws.AwsImAuthentication;
 
-public class DefaultAwsIamAuthentication extends AbstractAuthentication implements AwsIamAuthentication {
-    public DefaultAwsIamAuthentication(String name) {
-        super(name, AwsIamAuthentication.class);
+public class DefaultAwsImAuthentication extends AbstractAuthentication implements AwsImAuthentication {
+    public DefaultAwsImAuthentication(String name) {
+        super(name, AwsImAuthentication.class);
     }
 
     @Override

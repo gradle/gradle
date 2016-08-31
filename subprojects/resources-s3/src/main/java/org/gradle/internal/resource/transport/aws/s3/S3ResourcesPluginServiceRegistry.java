@@ -16,9 +16,9 @@
 
 package org.gradle.internal.resource.transport.aws.s3;
 
-import org.gradle.authentication.aws.AwsIamAuthentication;
+import org.gradle.authentication.aws.AwsImAuthentication;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
-import org.gradle.internal.authentication.DefaultAwsIamAuthentication;
+import org.gradle.internal.authentication.DefaultAwsImAuthentication;
 import org.gradle.internal.resource.connector.ResourceConnectorFactory;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -50,7 +50,7 @@ public class S3ResourcesPluginServiceRegistry implements PluginServiceRegistry {
 
     private static class AuthenticationSchemeAction {
         public void configure(ServiceRegistration registration, AuthenticationSchemeRegistry authenticationSchemeRegistry) {
-            authenticationSchemeRegistry.registerScheme(AwsIamAuthentication.class, DefaultAwsIamAuthentication.class);
+            authenticationSchemeRegistry.registerScheme(AwsImAuthentication.class, DefaultAwsImAuthentication.class);
         }
     }
 

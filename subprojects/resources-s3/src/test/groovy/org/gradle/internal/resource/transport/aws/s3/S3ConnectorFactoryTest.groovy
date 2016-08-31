@@ -18,7 +18,7 @@ package org.gradle.internal.resource.transport.aws.s3
 
 import org.gradle.api.credentials.AwsCredentials
 import org.gradle.internal.resource.connector.ResourceConnectorSpecification
-import org.gradle.internal.authentication.DefaultAwsIamAuthentication
+import org.gradle.internal.authentication.DefaultAwsImAuthentication
 import org.gradle.internal.authentication.AllSchemesAuthentication
 import spock.lang.Specification
 
@@ -43,7 +43,7 @@ class S3ConnectorFactoryTest extends Specification {
         setup:
         def resourceConnectorSpecification = Mock(ResourceConnectorSpecification)
         0 * resourceConnectorSpecification.getCredentials(AwsCredentials) >> null
-        1 * resourceConnectorSpecification.getAuthentications() >> [ new DefaultAwsIamAuthentication(null) ]
+        1 * resourceConnectorSpecification.getAuthentications() >> [ new DefaultAwsImAuthentication(null) ]
         
         when:
         def resourceConnector = factory.createResourceConnector(resourceConnectorSpecification)

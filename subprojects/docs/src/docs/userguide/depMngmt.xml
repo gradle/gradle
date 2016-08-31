@@ -884,7 +884,7 @@
                 <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository"/>
             </sample>
 
-            <para>You can also delegate all credentials to the AWS sdk by using the AwsIamAuthentication. The following example shows how :
+            <para>You can also delegate all credentials to the AWS sdk by using the AwsImAuthentication. The following example shows how :
             </para>
             <sample id="mavenIvyS3RepositoriesAuthWithIam" dir="userguide/artifacts/defineRepository" title="Declaring a S3 backed Maven and Ivy repository using IAM">
                 <sourcefile file="build.gradle" snippet="maven-ivy-s3-repository-with-iam"/>

@@ -97,7 +97,7 @@ publishing {
         maven {
             url "${mavenRepo.uri}"
             authentication {
-               awsIam(AwsIamAuthentication)
+               awsIm(AwsImAuthentication)
             }
         }
     }
