@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.test.fixtures.file.TestFile
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -38,16 +39,36 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     File cacheDir
 
     def setup() {
-        buildFile << """
+        // Make sure cache dir is empty for every test execution
+        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
+
+        setupProjectInDirectory(testDirectory)
+    }
+
+    private static void setupProjectInDirectory(TestFile dir, String sourceDir = "main") {
+        dir.file("build.gradle") << """
             apply plugin: "java"
         """
 
-        file("src/main/java/Hello.java") << ORIGINAL_HELLO_WORLD
-        file("src/main/resources/resource.properties") << """
+        dir.file("src/$sourceDir/java/Hello.java") << ORIGINAL_HELLO_WORLD
+        dir.file("src/$sourceDir/resources/resource.properties") << """
             test=true
         """
 
-        cacheDir = temporaryFolder.file("cache-dir").deleteDir().createDir()
+        if (sourceDir != "main") {
+            dir.file("build.gradle") << """
+                sourceSets {
+                    main {
+                        java {
+                            srcDir "src/$sourceDir/java"
+                        }
+                        resources {
+                            srcDir "src/$sourceDir/resources"
+                        }
+                    }
+                }
+            """
+        }
     }
 
     def "no task is re-executed when inputs are unchanged"() {
@@ -98,14 +119,10 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeedsWithCache "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
 
-        println "\n\n\n-----------------------------------------\n\n\n"
-
         when:
         file("src/main/java/Hello.java").text = CHANGED_HELLO_WORLD
         then:
         succeedsWithCache "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
-
-        println "\n\n\n-----------------------------------------\n\n\n"
 
         when:
         file("src/main/java/Hello.java").text = ORIGINAL_HELLO_WORLD
@@ -152,6 +169,48 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         nonSkippedTasks.contains ":clean"
     }
 
+    def "task gets loaded from cache when it is executed from a different directory"() {
+        // Compile Java in a different copy of the project
+        def remoteProjectDir = file("remote-project")
+        setupProjectInDirectory(remoteProjectDir)
+
+        when:
+        executer.inDirectory(remoteProjectDir)
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.empty
+        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+
+        // Remove the project completely
+        remoteProjectDir.deleteDir()
+
+        when:
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.containsAll ":compileJava"
+        file("build/classes/main/Hello.class").exists()
+    }
+
+    def "compile task gets loaded from cache when source is moved to another directory"() {
+        def remoteProjectDir = file("remote-project")
+        setupProjectInDirectory(remoteProjectDir, "other-than-main")
+
+        when:
+        executer.inDirectory(remoteProjectDir)
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.empty
+        remoteProjectDir.file("build/classes/main/Hello.class").exists()
+
+        remoteProjectDir.deleteDir()
+
+        when:
+        succeedsWithCache "compileJava"
+        then:
+        skippedTasks.containsAll ":compileJava"
+        file("build/classes/main/Hello.class").exists()
+    }
+
     def "cacheable task with cache disabled doesn't get cached"() {
         buildFile << """
             compileJava.outputs.cacheIf { false }
@@ -165,6 +224,26 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         then:
         // :compileJava is not cached, but :jar is still cached as its inputs haven't changed
         nonSkippedTasks.contains ":compileJava"
+    }
+
+    def "cacheable task with multiple outputs doesn't get cached"() {
+        buildFile << """
+            compileJava.outputs.files files("output1.txt", "output2.txt")
+            compileJava.doLast {
+                file("output1.txt") << "data"
+                file("output2.txt") << "data"
+            }
+        """
+
+        runWithCache "compileJava"
+        runWithCache "clean"
+
+        when:
+        succeedsWithCache "compileJava", "--info"
+        then:
+        // :compileJava is not cached, but :jar is still cached as its inputs haven't changed
+        nonSkippedTasks.contains ":compileJava"
+        output.contains "Not caching task ':compileJava' because it declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`"
     }
 
     def "non-cacheable task with cache enabled gets cached"() {

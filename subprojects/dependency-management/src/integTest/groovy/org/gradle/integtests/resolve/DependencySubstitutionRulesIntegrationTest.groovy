@@ -703,7 +703,7 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         then:
         failure.assertHasDescription("Execution failed for task ':impl:checkDeps'.")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':impl:conf'.")
-        failure.assertHasCause("project ':doesnotexist' not found.")
+        failure.assertHasCause("project :doesnotexist not found.")
     }
 
     void "replacing external module dependency with project dependency keeps the original configuration"()

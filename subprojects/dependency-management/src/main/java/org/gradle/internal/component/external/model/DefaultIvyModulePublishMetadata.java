@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState;
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
@@ -41,6 +42,7 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     private final ModuleComponentIdentifier id;
     private final MutableModuleDescriptorState descriptor;
     private final Map<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata> artifactsById = new LinkedHashMap<ModuleComponentArtifactIdentifier, IvyModuleArtifactPublishMetadata>();
+    private final Map<String, Configuration> configurations = new LinkedHashMap<String, Configuration>();
     private final Set<LocalOriginDependencyMetadata> dependencies = new LinkedHashSet<LocalOriginDependencyMetadata>();
 
     public DefaultIvyModulePublishMetadata(ModuleComponentIdentifier id, String status) {
@@ -62,6 +64,11 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     }
 
     @Override
+    public Map<String, Configuration> getConfigurations() {
+        return configurations;
+    }
+
+    @Override
     public Collection<LocalOriginDependencyMetadata> getDependencies() {
         return dependencies;
     }
@@ -70,7 +77,8 @@ public class DefaultIvyModulePublishMetadata implements BuildableIvyModulePublis
     public void addConfiguration(String name, String description, Set<String> extendsFrom, Set<String> hierarchy, boolean visible, boolean transitive, TaskDependency buildDependencies) {
         List<String> sortedExtends = Lists.newArrayList(extendsFrom);
         Collections.sort(sortedExtends);
-        descriptor.addConfiguration(name, transitive, visible, sortedExtends);
+        Configuration configuration = new Configuration(name, transitive, visible, sortedExtends);
+        configurations.put(name, configuration);
     }
 
     @Override

@@ -23,30 +23,45 @@ class OrderSensitiveTaskFilePropertyCompareStrategyTest extends AbstractTaskFile
 
     def "detects addition"() {
         expect:
-        changes([snapshot("one"), snapshot("two")], [snapshot("one")]) == [change("two", ADDED)]
+        changes(
+            ["one-new": snapshot("one"), "two-new": snapshot("two")],
+            ["one-old": snapshot("one")]
+        ) == [change("two-new", ADDED)]
     }
 
     def "detects deletion"() {
         expect:
-        changes([snapshot("one")], [snapshot("one"), snapshot("two")]) == [change("two", REMOVED)]
+        changes(
+            ["one-new": snapshot("one")],
+            ["one-old": snapshot("one"), "two-old": snapshot("two")]
+        ) == [change("two-old", REMOVED)]
     }
 
     def "detects modification"() {
         expect:
-        changes([snapshot("one"), snapshot("two", false)], [snapshot("one"), snapshot("two")]) == [change("two", MODIFIED)]
+        changes(
+            ["one-new": snapshot("one"), "two-new": snapshot("two", "9876fdcb")],
+            ["one-old": snapshot("one"), "two-old": snapshot("two", "abcd1234")]
+        ) == [change("two-new", MODIFIED)]
     }
 
     def "detects replacement"() {
         expect:
-        changes([snapshot("one"), snapshot("two"), snapshot("four")], [snapshot("one"), snapshot("three"), snapshot("four")]) == [change("two", REPLACED)]
+        changes(
+            ["one-new": snapshot("one"), "two-new": snapshot("two"), "four-new": snapshot("four")],
+            ["one-old": snapshot("one"), "three-old": snapshot("three"), "four-old": snapshot("four")]
+        ) == [change("two-new", REPLACED)]
     }
 
     def "detects reordering"() {
         expect:
-        changes([snapshot("one"), snapshot("two"), snapshot("three")], [snapshot("one"), snapshot("three"), snapshot("two")]) == [change("two", REPLACED), change("three", REPLACED)]
+        changes(
+            ["one-new": snapshot("one"), "two-new": snapshot("two"), "three-new": snapshot("three")],
+            ["one-old": snapshot("one"), "three-old": snapshot("three"), "two-old": snapshot("two")]
+        ) == [change("two-new", REPLACED), change("three-new", REPLACED)]
     }
 
-    def changes(Collection<NormalizedFileSnapshot> current, Collection<NormalizedFileSnapshot> previous) {
+    def changes(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
         return super.changes(strategy, current, previous)
     }
 }

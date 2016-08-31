@@ -16,19 +16,23 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.initialization.IncludedBuildExecuter;
+import org.gradle.initialization.IncludedBuilds;
 
-import java.util.Collections;
+import java.util.Collection;
+import java.util.Set;
 
 import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
 
 public class CompositeBuildTaskDelegate extends DefaultTask {
     private String build;
-    private String task;
+    private Set<String> tasks = Sets.newLinkedHashSet();
 
     @Input
     public String getBuild() {
@@ -40,18 +44,20 @@ public class CompositeBuildTaskDelegate extends DefaultTask {
     }
 
     @Input
-    public String getTask() {
-        return task;
+    public Collection<String> getTasks() {
+        return tasks;
     }
 
-    public void setTask(String task) {
-        this.task = task;
+    public void addTask(String task) {
+        this.tasks.add(task);
     }
 
     @TaskAction
-    public void executeTaskInOtherBuild() {
+    public void executeTasksInOtherBuild() {
+        IncludedBuilds includedBuilds = getServices().get(IncludedBuilds.class);
         IncludedBuildExecuter builder = getServices().get(IncludedBuildExecuter.class);
-        ProjectComponentIdentifier id = newProjectId(build, ":");
-        builder.execute(id, Collections.singleton(task));
+        IncludedBuild includedBuild = includedBuilds.getBuild(build);
+        ProjectComponentIdentifier id = newProjectId(includedBuild, ":");
+        builder.execute(id, tasks);
     }
 }

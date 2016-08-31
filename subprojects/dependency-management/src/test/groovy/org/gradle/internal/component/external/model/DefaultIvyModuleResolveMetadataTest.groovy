@@ -17,19 +17,46 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
+import org.gradle.internal.component.model.DependencyMetadata
 
 class DefaultIvyModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
-
     @Override
-    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
-        return new DefaultIvyModuleResolveMetadata(new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor))
+    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
+        return new DefaultIvyModuleResolveMetadata(new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor, configurations, dependencies))
+    }
+
+    def "builds and caches the configuration meta-data from the module descriptor"() {
+        when:
+        configuration("conf")
+
+        then:
+        metadata.getConfiguration("conf").transitive
+        metadata.getConfiguration("conf").visible
+    }
+
+    def "builds and caches hierarchy for a configuration"() {
+        given:
+        configuration("a")
+        configuration("b", ["a"])
+        configuration("c", ["a"])
+        configuration("d", ["b", "c"])
+
+        when:
+        def md = metadata
+
+        then:
+        md.getConfiguration("a").hierarchy == ["a"] as Set
+        md.getConfiguration("b").hierarchy == ["a", "b"] as Set
+        md.getConfiguration("c").hierarchy == ["a", "c"] as Set
+        md.getConfiguration("d").hierarchy == ["a", "b", "c", "d"] as Set
     }
 
     def "getBranch returns branch from moduleDescriptor" () {
         setup:
         moduleDescriptor.setBranch(expectedBranch)
-        def metadataWithBranch = new DefaultIvyModuleResolveMetadata(new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor))
+        def metadataWithBranch = new DefaultIvyModuleResolveMetadata(new DefaultMutableIvyModuleResolveMetadata(id, moduleDescriptor, [], []))
 
         expect:
         metadataWithBranch.branch == expectedBranch

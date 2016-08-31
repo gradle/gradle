@@ -78,7 +78,10 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
                         } else {
                             snapshot = new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(), fileDetails.getLastModified());
                         }
-                        snapshots.put(absolutePath, pathSensitivity.getNormalizedSnapshot(fileDetails, snapshot, stringInterner));
+                        NormalizedFileSnapshot normalizedSnapshot = pathSensitivity.getNormalizedSnapshot(fileDetails, snapshot, stringInterner);
+                        if (normalizedSnapshot != null) {
+                            snapshots.put(absolutePath, normalizedSnapshot);
+                        }
                     }
                 }
                 for (FileTreeElement missingFileDetails : missingFiles) {

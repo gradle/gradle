@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Incubating;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.changedetection.state.PathSensitivity;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.HasInternalProtocol;
 

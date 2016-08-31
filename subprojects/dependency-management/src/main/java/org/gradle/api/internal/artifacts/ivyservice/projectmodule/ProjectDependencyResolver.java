@@ -59,8 +59,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             ProjectComponentIdentifier project = newProjectId(selector);
             LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(project);
             if (componentMetaData == null) {
-                // TODO:DAZ use ProjectId for reporting (or selector)
-                result.failed(new ModuleVersionResolveException(selector, "project '" + project.getProjectPath() + "' not found."));
+                result.failed(new ModuleVersionResolveException(selector, project + " not found."));
             } else {
                 result.resolved(componentMetaData);
             }
@@ -73,9 +72,7 @@ public class ProjectDependencyResolver implements ComponentMetaDataResolver, Dep
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) identifier;
             LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(projectId);
             if (componentMetaData == null) {
-                String projectPath = projectId.getProjectPath();
-                // TODO:DAZ Use the projectId in the exception message, too
-                result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), "project '" + projectPath + "' not found."));
+                result.failed(new ModuleVersionResolveException(DefaultProjectComponentSelector.newSelector(projectId), projectId + " not found."));
             } else {
                 result.resolved(componentMetaData);
             }

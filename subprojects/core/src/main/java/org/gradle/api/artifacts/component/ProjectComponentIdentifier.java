@@ -25,6 +25,13 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface ProjectComponentIdentifier extends ComponentIdentifier {
     /**
+     * Identifies the build that contains the project component.
+     *
+     * @return The build identifier
+     */
+    BuildIdentifier getBuild();
+
+    /**
      * Returns the path of the project which the component belongs to.
      *
      * @since 1.10

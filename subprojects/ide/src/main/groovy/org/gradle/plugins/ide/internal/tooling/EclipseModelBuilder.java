@@ -17,10 +17,12 @@
 package org.gradle.plugins.ide.internal.tooling;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.composite.CompositeBuildIdeProjectResolver;
+import org.gradle.api.specs.Spec;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugins.ide.eclipse.EclipsePlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
@@ -53,24 +55,24 @@ import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseSourceDirec
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultEclipseTask;
 import org.gradle.plugins.ide.internal.tooling.java.DefaultInstalledJdk;
 import org.gradle.tooling.internal.gradle.DefaultGradleProject;
-import org.gradle.tooling.provider.model.internal.ProjectToolingModelBuilder;
+import org.gradle.tooling.provider.model.ToolingModelBuilder;
+import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class EclipseModelBuilder implements ProjectToolingModelBuilder {
+public class EclipseModelBuilder implements ToolingModelBuilder {
     private final GradleProjectBuilder gradleProjectBuilder;
     private final CompositeBuildIdeProjectResolver compositeProjectMapper;
 
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject result;
-    private final Map<String, DefaultEclipseProject> projectMapping = new HashMap<String, DefaultEclipseProject>();
+    private final List<DefaultEclipseProject> eclipseProjects = Lists.newArrayList();
     private TasksFactory tasksFactory;
     private DefaultGradleProject<?> rootGradleProject;
     private Project currentProject;
@@ -84,19 +86,6 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
     public boolean canBuild(String modelName) {
         return modelName.equals("org.gradle.tooling.model.eclipse.EclipseProject")
             || modelName.equals("org.gradle.tooling.model.eclipse.HierarchicalEclipseProject");
-    }
-
-    @Override
-    public void addModels(String modelName, Project project, Map<String, Object> models) {
-        DefaultEclipseProject eclipseProject = buildAll(modelName, project);
-        addModels(eclipseProject, models);
-    }
-
-    private void addModels(DefaultEclipseProject eclipseProject, Map<String, Object> models) {
-        models.put(eclipseProject.getPath(), eclipseProject);
-        for (DefaultEclipseProject childProject : eclipseProject.getChildren()) {
-            addModels(childProject, models);
-        }
     }
 
     @Override
@@ -147,7 +136,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         if (project == currentProject) {
             result = eclipseProject;
         }
-        projectMapping.put(project.getPath(), eclipseProject);
+        eclipseProjects.add(eclipseProject);
     }
 
     private void populate(Project project) {
@@ -183,14 +172,16 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
                 externalDependencies.add(dependency);
             } else if (entry instanceof ProjectDependency) {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
+                // TODO:DAZ By removing the leading "/", this is no longer a "path" as defined by Eclipse
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
-                DefaultEclipseProject targetProject = projectMapping.get(projectDependency.getGradlePath());
                 DefaultEclipseProjectDependency dependency;
-                if (targetProject == null) {
-                    File projectDirectory = compositeProjectMapper.getProjectDirectory(projectDependency.getGradlePath());
-                    dependency = new DefaultEclipseProjectDependency(path, projectDirectory, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
-                } else {
+                DefaultEclipseProject targetProject = findEclipseProjectByName(path);
+                if (targetProject != null) {
                     dependency = new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
+                } else {
+                    // TODO:DAZ Maybe remove this altogether?
+                    File projectDirectory = compositeProjectMapper.getProjectDirectory(projectDependency.getGradleProjectId());
+                    dependency = new DefaultEclipseProjectDependency(path, projectDirectory, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
                 }
                 projectDependencies.add(dependency);
             } else if (entry instanceof SourceFolder) {
@@ -208,7 +199,7 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             }
         }
 
-        DefaultEclipseProject eclipseProject = projectMapping.get(project.getPath());
+        DefaultEclipseProject eclipseProject = findEclipseProject(project);
         eclipseProject.setClasspath(externalDependencies);
         eclipseProject.setProjectDependencies(projectDependencies);
         eclipseProject.setSourceDirectories(sourceDirectories);
@@ -233,7 +224,11 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
 
         List<DefaultEclipseBuildCommand> buildCommands = new ArrayList<DefaultEclipseBuildCommand>();
         for (BuildCommand b : eclipseModel.getProject().getBuildCommands()) {
-            buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), b.getArguments()));
+            Map<String, String> arguments = Maps.newLinkedHashMap();
+            for (Map.Entry<String, String> entry : b.getArguments().entrySet()) {
+                arguments.put(convertGString(entry.getKey()), convertGString(entry.getValue()));
+            }
+            buildCommands.add(new DefaultEclipseBuildCommand(b.getName(), arguments));
         }
         eclipseProject.setBuildCommands(buildCommands);
         EclipseJdt jdt = eclipseModel.getJdt();
@@ -254,13 +249,30 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
         }
     }
 
+    private DefaultEclipseProject findEclipseProject(final Project project) {
+        return CollectionUtils.findFirst(eclipseProjects, new Spec<DefaultEclipseProject>() {
+            @Override
+            public boolean isSatisfiedBy(DefaultEclipseProject element) {
+                return element.getPath().equals(project.getPath());
+            }
+        });
+    }
+
+    private DefaultEclipseProject findEclipseProjectByName(final String eclipseProjectName) {
+        return CollectionUtils.findFirst(eclipseProjects, new Spec<DefaultEclipseProject>() {
+            @Override
+            public boolean isSatisfiedBy(DefaultEclipseProject element) {
+                return element.getName().equals(eclipseProjectName);
+            }
+        });
+    }
+
     private static List<DefaultClasspathAttribute> createAttributes(AbstractClasspathEntry classpathEntry) {
         List<DefaultClasspathAttribute> result = Lists.newArrayList();
         Map<String, Object> attributes = classpathEntry.getEntryAttributes();
-        attributes.entrySet();
         for (Map.Entry<String, Object> entry : attributes.entrySet()) {
             Object value = entry.getValue();
-            result.add(new DefaultClasspathAttribute(entry.getKey(), value == null ? "" : value.toString()));
+            result.add(new DefaultClasspathAttribute(convertGString(entry.getKey()), value == null ? "" : value.toString()));
         }
         return result;
     }
@@ -271,5 +283,15 @@ public class EclipseModelBuilder implements ProjectToolingModelBuilder {
             result.add(new DefaultAccessRule(Integer.parseInt(accessRule.getKind()), accessRule.getPattern()));
         }
         return result;
+    }
+
+    /*
+     * Groovy manipulates the JVM to let GString extend String.
+     * Whenever we have a Set or Map containing Strings, it might also
+     * contain GStrings. This breaks deserialization on the client.
+     * This method forces GString to String conversion.
+     */
+    private static String convertGString(CharSequence original) {
+        return original.toString();
     }
 }

@@ -20,22 +20,21 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Pieces of an ivy module descriptor, which are here as we migrate away from the Ivy model
+ */
 public class ModuleDescriptorState {
     // The identifier extracted from the descriptor itself. May be different to the id of the containing module
     private final ModuleComponentIdentifier componentIdentifier;
-    protected final Map<String, Configuration> configurations;
     protected final List<Exclude> excludes;
-    protected final List<DependencyMetadata> dependencies;
     private final List<Artifact> artifacts = Lists.newArrayList();
     private final String status;
     private final boolean generated;
@@ -52,9 +51,7 @@ public class ModuleDescriptorState {
         this.status = status;
         this.generated = generated;
         extraInfo = Maps.newHashMap();
-        configurations = Maps.newHashMap();
         excludes = Lists.newArrayList();
-        dependencies = Lists.newArrayList();
     }
 
     public ModuleComponentIdentifier getComponentIdentifier() {
@@ -84,18 +81,6 @@ public class ModuleDescriptorState {
         return status;
     }
 
-    public Set<String> getConfigurationsNames() {
-        return configurations.keySet();
-    }
-
-    public Configuration getConfiguration(String name) {
-        return configurations.get(name);
-    }
-
-    public Collection<Configuration> getConfigurations() {
-        return configurations.values();
-    }
-
     public List<Artifact> getArtifacts() {
         return artifacts;
     }
@@ -103,14 +88,6 @@ public class ModuleDescriptorState {
     public void addArtifact(IvyArtifactName newArtifact, Set<String> configurations) {
         if (configurations.isEmpty()) {
             throw new IllegalArgumentException("Artifact should be attached to at least one configuration.");
-        }
-        Set<String> configurationNames = getConfigurationsNames();
-        for (String configuration : configurations) {
-            if (!configurationNames.contains(configuration)) {
-                throw new IllegalArgumentException("Cannot add artifact '" + newArtifact
-                        + "' to configuration '" + configuration + "' of module " + getComponentIdentifier()
-                        + " because this configuration doesn't exist!");
-            }
         }
         Artifact artifact = findOrCreate(newArtifact);
         artifact.getConfigurations().addAll(configurations);
@@ -125,10 +102,6 @@ public class ModuleDescriptorState {
         Artifact newArtifact = new Artifact(artifactName);
         artifacts.add(newArtifact);
         return newArtifact;
-    }
-
-    public List<DependencyMetadata> getDependencies() {
-        return dependencies;
     }
 
     public List<Exclude> getExcludes() {

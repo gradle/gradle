@@ -16,9 +16,12 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.base.Objects;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.internal.hash.HashUtil;
 
 public enum TaskFilePropertyPathSensitivityType {
     /**
@@ -58,6 +61,9 @@ public enum TaskFilePropertyPathSensitivityType {
     NONE {
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+            if (fileDetails.isDirectory()) {
+                return null;
+            }
             return new IgnoredPathFileSnapshot(snapshot);
         }
     };
@@ -169,7 +175,24 @@ public enum TaskFilePropertyPathSensitivityType {
             if (!(o instanceof IgnoredPathFileSnapshot)) {
                 return -1;
             }
-            return AbstractNormalizedFileSnapshot.compareHashCodes(this, o);
+            return HashUtil.compareHashCodes(getSnapshot().getHash(), o.getSnapshot().getHash());
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            IgnoredPathFileSnapshot that = (IgnoredPathFileSnapshot) o;
+            return Objects.equal(snapshot, that.snapshot);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(snapshot);
         }
     }
 }

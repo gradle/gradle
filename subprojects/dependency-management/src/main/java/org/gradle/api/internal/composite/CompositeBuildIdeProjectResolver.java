@@ -26,8 +26,6 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
-
 // TODO:DAZ Split out the non-composite resolution stuff and name appropriately
 public class CompositeBuildIdeProjectResolver {
     private final CompositeBuildContext compositeContext;
@@ -40,9 +38,8 @@ public class CompositeBuildIdeProjectResolver {
         artifactBuilders = services.getAll(ProjectArtifactBuilder.class);
     }
 
-    public File getProjectDirectory(String projectPath) {
-        ProjectComponentIdentifier projectComponentIdentifier = newProjectId(projectPath);
-        return compositeContext.getProjectDirectory(projectComponentIdentifier);
+    public File getProjectDirectory(ProjectComponentIdentifier projectId) {
+        return compositeContext.getProjectDirectory(projectId);
     }
 
     public Set<ProjectComponentIdentifier> getProjectsInComposite() {

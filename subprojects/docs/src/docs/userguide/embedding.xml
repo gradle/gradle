@@ -90,21 +90,8 @@
             The main entry point to the Tooling API is the <apilink class="org.gradle.tooling.GradleConnector"/>. You can navigate from there to find code samples and
             explore the available Tooling API models.
 
-            There are two ways of using the <literal>GradleConnector</literal> to connect to a Gradle build.
-            <itemizedlist>
-                <listitem>
-                    You can use <apilink class="org.gradle.tooling.GradleConnector" method="connect()"/> to create a <apilink class="org.gradle.tooling.ProjectConnection"/>.
-                    A <literal>ProjectConnection</literal> connects to a single Gradle project. Using the connection you can execute tasks, tests and retrieve models relative to this project.
-                    This is the original API provided by the Tooling API. Use this API when you wish to use a stable non-incubating API.
-                </listitem>
-                <listitem>
-                    You can use <apilink class="org.gradle.tooling.GradleConnector" method="newGradleConnection()"/> to create a
-                    <apilink class="org.gradle.tooling.connection.GradleConnectionBuilder"/>.
-                    <literal>GradleConnectionBuilder</literal> can be used to connect to any number of Gradle builds at one time. Executing tasks and retrieving models are performed in the context
-                    of the composite. Instead of retrieving a single model for a single Gradle project, the Tooling API can provide all models for all projects with a single method call.
-                    Note that this API is currently <link linkend="feature_lifecycle">incubating</link> and may change at any time.
-                </listitem>
-            </itemizedlist>
+            You can use <apilink class="org.gradle.tooling.GradleConnector" method="connect()"/> to create a <apilink class="org.gradle.tooling.ProjectConnection"/>.
+            A <literal>ProjectConnection</literal> connects to a single Gradle project. Using the connection you can execute tasks, tests and retrieve models relative to this project.
         </para>
     </section>
 

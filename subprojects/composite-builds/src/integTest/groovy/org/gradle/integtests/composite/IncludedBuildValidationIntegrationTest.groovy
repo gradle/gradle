@@ -87,4 +87,44 @@ class IncludedBuildValidationIntegrationTest extends AbstractCompositeBuildInteg
         failure.assertHasDescription("A problem occurred evaluating settings 'buildA'.")
         failure.assertHasCause("Included build 'buildB' cannot have included builds.")
     }
+
+
+    def "reports failure for duplicate included build name"() {
+        given:
+        def buildC = singleProjectBuild("buildC")
+        buildC.settingsFile.text = "rootProject.name = 'buildB'"
+        includedBuilds << buildB << buildC
+
+        when:
+        fails(buildA, "help")
+
+        then:
+        failure.assertHasDescription("Included build 'buildB' is not unique in composite.")
+    }
+
+    def "reports failure for included build name that conflicts with subproject name"() {
+        given:
+        buildA.settingsFile << """
+            include 'buildB'
+"""
+        includedBuilds << buildB
+
+        when:
+        fails(buildA, "help")
+
+        then:
+        failure.assertHasDescription("Included build 'buildB' collides with subproject of the same name.")
+    }
+
+    def "reports failure for included build name that conflicts with root project name"() {
+        def buildC = singleProjectBuild("buildC")
+        buildC.settingsFile.text = "rootProject.name = 'buildA'"
+        includedBuilds << buildC
+
+        when:
+        fails(buildA, "help")
+
+        then:
+        failure.assertHasDescription("Included build 'buildA' collides with root project name.")
+    }
 }

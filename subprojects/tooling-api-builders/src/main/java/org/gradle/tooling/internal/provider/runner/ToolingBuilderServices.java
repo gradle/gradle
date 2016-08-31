@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
-import org.gradle.internal.composite.CompositeBuildActionRunner;
 import org.gradle.internal.invocation.BuildActionRunner;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
@@ -36,7 +35,6 @@ public class ToolingBuilderServices implements PluginServiceRegistry {
                                                                 new ClientProvidedBuildActionRunner())));
             }
         });
-        registration.addProvider(new CompositeBuildToolingGlobalScopeServices());
 
     }
 
@@ -52,11 +50,5 @@ public class ToolingBuilderServices implements PluginServiceRegistry {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-    }
-
-    private static class CompositeBuildToolingGlobalScopeServices {
-        public CompositeBuildActionRunner createCompositeBuildActionRunner() {
-            return new CompositeBuildModelActionRunner();
-        }
     }
 }

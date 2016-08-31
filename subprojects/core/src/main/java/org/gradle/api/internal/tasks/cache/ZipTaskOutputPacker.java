@@ -26,9 +26,10 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec;
+import org.gradle.api.internal.tasks.CacheableTaskOutputFilePropertySpec.OutputType;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec;
-import org.gradle.api.internal.tasks.TaskOutputFilePropertySpec.OutputType;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +46,8 @@ public class ZipTaskOutputPacker implements TaskOutputPacker {
     @Override
     public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
         final ZipOutputStream zipOutput = new ZipOutputStream(output);
-        for (TaskOutputFilePropertySpec propertySpec : taskOutputs.getFileProperties()) {
+        for (TaskOutputFilePropertySpec spec : taskOutputs.getFileProperties()) {
+            CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) spec;
             final String propertyName = propertySpec.getPropertyName();
             switch (propertySpec.getOutputType()) {
                 case DIRECTORY:
@@ -109,7 +111,7 @@ public class ZipTaskOutputPacker implements TaskOutputPacker {
                 continue;
             }
             String propertyName = matcher.group(1);
-            TaskOutputFilePropertySpec propertySpec = propertySpecs.get(propertyName);
+            CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) propertySpecs.get(propertyName);
             if (propertySpec == null) {
                 throw new IllegalStateException(String.format("No output property '%s' registered", propertyName));
             }

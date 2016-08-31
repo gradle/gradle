@@ -39,7 +39,6 @@ import org.gradle.tooling.*;
 import org.gradle.tooling.model.*;
 import org.gradle.tooling.model.build.*;
 import org.gradle.tooling.model.gradle.*;
-import org.gradle.tooling.connection.*;
 import java.io.*;
 
 public class Sample {

@@ -34,7 +34,7 @@ import static org.gradle.internal.component.local.model.DefaultProjectComponentI
 public class DefaultProjectLocalComponentProvider implements ProjectLocalComponentProvider {
     private final ProjectRegistry<ProjectInternal> projectRegistry;
     private final ConfigurationComponentMetaDataBuilder metaDataBuilder;
-    private final ListMultimap<ProjectComponentIdentifier, LocalComponentArtifactMetadata> registeredArtifacts = ArrayListMultimap.create();
+    private final ListMultimap<String, LocalComponentArtifactMetadata> registeredArtifacts = ArrayListMultimap.create();
 
     public DefaultProjectLocalComponentProvider(ProjectRegistry<ProjectInternal> projectRegistry, ConfigurationComponentMetaDataBuilder metaDataBuilder) {
         this.projectRegistry = projectRegistry;
@@ -42,11 +42,18 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
     }
 
     public LocalComponentMetadata getComponent(ProjectComponentIdentifier projectIdentifier) {
-        ProjectInternal project = projectRegistry.getProject(getLocalIdentifier(projectIdentifier).getProjectPath());
+        if (!isLocalProject(projectIdentifier)) {
+            return null;
+        }
+        ProjectInternal project = projectRegistry.getProject(projectIdentifier.getProjectPath());
         if (project == null) {
             return null;
         }
         return getLocalComponentMetaData(project);
+    }
+
+    private boolean isLocalProject(ProjectComponentIdentifier projectIdentifier) {
+        return projectIdentifier.getBuild().isCurrentBuild();
     }
 
     private LocalComponentMetadata getLocalComponentMetaData(ProjectInternal project) {
@@ -60,28 +67,22 @@ public class DefaultProjectLocalComponentProvider implements ProjectLocalCompone
 
     @Override
     public void registerAdditionalArtifact(ProjectComponentIdentifier project, LocalComponentArtifactMetadata artifact) {
-        registeredArtifacts.put(getLocalIdentifier(project), artifact);
+        if (!isLocalProject(project)) {
+            return;
+        }
+        registeredArtifacts.put(project.getProjectPath(), artifact);
     }
 
     @Override
     public Iterable<LocalComponentArtifactMetadata> getAdditionalArtifacts(ProjectComponentIdentifier projectIdentifier) {
-        ProjectComponentIdentifier localIdentifier = getLocalIdentifier(projectIdentifier);
-        if (registeredArtifacts.containsKey(localIdentifier)) {
-            return registeredArtifacts.get(localIdentifier);
+        if (!isLocalProject(projectIdentifier)) {
+            return null;
+        }
+        String projectPath = projectIdentifier.getProjectPath();
+        if (registeredArtifacts.containsKey(projectPath)) {
+            return registeredArtifacts.get(projectPath);
         }
         return null;
     }
 
-    private ProjectComponentIdentifier getLocalIdentifier(ProjectComponentIdentifier projectIdentifier) {
-        // TODO:DAZ Introduce a properly typed ComponentIdentifier for project components in a composite
-        if (projectIdentifier.getProjectPath().contains("::")) {
-            String[] parts = projectIdentifier.getProjectPath().split("::", 2);
-            String buildName = parts[0];
-            String rootProjectName = projectRegistry.getProject(":").getName();
-            if (rootProjectName.equals(buildName)) {
-                return newProjectId(":" + parts[1]);
-            }
-        }
-        return projectIdentifier;
-    }
 }

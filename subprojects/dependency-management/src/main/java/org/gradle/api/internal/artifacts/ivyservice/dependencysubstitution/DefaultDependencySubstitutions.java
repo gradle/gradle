@@ -25,13 +25,18 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
+import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Actions;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
-import org.gradle.internal.typeconversion.*;
+import org.gradle.internal.typeconversion.NotationConvertResult;
+import org.gradle.internal.typeconversion.NotationConverter;
+import org.gradle.internal.typeconversion.NotationParser;
+import org.gradle.internal.typeconversion.NotationParserBuilder;
+import org.gradle.internal.typeconversion.TypeConversionException;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -57,10 +62,10 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         return new DefaultDependencySubstitutions(VersionSelectionReasons.SELECTED_BY_RULE, PROJECT_SELECTOR_NOTATION_PARSER);
     }
 
-    public static DefaultDependencySubstitutions forIncludedBuild(String buildName) {
+    public static DefaultDependencySubstitutions forIncludedBuild(IncludedBuild build) {
         NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
                 .toType(ComponentSelector.class)
-                .fromCharSequence(new CompositeProjectPathConverter(buildName))
+                .fromCharSequence(new CompositeProjectPathConverter(build))
                 .toComposite();
         return new DefaultDependencySubstitutions(VersionSelectionReasons.COMPOSITE_BUILD, projectSelectorNotationParser);
     }
@@ -169,10 +174,10 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     }
 
     private static class CompositeProjectPathConverter implements NotationConverter<String, ProjectComponentSelector> {
-        private final String buildName;
+        private final IncludedBuild build;
 
-        private CompositeProjectPathConverter(String buildName) {
-            this.buildName = buildName;
+        private CompositeProjectPathConverter(IncludedBuild build) {
+            this.build = build;
         }
 
         @Override
@@ -182,7 +187,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
         @Override
         public void convert(String notation, NotationConvertResult<? super ProjectComponentSelector> result) throws TypeConversionException {
-            result.converted(DefaultProjectComponentSelector.newSelector(buildName, notation));
+            result.converted(DefaultProjectComponentSelector.newSelector(build, notation));
         }
     }
 

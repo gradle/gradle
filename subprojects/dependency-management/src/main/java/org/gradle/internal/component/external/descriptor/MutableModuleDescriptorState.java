@@ -18,11 +18,9 @@ package org.gradle.internal.component.external.descriptor;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.IvyArtifactName;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
@@ -39,7 +37,6 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
 
     public static MutableModuleDescriptorState createModuleDescriptor(ModuleComponentIdentifier componentIdentifier, Set<IvyArtifactName> componentArtifacts) {
         MutableModuleDescriptorState moduleDescriptorState = new MutableModuleDescriptorState(componentIdentifier);
-        moduleDescriptorState.addConfiguration(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION, true, true, Collections.<String>emptySet());
 
         for (IvyArtifactName artifactName : componentArtifacts) {
             moduleDescriptorState.addArtifact(artifactName, Collections.singleton(org.gradle.api.artifacts.Dependency.DEFAULT_CONFIGURATION));
@@ -65,17 +62,7 @@ public class MutableModuleDescriptorState extends ModuleDescriptorState {
         this.publicationDate = publicationDate;
     }
 
-    public void addConfiguration(String name, boolean transitive, boolean visible, Collection<String> extendsFrom) {
-        Configuration configuration = new Configuration(name, transitive, visible, extendsFrom);
-        configurations.put(name, configuration);
-    }
-
     public void addExclude(Exclude exclude) {
         excludes.add(exclude);
-    }
-
-    public <T extends DependencyMetadata> T addDependency(T dependency) {
-        dependencies.add(dependency);
-        return dependency;
     }
 }

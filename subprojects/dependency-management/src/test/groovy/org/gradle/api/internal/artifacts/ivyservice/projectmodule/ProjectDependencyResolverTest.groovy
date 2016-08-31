@@ -103,7 +103,7 @@ class ProjectDependencyResolverTest extends Specification {
 
         then:
         1 * result.failed(_) >> { ModuleVersionResolveException failure ->
-            assert failure.message == "project ':doesnotexist' not found."
+            assert failure.message == "project :doesnotexist not found."
         }
         0 * _
     }

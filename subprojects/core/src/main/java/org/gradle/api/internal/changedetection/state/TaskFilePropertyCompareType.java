@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
@@ -34,6 +35,9 @@ public enum TaskFilePropertyCompareType implements TaskFilePropertyCompareStrate
     }
 
     public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType) {
+        if (current.isEmpty() && previous.isEmpty()) {
+            return Iterators.emptyIterator();
+        }
         return strategy.iterateContentChangesSince(current, previous, fileType);
     }
 

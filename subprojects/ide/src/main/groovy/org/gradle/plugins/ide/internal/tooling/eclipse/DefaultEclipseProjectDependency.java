@@ -27,6 +27,9 @@ public class DefaultEclipseProjectDependency extends DefaultEclipseDependency im
 
     private final DefaultEclipseProject targetProject;
 
+    /**
+     * Creates a dependency on an project in a different Gradle build.
+     */
     public DefaultEclipseProjectDependency(String path, DefaultEclipseProject targetProject, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
         super(exported, attributes, accessRules);
         this.targetProject = targetProject;
@@ -34,6 +37,9 @@ public class DefaultEclipseProjectDependency extends DefaultEclipseDependency im
         this.targetIdentifier = new DefaultEclipseProjectIdentifier(targetProject.getProjectDirectory());
     }
 
+    /**
+     * Creates a dependency on an project in a different Gradle build.
+     */
     public DefaultEclipseProjectDependency(String path, File targetProjectDirectory, boolean exported, List<DefaultClasspathAttribute> attributes, List<DefaultAccessRule> accessRules) {
         super(exported, attributes, accessRules);
         this.targetProject = null;

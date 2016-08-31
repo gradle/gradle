@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.internal.component.model.Exclude;
 
 public interface ExcludeRuleConverter {
-    Exclude convertExcludeRule(String configuration, org.gradle.api.artifacts.ExcludeRule excludeRule);
+    Exclude convertExcludeRule(String configuration, ExcludeRule excludeRule);
 }

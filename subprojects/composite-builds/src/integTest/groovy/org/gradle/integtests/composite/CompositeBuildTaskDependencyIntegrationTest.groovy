@@ -38,22 +38,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         includedBuilds << buildB
     }
 
-    def "can delegate to task in root project of included build"() {
-        when:
-        buildA.buildFile << """
-    task delegate(type: org.gradle.composite.internal.CompositeBuildTaskDelegate) {
-        build = 'buildB'
-        task = ':logProject'
-    }
-"""
-
-        execute(buildA, ":delegate")
-
-        then:
-        executed ":buildB:logProject"
-        output.contains("Executing build 'buildB' project ':' task ':logProject'")
-    }
-
     def "can depend on task in root project of included build"() {
         when:
         buildA.buildFile << """
@@ -67,22 +51,6 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         then:
         executed ":buildB:logProject"
         output.contains("Executing build 'buildB' project ':' task ':logProject'")
-    }
-
-    def "can delegate to task in subproject of included build"() {
-        when:
-        buildA.buildFile << """
-    task delegate(type: org.gradle.composite.internal.CompositeBuildTaskDelegate) {
-        build = 'buildB'
-        task = ':b1:logProject'
-    }
-"""
-
-        execute(buildA, ":delegate")
-
-        then:
-        executed ":buildB:b1:logProject"
-        output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 
     def "can depend on task in subproject of included build"() {
@@ -126,6 +94,61 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
     }
 
+    def "executes tasks only once for included build"() {
+        when:
+        buildA.buildFile << """
+    def buildB = gradle.includedBuild('buildB')
+    task delegate {
+        dependsOn buildB.task(':b1:logProject')
+        dependsOn buildB.task(':b2:logProject')
+    }
+"""
+        buildB.buildFile << """
+    project(":b1") {
+        logProject.dependsOn(':b2:logProject')
+    }
+"""
+
+        execute(buildA, ":delegate")
+
+        then:
+        executed ":buildB:b2:logProject", ":buildB:b1:logProject"
+        output.contains("Executing build 'buildB' project ':b2' task ':b2:logProject'")
+        output.contains("Executing build 'buildB' project ':b1' task ':b1:logProject'")
+    }
+
+    def "can depend on task from subproject of composing build"() {
+        given:
+        buildA.settingsFile << """
+    include 'a1'
+"""
+        buildA.buildFile << """
+    task("top-level") {
+        dependsOn ':a1:delegate'
+    }
+
+    project(':a1') {
+        task delegate {
+            dependsOn gradle.includedBuild('buildB').task(':logProject')
+        }
+    }
+"""
+
+        when:
+        execute(buildA, ":top-level")
+
+        then:
+        executed ":buildB:logProject"
+        output.contains("Executing build 'buildB' project ':' task ':logProject'")
+
+        when:
+        execute(buildA, "delegate")
+
+        then:
+        executed ":buildB:logProject"
+        output.contains("Executing build 'buildB' project ':' task ':logProject'")
+    }
+
     def "can depend on task with name in all included builds"() {
         when:
         BuildTestFile buildC = singleProjectBuild("buildC") {
@@ -145,6 +168,30 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         executed ":buildB:logProject", ":buildC:logProject"
         output.contains("Executing build 'buildB' project ':' task ':logProject'")
         output.contains("Executing build 'buildC' project ':' task ':logProject'")
+    }
+
+    def "substitutes dependency of included build when executed via task dependency"() {
+        given:
+        buildA.buildFile << """
+    task delegate {
+        dependsOn gradle.includedBuild('buildB').task(':jar')
+    }
+"""
+        buildB.buildFile << """
+    allprojects {
+        apply plugin: 'java'
+    }
+
+    dependencies {
+        compile "org.test:b1:1.0"
+    }
+"""
+
+        when:
+        execute(buildA, ":delegate")
+
+        then:
+        executed ":buildB:b1:jar", ":buildB:jar"
     }
 
     def "reports failure when included build does not exist for composite"() {
@@ -207,7 +254,24 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project 'buildB'.")
-        failure.assertHasCause("Build is not a composite: it has no included builds.")
+        failure.assertHasCause("Included build 'does-not-exist' not found.")
+    }
+
+    def "reports failure when delegating to included build when composing build defines a task with the same name as the included build"() {
+        when:
+        buildA.buildFile << """
+    task buildB // Just a regular old task instance
+    task delegate {
+        dependsOn gradle.includedBuild('buildB').task(':logProject')
+    }
+"""
+
+        and:
+        fails(buildA, ":delegate")
+
+        then:
+        failure.assertHasDescription("Could not determine the dependencies of task ':delegate'.")
+        failure.assertHasCause("Cannot create delegating task 'buildB' as task with same name already exists.")
     }
 
     @Unroll
@@ -234,7 +298,7 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
 
         and:
         failure.assertHasDescription("A problem occurred evaluating root project 'buildC'.")
-        failure.assertHasCause("Build is not a composite: it has no included builds.")
+        failure.assertHasCause("Included build '${buildName}' not found.")
 
         where:
         scenario  | buildName

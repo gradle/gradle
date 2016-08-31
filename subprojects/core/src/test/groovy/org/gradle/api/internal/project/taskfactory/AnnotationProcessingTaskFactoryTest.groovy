@@ -108,8 +108,9 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         expectTaskCreated(type)
 
         then:
-        GradleException e = thrown()
-        e.message == failureMessage
+        def e = thrown Exception
+        e.cause instanceof GradleException
+        e.cause.message == failureMessage
 
         where:
         type                               | failureMessage

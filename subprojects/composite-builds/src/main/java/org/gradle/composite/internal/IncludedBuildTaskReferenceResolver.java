@@ -16,10 +16,12 @@
 
 package org.gradle.composite.internal;
 
+import com.google.common.base.Preconditions;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskReferenceResolver;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskReference;
 
 public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver {
@@ -31,19 +33,27 @@ public class IncludedBuildTaskReferenceResolver implements TaskReferenceResolver
         }
 
         final IncludedBuildTaskReference ref = (IncludedBuildTaskReference) reference;
-        String path = ref.getName();
+        String delegateTaskName = ref.getBuildName();
 
-        Task task = tasks.findByName(path);
+        Task task = tasks.findByName(delegateTaskName);
 
         if (task == null) {
-            task = tasks.create(path, CompositeBuildTaskDelegate.class, new Action<CompositeBuildTaskDelegate>() {
+            return tasks.create(delegateTaskName, CompositeBuildTaskDelegate.class, new Action<CompositeBuildTaskDelegate>() {
                 @Override
                 public void execute(CompositeBuildTaskDelegate compositeBuildTaskDelegate) {
                     compositeBuildTaskDelegate.setBuild(ref.getBuildName());
-                    compositeBuildTaskDelegate.setTask(ref.getTaskPath());
+                    compositeBuildTaskDelegate.addTask(ref.getTaskPath());
                 }
             });
         }
-        return task;
+
+        if (task instanceof CompositeBuildTaskDelegate) {
+            CompositeBuildTaskDelegate delegateTask = (CompositeBuildTaskDelegate) task;
+            Preconditions.checkState(((CompositeBuildTaskDelegate) task).getBuild().equals(ref.getBuildName()));
+            delegateTask.addTask(ref.getTaskPath());
+            return task;
+        }
+
+        throw new TaskInstantiationException("Cannot create delegating task '" + delegateTaskName + "' as task with same name already exists.");
     }
 }

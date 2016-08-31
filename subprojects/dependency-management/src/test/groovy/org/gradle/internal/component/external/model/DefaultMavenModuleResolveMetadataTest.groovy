@@ -18,13 +18,15 @@
 package org.gradle.internal.component.external.model
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.ModuleDescriptorState
+import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.component.model.ModuleSource
 
 class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResolveMetadataTest {
-
-    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor) {
-        return new DefaultMavenModuleResolveMetadata(new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "pom", false))
+    @Override
+    AbstractModuleComponentResolveMetadata createMetadata(ModuleComponentIdentifier id, ModuleDescriptorState moduleDescriptor, List<Configuration> configurations, List<DependencyMetadata> dependencies) {
+        return new DefaultMavenModuleResolveMetadata(new DefaultMutableMavenModuleResolveMetadata(id, moduleDescriptor, "pom", false, dependencies))
     }
 
     def "copy with different source"() {
@@ -48,12 +50,13 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractModuleComponentResol
 
     def "recognises pom packaging"() {
         when:
-        def metadata = new DefaultMavenModuleResolveMetadata(id, moduleDescriptor, packaging, false)
+        def metadata = new DefaultMutableMavenModuleResolveMetadata(id, [] as Set)
+        metadata.packaging = packaging
 
         then:
         metadata.packaging == packaging
-        metadata.isPomPackaging() == isPom
-        metadata.isKnownJarPackaging() == isJar
+        metadata.pomPackaging == isPom
+        metadata.knownJarPackaging == isJar
 
         where:
         packaging      | isPom | isJar

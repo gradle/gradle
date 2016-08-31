@@ -86,10 +86,10 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
         SortedSet<String> sortedProjects = Sets.newTreeSet(CollectionUtils.collect(providingProjects, new Transformer<String, ProjectComponentIdentifier>() {
             @Override
             public String transform(ProjectComponentIdentifier projectComponentIdentifier) {
-                return projectComponentIdentifier.getProjectPath();
+                return projectComponentIdentifier.getDisplayName();
             }
         }));
-        String failureMessage = String.format("Module version '%s' is not unique in composite: can be provided by projects %s.", selector.getDisplayName(), sortedProjects);
+        String failureMessage = String.format("Module version '%s' is not unique in composite: can be provided by %s.", selector.getDisplayName(), sortedProjects);
         throw new ModuleVersionResolveException(selector, failureMessage);
     }
 }

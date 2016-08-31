@@ -808,7 +808,7 @@ public class DependencyGraphBuilder {
                     resolutionFilter = ModuleExclusions.union(resolutionFilter, dependencyEdge.getExclusions());
                 }
             }
-            resolutionFilter = ModuleExclusions.intersect(resolutionFilter, ModuleExclusions.excludeAny(metaData.getExcludes()));
+            resolutionFilter = ModuleExclusions.intersect(resolutionFilter, metaData.getExclusions());
             return resolutionFilter;
         }
 

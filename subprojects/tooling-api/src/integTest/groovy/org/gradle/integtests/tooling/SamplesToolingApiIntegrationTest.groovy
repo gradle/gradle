@@ -93,36 +93,6 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @UsesSample('toolingApi/composite-models')
-    def "can use tooling API to compose independent projects"() {
-        tweakProject()
-
-        when:
-        def result = run()
-
-        then:
-        result.assertOutputContains("Project: project1::")
-        result.assertOutputContains("Project: project1::a")
-        result.assertOutputContains("Project: project1::b")
-        result.assertOutputContains("Project: project1::c")
-        result.assertOutputContains("Project: project2::")
-        result.assertOutputContains("Project: project3::")
-        result.assertOutputContains("Project: project3::a")
-        result.assertOutputContains("Project: project3::b")
-    }
-
-    @UsesSample('toolingApi/composite-tasks')
-    def "can use tooling API to compose independent projects and run tasks"() {
-        tweakProject()
-
-        when:
-        def result = run()
-
-        then:
-        result.assertOutputContains(":a:build")
-        result.assertOutputContains(":b:build")
-    }
-
     private void tweakProject(File projectDir = sample.dir) {
         // Inject some additional configuration into the sample build script
         def buildFile = projectDir.file('build.gradle')

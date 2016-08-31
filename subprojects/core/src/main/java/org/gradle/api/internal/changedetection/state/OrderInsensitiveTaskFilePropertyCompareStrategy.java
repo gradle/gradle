@@ -17,8 +17,10 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
@@ -28,6 +30,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy {
 
@@ -39,32 +42,62 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
 
     @Override
     public Iterator<TaskStateChange> iterateContentChangesSince(final Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType) {
-        final Map<String, NormalizedFileSnapshot> remainingPrevious = Maps.newHashMap(previous);
-        final Iterator<String> currentFiles = current.keySet().iterator();
+        final Map<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = Maps.newTreeMap();
+        for (Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
+            String absolutePath = entry.getKey();
+            NormalizedFileSnapshot previousSnapshot = entry.getValue();
+            unaccountedForPreviousSnapshots.put(previousSnapshot, new IncrementalFileSnapshotWithAbsolutePath(absolutePath, previousSnapshot.getSnapshot()));
+        }
+        final Iterator<Entry<String, NormalizedFileSnapshot>> currentEntries = current.entrySet().iterator();
         return new AbstractIterator<TaskStateChange>() {
-            private Iterator<String> removedFiles;
+            private Iterator<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> unaccountedForPreviousSnapshotsIterator;
+            private final ListMultimap<String, IncrementalFileSnapshotWithAbsolutePath> addedFiles = MultimapBuilder.hashKeys().linkedListValues().build();
+            private Iterator<IncrementalFileSnapshotWithAbsolutePath> addedFilesIterator;
 
             @Override
             protected TaskStateChange computeNext() {
-                while (currentFiles.hasNext()) {
-                    String currentFile = currentFiles.next();
-                    NormalizedFileSnapshot previousFile = remainingPrevious.remove(currentFile);
-                    if (previousFile == null) {
-                        if (includeAdded) {
-                            return new FileChange(currentFile, ChangeType.ADDED, fileType);
-                        }
-                    } else if (!current.get(currentFile).getSnapshot().isContentUpToDate(previousFile.getSnapshot())) {
-                        return new FileChange(currentFile, ChangeType.MODIFIED, fileType);
+                while (currentEntries.hasNext()) {
+                    Entry<String, NormalizedFileSnapshot> entry = currentEntries.next();
+                    String currentAbsolutePath = entry.getKey();
+                    NormalizedFileSnapshot currentNormalizedSnapshot = entry.getValue();
+                    IncrementalFileSnapshotWithAbsolutePath previousSnapshotWithAbsolutePath = unaccountedForPreviousSnapshots.remove(currentNormalizedSnapshot);
+                    if (previousSnapshotWithAbsolutePath == null) {
+                        IncrementalFileSnapshotWithAbsolutePath currentSnapshotWithAbsolutePath = new IncrementalFileSnapshotWithAbsolutePath(currentAbsolutePath, currentNormalizedSnapshot.getSnapshot());
+                        addedFiles.put(currentNormalizedSnapshot.getNormalizedPath(), currentSnapshotWithAbsolutePath);
+                    } else if (!currentNormalizedSnapshot.getSnapshot().isContentUpToDate(previousSnapshotWithAbsolutePath.getSnapshot())) {
+                        return new FileChange(currentAbsolutePath, ChangeType.MODIFIED, fileType);
                     }
                 }
 
                 // Create a single iterator to use for all of the removed files
-                if (removedFiles == null) {
-                    removedFiles = remainingPrevious.keySet().iterator();
+                if (unaccountedForPreviousSnapshotsIterator == null) {
+                    unaccountedForPreviousSnapshotsIterator = unaccountedForPreviousSnapshots.entrySet().iterator();
                 }
 
-                if (removedFiles.hasNext()) {
-                    return new FileChange(removedFiles.next(), ChangeType.REMOVED, fileType);
+                if (unaccountedForPreviousSnapshotsIterator.hasNext()) {
+                    Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshotEntry = unaccountedForPreviousSnapshotsIterator.next();
+                    String normalizedPath = unaccountedForPreviousSnapshotEntry.getKey().getNormalizedPath();
+                    List<IncrementalFileSnapshotWithAbsolutePath> addedFilesForNormalizedPath = addedFiles.get(normalizedPath);
+                    if (!addedFilesForNormalizedPath.isEmpty()) {
+                        // There might be multiple files with the same normalized path, here we choose one of them
+                        IncrementalFileSnapshotWithAbsolutePath modifiedSnapshot = addedFilesForNormalizedPath.remove(0);
+                        return new FileChange(modifiedSnapshot.getAbsolutePath(), ChangeType.MODIFIED, fileType);
+                    } else {
+                        IncrementalFileSnapshotWithAbsolutePath removedSnapshot = unaccountedForPreviousSnapshotEntry.getValue();
+                        return new FileChange(removedSnapshot.getAbsolutePath(), ChangeType.REMOVED, fileType);
+                    }
+                }
+
+                if (includeAdded) {
+                    // Create a single iterator to use for all of the added files
+                    if (addedFilesIterator == null) {
+                        addedFilesIterator = addedFiles.values().iterator();
+                    }
+
+                    if (addedFilesIterator.hasNext()) {
+                        IncrementalFileSnapshotWithAbsolutePath addedFile = addedFilesIterator.next();
+                        return new FileChange(addedFile.getAbsolutePath(), ChangeType.ADDED, fileType);
+                    }
                 }
 
                 return endOfData();
@@ -78,6 +111,24 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
         Collections.sort(normalizedSnapshots);
         for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
             normalizedSnapshot.appendToCacheKey(builder);
+        }
+    }
+
+    private static class IncrementalFileSnapshotWithAbsolutePath {
+        private final String absolutePath;
+        private final IncrementalFileSnapshot snapshot;
+
+        public IncrementalFileSnapshotWithAbsolutePath(String absolutePath, IncrementalFileSnapshot snapshot) {
+            this.absolutePath = absolutePath;
+            this.snapshot = snapshot;
+        }
+
+        public String getAbsolutePath() {
+            return absolutePath;
+        }
+
+        public IncrementalFileSnapshot getSnapshot() {
+            return snapshot;
         }
     }
 }

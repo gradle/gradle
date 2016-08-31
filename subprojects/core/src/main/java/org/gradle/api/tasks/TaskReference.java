@@ -16,10 +16,12 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 
 /**
  * A lightweight reference to a task.
  */
+@Incubating
 public interface TaskReference extends Named {
 }

@@ -19,16 +19,12 @@ import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.composite.GradleParticipantBuild;
 import org.gradle.tooling.CancellationToken;
-import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.events.ProgressListener;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
 import org.gradle.tooling.internal.connection.DefaultBuildIdentifier;
 import org.gradle.tooling.internal.consumer.CancellationTokenInternal;
-import org.gradle.tooling.internal.consumer.CompositeConnectionParameters;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
-import org.gradle.tooling.internal.consumer.ProjectConnectionParameters;
 import org.gradle.tooling.internal.gradle.TaskListingLaunchable;
 import org.gradle.tooling.internal.protocol.BuildOperationParametersVersion1;
 import org.gradle.tooling.internal.protocol.BuildParameters;
@@ -44,7 +40,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -308,14 +303,14 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
      * @since 1.0-milestone-3
      */
     public File getProjectDir() {
-        return parameters instanceof ProjectConnectionParameters ? ((ProjectConnectionParameters) parameters).getProjectDir() : null;
+        return parameters.getProjectDir();
     }
 
     /**
      * @since 1.0-milestone-3
      */
     public Boolean isSearchUpwards() {
-        return parameters instanceof ProjectConnectionParameters ? ((ProjectConnectionParameters) parameters).isSearchUpwards() : Boolean.FALSE;
+        return parameters.isSearchUpwards();
     }
 
     /**
@@ -417,34 +412,6 @@ public class ConsumerOperationParameters implements BuildOperationParametersVers
 
     public BuildCancellationToken getCancellationToken() {
         return ((CancellationTokenInternal) cancellationToken).getToken();
-    }
-
-    public List<GradleParticipantBuild> getBuilds() {
-        if (!(parameters instanceof CompositeConnectionParameters)) {
-            return null;
-        }
-        List<GradleParticipantBuild> unorderedBuilds = ((CompositeConnectionParameters) parameters).getBuilds();
-        if (buildIdentifier == null) {
-            return unorderedBuilds;
-        }
-
-        GradleParticipantBuild targetBuild = null;
-        List<GradleParticipantBuild> builds = new LinkedList<GradleParticipantBuild>();
-        for (GradleParticipantBuild build : unorderedBuilds) {
-            BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getProjectDir());
-            if (buildIdentifier.equals(this.buildIdentifier)) {
-                targetBuild = build;
-            } else {
-                builds.add(build);
-            }
-        }
-        if (targetBuild == null) {
-            throw new GradleConnectionException("Not a valid build: " + buildIdentifier, new IllegalStateException("Build not part of composite"));
-        } else {
-            builds.add(0, targetBuild);
-        }
-
-        return builds;
     }
 
     public BuildIdentifier getBuildIdentifier() {

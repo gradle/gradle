@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
-import org.gradle.tooling.internal.connection.GradleConnectionBuilderInternal
 import org.gradle.tooling.internal.consumer.DefaultGradleConnector
 import org.gradle.util.GradleVersion
 import org.junit.rules.TestRule
@@ -196,39 +195,5 @@ class ToolingApi implements TestRule {
                 }
             }
         };
-    }
-
-    def createCompositeBuilder() {
-        newCompositeBuilder(false)
-    }
-
-    def createIntegratedCompositeBuilder() {
-        newCompositeBuilder(true)
-    }
-
-    private newCompositeBuilder(boolean integrated) {
-        GradleConnectionBuilderInternal builder = GradleConnector.newGradleConnection()
-        builder.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
-        builder.daemonBaseDir(new File(daemonBaseDir.path))
-        builder.daemonMaxIdleTime(120, TimeUnit.SECONDS)
-
-        if (integrated) {
-            builder.integratedComposite(integrated)
-            builder.useInstallation(dist.gradleHomeDir.absoluteFile)
-
-/*
-            if (builder.class.getMethod("embedded", Boolean.TYPE) != null) {
-                builder.embedded(embedded)
-                if (useClasspathImplementation) {
-                    builder.useClasspathDistribution()
-                }
-            }
-*/
-        }
-        builder
-    }
-
-    void addCompositeParticipant(def builder, File rootDir) {
-        builder.addParticipant(rootDir.absoluteFile).useInstallation(dist.gradleHomeDir.absoluteFile)
     }
 }
