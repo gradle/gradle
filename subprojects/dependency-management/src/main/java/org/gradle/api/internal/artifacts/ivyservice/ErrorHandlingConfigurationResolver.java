@@ -96,9 +96,9 @@ public class ErrorHandlingConfigurationResolver implements ConfigurationResolver
         }
 
         @Override
-        public Set<ResolvedDependency> getAllDependencies() {
+        public Set<ResolvedDependency> getAllModuleDependencies() {
             try {
-                return lenientConfiguration.getAllDependencies();
+                return lenientConfiguration.getAllModuleDependencies();
             } catch (Throwable e) {
                 throw wrapException(e, resolveContext);
             }
