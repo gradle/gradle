@@ -61,6 +61,14 @@ class OrderSensitiveTaskFilePropertyCompareStrategyTest extends AbstractTaskFile
         ) == [change("two-new", REPLACED), change("three-new", REPLACED)]
     }
 
+    def "handles duplicates"() {
+        expect:
+        changes(
+            ["one-new-1": snapshot("one"), "one-new-2": snapshot("one"), "two-new": snapshot("two")],
+            ["one-old-1": snapshot("one"), "one-old-2": snapshot("one"), "two-old": snapshot("two")]
+        ) == []
+    }
+
     def changes(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
         return super.changes(strategy, current, previous)
     }

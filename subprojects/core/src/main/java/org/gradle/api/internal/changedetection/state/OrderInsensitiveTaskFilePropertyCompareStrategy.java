@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.collect.AbstractIterator;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.internal.changedetection.rules.ChangeType;
 import org.gradle.api.internal.changedetection.rules.FileChange;
@@ -42,7 +41,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
 
     @Override
     public Iterator<TaskStateChange> iterateContentChangesSince(final Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType) {
-        final Map<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = Maps.newTreeMap();
+        final ListMultimap<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.treeKeys().linkedListValues().build();
         for (Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
@@ -60,18 +59,23 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                     Entry<String, NormalizedFileSnapshot> entry = currentEntries.next();
                     String currentAbsolutePath = entry.getKey();
                     NormalizedFileSnapshot currentNormalizedSnapshot = entry.getValue();
-                    IncrementalFileSnapshotWithAbsolutePath previousSnapshotWithAbsolutePath = unaccountedForPreviousSnapshots.remove(currentNormalizedSnapshot);
-                    if (previousSnapshotWithAbsolutePath == null) {
-                        IncrementalFileSnapshotWithAbsolutePath currentSnapshotWithAbsolutePath = new IncrementalFileSnapshotWithAbsolutePath(currentAbsolutePath, currentNormalizedSnapshot.getSnapshot());
+                    IncrementalFileSnapshot currentSnapshot = currentNormalizedSnapshot.getSnapshot();
+                    List<IncrementalFileSnapshotWithAbsolutePath> previousSnapshotsForNormalizedPath = unaccountedForPreviousSnapshots.get(currentNormalizedSnapshot);
+                    if (previousSnapshotsForNormalizedPath.isEmpty()) {
+                        IncrementalFileSnapshotWithAbsolutePath currentSnapshotWithAbsolutePath = new IncrementalFileSnapshotWithAbsolutePath(currentAbsolutePath, currentSnapshot);
                         addedFiles.put(currentNormalizedSnapshot.getNormalizedPath(), currentSnapshotWithAbsolutePath);
-                    } else if (!currentNormalizedSnapshot.getSnapshot().isContentUpToDate(previousSnapshotWithAbsolutePath.getSnapshot())) {
-                        return new FileChange(currentAbsolutePath, ChangeType.MODIFIED, fileType);
+                    } else {
+                        IncrementalFileSnapshotWithAbsolutePath previousSnapshotWithAbsolutePath = previousSnapshotsForNormalizedPath.remove(0);
+                        IncrementalFileSnapshot previousSnapshot = previousSnapshotWithAbsolutePath.getSnapshot();
+                        if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
+                            return new FileChange(currentAbsolutePath, ChangeType.MODIFIED, fileType);
+                        }
                     }
                 }
 
                 // Create a single iterator to use for all of the removed files
                 if (unaccountedForPreviousSnapshotsIterator == null) {
-                    unaccountedForPreviousSnapshotsIterator = unaccountedForPreviousSnapshots.entrySet().iterator();
+                    unaccountedForPreviousSnapshotsIterator = unaccountedForPreviousSnapshots.entries().iterator();
                 }
 
                 if (unaccountedForPreviousSnapshotsIterator.hasNext()) {
@@ -129,6 +133,11 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
 
         public IncrementalFileSnapshot getSnapshot() {
             return snapshot;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s (%s)", getSnapshot(), absolutePath);
         }
     }
 }

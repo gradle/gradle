@@ -23,10 +23,8 @@ import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 
 abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
-    @Ignore
     def "can build play app distribution"() {
         when:
         succeeds("stage")
