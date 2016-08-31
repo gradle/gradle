@@ -27,12 +27,38 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
     @UsesSample('compositeBuilds/basic')
-    def "can build with substituted dependencies in command-line composite"() {
+    def "can run app with command-line composite"() {
         when:
-        executer.inDirectory(sample.dir.file("projectA"))
-        succeeds(':assemble')
+        executer.inDirectory(sample.dir.file("my-app")).withArguments("--include-build", "../my-utils")
+        succeeds(':run')
 
         then:
-        executed ":projectB:b1:jar", ":projectB:b2:jar", ":projectC:jar", ":jar"
+        executed ":my-utils:number-utils:jar", ":my-utils:string-utils:jar", ":run"
+        outputContains("The answer is 42")
+    }
+
+    @UsesSample('compositeBuilds/basic')
+    def "can run app when modified to be a composite"() {
+        when:
+        sample.dir.file("my-app/settings.gradle") << """
+    includeBuild '../my-utils'
+"""
+        executer.inDirectory(sample.dir.file("my-app"))
+        succeeds(':run')
+
+        then:
+        executed ":my-utils:number-utils:jar", ":my-utils:string-utils:jar", ":run"
+        outputContains("The answer is 42")
+    }
+
+    @UsesSample('compositeBuilds/basic')
+    def "can run app when included in a composite"() {
+        when:
+        executer.inDirectory(sample.dir.file("composite"))
+        succeeds(':run')
+
+        then:
+        executed ":my-utils:number-utils:jar", ":my-utils:string-utils:jar", ":my-app:run", ":run"
+        outputContains("The answer is 42")
     }
 }
