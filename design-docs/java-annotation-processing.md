@@ -1,10 +1,10 @@
 # Java Annotation Processing
 
-This spec aims to improve Java annotation processing in Gradle. Some stories might not live in Gradle core but describe functionality that might can live better in 3party plugins.
+This spec aims to improve Java annotation processing in Gradle. Some stories might not live in Gradle core but describe functionality that can live better in 3rd party plugins.
 
 ## Use cases
 
- * Simplify configuration for annotation processor dependencies used as `-processorpath` of the Java compiler  
+ * Simplify configuration for annotation processor dependencies used as `-processorpath` of the Java compiler
    Compile-time-only dependencies (e.g. containing annotations that are only needed at compile-time to be processed by annotation processors (e.g. Immutables.org or Google's "auto" projects), or possibly for documentation purpose only (e.g. `@Nullable`, `@NotNull` et al.)) can already be configured through the `compileOnly` and `testCompileOnly` configurations in the Java Plugin
  * Configure annotation processing in IDEs through the IDE-specific Gradle plugins (`./gradlew eclipse` or `./gradlew idea`)
  * Expose the configuration through the Tooling API for IDEs to configure themselves (Buildship, etc.)
@@ -125,25 +125,25 @@ Note: incremental compilation should track generated sources and try to delete s
 
 - Add a `processorpath` property to `SourceSet`, like the existing `compileClasspath`.
 - Add a `aptConfigurationName` property to `SourceSet`, like the existing `compileConfigurationName` and `compileOnlyConfigurationName`, with default value `${sourceSetName}Apt` (i.e. `apt` for `main, `testApt` for `test`).
-- Add a `generatedSourcesDir` to `SourceSetOutput`, like the existing `classesDir` and `ressourcesDir`, with default value `generated/source/apt/$sourceSetName`.
-- Update java base plugin to wire sourcesets' `processorpath` with the according compile task's `options.processorpath`,
-  and sourcesets' `output.generatedSourcesDir` to the according compile task's `generatedSourcesDestinationDir`.
+- Add a `generatedSourcesDir` to `SourceSetOutput`, like the existing `classesDir` and `resourcesDir`, with default value `generated/source/apt/$sourceSetName`.
+- Update java base plugin to wire `SourceSets`' `processorpath` with the according compile task's `options.processorpath`,
+  and `SourceSets`' `output.generatedSourcesDir` to the according compile task's `generatedSourcesDestinationDir`.
 
 #### Test cases
 
-- in a java project configure `sourceSets.main.processorpath` and `sourceSets.main.output.generatedSourcesDir` and check that it's reflected in the compiled main classes.
-- use a custom sourceSet with custom `processorpath` and `output.generatedSourcesDir`.
+- In a java project configure `sourceSets.main.processorpath` and `sourceSets.main.output.generatedSourcesDir` and check that it's reflected in the compiled main classes.
+- Use a custom `SourceSet` with custom `processorpath` and `output.generatedSourcesDir`.
 
 ### Story - Create default/conventional dependency configurations (TBD if this should live in gradle core)
 
-For each source set (`main` and `test`), create an `apt` (resp. `testApt`) configuration and wire it as the source set's `processorpath`.
+For each `SourceSet` (`main` and `test`), create an `apt` (resp. `testApt`) configuration and wire it as the `SourceSet`'s `processorpath`.
 
 ![Java Plugin Configurations](img/annotation_processing_javaPluginConfigurations.png)
 
 #### Test cases
 
 - in a java project configure dependencies in the `apt` configuration and check that it's reflected in the compiled main classes.
-- use a custom sourceSet with `customApt` configuration.
+- use a custom `SourceSet` with `customApt` configuration.
 
 ### Story - Automatically configure IDEs through their Gradle plugins (TBD if this should live in gradle core)
 
