@@ -24,7 +24,6 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
-import org.junit.Assume
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 

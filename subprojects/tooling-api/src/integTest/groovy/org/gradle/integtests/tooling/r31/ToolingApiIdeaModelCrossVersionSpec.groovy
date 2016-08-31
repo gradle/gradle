@@ -21,7 +21,6 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
-import org.junit.Assume
 
 @ToolingApiVersion(">=3.1")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
