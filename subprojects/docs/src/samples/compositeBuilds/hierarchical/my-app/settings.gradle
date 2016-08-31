@@ -1,0 +1,5 @@
+rootProject.name = 'my-app'
+
+file('submodules').listFiles().each { File childBuild ->
+    includeBuild childBuild
+}

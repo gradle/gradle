@@ -61,4 +61,39 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         executed ":my-utils:number-utils:jar", ":my-utils:string-utils:jar", ":my-app:run", ":run"
         outputContains("The answer is 42")
     }
+
+    @UsesSample('compositeBuilds/hierarchical')
+    def "can run app in hierarchical composite"() {
+        when:
+        executer.inDirectory(sample.dir.file("my-app"))
+        succeeds(':run')
+
+        then:
+        executed ":number-utils:jar", ":string-utils:jar", ":run"
+        outputContains("The answer is 42")
+    }
+
+    @UsesSample('compositeBuilds/hierarchical')
+    def "can publish locally and remove submodule from hierarchical composite"() {
+        when:
+        executer.inDirectory(sample.dir.file("my-app"))
+        succeeds(':publishDeps')
+
+        then:
+        executed ":number-utils:uploadArchives", ":string-utils:uploadArchives"
+        sample.dir.file('local-repo/org.sample/number-utils/1.0').assertContainsDescendants("ivy-1.0.xml", "number-utils-1.0.jar")
+        sample.dir.file('local-repo/org.sample/string-utils/1.0').assertContainsDescendants("ivy-1.0.xml", "string-utils-1.0.jar")
+
+        when:
+        sample.dir.file("my-app/submodules/string-utils").deleteDir()
+
+        and:
+        executer.inDirectory(sample.dir.file("my-app"))
+        succeeds(":run")
+
+        then:
+        executed ":number-utils:jar", ":run"
+        notExecuted ":string-utils:jar"
+        outputContains("The answer is 42")
+    }
 }
