@@ -165,7 +165,6 @@ idea.module.excludeDirs += file('foo')
     }
 
     def "provides dependencies"() {
-        Assume.assumeFalse(toolingApi.embedded) //TODO remove after 3.1 release
 
         def fakeRepo = file("repo")
 
@@ -286,7 +285,6 @@ project(':impl') {
     }
 
     def "offline model should not resolve external dependencies"() {
-        Assume.assumeFalse(toolingApi.embedded) //TODO remove after 3.1 release
 
         file('build.gradle').text = """
 subprojects {

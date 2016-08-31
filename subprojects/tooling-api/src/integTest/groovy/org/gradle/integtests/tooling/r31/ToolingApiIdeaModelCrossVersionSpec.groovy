@@ -28,7 +28,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=3.1")
     def "Provides target module name for module dependencies"() {
-        Assume.assumeFalse(toolingApi.embedded) //TODO remove after 3.1 release
 
 
         file('build.gradle').text = """

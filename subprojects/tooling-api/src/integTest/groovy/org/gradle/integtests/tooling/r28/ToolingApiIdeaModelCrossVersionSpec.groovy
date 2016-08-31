@@ -26,7 +26,6 @@ class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
     @TargetGradleVersion(">=2.8")
     def "makes sure module names are unique in gradle"() {
-        Assume.assumeFalse(toolingApi.embedded) //TODO remove after 3.1 release
 
         file('build.gradle').text = """
 subprojects {
