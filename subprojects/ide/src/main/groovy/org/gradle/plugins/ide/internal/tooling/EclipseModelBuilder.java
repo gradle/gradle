@@ -174,15 +174,9 @@ public class EclipseModelBuilder implements ToolingModelBuilder {
                 final ProjectDependency projectDependency = (ProjectDependency) entry;
                 // TODO:DAZ By removing the leading "/", this is no longer a "path" as defined by Eclipse
                 final String path = StringUtils.removeStart(projectDependency.getPath(), "/");
-                DefaultEclipseProjectDependency dependency;
-                DefaultEclipseProject targetProject = findEclipseProjectByName(path);
-                if (targetProject != null) {
-                    dependency = new DefaultEclipseProjectDependency(path, targetProject, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
-                } else {
-                    // TODO:DAZ Maybe remove this altogether?
-                    File projectDirectory = compositeProjectMapper.getProjectDirectory(projectDependency.getGradleProjectId());
-                    dependency = new DefaultEclipseProjectDependency(path, projectDirectory, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
-                }
+                DefaultEclipseProjectDependency dependency = new DefaultEclipseProjectDependency(path, projectDependency.isExported(), createAttributes(projectDependency), createAccessRules(projectDependency));
+                // Find the EclipseProject model, if it's in the same build. May be null for a composite.
+                dependency.setTargetProject(findEclipseProjectByName(path));
                 projectDependencies.add(dependency);
             } else if (entry instanceof SourceFolder) {
                 final SourceFolder sourceFolder = (SourceFolder) entry;

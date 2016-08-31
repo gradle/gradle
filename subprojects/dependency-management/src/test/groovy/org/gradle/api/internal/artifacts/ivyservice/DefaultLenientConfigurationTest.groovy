@@ -71,7 +71,7 @@ class DefaultLenientConfigurationTest extends Specification {
         def (expected, root) = generateDependenciesWithChildren(treeStructure)
 
         when:
-        def result = lenientConfiguration.getAllDependencies()
+        def result = lenientConfiguration.getAllModuleDependencies()
 
         then:
         1 * transientConfigurationResults.getRoot() >> root

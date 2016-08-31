@@ -16,18 +16,19 @@
 
 package org.gradle.plugins.ide.internal.tooling.idea;
 
-import org.gradle.tooling.internal.protocol.DefaultIdeaModuleIdentifier;
 import org.gradle.tooling.model.idea.IdeaDependencyScope;
 import org.gradle.tooling.provider.model.internal.LegacyConsumerInterface;
 
-import java.io.File;
-
 @LegacyConsumerInterface("org.gradle.tooling.model.idea.IdeaModuleDependency")
 public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
+    private final String targetModuleName;
     private IdeaDependencyScope scope;
     private DefaultIdeaModule dependencyModule;
-    private File projectDirectory;
     private boolean exported;
+
+    public DefaultIdeaModuleDependency(String targetModuleName) {
+        this.targetModuleName = targetModuleName;
+    }
 
     public IdeaDependencyScope getScope() {
         return scope;
@@ -38,21 +39,16 @@ public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
         return this;
     }
 
+    public String getTargetModuleName() {
+        return targetModuleName;
+    }
+
     public DefaultIdeaModule getDependencyModule() {
         return dependencyModule;
     }
 
-    public DefaultIdeaModuleIdentifier getTarget() {
-        return new DefaultIdeaModuleIdentifier(projectDirectory);
-    }
-
     public DefaultIdeaModuleDependency setDependencyModule(DefaultIdeaModule dependencyModule) {
         this.dependencyModule = dependencyModule;
-        return this;
-    }
-
-    public DefaultIdeaModuleDependency setProjectDirectory(File projectDirectory) {
-        this.projectDirectory = projectDirectory;
         return this;
     }
 
@@ -69,7 +65,7 @@ public class DefaultIdeaModuleDependency extends DefaultIdeaDependency {
     public String toString() {
         return "DefaultIdeaModuleDependency{"
                  + "scope='" + scope + '\''
-                 + ", dependencyModule name='" + dependencyModule.getName() + '\''
+                 + ", targetModuleName='" + targetModuleName + '\''
                  + ", exported=" + exported
                  + '}';
     }

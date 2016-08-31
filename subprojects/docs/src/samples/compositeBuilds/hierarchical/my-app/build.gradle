@@ -1,0 +1,24 @@
+apply plugin: 'java'
+apply plugin: 'application'
+apply plugin: 'idea'
+
+group "org.sample"
+version "1.0"
+
+mainClassName = "org.sample.myapp.Main"
+
+dependencies {
+    compile "org.sample:number-utils:1.0"
+    compile "org.sample:string-utils:1.0"
+}
+
+repositories {
+    ivy {
+        url project.file("../local-repo")
+    }
+    jcenter()
+}
+
+task publishDeps {
+    dependsOn gradle.includedBuilds*.task(':uploadArchives')
+}

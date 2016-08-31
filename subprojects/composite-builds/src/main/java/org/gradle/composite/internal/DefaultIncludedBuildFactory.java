@@ -22,7 +22,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.ConfigurableIncludedBuild;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.initialization.BuildRequestContext;
 import org.gradle.initialization.GradleLauncher;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.initialization.IncludedBuildFactory;
@@ -50,18 +49,6 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         this.sharedServices = sharedServices;
     }
 
-    @Override
-    public ConfigurableIncludedBuild createBuild(File buildDirectory, BuildRequestContext requestContext) {
-        validateBuildDirectory(buildDirectory);
-        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, requestContext, sharedServices);
-        Factory<GradleLauncher> nestedFactory = requestContext == null ? null : new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, null, sharedServices);
-        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory, nestedFactory);
-
-        SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
-        validateIncludedBuild(includedBuild, settingsInternal);
-        return includedBuild;
-    }
-
     private void validateBuildDirectory(File dir) {
         if (!dir.exists()) {
             throw new InvalidUserDataException(String.format("Included build '%s' does not exist.", dir));
@@ -82,7 +69,13 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
 
     @Override
     public ConfigurableIncludedBuild createBuild(File buildDirectory) {
-        return createBuild(buildDirectory, null);
+        validateBuildDirectory(buildDirectory);
+        Factory<GradleLauncher> factory = new ContextualGradleLauncherFactory(buildDirectory, gradleLauncherFactory, startParameter, sharedServices);
+        DefaultIncludedBuild includedBuild = instantiator.newInstance(DefaultIncludedBuild.class, buildDirectory, factory);
+
+        SettingsInternal settingsInternal = includedBuild.getLoadedSettings();
+        validateIncludedBuild(includedBuild, settingsInternal);
+        return includedBuild;
     }
 
     @Override
@@ -94,14 +87,12 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         private final File buildDirectory;
         private final GradleLauncherFactory gradleLauncherFactory;
         private final StartParameter buildStartParam;
-        private final BuildRequestContext requestContext;
         private final ServiceRegistry sharedServices;
 
-        public ContextualGradleLauncherFactory(File buildDirectory, GradleLauncherFactory gradleLauncherFactory, StartParameter buildStartParam, BuildRequestContext requestContext, ServiceRegistry sharedServices) {
+        public ContextualGradleLauncherFactory(File buildDirectory, GradleLauncherFactory gradleLauncherFactory, StartParameter buildStartParam, ServiceRegistry sharedServices) {
             this.buildDirectory = buildDirectory;
             this.gradleLauncherFactory = gradleLauncherFactory;
             this.buildStartParam = buildStartParam;
-            this.requestContext = requestContext;
             this.sharedServices = sharedServices;
         }
 
@@ -109,15 +100,7 @@ public class DefaultIncludedBuildFactory implements IncludedBuildFactory, Stoppa
         public GradleLauncher create() {
             StartParameter participantStartParam = createStartParameter(buildDirectory);
 
-            GradleLauncher gradleLauncher;
-            if (requestContext == null) {
-                gradleLauncher = gradleLauncherFactory.nestedInstance(participantStartParam, sharedServices);
-            } else {
-                gradleLauncher = gradleLauncherFactory.newInstance(participantStartParam, requestContext, sharedServices);
-                gradleLauncher.addStandardOutputListener(requestContext.getOutputListener());
-                gradleLauncher.addStandardErrorListener(requestContext.getErrorListener());
-            }
-
+            GradleLauncher gradleLauncher = gradleLauncherFactory.nestedInstance(participantStartParam, sharedServices);
             launchers.add(gradleLauncher);
             return gradleLauncher;
         }

@@ -138,24 +138,14 @@ public class IdeaModelBuilder implements ToolingModelBuilder {
                 dependencies.add(defaultDependency);
             } else if (dependency instanceof ModuleDependency) {
                 ModuleDependency moduleDependency = (ModuleDependency) dependency;
-                DefaultIdeaModule targetModule = modules.get(moduleDependency.getName());
 
-                DefaultIdeaModuleDependency ideaModuleDependency = new DefaultIdeaModuleDependency()
+                DefaultIdeaModuleDependency ideaModuleDependency = new DefaultIdeaModuleDependency(moduleDependency.getName())
                     .setExported(moduleDependency.isExported())
                     .setScope(new DefaultIdeaDependencyScope(moduleDependency.getScope()));
 
-                if (targetModule != null) {
-                    // Dependency on module in same build
-                    ideaModuleDependency
-                        .setDependencyModule(targetModule)
-                        .setProjectDirectory(targetModule.getGradleProject().getProjectDirectory());
-                } else {
-                    // Dependency on module from another build in composite
-                    // TODO:DAZ Maybe remove this altogether?
-                    ideaModuleDependency
-                        .setDependencyModule(null)
-                        .setProjectDirectory(compositeProjectMapper.getProjectDirectory(moduleDependency.getGradleProjectId()));
-                }
+                // Find IdeaModule model for dependency within same build: may be null
+                DefaultIdeaModule targetModule = modules.get(moduleDependency.getName());
+                ideaModuleDependency.setDependencyModule(targetModule);
 
                 dependencies.add(ideaModuleDependency);
             }

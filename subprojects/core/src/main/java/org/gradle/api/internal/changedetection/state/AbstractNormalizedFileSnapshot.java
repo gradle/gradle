@@ -64,4 +64,9 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
     public int hashCode() {
         return Objects.hashCode(getNormalizedPath(), snapshot);
     }
+
+    @Override
+    public String toString() {
+        return String.format("'%s' / %s", getNormalizedPath(), snapshot);
+    }
 }

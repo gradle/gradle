@@ -93,4 +93,15 @@ class OrderInsensitiveTaskFilePropertyCompareStrategyTest extends AbstractTaskFi
         where:
         strategy << [includeAdded, excludeAdded]
     }
+
+    @Unroll
+    def "handles duplicates (#strategy)"() {
+        expect:
+        changes(strategy,
+            ["one-new-1": snapshot("one"), "one-new-2": snapshot("one"), "two-new": snapshot("two")],
+            ["one-old-1": snapshot("one"), "one-old-2": snapshot("one"), "two-old": snapshot("two")]
+        ) == []
+        where:
+        strategy << [includeAdded, excludeAdded]
+    }
 }

@@ -68,4 +68,6 @@ public class ProcessTemplates extends DefaultTask {
             }
         });
     }
+// START SNIPPET custom-task-class
 }
+// END SNIPPET custom-task-class
