@@ -171,9 +171,17 @@ class ToolingApi implements TestRule {
         return embedded && GradleVersion.current() == dist.version
     }
 
+
+    /*
+     * TODO Stefan the embedded executor has been broken by some
+     * change after 3.0. It can no longer handle changes to the
+     * serialized form of tooling models. The current -> 3.0 tests
+     * are failing as a result. Temporarily deactivating embedded
+     * mode except for current -> current.
+     */
     boolean isEmbedded() {
         // Use in-process build when running tests in embedded mode and daemon is not required
-        return GradleContextualExecuter.embedded && !requiresDaemon
+        return GradleContextualExecuter.embedded && !requiresDaemon && GradleVersion.current() == dist.version
     }
 
     @Override
