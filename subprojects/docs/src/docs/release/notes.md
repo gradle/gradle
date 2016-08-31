@@ -22,6 +22,10 @@ TBD: faster for Android builds
 
 Gradle now recognizes changes in the order of files for classpath properties as a reason to mark a task like `JavaCompile` out-of-date. The new `@OrderSensitive` annotation can be used on task input properties to turn this feature on in custom tasks.
 
+#### Better understanding of input file paths
+
+Previously, Gradle considered the absolute path of input files when determining if a task was up-to-date: if an input file was moved or renamed, even without changing it's contents, the task would be out-of-date. With the new path sensitivity feature Gradle can now observe just the relevant part of an input file's path. For example, with an `@InputFiles` property annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)` only changes to the name of the input files will mark the task as out-of-date, but moving the files around won't.
+
 ### Sync can preserve files
 
 With the [Sync](dsl/org.gradle.api.tasks.Sync.html) task it is now possible to preserve files that already exist in the destination directory.
