@@ -101,6 +101,8 @@ in the next major Gradle version (Gradle 4.0). See the User guide section on the
 The following are the newly deprecated items in this Gradle release. If you have concerns about a deprecation, please raise it via the [Gradle Forums](https://discuss.gradle.org).
 
 - `org.gradle.plugins.ide.eclipse.model.ProjectDependency.setGradlePath()` has been deprecated without replacement.
+- `org.gradle.plugins.ide.eclipse.model.ProjectDependency.getGradlePath()` has been deprecated without replacement.
+- `org.gradle.plugins.ide.eclipse.model.ProjectDependency(String, String)` has been deprecated. Please use `org.gradle.plugins.ide.eclipse.model.ProjectDependency(String)` instead
 
 <!--
 ### Example deprecation
@@ -155,9 +157,8 @@ When a composite build is imported via the Gradle Tooling API, then certain fiel
 
 - Removed incubating `HierarchicalEclipseProject.getIdentifier()` and `EclipseProjectDependency.getTarget()`
 - Removed incubating `IdeaModule.getIdentifier()` and `IdeaModuleDependency.getTarget()`
-- `IdeaModuleDependency.getDependencyModule` will be `null` for a project substituted in the composite: use `IdeaModuleDependency.getTargetModuleName` instead.
-
-TODO:DAZ Revisit if this breakage is necessary and/or reasonable. We might just deprecate these methods.
+- `IdeaModuleDependency.getDependencyModule()` will be `null` for a project substituted in the composite: use `IdeaModuleDependency.getTargetModuleName()` instead.
+- `EclipseProjectDependency.getTarget()` will be `null` for a project substituted in the composite: use `EclipseProjectDependency.getPath()` instead.
 
 ### Dependency resolution changes when a Maven module dependency is substituted with a Gradle project dependency
 
@@ -175,7 +176,7 @@ TBD: As a result of performance improvements, the result includes fewer `Resolve
 ### GradleConnection removed
 
 The incubtaing `GradleConnection` API has been removed in favor of composite builds defined in `settings.gradle`.
-New methods for fetching all models from a composite will be added to `ProjectConnection` in Gradle 3.2
+New methods for fetching all models from a composite will be added to `ProjectConnection` soon.
 
 ## External contributions
 
