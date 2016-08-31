@@ -84,6 +84,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     private boolean refreshDependencies;
     private boolean recompileScripts;
     private boolean parallelProjectExecution;
+    private boolean taskOutputCacheEnabled;
     private boolean configureOnDemand;
     private int maxWorkerCount;
     private boolean continuous;
@@ -224,6 +225,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
         p.recompileScripts = recompileScripts;
         p.refreshDependencies = refreshDependencies;
         p.parallelProjectExecution = parallelProjectExecution;
+        p.taskOutputCacheEnabled = taskOutputCacheEnabled;
         p.configureOnDemand = configureOnDemand;
         p.maxWorkerCount = maxWorkerCount;
         p.systemPropertiesArgs = new HashMap<String, String>(systemPropertiesArgs);
@@ -648,6 +650,22 @@ public class StartParameter implements LoggingConfiguration, Serializable {
     }
 
     /**
+     * Returns true if task output caching is enabled.
+     */
+    @Incubating
+    public boolean isTaskOutputCacheEnabled() {
+        return taskOutputCacheEnabled;
+    }
+
+    /**
+     * Enables/disables task output caching.
+     */
+    @Incubating
+    public void setTaskOutputCacheEnabled(boolean taskOutputCacheEnabled) {
+        this.taskOutputCacheEnabled = taskOutputCacheEnabled;
+    }
+
+    /**
      * Returns the maximum number of concurrent workers used for underlying build operations.
      *
      * Workers can be threads, processes or whatever Gradle considers a "worker". Some examples:
@@ -714,6 +732,7 @@ public class StartParameter implements LoggingConfiguration, Serializable {
             + ", parallelProjectExecution=" + parallelProjectExecution
             + ", configureOnDemand=" + configureOnDemand
             + ", maxWorkerCount=" + maxWorkerCount
+            + ", taskOutputCacheEnabled=" + taskOutputCacheEnabled
             + '}';
     }
 

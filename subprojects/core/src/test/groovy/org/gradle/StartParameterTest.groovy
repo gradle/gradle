@@ -50,6 +50,8 @@ class StartParameterTest extends Specification {
         parameter.refreshDependencies = true
         parameter.recompileScripts = true
         parameter.configureOnDemand = true
+        parameter.parallelProjectExecutionEnabled = true
+        parameter.taskOutputCacheEnabled = true
         parameter.includeBuild(new File('participant'))
 
         when:
@@ -116,6 +118,8 @@ class StartParameterTest extends Specification {
         !parameter.rerunTasks
         !parameter.recompileScripts
         !parameter.refreshDependencies
+        !parameter.parallelProjectExecutionEnabled
+        !parameter.taskOutputCacheEnabled
 
         assertThat(parameter, isSerializable())
     }
@@ -277,6 +281,8 @@ class StartParameterTest extends Specification {
         parameter.recompileScripts = true
         parameter.rerunTasks = true
         parameter.refreshDependencies = true
+        parameter.parallelProjectExecutionEnabled = true
+        parameter.taskOutputCacheEnabled = true
 
         assertThat(parameter, isSerializable())
 
@@ -295,6 +301,8 @@ class StartParameterTest extends Specification {
         newParameter.rerunTasks == parameter.rerunTasks
         newParameter.recompileScripts == parameter.recompileScripts
         newParameter.systemPropertiesArgs == parameter.systemPropertiesArgs
+        newParameter.parallelProjectExecutionEnabled == parameter.parallelProjectExecutionEnabled
+        newParameter.taskOutputCacheEnabled == parameter.taskOutputCacheEnabled
 
         newParameter.buildFile == null
         newParameter.taskRequests.empty
