@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r28
+package org.gradle.integtests.tooling.r31
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.tooling.model.idea.IdeaModule
+import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.junit.Assume
 
+@ToolingApiVersion(">=3.1")
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
-    @TargetGradleVersion(">=2.8")
-    def "makes sure module names are unique in gradle"() {
+    @TargetGradleVersion(">=3.1")
+    def "Provides target module name for module dependencies"() {
         Assume.assumeFalse(toolingApi.embedded) //TODO remove after 3.1 release
+
 
         file('build.gradle').text = """
 subprojects {
@@ -34,33 +37,23 @@ subprojects {
 }
 
 project(':impl') {
+    apply plugin: 'idea'
+
     dependencies {
         compile project(':api')
     }
 }
-
-project(':contrib:impl') {
-    dependencies {
-        compile project(':contrib:api')
-    }
-}
 """
-        file('settings.gradle').text = """
-        rootProject.name = "root"
-        include 'api', 'impl', 'contrib:api', 'contrib:impl'"""
+        file('settings.gradle').text = "include 'api', 'impl'"
 
         when:
-
         IdeaProject project = withConnection { connection -> connection.getModel(IdeaProject.class) }
+        def module = project.children.find { it.name == 'impl' }
 
         then:
-        def allNames = project.modules*.name
-        allNames.unique().size() == 6
+        def libs = module.dependencies
 
-        IdeaModule impl = project.modules.find { it.name == 'root-impl' }
-        IdeaModule contribImpl = project.modules.find { it.name == 'contrib-impl' }
-
-        impl.dependencies[0].dependencyModule == project.modules.find { it.name == 'root-api' }
-        contribImpl.dependencies[0].dependencyModule == project.modules.find { it.name == 'contrib-api' }
+        IdeaModuleDependency mod = libs.find {it instanceof IdeaModuleDependency}
+        mod.targetModuleName == 'api'
     }
 }

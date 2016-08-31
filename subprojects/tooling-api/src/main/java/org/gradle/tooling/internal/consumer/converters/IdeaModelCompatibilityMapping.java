@@ -19,19 +19,15 @@ package org.gradle.tooling.internal.consumer.converters;
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
-import org.gradle.tooling.model.idea.IdeaDependency;
-import org.gradle.tooling.model.idea.IdeaModule;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.util.GradleVersion;
 
 public class IdeaModelCompatibilityMapping implements Action<ViewBuilder<?>> {
     private final boolean versionSupportsIdeaJavaSourceSettings;
-    private final boolean versionSupportsIdeaModuleIdentifier;
 
     public IdeaModelCompatibilityMapping(VersionDetails versionDetails) {
         GradleVersion targetGradleVersion = GradleVersion.version(versionDetails.getVersion());
         versionSupportsIdeaJavaSourceSettings = supportsIdeaJavaSourceSettings(targetGradleVersion);
-        versionSupportsIdeaModuleIdentifier = supportsIdeaModuleIdentifier(targetGradleVersion);
     }
 
     @Override
@@ -39,18 +35,10 @@ public class IdeaModelCompatibilityMapping implements Action<ViewBuilder<?>> {
         if (!versionSupportsIdeaJavaSourceSettings) {
             viewBuilder.mixInTo(IdeaProject.class, IdeaProjectJavaLanguageSettingsMixin.class);
         }
-        if (!versionSupportsIdeaModuleIdentifier) {
-            viewBuilder.mixInTo(IdeaDependency.class, IdeaModuleDependencyTargetMixin.class);
-            viewBuilder.mixInTo(IdeaModule.class, IdeaModuleIdentifierMixin.class);
-        }
     }
 
     private boolean supportsIdeaJavaSourceSettings(GradleVersion targetGradleVersion) {
         // return 'true' for 2.11 snapshots too
         return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.11")) >= 0;
-    }
-
-    private boolean supportsIdeaModuleIdentifier(GradleVersion targetGradleVersion) {
-        return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.14")) >= 0;
     }
 }

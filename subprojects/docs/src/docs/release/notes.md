@@ -153,8 +153,9 @@ the Gradle distribution. Plugin authors relying on the library being present now
 
 When a composite build is imported via the Gradle Tooling API, then certain fields may not be populated:
 
-- Removed incubating `HierarchicalEclipseProject.getIdentifier()` and `EclipseProjectDependnecy.getTarget()`
-- `IdeaModuleDependency.getDependencyModule` will be `null` for a project substituted in the composite: use `IdeaModuleDependency.getTarget` instead.
+- Removed incubating `HierarchicalEclipseProject.getIdentifier()` and `EclipseProjectDependency.getTarget()`
+- Removed incubating `IdeaModule.getIdentifier()` and `IdeaModuleDependency.getTarget()`
+- `IdeaModuleDependency.getDependencyModule` will be `null` for a project substituted in the composite: use `IdeaModuleDependency.getTargetModuleName` instead.
 
 TODO:DAZ Revisit if this breakage is necessary and/or reasonable. We might just deprecate these methods.
 

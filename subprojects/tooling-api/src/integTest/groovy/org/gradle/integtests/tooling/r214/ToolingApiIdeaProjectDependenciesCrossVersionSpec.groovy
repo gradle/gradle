@@ -17,16 +17,18 @@
 
 package org.gradle.integtests.tooling.r214
 
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 
-@ToolingApiVersion(">=2.14")
+@ToolingApiVersion(">=2.14 <=3.0")
+@TargetGradleVersion(">=1.2 <4.0")
 class ToolingApiIdeaProjectDependenciesCrossVersionSpec extends ToolingApiSpecification {
 
-    def "can build the idea project dependencies for a java project"() {
+    def "provides module identifiers for module dependencies"() {
         projectDir.file('settings.gradle').text = '''
 include "a", "a:b"
 rootProject.name = 'root'

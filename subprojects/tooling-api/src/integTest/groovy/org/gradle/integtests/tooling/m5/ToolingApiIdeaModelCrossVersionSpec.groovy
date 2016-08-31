@@ -24,6 +24,7 @@ import org.gradle.tooling.model.idea.IdeaModule
 import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
+import org.junit.Assume
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
 
@@ -164,6 +165,7 @@ idea.module.excludeDirs += file('foo')
     }
 
     def "provides dependencies"() {
+        Assume.assumeFalse(toolingApi.embedded) //TODO remove after 3.1 release
 
         def fakeRepo = file("repo")
 
@@ -284,7 +286,7 @@ project(':impl') {
     }
 
     def "offline model should not resolve external dependencies"() {
-
+        Assume.assumeFalse(toolingApi.embedded) //TODO remove after 3.1 release
 
         file('build.gradle').text = """
 subprojects {
