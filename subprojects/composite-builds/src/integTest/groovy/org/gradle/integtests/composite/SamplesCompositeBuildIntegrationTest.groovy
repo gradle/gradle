@@ -96,4 +96,27 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ":string-utils:jar"
         outputContains("The answer is 42")
     }
+
+    @UsesSample('compositeBuilds/plugin-dev')
+    def "can develop plugin with composite"() {
+        when:
+        executer.inDirectory(sample.dir.file("consumer")).withArguments("--include-build", "../greeting-plugin")
+        succeeds(':greetBob')
+
+        then:
+        executed ":greeting-plugin:jar", ":greetBob"
+        outputContains("Hi Bob!!!")
+
+        when:
+        def greetingTaskSource = sample.dir.file("greeting-plugin/src/main/java/org/sample/GreetingTask.java")
+        greetingTaskSource.text = greetingTaskSource.text.replace("Hi", "G'day")
+
+        and:
+        executer.inDirectory(sample.dir.file("consumer")).withArguments("--include-build", "../greeting-plugin")
+        succeeds(':greetBob')
+
+        then:
+        executed ":greeting-plugin:jar", ":greetBob"
+        outputContains("G'day Bob!!!")
+    }
 }
