@@ -190,4 +190,65 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
             }
         """
     }
+
+    def "copy task stays up-to-date after files are moved but end up copied to the same destination"() {
+        file("src", "data").createDir()
+        file("src/data/input.txt").text = "data"
+
+        when:
+        buildFile << """
+            task copy(type: Copy) {
+                outputs.cacheIf { true }
+                from "src"
+                into "target"
+            }
+        """
+
+        execute "copy"
+        then:
+        skippedTasks.empty
+
+        file("src").renameTo(file("source"))
+
+        when:
+        cleanWorkspace()
+
+        buildFile.text = """
+            task copy(type: Copy) {
+                outputs.cacheIf { true }
+                from "source"
+                into "target"
+            }
+        """
+
+        execute "copy"
+        then:
+        skippedTasks as List == [":copy"]
+    }
+
+    def "copy task is not up-to-date when files end up copied to a different destination"() {
+        file("src", "data").createDir()
+        file("src/data/input.txt").text = "data"
+
+        when:
+        buildFile << """
+            task copy(type: Copy) {
+                outputs.cacheIf { true }
+                from "src"
+                into "target"
+            }
+        """
+
+        execute "copy"
+        then:
+        skippedTasks.empty
+
+        file("src/data/input.txt").renameTo(file("src/data/input-renamed.txt"))
+
+        when:
+        cleanWorkspace()
+        execute "copy"
+        then:
+        skippedTasks.empty
+    }
 }
