@@ -85,12 +85,3 @@ gradle run
 ```
 
 We are working on a mechanism to permit tasks in included builds to be referred to directly on the command line. Stay tuned!
-
-### Make a bugfix for an external library
-
-```
-git clone http://git-wip-us.apache.org/repos/asf/commons-lang.git
-gradle -P commons-lang init
-cd composite
-gradle --include-build '../commons-lang' run
-```
