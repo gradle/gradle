@@ -10,6 +10,41 @@ Add-->
 ### Example new and noteworthy
 -->
 
+### Composite Builds
+
+[Composite Builds](userguide/composite_builds.html) take the pain out of binary integration. They allow you to combine several independent Gradle builds into one big build, replacing binary dependencies with project dependencies.
+
+They allow you to:
+- quickly verify a bug fix in a library by testing it directly against an application without having to publish to a repository first
+- develop and test a Gradle plugin directly against a project that uses that plugin
+- split a large multi-project build into several smaller builds, which can be worked on independently or together
+
+For instance, imagine you have to projects, a library called `number-utils`:
+
+```
+apply plugin: 'java'
+group "org.sample"
+version "1.0"
+
+```
+
+and an application called `my-app`:
+
+```
+apply plugin: 'application'
+
+dependencies {
+    compile "org.sample:number-utils:1.0"
+}
+```
+
+You can now build that application directly against a checked-out version of `number-utils` like this:
+ 
+ ```
+ cd my-app
+ gradle test --include-build ../number-utils
+ ```
+
 ### Faster dependency resolution
 
 Dependency resolution is now faster for some common cases:
