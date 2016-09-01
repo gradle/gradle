@@ -93,7 +93,7 @@ gradle --project-dir modules/commons-lang --no-search-upward init
 gradle run
 ```
 
-And if it wasn't explicit, you can check that it was actually a transitive dependency that was replaced by executing the following command:
+You can see the external transitive dependency `commons-lang` being replaced with the local project dependency by running:
 
 ```
 gradle dependencies --configuration compile
