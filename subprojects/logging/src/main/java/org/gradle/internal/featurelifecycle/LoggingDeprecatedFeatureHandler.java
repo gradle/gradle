@@ -29,6 +29,7 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
+    private static final String ELEMENT_PREFIX = "\tat ";
     private static boolean traceLoggingEnabled;
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
@@ -60,8 +61,6 @@ public class LoggingDeprecatedFeatureHandler implements DeprecatedFeatureHandler
             LOGGER.warn(message.toString());
         }
     }
-
-    private static final String ELEMENT_PREFIX = "\tat ";
 
     private static void logTraceIfNecessary(List<StackTraceElement> stack, StringBuilder message) {
         final String lineSeparator = SystemProperties.getInstance().getLineSeparator();
