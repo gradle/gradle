@@ -37,7 +37,7 @@ class FileHashSnapshot implements IncrementalFileSnapshot {
             return false;
         }
         FileHashSnapshot other = (FileHashSnapshot) snapshot;
-        return hash.equals(other.hash);
+        return Objects.equal(hash, other.hash);
     }
 
     @Override
@@ -46,7 +46,7 @@ class FileHashSnapshot implements IncrementalFileSnapshot {
             return false;
         }
         FileHashSnapshot other = (FileHashSnapshot) snapshot;
-        return lastModified == other.lastModified && hash.equals(other.hash);
+        return lastModified == other.lastModified && Objects.equal(hash, other.hash);
     }
 
     @Override
@@ -63,7 +63,7 @@ class FileHashSnapshot implements IncrementalFileSnapshot {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(hash);
+        return hash.hashCode();
     }
 
     @Override
