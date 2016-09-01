@@ -10,8 +10,8 @@ import org.gradle.script.lang.kotlin.support.zipTo
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
 
-import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.CoreMatchers.containsString
+import org.hamcrest.CoreMatchers.hasItems
 import org.hamcrest.MatcherAssert.assertThat
 
 import org.junit.Rule
@@ -51,9 +51,6 @@ class GradleScriptKotlinIntegrationTest {
 
         assert(
             build("compute").output.contains("*42*"))
-
-        assertBuildScriptModelClassPathContains(
-            existing("fixture.jar"))
     }
 
     @Test
@@ -78,9 +75,6 @@ class GradleScriptKotlinIntegrationTest {
 
         assert(
             build("compute").output.contains("*42*"))
-
-        assertBuildScriptModelClassPathContains(
-            buildSrcOutput())
     }
 
     @Test
@@ -190,10 +184,7 @@ class GradleScriptKotlinIntegrationTest {
     @Test
     fun `can serve buildSrc classpath in face of compilation errors`() {
 
-        withFile("buildSrc/src/main/groovy/build/Foo.groovy", """
-            package build
-            class Foo {}
-        """)
+        withBuildSrc()
 
         withBuildScript("""
             val p =
@@ -223,21 +214,41 @@ class GradleScriptKotlinIntegrationTest {
     }
 
     @Test
-    fun `can serve buildscript classpath of non top level script required by Groovy script`() {
+    fun `can serve buildscript classpath of top level Groovy script`() {
+
+        //
+        // Supports code completion on build.gradle.kts files which have not
+        // been included in the build for whatever reason.
+        //
+        // An example would be a conditional `apply from: 'build.gradle.kts'`.
+        //
+
+        withBuildSrc()
+
+        withFile("classes.jar", "")
 
         withFile("build.gradle", """
-            apply from: 'build.gradle.kts'
-
-            // sourceSets container is only available after build.gradle.kts
-            sourceSets { main.java.srcDirs += file('more') }
+            buildscript {
+                dependencies {
+                    classpath(files("classes.jar"))
+                }
+            }
         """)
 
-        withFile("build.gradle.kts", """
-            apply<JavaPlugin>()
-        """)
+        val classPath = kotlinBuildScriptModelCanonicalClassPath()
+        assertThat(
+            classPath,
+            hasItems(
+                buildSrcOutput(),
+                existing("classes.jar")))
 
-        assert(
-            kotlinBuildScriptModel().classPath.isNotEmpty())
+        val version = "[0-9.]+-.+?"
+        assertThat(
+            classPath.map { it.name },
+            hasItems(
+                matching("gradle-script-kotlin-$version\\.jar"),
+                matching("gradle-script-kotlin-api-$version\\.jar"),
+                matching("gradle-script-kotlin-extensions-$version\\.jar")))
     }
 
     @Test
@@ -251,6 +262,13 @@ class GradleScriptKotlinIntegrationTest {
 
         assert(
             build("build").output.contains("*Build*"))
+    }
+
+    private fun withBuildSrc() {
+        withFile("buildSrc/src/main/groovy/build/Foo.groovy", """
+            package build
+            class Foo {}
+        """)
     }
 
     private fun buildSrcOutput(): File =
@@ -274,7 +292,6 @@ class GradleScriptKotlinIntegrationTest {
 
     private fun withClassJar(fileName: String, vararg classes: Class<*>) =
         zipTo(file(fileName), classEntriesFor(*classes))
-
 
     private fun file(fileName: String) =
         projectDir.run {
@@ -308,9 +325,12 @@ class GradleScriptKotlinIntegrationTest {
 
     private fun assertBuildScriptModelClassPathContains(vararg files: File) {
         assertThat(
-            kotlinBuildScriptModel().classPath.map { it.canonicalFile },
+            kotlinBuildScriptModelCanonicalClassPath(),
             hasItems(*files))
     }
+
+    private fun kotlinBuildScriptModelCanonicalClassPath() =
+        kotlinBuildScriptModel().classPath.map { it.canonicalFile }
 
     private fun kotlinBuildScriptModel(): KotlinBuildScriptModel =
         withDaemonRegistry(customDaemonRegistry()) {

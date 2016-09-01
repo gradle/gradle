@@ -18,7 +18,6 @@ package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
-import org.gradle.script.lang.kotlin.support.kotlinScriptClassPath
 
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope
@@ -87,7 +86,6 @@ class KotlinBuildScriptCompiler(
 
     fun compileForClassPath(): (Project) -> Unit = { target ->
         executeBuildscriptSectionIgnoringErrors(target)
-        shareKotlinScriptClassPathOn(target)
     }
 
     private fun extractTopLevelBuildScriptRange() =
@@ -108,7 +106,6 @@ class KotlinBuildScriptCompiler(
         val scriptClassLoader = scriptBodyClassLoaderFor(baseScope.exportClassLoader)
         val scriptClass = compileScriptFile(scriptClassLoader)
         return { target ->
-            shareKotlinScriptClassPathOn(target)
             executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
         }
     }
@@ -119,7 +116,6 @@ class KotlinBuildScriptCompiler(
 
             val scriptClassLoader = scriptBodyClassLoaderFor(buildscriptClassLoader)
             val scriptClass = compileScriptFile(scriptClassLoader)
-            shareKotlinScriptClassPathOn(target)
             executeScriptWithContextClassLoader(scriptClassLoader, scriptClass, target)
         }
     }
@@ -210,10 +206,6 @@ class KotlinBuildScriptCompiler(
     private fun exportClassPathOf(baseScope: ClassLoaderScope): ClassPath =
         DefaultClassPath.of(
             (baseScope.exportClassLoader as? URLClassLoader)?.urLs?.map { File(it.toURI()) })
-
-    private fun shareKotlinScriptClassPathOn(target: Project) {
-        target.kotlinScriptClassPath = compilationClassPath
-    }
 }
 
 inline fun withContextClassLoader(classLoader: ClassLoader, block: () -> Unit) {

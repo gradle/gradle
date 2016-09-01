@@ -16,25 +16,19 @@
 
 package org.gradle.script.lang.kotlin.provider
 
-import org.gradle.script.lang.kotlin.loggerFor
+import org.gradle.script.lang.kotlin.support.KotlinBuildScriptModelBuilder
 
-import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 
-import org.gradle.configuration.ScriptPlugin
+import org.gradle.configuration.project.ProjectConfigureAction
 
-import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 
-class KotlinScriptPlugin(val scriptSource: ScriptSource, val script: (Project) -> Unit) : ScriptPlugin {
+class KotlinBuildScriptModelBuilderRegistrationAction : ProjectConfigureAction {
 
-    private val logger = loggerFor<KotlinScriptPlugin>()
-
-    override fun getSource() = scriptSource
-
-    override fun apply(target: Any) {
-        logger.info("Applying Kotlin script to {}", target)
-        if (target !is Project) {
-            throw IllegalArgumentException("target $target was not a Project as expected")
-        }
-        script(target)
+    override fun execute(project: ProjectInternal) {
+        project
+            .services[ToolingModelBuilderRegistry::class.java]
+            .register(KotlinBuildScriptModelBuilder)
     }
 }
