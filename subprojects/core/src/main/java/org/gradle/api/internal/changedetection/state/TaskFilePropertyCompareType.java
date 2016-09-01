@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.Iterators;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
@@ -24,19 +23,23 @@ import java.util.Iterator;
 import java.util.Map;
 
 public enum TaskFilePropertyCompareType implements TaskFilePropertyCompareStrategy {
-    ORDERED(new OrderSensitiveTaskFilePropertyCompareStrategy()),
-    UNORDERED(new OrderInsensitiveTaskFilePropertyCompareStrategy(true)),
-    OUTPUT(new OrderInsensitiveTaskFilePropertyCompareStrategy(false));
+    ORDERED(new OrderSensitiveTaskFilePropertyCompareStrategy(), true),
+    UNORDERED(new OrderInsensitiveTaskFilePropertyCompareStrategy(true), true),
+    OUTPUT(new OrderInsensitiveTaskFilePropertyCompareStrategy(false), false);
 
     private final TaskFilePropertyCompareStrategy strategy;
+    private final boolean includeAdded;
 
-    TaskFilePropertyCompareType(TaskFilePropertyCompareStrategy strategy) {
+    TaskFilePropertyCompareType(TaskFilePropertyCompareStrategy strategy, boolean includeAdded) {
         this.strategy = strategy;
+        this.includeAdded = includeAdded;
     }
 
     public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType) {
-        if (current.isEmpty() && previous.isEmpty()) {
-            return Iterators.emptyIterator();
+        // Handle trivial cases with 0 or 1 elements in both current and previous
+        Iterator<TaskStateChange> trivialResult = FileCollectionSnapshotCompareUtil.compareTrivialSnapshots(current, previous, fileType, includeAdded);
+        if (trivialResult != null) {
+            return trivialResult;
         }
         return strategy.iterateContentChangesSince(current, previous, fileType);
     }
