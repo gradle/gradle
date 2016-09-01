@@ -2,9 +2,11 @@ apply plugin: 'idea'
 
 defaultTasks 'run'
 
+// START SNIPPET run
 task run {
     dependsOn gradle.includedBuild('my-app').task(':run')
 }
+// END SNIPPET run
 
 task checkAll {
     dependsOn gradle.includedBuild('my-app').task(':check')
