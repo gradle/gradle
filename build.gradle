@@ -15,12 +15,12 @@ apply from: 'build.gradle.kts'
 
 
 // --- Enable automatic generation of API extensions -------------------
-File apiExtensionsOutputDir = file("src/generated/kotlin")
+File apiExtensionsOutputDir = file('src/generated/kotlin')
 task generateConfigurationExtensions(type: codegen.GenerateConfigurationExtensions) {
-    outputFile = new File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/ConfigurationsExtensions.kt")
+    outputFile = new File(apiExtensionsOutputDir, 'org/gradle/script/lang/kotlin/ConfigurationsExtensions.kt')
 }
 task generateKotlinDependencyExtensions(type: codegen.GenerateKotlinDependencyExtensions) {
-    outputFile = new File(apiExtensionsOutputDir, "org/gradle/script/lang/kotlin/KotlinDependencyExtensions.kt")
+    outputFile = new File(apiExtensionsOutputDir, 'org/gradle/script/lang/kotlin/KotlinDependencyExtensions.kt')
     embeddedKotlinVersion = kotlinVersion
     gradleScriptKotlinRepository = kotlinRepo
 }
@@ -64,7 +64,7 @@ task copyCurrentDistro(type: Copy) {
 }
 
 task customInstallation(type: Copy, dependsOn: copyCurrentDistro) {
-    description "Copies latest gradle-script-kotlin snapshot over the custom installation."
+    description 'Copies latest gradle-script-kotlin snapshot over the custom installation.'
 
     from configurations.compile
     from tasks.jar
@@ -91,7 +91,7 @@ task benchmark(type: integration.Benchmark, dependsOn: customInstallation) {
 //     check-hello-kotlin
 //
 tasks.addRule('Pattern: check-<SAMPLE>') { taskName ->
-    if (taskName.startsWith ("check-")) {
+    if (taskName.startsWith ('check-')) {
         def checkSample = task ("$taskName-task", type: integration.CheckSample) {
             dependsOn customInstallation
             installation = customInstallationDir
@@ -142,12 +142,12 @@ def buildTagFor(String version) {
 def targetRepoKey = "libs-${buildTagFor(project.version)}s-local"
 
 artifactory {
-    contextUrl = "https://repo.gradle.org/gradle"
+    contextUrl = 'https://repo.gradle.org/gradle'
     publish {
         repository {
             repoKey = targetRepoKey
-            username = project.findProperty("artifactory_user") ?: "nouser"
-            password = project.findProperty("artifactory_password") ?: "nopass"
+            username = project.findProperty('artifactory_user') ?: 'nouser'
+            password = project.findProperty('artifactory_password') ?: 'nopass'
             maven = true
         }
         defaults {
