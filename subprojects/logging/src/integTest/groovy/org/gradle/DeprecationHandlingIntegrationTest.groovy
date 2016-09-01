@@ -16,7 +16,6 @@
 
 package org.gradle
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
@@ -134,13 +133,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count('\tat') > 3
     }
 
-    @NotYetImplemented() // Cannot load build script plugin from initscript
     def 'DeprecatedPlugin from init script - without full stacktrace.'() {
         given:
         def initScript = file("init.gradle") << """
-        allprojects {
-            apply plugin: buildscript.classLoader.loadClass('DeprecatedPlugin') // line 3
-        }
+            allprojects {
+                DeprecationLogger.nagUserOfPluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar") // line 2
+            }
         """.stripIndent()
 
         when:
