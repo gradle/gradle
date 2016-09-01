@@ -27,21 +27,19 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.util.CollectionUtils;
 
 import java.util.Collection;
-import java.util.Date;
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*;
-
-public class DuplicateIdleDaemonExpirationStrategy implements DaemonExpirationStrategy {
-    public final static int IDLE_COMPATIBLE_TIMEOUT = 10 * 1000;
+public class CompatibleDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final Daemon daemon;
     private final ExplainingSpec<DaemonContext> compatibilitySpec;
 
-    DuplicateIdleDaemonExpirationStrategy(Daemon daemon, ExplainingSpec<DaemonContext> compatibilitySpec) {
+    public static final String EXPIRATION_REASON = "other compatible daemons were started";
+
+    CompatibleDaemonExpirationStrategy(Daemon daemon, ExplainingSpec<DaemonContext> compatibilitySpec) {
         this.daemon = daemon;
         this.compatibilitySpec = compatibilitySpec;
     }
 
-    public DuplicateIdleDaemonExpirationStrategy(Daemon daemon) {
+    CompatibleDaemonExpirationStrategy(Daemon daemon) {
         this(daemon, new DaemonCompatibilitySpec(daemon.getDaemonContext()));
     }
 
@@ -55,31 +53,10 @@ public class DuplicateIdleDaemonExpirationStrategy implements DaemonExpirationSt
         };
         Collection<DaemonInfo> compatibleIdleDaemons = CollectionUtils.filter(daemon.getDaemonRegistry().getIdle(), spec);
 
-        if (compatibleIdleDaemons.size() > 1
-            && daemon.getStateCoordinator().getState() == Idle
-            && !isMostRecentlyUsed(compatibleIdleDaemons, daemon.getDaemonContext())
-            && hasBeenIdle()) {
-            return new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, "after other compatible daemons were started");
+        if (compatibleIdleDaemons.size() > 1) {
+            return new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, EXPIRATION_REASON);
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;
         }
-    }
-
-    boolean isMostRecentlyUsed(Collection<DaemonInfo> compatibleDaemons, DaemonContext thisDaemonContext) {
-        String mruUid = null;
-        Date mruTimestamp = new Date(Long.MIN_VALUE);
-        for (DaemonInfo daemonInfo : compatibleDaemons) {
-            Date daemonAccessTime = daemonInfo.getLastBusy();
-            if (daemonAccessTime.after(mruTimestamp)) {
-                mruUid = daemonInfo.getUid();
-                mruTimestamp = daemonAccessTime;
-            }
-        }
-        return thisDaemonContext.getUid().equals(mruUid);
-    }
-
-    boolean hasBeenIdle() {
-        long idleTime = daemon.getStateCoordinator().getIdleMillis(System.currentTimeMillis());
-        return idleTime > IDLE_COMPATIBLE_TIMEOUT;
     }
 }
