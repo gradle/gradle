@@ -87,9 +87,14 @@ compile - Dependencies for source set 'main'.
 
 The power of this configuration can be demonstrated by adding the external 'commons-lang' build directly to the composite.
 
-
 ```
 git clone http://git-wip-us.apache.org/repos/asf/commons-lang.git modules/commons-lang --branch master --depth 1
 gradle --project-dir modules/commons-lang --no-search-upward init
 gradle run
+```
+
+And if it wasn't explicit, you can check that it was actually a transitive dependency that was replaced by executing the following command:
+
+```
+gradle dependencies --configuration compile
 ```
