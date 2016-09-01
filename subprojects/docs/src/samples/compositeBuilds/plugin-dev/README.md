@@ -44,6 +44,6 @@ The change to the plugin source can be seen immediately in the consumer build.
 
 In order to determine the substitutions provided by an included build, that build must be configured. To configure a build, the `buildscript` dependencies must be resolved, resulting in a bit of a chicken-and-egg situation. (Gradle does not yet automatically handle the build dependency graph in this situation).
 
-The current sample avoids this scenario because the plugin consumer is also the top-level composite build. Since the composite build does not contribute and dependency substitutions, it doesn't need to be configured until all of the included builds are configured. By this time the substitutions have been configured and the `buildscript` dependencies can be successfully resolved.
+The current sample avoids this scenario because the plugin consumer is also the top-level composite build. Since the composite build does not contribute any dependency substitutions, it doesn't need to be configured until all of the included builds are configured. By this time the substitutions have been configured and the `buildscript` dependencies can be successfully resolved.
 
 An alternative way to work around this issue is to explicitly declare the substitutions of the _consuming_ build. When substitutions are explicitly declared for an included build, then there is no need for Gradle to configure that build early to determine the substitutions, deferring configuration until such a time that the `buildscript` dependencies can be resolved.
