@@ -2,7 +2,7 @@
 
 This sample demonstrates how composite builds can be used to develop a hierarchical project that is composed from different Git repositories. Instead of Gradle subprojects in a multiproject build, this example uses separate Gradle builds included into a composite.
 
-In addition to any benefits of a multirepo architecture, using a Gradle composite build in this way allows a developer to easily choose which modules to develop as source dependencies and which to integrate via a binary repository.
+In addition to the benefits of a multirepo architecture, using a Gradle composite build in this way allows a developer to easily choose which modules to develop as source dependencies and which to integrate via a binary repository.
 
 ### Running `multirepo-app` with dependencies from included builds
 
@@ -39,7 +39,7 @@ compile - Dependencies for source set 'main'.
 
 ### Switching to use binary dependency
 
-As long as the modules are available in a binary repository, the `multirepo-app` build will continue to work even if you don't have some modules available locally. In this case, Gradle will not load the included build, and will use a binary dependency downloaded from a repository instead.
+As long as the modules are available in a binary repository, the `multirepo-app` build will continue to work even if you don't have some modules available locally. In this case Gradle will use a binary dependency downloaded from a repository instead.
 
 #### Preparing the binary repository
 
@@ -62,7 +62,7 @@ task publishDeps {
 With module artifacts available in a repository, we can now remove the module sources from the build. Since the composite is configured to automatically load available modules, this is as easy as deleting one or more module directories.
 
 ```
-rm -r submodules/string-utils
+rm -r modules/string-utils
 gradle run
 ```
 
@@ -89,7 +89,7 @@ The power of this configuration can be demonstrated by adding the external 'comm
 
 
 ```
-git clone http://git-wip-us.apache.org/repos/asf/commons-lang.git submodules/commons-lang
-gradle --project-dir submodules/commons-lang --no-search-upward init
+git clone http://git-wip-us.apache.org/repos/asf/commons-lang.git modules/commons-lang
+gradle --project-dir modules/commons-lang --no-search-upward init
 gradle run
 ```
