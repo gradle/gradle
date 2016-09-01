@@ -39,6 +39,9 @@
                 <td>include</td>
             </tr>
             <tr>
+                <td>includeBuild</td>
+            </tr>
+            <tr>
                 <td>includeFlat</td>
             </tr>
             <tr>

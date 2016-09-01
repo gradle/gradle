@@ -40,6 +40,10 @@ class IvyModuleResolveMetaDataBuilder {
         artifacts.add(new Artifact(newArtifact, configurations));
     }
 
+    public List<Artifact> getArtifacts() {
+        return artifacts;
+    }
+
     public DefaultMutableIvyModuleResolveMetadata build() {
         ModuleDescriptorState descriptorState = IvyModuleDescriptorConverter.forIvyModuleDescriptor(ivyDescriptor);
         for (Artifact artifact : artifacts) {

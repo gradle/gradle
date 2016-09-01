@@ -40,10 +40,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     @UsesSample('compositeBuilds/basic')
     def "can run app when modified to be a composite"() {
         when:
-        sample.dir.file("my-app/settings.gradle") << """
-    includeBuild '../my-utils'
-"""
-        executer.inDirectory(sample.dir.file("my-app"))
+        executer.inDirectory(sample.dir.file("my-app")).withArguments("--settings-file", "settings-composite.gradle")
         succeeds(':run')
 
         then:
@@ -62,10 +59,10 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("The answer is 42")
     }
 
-    @UsesSample('compositeBuilds/hierarchical')
+    @UsesSample('compositeBuilds/hierarchical-multirepo')
     def "can run app in hierarchical composite"() {
         when:
-        executer.inDirectory(sample.dir.file("my-app"))
+        executer.inDirectory(sample.dir.file("multirepo-app"))
         succeeds(':run')
 
         then:
@@ -73,10 +70,10 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("The answer is 42")
     }
 
-    @UsesSample('compositeBuilds/hierarchical')
+    @UsesSample('compositeBuilds/hierarchical-multirepo')
     def "can publish locally and remove submodule from hierarchical composite"() {
         when:
-        executer.inDirectory(sample.dir.file("my-app"))
+        executer.inDirectory(sample.dir.file("multirepo-app"))
         succeeds(':publishDeps')
 
         then:
@@ -85,10 +82,10 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         sample.dir.file('local-repo/org.sample/string-utils/1.0').assertContainsDescendants("ivy-1.0.xml", "string-utils-1.0.jar")
 
         when:
-        sample.dir.file("my-app/submodules/string-utils").deleteDir()
+        sample.dir.file("multirepo-app/modules/string-utils").deleteDir()
 
         and:
-        executer.inDirectory(sample.dir.file("my-app"))
+        executer.inDirectory(sample.dir.file("multirepo-app"))
         succeeds(":run")
 
         then:

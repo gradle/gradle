@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.base.Objects;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import org.gradle.internal.hash.HashUtil;
 
@@ -56,13 +55,15 @@ public abstract class AbstractNormalizedFileSnapshot implements NormalizedFileSn
             return false;
         }
         AbstractNormalizedFileSnapshot that = (AbstractNormalizedFileSnapshot) o;
-        return Objects.equal(getNormalizedPath(), that.getNormalizedPath())
-            && Objects.equal(snapshot, that.snapshot);
+        return snapshot.equals(that.snapshot)
+            && getNormalizedPath().equals(that.getNormalizedPath());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getNormalizedPath(), snapshot);
+        int result = snapshot.hashCode();
+        result = 31 * result + getNormalizedPath().hashCode();
+        return result;
     }
 
     @Override

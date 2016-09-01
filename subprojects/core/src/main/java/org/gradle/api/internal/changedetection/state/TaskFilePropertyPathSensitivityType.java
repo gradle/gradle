@@ -192,7 +192,7 @@ public enum TaskFilePropertyPathSensitivityType {
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(snapshot);
+            return snapshot.hashCode();
         }
     }
 }

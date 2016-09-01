@@ -122,6 +122,14 @@
             </listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>--include-build</option>
+            </term>
+            <listitem>
+                <para>Run the build as a composite, including the specified build. See <xref linkend="composite_builds"/>.
+                </para>
+            </listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-I</option>, <option>--init-script</option>
             </term>
             <listitem>

@@ -1,0 +1,16 @@
+[composite-build] Configuring build: /home/user/gradle/samples/compositeBuilds/basic/my-utils
+:compileJava
+:my-utils:number-utils:compileJava
+:my-utils:number-utils:processResources UP-TO-DATE
+:my-utils:number-utils:classes
+:my-utils:number-utils:jar
+:my-utils:string-utils:compileJava
+:my-utils:string-utils:processResources UP-TO-DATE
+:my-utils:string-utils:classes
+:my-utils:string-utils:jar
+:processResources UP-TO-DATE
+:classes
+:run
+The answer is 42
+
+BUILD SUCCESSFUL
