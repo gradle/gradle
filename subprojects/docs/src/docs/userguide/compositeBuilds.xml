@@ -22,9 +22,6 @@
         </para>
     </note>
     <title>Composite builds</title>
-    <para>
-        Blah blah.
-    </para>
     <section id="composite_build_intro">
         <title>What is a composite build?</title>
         <para>
@@ -110,13 +107,62 @@
     <section id="included_build_declaring_substitutions">
         <title>Declaring the dependencies substituted by an included build</title>
         <para>
-            TBD.
+            By default, Gradle will configure each included build in order to determine the dependencies it can provide. The algorithm for doing this is very simple: Gradle will inspect the group and name for the projects in the included build, and substitute project dependencies for any matching external dependency.
+        </para>
+        <para>
+            There are cases when the default substitutions determined by Gradle are not sufficient, or they are not correct for a particular composite. For these cases it is possible to explicitly declare the substitutions for an included build. Take for example a single-project build 'unpublished', that produces a java utility library but does not declare a value for the group attribute:
+        </para>
+        <sample id="compositeBuilds_declared_unpublished" dir="compositeBuilds/declared-substitution/anonymous-library" title="Build that does not declare group attribute">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>
+            When this build is included in a composite, it will attempt to substitute for the dependency module "undefined:unpublished" ("undefined" being the default value for <literal>project.group</literal>, and 'unpublished' being the root project name). Clearly this isn't going to be very useful in a composite build.
+            To use the unpublished library unmodified in a composite build, the composing build can explicitly declare the substitutions that it provides:
+        </para>
+        <sample id="compositeBuilds_declared_unpublished" dir="compositeBuilds/declared-substitution/my-app" title="Declaring the substitutions for an included build">
+            <sourcefile file="settings.gradle"/>
+        </sample>
+        <para>
+            With this configuration, the "my-app" composite build will substitute any dependency on <literal>org.sample:number-utils</literal> with a dependency on the root project of "unpublished".
         </para>
     </section>
     <section id="included_build_task_dependencies">
         <title>Depending on tasks in an included build</title>
         <para>
-            TBD.
+            While included builds are isolated from one another and cannot declare direct dependencies, a composite build is able to declare task dependencies on it's included builds. The included builds are accessed using <apilink class="org.gradle.api.invocation.Gradle" method="getIncludedBuilds()"/> or <apilink class="org.gradle.api.invocation.Gradle" method="includedBuild(java.lang.String)"/>, and a task reference is obtained via the <apilink class="org.gradle.api.initialization.IncludedBuild" method="task(java.lang.String)"/> method.
+        </para>
+        <para>
+            Using these APIs, it is possible to declare a dependency on a task in a particular included build, or tasks with a certain path in all or some of the included builds.
+        </para>
+        <sample id="compositeBuilds_tasks_single" dir="compositeBuilds/basic/composite" title="Depending on a single task from an included build">
+            <sourcefile file="build.gradle" snippet="run"/>
+        </sample>
+        <sample id="compositeBuilds_tasks_multiple" dir="compositeBuilds/hierarchical-multirepo/multirepo-app" title="Depending on a tasks with path in all included builds">
+            <sourcefile file="build.gradle" snippet="publishDeps"/>
+        </sample>
+    </section>
+    <section id="current_limitations_and_future_work">
+        <title>Current limitations and future plans for composite builds</title>
+        <para>
+            We think composite builds are pretty useful already. However, there are some things that don't yet work the way we'd like, and other improvements that we think will make things work even better.
+        </para>
+        <para>
+            Limitations of the current implementation include:
+            <itemizedlist>
+                 <listitem><para>No support for included builds that produce multiple components. This is in part a limitation of the fact that dependency substitution does not permit the targeting of a particular configuration.</para></listitem>
+                 <listitem><para>It is not possible to import composite builds into IntelliJ IDEA or Eclipse Buildship. Generation of IDEA metadata files is supported.</para></listitem>
+                 <listitem><para>Native builds are not supported. (Binary dependencies are not yet supporte for native builds).</para></listitem>
+             </itemizedlist>
+        </para>
+        <para>
+            Improvements we have planned for upcoming releases include:
+            <itemizedlist>
+                <listitem><para>Better detection of dependency substitution, for build that publish with custom coordinates, builds that produce multiple components, etc. This will reduce the cases where dependency substitution needs to be explicitly declared for an included build.</para></listitem>
+                <listitem><para>The ability to target a task or tasks in an included build directly from the command line. We are currenly exporing syntax options for allowing this functionality, which will remove many cases where a delegating task is required in the composite.</para></listitem>
+                <listitem><para>Execution of included builds in parallel.</para></listitem>
+                <listitem><para>Detection of changes to included builds when running with continuous build (<literal>-t</literal>).</para></listitem>
+                <listitem><para>Making the implicit <literal>buildSrc</literal> project an included build.</para></listitem>
+            </itemizedlist>
         </para>
     </section>
 </chapter>
