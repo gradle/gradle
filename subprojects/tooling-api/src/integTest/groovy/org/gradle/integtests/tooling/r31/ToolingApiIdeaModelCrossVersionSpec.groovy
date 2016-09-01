@@ -27,7 +27,7 @@ import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 
 class ToolingApiIdeaModelCrossVersionSpec extends ToolingApiSpecification {
     @ToolingApiVersion(">=3.1")
-    @TargetGradleVersion(">=3.1")
+    @TargetGradleVersion(">=1.2")
     def "Provides target module name for module dependencies"() {
 
 

@@ -19,15 +19,18 @@ package org.gradle.tooling.internal.consumer.converters;
 import org.gradle.api.Action;
 import org.gradle.tooling.internal.adapter.ViewBuilder;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
+import org.gradle.tooling.model.idea.IdeaDependency;
 import org.gradle.tooling.model.idea.IdeaProject;
 import org.gradle.util.GradleVersion;
 
 public class IdeaModelCompatibilityMapping implements Action<ViewBuilder<?>> {
     private final boolean versionSupportsIdeaJavaSourceSettings;
+    private final boolean versionSupportsIdeaModuleTargetName;
 
     public IdeaModelCompatibilityMapping(VersionDetails versionDetails) {
         GradleVersion targetGradleVersion = GradleVersion.version(versionDetails.getVersion());
         versionSupportsIdeaJavaSourceSettings = supportsIdeaJavaSourceSettings(targetGradleVersion);
+        versionSupportsIdeaModuleTargetName = supportsIdeaModuleTargetName(targetGradleVersion);
     }
 
     @Override
@@ -35,10 +38,17 @@ public class IdeaModelCompatibilityMapping implements Action<ViewBuilder<?>> {
         if (!versionSupportsIdeaJavaSourceSettings) {
             viewBuilder.mixInTo(IdeaProject.class, IdeaProjectJavaLanguageSettingsMixin.class);
         }
+        if (!versionSupportsIdeaModuleTargetName) {
+            viewBuilder.mixInTo(IdeaDependency.class, IdeaModuleDependencyTargetNameMixin.class);
+        }
     }
 
     private boolean supportsIdeaJavaSourceSettings(GradleVersion targetGradleVersion) {
         // return 'true' for 2.11 snapshots too
         return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("2.11")) >= 0;
+    }
+
+    private boolean supportsIdeaModuleTargetName(GradleVersion targetGradleVersion) {
+        return targetGradleVersion.getBaseVersion().compareTo(GradleVersion.version("3.1")) >= 0;
     }
 }
