@@ -105,11 +105,9 @@ public class PerformanceTest extends DistributionTest {
         this.debugArtifactsDirectory = debugArtifactsDirectory;
     }
 
-    @Option(option = "flamegraphs", description = "If set to 'true', activates flamegraphs and stores them into the 'flames' directory name under the debug artifacts directory.")
+    @Option(option = "flamegraphs", description = "Activates flamegraphs and stores them into the specified directory name under the debug artifacts directory.")
     public void setFlamegraphs(String flamegraphs) {
-        if ("true".equals(flamegraphs)) {
-            File artifactsDirectory = new File(getDebugArtifactsDirectory(), "flames");
-            systemProperty("org.gradle.performance.honestprofiler", artifactsDirectory.getAbsolutePath());
-        }
+        File artifactsDirectory = new File(getDebugArtifactsDirectory(), flamegraphs);
+        systemProperty("org.gradle.performance.honestprofiler", artifactsDirectory.getAbsolutePath());
     }
 }
