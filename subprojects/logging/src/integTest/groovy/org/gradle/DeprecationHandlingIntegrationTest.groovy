@@ -29,13 +29,13 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.internal.deprecated.DeprecatedPlugin
             import org.gradle.internal.deprecated.DeprecatedTask
 
-            apply plugin: DeprecatedPlugin // line 4
+            apply plugin: DeprecatedPlugin // line 5
 
-            DeprecatedTask.someFeature() // line 6
+            DeprecatedTask.someFeature() // line 7
             DeprecatedTask.someFeature()
 
             task broken(type: DeprecatedTask) << {
-                otherFeature() // line 10
+                otherFeature() // line 11
             }
         """.stripIndent()
 
@@ -48,9 +48,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         run('deprecated', 'broken')
 
         then:
-        output.contains('build.gradle:4)')
-        output.contains('build.gradle:6)')
-        output.contains('build.gradle:10)')
+        output.contains('build.gradle:5)')
+        output.contains('build.gradle:7)')
+        output.contains('build.gradle:11)')
         !output.contains('(Native Method)')
 
         and:
@@ -69,13 +69,13 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.internal.deprecated.DeprecatedPlugin
             import org.gradle.internal.deprecated.DeprecatedTask
 
-            apply plugin: DeprecatedPlugin // line 4
+            apply plugin: DeprecatedPlugin // line 5
 
-            DeprecatedTask.someFeature() // line 6
+            DeprecatedTask.someFeature() // line 7
             DeprecatedTask.someFeature()
 
             task broken(type: DeprecatedTask) << {
-                otherFeature() // line 10
+                otherFeature() // line 11
             }
         """.stripIndent()
 
@@ -87,9 +87,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         run('deprecated', 'broken')
 
         then:
-        output.contains('build.gradle:4)')
-        output.contains('build.gradle:6)')
-        output.contains('build.gradle:10)')
+        output.contains('build.gradle:5)')
+        output.contains('build.gradle:7)')
+        output.contains('build.gradle:11)')
 
         and:
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
@@ -106,7 +106,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         def initScript = file("init.gradle") << """
             import org.gradle.internal.deprecated.DeprecatedPlugin
             allprojects {
-                apply plugin: DeprecatedPlugin // line 3
+                apply plugin: DeprecatedPlugin // line 4
             }
         """.stripIndent()
 
@@ -117,7 +117,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        output.contains('init.gradle:3)')
+        output.contains('init.gradle:4)')
 
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
@@ -128,7 +128,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("project.gradle") << """
             import org.gradle.internal.deprecated.DeprecatedPlugin
-            apply plugin:  DeprecatedPlugin // line 2
+            apply plugin:  DeprecatedPlugin // line 3
         """.stripIndent()
 
         buildFile << """
@@ -143,7 +143,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        output.contains('project.gradle:2)')
+        output.contains('project.gradle:3)')
 
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
@@ -154,7 +154,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("project.gradle") << """
             import org.gradle.internal.deprecated.DeprecatedPlugin
-            apply plugin:  DeprecatedPlugin // line 2
+            apply plugin:  DeprecatedPlugin // line 3
         """.stripIndent()
 
         buildFile << """
@@ -168,7 +168,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        output.contains('project.gradle:2)')
+        output.contains('project.gradle:3)')
         output.contains('build.gradle:3)')
 
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
