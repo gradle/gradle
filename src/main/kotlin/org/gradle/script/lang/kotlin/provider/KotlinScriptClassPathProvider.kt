@@ -100,6 +100,18 @@ class KotlinScriptClassPathProvider(
                 classPath = listOf(gradleApiJar))
         }
 
+    private fun generateKotlinGradleApiAt(outputFile: File, gradleApiJar: File) {
+        gradleApiJar.inputStream().use { input ->
+            outputFile.outputStream().use { output ->
+                removeMethodsMatching(
+                    ::conflictsWithExtension,
+                    input.buffered(),
+                    output.buffered(),
+                    shouldTransformEntry = { isApiClassEntry() })
+            }
+        }
+    }
+
     private fun writeActionExtensionsTo(kotlinFile: File, gradleApiJar: File) {
         kotlinFile.bufferedWriter().use { writer ->
             val extensionWriter = ActionExtensionWriter(writer)
@@ -116,18 +128,6 @@ class KotlinScriptClassPathProvider(
         createTempFile(outputJar.name, suffix).apply {
             deleteOnExit()
         }
-
-    private fun generateKotlinGradleApiAt(outputFile: File, gradleApiJar: File) {
-        gradleApiJar.inputStream().use { input ->
-            outputFile.outputStream().use { output ->
-                removeMethodsMatching(
-                    ::conflictsWithExtension,
-                    input.buffered(),
-                    output.buffered(),
-                    shouldTransformEntry = { isApiClassEntry() })
-            }
-        }
-    }
 
     private fun gradleApiDependency() =
         (dependencyFactory.gradleApi() as SelfResolvingDependency)
