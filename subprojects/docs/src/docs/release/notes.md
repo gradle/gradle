@@ -9,6 +9,12 @@ Add-->
 <!--
 ### Example new and noteworthy
 -->
+### Location of deprecation warning in build file is shown
+
+For each deprecation warning Gradle now prints its location in the
+build file to the console. When passing `-s` or `-S` as a command
+line option to Gradle then the whole stack trace is printed out.
+This should make it much easier to spot and fix those warnings.
 
 ## Promoted features
 
@@ -46,6 +52,7 @@ We would like to thank the following community members for making contributions 
 
 - [Vladislav Bauer](https://github.com/vbauer) - Remove code duplication in Jacoco plugin
 - [Shintaro Katafuchi](https://github.com/hotchemi) - Fixed typo in `ShadedJar.java` under `buildSrc`
+- [Jörn Huxhorn](https://github.com/huxi) - show location in build file for deprecation warning
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
