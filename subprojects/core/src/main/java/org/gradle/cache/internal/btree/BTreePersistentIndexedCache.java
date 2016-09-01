@@ -23,11 +23,17 @@ import org.gradle.internal.serialize.kryo.KryoBackedEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 // todo - stream serialised value to file
 // todo - handle hash collisions (properly, this time)
@@ -43,7 +49,7 @@ import java.util.*;
 public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache<K, V> {
     private static final Logger LOGGER = LoggerFactory.getLogger(BTreePersistentIndexedCache.class);
     private final File cacheFile;
-    private final Serializer<K> keySerializer;
+    private final KeyHasher<K> keyHasher;
     private final Serializer<V> serializer;
     private final short maxChildIndexEntries;
     private final int minIndexChildNodes;
@@ -57,7 +63,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
     public BTreePersistentIndexedCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer,
                                        short maxChildIndexEntries, int maxFreeListEntries) {
         this.cacheFile = cacheFile;
-        this.keySerializer = keySerializer;
+        this.keyHasher = new KeyHasher<K>(keySerializer);
         this.serializer = valueSerializer;
         this.maxChildIndexEntries = maxChildIndexEntries;
         this.minIndexChildNodes = maxChildIndexEntries / 2;
@@ -131,11 +137,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
     public void put(K key, V value) {
         try {
-            MessageDigestStream digestStream = new MessageDigestStream();
-            KryoBackedEncoder encoder = new KryoBackedEncoder(digestStream);
-            keySerializer.write(encoder, key);
-            encoder.flush();
-            long hashCode = digestStream.getChecksum();
+            long hashCode = keyHasher.getHashCode(key);
             Lookup lookup = header.getRoot().find(hashCode);
             boolean needNewBlock = true;
             if (lookup.entry != null) {
@@ -449,11 +451,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         }
 
         public Lookup find(K key) throws Exception {
-            MessageDigestStream digestStream = new MessageDigestStream();
-            KryoBackedEncoder encoder = new KryoBackedEncoder(digestStream);
-            keySerializer.write(encoder, key);
-            encoder.flush();
-            long checksum = digestStream.getChecksum();
+            long checksum = keyHasher.getHashCode(key);
             return find(checksum);
         }
 
@@ -693,35 +691,6 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 store.write(this);
             }
             return ok;
-        }
-    }
-
-    private static class MessageDigestStream extends OutputStream {
-        MessageDigest messageDigest;
-
-        private MessageDigestStream() throws NoSuchAlgorithmException {
-            messageDigest = MessageDigest.getInstance("MD5");
-        }
-
-        @Override
-        public void write(int b) throws IOException {
-            messageDigest.update((byte) b);
-        }
-
-        @Override
-        public void write(byte[] b) throws IOException {
-            messageDigest.update(b);
-        }
-
-        @Override
-        public void write(byte[] b, int off, int len) throws IOException {
-            messageDigest.update(b, off, len);
-        }
-
-        long getChecksum() {
-            byte[] digest = messageDigest.digest();
-            assert digest.length == 16;
-            return new BigInteger(digest).longValue();
         }
     }
 }
