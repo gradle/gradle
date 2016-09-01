@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.AbstractIterator;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
@@ -26,12 +27,20 @@ import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy {
+
+    private static final Comparator<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> ENTRY_COMPARATOR = new Comparator<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>>() {
+        @Override
+        public int compare(Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> o1, Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> o2) {
+            return o1.getKey().compareTo(o2.getKey());
+        }
+    };
 
     private final boolean includeAdded;
 
@@ -41,7 +50,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
 
     @Override
     public Iterator<TaskStateChange> iterateContentChangesSince(final Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType) {
-        final ListMultimap<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.treeKeys().linkedListValues().build();
+        final ListMultimap<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys().linkedListValues().build();
         for (Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();
             NormalizedFileSnapshot previousSnapshot = entry.getValue();
@@ -73,9 +82,15 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
                     }
                 }
 
-                // Create a single iterator to use for all of the removed files
+                // Create a single iterator to use for all of the still unaccounted files
                 if (unaccountedForPreviousSnapshotsIterator == null) {
-                    unaccountedForPreviousSnapshotsIterator = unaccountedForPreviousSnapshots.entries().iterator();
+                    if (unaccountedForPreviousSnapshots.isEmpty()) {
+                        unaccountedForPreviousSnapshotsIterator = Iterators.emptyIterator();
+                    } else {
+                        List<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> entries = Lists.newArrayList(unaccountedForPreviousSnapshots.entries());
+                        Collections.sort(entries, ENTRY_COMPARATOR);
+                        unaccountedForPreviousSnapshotsIterator = entries.iterator();
+                    }
                 }
 
                 if (unaccountedForPreviousSnapshotsIterator.hasNext()) {
