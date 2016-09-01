@@ -40,21 +40,21 @@ class KotlinScriptServiceRegistry : PluginServiceRegistry {
 
     override fun registerProjectServices(registration: ServiceRegistration) {
     }
-}
 
-object KotlinScriptBuildServices {
+    object KotlinScriptBuildServices {
 
-    @Suppress("unused")
-    private fun createKotlinScriptClassPathProvider(
-        classPathRegistry: ClassPathRegistry,
-        dependencyFactory: DependencyFactory,
-        jarCache: GeneratedGradleJarCache) =
-        KotlinScriptClassPathProvider(classPathRegistry, dependencyFactory, versionedJarCacheFor(jarCache))
+        @Suppress("unused")
+        private fun createKotlinScriptClassPathProvider(
+            classPathRegistry: ClassPathRegistry,
+            dependencyFactory: DependencyFactory,
+            jarCache: GeneratedGradleJarCache) =
+            KotlinScriptClassPathProvider(classPathRegistry, dependencyFactory, versionedJarCacheFor(jarCache))
 
-    private fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
-        { id, creator -> jarCache["$id-$gradleScriptKotlinVersion", creator] }
+        private fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
+            { id, creator -> jarCache["$id-$gradleScriptKotlinVersion", creator] }
 
-    private val gradleScriptKotlinVersion by lazy {
-        javaClass.`package`.implementationVersion
+        private val gradleScriptKotlinVersion by lazy {
+            javaClass.`package`.implementationVersion
+        }
     }
 }
