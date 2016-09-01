@@ -48,10 +48,10 @@
     <section id="defining_composite_builds">
         <title>Defining a composite build</title>
         <para>
-            The following examples demonstrate the various ways that 2 Gradle builds that are normally developed separately can be combined into a composite build. For these examples, the `my-utils` multi-project build produces 2 different java libraries (`number-utils` and `string-utils`), and the `my-app` build produces an executable using functions from those libraries.
+            The following examples demonstrate the various ways that 2 Gradle builds that are normally developed separately can be combined into a composite build. For these examples, the <literal>my-utils</literal> multi-project build produces 2 different java libraries (<literal>number-utils</literal> and <literal>string-utils</literal>), and the <literal>my-app</literal> build produces an executable using functions from those libraries.
         </para>
         <para>
-            The my-app build does not have direct dependencies on my-utils. Instead, it declares binary dependencies on the libraries produced by my-utils.
+            The <literal>my-app</literal> build does not have direct dependencies on <literal>my-utils</literal>. Instead, it declares binary dependencies on the libraries produced by <literal>my-utils</literal>.
         </para>
         <sample id="compositeBuilds_basic" dir="compositeBuilds/basic" title="Dependencies of my-app" includeLocation="true">
             <sourcefile file="my-app/build.gradle"/>
@@ -155,7 +155,7 @@
             Limitations of the current implementation include:
             <itemizedlist>
                  <listitem><para>No support for included builds that produce multiple components. This is in part a limitation of the fact that dependency substitution does not permit the targeting of a particular configuration.</para></listitem>
-                 <listitem><para>No native support for composite builds in IntelliJ IDEA or Eclipse Buildship. Generating IDEA metadata with `gradle idea` is supported.</para></listitem>
+                 <listitem><para>No native support for composite builds in IntelliJ IDEA or Eclipse Buildship. Generating IDEA metadata with <literal>gradle idea</literal> is supported.</para></listitem>
                  <listitem><para>Native builds are not supported. (Binary dependencies are not yet supported for native builds).</para></listitem>
              </itemizedlist>
         </para>
