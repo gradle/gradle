@@ -11,27 +11,6 @@ dependencies {
 }
 ```
 
-In the following examples, we follow the workflow involved in making a change to `my-utils` and testing it out in `my-app`.
-
-### Without a composite build
-
-Without using a composite build, there are a number of steps involved to make a change to the library project and test it in the application. 
-
-1. Firstly, we'll need a local repository in which to share artifacts. You can choose to use `mavenLocal()` for this purpose, or define a local repository for sharing artifacts. Either way, this will involve making a change to your build scripts specifically for the purposes of integrating these builds locally.
-2. Change the sources of `Number.java`, possibly fixing a bug or making an optimization.
-3. Publish the `number-utils` library from `my-utils` to the local repository:
-
-```
-cd my-utils
-gradle uploadArchives
-```
-
-4. Run the `my-app` application, resolving from the local repository:
-```
-cd ../my-app
-gradle run
-```
-
 ### Using command-line composite build
 
 When using a composite build, no shared repository is required for the builds, and no changes need to be made to the build scripts.
@@ -62,7 +41,7 @@ While simple, this approach has the downside of modifying the `my-app` build.
 
 ### Using separate composite build
 
-It is also possible to create a separate composite build that includes both the `my-app` and `my-utils` builds. This approach allows any number of build composites can be defined and persisted for the same set of builds.
+It is also possible to create a separate composite build that includes both the `my-app` and `my-utils` builds.
 
 ```
 rootProject.name='my-composite'
@@ -71,7 +50,7 @@ includeBuild '../my-app'
 includeBuild '../my-utils'
 ```
 
-Note that it is not yet possible to execute tasks in an included build from the command line. Instead, the build user must execute tasks defined in the composite build, and these tasks must declare dependencies on tasks in the included builds.
+Note that it is not yet possible to execute tasks in an included build from the command line. Instead, the build user must create delegating tasks in the composite.
 
 ```
 task run {
