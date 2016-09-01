@@ -356,7 +356,7 @@ version = '$project.version'""";
         def settings = new StringBuilder()
         settings.append "sourceCompatibility = ${configuration.source.text() ?: '1.5'}\n"
         settings.append "${indent}targetCompatibility = ${configuration.target.text() ?: '1.5'}\n"
-        def encoding = project.properties.'project.build.sourceEncoding'
+        def encoding = project.properties.'project.build.sourceEncoding'.text()
         if (encoding) {
             settings.append "${indent}tasks.withType(JavaCompile) {\n"
             settings.append "${indent}\toptions.encoding = '${encoding}'\n"
