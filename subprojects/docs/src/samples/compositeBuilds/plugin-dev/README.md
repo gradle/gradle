@@ -1,8 +1,10 @@
 # Composite build to develop a Gradle plugin
 
-This sample demonstrates a composite build used to develop a Gradle plugin in conjunction with a consuming build. This plugin can then easily be published to be shared with other Gradle builds.
+This sample demonstrates a composite build used to develop a Gradle plugin in conjunction with a consuming build.
 
-This setup removes the need for a `buildSrc` project for developing a plugin.
+The plugin could be in the same repository (only used by this build) or it could be in a different repository (used by many other builds).
+ 
+This removes the need for the special `buildSrc` project and makes prototyping plugins even easier. 
 
 ### Buildscript dependencies are substituted
 
@@ -40,10 +42,19 @@ G'day Bob!!!
 
 The change to the plugin source can be seen immediately in the consumer build.
 
-### Warning: included builds must be configured to discover substitutions
+### Warning: Builds are configured unless substitutions are manually specified
 
-In order to determine the substitutions provided by an included build, that build must be configured. To configure a build, the `buildscript` dependencies must be resolved, resulting in a bit of a chicken-and-egg situation. (Gradle does not yet automatically handle the build dependency graph in this situation).
+In order to automatically determine the substitutions provided by an included build, that build must be configured. To configure a build, the `buildscript` dependencies must be resolved. This results in a chicken-and-egg situation if one of the `buildscript` dependencies is also part of the composite. (Gradle does not yet automatically handle the build dependency graph in this situation).
 
-The current sample avoids this scenario because the plugin consumer is also the top-level composite build. Since the composite build does not contribute any dependency substitutions, it doesn't need to be configured until all of the included builds are configured. By this time the substitutions have been configured and the `buildscript` dependencies can be successfully resolved.
+The current sample avoids this scenario because the plugin consumer is also the top-level composite build. Since the top-level build does not contribute any dependency substitutions, it doesn't need to be configured up-front.
 
-An alternative way to work around this issue is to explicitly declare the substitutions of the _consuming_ build. When substitutions are explicitly declared for an included build, then there is no need for Gradle to configure that build early to determine the substitutions, deferring configuration until such a time that the `buildscript` dependencies can be resolved.
+If you want to include a plugin and its consumer next to each other in a composite, then you need to explicitly define the substitutions provided by the *consumer*. By explicitly defining the substitutions, Gradle no longer needs to configure the consumer up-front, removing the chicken-and-egg situation.
+
+```
+includeBuild ('consumer') {
+    dependencySubstitution {
+        substitute module('org.sample:consumer') with project(':')
+    }
+}
+includeBuild 'greeting-plugin'
+```
