@@ -16,15 +16,23 @@
 
 package org.gradle.api.initialization;
 
-import org.gradle.api.Named;
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.TaskReference;
+import org.gradle.internal.HasInternalProtocol;
 
 import java.io.File;
 
 /**
  * A build that is included in the composite.
  */
-public interface IncludedBuild extends Named {
+@Incubating
+@HasInternalProtocol
+public interface IncludedBuild {
+    /**
+     * The name of the included build.
+     */
+    String getName();
+
     /**
      * The root directory of the included build.
      */
