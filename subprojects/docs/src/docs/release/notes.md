@@ -12,9 +12,13 @@ Add-->
 
 ### Faster dependency resolution
 
-TBD: faster for large dependency graphs
-TBD: faster for dependencies from Maven repositories
-TBD: faster for Android builds
+Dependency resolution is now faster for some common cases:
+
+- When you have a large dependency graph. For example, when your build contains many projects or you use many dependencies from a repository.
+- When you use dependencies from a Maven repository.
+- When you use Maven modules with a packaging that is not `jar`. For example, when you use an Android library from a Maven repository. These libraries have use an `aar` packaging.
+
+Dependency resolution affects many aspects of build performance and the effect of these improvements will vary depending on the exact make up your build. We have observed good improvements for Android builds in particular, in some instances halving the build configuration time.
 
 ### Incremental build improvements
 
@@ -162,20 +166,27 @@ When a composite build is imported via the Gradle Tooling API, then certain fiel
 
 ### Dependency resolution changes when a Maven module dependency is substituted with a Gradle project dependency
 
-TBD: Previously, the result would include dependencies and artifacts from all configurations of the target project, such as test compilation and runtime dependencies.
-TBD: Previously, when the target project did not have a 'runtime', 'compile' or 'master' configuration, the result would include all dependencies and artifacts from all configurations of the target project. When 'runtime' or 'compile' is not defined the 'default' configuration is used instead. A missing 'master' configuration is ignored.
+In previous Gradle versions, when a Maven module is substituted with a Gradle project during dependency resolution, the result includes dependencies and artifacts from all public configurations of the target project, such as any custom configurations defined by the project's build script, when the project does not define any of the `compile`, `runtime` or `master` configurations. The Java plugin does not define a `master` configuration, which means most projects using the Java plugin would be affected by this behaviour when the target of a dependency substitution rule.
+
+In Gradle 3.1, this has been changed so that when the target project does not define a `runtime` or `compile` configuration, the `default` configuration is used instead. The `master` configuration is included if it is defined by the project and ignored if not.
 
 ### Dependency resolution changes when a Maven module depends on an Ivy module
 
-TBD: Previously, when the target Ivy module did not define a 'runtime', 'compile' or 'master' configuration, the result would include all dependencies and artifacts from all configurations of the Ivy module. When 'runtime' or 'compile' is not defined the 'default' configuration is used instead. A missing 'master' configuration is ignored.
+In previous Gradle versions, when a Maven module depends on an Ivy module and the target Ivy module does not define any of the `runtime`, `compile` or `master` configurations, the result includes all dependencies and artifacts from all public configurations of the Ivy module.
+
+In Gradle 3.1, this has been changed so that when the target Ivy module does not define a `runtime` or `compile` configuration, the `default` configuration is used instead. The `master` configuration is included if it is defined by the Ivy module and ignored if not.
 
 ### Dependency resolution result changes
 
-TBD: As a result of performance improvements, the result includes fewer `ResolvedDependency` nodes, as some nodes are merged. Previous versions of Gradle would include a `compile`, `runtime` and `master` node for transitive Maven dependencies. Gradle now includes a single `runtime` node. The same modules and artifacts are included in the result, and in the same order.
+As a result of performance improvements, the dependency graph returned by the `ResolvedConfiguration.getFirstLevelModuleDependencies()` API now includes fewer `ResolvedDependency` nodes, as some nodes are merged to reduce the size of the dependency graph.
+
+The dependency graph reported by this API for previous versions of Gradle include a `compile`, `runtime` and `master` node for a Maven module that is included as a dependency of some other Maven module. In Gradle 3.1 the dependency graph reported by this API includes a single `runtime` node for these modules.
+
+Gradle 3.1 includes the same modules and artifacts in the result, presented in the same order, as previous Gradle versions.
 
 ### GradleConnection removed
 
-The incubtaing `GradleConnection` API has been removed in favor of composite builds defined in `settings.gradle`.
+The incubating `GradleConnection` API has been removed in favor of composite builds defined in `settings.gradle`.
 New methods for fetching all models from a composite will be added to `ProjectConnection` soon.
 
 ## External contributions
