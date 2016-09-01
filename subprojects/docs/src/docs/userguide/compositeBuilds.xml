@@ -25,8 +25,13 @@
     <section id="composite_build_intro">
         <title>What is a composite build?</title>
         <para>
-            A composite build is simply a build that includes other builds. In many ways a composite build is similar to a Gradle multi-project build, except that instead of including other <literal>projects</literal>, other complete <literal>builds</literal> are included.
+            A composite build is simply a build that includes other builds. In many ways a composite build is similar to a Gradle multi-project build, except that instead of including single <literal>projects</literal>, complete <literal>builds</literal> are included.
         </para>
+            Composite builds allow you to:
+            <itemizedlist>
+                <listitem><para>combine builds that are usually developed independently, for instance when trying out a bug fix in a library that your application uses</para></listitem>
+                <listitem><para>decompose a large multi-project build into smaller, more isolated chunks that can be worked in independently or together as needed</para></listitem>
+            </itemizedlist>
         <para>
             A build that is included in a composite build is referred to, naturally enough, as an "included build". Included builds do not share any configuration with the composite build, or the other included builds. Each included build is configured and executed in isolation.
         </para>
@@ -37,7 +42,7 @@
             By default, Gradle will attempt to determine the dependencies that can be substituted by an included build. However for more flexibility, it is possible to explicitly declare these substitutions if the default ones determined by Gradle are not correct for the composite. See <xref linkend="included_build_declaring_substitutions"/>.
         </para>
         <para>
-            As well as consuming outputs via project dependencies, a composite build can  directly declare task dependencies on included builds. Included builds are isolated, and are not able to declare task dependencies on the composite build or on other included builds. See <xref linkend="included_build_task_dependencies"/>.
+            As well as consuming outputs via project dependencies, a composite build can directly declare task dependencies on included builds. Included builds are isolated, and are not able to declare task dependencies on the composite build or on other included builds. See <xref linkend="included_build_task_dependencies"/>.
         </para>
     </section>
     <section id="defining_composite_builds">
@@ -72,13 +77,13 @@
         <section id="separate_composite">
             <title>Defining a separate composite build</title>
             <para>
-                One downside of the above approach is that it requires you to modify an existing build, rendering it less useful as a standalone build. One way to avoid this is to define a separate composite build, whose sole purpose is to combine otherwise separate builds into a composite.
+                One downside of the above approach is that it requires you to modify an existing build, rendering it less useful as a standalone build. One way to avoid this is to define a separate composite build, whose onyl purpose is to combine otherwise separate builds.
             </para>
             <sample id="compositeBuilds_basic_composite" dir="compositeBuilds/basic/composite" title="Declaring a separate composite">
                 <sourcefile file="settings.gradle"/>
             </sample>
             <para>
-                In this scenario, the 'main' build that is executed is the composite, and it doesn't naturally define any useful tasks to execute. In order to execute the 'run' task in the 'my-app' build, the composite build must define a delegating task that depends on this task.
+                In this scenario, the 'main' build that is executed is the composite, and it doesn't define any useful tasks to execute itself. In order to execute the 'run' task in the 'my-app' build, the composite build must define a delegating task.
             </para>
             <sample id="compositeBuilds_basic_composite_run" dir="compositeBuilds/basic/composite" title="Depending on task from included build">
                 <sourcefile file="build.gradle" snippet="run"/>
