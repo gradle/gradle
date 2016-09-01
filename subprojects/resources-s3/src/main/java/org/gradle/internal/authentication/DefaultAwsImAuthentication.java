@@ -18,6 +18,12 @@ package org.gradle.internal.authentication;
 
 import org.gradle.authentication.aws.AwsImAuthentication;
 
+/**
+ * Implementation class for Authentication scheme for digest access authentication over S3.
+ *
+ * @since 3.1
+ */
+@Incubating
 public class DefaultAwsImAuthentication extends AbstractAuthentication implements AwsImAuthentication {
     public DefaultAwsImAuthentication(String name) {
         super(name, AwsImAuthentication.class);

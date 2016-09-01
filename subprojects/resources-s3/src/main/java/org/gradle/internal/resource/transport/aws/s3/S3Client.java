@@ -58,6 +58,11 @@ public class S3Client {
         this.amazonS3Client = amazonS3Client;
     }
 
+    /**
+     * Constructor without privided credentials to deleguate to the default provider chain.
+     * @since 3.1
+     */
+    @Incubating
     public S3Client(S3ConnectionProperties s3ConnectionProperties) {
         this.s3ConnectionProperties = s3ConnectionProperties;
         amazonS3Client = new AmazonS3Client(createConnectionProperties());
