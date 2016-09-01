@@ -40,10 +40,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     @UsesSample('compositeBuilds/basic')
     def "can run app when modified to be a composite"() {
         when:
-        sample.dir.file("my-app/settings.gradle") << """
-    includeBuild '../my-utils'
-"""
-        executer.inDirectory(sample.dir.file("my-app"))
+        executer.inDirectory(sample.dir.file("my-app")).withArguments("--settings-file", "settings-composite.gradle")
         succeeds(':run')
 
         then:
