@@ -16,26 +16,62 @@
 
 package org.gradle
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
-
-
     public static final String PLUGIN_DEPRECATION_MESSAGE = 'The DeprecatedPlugin plugin has been deprecated'
+
+    def setup() {
+        file('buildSrc/src/main/java/DeprecatedTask.java') << """
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+            import org.gradle.util.DeprecationLogger;
+
+            public class DeprecatedTask extends DefaultTask {
+                @TaskAction
+                void causeDeprecationWarning() {
+                    DeprecationLogger.nagUserOfReplacedTask("deprecated", "foobar");
+                    System.out.println("DeprecatedTask.causeDeprecationWarning() executed.");
+                }
+
+                public static void someFeature() {
+                    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()");
+                    System.out.println("DeprecatedTask.someFeature() executed.");
+                }
+
+                void otherFeature() {
+                    DeprecationLogger.nagUserOfDiscontinuedMethod("otherFeature()", "Relax. This is just a test.");
+                    System.out.println("DeprecatedTask.otherFeature() executed.");
+                }
+
+            }
+        """.stripIndent()
+        file('buildSrc/src/main/java/DeprecatedPlugin.java') << """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.util.DeprecationLogger;
+
+            public class DeprecatedPlugin implements Plugin<Project> {
+                @Override
+                public void apply(Project project) {
+                    DeprecationLogger.nagUserOfPluginReplacedWithExternalOne("DeprecatedPlugin", "Foobar");
+                    project.getTasks().create("deprecated", DeprecatedTask.class);
+                }
+            }
+        """.stripIndent()
+    }
 
     def 'DeprecatedPlugin and DeprecatedTask - without full stacktrace.'() {
         given:
         buildFile << """
-            import org.gradle.internal.deprecated.DeprecatedPlugin
-            import org.gradle.internal.deprecated.DeprecatedTask
+            apply plugin: DeprecatedPlugin // line 2
 
-            apply plugin: DeprecatedPlugin // line 5
-
-            DeprecatedTask.someFeature() // line 7
+            DeprecatedTask.someFeature() // line 4
             DeprecatedTask.someFeature()
 
             task broken(type: DeprecatedTask) << {
-                otherFeature() // line 11
+                otherFeature() // line 8
             }
         """.stripIndent()
 
@@ -48,9 +84,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         run('deprecated', 'broken')
 
         then:
-        output.contains('build.gradle:5)')
-        output.contains('build.gradle:7)')
-        output.contains('build.gradle:11)')
+        output.contains('build.gradle:2)')
+        output.contains('build.gradle:4)')
+        output.contains('build.gradle:8)')
         !output.contains('(Native Method)')
 
         and:
@@ -66,16 +102,13 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     def 'DeprecatedPlugin and DeprecatedTask - with full stacktrace.'() {
         given:
         buildFile << """
-            import org.gradle.internal.deprecated.DeprecatedPlugin
-            import org.gradle.internal.deprecated.DeprecatedTask
+            apply plugin: DeprecatedPlugin // line 2
 
-            apply plugin: DeprecatedPlugin // line 5
-
-            DeprecatedTask.someFeature() // line 7
+            DeprecatedTask.someFeature() // line 4
             DeprecatedTask.someFeature()
 
             task broken(type: DeprecatedTask) << {
-                otherFeature() // line 11
+                otherFeature() // line 8
             }
         """.stripIndent()
 
@@ -87,9 +120,9 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         run('deprecated', 'broken')
 
         then:
-        output.contains('build.gradle:5)')
-        output.contains('build.gradle:7)')
-        output.contains('build.gradle:11)')
+        output.contains('build.gradle:2)')
+        output.contains('build.gradle:4)')
+        output.contains('build.gradle:8)')
 
         and:
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
@@ -101,23 +134,23 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         output.count('\tat') > 3
     }
 
+    @NotYetImplemented() // Cannot load build script plugin from initscript
     def 'DeprecatedPlugin from init script - without full stacktrace.'() {
         given:
         def initScript = file("init.gradle") << """
-            import org.gradle.internal.deprecated.DeprecatedPlugin
-            allprojects {
-                apply plugin: DeprecatedPlugin // line 4
-            }
+        allprojects {
+            apply plugin: buildscript.classLoader.loadClass('DeprecatedPlugin') // line 3
+        }
         """.stripIndent()
 
         when:
         executer.withFullDeprecationStackTraceDisabled()
         executer.expectDeprecationWarning()
         executer.usingInitScript(initScript)
-        run()
+        run '-s'
 
         then:
-        output.contains('init.gradle:4)')
+        output.contains('init.gradle:3)')
 
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
@@ -127,13 +160,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     def 'DeprecatedPlugin from applied script - without full stacktrace.'() {
         given:
         file("project.gradle") << """
-            import org.gradle.internal.deprecated.DeprecatedPlugin
-            apply plugin:  DeprecatedPlugin // line 3
+            apply plugin:  DeprecatedPlugin // line 2
         """.stripIndent()
 
         buildFile << """
             allprojects {
-                apply from: 'project.gradle' // line 3
+                apply from: 'project.gradle' // line 2
             }
         """.stripIndent()
 
@@ -143,7 +175,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        output.contains('project.gradle:3)')
+        output.contains('project.gradle:2)')
 
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
@@ -153,13 +185,12 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
     def 'DeprecatedPlugin from applied script - with full stacktrace.'() {
         given:
         file("project.gradle") << """
-            import org.gradle.internal.deprecated.DeprecatedPlugin
-            apply plugin:  DeprecatedPlugin // line 3
+            apply plugin:  DeprecatedPlugin // line 2
         """.stripIndent()
 
         buildFile << """
             allprojects {
-                apply from: 'project.gradle' // line 3
+                apply from: 'project.gradle' // line 2
             }
         """.stripIndent()
 
@@ -168,8 +199,8 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         run()
 
         then:
-        output.contains('project.gradle:3)')
-        output.contains('build.gradle:3)')
+        output.contains('project.gradle:2)')
+        output.contains('build.gradle:2)')
 
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
 
