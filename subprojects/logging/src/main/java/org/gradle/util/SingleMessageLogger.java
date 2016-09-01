@@ -42,9 +42,6 @@ public class SingleMessageLogger {
         }
     };
 
-    public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
-    public static final String INCUBATION_MESSAGE = "%s is an incubating feature.";
-
     private static final Lock LOCK = new ReentrantLock();
     private static LoggingDeprecatedFeatureHandler handler = new LoggingDeprecatedFeatureHandler();
     private static String deprecationMessage;
@@ -204,7 +201,7 @@ public class SingleMessageLogger {
 
     public static void incubatingFeatureUsed(String incubatingFeature, String additionalWarning) {
         if (FEATURES.add(incubatingFeature)) {
-            String message = String.format(INCUBATION_MESSAGE, incubatingFeature);
+            String message = String.format("%s is an incubating feature.", incubatingFeature);
             if (additionalWarning != null) {
                 message = message + "\n" + additionalWarning;
             }

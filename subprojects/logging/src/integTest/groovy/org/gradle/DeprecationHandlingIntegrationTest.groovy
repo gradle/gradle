@@ -19,100 +19,162 @@ package org.gradle
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
-    def "reports first usage of deprecated feature from a build script"() {
-        buildFile << """
 
-someFeature()
-someFeature()
-task broken(type: DeprecatedTask) {
-    otherFeature()
+    // ######################################################################
+
+    def 'DeprecatedPlugin and DeprecatedTask - without full stacktrace.'() {
+        given:
+        buildFile << """import org.gradle.internal.deprecated.DeprecatedPlugin
+import org.gradle.internal.deprecated.DeprecatedTask
+
+apply plugin: DeprecatedPlugin // line 4
+
+DeprecatedTask.someFeature() // line 6
+DeprecatedTask.someFeature()
+
+task broken(type: DeprecatedTask) << {
+    otherFeature() // line 10
 }
+"""
 
-def someFeature() {
-    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()")
-}
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
+        executer.expectDeprecationWarning()
+        run('deprecated', 'broken')
 
-class DeprecatedTask extends DefaultTask {
-    def otherFeature() {
-        DeprecationLogger.nagUserOfDiscontinuedMethod("otherFeature()")
+        then:
+        output.contains('build.gradle:4)')
+        output.contains('build.gradle:6)')
+        output.contains('build.gradle:10)')
+        !output.contains('(Native Method)')
+
+        and:
+        output.count('The DeprecatedPlugin plugin has been deprecated') == 1
+        output.count('The someFeature() method has been deprecated') == 1
+        output.count('The otherFeature() method has been deprecated') == 1
+        output.count('The deprecated task has been deprecated') == 1
+
+        and:
+        output.count('\tat') == 3
     }
+
+    // ######################################################################
+
+    def 'DeprecatedPlugin and DeprecatedTask - with full stacktrace.'() {
+        given:
+        buildFile << """import org.gradle.internal.deprecated.DeprecatedPlugin
+import org.gradle.internal.deprecated.DeprecatedTask
+
+apply plugin: DeprecatedPlugin // line 4
+
+DeprecatedTask.someFeature() // line 6
+DeprecatedTask.someFeature()
+
+task broken(type: DeprecatedTask) << {
+    otherFeature() // line 10
 }
 """
 
         when:
         executer.expectDeprecationWarning()
         executer.expectDeprecationWarning()
-        run()
-
-        then:
-        output.contains("Build file '$buildFile': line 3")
-        output.count("The someFeature() method has been deprecated") == 1
-        output.contains("Build file '$buildFile': line 6")
-        output.count("The otherFeature() method has been deprecated") == 1
-
-        // Run again to ensure logging is reset
-        when:
         executer.expectDeprecationWarning()
         executer.expectDeprecationWarning()
-        run()
+        run('deprecated', 'broken')
 
         then:
-        output.contains("Build file '$buildFile': line 3")
-        output.count("The someFeature() method has been deprecated") == 1
-        output.contains("Build file '$buildFile': line 6")
-        output.count("The otherFeature() method has been deprecated") == 1
+        output.contains('build.gradle:4)')
+        output.contains('build.gradle:6)')
+        output.contains('build.gradle:10)')
 
-        // Not shown at quiet level
-        when:
-        executer.withArgument("--quiet")
-        run()
+        and:
+        output.count('The DeprecatedPlugin plugin has been deprecated') == 1
+        output.count('The someFeature() method has been deprecated') == 1
+        output.count('The otherFeature() method has been deprecated') == 1
+        output.count('The deprecated task has been deprecated') == 1
 
-        then:
-        output.count("The someFeature() method has been deprecated") == 0
-        output.count("The otherFeature() method has been deprecated") == 0
-        errorOutput == ""
+        and:
+        output.count('\tat') > 3
     }
 
-    def "reports usage of deprecated feature from an init script"() {
-        def initScript = file("init.gradle") << """
+    // ######################################################################
+
+    def 'DeprecatedPlugin from init script - without full stacktrace.'() {
+        given:
+        def initScript = file("init.gradle") << """import org.gradle.internal.deprecated.DeprecatedPlugin
 allprojects {
-    someFeature()
+    apply plugin: DeprecatedPlugin // line 3
 }
-
-def someFeature() {
-    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()")
-}
-
 """
 
         when:
-        executer.expectDeprecationWarning().usingInitScript(initScript)
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        executer.usingInitScript(initScript)
         run()
 
         then:
-        output.contains("Initialization script '$initScript': line 3")
-        output.count("The someFeature() method has been deprecated") == 1
-        errorOutput == ""
+        output.contains('init.gradle:3)')
+
+        output.count('The DeprecatedPlugin plugin has been deprecated') == 1
+
+        output.count('\tat') == 1
     }
 
-    def "reports usage of deprecated feature from an applied script"() {
-        def script = file("project.gradle") << """
+    // ######################################################################
 
-def someFeature() {
-    DeprecationLogger.nagUserOfDiscontinuedMethod("someFeature()")
-}
-
-someFeature()
+    def 'DeprecatedPlugin from applied script - without full stacktrace.'() {
+        given:
+        file("project.gradle") << """import org.gradle.internal.deprecated.DeprecatedPlugin
+apply plugin:  DeprecatedPlugin // line 2
 """
-        buildFile << "allprojects { apply from: 'project.gradle' }"
+
+        buildFile << """
+allprojects {
+    apply from: 'project.gradle' // line 3
+}
+"""
+
+        when:
+        executer.withFullDeprecationStackTraceDisabled()
+        executer.expectDeprecationWarning()
+        run()
+
+        then:
+        output.contains('project.gradle:2)')
+
+        output.count('The DeprecatedPlugin plugin has been deprecated') == 1
+
+        output.count('\tat') == 1
+    }
+
+    // ######################################################################
+
+    def 'DeprecatedPlugin from applied script - with full stacktrace.'() {
+        given:
+        file("project.gradle") << """import org.gradle.internal.deprecated.DeprecatedPlugin
+apply plugin:  DeprecatedPlugin // line 2
+"""
+
+        buildFile << """
+allprojects {
+    apply from: 'project.gradle' // line 3
+}
+"""
 
         when:
         executer.expectDeprecationWarning()
         run()
 
         then:
-        output.contains("Script '$script': line 7")
-        output.count("The someFeature() method has been deprecated") == 1
-        errorOutput == ""
+        output.contains('project.gradle:2)')
+        output.contains('build.gradle:3)')
+
+        output.count('The DeprecatedPlugin plugin has been deprecated') == 1
+
+        output.count('\tat') > 1
     }
 }

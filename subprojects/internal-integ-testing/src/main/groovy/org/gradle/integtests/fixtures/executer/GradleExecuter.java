@@ -180,6 +180,11 @@ public interface GradleExecuter {
     GradleExecuter withNoExplicitNativeServicesDir();
 
     /**
+     * Don't activate full deprecation stack trace.
+     */
+    GradleExecuter withFullDeprecationStackTraceDisabled();
+
+    /**
      * Specifies that the executer should only those JVM args explicitly requested using {@link #withBuildJvmOpts(String...)} and {@link #withCommandLineGradleOpts(String...)} (where appropriate) for
      * the build JVM and not attempt to provide any others.
      */

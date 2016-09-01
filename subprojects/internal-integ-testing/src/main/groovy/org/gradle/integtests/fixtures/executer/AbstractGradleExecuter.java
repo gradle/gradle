@@ -28,6 +28,7 @@ import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -42,7 +43,6 @@ import org.gradle.test.fixtures.file.TestDirectoryProvider;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.testfixtures.internal.NativeServicesTestFixture;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.io.IOException;
@@ -134,6 +134,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected boolean noExplicitTmpDir;
     protected boolean noExplicitNativeServicesDir;
+    protected boolean fullDeprecationStackTrace = true;
 
     protected AbstractGradleExecuter(GradleDistribution distribution, TestDirectoryProvider testDirectoryProvider) {
         this.distribution = distribution;
@@ -260,6 +261,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (noExplicitNativeServicesDir) {
             executer.withNoExplicitNativeServicesDir();
+        }
+        if (!fullDeprecationStackTrace) {
+            executer.withFullDeprecationStackTraceDisabled();
         }
         if (defaultLocale != null) {
             executer.withDefaultLocale(defaultLocale);
@@ -705,7 +709,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
-        properties.put(DeprecationLogger.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, "true");
+        properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
         if (!noExplicitTmpDir) {
             String tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
@@ -928,6 +932,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withNoExplicitNativeServicesDir() {
         noExplicitNativeServicesDir = true;
+        return this;
+    }
+
+    public GradleExecuter withFullDeprecationStackTraceDisabled() {
+        fullDeprecationStackTrace = false;
         return this;
     }
 
