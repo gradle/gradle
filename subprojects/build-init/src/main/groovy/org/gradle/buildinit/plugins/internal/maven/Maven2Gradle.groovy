@@ -353,7 +353,16 @@ version = '$project.version'""";
 
     def compilerSettings = { project, indent ->
         def configuration = plugin('maven-compiler-plugin', project).configuration
-        return "sourceCompatibility = ${configuration.source.text() ?: '1.5'}\n${indent}targetCompatibility = ${configuration.target.text() ?: '1.5'}\n"
+        def settings = new StringBuilder()
+        settings.append "sourceCompatibility = ${configuration.source.text() ?: '1.5'}\n"
+        settings.append "${indent}targetCompatibility = ${configuration.target.text() ?: '1.5'}\n"
+        def encoding = project.properties.'project.build.sourceEncoding'
+        if (encoding) {
+            settings.append "${indent}tasks.withType(JavaCompile) {\n"
+            settings.append "${indent}\toptions.encoding = '${encoding}'\n"
+            settings.append "${indent}}\n"
+        }
+        return settings
     }
 
     def plugin = { artifactId, project ->
