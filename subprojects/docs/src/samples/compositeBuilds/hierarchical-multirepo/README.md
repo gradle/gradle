@@ -89,7 +89,7 @@ The power of this configuration can be demonstrated by adding the external 'comm
 
 
 ```
-git clone http://git-wip-us.apache.org/repos/asf/commons-lang.git modules/commons-lang
+git clone http://git-wip-us.apache.org/repos/asf/commons-lang.git modules/commons-lang --branch master --depth 1
 gradle --project-dir modules/commons-lang --no-search-upward init
 gradle run
 ```
