@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.runtimeshaded
 
+import groovy.transform.NotYetImplemented
 import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.SimpleType
 import org.apache.ivy.core.settings.IvySettings
@@ -256,6 +257,7 @@ org.gradle.api.internal.tasks.CompileServices"""
         bytecode.contains('LDC "org/gradle/internal/impldep/org/mozilla/javascript/Context"')
     }
 
+    @NotYetImplemented
     def "ignores slf4j logger bindings"() {
         given:
         def inputFilesDir = tmpDir.createDir('inputFiles')

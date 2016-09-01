@@ -36,12 +36,12 @@ import org.gradle.util.GFileUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.commons.ClassRemapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -211,9 +211,7 @@ class RuntimeShadedJarCreator {
         if (!name.startsWith(SERVICES_DIR_PREFIX) && !seenPaths.add(name)) {
             return;
         }
-        if (name.equals("org/slf4j/impl/StaticLoggerBinder.class")) {
-            return;
-        }
+
         if (name.endsWith(".class")) {
             processClassFile(outputStream, inputStream, zipEntry, buffer);
         } else if (name.startsWith(SERVICES_DIR_PREFIX)) {

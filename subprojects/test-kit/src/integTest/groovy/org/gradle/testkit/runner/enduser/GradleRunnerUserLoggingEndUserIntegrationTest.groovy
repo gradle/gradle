@@ -16,8 +16,11 @@
 
 package org.gradle.testkit.runner.enduser
 
+import groovy.transform.NotYetImplemented
+
 class GradleRunnerUserLoggingEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
+    @NotYetImplemented
     def "can use user slfj logging in tests using testkit"() {
         when:
         buildFile << """
