@@ -68,7 +68,7 @@ public class MasterExpirationStrategy implements DaemonExpirationStrategy {
             // this is to check that the JVM supports calling MemoryInfo.getFreePhysicalMemory
             lowMemoryDaemonExpirationStrategy.checkExpiration();
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(
-                new DaemonIdleTimeoutExpirationStrategy(daemon, idleTimeout / 10, TimeUnit.MILLISECONDS),
+                new DaemonIdleTimeoutExpirationStrategy(daemon, DUPLICATE_DAEMON_GRACE_PERIOD_MS, TimeUnit.MILLISECONDS),
                 new NotMostRecentlyUsedDaemonExpirationStrategy(daemon),
                 lowMemoryDaemonExpirationStrategy
             )));
