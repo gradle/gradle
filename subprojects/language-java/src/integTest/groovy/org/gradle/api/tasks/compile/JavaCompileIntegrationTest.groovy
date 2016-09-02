@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -117,6 +118,84 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         buildFile << buildScriptWithClasspath("lib2.jar", "lib1.jar")
 
         when:
+        run "compile"
+        then:
+        nonSkippedTasks.contains ":compile"
+    }
+
+    @NotYetImplemented
+    def "stays up-to-date after file renamed on classpath"() {
+        file("lib1.jar") << jarWithContents("data.txt": "data1")
+        file("lib2.jar") << jarWithContents("data.txt": "data2")
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        buildFile << buildScriptWithClasspath("lib1.jar", "lib2.jar")
+
+        when:
+        run "compile"
+        then:
+        nonSkippedTasks.contains ":compile"
+
+        when:
+        run "compile"
+        then:
+        skippedTasks.contains ":compile"
+
+        when:
+        file("lib1.jar").renameTo(file("lib1-renamed.jar"))
+        buildFile.text = buildScriptWithClasspath("lib1-renamed.jar", "lib2.jar")
+
+        run "compile"
+        then:
+        skippedTasks.contains ":compile"
+    }
+
+    def "detects change in contents of directory on classpath"() {
+        file("resources", "data").createDir()
+        file("resources/data/input.txt") << "data"
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        buildFile << buildScriptWithClasspath("resources")
+
+        when:
+        run "compile"
+        then:
+        nonSkippedTasks.contains ":compile"
+
+        when:
+        run "compile"
+        then:
+        skippedTasks.contains ":compile"
+
+        when:
+        file("resources/data/input.txt") << "data modified"
+
+        run "compile"
+        then:
+        nonSkippedTasks.contains ":compile"
+    }
+
+    def "detects relocated resource included via directory on classpath"() {
+        file("resources", "data").createDir()
+        file("resources/data/input.txt") << "data"
+        file("src/main/java/Foo.java") << "public class Foo {}"
+
+        buildFile << buildScriptWithClasspath("resources")
+
+        when:
+        run "compile"
+        then:
+        nonSkippedTasks.contains ":compile"
+
+        when:
+        run "compile"
+        then:
+        skippedTasks.contains ":compile"
+
+        when:
+        sleep(1000)
+        file("resources/data").renameTo(file("resources/data-modified"))
+
         run "compile"
         then:
         nonSkippedTasks.contains ":compile"
