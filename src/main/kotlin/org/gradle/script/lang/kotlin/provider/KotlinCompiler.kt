@@ -22,6 +22,7 @@ import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.cli.common.messages.MessageUtil
 import org.jetbrains.kotlin.cli.common.messages.OutputMessageUtil
+
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinToJVMBytecodeCompiler.compileBunchOfSources
@@ -30,18 +31,20 @@ import org.jetbrains.kotlin.cli.jvm.config.addJvmClasspathRoots
 
 import org.jetbrains.kotlin.codegen.CompilationException
 
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
-import org.jetbrains.kotlin.config.JVMConfigurationKeys
-import org.jetbrains.kotlin.config.CompilerConfiguration
-import org.jetbrains.kotlin.config.addKotlinSourceRoots
-
-import org.jetbrains.kotlin.script.KotlinScriptDefinition
-
-import org.jetbrains.kotlin.utils.PathUtil
-
 import org.jetbrains.kotlin.com.intellij.openapi.Disposable
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.dispose
 import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer.newDisposable
+
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
+import org.jetbrains.kotlin.config.CompilerConfiguration
+import org.jetbrains.kotlin.config.CompilerConfigurationKey
+import org.jetbrains.kotlin.config.JVMConfigurationKeys
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_DIRECTORY
+import org.jetbrains.kotlin.config.JVMConfigurationKeys.OUTPUT_JAR
+import org.jetbrains.kotlin.config.addKotlinSourceRoots
+
+import org.jetbrains.kotlin.script.KotlinScriptDefinition
+import org.jetbrains.kotlin.utils.PathUtil
 
 import org.slf4j.Logger
 
@@ -67,12 +70,25 @@ fun compileKotlinScript(scriptFile: File,
 fun compileToJar(outputJar: File,
                  sourceFile: File,
                  logger: Logger,
-                 classPath: List<File> = emptyList()): Boolean {
+                 classPath: List<File> = emptyList()): Boolean =
+    compileTo(OUTPUT_JAR, outputJar, sourceFile, logger, classPath)
+
+fun compileToDirectory(outputDirectory: File,
+                       sourceFile: File,
+                       logger: Logger,
+                       classPath: List<File> = emptyList()): Boolean =
+    compileTo(OUTPUT_DIRECTORY, outputDirectory, sourceFile, logger, classPath)
+
+private fun compileTo(outputConfigurationKey: CompilerConfigurationKey<File>,
+                      output: File,
+                      sourceFile: File,
+                      logger: Logger,
+                      classPath: List<File>): Boolean {
     withRootDisposable { disposable ->
         withMessageCollectorFor(logger) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector, sourceFile).apply {
+                put(outputConfigurationKey, output)
                 setModuleName(sourceFile.nameWithoutExtension)
-                setOutputJar(outputJar)
                 addJvmClasspathRoots(classPath)
             }
             val environment = kotlinCoreEnvironmentFor(configuration, disposable)
@@ -110,10 +126,6 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFile: Fil
         addJvmClasspathRoots(PathUtil.getJdkClassesRoots())
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
-
-private fun CompilerConfiguration.setOutputJar(outputJar: File) {
-    put(JVMConfigurationKeys.OUTPUT_JAR, outputJar)
-}
 
 private fun CompilerConfiguration.setModuleName(name: String) {
     put(CommonConfigurationKeys.MODULE_NAME, name)

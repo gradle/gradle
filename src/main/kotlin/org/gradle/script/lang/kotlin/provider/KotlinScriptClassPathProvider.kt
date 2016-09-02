@@ -32,6 +32,7 @@ import org.gradle.script.lang.kotlin.codegen.conflictsWithExtension
 import org.gradle.script.lang.kotlin.codegen.forEachZipEntryIn
 import org.gradle.script.lang.kotlin.loggerFor
 import org.gradle.script.lang.kotlin.support.asm.removeMethodsMatching
+import org.gradle.script.lang.kotlin.support.zipTo
 
 import org.gradle.util.GFileUtils.moveFile
 
@@ -39,7 +40,9 @@ import org.jetbrains.kotlin.utils.addToStdlib.singletonList
 
 import java.io.File
 
-typealias JarCache = (String, (File) -> Unit) -> File
+typealias JarCache = (String, JarGenerator) -> File
+
+typealias JarGenerator = (File) -> Unit
 
 class KotlinScriptClassPathProvider(
     val classPathRegistry: ClassPathRegistry,
@@ -83,24 +86,18 @@ class KotlinScriptClassPathProvider(
         }
 
     private fun kotlinGradleApiFrom(gradleApiJar: File): File =
-        jarCache("script-kotlin-api") { outputJar ->
-            val tempFile = tempFileFor(outputJar, ".tmp")
-            generateKotlinGradleApiAt(tempFile, gradleApiJar)
-            moveFile(tempFile, outputJar)
+        produce("script-kotlin-api") { outputFile ->
+            generateKotlinGradleApiTo(outputFile, gradleApiJar)
         }
 
     private fun kotlinGradleApiExtensionsFrom(gradleApiJar: File): File =
-        jarCache("script-kotlin-extensions") { outputJar ->
-            val tempSourceFile = tempFileFor(outputJar, ".kt")
-            writeActionExtensionsTo(tempSourceFile, gradleApiJar)
-            compileToJar(
-                outputJar,
-                tempSourceFile,
-                loggerFor<KotlinScriptClassPathProvider>(),
-                classPath = listOf(gradleApiJar))
+        produce("script-kotlin-extensions") { outputFile ->
+            val tempDir = tempDirFor(outputFile)
+            compileExtensionsTo(tempDir, gradleApiJar)
+            zipTo(outputFile, tempDir)
         }
 
-    private fun generateKotlinGradleApiAt(outputFile: File, gradleApiJar: File) {
+    private fun generateKotlinGradleApiTo(outputFile: File, gradleApiJar: File) {
         gradleApiJar.inputStream().use { input ->
             outputFile.outputStream().use { output ->
                 removeMethodsMatching(
@@ -112,8 +109,21 @@ class KotlinScriptClassPathProvider(
         }
     }
 
+    private fun compileExtensionsTo(outputDir: File, gradleApiJar: File) {
+        val sourceFile = File(outputDir, extensionsSourceFileName())
+        writeActionExtensionsTo(sourceFile, gradleApiJar)
+        compileToDirectory(
+            outputDir,
+            sourceFile,
+            loggerFor<KotlinScriptClassPathProvider>(),
+            classPath = listOf(gradleApiJar))
+    }
+
+    private fun extensionsSourceFileName() =
+        ActionExtensionWriter.packageName.replace('.', '/') + "/ActionExtensions.kt"
+
     private fun writeActionExtensionsTo(kotlinFile: File, gradleApiJar: File) {
-        kotlinFile.bufferedWriter().use { writer ->
+        kotlinFile.apply { parentFile.mkdirs() }.bufferedWriter().use { writer ->
             val extensionWriter = ActionExtensionWriter(writer)
             forEachZipEntryIn(gradleApiJar) {
                 if (isApiClassEntry()) {
@@ -124,8 +134,24 @@ class KotlinScriptClassPathProvider(
         }
     }
 
-    private fun tempFileFor(outputJar: File, suffix: String): File =
-        createTempFile(outputJar.name, suffix).apply {
+    private fun produce(id: String, generate: JarGenerator): File =
+        jarCache(id) { outputFile ->
+            generateAtomically(outputFile, generate)
+        }
+
+    private fun generateAtomically(outputFile: File, generate: JarGenerator) {
+        val tempFile = tempFileFor(outputFile)
+        generate(tempFile)
+        moveFile(tempFile, outputFile)
+    }
+
+    private fun tempFileFor(outputFile: File): File =
+        createTempFile(outputFile.nameWithoutExtension, outputFile.extension).apply {
+            deleteOnExit()
+        }
+
+    private fun tempDirFor(outputFile: File): File =
+        createTempDir(outputFile.nameWithoutExtension, outputFile.extension).apply {
             deleteOnExit()
         }
 
