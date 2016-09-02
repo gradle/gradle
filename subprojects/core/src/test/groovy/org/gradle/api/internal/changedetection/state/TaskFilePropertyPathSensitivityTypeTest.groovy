@@ -54,7 +54,7 @@ class TaskFilePropertyPathSensitivityTypeTest extends Specification {
         files = project.files "dir/libs/library-a.jar", "dir/libs/library-b.jar", "dir/resources"
     }
 
-    def "NONE"() {
+    def "sensitivity NONE"() {
         def snapshots = normalizeWith NONE
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "IGNORED"
@@ -65,7 +65,7 @@ class TaskFilePropertyPathSensitivityTypeTest extends Specification {
         snapshots[file("dir/resources/b/input-2.txt")] == "IGNORED"
     }
 
-    def "NAME_ONLY"() {
+    def "sensitivity NAME_ONLY"() {
         def snapshots = normalizeWith NAME_ONLY
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "library-a.jar"
@@ -76,7 +76,7 @@ class TaskFilePropertyPathSensitivityTypeTest extends Specification {
         snapshots[file("dir/resources/b/input-2.txt")] == "input-2.txt"
     }
 
-    def "RELATIVE"() {
+    def "sensitivity RELATIVE"() {
         def snapshots = normalizeWith RELATIVE
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "IGNORED"
@@ -87,7 +87,7 @@ class TaskFilePropertyPathSensitivityTypeTest extends Specification {
         snapshots[file("dir/resources/b/input-2.txt")] == "b/input-2.txt"
     }
 
-    def "ABSOLUTE"() {
+    def "sensitivity ABSOLUTE"() {
         def snapshots = normalizeWith ABSOLUTE
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == file("dir/libs/library-a.jar").absolutePath
