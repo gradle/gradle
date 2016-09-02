@@ -22,9 +22,9 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-import org.gradle.util.MultithreadedTestCase
+import org.gradle.util.MultithreadedTestRule
 
-class LongIdGeneratorTest extends MultithreadedTestCase {
+class LongIdGeneratorTest extends MultithreadedTestRule {
     private final LongIdGenerator generator = new LongIdGenerator()
 
     @Test

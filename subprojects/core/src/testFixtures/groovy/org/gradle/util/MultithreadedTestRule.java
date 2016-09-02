@@ -60,8 +60,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>You can use {@link #syncAt(int)} and {@link #expectBlocksUntil(int, groovy.lang.Closure)} to synchronise between
  * test threads.</p>
  */
-public class MultithreadedTestCase extends ExternalResource {
-    private static final Logger LOGGER = LoggerFactory.getLogger(MultithreadedTestCase.class);
+public class MultithreadedTestRule extends ExternalResource {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MultithreadedTestRule.class);
     private static final int MAX_WAIT_TIME = 5000;
     private ExecutorImpl executor;
     private final Lock lock = new ReentrantLock();

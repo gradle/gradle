@@ -15,7 +15,7 @@
  */
 package org.gradle.internal.dispatch
 
-import org.gradle.util.MultithreadedTestCase
+import org.gradle.util.MultithreadedTestRule
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -25,7 +25,7 @@ public class AsyncDispatchTest extends Specification {
     private final Dispatch<String> target1 = Mock()
 
     @Rule
-    public MultithreadedTestCase parallel = new MultithreadedTestCase()
+    public MultithreadedTestRule parallel = new MultithreadedTestRule()
     private final AsyncDispatch<String> dispatch = new AsyncDispatch<String>(parallel.executor)
 
     def 'dispatches message to an idle target'() {

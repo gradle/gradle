@@ -16,14 +16,14 @@
 
 package org.gradle.internal.io
 
-import org.gradle.util.MultithreadedTestCase
+import org.gradle.util.MultithreadedTestRule
 import org.gradle.util.TextUtil
 import org.junit.Test
 
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
-class LinePerThreadBufferingOutputStreamTest extends MultithreadedTestCase {
+class LinePerThreadBufferingOutputStreamTest extends MultithreadedTestRule {
     @Test
     public void interleavesLinesFromEachThread() {
         List<String> output = [].asSynchronized()
