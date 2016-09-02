@@ -22,38 +22,61 @@ import org.gradle.script.lang.kotlin.support.zipTo
 
 import java.io.File
 
-fun generateActionExtensionsJar(outputFile: File, inputApiJar: File) {
-    val tempDir = tempDirFor(outputFile)
-    compileExtensionsTo(tempDir, inputApiJar)
-    zipTo(outputFile, tempDir)
+fun generateActionExtensionsJar(outputFile: File, apiJar: File) {
+    ApiExtensionsJarGenerator().generate(outputFile, apiJar)
 }
 
-private fun tempDirFor(outputFile: File): File =
-    createTempDir(outputFile.nameWithoutExtension, outputFile.extension).apply {
-        deleteOnExit()
+interface KotlinFileCompiler {
+    fun compileToDirectory(outputDirectory: File, sourceFile: File, classPath: List<File>)
+}
+
+class ApiExtensionsJarGenerator(val compiler: KotlinFileCompiler = StandardKotlinFileCompiler) {
+
+    fun generate(outputFile: File, inputApiJar: File) {
+        val tempDir = tempDirFor(outputFile)
+        compileExtensionsTo(tempDir, inputApiJar)
+        zipTo(outputFile, tempDir)
     }
 
-private fun compileExtensionsTo(outputDir: File, inputApiJar: File) {
-    val sourceFile = File(outputDir, extensionsSourceFileName())
-    writeActionExtensionsTo(sourceFile, inputApiJar)
-    compileToDirectory(
-        outputDir,
-        sourceFile,
-        loggerFor<ActionExtensionWriter>(),
-        classPath = listOf(inputApiJar))
-}
+    private fun tempDirFor(outputFile: File): File =
+        createTempDir(outputFile.nameWithoutExtension, outputFile.extension).apply {
+            deleteOnExit()
+        }
 
-private fun extensionsSourceFileName() =
-    ActionExtensionWriter.packageName.replace('.', '/') + "/ActionExtensions.kt"
+    private fun compileExtensionsTo(outputDir: File, inputApiJar: File) {
+        val sourceFile = File(outputDir, extensionsSourceFileName())
+        writeActionExtensionsTo(sourceFile, inputApiJar)
+        compiler.compileToDirectory(
+            outputDir,
+            sourceFile,
+            classPath = listOf(inputApiJar))
+    }
 
-private fun writeActionExtensionsTo(kotlinFile: File, inputApiJar: File) {
-    kotlinFile.apply { parentFile.mkdirs() }.bufferedWriter().use { writer ->
-        val extensionWriter = ActionExtensionWriter(writer)
-        forEachZipEntryIn(inputApiJar) {
-            if (isApiClassEntry()) {
-                val classNode = classNodeFor(zipInputStream)
-                extensionWriter.writeExtensionsFor(classNode)
+    private fun extensionsSourceFileName() =
+        ActionExtensionWriter.packageName.replace('.', '/') + "/ActionExtensions.kt"
+
+    private fun writeActionExtensionsTo(kotlinFile: File, inputApiJar: File) {
+        kotlinFile.apply { parentFile.mkdirs() }.bufferedWriter().use { writer ->
+            val extensionWriter = ActionExtensionWriter(writer, docProvider())
+            forEachZipEntryIn(inputApiJar) {
+                if (isApiClassEntry()) {
+                    val classNode = classNodeFor(zipInputStream)
+                    extensionWriter.writeExtensionsFor(classNode)
+                }
             }
         }
+    }
+
+    private fun docProvider() =
+        MarkdownKDocProvider.fromResource("/doc/ActionExtensions.md")
+}
+
+object StandardKotlinFileCompiler : KotlinFileCompiler {
+    override fun compileToDirectory(outputDirectory: File, sourceFile: File, classPath: List<File>) {
+        compileToDirectory(
+            outputDirectory,
+            sourceFile,
+            loggerFor<StandardKotlinFileCompiler>(),
+            classPath = classPath)
     }
 }

@@ -213,7 +213,7 @@ The behavior is similar to [org.gradle.api.plugins.PluginContainer.withType].
 
 @param pluginId The id of the plugin
 @param action The action
- 
+
 # org.gradle.api.artifacts.result.ResolutionResult.allDependencies(org.gradle.api.artifacts.result.DependencyResult.() -> Unit)
 
 Lorem ipsum.
@@ -267,7 +267,7 @@ Lorem ipsum.
 Lorem ipsum.
 
 @param action
-	
+
 # org.gradle.api.artifacts.ComponentSelectionRules.all(org.gradle.api.artifacts.ComponentSelection.() -> Unit)
 
 Lorem ipsum.

@@ -41,6 +41,9 @@ object MarkdownKDocProvider {
     fun from(markdown: String): KDocProvider =
         { signature -> findKDocIn(markdown, signature) }
 
+    fun fromResource(resourcePath: String) =
+        from(javaClass.getResource(resourcePath).readText())
+
     private fun findKDocIn(markdown: String, signature: String): KDoc? {
         val signatureStart = markdown.indexOf("# $signature")
         return if (signatureStart >= 0) {
