@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.UNORDERED;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
 abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
     protected final FileSnapshotter snapshotter;
@@ -56,7 +56,7 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareType compareType, final TaskFilePropertyPathSensitivityType pathSensitivity) {
+    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final TaskFilePropertyPathSensitivity pathSensitivity) {
         final List<FileTreeElement> fileTreeElements = Lists.newLinkedList();
         final List<FileTreeElement> missingFiles = Lists.newArrayList();
         visitFiles(input, fileTreeElements, missingFiles);
@@ -92,12 +92,12 @@ abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapsh
                 }
             }
         });
-        return new DefaultFileCollectionSnapshot(snapshots, compareType);
+        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy);
     }
 
     @Override
     public FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec) {
-        return snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareType(), propertySpec.getPathSensitivity());
+        return snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareStrategy(), propertySpec.getPathSensitivity());
     }
 
     private String getInternedAbsolutePath(File file) {

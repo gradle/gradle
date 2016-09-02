@@ -29,12 +29,28 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
     private final Daemon daemon = Mock()
     private final MemoryInfo mockMemoryInfo = Mock(MemoryInfo)
 
-    def "daemon should expire when memory falls below threshold"() {
+    def "minimum threshold is enforced"() {
         given:
         LowMemoryDaemonExpirationStrategy expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 5)
 
+        expect:
+        expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES
+    }
+
+    def "maximum threshold is enforced"() {
+        given:
+        LowMemoryDaemonExpirationStrategy expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 2 * LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES)
+
+        expect:
+        expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES
+    }
+
+    def "daemon should expire when memory falls below threshold"() {
+        given:
+        LowMemoryDaemonExpirationStrategy expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES)
+
         when:
-        1 * mockMemoryInfo.getFreePhysicalMemory() >> { 2 }
+        1 * mockMemoryInfo.getFreePhysicalMemory() >> { LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES - 1 }
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
@@ -44,10 +60,10 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
     def "daemon should not expire when memory is above threshold"() {
         given:
-        LowMemoryDaemonExpirationStrategy expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 5)
+        LowMemoryDaemonExpirationStrategy expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES)
 
         when:
-        1 * mockMemoryInfo.getFreePhysicalMemory() >> { 10 }
+        1 * mockMemoryInfo.getFreePhysicalMemory() >> { LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES + 1 }
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
@@ -57,29 +73,29 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
     def "strategy computes total memory percentage"() {
         when:
-        1 * mockMemoryInfo.getTotalPhysicalMemory() >> { 10 }
+        1 * mockMemoryInfo.getTotalPhysicalMemory() >> { LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES * 2 }
 
         then:
-        LowMemoryDaemonExpirationStrategy expirationStrategy = LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.2, mockMemoryInfo)
-        expirationStrategy.minFreeMemoryBytes == 2
+        LowMemoryDaemonExpirationStrategy expirationStrategy = LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.5, mockMemoryInfo)
+        expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES
     }
 
     def "strategy computes total memory percentage of zero"() {
         when:
-        1 * mockMemoryInfo.getTotalPhysicalMemory() >> { 10 }
+        1 * mockMemoryInfo.getTotalPhysicalMemory() >> { LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES * 2 }
 
         then:
         LowMemoryDaemonExpirationStrategy expirationStrategy = LowMemoryDaemonExpirationStrategy.belowFreePercentage(0, mockMemoryInfo)
-        expirationStrategy.minFreeMemoryBytes == 0
+        expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES
     }
 
     def "strategy computes total memory percentage of one"() {
         when:
-        1 * mockMemoryInfo.getTotalPhysicalMemory() >> { 10 }
+        1 * mockMemoryInfo.getTotalPhysicalMemory() >> { LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES * 2 }
 
         then:
         LowMemoryDaemonExpirationStrategy expirationStrategy = LowMemoryDaemonExpirationStrategy.belowFreePercentage(1, mockMemoryInfo)
-        expirationStrategy.minFreeMemoryBytes == 10
+        expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES
     }
 
     def "strategy does not accept negative threshold"() {

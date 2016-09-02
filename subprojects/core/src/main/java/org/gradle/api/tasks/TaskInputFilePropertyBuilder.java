@@ -24,10 +24,12 @@ import java.util.Map;
 
 /**
  * Describes an input property of a task that contains zero or more files.
+ *
+ * @since 3.0
  */
 @Incubating
 @HasInternalProtocol
-public interface TaskInputFilePropertyBuilder extends TaskPropertyBuilder, TaskInputs {
+public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder, TaskInputs {
     /**
      * {@inheritDoc}
      */
@@ -60,16 +62,22 @@ public interface TaskInputFilePropertyBuilder extends TaskPropertyBuilder, TaskI
 
     /**
      * Sets the order of the files to be relevant when observing this property.
+     *
+     * @since 3.1
      */
     TaskInputFilePropertyBuilder orderSensitive();
 
     /**
      * Sets whether the order of the files is relevant when observing this property.
+     *
+     * @since 3.1
      */
     TaskInputFilePropertyBuilder orderSensitive(boolean orderSensitive);
 
     /**
      * {@inheritDoc}
+     *
+     * @since 3.1
      */
     @Override
     TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);

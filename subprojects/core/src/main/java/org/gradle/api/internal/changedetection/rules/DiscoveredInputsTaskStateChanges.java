@@ -23,8 +23,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskExecution;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity;
 import org.gradle.api.internal.file.FileCollectionFactory;
 
 import java.io.File;
@@ -84,7 +84,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
 
     private FileCollectionSnapshot createSnapshot(FileCollectionSnapshotter snapshotter, FileCollection fileCollection) {
         try {
-            return snapshotter.snapshot(fileCollection, TaskFilePropertyCompareType.UNORDERED, TaskFilePropertyPathSensitivityType.ABSOLUTE);
+            return snapshotter.snapshot(fileCollection, TaskFilePropertyCompareStrategy.UNORDERED, TaskFilePropertyPathSensitivity.ABSOLUTE);
         } catch (UncheckedIOException e) {
             throw new UncheckedIOException(String.format("Failed to capture snapshot of discovered input files for task '%s' during up-to-date check.", taskName), e);
         }

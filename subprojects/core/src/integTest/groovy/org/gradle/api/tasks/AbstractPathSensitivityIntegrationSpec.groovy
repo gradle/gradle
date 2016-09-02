@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -26,13 +27,14 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
     @Unroll("single source file renamed with #pathSensitive as input is loaded from cache: #expectSkipped (order sensitive: #orderSensitive)")
     def "single source file renamed"() {
         given:
-        file("input.txt").text = "input"
+        file("sources").createDir()
+        file("sources/input.txt").text = "input"
 
         declareTestTaskWithPathSensitivity(pathSensitive, orderSensitive)
 
         buildFile << """
             test {
-                sources = files("input.txt")
+                sources = files("sources")
             }
         """
 
@@ -42,12 +44,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         skippedTasks.empty
 
         when:
-        file("input.txt").renameTo(file("input-renamed.txt"))
-        buildFile << """
-            test {
-                sources = files("input-renamed.txt")
-            }
-        """
+        assert file("sources/input.txt").renameTo(file("sources/input-renamed.txt"))
 
         cleanWorkspace()
         execute "test"
@@ -191,6 +188,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         """
     }
 
+    @NotYetImplemented
     def "copy task stays up-to-date after files are moved but end up copied to the same destination"() {
         file("src", "data").createDir()
         file("src/data/input.txt").text = "data"

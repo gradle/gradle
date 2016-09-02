@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuilds;
@@ -45,8 +44,7 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
     }
 
     @Override
-    public void execute(ProjectComponentIdentifier projectId, Iterable<String> taskNames) {
-        BuildIdentifier build = projectId.getBuild();
+    public void execute(BuildIdentifier build, Iterable<String> taskNames) {
         buildStarted(build);
         try {
             doBuild(build, taskNames);
@@ -60,7 +58,7 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
         // TODO:DAZ We might need to hold a lock per-build for the parallel build case
         if (!executingBuilds.add(build)) {
             ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(build, ":");
-            throw new ModuleVersionResolveException(selector, "Dependency cycle including " + selector.getDisplayName());
+            throw new ModuleVersionResolveException(selector, "Dependency cycle including " + build);
         }
     }
 

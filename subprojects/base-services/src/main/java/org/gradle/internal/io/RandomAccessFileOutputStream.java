@@ -19,6 +19,11 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
+/**
+ * Writes to a {@link RandomAccessFile}. Each operation writes to and advances the current position of the file.
+ *
+ * <p>Closing this stream does not close the underlying file. Flushing this stream does nothing.
+ */
 public class RandomAccessFileOutputStream extends OutputStream {
     private final RandomAccessFile file;
 

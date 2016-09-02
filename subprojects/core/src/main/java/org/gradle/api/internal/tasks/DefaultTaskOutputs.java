@@ -28,8 +28,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -50,7 +50,7 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.OUTPUT;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.OUTPUT;
 import static org.gradle.util.GUtil.uncheckedCall;
 
 public class DefaultTaskOutputs implements TaskOutputsInternal {
@@ -246,7 +246,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     abstract private class BasePropertySpec extends AbstractTaskPropertyBuilder implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
         private boolean optional;
-        private TaskFilePropertyPathSensitivityType pathSensitivity = TaskFilePropertyPathSensitivityType.ABSOLUTE;
+        private TaskFilePropertyPathSensitivity pathSensitivity = TaskFilePropertyPathSensitivity.ABSOLUTE;
 
         @Override
         public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
@@ -269,18 +269,23 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             return this;
         }
 
-        public TaskFilePropertyPathSensitivityType getPathSensitivity() {
+        public TaskFilePropertyPathSensitivity getPathSensitivity() {
             return pathSensitivity;
         }
 
         @Override
         public TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
-            this.pathSensitivity = TaskFilePropertyPathSensitivityType.valueOf(sensitivity);
+            this.pathSensitivity = TaskFilePropertyPathSensitivity.valueOf(sensitivity);
             return this;
         }
 
-        public TaskFilePropertyCompareType getCompareType() {
+        public TaskFilePropertyCompareStrategy getCompareStrategy() {
             return OUTPUT;
+        }
+
+        @Override
+        public String toString() {
+            return getPropertyName() + " " + getCompareStrategy().name() + " " + pathSensitivity.name();
         }
 
         // --- Deprecated delegate methods
@@ -447,12 +452,12 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
 
         @Override
-        public TaskFilePropertyCompareType getCompareType() {
+        public TaskFilePropertyCompareStrategy getCompareStrategy() {
             return OUTPUT;
         }
 
         @Override
-        public TaskFilePropertyPathSensitivityType getPathSensitivity() {
+        public TaskFilePropertyPathSensitivity getPathSensitivity() {
             return parentProperty.getPathSensitivity();
         }
 

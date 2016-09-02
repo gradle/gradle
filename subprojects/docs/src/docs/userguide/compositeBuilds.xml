@@ -112,7 +112,7 @@
     <section id="included_build_declaring_substitutions">
         <title>Declaring the dependencies substituted by an included build</title>
         <para>
-            By default, Gradle will configure each included build in order to determine the dependencies it can provide. The algorithm for doing this is very simple: Gradle will inspect the group and name for the projects in the included build, and substitute project dependencies for any matching external dependency.
+            By default, Gradle will configure each included build in order to determine the dependencies it can provide. The algorithm for doing this is very simple: Gradle will inspect the group and name for the projects in the included build, and substitute project dependencies for any external dependency matching <literal>${project.group}:${project.name}</literal>.
         </para>
         <para>
             There are cases when the default substitutions determined by Gradle are not sufficient, or they are not correct for a particular composite. For these cases it is possible to explicitly declare the substitutions for an included build. Take for example a single-project build 'unpublished', that produces a java utility library but does not declare a value for the group attribute:
@@ -130,6 +130,32 @@
         <para>
             With this configuration, the "my-app" composite build will substitute any dependency on <literal>org.sample:number-utils</literal> with a dependency on the root project of "unpublished".
         </para>
+        <section id="included_build_substitution_requirements">
+            <title>Cases where included build substitutions must be declared</title>
+            <para>Many builds that use the <literal>uploadArchives</literal> task to publish artifacts will function automatically as an included build, without declared substitutions. Here are some common cases where declared substitutions are required:
+                <itemizedlist>
+                    <listitem><para>When the <literal>archivesBaseName</literal> property is used to set the name of the published artifact.</para></listitem>
+                    <listitem><para>When a configuration other than <literal>default</literal> is published: this usually means a task other than <literal>uploadArchives</literal> is used.</para></listitem>
+                    <listitem><para>When the <literal>MavenPom.addFilter()</literal> is used to publish artifacts that don't match the project name.</para></listitem>
+                    <listitem><para>When the <literal>maven-publish</literal> or <literal>ivy-publish</literal> plugins are used for publishing, and the publication coordinates don't match <literal>${project.group}:${project.name}</literal>.</para></listitem>
+                </itemizedlist>
+            </para>
+        </section>
+        <section id="included_build_substitution_limitations">
+            <title>Cases where composite build substitutions won't work</title>
+            <para>
+                Some builds won't function correctly when included in a composite, even when dependency substitutions are explicitly declared. This limitation is due to the fact that a project dependency that is substituted will always point to the <literal>default</literal> configuration of the target project. Any time that the artifacts and dependencies specified for the default configuration of a project don't match what is actually published to a repository, then the composite build may exhibit different behaviour.
+            </para>
+            <para>
+                Here are some cases where the publish module metadata may be different from the project default configuration:
+                <itemizedlist>
+                    <listitem><para>When a configuration other than <literal>default</literal> is published.</para></listitem>
+                    <listitem><para>When the <literal>maven-publish</literal> or <literal>ivy-publish</literal> plugins are used.</para></listitem>
+                    <listitem><para>When the <literal>POM</literal> or <literal>ivy.xml</literal> file is tweaked as part of publication.</para></listitem>
+                </itemizedlist>
+                Builds using these features function incorrectly when included in a composite build. We plan to improve this in the future.
+            </para>
+        </section>
     </section>
     <section id="included_build_task_dependencies">
         <title>Depending on tasks in an included build</title>
@@ -154,7 +180,7 @@
         <para>
             Limitations of the current implementation include:
             <itemizedlist>
-                 <listitem><para>No support for included builds that produce multiple components. This is in part a limitation of the fact that dependency substitution does not permit the targeting of a particular configuration.</para></listitem>
+                 <listitem><para>No support for included builds that have publications that don't mirror the project default configuration. See <xref linkend="included_build_substitution_limitations"/>.</para></listitem>
                  <listitem><para>No native support for composite builds in IntelliJ IDEA or Eclipse Buildship. Generating IDEA metadata with <literal>gradle idea</literal> is supported.</para></listitem>
                  <listitem><para>Native builds are not supported. (Binary dependencies are not yet supported for native builds).</para></listitem>
              </itemizedlist>

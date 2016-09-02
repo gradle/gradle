@@ -29,24 +29,23 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GR
 /** An expiry strategy which only triggers when system memory falls below a threshold. */
 public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrategy {
     private final MemoryInfo memoryInfo;
-    protected final long minFreeMemoryBytes;
+    protected final long memoryThresholdInBytes;
     private static final Logger LOG = Logging.getLogger(LowMemoryDaemonExpirationStrategy.class);
 
     public static final String EXPIRATION_REASON = "to reclaim system memory";
 
-    private LowMemoryDaemonExpirationStrategy(MemoryInfo memoryInfo, long minFreeMemoryBytes) {
-        Preconditions.checkArgument(minFreeMemoryBytes >= 0);
+    // Reasonable default threshold bounds: between 384M and 1G
+    public static final long MIN_THRESHOLD_BYTES = 384 * 1024 * 1024;
+    public static final long MAX_THRESHOLD_BYTES = 1024 * 1024 * 1024;
+
+    private LowMemoryDaemonExpirationStrategy(MemoryInfo memoryInfo, long memoryThresholdInBytes) {
+        Preconditions.checkArgument(memoryThresholdInBytes >= 0);
         this.memoryInfo = Preconditions.checkNotNull(memoryInfo);
-        this.minFreeMemoryBytes = minFreeMemoryBytes;
+        this.memoryThresholdInBytes = normalizeThreshold(memoryThresholdInBytes, MIN_THRESHOLD_BYTES, MAX_THRESHOLD_BYTES);
     }
 
-    /**
-     * Creates an expiration strategy which expires the daemon when free memory drops below the specific byte count.
-     *
-     * @param minFreeMemoryBytes when free memory drops below this positive value in bytes, the daemon will expire.
-     */
-    public static LowMemoryDaemonExpirationStrategy belowFreeBytes(long minFreeMemoryBytes) {
-        return new LowMemoryDaemonExpirationStrategy(new MemoryInfo(), minFreeMemoryBytes);
+    private long normalizeThreshold(final long thresholdIn, final long minValue, final long maxValue) {
+        return Math.min(maxValue, Math.max(minValue, thresholdIn));
     }
 
     /**
@@ -65,14 +64,13 @@ public class LowMemoryDaemonExpirationStrategy implements DaemonExpirationStrate
 
         return new LowMemoryDaemonExpirationStrategy(
             memInfo,
-            (long) (memInfo.getTotalPhysicalMemory() * minFreeMemoryPercentage)
-        );
+            (long) (memInfo.getTotalPhysicalMemory() * minFreeMemoryPercentage));
     }
 
     public DaemonExpirationResult checkExpiration() {
         long freeMem = memoryInfo.getFreePhysicalMemory();
-        if (freeMem < minFreeMemoryBytes) {
-            LOG.info("after free system memory (" + NumberUtil.formatBytes(freeMem) + ") fell below threshold of " + NumberUtil.formatBytes(minFreeMemoryBytes));
+        if (freeMem < memoryThresholdInBytes) {
+            LOG.info("after free system memory (" + NumberUtil.formatBytes(freeMem) + ") fell below threshold of " + NumberUtil.formatBytes(memoryThresholdInBytes));
             return new DaemonExpirationResult(GRACEFUL_EXPIRE, EXPIRATION_REASON);
         } else {
             return DaemonExpirationResult.NOT_TRIGGERED;

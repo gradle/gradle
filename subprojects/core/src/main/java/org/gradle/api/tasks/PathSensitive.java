@@ -26,6 +26,8 @@ import java.lang.annotation.Target;
 
 /**
  * Annotates a task file property, specifying which part of the file paths should be considered during up-to-date checks.
+ *
+ * @since 3.1
  */
 @Incubating
 @Documented

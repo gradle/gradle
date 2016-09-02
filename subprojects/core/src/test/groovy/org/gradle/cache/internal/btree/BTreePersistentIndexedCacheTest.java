@@ -26,7 +26,14 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNull;
@@ -242,10 +249,25 @@ public class BTreePersistentIndexedCacheTest {
     }
 
     @Test
-    public void handlesBadlyFormedCacheFile() throws IOException {
+    public void handlesOpeningACacheFileThatIsBadlyFormed() throws IOException {
         cacheFile.createNewFile();
         cacheFile.write("some junk");
 
+        BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
+
+        assertNull(cache.get("key_1"));
+        cache.put("key_1", 99);
+
+        cache.reset();
+
+        assertThat(cache.get("key_1"), equalTo(99));
+        cache.verify();
+
+        cache.close();
+    }
+
+    @Test
+    public void handlesOpeningATruncatedCacheFile() throws IOException {
         BTreePersistentIndexedCache<String, Integer> cache = new BTreePersistentIndexedCache<String, Integer>(cacheFile, stringSerializer, integerSerializer);
 
         assertNull(cache.get("key_1"));

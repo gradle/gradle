@@ -31,11 +31,11 @@ import java.util.Map;
 
 class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     private final Map<String, NormalizedFileSnapshot> snapshots;
-    private final TaskFilePropertyCompareType compareType;
+    private final TaskFilePropertyCompareStrategy compareStrategy;
 
-    public DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, TaskFilePropertyCompareType compareType) {
+    public DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, TaskFilePropertyCompareStrategy compareStrategy) {
         this.snapshots = snapshots;
-        this.compareType = compareType;
+        this.compareStrategy = compareStrategy;
     }
 
     @Override
@@ -50,12 +50,12 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
 
     @Override
     public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType) {
-        return compareType.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType);
+        return compareStrategy.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType);
     }
 
     @Override
     public void appendToCacheKey(TaskCacheKeyBuilder builder) {
-        compareType.appendToCacheKey(builder, snapshots);
+        compareStrategy.appendToCacheKey(builder, snapshots);
     }
 
     @Override
@@ -77,13 +77,13 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
         }
 
         public DefaultFileCollectionSnapshot read(Decoder decoder) throws Exception {
-            TaskFilePropertyCompareType compareType = TaskFilePropertyCompareType.values()[decoder.readSmallInt()];
+            TaskFilePropertyCompareStrategy compareStrategy = TaskFilePropertyCompareStrategy.values()[decoder.readSmallInt()];
             Map<String, NormalizedFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
-            return new DefaultFileCollectionSnapshot(snapshots, compareType);
+            return new DefaultFileCollectionSnapshot(snapshots, compareStrategy);
         }
 
         public void write(Encoder encoder, DefaultFileCollectionSnapshot value) throws Exception {
-            encoder.writeSmallInt(value.compareType.ordinal());
+            encoder.writeSmallInt(value.compareStrategy.ordinal());
             snapshotMapSerializer.write(encoder, value.snapshots);
         }
     }

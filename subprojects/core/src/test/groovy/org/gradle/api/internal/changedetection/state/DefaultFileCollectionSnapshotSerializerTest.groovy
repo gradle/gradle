@@ -19,8 +19,11 @@ package org.gradle.api.internal.changedetection.state
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.DefaultNormalizedFileSnapshot
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity.DefaultNormalizedFileSnapshot
 import org.gradle.internal.serialize.SerializerSpec
+
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED
 
 class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
@@ -33,7 +36,7 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
             "/1": new DefaultNormalizedFileSnapshot("1", DirSnapshot.getInstance()),
             "/2": new DefaultNormalizedFileSnapshot("2", MissingFileSnapshot.getInstance()),
             "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash))
-        ], TaskFilePropertyCompareType.UNORDERED), serializer)
+        ], UNORDERED), serializer)
 
         then:
         out.snapshots.size() == 3
@@ -53,7 +56,7 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
             "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash)),
             "/2": new DefaultNormalizedFileSnapshot("2", MissingFileSnapshot.getInstance()),
             "/1": new DefaultNormalizedFileSnapshot("1", DirSnapshot.getInstance())
-        ], TaskFilePropertyCompareType.ORDERED), serializer)
+        ], ORDERED), serializer)
 
         then:
         out.snapshots.keySet() as List == ['/3', '/2', '/1']

@@ -19,11 +19,12 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Objects;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.file.collections.SingletonFileTree;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.hash.HashUtil;
 
-public enum TaskFilePropertyPathSensitivityType {
+public enum TaskFilePropertyPathSensitivity {
     /**
      * Use the absolute path of the files.
      */
@@ -41,7 +42,19 @@ public enum TaskFilePropertyPathSensitivityType {
     RELATIVE {
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
-            return getRelativeSnapshot(fileDetails, fileDetails.getPath(), snapshot, stringInterner);
+            // Ignore path of root files
+            if (fileDetails instanceof SingletonFileTree.SingletonFileVisitDetails) {
+                return new IgnoredPathFileSnapshot(snapshot);
+            }
+            String[] segments = fileDetails.getRelativePath().getSegments();
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0, len = segments.length; i < len; i++) {
+                if (i != 0) {
+                    builder.append('/');
+                }
+                builder.append(segments[i]);
+            }
+            return getRelativeSnapshot(fileDetails, builder.toString(), snapshot, stringInterner);
         }
     },
 
@@ -72,7 +85,7 @@ public enum TaskFilePropertyPathSensitivityType {
 
     public abstract NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner);
 
-    public static TaskFilePropertyPathSensitivityType valueOf(PathSensitivity pathSensitivity) {
+    public static TaskFilePropertyPathSensitivity valueOf(PathSensitivity pathSensitivity) {
         switch (pathSensitivity) {
             case ABSOLUTE:
                 return ABSOLUTE;

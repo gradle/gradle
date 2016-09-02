@@ -19,8 +19,8 @@ import com.google.common.collect.Lists;
 import groovy.lang.GString;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -35,9 +35,9 @@ import java.util.Map;
 import java.util.SortedSet;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.ORDERED;
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.UNORDERED;
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.ABSOLUTE;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity.ABSOLUTE;
 import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
 import static org.gradle.util.GUtil.uncheckedCall;
 
@@ -219,8 +219,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         private final TaskPropertyFileCollection files;
         private boolean skipWhenEmpty;
         private boolean optional;
-        private TaskFilePropertyCompareType compareType = UNORDERED;
-        private TaskFilePropertyPathSensitivityType pathSensitivity = ABSOLUTE;
+        private TaskFilePropertyCompareStrategy compareStrategy = UNORDERED;
+        private TaskFilePropertyPathSensitivity pathSensitivity = ABSOLUTE;
 
         public PropertySpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
             this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
@@ -269,8 +269,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskFilePropertyCompareType getCompareType() {
-            return compareType;
+        public TaskFilePropertyCompareStrategy getCompareStrategy() {
+            return compareStrategy;
         }
 
         @Override
@@ -280,19 +280,24 @@ public class DefaultTaskInputs implements TaskInputsInternal {
 
         @Override
         public TaskInputFilePropertyBuilder orderSensitive(boolean orderSensitive) {
-            this.compareType = orderSensitive ? ORDERED : UNORDERED;
+            this.compareStrategy = orderSensitive ? ORDERED : UNORDERED;
             return this;
         }
 
         @Override
-        public TaskFilePropertyPathSensitivityType getPathSensitivity() {
+        public TaskFilePropertyPathSensitivity getPathSensitivity() {
             return pathSensitivity;
         }
 
         @Override
         public TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
-            this.pathSensitivity = TaskFilePropertyPathSensitivityType.valueOf(sensitivity);
+            this.pathSensitivity = TaskFilePropertyPathSensitivity.valueOf(sensitivity);
             return this;
+        }
+
+        @Override
+        public String toString() {
+            return getPropertyName() + " " + compareStrategy.name() + " " + pathSensitivity.name();
         }
 
         // --- Deprecated delegate methods
