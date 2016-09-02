@@ -1,6 +1,21 @@
+The Gradle team is pleased to announce Gradle 3.1.
+
+Multi-project builds are a powerful feature with one significant constraint: the projects have to be in the same directory hierarchy. This doesn't help if you want to work on code across multiple repositories, for example if you're trying to fix a bug in a third-party open-source library that one of your projects depends on.
+
+Gradle 3.1 now supports this scenario with the introduction of **Composite Builds** for all users. It's hard to understate just how important this feature is as it provides a whole new way of organizing your projects and builds.
+
+**Incremental Build** is a similar feature in terms of impact and this release improves the control you have over its up-to-date checks. You can read about the details [further down](#incremental-build-improvements).
+
+As with many previous Gradle releases, you will also benefit from some performance improvements, this time in the form of [**faster dependency resolution**](#faster-dependency-resolution). From testing, Android users specifically could see **up to a 50% reduction** in resolution time.
+
+Our Play Framework and Kotlin build script users will also be happy as 3.1 now has (limited) support for **Play 2.5.x** and the Kotlin build script support gets a more fully-featured syntax for declaring dependencies and faster code completion.
+
+Finally, be sure to check out the [potential breaking changes](#potential-breaking-changes) in case they affect you.
+
+
 ## New and noteworthy
 
-Here are the new features introduced in this Gradle release.
+This release includes some significant new features and major improvements for our users. Read the following sections to learn more about them.
 
 <!--
 IMPORTANT: if this is a patch release, ensure that a prominent link is included in the foreword to all releases of the same minor stream.
@@ -12,62 +27,69 @@ Add-->
 
 ### Composite Builds
 
-[Composite Builds](userguide/composite_builds.html) take the pain out of binary integration. They allow you to combine several independent Gradle builds into one big build, replacing binary dependencies with project dependencies.
+[Composite Builds](userguide/composite_builds.html) take the pain out of binary integration. They allow you to combine several independent Gradle builds into one big build, replacing binary dependencies with project dependencies at will.
 
 They allow you to:
-- quickly verify a bug fix in a library by testing it directly against an application without having to publish to a repository first
-- develop and test a Gradle plugin directly against a project that uses that plugin
-- split a large multi-project build into several smaller builds, which can be worked on independently or together
 
-For instance, imagine you have to projects, a library called `number-utils`:
+ - quickly verify a bug fix in a library by testing it directly against an application instead of packaging and publishing it first
+ - develop and test a Gradle plugin directly against a project that uses it
+ - split a large multi-project build into several smaller builds, which can be worked on independently or together
 
-```
-apply plugin: 'java'
-group "org.sample"
-version "1.0"
+As an example, imagine you have two projects: a library called _number-utils_ and an application called _my-app_. Let's say the library has this build:
 
-```
+    apply plugin: 'java'
+    group "org.sample"
+    version "1.0"
 
-and an application called `my-app`:
+while the application's build looks like this:
 
-```
-apply plugin: 'application'
+    apply plugin: 'application'
 
-dependencies {
-    compile "org.sample:number-utils:1.0"
-}
-```
+    dependencies {
+        compile "org.sample:number-utils:1.0"
+    }
 
-You can now build that application directly against a checked-out version of `number-utils` like this:
- 
- ```
- cd my-app
- gradle test --include-build ../number-utils
- ```
+Gradle will normally just download the requested _number-utils_ jar from a repository and use it, ignoring the fact that you have the library's project source available. But now, you can force Gradle to build the _number-utils_ project and use *its* jar in place of the requested 1.0 version. Simply run the following Gradle command inside the _my-app_ project directory:
+
+    gradle test --include-build ../number-utils
+
+Of course, the _number-utils_ project could be located anywhere on the filesystem. You would just need to use the appropriate file path with the `--include-build` option.
+
+This is just one technique you can use with composite build. See the [user guide](userguide/composite_builds.html) for more options.
 
 ### Faster dependency resolution
 
-Dependency resolution is now faster for some common cases:
+Dependency resolution is now faster for several common cases:
 
 - When you have a large dependency graph. For example, when your build contains many projects or you use many dependencies from a repository.
 - When you use dependencies from a Maven repository.
-- When you use Maven modules with a packaging that is not `jar`. For example, when you use an Android library from a Maven repository. These libraries have use an `aar` packaging.
+- When you depend on libraries that don't use the standard Maven `jar` packaging. For example, Android libraries use a packaging of `aar`.
 
-Dependency resolution affects many aspects of build performance and the effect of these improvements will vary depending on the exact make up your build. We have observed good improvements for Android builds in particular, in some instances halving the build configuration time.
+Dependency resolution affects many aspects of build performance and all builds are different. Some users will see a modest drop in the resolution time while other will experience a more significant improvement. We have observed good improvements for Android builds in particular, in some cases halving the build configuration time.
 
 ### Incremental build improvements
 
+The incremental build feature is a critical part of Gradle and for it to work properly, it needs to understand precisely when the inputs or outputs of a task have changed. Gradle 3.1 adds two more important options for specifying the rules that describe when an input is up-to-date or not, giving you more fine-grained control.
+
+See [the table of annotations](userguide/more_about_tasks.html#sec:task_inputs_outputs) in the user guide for more details of both these features.
+
 #### Tracking changes in the order of input files
 
-Gradle now recognizes changes in the order of files for classpath properties as a reason to mark a task like `JavaCompile` out-of-date. The new `@OrderSensitive` annotation can be used on task input properties to turn this feature on in custom tasks.
+In many cases, a collection of files is just a collection of files and tasks don't care about the order of those files. But consider the classpath for Java compilation: the compiler searches those classpath entries in the order that they're declared when looking for a class. That means the classpath is _order sensitive_.
+
+Gradle now supports this scenario via a new `@OrderSensitive` annotation. Adding this to a property marked with `@InputFiles` or `@InputDirectory` will cause Gradle to rerun the task if the order of the files changes, even if the files themselves have not. This annotation is already in use by Gradle internally and you can also use it in your own custom task classes.
 
 #### Better understanding of input file paths
 
-Previously, Gradle considered the absolute path of input files when determining if a task was up-to-date: if an input file was moved or renamed, even without changing it's contents, the task would be out-of-date. With the new path sensitivity feature Gradle can now observe just the relevant part of an input file's path. For example, with an `@InputFiles` property annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)` only changes to the name of the input files will mark the task as out-of-date, but moving the files around won't.
+Has a file changed if it has moved, but the content is still the same? This is an important question to answer if Gradle is to correctly determine whether a task needs to run again or not.
+
+Previously, Gradle used the absolute path when determining whether an input file had changed or not. So if a file was moved to a different location, Gradle would run the corresponding task again. But moving a file may or may not impact the task in such a way that it needs to run again. It depends on the task.
+
+Gradle 3.1 introduces a new path sensitivity feature that allows Gradle to observe just the relevant part of an input file's path. For example, with an `@InputFiles` property annotated with `@PathSensitive(PathSensitivity.NAME_ONLY)`, Gradle only cares about changes to the names of the input files, not their paths. So simply moving one of those files won't cause the task to run again.
 
 ### Sync can preserve files
 
-With the [Sync](dsl/org.gradle.api.tasks.Sync.html) task it is now possible to preserve files that already exist in the destination directory.
+The [Sync](dsl/org.gradle.api.tasks.Sync.html) task can now preserve files that already exist in the destination directory. Here's a demonstration of the new syntax, showing you how to specify patterns for those files you want to keep or explicitly remove:
 
     task sync(type: Sync) {
         from 'source'
@@ -79,11 +101,17 @@ With the [Sync](dsl/org.gradle.api.tasks.Sync.html) task it is now possible to p
         }
     }
 
+Before this change, `Sync` would always clear the whole target directory before copying files across.
+
 ### The distribution type can be selected by the Wrapper task
 
-For the [Wrapper](userguide/gradle_wrapper.html#sec:wrapper_generation) task, it is now possible to select a distribution type other than the default of `bin` by using `--distribution-type`.
+The `wrapper` command has allowed you to specify a Gradle version for some time now, meaning that you only ever need to install one version of Gradle on your machine. But it always created a wrapper that downloaded the binary distribution, which excludes the Gradle source, docs, and samples.
+
+You can now specify that you want the more complete `-all` distribution for the wrapper - particularly useful for IDEs - via the new `--distribution-type` options, like so:
 
     gradle wrapper --distribution-type all
+
+The default is still the binary distribution as it's smaller.
 
 ### Initial support for Play 2.5.x
 
@@ -93,7 +121,7 @@ Initial support for [Play 2.5.x](userguide/play_plugin.html#sec:play_limitations
 
 Gradle 3.1 supports version 0.3.1 of [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), a statically typed build language based on Kotlin.
 
-This new version includes an improved dependencies DSL making it possible to configure all aspects of external module and project dependencies via a type-safe and IDE friendly DSL:
+This new version includes an improved dependencies DSL making it possible to configure all aspects of external module and project dependencies via a type-safe and IDE-friendly DSL, as shown here:
 
     dependencies {
 
@@ -117,7 +145,7 @@ This new version includes an improved dependencies DSL making it possible to con
         }
     }
 
-Gradle Script Kotlin 0.3.1 also ships with Kotlin 1.1-dev-2053 greatly improving the performance of code assistance within IDEA when used together with a recent Kotlin plugin version. Please check out the full [Gradle Script Kotlin release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.3.1) for details.
+Gradle Script Kotlin 0.3.1 also ships with Kotlin 1.1-dev-2053, which greatly improves the performance of code completion within IDEA when used together with a recent Kotlin plugin version. Please check out the full [Gradle Script Kotlin release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.3.1) for details.
 
 ## Promoted features
 
