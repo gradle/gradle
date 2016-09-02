@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -25,8 +24,8 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 
-import java.util.Collection;
 import java.util.List;
 
 public class DefaultFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter {
@@ -36,28 +35,21 @@ public class DefaultFileCollectionSnapshotter extends AbstractFileCollectionSnap
 
     @Override
     protected void visitFiles(FileCollection input, final List<FileTreeElement> fileTreeElements, final List<FileTreeElement> missingFiles) {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(fileResolver);
+        ResolvableFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(fileResolver);
         context.add(input);
         List<FileTreeInternal> fileTrees = context.resolveAsFileTrees();
-
         for (FileTreeInternal fileTree : fileTrees) {
-            fileTreeElements.addAll(visitTreeForSnapshotting(fileTree));
+            fileTree.visitTreeOrBackingFile(new FileVisitor() {
+                @Override
+                public void visitDir(FileVisitDetails dirDetails) {
+                    fileTreeElements.add(dirDetails);
+                }
+
+                @Override
+                public void visitFile(FileVisitDetails fileDetails) {
+                    fileTreeElements.add(fileDetails);
+                }
+            });
         }
-    }
-
-    private Collection<? extends FileTreeElement> visitTreeForSnapshotting(FileTreeInternal fileTree) {
-        final ImmutableList.Builder<FileTreeElement> fileTreeElements = ImmutableList.builder();
-        fileTree.visitTreeOrBackingFile(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                fileTreeElements.add(dirDetails);
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                fileTreeElements.add(fileDetails);
-            }
-        });
-        return fileTreeElements.build();
     }
 }
