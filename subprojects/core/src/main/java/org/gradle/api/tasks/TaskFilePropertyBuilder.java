@@ -16,30 +16,21 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
+import org.gradle.internal.HasInternalProtocol;
+
 /**
- * Enumeration of different path handling strategies for task properties.
- *
- * @see PathSensitive
+ * Describes a property of a task that contains zero or more files.
  *
  * @since 3.1
  */
-public enum PathSensitivity {
+@Incubating
+@HasInternalProtocol
+public interface TaskFilePropertyBuilder extends TaskPropertyBuilder {
     /**
-     * Consider the full path of files and directories.
+     * Sets which part of the path of files should be considered during up-to-date checks.
+     *
+     * @since 3.1
      */
-    ABSOLUTE,
-    /**
-     * Consider the path for each file or directory relative to the root it was included via.
-     */
-    RELATIVE,
-
-    /**
-     * Consider only the name of files and directories.
-     */
-    NAME_ONLY,
-
-    /**
-     * Ignore file paths and directories altogether.
-     */
-    NONE
+    TaskFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity);
 }
