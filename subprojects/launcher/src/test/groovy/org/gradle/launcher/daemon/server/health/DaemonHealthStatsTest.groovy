@@ -16,22 +16,25 @@
 
 package org.gradle.launcher.daemon.server.health
 
+import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionInfo
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionMonitor
 import org.gradle.launcher.daemon.server.health.gc.GarbageCollectionStats
+import org.gradle.launcher.daemon.server.health.memory.MemoryInfo
 import org.gradle.launcher.daemon.server.stats.DaemonRunningStats
 import spock.lang.Specification
 
 class DaemonHealthStatsTest extends Specification {
 
-    def memory = Stub(MemoryInfo)
+    def memoryInfo = Stub(MemoryInfo)
+    def gcInfo = Stub(GarbageCollectionInfo)
     def gcMonitor = Stub(GarbageCollectionMonitor)
     def runningStats = Stub(DaemonRunningStats)
-    def healthStats = new DaemonHealthStats(runningStats, memory, gcMonitor)
+    def healthStats = new DaemonHealthStats(runningStats, memoryInfo, gcInfo, gcMonitor)
 
     def "consumes first build"() {
         when:
-        memory.getCommittedMemory() >> 5000000
-        memory.getMaxMemory() >> 10000000
+        memoryInfo.getCommittedMemory() >> 5000000
+        memoryInfo.getMaxMemory() >> 10000000
         runningStats.getBuildCount() >> 0
 
         then:
@@ -40,7 +43,7 @@ class DaemonHealthStatsTest extends Specification {
 
     def "consumes subsequent builds"() {
         when:
-        memory.getCollectionTime() >> 25
+        gcInfo.getCollectionTime() >> 25
         gcMonitor.getTenuredStats() >> {
             Stub(GarbageCollectionStats) {
                 getUsage() >> 10
@@ -58,7 +61,7 @@ class DaemonHealthStatsTest extends Specification {
 
     def "handles no garbage collection data"() {
         when:
-        memory.getCollectionTime() >> 25
+        gcInfo.getCollectionTime() >> 25
         runningStats.getBuildCount() >> 1
         runningStats.getPrettyUpTime() >> "3 mins"
         runningStats.getAllBuildsTime() >> 1000

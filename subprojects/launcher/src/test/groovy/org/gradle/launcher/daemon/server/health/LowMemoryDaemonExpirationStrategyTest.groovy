@@ -18,20 +18,24 @@
 package org.gradle.launcher.daemon.server.health
 
 import com.google.common.base.Strings
-import org.gradle.launcher.daemon.server.Daemon
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
+import org.gradle.launcher.daemon.server.health.memory.MemoryInfo
 import spock.lang.Specification
 
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.DO_NOT_EXPIRE
 import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GRACEFUL_EXPIRE
 
 class LowMemoryDaemonExpirationStrategyTest extends Specification {
-    private final Daemon daemon = Mock()
+    private static final long ONE_GIG = 1024 * 1024 * 1024
     private final MemoryInfo mockMemoryInfo = Mock(MemoryInfo)
+
+    def setup() {
+        _ * mockMemoryInfo.totalPhysicalMemory >> { 16 * ONE_GIG }
+    }
 
     def "minimum threshold is enforced"() {
         given:
-        LowMemoryDaemonExpirationStrategy expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 5)
+        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 0)
 
         expect:
         expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES
@@ -39,7 +43,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
     def "maximum threshold is enforced"() {
         given:
-        LowMemoryDaemonExpirationStrategy expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 2 * LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES)
+        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 1)
 
         expect:
         expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES
@@ -47,10 +51,10 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
     def "daemon should expire when memory falls below threshold"() {
         given:
-        LowMemoryDaemonExpirationStrategy expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES)
+        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 1)
 
         when:
-        1 * mockMemoryInfo.getFreePhysicalMemory() >> { LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES - 1 }
+        1 * mockMemoryInfo.freePhysicalMemory >> { 0 }
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
@@ -60,42 +64,15 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
     def "daemon should not expire when memory is above threshold"() {
         given:
-        LowMemoryDaemonExpirationStrategy expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES)
+        def expirationStrategy = new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 0)
 
         when:
-        1 * mockMemoryInfo.getFreePhysicalMemory() >> { LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES + 1 }
+        1 * mockMemoryInfo.getFreePhysicalMemory() >> { ONE_GIG }
 
         then:
         DaemonExpirationResult result = expirationStrategy.checkExpiration()
         result.status == DO_NOT_EXPIRE
         Strings.isNullOrEmpty(result.reason)
-    }
-
-    def "strategy computes total memory percentage"() {
-        when:
-        1 * mockMemoryInfo.getTotalPhysicalMemory() >> { LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES * 2 }
-
-        then:
-        LowMemoryDaemonExpirationStrategy expirationStrategy = LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.5, mockMemoryInfo)
-        expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES
-    }
-
-    def "strategy computes total memory percentage of zero"() {
-        when:
-        1 * mockMemoryInfo.getTotalPhysicalMemory() >> { LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES * 2 }
-
-        then:
-        LowMemoryDaemonExpirationStrategy expirationStrategy = LowMemoryDaemonExpirationStrategy.belowFreePercentage(0, mockMemoryInfo)
-        expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MIN_THRESHOLD_BYTES
-    }
-
-    def "strategy computes total memory percentage of one"() {
-        when:
-        1 * mockMemoryInfo.getTotalPhysicalMemory() >> { LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES * 2 }
-
-        then:
-        LowMemoryDaemonExpirationStrategy expirationStrategy = LowMemoryDaemonExpirationStrategy.belowFreePercentage(1, mockMemoryInfo)
-        expirationStrategy.memoryThresholdInBytes == LowMemoryDaemonExpirationStrategy.MAX_THRESHOLD_BYTES
     }
 
     def "strategy does not accept negative threshold"() {
@@ -106,17 +83,9 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
         thrown IllegalArgumentException
     }
 
-    def "strategy does not accept percentage less than 0"() {
-        when:
-        LowMemoryDaemonExpirationStrategy.belowFreePercentage(-0.1)
-
-        then:
-        thrown IllegalArgumentException
-    }
-
     def "strategy does not accept percentage greater than 1"() {
         when:
-        LowMemoryDaemonExpirationStrategy.belowFreePercentage(1.1)
+        new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, 1.1)
 
         then:
         thrown IllegalArgumentException
@@ -124,7 +93,7 @@ class LowMemoryDaemonExpirationStrategyTest extends Specification {
 
     def "strategy does not accept NaN percentage"() {
         when:
-        LowMemoryDaemonExpirationStrategy.belowFreePercentage(Double.NaN)
+        new LowMemoryDaemonExpirationStrategy(mockMemoryInfo, Double.NaN)
 
         then:
         thrown IllegalArgumentException
