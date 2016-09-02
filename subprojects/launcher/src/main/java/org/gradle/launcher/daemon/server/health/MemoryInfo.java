@@ -16,7 +16,10 @@
 
 package org.gradle.launcher.daemon.server.health;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import org.gradle.internal.Cast;
+import org.gradle.internal.os.OperatingSystem;
 
 import javax.management.AttributeNotFoundException;
 import javax.management.InstanceNotFoundException;
@@ -24,15 +27,33 @@ import javax.management.MBeanException;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.management.ReflectionException;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 class MemoryInfo {
 
     private final long totalMemory; //this does not change
+    private final Matcher meminfoMatcher;
+    private final Matcher vmstatMatcher;
+
+    // /proc/meminfo is in kB since Linux 4.0, see https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/fs/proc/task_mmu.c?id=39a8804455fb23f09157341d3ba7db6d7ae6ee76#n22
+    private static final Pattern MEMINFO_LINE_PATTERN = Pattern.compile("^\\D+(\\d+) kB$");
+    private static final Pattern VMSTAT_LINE_PATTERN = Pattern.compile("^\\D+(\\d+)\\D+$");
+    private static final String MEMINFO_EXECUTABLE_PATH = "/proc/meminfo";
+    private static final String VMSTAT_EXECUTABLE_PATH = "/usr/bin/vm_stat";
 
     MemoryInfo() {
         totalMemory = Runtime.getRuntime().maxMemory();
+
+        // Initialize Matchers once and then reset them for performance
+        meminfoMatcher = MEMINFO_LINE_PATTERN.matcher("");
+        vmstatMatcher = VMSTAT_LINE_PATTERN.matcher("");
     }
 
     /**
@@ -79,7 +100,114 @@ class MemoryInfo {
      * @throws UnsupportedOperationException if the JVM doesn't support getting free physical memory.
      */
     public long getFreePhysicalMemory() {
-        return getMbeanAttribute("java.lang:type=OperatingSystem", "FreePhysicalMemorySize", Long.class);
+        OperatingSystem operatingSystem = OperatingSystem.current();
+        if (operatingSystem.isMacOsX()) { // Parse /usr/bin/vm_stat output
+            List<String> vmstatOutputLines = exec(VMSTAT_EXECUTABLE_PATH);
+            long freeMemoryFromVmstat = parseFreeMemoryFromVmstat(vmstatOutputLines);
+            if (freeMemoryFromVmstat != -1) {
+                return freeMemoryFromVmstat;
+            }
+        } else if (operatingSystem.isLinux()) { // Parse /proc/meminfo output
+            List<String> meminfoOutputLines = exec(MEMINFO_EXECUTABLE_PATH);
+            long freeMemoryFromProcMeminfo = parseFreeMemoryFromMeminfo(meminfoOutputLines);
+            if (freeMemoryFromProcMeminfo != -1) {
+                return freeMemoryFromProcMeminfo;
+            }
+        } else {
+            // MBean value takes reclaimable memory into account on Windows and Solaris
+            // See https://msdn.microsoft.com/en-us/library/windows/desktop/aa366770(v=vs.85).aspx
+            // See https://github.com/dmlloyd/openjdk/blob/jdk8u/jdk8u/jdk/src/solaris/native/sun/management/OperatingSystemImpl.c#L341
+            return getMbeanAttribute("java.lang:type=OperatingSystem", "FreePhysicalMemorySize", Long.class);
+        }
+
+        // Couldn't get free memory
+        throw new UnsupportedOperationException("Unable to get free memory");
+    }
+
+    /**
+     * Execute given executable and return standard out as a list of strings.
+     */
+    private List<String> exec(final String executablePath) {
+        List<String> vmstatOutputLines = Lists.newArrayList();
+        ProcessBuilder processBuilder = new ProcessBuilder(executablePath);
+        try {
+            Process process = processBuilder.start();
+            if (process.waitFor() == 0) {
+                BufferedReader is = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                String line;
+                while ((line = is.readLine()) != null) {
+                    vmstatOutputLines.add(line);
+                }
+            }
+        } catch (IOException e) {
+            throw new UnsupportedOperationException("Unable to get free memory from " + executablePath, e);
+        } catch (InterruptedException e) {
+            throw new UnsupportedOperationException("Unable to get free memory from " + executablePath, e);
+        }
+        return vmstatOutputLines;
+    }
+
+    /**
+     * Given output from /proc/meminfo, return available memory in bytes.
+     */
+    @VisibleForTesting
+    long parseFreeMemoryFromMeminfo(final List<String> meminfoLines) {
+        final AvailableMemory availableMemory = new AvailableMemory();
+
+        for (String line : meminfoLines) {
+            if (line.startsWith("MemAvailable")) {
+                return parseMeminfoBytes(line);
+            } else if (line.startsWith("MemFree")) {
+                availableMemory.setFreeBytes(parseMeminfoBytes(line));
+            } else if (line.startsWith("Cached")) {
+                availableMemory.setReclaimableBytes(parseMeminfoBytes(line));
+            }
+        }
+
+        return availableMemory.getAvailableBytes();
+    }
+
+    /**
+     * Given a line from /proc/meminfo, return number value representing number of bytes.
+     *
+     * @param line String line from /proc/meminfo. Example: "MemAvailable:    2109560 kB"
+     * @return number from value transformed to bytes or -1 if unparsable. Example: 2_160_189_440
+     */
+    private long parseMeminfoBytes(final String line) {
+        Matcher matcher = meminfoMatcher.reset(line);
+        if (matcher.matches()) {
+            return Long.parseLong(matcher.group(1)) * 1024;
+        }
+        throw new UnsupportedOperationException("Unable to parse /proc/meminfo output to get available memory");
+    }
+
+    /**
+     * Given a file referencing /usr/bin/vm_stat, return available memory in bytes.
+     */
+    @VisibleForTesting
+    long parseFreeMemoryFromVmstat(final List<String> vmstatLines) {
+        final AvailableMemory availableMemory = new AvailableMemory();
+
+        if (!vmstatLines.isEmpty()) {
+            long pageSize = parseVmstatBytes(vmstatLines.get(0));
+            for (String line : vmstatLines) {
+                if (line.startsWith("Pages free")) {
+                    availableMemory.setFreeBytes(parseVmstatBytes(line) * pageSize);
+                } else if (line.startsWith("File-backed pages")) {
+                    availableMemory.setReclaimableBytes(parseVmstatBytes(line) * pageSize);
+                }
+            }
+        }
+
+        return availableMemory.getAvailableBytes();
+    }
+
+    private long parseVmstatBytes(final String line) {
+        Matcher matcher = vmstatMatcher.reset(line);
+        if (matcher.matches()) {
+            return Long.parseLong(matcher.group(1));
+        }
+        throw new UnsupportedOperationException("Unable to parse vm_stat output to get available memory");
     }
 
     /**
@@ -101,8 +229,28 @@ class MemoryInfo {
         } catch (MBeanException e) {
             rootCause = e;
         } catch (AttributeNotFoundException e) {
-           rootCause = e;
+            rootCause = e;
         }
         throw new UnsupportedOperationException("(" + mbean + ")." + attribute + " is unsupported on this JVM.", rootCause);
+    }
+
+    private class AvailableMemory {
+        private long freeBytes = -1;
+        private long reclaimableBytes = -1;
+
+        public void setFreeBytes(long freeBytes) {
+            this.freeBytes = freeBytes;
+        }
+
+        public void setReclaimableBytes(long reclaimableBytes) {
+            this.reclaimableBytes = reclaimableBytes;
+        }
+
+        public long getAvailableBytes() {
+            if (freeBytes != -1 && reclaimableBytes != -1) {
+                return freeBytes + reclaimableBytes;
+            }
+            return -1;
+        }
     }
 }
