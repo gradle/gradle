@@ -1,7 +1,6 @@
-package org.gradle.script.lang.kotlin.codegen
+package org.gradle.script.lang.kotlin.support
 
 import org.gradle.script.lang.kotlin.loggerFor
-import org.gradle.script.lang.kotlin.provider.compileToJar
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat

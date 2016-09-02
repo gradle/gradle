@@ -18,6 +18,7 @@ package org.gradle.script.lang.kotlin.provider
 
 import org.gradle.script.lang.kotlin.KotlinBuildScript
 import org.gradle.script.lang.kotlin.support.KotlinBuildScriptSection
+import org.gradle.script.lang.kotlin.support.compileKotlinScript
 
 import org.gradle.api.Project
 import org.gradle.api.internal.initialization.ClassLoaderScope

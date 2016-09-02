@@ -16,6 +16,9 @@
 
 package org.gradle.script.lang.kotlin.provider
 
+import org.gradle.script.lang.kotlin.codegen.generateActionExtensionsJar
+import org.gradle.script.lang.kotlin.codegen.generateKotlinGradleApiJar
+
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 
@@ -24,15 +27,6 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
-
-import org.gradle.script.lang.kotlin.codegen.ActionExtensionWriter
-import org.gradle.script.lang.kotlin.codegen.classNodeFor
-import org.gradle.script.lang.kotlin.codegen.isApiClassEntry
-import org.gradle.script.lang.kotlin.codegen.conflictsWithExtension
-import org.gradle.script.lang.kotlin.codegen.forEachZipEntryIn
-import org.gradle.script.lang.kotlin.loggerFor
-import org.gradle.script.lang.kotlin.support.asm.removeMethodsMatching
-import org.gradle.script.lang.kotlin.support.zipTo
 
 import org.gradle.util.GFileUtils.moveFile
 
@@ -87,52 +81,13 @@ class KotlinScriptClassPathProvider(
 
     private fun kotlinGradleApiFrom(gradleApiJar: File): File =
         produce("script-kotlin-api") { outputFile ->
-            generateKotlinGradleApiTo(outputFile, gradleApiJar)
+            generateKotlinGradleApiJar(outputFile, gradleApiJar)
         }
 
     private fun kotlinGradleApiExtensionsFrom(gradleApiJar: File): File =
         produce("script-kotlin-extensions") { outputFile ->
-            val tempDir = tempDirFor(outputFile)
-            compileExtensionsTo(tempDir, gradleApiJar)
-            zipTo(outputFile, tempDir)
+            generateActionExtensionsJar(outputFile, gradleApiJar)
         }
-
-    private fun generateKotlinGradleApiTo(outputFile: File, gradleApiJar: File) {
-        gradleApiJar.inputStream().use { input ->
-            outputFile.outputStream().use { output ->
-                removeMethodsMatching(
-                    ::conflictsWithExtension,
-                    input.buffered(),
-                    output.buffered(),
-                    shouldTransformEntry = { isApiClassEntry() })
-            }
-        }
-    }
-
-    private fun compileExtensionsTo(outputDir: File, gradleApiJar: File) {
-        val sourceFile = File(outputDir, extensionsSourceFileName())
-        writeActionExtensionsTo(sourceFile, gradleApiJar)
-        compileToDirectory(
-            outputDir,
-            sourceFile,
-            loggerFor<KotlinScriptClassPathProvider>(),
-            classPath = listOf(gradleApiJar))
-    }
-
-    private fun extensionsSourceFileName() =
-        ActionExtensionWriter.packageName.replace('.', '/') + "/ActionExtensions.kt"
-
-    private fun writeActionExtensionsTo(kotlinFile: File, gradleApiJar: File) {
-        kotlinFile.apply { parentFile.mkdirs() }.bufferedWriter().use { writer ->
-            val extensionWriter = ActionExtensionWriter(writer)
-            forEachZipEntryIn(gradleApiJar) {
-                if (isApiClassEntry()) {
-                    val classNode = classNodeFor(zipInputStream)
-                    extensionWriter.writeExtensionsFor(classNode)
-                }
-            }
-        }
-    }
 
     private fun produce(id: String, generate: JarGenerator): File =
         jarCache(id) { outputFile ->
@@ -147,11 +102,6 @@ class KotlinScriptClassPathProvider(
 
     private fun tempFileFor(outputFile: File): File =
         createTempFile(outputFile.nameWithoutExtension, outputFile.extension).apply {
-            deleteOnExit()
-        }
-
-    private fun tempDirFor(outputFile: File): File =
-        createTempDir(outputFile.nameWithoutExtension, outputFile.extension).apply {
             deleteOnExit()
         }
 

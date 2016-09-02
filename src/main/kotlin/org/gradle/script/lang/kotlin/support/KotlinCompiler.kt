@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.provider
+package org.gradle.script.lang.kotlin.support
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
