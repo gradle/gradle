@@ -249,6 +249,7 @@ class DependencyManagementBuildScopeServices {
                                                                 CacheLockingManager cacheLockingManager,
                                                                 VersionComparator versionComparator,
                                                                 ProjectRegistry<ProjectInternal> projectRegistry,
+                                                                BuildIdentity buildIdentity,
                                                                 ServiceRegistry serviceRegistry) {
         ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
             serviceRegistry,
@@ -256,7 +257,8 @@ class DependencyManagementBuildScopeServices {
             dependencyDescriptorFactory,
             cacheLockingManager,
             versionComparator,
-            projectRegistry
+            projectRegistry,
+            buildIdentity
         );
         return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);
     }

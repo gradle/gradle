@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.initialization.BuildIdentity;
 
 public class DefaultProjectComponentSelector implements ProjectComponentSelector {
     private final BuildIdentifier build;
@@ -84,13 +86,9 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return getDisplayName();
     }
 
-    // TODO:DAZ Need to get rid of usages of this, so we always have a true build id
-    public static ProjectComponentSelector newSelector(String projectPath) {
-        return new DefaultProjectComponentSelector(new CurrentBuildIdentifier(), projectPath);
-    }
-
     public static ProjectComponentSelector newSelector(Project project) {
-        return newSelector(project.getPath());
+        BuildIdentifier buildId = ((ProjectInternal) project).getServices().get(BuildIdentity.class).getCurrentBuild();
+        return new DefaultProjectComponentSelector(buildId, project.getPath());
     }
 
     public static ProjectComponentSelector newSelector(IncludedBuild build, String projectPath) {
@@ -107,5 +105,10 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
 
     public static ProjectComponentSelector newSelector(ProjectComponentIdentifier projectId) {
         return new DefaultProjectComponentSelector(projectId.getBuild(), projectId.getProjectPath());
+    }
+
+    // TODO:DAZ This is now only used for testing
+    public static ProjectComponentSelector newSelector(String projectPath) {
+        return new DefaultProjectComponentSelector(new CurrentBuildIdentifier(), projectPath);
     }
 }

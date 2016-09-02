@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -32,11 +33,14 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 public class DependencySubstitutionResolver implements DependencyToComponentIdResolver {
     private final DependencyToComponentIdResolver resolver;
     private final Action<DependencySubstitution> rule;
+    private final BuildIdentity buildIdentity;
     private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencySubstitution> rule, ProjectRegistry<ProjectInternal> projectRegistry) {
+    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencySubstitution> rule,
+                                          ProjectRegistry<ProjectInternal> projectRegistry, BuildIdentity buildIdentity) {
         this.resolver = resolver;
         this.rule = rule;
+        this.buildIdentity = buildIdentity;
         this.projectRegistry = projectRegistry;
     }
 
@@ -77,10 +81,11 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
             return target;
         }
 
+        // TODO:DAZ Once `buildIdentity.currentBuild` has the correct name, could compare directly.
         // See if this is a substitution into the current build
         Gradle currentBuild = projectRegistry.getProject(":").getGradle();
         if (currentBuild.getRootProject().getName().equals(target.getBuild().getName())) {
-            return DefaultProjectComponentSelector.newSelector(target.getProjectPath());
+            return DefaultProjectComponentSelector.newSelector(buildIdentity.getCurrentBuild(), target.getProjectPath());
         }
         return target;
     }

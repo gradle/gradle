@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencyResolveDetailsInternal
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
@@ -32,10 +33,11 @@ import static org.gradle.api.internal.artifacts.configurations.MutationValidator
 import static org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons.SELECTED_BY_RULE
 
 class DefaultDependencySubstitutionsSpec extends Specification {
+    ComponentIdentifierFactory componentIdentifierFactory = Mock(ComponentIdentifierFactory)
     DependencySubstitutionsInternal substitutions;
 
     def setup() {
-        substitutions = DefaultDependencySubstitutions.forResolutionStrategy()
+        substitutions = DefaultDependencySubstitutions.forResolutionStrategy(componentIdentifierFactory)
     }
 
     def "provides no op resolve rule when no rules or forced modules configured"() {
@@ -160,6 +162,9 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         given:
         def matchingSubstitute = Mock(ComponentSelector)
         def nonMatchingSubstitute = Mock(ComponentSelector)
+
+        componentIdentifierFactory.createProjectComponentSelector(":api") >> DefaultProjectComponentSelector.newSelector(":api")
+        componentIdentifierFactory.createProjectComponentSelector(":impl") >> DefaultProjectComponentSelector.newSelector(":impl")
 
         with(substitutions) {
             substitute project(matchingProject) with matchingSubstitute
