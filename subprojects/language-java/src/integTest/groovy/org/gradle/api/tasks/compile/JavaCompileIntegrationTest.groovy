@@ -191,7 +191,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":compile"
 
         when:
-        sleep(1000)
         file("resources/data").renameTo(file("resources/data-modified"))
 
         run "compile"
