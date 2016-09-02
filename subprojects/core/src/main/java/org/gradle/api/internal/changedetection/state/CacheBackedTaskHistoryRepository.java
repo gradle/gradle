@@ -135,34 +135,31 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     }
 
     private Set<String> getDeclaredOutputFilePaths(TaskInternal task) {
-        Set<String> outputFiles = new HashSet<String>();
+        Set<String> declaredOutputFilePaths = new HashSet<String>();
         for (File file : task.getOutputs().getFiles()) {
-            outputFiles.add(stringInterner.intern(file.getAbsolutePath()));
+            declaredOutputFilePaths.add(stringInterner.intern(file.getAbsolutePath()));
         }
-        return outputFiles;
+        return declaredOutputFilePaths;
     }
 
     private LazyTaskExecution findBestMatchingPreviousExecution(TaskExecution currentExecution, Collection<LazyTaskExecution> previousExecutions) {
-        Set<String> outputFiles = currentExecution.getDeclaredOutputFilePaths();
-        int outputFilesSize = outputFiles.size();
+        Set<String> declaredOutputFilePaths = currentExecution.getDeclaredOutputFilePaths();
         LazyTaskExecution bestMatch = null;
         int bestMatchOverlap = 0;
         for (LazyTaskExecution previousExecution : previousExecutions) {
-            Set<String> previousOutputFiles = previousExecution.getDeclaredOutputFilePaths();
-            if (outputFilesSize == 0) {
-                if (previousOutputFiles.size() == 0) {
-                    bestMatch = previousExecution;
-                    break;
-                }
+            Set<String> previousDeclaredOutputFilePaths = previousExecution.getDeclaredOutputFilePaths();
+            if (declaredOutputFilePaths.isEmpty() && previousDeclaredOutputFilePaths.isEmpty()) {
+                bestMatch = previousExecution;
+                break;
             }
 
-            Set<String> intersection = Sets.intersection(outputFiles, previousOutputFiles);
+            Set<String> intersection = Sets.intersection(declaredOutputFilePaths, previousDeclaredOutputFilePaths);
             int overlap = intersection.size();
             if (overlap > bestMatchOverlap) {
                 bestMatch = previousExecution;
                 bestMatchOverlap = overlap;
             }
-            if (bestMatchOverlap == outputFilesSize) {
+            if (bestMatchOverlap == declaredOutputFilePaths.size()) {
                 break;
             }
         }
