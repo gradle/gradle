@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import java.util.Iterator;
 import java.util.Map;
 
-class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy {
+class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
 
     @Override
     public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType) {
@@ -74,5 +74,10 @@ class OrderSensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyC
             NormalizedFileSnapshot normalizedSnapshot = entry.getValue();
             normalizedSnapshot.appendToCacheKey(builder);
         }
+    }
+
+    @Override
+    public boolean isIncludeAdded() {
+        return true;
     }
 }

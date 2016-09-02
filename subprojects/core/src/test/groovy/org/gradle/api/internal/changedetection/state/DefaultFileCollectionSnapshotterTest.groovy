@@ -31,10 +31,8 @@ import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
 
-import static TaskFilePropertyCompareType.OUTPUT
-import static TaskFilePropertyCompareType.UNORDERED
-import static TaskFilePropertyPathSensitivityType.ABSOLUTE
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareType.ORDERED
+import static TaskFilePropertyCompareStrategy.*
+import static TaskFilePropertyPathSensitivity.ABSOLUTE
 
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)

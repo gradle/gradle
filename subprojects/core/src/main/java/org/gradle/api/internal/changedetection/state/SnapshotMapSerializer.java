@@ -18,10 +18,10 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.DefaultNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.IgnoredPathFileSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.IndexedNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.NonNormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity.DefaultNormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity.IgnoredPathFileSnapshot;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity.IndexedNormalizedFileSnapshot;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity.NonNormalizedFileSnapshot;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;

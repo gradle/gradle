@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.hash.HashUtil;
 
-public enum TaskFilePropertyPathSensitivityType {
+public enum TaskFilePropertyPathSensitivity {
     /**
      * Use the absolute path of the files.
      */
@@ -85,7 +85,7 @@ public enum TaskFilePropertyPathSensitivityType {
 
     public abstract NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner);
 
-    public static TaskFilePropertyPathSensitivityType valueOf(PathSensitivity pathSensitivity) {
+    public static TaskFilePropertyPathSensitivity valueOf(PathSensitivity pathSensitivity) {
         switch (pathSensitivity) {
             case ABSOLUTE:
                 return ABSOLUTE;

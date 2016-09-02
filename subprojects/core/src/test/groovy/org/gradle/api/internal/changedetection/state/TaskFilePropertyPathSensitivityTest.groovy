@@ -31,9 +31,9 @@ import org.junit.Rule
 import spock.lang.Shared
 import spock.lang.Specification
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivityType.*
+import static TaskFilePropertyPathSensitivity.*
 
-class TaskFilePropertyPathSensitivityTypeTest extends Specification {
+class TaskFilePropertyPathSensitivityTest extends Specification {
     @Shared ProjectInternal project
     @Shared StringInterner interner
     @Shared FileCollection files
@@ -113,7 +113,7 @@ class TaskFilePropertyPathSensitivityTypeTest extends Specification {
         project.file(path)
     }
 
-    private def normalizeWith(TaskFilePropertyPathSensitivityType type) {
+    private def normalizeWith(TaskFilePropertyPathSensitivity type) {
         List<FileVisitDetails> fileTreeElements = []
         ResolvableFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(project.fileResolver)
         context.add(files)

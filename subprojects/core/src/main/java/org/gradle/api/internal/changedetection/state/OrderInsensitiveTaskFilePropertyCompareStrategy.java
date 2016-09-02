@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy {
+class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
 
     private static final Comparator<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>> ENTRY_COMPARATOR = new Comparator<Entry<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath>>() {
         @Override
@@ -131,6 +131,11 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
         for (NormalizedFileSnapshot normalizedSnapshot : normalizedSnapshots) {
             normalizedSnapshot.appendToCacheKey(builder);
         }
+    }
+
+    @Override
+    public boolean isIncludeAdded() {
+        return includeAdded;
     }
 
     private static class IncrementalFileSnapshotWithAbsolutePath {

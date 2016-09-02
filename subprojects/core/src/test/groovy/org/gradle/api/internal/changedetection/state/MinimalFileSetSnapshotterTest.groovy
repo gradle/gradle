@@ -28,8 +28,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static TaskFilePropertyCompareType.UNORDERED
-import static TaskFilePropertyPathSensitivityType.ABSOLUTE
+import static TaskFilePropertyCompareStrategy.UNORDERED
+import static TaskFilePropertyPathSensitivity.ABSOLUTE
 
 class MinimalFileSetSnapshotterTest extends Specification {
     @Rule

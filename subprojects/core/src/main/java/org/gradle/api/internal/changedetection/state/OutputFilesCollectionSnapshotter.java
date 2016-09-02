@@ -51,8 +51,8 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareType compareType, TaskFilePropertyPathSensitivityType pathSensitivity) {
-        return new OutputFilesCollectionSnapshot(getRoots(files), snapshotter.snapshot(files, compareType, pathSensitivity));
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, TaskFilePropertyPathSensitivity pathSensitivity) {
+        return new OutputFilesCollectionSnapshot(getRoots(files), snapshotter.snapshot(files, compareStrategy, pathSensitivity));
     }
 
     @Override
@@ -97,7 +97,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             if (newEntryCount == afterSnapshots.size()) {
                 filesSnapshot = unwrap(afterExecution);
             } else {
-                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareType.OUTPUT);
+                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.OUTPUT);
             }
         } else {
             filesSnapshot = unwrap(afterExecution);
