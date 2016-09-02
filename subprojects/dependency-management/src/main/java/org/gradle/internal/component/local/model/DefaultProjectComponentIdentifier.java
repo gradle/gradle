@@ -76,12 +76,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         if (build.isCurrentBuild()) {
             return projectPath;
         }
-        StringBuilder builder = new StringBuilder();
-        builder.append(":").append(build.getName());
-        if (projectPath.length() > 1) {
-            builder.append(projectPath);
-        }
-        return builder.toString();
+        return ":" + build.getName() + projectPath;
     }
 
     // TODO:DAZ Need to get rid of usages of this, so we always have a true build id
