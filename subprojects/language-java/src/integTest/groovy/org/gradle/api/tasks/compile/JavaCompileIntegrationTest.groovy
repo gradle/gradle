@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
@@ -123,7 +122,6 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         nonSkippedTasks.contains ":compile"
     }
 
-    @NotYetImplemented
     def "stays up-to-date after file renamed on classpath"() {
         file("lib1.jar") << jarWithContents("data.txt": "data1")
         file("lib2.jar") << jarWithContents("data.txt": "data2")

@@ -41,7 +41,21 @@ public enum TaskFilePropertyPathSensitivityType {
     RELATIVE {
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
-            return getRelativeSnapshot(fileDetails, fileDetails.getPath(), snapshot, stringInterner);
+            String[] segments = fileDetails.getRelativePath().getSegments();
+            if (segments.length == 0) {
+                throw new IllegalArgumentException("Relative path must have at least one segment");
+            }
+            if (segments.length == 1 && !fileDetails.isDirectory()) {
+                return new IgnoredPathFileSnapshot(snapshot);
+            }
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < segments.length; i++) {
+                if (i != 0) {
+                    builder.append('/');
+                }
+                builder.append(segments[i]);
+            }
+            return getRelativeSnapshot(fileDetails, builder.toString(), snapshot, stringInterner);
         }
     },
 
