@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import static org.gradle.api.internal.changedetection.rules.ChangeType.*
 
 class OrderSensitiveTaskFilePropertyCompareStrategyTest extends AbstractTaskFilePropertyCompareStrategyTest {
-    TaskFilePropertyCompareStrategy strategy = new OrderSensitiveTaskFilePropertyCompareStrategy()
+    OrderSensitiveTaskFilePropertyCompareStrategy strategy = new OrderSensitiveTaskFilePropertyCompareStrategy()
 
     def "detects addition"() {
         expect:
