@@ -314,7 +314,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         }
 
         @Override
-        protected int getType() {
+        protected byte getType() {
             return 0x55;
         }
 
@@ -353,7 +353,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         private IndexRoot root;
 
         @Override
-        protected int getType() {
+        protected byte getType() {
             return 0x77;
         }
 
@@ -662,7 +662,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
         }
 
         @Override
-        protected int getType() {
+        protected byte getType() {
             return 0x33;
         }
 

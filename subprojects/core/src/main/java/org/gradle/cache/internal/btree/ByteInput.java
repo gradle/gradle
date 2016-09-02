@@ -63,7 +63,7 @@ class ByteInput {
     }
 
     private static class ResettableBufferedInputStream extends BufferedInputStream {
-        public ResettableBufferedInputStream(InputStream input) {
+        ResettableBufferedInputStream(InputStream input) {
             super(input);
         }
 

@@ -134,7 +134,7 @@ public class FreeListBlockStore implements BlockStore {
         }
 
         @Override
-        protected int getType() {
+        protected byte getType() {
             return 0x44;
         }
 

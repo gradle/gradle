@@ -64,7 +64,7 @@ class ByteOutput {
     }
 
     private static class ResettableBufferedOutputStream extends BufferedOutputStream {
-        public ResettableBufferedOutputStream(OutputStream output) {
+        ResettableBufferedOutputStream(OutputStream output) {
             super(output);
         }
 

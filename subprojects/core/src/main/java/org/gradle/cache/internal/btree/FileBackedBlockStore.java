@@ -126,9 +126,8 @@ public class FileBackedBlockStore implements BlockStore {
     }
 
     private final class BlockImpl extends Block {
-        private static final int HEADER_SIZE = 2 + INT_SIZE;
-        private static final int TAIL_SIZE = LONG_SIZE;
-        static final int BLOCK_MARKER = 0xCC;
+        private static final int HEADER_SIZE = 1 + INT_SIZE; // type, payload size
+        private static final int TAIL_SIZE = INT_SIZE;
 
         private BlockPointer pos;
         private int payloadSize;
@@ -185,7 +184,6 @@ public class FileBackedBlockStore implements BlockStore {
             BlockPayload payload = getPayload();
 
             // Write header
-            outputStream.writeByte(BLOCK_MARKER);
             outputStream.writeByte(payload.getType());
             outputStream.writeInt(payloadSize);
             long finalSize = pos + HEADER_SIZE + TAIL_SIZE + payloadSize;
@@ -194,7 +192,11 @@ public class FileBackedBlockStore implements BlockStore {
             payload.write(outputStream);
 
             // Write count
-            outputStream.writeLong(output.getBytesWritten());
+            long bytesWritten = output.getBytesWritten();
+            if (bytesWritten > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException("Block payload exceeds maximum size");
+            }
+            outputStream.writeInt((int) bytesWritten);
             output.done();
 
             // Pad
@@ -217,11 +219,7 @@ public class FileBackedBlockStore implements BlockStore {
 
             // Read header
             byte type = inputStream.readByte();
-            if (type != (byte) BLOCK_MARKER) {
-                throw blockCorruptedException();
-            }
-            type = inputStream.readByte();
-            if (type != (byte) payload.getType()) {
+            if (type != payload.getType()) {
                 throw blockCorruptedException();
             }
 
@@ -234,7 +232,7 @@ public class FileBackedBlockStore implements BlockStore {
 
             // Read and verify count
             long actualCount = input.getBytesRead();
-            long count = inputStream.readLong();
+            long count = inputStream.readInt();
             if (actualCount != count) {
                 throw blockCorruptedException();
             }
