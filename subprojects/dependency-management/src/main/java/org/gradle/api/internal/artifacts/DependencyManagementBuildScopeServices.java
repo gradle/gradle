@@ -18,6 +18,8 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactDependencyResolver;
@@ -72,8 +74,11 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.initialization.BuildIdentity;
+import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.local.model.CurrentBuildIdentifier;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -98,6 +103,14 @@ class DependencyManagementBuildScopeServices {
 
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {
         return new DefaultDependencyManagementServices(parent);
+    }
+
+    BuildIdentity createBuildIdentity() {
+        return new DefaultBuildIdentity(new CurrentBuildIdentifier());
+    }
+
+    ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {
+        return new DefaultComponentIdentifierFactory(buildIdentity);
     }
 
     DependencyFactory createDependencyFactory(

@@ -21,6 +21,8 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.initialization.BuildIdentity;
 
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifier {
     private final BuildIdentifier buildIdentifier;
@@ -79,11 +81,6 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return ":" + build.getName() + projectPath;
     }
 
-    // TODO:DAZ Need to get rid of usages of this, so we always have a true build id
-    public static ProjectComponentIdentifier newProjectId(String projectPath) {
-        return new DefaultProjectComponentIdentifier(new CurrentBuildIdentifier(), projectPath);
-    }
-
     public static ProjectComponentIdentifier newProjectId(IncludedBuild build, String projectPath) {
         BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getName());
         return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
@@ -94,10 +91,12 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     }
 
     public static ProjectComponentIdentifier newProjectId(Project project) {
-        return newProjectId(project.getPath());
+        BuildIdentifier buildId = ((ProjectInternal) project).getServices().get(BuildIdentity.class).getCurrentBuild();
+        return new DefaultProjectComponentIdentifier(buildId, project.getPath());
     }
 
-    public static ProjectComponentIdentifier rootId(ProjectComponentIdentifier projectComponentIdentifier) {
-        return new DefaultProjectComponentIdentifier(projectComponentIdentifier.getBuild(), ":");
+    // TODO:DAZ This is now only used for testing
+    public static ProjectComponentIdentifier newProjectId(String projectPath) {
+        return new DefaultProjectComponentIdentifier(new CurrentBuildIdentifier(), projectPath);
     }
 }
