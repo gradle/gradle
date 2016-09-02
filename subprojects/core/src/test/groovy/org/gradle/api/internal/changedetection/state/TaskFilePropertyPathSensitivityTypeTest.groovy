@@ -48,6 +48,7 @@ class TaskFilePropertyPathSensitivityTypeTest extends Specification {
 
         createFile("dir/libs/library-a.jar") << "JAR file #1"
         createFile("dir/libs/library-b.jar") << "JAR file #2"
+        createFile("dir/resources/input.txt") << "main input"
         createFile("dir/resources/a/input-1.txt") << "input #1"
         createFile("dir/resources/b/input-2.txt") << "input #2"
 
@@ -59,6 +60,7 @@ class TaskFilePropertyPathSensitivityTypeTest extends Specification {
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "IGNORED"
         snapshots[file("dir/libs/library-b.jar")]      == "IGNORED"
+        snapshots[file("dir/resources/input.txt")]     == "IGNORED"
         snapshots[file("dir/resources/a")]             == "NO SNAPSHOT"
         snapshots[file("dir/resources/a/input-1.txt")] == "IGNORED"
         snapshots[file("dir/resources/b")]             == "NO SNAPSHOT"
@@ -70,6 +72,7 @@ class TaskFilePropertyPathSensitivityTypeTest extends Specification {
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "library-a.jar"
         snapshots[file("dir/libs/library-b.jar")]      == "library-b.jar"
+        snapshots[file("dir/resources/input.txt")]     == "input.txt"
         snapshots[file("dir/resources/a")]             == "a"
         snapshots[file("dir/resources/a/input-1.txt")] == "input-1.txt"
         snapshots[file("dir/resources/b")]             == "b"
@@ -81,6 +84,7 @@ class TaskFilePropertyPathSensitivityTypeTest extends Specification {
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "IGNORED"
         snapshots[file("dir/libs/library-b.jar")]      == "IGNORED"
+        snapshots[file("dir/resources/input.txt")]     == "input.txt"
         snapshots[file("dir/resources/a")]             == "a"
         snapshots[file("dir/resources/a/input-1.txt")] == "a/input-1.txt"
         snapshots[file("dir/resources/b")]             == "b"
@@ -92,6 +96,7 @@ class TaskFilePropertyPathSensitivityTypeTest extends Specification {
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == file("dir/libs/library-a.jar").absolutePath
         snapshots[file("dir/libs/library-b.jar")]      == file("dir/libs/library-b.jar").absolutePath
+        snapshots[file("dir/resources/input.txt")]     == file("dir/resources/input.txt").absolutePath
         snapshots[file("dir/resources/a")]             == file("dir/resources/a").absolutePath
         snapshots[file("dir/resources/a/input-1.txt")] == file("dir/resources/a/input-1.txt").absolutePath
         snapshots[file("dir/resources/b")]             == file("dir/resources/b").absolutePath

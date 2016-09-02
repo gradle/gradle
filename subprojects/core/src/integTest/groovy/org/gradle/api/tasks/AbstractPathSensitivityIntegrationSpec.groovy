@@ -27,13 +27,14 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
     @Unroll("single source file renamed with #pathSensitive as input is loaded from cache: #expectSkipped (order sensitive: #orderSensitive)")
     def "single source file renamed"() {
         given:
-        file("input.txt").text = "input"
+        file("sources").createDir()
+        file("sources/input.txt").text = "input"
 
         declareTestTaskWithPathSensitivity(pathSensitive, orderSensitive)
 
         buildFile << """
             test {
-                sources = files("input.txt")
+                sources = files("sources")
             }
         """
 
@@ -43,12 +44,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         skippedTasks.empty
 
         when:
-        file("input.txt").renameTo(file("input-renamed.txt"))
-        buildFile << """
-            test {
-                sources = files("input-renamed.txt")
-            }
-        """
+        assert file("sources/input.txt").renameTo(file("sources/input-renamed.txt"))
 
         cleanWorkspace()
         execute "test"
