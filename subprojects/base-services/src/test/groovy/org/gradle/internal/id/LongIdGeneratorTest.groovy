@@ -17,6 +17,8 @@
 
 package org.gradle.internal.id
 
+import org.junit.Rule
+
 import java.util.concurrent.CopyOnWriteArraySet
 import org.junit.Test
 import static org.hamcrest.Matchers.*
@@ -24,8 +26,11 @@ import static org.junit.Assert.*
 
 import org.gradle.util.MultithreadedTestRule
 
-class LongIdGeneratorTest extends MultithreadedTestRule {
+class LongIdGeneratorTest {
     private final LongIdGenerator generator = new LongIdGenerator()
+
+    @Rule
+    public MultithreadedTestRule parallel = new MultithreadedTestRule();
 
     @Test
     public void generatesMonotonicallyIncreasingLongIdsStartingAtOne() {
@@ -39,13 +44,13 @@ class LongIdGeneratorTest extends MultithreadedTestRule {
         Set<Long> ids = new CopyOnWriteArraySet<Long>()
 
         5.times {
-            start {
+            parallel.start {
                 100.times {
                     assertTrue(ids.add(generator.generateId()))
                 }
             }
         }
-        waitForAll()
+        parallel.waitForAll()
     }
 }
 

@@ -18,19 +18,24 @@ package org.gradle.internal.io
 
 import org.gradle.util.MultithreadedTestRule
 import org.gradle.util.TextUtil
+import org.junit.Rule
 import org.junit.Test
 
 import static org.hamcrest.Matchers.equalTo
 import static org.junit.Assert.assertThat
 
-class LinePerThreadBufferingOutputStreamTest extends MultithreadedTestRule {
+class LinePerThreadBufferingOutputStreamTest {
+
+    @Rule
+    public MultithreadedTestRule parallel = new MultithreadedTestRule();
+
     @Test
     public void interleavesLinesFromEachThread() {
         List<String> output = [].asSynchronized()
         TextStream action = { String line -> output << line.replace(TextUtil.platformLineSeparator, "<EOL>") } as TextStream
         LinePerThreadBufferingOutputStream outstr = new LinePerThreadBufferingOutputStream(action)
         10.times {
-            start {
+            parallel.start {
                 100.times {
                     outstr.write('write '.getBytes())
                     outstr.print(it)
@@ -38,7 +43,7 @@ class LinePerThreadBufferingOutputStreamTest extends MultithreadedTestRule {
                 }
             }
         }
-        waitForAll()
+        parallel.waitForAll()
 
         assertThat(output.size(), equalTo(1000))
         assertThat(output.findAll({!it.matches('write \\d+<EOL>')}), equalTo([]))
