@@ -19,11 +19,10 @@ package org.gradle.composite.internal;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifactBuilder;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.ReportedException;
-import org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.LocationAwareException;
@@ -31,7 +30,7 @@ import org.gradle.internal.exceptions.LocationAwareException;
 import java.util.Collection;
 
 class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
-    private final Multimap<ProjectComponentIdentifier, String> tasksForBuild = LinkedHashMultimap.create();
+    private final Multimap<BuildIdentifier, String> tasksForBuild = LinkedHashMultimap.create();
     private final IncludedBuildExecuter includedBuildExecuter;
 
     CompositeProjectArtifactBuilder(IncludedBuildExecuter includedBuildExecuter) {
@@ -42,7 +41,7 @@ class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     public void willBuild(ComponentArtifactMetadata artifact) {
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
-            ProjectComponentIdentifier buildId = getBuildIdentifier(compositeBuildArtifact);
+            BuildIdentifier buildId = getBuildIdentifier(compositeBuildArtifact);
             addTasksForBuild(buildId, compositeBuildArtifact);
         }
     }
@@ -51,13 +50,13 @@ class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
     public void build(ComponentArtifactMetadata artifact) {
         if (artifact instanceof CompositeProjectComponentArtifactMetadata) {
             CompositeProjectComponentArtifactMetadata compositeBuildArtifact = (CompositeProjectComponentArtifactMetadata) artifact;
-            ProjectComponentIdentifier buildId = getBuildIdentifier(compositeBuildArtifact);
+            BuildIdentifier buildId = getBuildIdentifier(compositeBuildArtifact);
             Collection<String> tasksToExecute = addTasksForBuild(buildId, compositeBuildArtifact);
             execute(buildId, tasksToExecute);
         }
     }
 
-    public void execute(ProjectComponentIdentifier buildId, Collection<String> tasksToExecute) {
+    private void execute(BuildIdentifier buildId, Collection<String> tasksToExecute) {
         try {
             includedBuildExecuter.execute(buildId, tasksToExecute);
         } catch (ReportedException e) {
@@ -65,19 +64,19 @@ class CompositeProjectArtifactBuilder implements ProjectArtifactBuilder {
         }
     }
 
-    private synchronized Collection<String> addTasksForBuild(ProjectComponentIdentifier buildId, CompositeProjectComponentArtifactMetadata compositeBuildArtifact) {
+    private synchronized Collection<String> addTasksForBuild(BuildIdentifier buildId, CompositeProjectComponentArtifactMetadata compositeBuildArtifact) {
         tasksForBuild.putAll(buildId, compositeBuildArtifact.getTasks());
         return tasksForBuild.get(buildId);
     }
 
-    private ProjectComponentIdentifier getBuildIdentifier(CompositeProjectComponentArtifactMetadata artifact) {
-        return DefaultProjectComponentIdentifier.rootId(artifact.getComponentId());
+    private BuildIdentifier getBuildIdentifier(CompositeProjectComponentArtifactMetadata artifact) {
+        return artifact.getComponentId().getBuild();
     }
 
-    private RuntimeException contextualizeFailure(ProjectComponentIdentifier buildId, ReportedException e) {
+    private RuntimeException contextualizeFailure(BuildIdentifier buildId, ReportedException e) {
         if (e.getCause() instanceof LocationAwareException) {
             LocationAwareException lae = (LocationAwareException) e.getCause();
-            IncludedBuildArtifactException wrappedCause = new IncludedBuildArtifactException("Failed to build artifacts for " + buildId.getBuild(), lae.getCause());
+            IncludedBuildArtifactException wrappedCause = new IncludedBuildArtifactException("Failed to build artifacts for " + buildId, lae.getCause());
             LocationAwareException newLae = new LocationAwareException(wrappedCause, lae.getSourceDisplayName(), lae.getLineNumber());
             return new ReportedException(newLae);
         }
