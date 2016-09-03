@@ -19,7 +19,6 @@ package org.gradle.composite.internal;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.IncludedBuildExecuter;
@@ -30,12 +29,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Set;
 
 class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuildExecuter.class);
 
-    private final Set<BuildIdentifier> executingBuilds = Sets.newHashSet();
+    private final List<BuildRequest> executingBuilds = Lists.newLinkedList();
     private final Multimap<BuildIdentifier, String> executedTasks = LinkedHashMultimap.create();
     private final IncludedBuilds includedBuilds;
 
@@ -44,26 +42,52 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
     }
 
     @Override
-    public void execute(BuildIdentifier build, Iterable<String> taskNames) {
-        buildStarted(build);
+    public void execute(BuildIdentifier sourceBuild, final BuildIdentifier targetBuild, final Iterable<String> taskNames) {
+        BuildRequest buildRequest = new BuildRequest(sourceBuild, targetBuild, taskNames);
+        buildStarted(buildRequest);
         try {
-            doBuild(build, taskNames);
+            doBuild(targetBuild, taskNames);
         } finally {
-            buildCompleted(build);
+            buildCompleted(buildRequest);
         }
     }
 
-    private synchronized void buildStarted(BuildIdentifier build) {
-        // Ensure that a particular build is never executing concurrently
-        // TODO:DAZ We might need to hold a lock per-build for the parallel build case
-        if (!executingBuilds.add(build)) {
-            ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(build, ":");
-            throw new ModuleVersionResolveException(selector, "Dependency cycle including " + build);
-        }
+    private synchronized void buildStarted(BuildRequest buildRequest) {
+        List<BuildIdentifier> candidateCycle = Lists.newArrayList();
+        checkNoCycles(buildRequest, buildRequest.targetBuild, candidateCycle);
+        executingBuilds.add(buildRequest);
     }
 
-    private synchronized void buildCompleted(BuildIdentifier build) {
-        executingBuilds.remove(build);
+    private void checkNoCycles(BuildRequest buildRequest, BuildIdentifier target, List<BuildIdentifier> candidateCycle) {
+        candidateCycle.add(target);
+        for (BuildRequest executingBuild : executingBuilds) {
+            if (executingBuild.requestingBuild.equals(target)) {
+                BuildIdentifier nextTarget = executingBuild.targetBuild;
+
+                if (nextTarget.equals(buildRequest.requestingBuild)) {
+                    candidateCycle.add(nextTarget);
+                    ProjectComponentSelector selector = DefaultProjectComponentSelector.newSelector(buildRequest.targetBuild, ":");
+                    throw new ModuleVersionResolveException(selector, "Included build dependency cycle: " + reportCycle(candidateCycle));
+                }
+
+                checkNoCycles(buildRequest, nextTarget, candidateCycle);
+            }
+        }
+        candidateCycle.remove(target);
+    }
+
+    private String reportCycle(List<BuildIdentifier> cycle) {
+        StringBuilder cycleReport = new StringBuilder();
+        for (BuildIdentifier buildIdentifier : cycle) {
+            cycleReport.append(buildIdentifier);
+            cycleReport.append(" -> ");
+        }
+        cycleReport.append(cycle.get(0));
+        return cycleReport.toString();
+    }
+
+    private synchronized void buildCompleted(BuildRequest buildRequest) {
+        executingBuilds.remove(buildRequest);
     }
 
     private void doBuild(BuildIdentifier buildId, Iterable<String> taskPaths) {
@@ -80,6 +104,18 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
 
         IncludedBuildInternal build = (IncludedBuildInternal) includedBuilds.getBuild(buildId.getName());
         build.execute(tasksToExecute);
+    }
+
+    private class BuildRequest {
+        final BuildIdentifier requestingBuild;
+        final BuildIdentifier targetBuild;
+        final Iterable<String> tasks;
+
+        public BuildRequest(BuildIdentifier requestingBuild, BuildIdentifier targetBuild, Iterable<String> tasks) {
+            this.requestingBuild = requestingBuild;
+            this.targetBuild = targetBuild;
+            this.tasks = tasks;
+        }
     }
 
 }

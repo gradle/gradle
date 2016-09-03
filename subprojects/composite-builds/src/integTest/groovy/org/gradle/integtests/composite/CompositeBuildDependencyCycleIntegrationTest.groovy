@@ -86,7 +86,9 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         failure
             .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Dependency cycle including {build 'buildC' -> build 'buildB'}")
+            .assertHasCause("Failed to build artifacts for build 'buildC'")
+            .assertHasCause("Could not download buildB.jar (project :buildB:)")
+            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
     def "indirect dependency cycle between included builds"() {
@@ -131,7 +133,10 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         failure
             .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Dependency cycle including {build 'buildD' -> build 'buildB'}")
+            .assertHasCause("Failed to build artifacts for build 'buildC'")
+            .assertHasCause("Failed to build artifacts for build 'buildD'")
+            .assertHasCause("Could not download buildB.jar (project :buildB:)")
+            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildD' -> build 'buildB'")
     }
 
     def "compile-only dependency cycle between included builds"() {
@@ -165,7 +170,9 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         then:
         failure
             .assertHasDescription("Failed to build artifacts for build 'buildB'")
-            .assertHasCause("Dependency cycle including {build 'buildC' -> build 'buildB'}")
+            .assertHasCause("Failed to build artifacts for build 'buildC'")
+            .assertHasCause("Could not download buildB.jar (project :buildB:)")
+            .assertHasCause("Included build dependency cycle: build 'buildB' -> build 'buildC' -> build 'buildB'")
     }
 
     def "dependency cycle between subprojects in an included multiproject build"() {
