@@ -21,10 +21,18 @@ import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 
 public class TestComponentIdentifiers {
     public static ProjectComponentIdentifier newProjectId(String projectPath) {
-        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("TEST", true), projectPath);
+        return newProjectId(":", projectPath);
+    }
+
+    public static ProjectComponentIdentifier newProjectId(String buildName, String projectPath) {
+        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(buildName, true), projectPath);
     }
 
     public static ProjectComponentSelector newSelector(String projectPath) {
-        return new DefaultProjectComponentSelector(new DefaultBuildIdentifier("TEST", true), projectPath);
+        return newSelector(":", projectPath);
+    }
+
+    public static ProjectComponentSelector newSelector(String buildName, String projectPath) {
+        return new DefaultProjectComponentSelector(buildName, projectPath);
     }
 }

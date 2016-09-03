@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.component;
 
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.initialization.BuildIdentity;
@@ -44,5 +46,14 @@ public class DefaultComponentIdentifierFactory implements ComponentIdentifierFac
     @Override
     public ProjectComponentSelector createProjectComponentSelector(String projectPath) {
         return DefaultProjectComponentSelector.newSelector(buildIdentity.getCurrentBuild(), projectPath);
+    }
+
+    @Override
+    public ProjectComponentIdentifier createProjectComponentIdentifier(ProjectComponentSelector selector) {
+        BuildIdentifier currentBuild = buildIdentity.getCurrentBuild();
+        if (selector.getBuildName().equals(currentBuild.getName())) {
+            return new DefaultProjectComponentIdentifier(currentBuild, selector.getProjectPath());
+        }
+        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier(selector.getBuildName()), selector.getProjectPath());
     }
 }

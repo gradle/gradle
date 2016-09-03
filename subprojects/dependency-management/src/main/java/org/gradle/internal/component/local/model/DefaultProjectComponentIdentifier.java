@@ -19,7 +19,6 @@ import com.google.common.base.Objects;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -75,7 +74,7 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return displayName;
     }
 
-    static String fullPath(BuildIdentifier build, String projectPath) {
+    private static String fullPath(BuildIdentifier build, String projectPath) {
         if (build.isCurrentBuild()) {
             return projectPath;
         }
@@ -85,10 +84,6 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
     public static ProjectComponentIdentifier newProjectId(IncludedBuild build, String projectPath) {
         BuildIdentifier buildIdentifier = new DefaultBuildIdentifier(build.getName());
         return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
-    }
-
-    public static ProjectComponentIdentifier newProjectId(ProjectComponentSelector selector) {
-        return new DefaultProjectComponentIdentifier(selector.getBuild(), selector.getProjectPath());
     }
 
     public static ProjectComponentIdentifier newProjectId(Project project) {

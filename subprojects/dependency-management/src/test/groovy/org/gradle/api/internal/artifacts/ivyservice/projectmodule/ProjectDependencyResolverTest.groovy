@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.internal.component.local.model.LocalComponentMetadata
 import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.component.model.ComponentOverrideMetadata
@@ -31,14 +32,16 @@ import static org.gradle.internal.component.local.model.TestComponentIdentifiers
 class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
     final ProjectArtifactBuilder artifactBuilder = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, artifactBuilder)
+    final ComponentIdentifierFactory componentIdentifierFactory = Mock()
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, artifactBuilder, componentIdentifierFactory)
 
     def "resolves project dependency"() {
         setup:
+        def selector = TestComponentIdentifiers.newSelector(":project")
         def componentMetaData = Mock(LocalComponentMetadata)
         def result = Mock(BuildableComponentIdResolveResult)
         def dependencyMetaData = Stub(DependencyMetadata) {
-            getSelector() >> TestComponentIdentifiers.newSelector(":project")
+            getSelector() >> selector
         }
         def id = newProjectId(":project")
 
@@ -46,6 +49,7 @@ class ProjectDependencyResolverTest extends Specification {
         resolver.resolve(dependencyMetaData, result)
 
         then:
+        1 * componentIdentifierFactory.createProjectComponentIdentifier(selector) >> id
         1 * registry.getComponent(id) >> componentMetaData
         1 * result.resolved(componentMetaData)
         0 * result._

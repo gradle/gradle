@@ -19,7 +19,6 @@ import org.gradle.api.Action
 import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
-import org.gradle.initialization.BuildIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.component.model.DependencyMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -37,8 +36,7 @@ class DependencySubstitutionResolverSpec extends Specification {
     def result = Mock(BuildableComponentIdResolveResult)
     def target = Mock(DependencyToComponentIdResolver)
     def rule = Mock(Action)
-    def buildIdentity = Mock(BuildIdentity)
-    def resolver = new DependencySubstitutionResolver(target, rule, buildIdentity)
+    def resolver = new DependencySubstitutionResolver(target, rule)
 
     def "passes through dependency when it does not match any rule"() {
         given:

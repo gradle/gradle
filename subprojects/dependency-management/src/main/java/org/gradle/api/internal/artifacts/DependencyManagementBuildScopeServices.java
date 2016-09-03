@@ -105,6 +105,7 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyManagementServices(parent);
     }
 
+    // TODO:DAZ This should not hard-code the assumption that buildName == rootProject.name for included builds
     BuildIdentity createBuildIdentity(ProjectRegistry<ProjectInternal> projectRegistry) {
         ProjectInternal rootProject = projectRegistry.getProject(":");
         if (rootProject.getGradle().getParent() == null) {
@@ -254,15 +255,13 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 CacheLockingManager cacheLockingManager,
                                                                 VersionComparator versionComparator,
-                                                                BuildIdentity buildIdentity,
                                                                 ServiceRegistry serviceRegistry) {
         ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
             serviceRegistry,
             resolveIvyFactory,
             dependencyDescriptorFactory,
             cacheLockingManager,
-            versionComparator,
-            buildIdentity
+            versionComparator
         );
         return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);
     }
@@ -284,13 +283,14 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalComponentRegistry(providers);
     }
 
-    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ServiceRegistry serviceRegistry, CacheLockingManager cacheLockingManager) {
+    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ServiceRegistry serviceRegistry,
+                                                              CacheLockingManager cacheLockingManager, ComponentIdentifierFactory componentIdentifierFactory) {
         // This doesn't seem to consistently load all ProjectArtifactBuilder instances provided by modules.
         // For embedded integration tests, I'm not convinced that the CompositeProjectArtifactBuilder will always be registered.
         List<ProjectArtifactBuilder> delegateBuilders = serviceRegistry.getAll(ProjectArtifactBuilder.class);
         ProjectArtifactBuilder artifactBuilder = new AggregatingProjectArtifactBuilder(delegateBuilders);
         artifactBuilder = new CacheLockReleasingProjectArtifactBuilder(artifactBuilder, cacheLockingManager);
-        return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder);
+        return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder, componentIdentifierFactory);
     }
 
     ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {
