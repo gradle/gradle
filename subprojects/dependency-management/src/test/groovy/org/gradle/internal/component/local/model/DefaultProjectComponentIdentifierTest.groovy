@@ -16,6 +16,7 @@
 package org.gradle.internal.component.local.model
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 

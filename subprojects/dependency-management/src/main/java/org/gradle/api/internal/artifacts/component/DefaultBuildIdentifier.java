@@ -14,16 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.component.local.model;
+package org.gradle.api.internal.artifacts.component;
 
 import com.google.common.base.Objects;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 
 public class DefaultBuildIdentifier implements BuildIdentifier {
     private final String name;
+    private final boolean current;
 
     public DefaultBuildIdentifier(String name) {
+        this(name, false);
+    }
+
+    public DefaultBuildIdentifier(String name, boolean current) {
         this.name = name;
+        this.current = current;
     }
 
     @Override
@@ -33,7 +39,7 @@ public class DefaultBuildIdentifier implements BuildIdentifier {
 
     @Override
     public boolean isCurrentBuild() {
-        return false;
+        return current;
     }
 
     @Override

@@ -24,7 +24,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuilds;
-import org.gradle.internal.component.local.model.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 
 import java.util.Collection;
 import java.util.Set;

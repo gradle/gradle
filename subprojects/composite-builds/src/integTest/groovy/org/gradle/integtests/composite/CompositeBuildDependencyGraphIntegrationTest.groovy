@@ -244,8 +244,8 @@ include ':b1:b11'
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                project(":buildB:b1", "org.test:b1:2.0") {
-                    project(":buildB:b1:b11", "org.test:b11:2.0") {}
+                edge("project :b1", "project :buildB:b1", "org.test:b1:2.0") {
+                    edge("project :b1:b11", "project :buildB:b1:b11", "org.test:b11:2.0") {}
                 }
             }
         }
@@ -659,7 +659,7 @@ afterEvaluate {
         checkGraph {
             edge("org.test:buildB:1.0", "project :buildB:", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                project(":buildB:b1", "org.test:b1:2.0") {}
+                edge("project :b1", "project :buildB:b1", "org.test:b1:2.0") {}
             }
         }
     }

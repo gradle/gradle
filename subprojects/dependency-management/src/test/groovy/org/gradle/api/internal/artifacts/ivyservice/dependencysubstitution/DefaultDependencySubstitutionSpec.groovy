@@ -24,7 +24,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Version
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.BuildIdentity
 import org.gradle.initialization.DefaultBuildIdentity
-import org.gradle.internal.component.local.model.DefaultBuildIdentifier
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification

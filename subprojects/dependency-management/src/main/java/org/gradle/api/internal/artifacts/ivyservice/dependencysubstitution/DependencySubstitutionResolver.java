@@ -17,12 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
+import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.initialization.BuildIdentity;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -34,14 +32,12 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
     private final DependencyToComponentIdResolver resolver;
     private final Action<DependencySubstitution> rule;
     private final BuildIdentity buildIdentity;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
     public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencySubstitution> rule,
-                                          ProjectRegistry<ProjectInternal> projectRegistry, BuildIdentity buildIdentity) {
+                                          BuildIdentity buildIdentity) {
         this.resolver = resolver;
         this.rule = rule;
         this.buildIdentity = buildIdentity;
-        this.projectRegistry = projectRegistry;
     }
 
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
@@ -77,16 +73,19 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
     }
 
     private ProjectComponentSelector localize(ProjectComponentSelector target) {
-        if (target.getBuild().isCurrentBuild()) {
-            return target;
-        }
+        BuildIdentifier currentBuild = buildIdentity.getCurrentBuild();
 
-        // TODO:DAZ Once `buildIdentity.currentBuild` has the correct name, could compare directly.
-        // See if this is a substitution into the current build
-        Gradle currentBuild = projectRegistry.getProject(":").getGradle();
-        if (currentBuild.getRootProject().getName().equals(target.getBuild().getName())) {
+        if (target.getBuild().getName().equals(currentBuild.getName())) {
+            // Selecting project in current build
+            if (target.getBuild().isCurrentBuild()) {
+                // Nothing to do
+                return target;
+            }
+            // Recreate selector with current build identity
             return DefaultProjectComponentSelector.newSelector(buildIdentity.getCurrentBuild(), target.getProjectPath());
         }
+
+        // Targets another build: leave it as-is.
         return target;
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.initialization.BuildIdentity;
 
@@ -97,6 +98,6 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
 
     // TODO:DAZ This is now only used for testing
     public static ProjectComponentIdentifier newProjectId(String projectPath) {
-        return new DefaultProjectComponentIdentifier(new CurrentBuildIdentifier(), projectPath);
+        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("TEST", true), projectPath);
     }
 }

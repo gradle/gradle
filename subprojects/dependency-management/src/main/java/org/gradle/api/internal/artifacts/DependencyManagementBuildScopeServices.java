@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
@@ -78,7 +79,6 @@ import org.gradle.initialization.BuildIdentity;
 import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
-import org.gradle.internal.component.local.model.CurrentBuildIdentifier;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -105,8 +105,14 @@ class DependencyManagementBuildScopeServices {
         return new DefaultDependencyManagementServices(parent);
     }
 
-    BuildIdentity createBuildIdentity() {
-        return new DefaultBuildIdentity(new CurrentBuildIdentifier());
+    BuildIdentity createBuildIdentity(ProjectRegistry<ProjectInternal> projectRegistry) {
+        ProjectInternal rootProject = projectRegistry.getProject(":");
+        if (rootProject.getGradle().getParent() == null) {
+            // BuildIdentity for a top-level build
+            return new DefaultBuildIdentity(new DefaultBuildIdentifier(":", true));
+        }
+        // BuildIdentity for an included build
+        return new DefaultBuildIdentity(new DefaultBuildIdentifier(rootProject.getName(), true));
     }
 
     ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {
@@ -248,7 +254,6 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 CacheLockingManager cacheLockingManager,
                                                                 VersionComparator versionComparator,
-                                                                ProjectRegistry<ProjectInternal> projectRegistry,
                                                                 BuildIdentity buildIdentity,
                                                                 ServiceRegistry serviceRegistry) {
         ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
@@ -257,7 +262,6 @@ class DependencyManagementBuildScopeServices {
             dependencyDescriptorFactory,
             cacheLockingManager,
             versionComparator,
-            projectRegistry,
             buildIdentity
         );
         return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);
