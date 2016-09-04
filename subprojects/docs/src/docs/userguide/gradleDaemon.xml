@@ -128,7 +128,7 @@
             <para>
                 On Windows, this command will disable the Daemon for the current user:
                 <programlisting>
-                    (if not exist "%USERPROFILE%/.gradle" mkdir "%USERPROFILE%/.gradle") &amp;&amp; (echo org.gradle.daemon=false >> "%USERPROFILE%/.gradle/gradle.properties")
+                    (if not exist "%USERPROFILE%/.gradle" mkdir "%USERPROFILE%/.gradle") && (echo. >> "%USERPROFILE%/.gradle/gradle.properties" && echo org.gradle.daemon=false >> "%USERPROFILE%/.gradle/gradle.properties")
                 </programlisting>
                 On UNIX-like operating systems, the following Bash shell command will disable the Daemon for the current user:
                 <programlisting>
