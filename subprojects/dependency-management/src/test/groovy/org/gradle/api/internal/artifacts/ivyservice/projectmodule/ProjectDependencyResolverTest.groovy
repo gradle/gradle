@@ -16,8 +16,8 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
 import org.gradle.internal.component.local.model.LocalComponentMetadata
+import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -26,7 +26,7 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
@@ -38,7 +38,7 @@ class ProjectDependencyResolverTest extends Specification {
         def componentMetaData = Mock(LocalComponentMetadata)
         def result = Mock(BuildableComponentIdResolveResult)
         def dependencyMetaData = Stub(DependencyMetadata) {
-            getSelector() >> DefaultProjectComponentSelector.newSelector(":project")
+            getSelector() >> TestComponentIdentifiers.newSelector(":project")
         }
         def id = newProjectId(":project")
 

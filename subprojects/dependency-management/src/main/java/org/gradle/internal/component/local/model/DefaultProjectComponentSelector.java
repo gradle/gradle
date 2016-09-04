@@ -108,8 +108,4 @@ public class DefaultProjectComponentSelector implements ProjectComponentSelector
         return new DefaultProjectComponentSelector(projectId.getBuild(), projectId.getProjectPath());
     }
 
-    // TODO:DAZ This is now only used for testing
-    public static ProjectComponentSelector newSelector(String projectPath) {
-        return new DefaultProjectComponentSelector(new DefaultBuildIdentifier("TEST", true), projectPath);
-    }
 }

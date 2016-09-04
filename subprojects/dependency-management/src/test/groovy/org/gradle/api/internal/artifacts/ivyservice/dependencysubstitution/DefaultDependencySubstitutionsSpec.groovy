@@ -25,7 +25,7 @@ import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.api.internal.artifacts.configurations.MutationValidator
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -72,7 +72,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(projectDetails)
 
         then:
-        _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
+        _ * projectDetails.requested >> TestComponentIdentifiers.newSelector(":api")
         1 * action.execute(projectDetails)
         0 * _
     }
@@ -98,7 +98,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         0 * _
 
         def projectOldRequested = DefaultModuleVersionSelector.newSelector("org.utils", "api", "1.5")
-        def projectTarget = DefaultProjectComponentSelector.newSelector(":api")
+        def projectTarget = TestComponentIdentifiers.newSelector(":api")
         def projectDetails = Mock(DependencySubstitutionInternal)
 
         when:
@@ -137,7 +137,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(moduleDetails)
 
         then:
-        _ * moduleDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
+        _ * moduleDetails.requested >> TestComponentIdentifiers.newSelector(":api")
         0 * _
 
         where:
@@ -163,8 +163,8 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         def matchingSubstitute = Mock(ComponentSelector)
         def nonMatchingSubstitute = Mock(ComponentSelector)
 
-        componentIdentifierFactory.createProjectComponentSelector(":api") >> DefaultProjectComponentSelector.newSelector(":api")
-        componentIdentifierFactory.createProjectComponentSelector(":impl") >> DefaultProjectComponentSelector.newSelector(":impl")
+        componentIdentifierFactory.createProjectComponentSelector(":api") >> TestComponentIdentifiers.newSelector(":api")
+        componentIdentifierFactory.createProjectComponentSelector(":impl") >> TestComponentIdentifiers.newSelector(":impl")
 
         with(substitutions) {
             substitute project(matchingProject) with matchingSubstitute
@@ -177,7 +177,7 @@ class DefaultDependencySubstitutionsSpec extends Specification {
         substitutions.ruleAction.execute(projectDetails)
 
         then:
-        _ * projectDetails.requested >> DefaultProjectComponentSelector.newSelector(":api")
+        _ * projectDetails.requested >> TestComponentIdentifiers.newSelector(":api")
         1 * projectDetails.useTarget(matchingSubstitute, SELECTED_BY_RULE)
         0 * _
 

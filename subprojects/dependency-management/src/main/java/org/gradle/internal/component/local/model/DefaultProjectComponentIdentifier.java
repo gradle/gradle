@@ -96,8 +96,4 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return new DefaultProjectComponentIdentifier(buildId, project.getPath());
     }
 
-    // TODO:DAZ This is now only used for testing
-    public static ProjectComponentIdentifier newProjectId(String projectPath) {
-        return new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("TEST", true), projectPath);
-    }
 }

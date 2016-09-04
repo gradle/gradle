@@ -20,7 +20,6 @@ import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
 import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultProjectComponentIdentifierTest extends Specification {
@@ -32,6 +31,16 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         defaultBuildComponentIdentifier.projectPath == ':myPath'
         defaultBuildComponentIdentifier.displayName == 'project :myPath'
         defaultBuildComponentIdentifier.toString() == 'project :myPath'
+    }
+
+    def "non-current build includes build name in display name"() {
+        when:
+        ProjectComponentIdentifier defaultBuildComponentIdentifier = newProjectId(":myPath", false)
+
+        then:
+        defaultBuildComponentIdentifier.projectPath == ':myPath'
+        defaultBuildComponentIdentifier.displayName == 'project :TEST:myPath'
+        defaultBuildComponentIdentifier.toString() == 'project :TEST:myPath'
     }
 
     def "is instantiated with null constructor parameter value"() {
@@ -57,4 +66,9 @@ class DefaultProjectComponentIdentifierTest extends Specification {
         ':myProjectPath1' | true     | true     | true
         ':myProjectPath2' | false    | false    | false
     }
+
+    private static newProjectId(String path, boolean current = true) {
+        new DefaultProjectComponentIdentifier(new DefaultBuildIdentifier("TEST", current), path)
+    }
+
 }
