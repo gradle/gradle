@@ -23,19 +23,28 @@ import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuilds;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultIncludedBuildExecuter.class);
-
-    private final List<BuildRequest> executingBuilds = Lists.newLinkedList();
-    private final Multimap<BuildIdentifier, String> executedTasks = LinkedHashMultimap.create();
     private final IncludedBuilds includedBuilds;
+
+    // Fields guarded by lock
+    private final Lock lock = new ReentrantLock();
+    private final Condition buildCompleted = lock.newCondition();
+    private final List<BuildRequest> executingBuilds = Lists.newLinkedList();
+
+    // TODO:DAZ Should be guarded by lock
+    private final Multimap<BuildIdentifier, String> executedTasks = LinkedHashMultimap.create();
 
     public DefaultIncludedBuildExecuter(IncludedBuilds includedBuilds) {
         this.includedBuilds = includedBuilds;
@@ -52,10 +61,16 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
         }
     }
 
-    private synchronized void buildStarted(BuildRequest buildRequest) {
-        List<BuildIdentifier> candidateCycle = Lists.newArrayList();
-        checkNoCycles(buildRequest, buildRequest.targetBuild, candidateCycle);
-        executingBuilds.add(buildRequest);
+    private void buildStarted(BuildRequest buildRequest) {
+        lock.lock();
+        try {
+            List<BuildIdentifier> candidateCycle = Lists.newArrayList();
+            checkNoCycles(buildRequest, buildRequest.targetBuild, candidateCycle);
+            waitForExistingBuildToComplete(buildRequest.targetBuild);
+            executingBuilds.add(buildRequest);
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void checkNoCycles(BuildRequest buildRequest, BuildIdentifier target, List<BuildIdentifier> candidateCycle) {
@@ -76,6 +91,25 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
         candidateCycle.remove(target);
     }
 
+    private void waitForExistingBuildToComplete(BuildIdentifier buildId) {
+        try {
+            while (buildInProgress(buildId)) {
+                buildCompleted.await();
+            }
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+    }
+
+    private boolean buildInProgress(BuildIdentifier buildId) {
+        for (BuildRequest executingBuild : executingBuilds) {
+            if (executingBuild.targetBuild.equals(buildId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private String reportCycle(List<BuildIdentifier> cycle) {
         StringBuilder cycleReport = new StringBuilder();
         for (BuildIdentifier buildIdentifier : cycle) {
@@ -86,8 +120,14 @@ class DefaultIncludedBuildExecuter implements IncludedBuildExecuter {
         return cycleReport.toString();
     }
 
-    private synchronized void buildCompleted(BuildRequest buildRequest) {
-        executingBuilds.remove(buildRequest);
+    private void buildCompleted(BuildRequest buildRequest) {
+        lock.lock();
+        try {
+            executingBuilds.remove(buildRequest);
+            buildCompleted.signalAll();
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void doBuild(BuildIdentifier buildId, Iterable<String> taskPaths) {
