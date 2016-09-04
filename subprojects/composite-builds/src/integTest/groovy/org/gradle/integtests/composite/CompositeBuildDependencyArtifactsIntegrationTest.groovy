@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.IgnoreIf
+import spock.lang.Unroll
 
 /**
  * Tests for resolving dependency artifacts with substitution within a composite build.
@@ -360,7 +361,8 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel}) // Tests includes both parallel and single-threaded execution
-    def "build dependency artifacts only once when depended on by different subprojects"() {
+    @Unroll
+    def "build dependency artifacts only once when depended on by #type subprojects"() {
         given:
         def buildC = singleProjectBuild("buildC") {
             buildFile << """
@@ -385,18 +387,19 @@ class CompositeBuildDependencyArtifactsIntegrationTest extends AbstractComposite
 """
 
         when:
-        execute(buildB, "jar")
-
-        then:
-        executedInOrder ":buildC:jar", ":b1:classes", ":b1:jar", ":b2:classes", ":b2:jar"
-
-        when:
-        executer.withArguments("--parallel")
+        if (parallel) {
+            executer.withArguments("--parallel")
+        }
         execute(buildB, "jar")
 
         then:
         executedInOrder ":buildC:jar", ":b1:classes", ":b1:jar"
         executedInOrder ":buildC:jar", ":b2:classes", ":b2:jar"
+
+        where:
+        type       | parallel
+        "multiple" | false
+        "parallel" | true
     }
 
     def "builds multiple configurations for the same project via separate dependency paths"() {
