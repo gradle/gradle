@@ -147,6 +147,10 @@ This new version includes an improved dependencies DSL making it possible to con
 
 Gradle Script Kotlin 0.3.1 also ships with Kotlin 1.1-dev-2053, which greatly improves the performance of code completion within IDEA when used together with a recent Kotlin plugin version. Please check out the full [Gradle Script Kotlin release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.3.1) for details.
 
+### More resilient Daemon
+
+In previous Gradle versions, if the Daemon client process improperly disconnected from the Daemon while a build was running, the Daemon process would exit and a subsequent build would have to start a new Daemon.  In Gradle 3.1, the Daemon will now remain running and attempt to cancel the build instead.  This allows subsequent builds to reuse the Daemon and reap the performance benefits of a warm Daemon.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
