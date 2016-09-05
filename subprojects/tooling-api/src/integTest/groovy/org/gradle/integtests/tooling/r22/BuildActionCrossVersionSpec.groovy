@@ -20,19 +20,11 @@ import org.gradle.integtests.fixtures.executer.ForkingGradleExecuter
 import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 
-@LeaksFileHandles
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
-    def setup() {
-        // disable URL caching
-        // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.
-        new URL("jar:file://valid_jar_url_syntax.jar!/").openConnection().setDefaultUseCaches(false)
-    }
-
     @TargetGradleVersion(">=2.2")
     def "can change the implementation of an action"() {
         // Make sure we reuse the same daemon
@@ -62,6 +54,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         File actualJar1 = withConnection { ProjectConnection connection ->
             connection.action(action1).run()
         }
+        cl1.close()
 
         then:
         actualJar1 != implJar
@@ -88,5 +81,9 @@ public class ActionImpl implements ${BuildAction.name}<String> {
         actualJar2 != implJar
         actualJar2 != actualJar1
         actualJar2.name == implJar.name
+
+        cleanup:
+        cl1?.close()
+        cl2?.close()
     }
 }
