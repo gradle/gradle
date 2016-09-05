@@ -17,12 +17,15 @@
 package org.gradle.tooling.internal.provider;
 
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.api.Transformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
-import org.gradle.tooling.internal.provider.jdk6.Jdk6ClassLookup;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.lang.reflect.Proxy;
 import java.util.HashSet;
 import java.util.Map;
@@ -33,7 +36,6 @@ public class PayloadSerializer {
     private static final short SYSTEM_CLASS_LOADER_ID = (short) -1;
     private static final ClassLoader SYSTEM_CLASS_LOADER = new DefaultClassLoaderFactory().getIsolatedSystemClassLoader();
     private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
-    private final Transformer<ObjectStreamClass, Class<?>> classLookup;
     private final PayloadClassLoaderRegistry classLoaderRegistry;
 
     static {
@@ -44,7 +46,6 @@ public class PayloadSerializer {
 
     public PayloadSerializer(PayloadClassLoaderRegistry registry) {
         classLoaderRegistry = registry;
-        classLookup = new Jdk6ClassLookup();
     }
 
     public SerializedPayload serialize(Object payload) {
@@ -105,7 +106,7 @@ public class PayloadSerializer {
                 @Override
                 protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
                     Class<?> aClass = readClass();
-                    ObjectStreamClass descriptor = classLookup.transform(aClass);
+                    ObjectStreamClass descriptor = ObjectStreamClass.lookupAny(aClass);
                     if (descriptor == null) {
                         throw new ClassNotFoundException(aClass.getName());
                     }
