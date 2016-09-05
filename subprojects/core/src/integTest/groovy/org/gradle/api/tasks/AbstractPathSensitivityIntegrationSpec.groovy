@@ -27,7 +27,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
     @Unroll("single source file renamed with #pathSensitive as input is loaded from cache: #expectSkipped (order sensitive: #orderSensitive)")
     def "single source file renamed"() {
         given:
-        file("sources").createDir()
         file("sources/input.txt").text = "input"
 
         declareTestTaskWithPathSensitivity(pathSensitive, orderSensitive)
@@ -84,7 +83,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         skippedTasks.empty
 
         when:
-        file("src/data1/input.txt").moveToDirectory(file("src/data2"))
+        assert file("src/data1/input.txt").renameTo(file("src/data2/input.txt"))
         cleanWorkspace()
         execute "test"
         then:
@@ -114,7 +113,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
     @Unroll("source file hierarchy moved with #pathSensitive as input is loaded from cache: #expectSkipped (order sensitive: #orderSensitive)")
     def "source file hierarchy moved"() {
         given:
-        file("src", "data").createDir()
         file("src/data/input.txt").text = "input"
 
         declareTestTaskWithPathSensitivity(pathSensitive, orderSensitive)
@@ -131,7 +129,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         skippedTasks.empty
 
         when:
-        file("src").renameTo(file("source"))
+        assert file("src").renameTo(file("source"))
         buildFile << """
             test {
                 sources = files("source")
@@ -190,7 +188,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
     @NotYetImplemented
     def "copy task stays up-to-date after files are moved but end up copied to the same destination"() {
-        file("src", "data").createDir()
         file("src/data/input.txt").text = "data"
 
         when:
@@ -206,7 +203,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         then:
         skippedTasks.empty
 
-        file("src").renameTo(file("source"))
+        assert file("src").renameTo(file("source"))
 
         when:
         cleanWorkspace()
@@ -225,7 +222,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
     }
 
     def "copy task is not up-to-date when files end up copied to a different destination"() {
-        file("src", "data").createDir()
         file("src/data/input.txt").text = "data"
 
         when:
@@ -241,7 +237,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         then:
         skippedTasks.empty
 
-        file("src/data/input.txt").renameTo(file("src/data/input-renamed.txt"))
+        assert file("src/data/input.txt").renameTo(file("src/data/input-renamed.txt"))
 
         when:
         cleanWorkspace()

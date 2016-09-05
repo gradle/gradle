@@ -63,7 +63,6 @@ class MavenProjectsCreatorSpec extends Specification {
 </project>
 """
 
-        temp.createDir("webinar-api")
         temp.file("webinar-api/pom.xml").text = """<project>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>webinar-api</artifactId>

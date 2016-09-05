@@ -53,7 +53,6 @@ class PlayRunIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTe
     }
 
     void withLoadProjectClassController() {
-        file("app/controllers/jva").mkdirs()
         file("app/controllers/jva/LoadProjectClass.java").text = loadProjectClassController
         file("conf/routes") << """
 GET        /loadProjectClass         controllers.jva.LoadProjectClass.index
