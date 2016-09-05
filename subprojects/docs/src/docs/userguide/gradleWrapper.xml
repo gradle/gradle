@@ -143,6 +143,49 @@
         <para>If you build via the Wrapper, any existing Gradle distribution installed on the machine is ignored.
         </para>
     </section>
+    <section id="sec:authenticated_download">
+        <title>Authenticated Gradle distribution download</title>
+        <tip>
+            <title>Security Warning</title>
+            <para>
+                HTTP Basic Authentication should only be used with <literal>HTTPS</literal> URLs and not plain <literal>HTTP</literal> ones.
+                With Basic Authentication, the user credentials are sent in clear text.
+            </para>
+        </tip>
+        <para>
+            The Gradle <literal>Wrapper</literal> can download Gradle distributions from servers using HTTP Basic Authentication.
+            This enables you to host the Gradle distribution on a private protected server.
+            You can specify a username and password in two different ways depending on your use case: as system properties or directly embedded in the <literal>distributionUrl</literal>.
+            Credentials in system properties take precedence over the ones embedded in <literal>distributionUrl</literal>.
+        </para>
+        <para>
+            Using system properties can be done in the <literal>.gradle/gradle.properties</literal> file in the user's home directory, or by other means, see <xref linkend="sec:gradle_configuration_properties" />.
+        </para>
+        <example>
+            <title>Specifying the HTTP Basic Authentication credentials using system properties</title>
+            <para><filename>gradle.properties</filename></para>
+            <programlisting><![CDATA[
+ systemProp.gradle.wrapperUser=username
+ systemProp.gradle.wrapperPassword=password
+ ]]></programlisting>
+        </example>
+        <para>
+            Embedding credentials in the <literal>distributionUrl</literal> in the <literal>gradle/wrapper/gradle-wrapper.properties</literal> file also works.
+            Please note that this file is to be committed into your source control system.
+            Shared credentials embedded in <literal>distributionUrl</literal> should only be used in a controlled environment.
+        </para>
+        <example>
+            <title>Specifying the HTTP Basic Authentication credentials in <literal>distributionUrl</literal></title>
+            <para><filename>gradle-wrapper.properties</filename></para>
+            <programlisting><![CDATA[
+ distributionUrl=https://username:password@somehost/path/to/gradle-distribution.zip
+ ]]></programlisting>
+        </example>
+        <para>
+            This can be used in conjunction with a proxy, authenticated or not.
+            See <xref linkend="sec:accessing_the_web_via_a_proxy" /> for more information on how to configure the <literal>Wrapper</literal> to use a proxy.
+        </para>
+    </section>
     <section id="sec:verification">
         <title>Verification of downloaded Gradle distributions</title>
         <para>The Gradle Wrapper allows for verification of the downloaded Gradle distribution via SHA-256 hash sum comparison.

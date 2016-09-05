@@ -16,6 +16,15 @@ build file to the console. When passing `-s` or `-S` as a command
 line option to Gradle then the whole stack trace is printed out.
 This should make it much easier to spot and fix those warnings.
 
+### The Wrapper can now use HTTP Basic Authentication to download distributions
+
+The Gradle Wrapper can now download Gradle distributions from a server requiring authentication.
+This allows you to host the Gradle distribution on a private server protected with HTTP Basic Authentication.
+
+See the User guide section on “[authenticated distribution download](userguide/gradle_wrapper.html#sec:authenticated_download)“ for more information.
+
+As stated in the User guide, please note that this shouldn't be used over insecure connections.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

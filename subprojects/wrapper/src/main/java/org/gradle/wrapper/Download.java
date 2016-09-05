@@ -17,6 +17,7 @@
 package org.gradle.wrapper;
 
 import java.io.*;
+import java.lang.reflect.Method;
 import java.net.*;
 
 public class Download implements IDownload {
@@ -50,9 +51,10 @@ public class Download implements IDownload {
         URLConnection conn;
         InputStream in = null;
         try {
-            URL url = address.toURL();
+            URL url = safeUri(address).toURL();
             out = new BufferedOutputStream(new FileOutputStream(destination));
             conn = url.openConnection();
+            addBasicAuthentication(address, conn);
             final String userAgentValue = calculateUserAgent();
             conn.setRequestProperty("User-Agent", userAgentValue);
             in = conn.getInputStream();
@@ -80,6 +82,57 @@ public class Download implements IDownload {
                 out.close();
             }
         }
+    }
+
+    /**
+     * Create a safe URI from the given one by stripping out user info.
+     *
+     * @param uri Original URI
+     * @return a new URI with no user info
+     */
+    static URI safeUri(URI uri) throws URISyntaxException {
+        return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
+    }
+
+    private void addBasicAuthentication(URI address, URLConnection connection) throws IOException {
+        String userInfo = calculateUserInfo(address);
+        if (userInfo == null) {
+            return;
+        }
+        if (!"https".equals(address.getScheme())) {
+            logger.log("WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
+        }
+        String authorizationHeaderValue = "Basic " + base64EncodeForBasicAuthentication(userInfo);
+        connection.setRequestProperty("Authorization", authorizationHeaderValue);
+    }
+
+    /**
+     * Base64 encode user info for HTTP Basic Authentication.
+     *
+     * Use {@literal javax.xml.bind.DatatypeConverter} from JAXB reflectively which is available starting with Java 6.
+     * Fortunately, this Base64 encoder implements the right Base64 flavor, the one that does not split the output in multiple lines.
+     *
+     * @param userInfo user info
+     * @return Base64 encoded user info
+     * @throws IOException if no public Base64 encoder is available on this JVM
+     */
+    private String base64EncodeForBasicAuthentication(String userInfo) throws IOException {
+        try {
+            Class<?> datatypeConverter = getClass().getClassLoader().loadClass("javax.xml.bind.DatatypeConverter");
+            Method base64Encode = datatypeConverter.getMethod("printBase64Binary", byte[].class);
+            return (String) base64Encode.invoke(null, new Object[]{userInfo.getBytes("UTF-8")});
+        } catch (Exception ex) {
+            throw new IOException("Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.", ex);
+        }
+    }
+
+    private String calculateUserInfo(URI uri) {
+        String username = System.getProperty("gradle.wrapperUser");
+        String password = System.getProperty("gradle.wrapperPassword");
+        if (username != null && password != null) {
+            return username + ':' + password;
+        }
+        return uri.getUserInfo();
     }
 
     private String calculateUserAgent() {

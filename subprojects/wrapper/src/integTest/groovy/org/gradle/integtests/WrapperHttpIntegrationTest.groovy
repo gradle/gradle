@@ -15,11 +15,17 @@
  */
 
 package org.gradle.integtests
+
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.GradleVersion
+import org.gradle.util.Requires
 import org.junit.Rule
+import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.hamcrest.Matchers.containsString
@@ -28,6 +34,7 @@ import static org.junit.Assert.assertThat
 class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Rule HttpServer server = new HttpServer()
     @Rule TestProxyServer proxyServer = new TestProxyServer()
+    @Rule TestResources resources = new TestResources(temporaryFolder)
 
     void setup() {
         server.start()
@@ -132,5 +139,147 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         and:
         proxyServer.requestCount == 1
+    }
+
+    def "downloads wrapper from basic authenticated server and caches"() {
+        given:
+        prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
+        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+
+        when:
+        def result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        result.output.contains('hello')
+
+        when:
+        result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        result.output.contains('hello')
+    }
+
+    def "downloads wrapper from basic authenticated server using credentials from gradle.properties"() {
+        given:
+        file("gradle.properties") << '''
+            systemProp.gradle.wrapperUser=jdoe
+            systemProp.gradle.wrapperPassword=changeit
+        '''.stripIndent()
+
+        and:
+        prepareWrapper("http://localhost:${server.port}")
+        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+
+        when:
+        def result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        result.output.contains('hello')
+    }
+
+    def "warns about using basic authentication over insecure connection"() {
+        given:
+        prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
+        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+
+        when:
+        def result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        result.output.contains('Please consider using HTTPS')
+    }
+
+    def "does not warn about using basic authentication over secure connection"() {
+        given:
+        TestKeyStore keyStore = TestKeyStore.init(resources.dir)
+        keyStore.enableSslWithServerCert(server)
+        keyStore.configureServerCert(wrapperExecuter)
+
+        and:
+        prepareWrapper("https://jdoe:changeit@localhost:${server.sslPort}")
+        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+
+        when:
+        def result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        !result.output.contains('WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.')
+
+    }
+
+    def "does not leak basic authentication credentials in output"() {
+        given:
+        prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
+        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+
+        when:
+        def result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        !result.output.contains('changeit')
+        !result.error.contains('changeit')
+    }
+
+    def "does not leak basic authentication credentials in exception messages"() {
+        given:
+        prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
+        server.expectGetBroken("/gradlew/dist")
+
+        when:
+        def exception
+        try {
+            wrapperExecuter.withTasks('hello').run()
+            fail("Expected Exception")
+        } catch (Exception e) {
+            exception = e
+        }
+
+        then:
+        !exception.message.contains('changeit')
+    }
+
+    def "downloads wrapper from basic authenticated http server via authenticated proxy"() {
+        given:
+        def proxyUsername = 'proxy_user'
+        def proxyPassword = 'proxy_password'
+        proxyServer.start(proxyUsername, proxyPassword)
+        file("gradle.properties").writeProperties(
+            'systemProp.http.proxyHost': 'localhost',
+            'systemProp.http.proxyPort': proxyServer.port as String,
+            'systemProp.http.nonProxyHosts': JavaVersion.current() >= JavaVersion.VERSION_1_7 ? '' : '~localhost',
+            'systemProp.http.proxyUser': proxyUsername,
+            'systemProp.http.proxyPassword': proxyPassword
+        )
+
+        and:
+        prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
+        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+
+        when:
+        def result = wrapperExecuter.withTasks('hello').run()
+
+        then:
+        result.output.contains('hello')
+
+        and:
+        proxyServer.requestCount == 1
+    }
+
+    @Requires(adhoc = { !AvailableJavaHomes.getJdks("1.5").empty })
+    @Unroll
+    def "provides reasonable failure message when attempting to download authenticated distribution under java #jdk.javaVersion()"() {
+        given:
+        prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
+        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
+
+        and:
+        wrapperExecuter.withJavaHome(jdk.javaHome)
+
+        expect:
+        def failure = wrapperExecuter.withTasks("help").runWithFailure()
+        failure.assertHasDescription("Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.")
+
+        where:
+        jdk << AvailableJavaHomes.getJdks("1.5")
     }
 }
