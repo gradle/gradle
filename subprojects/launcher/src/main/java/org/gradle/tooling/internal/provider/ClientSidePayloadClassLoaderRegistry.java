@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import com.google.common.collect.Sets;
 import net.jcip.annotations.ThreadSafe;
-import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 
 import java.lang.ref.WeakReference;
@@ -42,6 +41,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
     private final PayloadClassLoaderRegistry delegate;
     private final Lock lock = new ReentrantLock();
     private final ClasspathInferer classpathInferer;
+    // Contains only application owned ClassLoaders
     private final Map<UUID, LocalClassLoader> classLoaders = new LinkedHashMap<UUID, LocalClassLoader>();
 
     public ClientSidePayloadClassLoaderRegistry(PayloadClassLoaderRegistry delegate, ClasspathInferer classpathInferer) {
@@ -90,8 +90,6 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                     // from the loader which originally loaded it, which could pose equality and lifecycle issues.
                     for (ClassLoader candidate : candidates) {
                         try {
-                            // These ClassLoaders ultimately originate in the ClassLoaderCache. The loaded classes will
-                            // persist until the associated ClassLoaders are remove()d from the cache.
                             return candidate.loadClass(className);
                         } catch (ClassNotFoundException e) {
                             // Ignore
@@ -100,23 +98,6 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                     throw new UnsupportedOperationException("Unexpected class received in response.");
                 }
                 return deserializeMap.resolveClass(classLoaderDetails, className);
-            }
-
-            public void close() {
-                lock.lock();
-                try {
-                    for (UUID clId : classLoaders.keySet()) {
-                        Iterable<ClassLoader> candidates = getClassLoaders(clId);
-                        if (candidates != null) {
-                            for (ClassLoader candidate : candidates) {
-                                ClassLoaderUtils.tryClose(candidate);
-                            }
-                        }
-                    }
-                    classLoaders.clear();
-                } finally {
-                    lock.unlock();
-                }
             }
         };
     }
