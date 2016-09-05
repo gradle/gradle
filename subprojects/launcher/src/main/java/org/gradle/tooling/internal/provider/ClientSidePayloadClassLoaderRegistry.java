@@ -23,7 +23,7 @@ import org.gradle.internal.classloader.VisitableURLClassLoader;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -41,20 +41,39 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
     private final PayloadClassLoaderRegistry delegate;
     private final Lock lock = new ReentrantLock();
     private final ClasspathInferer classpathInferer;
+    private final ClassLoaderCache classLoaderCache;
     // Contains only application owned ClassLoaders
     private final Map<UUID, LocalClassLoader> classLoaders = new LinkedHashMap<UUID, LocalClassLoader>();
 
-    public ClientSidePayloadClassLoaderRegistry(PayloadClassLoaderRegistry delegate, ClasspathInferer classpathInferer) {
+    public ClientSidePayloadClassLoaderRegistry(PayloadClassLoaderRegistry delegate, ClasspathInferer classpathInferer, ClassLoaderCache classLoaderCache) {
         this.delegate = delegate;
         this.classpathInferer = classpathInferer;
+        this.classLoaderCache = classLoaderCache;
     }
 
     public SerializeMap newSerializeSession() {
         final Set<ClassLoader> candidates = new LinkedHashSet<ClassLoader>();
         final Set<URL> classPath = new LinkedHashSet<URL>();
-
+        final Map<ClassLoader, Short> classLoaderIds = new HashMap<ClassLoader, Short>();
+        final Map<Short, ClassLoaderDetails> classLoaderDetails = new HashMap<Short, ClassLoaderDetails>();
         return new SerializeMap() {
             public short visitClass(Class<?> target) {
+                ClassLoader classLoader = target.getClassLoader();
+                Short id = classLoaderIds.get(classLoader);
+                if (id != null) {
+                    // A known ClassLoader
+                    return id;
+                }
+                ClassLoaderDetails details = classLoaderCache.maybeGetDetails(classLoader);
+                if (details != null) {
+                    // A cached ClassLoader
+                    id = (short) (classLoaderIds.size() + CLIENT_CLASS_LOADER_ID + 1);
+                    classLoaderIds.put(classLoader, id);
+                    classLoaderDetails.put(id, details);
+                    return id;
+                }
+
+                // An application ClassLoader: Inspect class to collect up the classpath for it
                 classpathInferer.getClassPathFor(target, classPath);
                 candidates.add(target.getClassLoader());
                 return CLIENT_CLASS_LOADER_ID;
@@ -68,7 +87,9 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                 } finally {
                     lock.unlock();
                 }
-                return Collections.singletonMap(CLIENT_CLASS_LOADER_ID, new ClassLoaderDetails(uuid, new VisitableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
+                ClassLoaderDetails details = new ClassLoaderDetails(uuid, new VisitableURLClassLoader.Spec(new ArrayList<URL>(classPath)));
+                classLoaderDetails.put(CLIENT_CLASS_LOADER_ID, details);
+                return classLoaderDetails;
             }
         };
     }

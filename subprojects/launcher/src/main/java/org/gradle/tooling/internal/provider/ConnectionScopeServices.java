@@ -55,6 +55,7 @@ public class ConnectionScopeServices {
                                                 JvmVersionDetector jvmVersionDetector,
                                                 // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
                                                 ShutdownCoordinator shutdownCoordinator) {
+        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         return new ProviderConnection(
                 serviceRegistry,
                 loggingServices,
@@ -63,10 +64,11 @@ public class ConnectionScopeServices {
                 new PayloadSerializer(
                         new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(
-                                        new ClassLoaderCache(),
+                                    classLoaderCache,
                                         new ClientSidePayloadClassLoaderFactory(
                                                 new ModelClassLoaderFactory())),
-                                new ClasspathInferer())),
+                                new ClasspathInferer(),
+                            classLoaderCache)),
                 jvmVersionDetector
         );
     }
