@@ -21,7 +21,7 @@ import java.util.Map;
 public interface SerializeMap {
     /**
      * Visits a class to be serialized, returning the id of the deserialize ClassLoader to associate this class with.
-     * The id is unique only for this serialization.
+     * The id is unique only for this serialization, and is used as the key for the map returned by {@link #getClassLoaders()}.
      *
      * @return The ClassLoader id.
      */

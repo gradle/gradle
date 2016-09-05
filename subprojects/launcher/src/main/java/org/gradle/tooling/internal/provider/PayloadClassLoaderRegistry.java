@@ -19,7 +19,7 @@ package org.gradle.tooling.internal.provider;
 import net.jcip.annotations.ThreadSafe;
 
 /**
- * Implementations must allow concurrent sessions.
+ * <p>Implementations must allow concurrent sessions.
  */
 @ThreadSafe
 public interface PayloadClassLoaderRegistry {
