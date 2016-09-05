@@ -28,7 +28,7 @@ public interface SerializeMap {
     short visitClass(Class<?> target);
 
     /**
-     * Returns the set of ClassLoaders to use in to deserialize the graph.
+     * Returns the set of ClassLoaders to use to deserialize the graph.
      *
      * @return The map from ClassLoader id to details to use create that ClassLoader.
      */
