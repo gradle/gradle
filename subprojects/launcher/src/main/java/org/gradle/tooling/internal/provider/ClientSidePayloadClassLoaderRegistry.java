@@ -33,6 +33,9 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+/**
+ * Used in the tooling API provider to inspect classes.
+ */
 @ThreadSafe
 public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
     private static final short CLIENT_CLASS_LOADER_ID = 1;
@@ -61,7 +64,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                 lock.lock();
                 UUID uuid;
                 try {
-                    uuid = getUuid(candidates);
+                    uuid = getUuidForLocalClassLoaders(candidates);
                 } finally {
                     lock.unlock();
                 }
@@ -133,7 +136,7 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
         return candidates;
     }
 
-    private UUID getUuid(Set<ClassLoader> candidates) {
+    private UUID getUuidForLocalClassLoaders(Set<ClassLoader> candidates) {
         for (LocalClassLoader localClassLoader : new ArrayList<LocalClassLoader>(classLoaders.values())) {
             Set<ClassLoader> localCandidates = new LinkedHashSet<ClassLoader>();
             for (WeakReference<ClassLoader> reference : localClassLoader.classLoaders) {
