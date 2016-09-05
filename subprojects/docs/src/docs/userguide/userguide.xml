@@ -108,7 +108,7 @@
         <xi:include href='ideaPlugin.xml'/>
     </part>
     <part>
-        <title>The Software model - Next generation Gradle builds</title>
+        <title>The Software model</title>
         <xi:include href='softwareModel.xml'/>
         <xi:include href='softwareModelConcepts.xml'/>
         <xi:include href='ruleSource.xml'/>
