@@ -2,11 +2,11 @@ The Gradle team is pleased to announce Gradle 3.1.
 
 Multi-project builds are a powerful feature with one significant constraint: the projects have to be in the same directory hierarchy. This doesn't help if you want to work on code across multiple repositories, for example if you're trying to fix a bug in a third-party open-source library that one of your projects depends on.
 
-Gradle 3.1 now supports this scenario with the introduction of **Composite Builds** for all users. It's hard to understate just how important this feature is as it provides a whole new way of organizing your projects and builds.
+Gradle 3.1 now supports this scenario with the introduction of **Composite Builds** for all users. It's hard to understate just how important this feature is as it provides a whole new way of organizing your projects and builds. There is more work to be done in this area and the feature is currently incubating, but we encourage you to try it out and give us your feedback!
 
 **Incremental Build** is a similar feature in terms of impact and this release improves the control you have over its up-to-date checks. You can read about the details [further down](#incremental-build-improvements).
 
-As with many previous Gradle releases, you will also benefit from some performance improvements, this time in the form of [**faster dependency resolution**](#faster-dependency-resolution). From testing, Android users specifically could see **up to a 50% reduction** in resolution time.
+As with many previous Gradle releases, you will also benefit from some performance improvements, this time in the form of [**faster dependency resolution**](#faster-dependency-resolution). From testing, Android users specifically could see **up to a 50% reduction** in configuration and Android Studio sync time.
 
 Our Play Framework and Kotlin build script users will also be happy as 3.1 now has (limited) support for **Play 2.5.x** and the Kotlin build script support gets a more fully-featured syntax for declaring dependencies and faster code completion.
 
@@ -27,7 +27,7 @@ Add-->
 
 ### Composite Builds
 
-[Composite Builds](userguide/composite_builds.html) take the pain out of binary integration. They allow you to combine several independent Gradle builds into one big build, replacing binary dependencies with project dependencies at will.
+[Composite Builds](userguide/composite_builds.html) take the pain out of binary integration. They allow you to integrate independent Gradle builds, effectively giving you something like a multi-project build while keeping the builds separate. This is done by substituting project dependencies for binary dependencies at will.
 
 They allow you to:
 
@@ -35,7 +35,7 @@ They allow you to:
  - develop and test a Gradle plugin directly against a project that uses it
  - split a large multi-project build into several smaller builds, which can be worked on independently or together
 
-As an example, imagine you have two projects: a library called _number-utils_ and an application called _my-app_. Let's say the library has this build:
+As an example, imagine you have two separate projects with independent builds: a library called _number-utils_ and an application called _my-app_. Let's say the library has this build:
 
     apply plugin: 'java'
     group "org.sample"
