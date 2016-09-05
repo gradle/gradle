@@ -65,8 +65,8 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
     @Unroll("single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectSkipped (order sensitive: #orderSensitive)")
     def "single source file moved within hierarchy"() {
         given:
-        file("src", "data1").createDir()
-        file("src", "data2").createDir()
+        file("src/data1").createDir()
+        file("src/data2").createDir()
         file("src/data1/input.txt").text = "input"
 
         declareTestTaskWithPathSensitivity(pathSensitive, orderSensitive)
