@@ -1,9 +1,8 @@
 package org.gradle;
 
-import org.gradle.AbstractTest;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
-public class Test extends AbstractTest {
+public class Test1 extends AbstractTest {
 
     @Test
     public void shouldPass() {
