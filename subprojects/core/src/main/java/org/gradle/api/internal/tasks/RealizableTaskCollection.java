@@ -27,7 +27,7 @@ import org.gradle.model.internal.type.ModelType;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class RealizableTaskCollection<T extends Task> implements TaskCollection<T>, Iterable<T> {
+public class RealizableTaskCollection<T extends Task> implements TaskCollection<T> {
 
     private final TaskCollection<T> delegate;
     private final Class<T> type;
