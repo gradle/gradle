@@ -52,15 +52,6 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
 """
         builder.buildJar(implJar)
 
-        // Some temporary assertions
-        Files.delete(implJar.toPath())
-        builder.buildJar(implJar)
-        def cl0 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
-        cl0.loadClass("ActionImpl").newInstance()
-        cl0.close()
-        Files.delete(implJar.toPath())
-        builder.buildJar(implJar)
-
         def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
         def action1 = cl1.loadClass("ActionImpl").newInstance()
 
@@ -106,8 +97,7 @@ public class ActionImpl implements ${BuildAction.name}<String> {
 
     private void disableJarCachingWhenUsingOldGradleVersion() {
         if (targetDist.toolingApiLocksBuildActionClasses) {
-            println "-> DISABLE CACHING"
-            // disable URL caching
+            // Tooling api providers from older Gradle would use the Jar URL cache, leaving Jar files open. Disable URL caching for these versions
             // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.
             new URL("jar:file://valid_jar_url_syntax.jar!/").openConnection().setDefaultUseCaches(false)
         }
