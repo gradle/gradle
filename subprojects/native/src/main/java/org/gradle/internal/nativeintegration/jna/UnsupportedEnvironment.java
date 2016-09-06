@@ -21,7 +21,6 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
 import java.util.Map;
 
 public class UnsupportedEnvironment implements ProcessEnvironment {
