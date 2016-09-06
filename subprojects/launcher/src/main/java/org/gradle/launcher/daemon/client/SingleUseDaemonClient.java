@@ -25,6 +25,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.initialization.BuildRequestContext;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Build;
@@ -40,8 +41,8 @@ public class SingleUseDaemonClient extends DaemonClient {
     private final DocumentationRegistry documentationRegistry;
 
     public SingleUseDaemonClient(DaemonConnector connector, OutputEventListener outputEventListener, ExplainingSpec<DaemonContext> compatibilitySpec, InputStream buildStandardInput,
-                                 ExecutorFactory executorFactory, IdGenerator<?> idGenerator, DocumentationRegistry documentationRegistry) {
-        super(connector, outputEventListener, compatibilitySpec, buildStandardInput, executorFactory, idGenerator);
+                                 ExecutorFactory executorFactory, IdGenerator<?> idGenerator, DocumentationRegistry documentationRegistry, ProcessEnvironment processEnvironment) {
+        super(connector, outputEventListener, compatibilitySpec, buildStandardInput, executorFactory, idGenerator, processEnvironment);
         this.documentationRegistry = documentationRegistry;
     }
 

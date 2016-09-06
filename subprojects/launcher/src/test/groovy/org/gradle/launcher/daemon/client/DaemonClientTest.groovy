@@ -27,6 +27,7 @@ import org.gradle.launcher.daemon.protocol.*
 import org.gradle.launcher.daemon.server.api.DaemonStoppedException
 import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.util.ConcurrentSpecification
 
 class DaemonClientTest extends ConcurrentSpecification {
@@ -35,7 +36,8 @@ class DaemonClientTest extends ConcurrentSpecification {
     final OutputEventListener outputEventListener = Mock()
     final DaemonCompatibilitySpec compatibilitySpec = Mock()
     final IdGenerator<?> idGenerator = {12} as IdGenerator
-    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator)
+    final ProcessEnvironment processEnvironment = Mock()
+    final DaemonClient client = new DaemonClient(connector, outputEventListener, compatibilitySpec, new ByteArrayInputStream(new byte[0]), executorFactory, idGenerator, processEnvironment)
 
     def executesAction() {
         when:
@@ -43,6 +45,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         result == '[result]'
+        1 * processEnvironment.maybeGetPid()
         1 * connector.connect(compatibilitySpec) >> connection
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * connection.dispatch({it instanceof Build})
@@ -62,6 +65,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         then:
         RuntimeException e = thrown()
         e == failure
+        1 * processEnvironment.maybeGetPid()
         1 * connector.connect(compatibilitySpec) >> connection
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * connection.dispatch({it instanceof Build})
@@ -83,6 +87,7 @@ class DaemonClientTest extends ConcurrentSpecification {
 
         then:
         BuildCancelledException gce = thrown()
+        1 * processEnvironment.maybeGetPid()
         1 * connector.connect(compatibilitySpec) >> connection
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->
@@ -114,6 +119,7 @@ class DaemonClientTest extends ConcurrentSpecification {
         then:
         BuildCancelledException gce = thrown()
         gce == cancelledException
+        1 * processEnvironment.maybeGetPid()
         1 * connector.connect(compatibilitySpec) >> connection
         _ * connection.daemon >> Stub(DaemonConnectDetails)
         1 * cancellationToken.addCallback(_) >> { Runnable callback ->

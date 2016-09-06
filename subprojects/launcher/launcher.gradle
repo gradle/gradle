@@ -22,6 +22,7 @@ dependencies {
 
     integTestCompile project(':internalIntegTesting')
     integTestRuntime project(':plugins')
+    integTestRuntime project(':languageNative')
 
     testFixturesCompile project(':internalIntegTesting')
 
