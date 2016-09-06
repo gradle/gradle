@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.featurelifecycle;
+package org.gradle.internal.notfeaturelifecycle;
 
+import org.gradle.internal.featurelifecycle.FeatureUsage;
+
+/**
+ * Package is notfeaturelifecycle, i.e. anything but featurelifecycle, because of
+ * Groovy call stack workaround in FeatureUsage.createStackTrace()
+ */
 public class SimulatedDeprecationMessageLogger {
     public static final String DIRECT_CALL = "direct call";
     public static final String INDIRECT_CALL = "indirect call";
     public static final String INDIRECT_CALL_2 = "second-level indirect call";
 
-    public static DeprecatedFeatureUsage indirectlySecondLevel(String message) {
+    public static FeatureUsage indirectlySecondLevel(String message) {
         return indirectly(message);
     }
 
-    public static DeprecatedFeatureUsage indirectly(String message) {
+    public static FeatureUsage indirectly(String message) {
         return nagUserWith(message);
     }
 
-    public static DeprecatedFeatureUsage nagUserWith(String message) {
-        return new DeprecatedFeatureUsage(message, SimulatedDeprecationMessageLogger.class);
+    public static FeatureUsage nagUserWith(String message) {
+        return new FeatureUsage(message, SimulatedDeprecationMessageLogger.class);
     }
 }

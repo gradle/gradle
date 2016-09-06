@@ -30,7 +30,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
+import org.gradle.internal.featurelifecycle.Naggers;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -57,6 +57,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -119,7 +120,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean useOnlyRequestedJvmOpts;
     private boolean requiresGradleDistribution;
 
-    private int expectedDeprecationWarnings;
+    private final List<Warning> expectedDeprecationWarnings = new ArrayList<Warning>();
+    private final List<Warning> expectedIncubationWarnings = new ArrayList<Warning>();
+
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
 
@@ -169,7 +172,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         commandLineJvmOpts.clear();
         buildJvmOpts.clear();
         useOnlyRequestedJvmOpts = false;
-        expectedDeprecationWarnings = 0;
+        expectedDeprecationWarnings.clear();
+        expectedIncubationWarnings.clear();
         stackTraceChecksOn = true;
         debug = Boolean.getBoolean(DEBUG_SYSPROP);
         profiler = System.getProperty(PROFILE_SYSPROP, "");
@@ -277,9 +281,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         executer.noExtraLogging();
 
-        for (int i = 0; i < expectedDeprecationWarnings; i++) {
-            executer.expectDeprecationWarning();
+        for (Warning current : expectedDeprecationWarnings) {
+            executer.expectDeprecationWarning(current.getLineCount());
         }
+
+        for (Warning current : expectedIncubationWarnings) {
+            executer.expectIncubationWarning(current.getLineCount());
+        }
+
         if (!eagerClassLoaderCreationChecksOn) {
             executer.withEagerClassLoaderCreationCheckDisabled();
         }
@@ -717,7 +726,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (!noExplicitNativeServicesDir) {
             properties.put(NativeServices.NATIVE_DIR_OVERRIDE, buildContext.getNativeServicesDir().getAbsolutePath());
         }
-        properties.put(LoggingDeprecatedFeatureHandler.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
+        properties.put(Naggers.ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME, Boolean.toString(fullDeprecationStackTrace));
 
         if (!noExplicitTmpDir) {
             String tmpDirPath = getDefaultTmpDir().createDir().getAbsolutePath();
@@ -826,7 +835,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected Action<ExecutionResult> getResultAssertion() {
         return new Action<ExecutionResult>() {
-            int expectedDeprecationWarnings = AbstractGradleExecuter.this.expectedDeprecationWarnings;
+            List<Warning> expectedDeprecationWarnings = new LinkedList<Warning>(AbstractGradleExecuter.this.expectedDeprecationWarnings);
+            List<Warning> expectedIncubationWarnings = new LinkedList<Warning>(AbstractGradleExecuter.this.expectedIncubationWarnings);
             boolean expectStackTraces = !AbstractGradleExecuter.this.stackTraceChecksOn;
 
             @Override
@@ -856,29 +866,59 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     if (line.matches(".*use(s)? or override(s)? a deprecated API\\.")) {
                         // A javac warning, ignore
                         i++;
-                    } else if (line.matches(".*\\s+deprecated.*")) {
-                        if (expectedDeprecationWarnings <= 0) {
-                            throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i+1, line, output));
+                    } else if (line.matches(".*\\s+has been deprecated.*")) {
+                        if (expectedDeprecationWarnings.isEmpty()) {
+                            throw new AssertionError(String.format("%s line %d contains a deprecation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                         }
-                        expectedDeprecationWarnings--;
+                        Warning warning = expectedDeprecationWarnings.remove(0);
+                        i = i + warning.getLineCount();
                         // skip over stack trace
-                        i++;
                         while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
                             i++;
                         }
-                    } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size()-1 && STACK_TRACE_ELEMENT.matcher(lines.get(i+1)).matches()) {
+                    } else if (line.matches(".*\\s+an incubating feature.*")) {
+                        if (expectedIncubationWarnings.isEmpty()) {
+                            throw new AssertionError(String.format("%s line %d contains an incubation warning: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
+                        }
+                        Warning warning = expectedIncubationWarnings.remove(0);
+                        i = i + warning.getLineCount();
+                        // skip over stack trace
+                        while (i < lines.size() && STACK_TRACE_ELEMENT.matcher(lines.get(i)).matches()) {
+                            i++;
+                        }
+                    } else if (!expectStackTraces && STACK_TRACE_ELEMENT.matcher(line).matches() && i < lines.size() - 1 && STACK_TRACE_ELEMENT.matcher(lines.get(i + 1)).matches()) {
                         // 2 or more lines that look like stack trace elements
-                        throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i+1, line, output));
+                        throw new AssertionError(String.format("%s line %d contains an unexpected stack trace: %s%n=====%n%s%n=====%n", displayName, i + 1, line, output));
                     } else {
                         i++;
                     }
+                }
+                if (!expectedDeprecationWarnings.isEmpty()) {
+                    throw new AssertionError("Missing deprecation warnings: " + expectedDeprecationWarnings);
+                }
+                if (!expectedIncubationWarnings.isEmpty()) {
+                    throw new AssertionError("Missing incubation warnings: " + expectedIncubationWarnings);
                 }
             }
         };
     }
 
     public GradleExecuter expectDeprecationWarning() {
-        expectedDeprecationWarnings++;
+        return expectDeprecationWarning(1);
+    }
+
+    public GradleExecuter expectDeprecationWarning(int lineCount) {
+        expectedDeprecationWarnings.add(new Warning(lineCount));
+        return this;
+    }
+
+    public GradleExecuter expectIncubationWarning() {
+        expectIncubationWarning(1);
+        return this;
+    }
+
+    public GradleExecuter expectIncubationWarning(int lineCount) {
+        expectedIncubationWarnings.add(new Warning(lineCount));
         return this;
     }
 
@@ -968,4 +1008,23 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         final List<String> implicitLauncherJvmArgs = new ArrayList<String>();
     }
 
+    private static class Warning {
+        private final int lineCount;
+
+        public Warning(int lineCount) {
+            if (lineCount < 1) {
+                throw new IllegalArgumentException("lineCount must not be less than 1!");
+            }
+            this.lineCount = lineCount;
+        }
+
+        public int getLineCount() {
+            return lineCount;
+        }
+
+        @Override
+        public String toString() {
+            return "Warning{lineCount=" + lineCount + '}';
+        }
+    }
 }

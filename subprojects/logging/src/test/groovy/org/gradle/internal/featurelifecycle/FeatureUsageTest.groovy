@@ -16,16 +16,18 @@
 
 package org.gradle.internal.featurelifecycle
 
+import org.gradle.internal.notfeaturelifecycle.SimulatedGroovyCallLocation
+import org.gradle.internal.notfeaturelifecycle.SimulatedJavaCallLocation
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.DIRECT_CALL
-import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL
-import static org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL_2
+import static org.gradle.internal.notfeaturelifecycle.SimulatedDeprecationMessageLogger.DIRECT_CALL
+import static org.gradle.internal.notfeaturelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL
+import static org.gradle.internal.notfeaturelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL_2
 
-@Subject(DeprecatedFeatureUsage)
-class DeprecatedFeatureUsageTest extends Specification {
+@Subject(FeatureUsage)
+class FeatureUsageTest extends Specification {
 
     @Unroll
     def "stack is evaluated correctly for #callLocationClass.simpleName and #expectedMessage."() {

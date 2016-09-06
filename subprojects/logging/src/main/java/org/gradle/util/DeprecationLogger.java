@@ -15,4 +15,112 @@
  */
 package org.gradle.util;
 
-public class DeprecationLogger extends SingleMessageLogger {}
+import net.jcip.annotations.ThreadSafe;
+import org.gradle.internal.Factory;
+import org.gradle.internal.featurelifecycle.UsageNagger;
+import org.gradle.internal.featurelifecycle.UsageLocationReporter;
+
+// TODO: replace usages with Naggers.
+@ThreadSafe
+public class DeprecationLogger {
+    /*
+     * This is NOT the UsageNagger instance returned by Naggers methods.
+     * It has a different calledFrom!
+     */
+    private static final UsageNagger USAGE_NAGGER = new UsageNagger(DeprecationLogger.class);
+
+
+    // IncubationNagger
+    public static void incubatingFeatureUsed(String incubatingFeature) {
+        USAGE_NAGGER.incubatingFeatureUsed(incubatingFeature);
+    }
+
+    public static void incubatingFeatureUsed(String incubatingFeature, String additionalWarning) {
+        USAGE_NAGGER.incubatingFeatureUsed(incubatingFeature, additionalWarning);
+    }
+
+
+    // DeprecationNagger
+    public static void nagUserOfDeprecated(String thing) {
+        USAGE_NAGGER.nagUserOfDeprecated(thing);
+    }
+
+    public static void nagUserOfDeprecated(String thing, String explanation) {
+        USAGE_NAGGER.nagUserOfDeprecated(thing, explanation);
+    }
+
+    public static void nagUserOfDeprecatedBehaviour(String behaviour) {
+        USAGE_NAGGER.nagUserOfDeprecatedBehaviour(behaviour);
+    }
+
+    public static void nagUserOfDiscontinuedApi(String api, String advice) {
+        USAGE_NAGGER.nagUserOfDiscontinuedApi(api, advice);
+    }
+
+    public static void nagUserOfDiscontinuedMethod(String methodName) {
+        USAGE_NAGGER.nagUserOfDiscontinuedMethod(methodName);
+    }
+
+    public static void nagUserOfDiscontinuedMethod(String methodName, String advice) {
+        USAGE_NAGGER.nagUserOfDiscontinuedMethod(methodName, advice);
+    }
+
+    public static void nagUserOfDiscontinuedProperty(String propertyName, String advice) {
+        USAGE_NAGGER.nagUserOfDiscontinuedProperty(propertyName, advice);
+    }
+
+    public static void nagUserOfPluginReplacedWithExternalOne(String pluginName, String replacement) {
+        USAGE_NAGGER.nagUserOfPluginReplacedWithExternalOne(pluginName, replacement);
+    }
+
+    public static void nagUserOfReplacedMethod(String methodName, String replacement) {
+        USAGE_NAGGER.nagUserOfReplacedMethod(methodName, replacement);
+    }
+
+    public static void nagUserOfReplacedNamedParameter(String parameterName, String replacement) {
+        USAGE_NAGGER.nagUserOfReplacedNamedParameter(parameterName, replacement);
+    }
+
+    public static void nagUserOfReplacedPlugin(String pluginName, String replacement) {
+        USAGE_NAGGER.nagUserOfReplacedPlugin(pluginName, replacement);
+    }
+
+    public static void nagUserOfReplacedProperty(String propertyName, String replacement) {
+        USAGE_NAGGER.nagUserOfReplacedProperty(propertyName, replacement);
+    }
+
+    public static void nagUserOfReplacedTask(String taskName, String replacement) {
+        USAGE_NAGGER.nagUserOfReplacedTask(taskName, replacement);
+    }
+
+    public static void nagUserOfReplacedTaskType(String taskName, String replacement) {
+        USAGE_NAGGER.nagUserOfReplacedTaskType(taskName, replacement);
+    }
+
+
+    // BasicNagger
+    public static void nagUserWith(String message) {
+        USAGE_NAGGER.nagUserWith(message);
+    }
+
+    public static void nagUserOnceWith(String message) {
+        USAGE_NAGGER.nagUserOnceWith(message);
+    }
+
+    // Naggers
+    public static void reset() {
+        USAGE_NAGGER.reset();
+    }
+
+    public static void useLocationReporter(UsageLocationReporter reporter) {
+        USAGE_NAGGER.useLocationReporter(reporter);
+    }
+
+    public static <T> T whileDisabled(Factory<T> factory) {
+        return USAGE_NAGGER.whileDisabled(factory);
+    }
+
+    public static void whileDisabled(Runnable action) {
+        USAGE_NAGGER.whileDisabled(action);
+    }
+}

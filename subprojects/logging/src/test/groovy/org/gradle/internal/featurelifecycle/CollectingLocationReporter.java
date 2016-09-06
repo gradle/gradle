@@ -16,20 +16,19 @@
 
 package org.gradle.internal.featurelifecycle;
 
-/**
- * This class is used to test proper call stack evaluation of Java classes.
- */
-public class SimulatedJavaCallLocation {
+import java.util.ArrayList;
+import java.util.List;
 
-    static DeprecatedFeatureUsage create() {
-        return SimulatedDeprecationMessageLogger.nagUserWith(SimulatedDeprecationMessageLogger.DIRECT_CALL);
+public class CollectingLocationReporter implements UsageLocationReporter {
+    private final List<FeatureUsage> usages = new ArrayList<FeatureUsage>();
+    @Override
+    public void reportLocation(FeatureUsage usage, StringBuilder target) {
+        usages.add(usage);
     }
 
-    static DeprecatedFeatureUsage indirectly() {
-        return SimulatedDeprecationMessageLogger.indirectly(SimulatedDeprecationMessageLogger.INDIRECT_CALL);
+    public List<FeatureUsage> getUsages() {
+        return usages;
     }
 
-    static DeprecatedFeatureUsage indirectly2() {
-        return SimulatedDeprecationMessageLogger.indirectlySecondLevel(SimulatedDeprecationMessageLogger.INDIRECT_CALL_2);
-    }
+
 }

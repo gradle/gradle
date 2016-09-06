@@ -271,9 +271,24 @@ public interface GradleExecuter {
     TestDirectoryProvider getTestDirectoryProvider();
 
     /**
-     * Expects exactly one deprecation warning in the build output. Call multiple times to expect multiple warnings.
+     * Expects exactly one deprecation warning in the build output. Call multiple times to expect multiple warnings. This adds a single-line warning.
      */
     GradleExecuter expectDeprecationWarning();
+
+    /**
+     * Expects exactly one deprecation warning in the build output. Call multiple times to expect multiple warnings.
+     */
+    GradleExecuter expectDeprecationWarning(int lineCount);
+
+    /**
+     * Expects exactly one incubation warning in the build output. Call multiple times to expect multiple warnings. This adds a single-line warning.
+     */
+    GradleExecuter expectIncubationWarning();
+
+    /**
+     * Expects exactly one incubation warning in the build output. Call multiple times to expect multiple warnings.
+     */
+    GradleExecuter expectIncubationWarning(int lineCount);
 
     /**
      * Disables asserting that class loaders were not eagerly created, potentially leading to performance problems.

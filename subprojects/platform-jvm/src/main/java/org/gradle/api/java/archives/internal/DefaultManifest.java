@@ -24,9 +24,9 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.ManifestMergeSpec;
 import org.gradle.internal.IoActions;
+import org.gradle.internal.featurelifecycle.Naggers;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -191,7 +191,7 @@ public class DefaultManifest implements ManifestInternal {
     @Deprecated
     @Override
     public DefaultManifest writeTo(Writer writer) {
-        SingleMessageLogger.nagUserOfDeprecated("Manifest.writeTo(Writer)", "Please use Manifest.writeTo(Object) instead");
+        Naggers.getDeprecationNagger().nagUserOfDeprecated("Manifest.writeTo(Writer)", "Please use Manifest.writeTo(Object) instead.");
         try {
             Manifest javaManifest = generateJavaManifest(getEffectiveManifest());
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();

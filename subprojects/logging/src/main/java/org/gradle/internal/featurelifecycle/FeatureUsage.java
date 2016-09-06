@@ -21,18 +21,18 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * An immutable description of the usage of a deprecated feature.
+ * An immutable description of the usage of a feature.
  */
-public class DeprecatedFeatureUsage {
+public class FeatureUsage {
     private final String message;
     private final List<StackTraceElement> stack;
 
-    public DeprecatedFeatureUsage(String message, Class<?> calledFrom) {
+    public FeatureUsage(String message, Class<?> calledFrom) {
         this.message = message;
         this.stack = Collections.unmodifiableList(createStackTrace(calledFrom));
     }
 
-    DeprecatedFeatureUsage(String message, List<StackTraceElement> stack) {
+    FeatureUsage(String message, List<StackTraceElement> stack) {
         if (stack == null) {
             throw new NullPointerException("stack");
         }
@@ -55,12 +55,17 @@ public class DeprecatedFeatureUsage {
         int caller;
         for (caller = 0; caller < originalStack.length; caller++) {
             StackTraceElement current = originalStack[caller];
+            String className = current.getClassName();
             if (!calledFromFound) {
-                if (current.getClassName().startsWith(calledFromName)) {
+                if (className.startsWith(calledFromName)) {
                     calledFromFound = true;
                 }
             } else {
-                if (!current.getClassName().startsWith(calledFromName)) {
+                if (!className.startsWith(calledFromName)
+                    // this gets rid of stuff like org.gradle.internal.featurelifecycle.BasicNagger$nagUserWith
+                    // (i.e. extra call stack entries for interfaces)
+                    // that happens in case of calls by Groovy classes.
+                    && !className.startsWith("org.gradle.internal.featurelifecycle")) {
                     break;
                 }
             }
@@ -89,5 +94,35 @@ public class DeprecatedFeatureUsage {
             }
         }
         return caller;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        FeatureUsage that = (FeatureUsage) o;
+
+        if (message != null ? !message.equals(that.message) : that.message != null) {
+            return false;
+        }
+        return stack != null ? stack.equals(that.stack) : that.stack == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = message != null ? message.hashCode() : 0;
+        result = 31 * result + (stack != null ? stack.hashCode() : 0);
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "FeatureUsage{message='" + message + "', stack=" + stack + "}";
     }
 }
