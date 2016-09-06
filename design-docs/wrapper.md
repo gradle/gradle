@@ -24,6 +24,8 @@ No external library should be added to the Wrapper.
 
 The implementation will need a Base64 encoder.
 The JVM comes with a public Base64 encoder starting with Java 6 (`DatatypeConverter` from JAXB).
+This Base64 encoder is unavailable without adding a module in Java 9 Jigsaw.
+Starting with Java 8 the implementation should then use `java.util.Base64`.
 
 ### Test cases
 

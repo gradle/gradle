@@ -24,7 +24,6 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Unroll
 
@@ -142,7 +141,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         proxyServer.requestCount == 1
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "downloads wrapper from basic authenticated server and caches"() {
         given:
         prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
@@ -161,7 +159,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result.output.contains('hello')
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "downloads wrapper from basic authenticated server using credentials from gradle.properties"() {
         given:
         file("gradle.properties") << '''
@@ -180,7 +177,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result.output.contains('hello')
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "warns about using basic authentication over insecure connection"() {
         given:
         prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
@@ -193,7 +189,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result.output.contains('Please consider using HTTPS')
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "does not warn about using basic authentication over secure connection"() {
         given:
         TestKeyStore keyStore = TestKeyStore.init(resources.dir)
@@ -214,7 +209,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         !result.output.contains('WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.')
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "does not leak basic authentication credentials in output"() {
         given:
         prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
@@ -228,7 +222,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         !result.error.contains('changeit')
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "does not leak basic authentication credentials in exception messages"() {
         given:
         prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
@@ -247,7 +240,6 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         !exception.message.contains('changeit')
     }
 
-    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "downloads wrapper from basic authenticated http server via authenticated proxy"() {
         given:
         def proxyUsername = 'proxy_user'
@@ -275,7 +267,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         proxyServer.requestCount == 1
     }
 
-    @Requires(value = TestPrecondition.JDK8_OR_EARLIER, adhoc = { !AvailableJavaHomes.getJdks("1.5").empty })
+    @Requires(adhoc = { !AvailableJavaHomes.getJdks("1.5").empty })
     @Unroll
     def "provides reasonable failure message when attempting to download authenticated distribution under java #jdk.javaVersion()"() {
         given:

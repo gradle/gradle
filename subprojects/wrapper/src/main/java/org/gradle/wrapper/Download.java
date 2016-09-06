@@ -109,20 +109,31 @@ public class Download implements IDownload {
     /**
      * Base64 encode user info for HTTP Basic Authentication.
      *
-     * Use {@literal javax.xml.bind.DatatypeConverter} from JAXB reflectively which is available starting with Java 6.
-     * Fortunately, this Base64 encoder implements the right Base64 flavor, the one that does not split the output in multiple lines.
+     * Try to use {@literal java.util.Base64} encoder which is available starting with Java 8.
+     * Fallback to {@literal javax.xml.bind.DatatypeConverter} from JAXB which is available starting with Java 6 but is not anymore in Java 9.
+     * Fortunately, both of these two Base64 encoders implement the right Base64 flavor, the one that does not split the output in multiple lines.
      *
      * @param userInfo user info
      * @return Base64 encoded user info
      * @throws RuntimeException if no public Base64 encoder is available on this JVM
      */
     private String base64EncodeForBasicAuthentication(String userInfo) {
+        ClassLoader loader = getClass().getClassLoader();
         try {
-            Class<?> datatypeConverter = getClass().getClassLoader().loadClass("javax.xml.bind.DatatypeConverter");
-            Method base64Encode = datatypeConverter.getMethod("printBase64Binary", byte[].class);
-            return (String) base64Encode.invoke(null, new Object[]{userInfo.getBytes("UTF-8")});
-        } catch (Exception ex) {
-            throw new RuntimeException("Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.", ex);
+            Class<?> base64Class = loader.loadClass("java.util.Base64");
+            Method getEncoderMethod = base64Class.getMethod("getEncoder");
+            Class<?> encoderClass = loader.loadClass("java.util.Base64$Encoder");
+            Method encodeMethod = encoderClass.getMethod("encodeToString", byte[].class);
+            Object encoder = getEncoderMethod.invoke(null);
+            return (String) encodeMethod.invoke(encoder, new Object[]{userInfo.getBytes("UTF-8")});
+        } catch (Exception java7OrEarlier) {
+            try {
+                Class<?> encoderClass = loader.loadClass("javax.xml.bind.DatatypeConverter");
+                Method encodeMethod = encoderClass.getMethod("printBase64Binary", byte[].class);
+                return (String) encodeMethod.invoke(null, new Object[]{userInfo.getBytes("UTF-8")});
+            } catch (Exception java5OrEarlier) {
+                throw new RuntimeException("Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.", java5OrEarlier);
+            }
         }
     }
 
