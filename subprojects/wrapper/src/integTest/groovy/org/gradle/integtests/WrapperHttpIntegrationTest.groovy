@@ -270,14 +270,13 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     def "provides reasonable failure message when attempting to download authenticated distribution under java #jdk.javaVersion()"() {
         given:
         prepareWrapper("http://jdoe:changeit@localhost:${server.port}")
-        server.expectGet("/gradlew/dist", "jdoe", "changeit", distribution.binDistribution)
 
         and:
         wrapperExecuter.withJavaHome(jdk.javaHome)
 
         expect:
-        def failure = wrapperExecuter.withTasks("help").runWithFailure()
-        failure.assertHasDescription("Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.")
+        def failure = wrapperExecuter.withTasks('help').withStackTraceChecksDisabled().runWithFailure()
+        failure.error.contains('Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.')
 
         where:
         jdk << AvailableJavaHomes.getJdks("1.5")
