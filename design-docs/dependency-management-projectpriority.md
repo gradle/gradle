@@ -20,19 +20,40 @@ Let us assume we have a dependency graph like this:
 
 That means `A` depends on `B` and `C`, and `B` depends on `C`.
 
-The two situations where a dependency conflict as above occur are:
+The two situations where a dependency conflict as above occur are as follows.
 
-1. Working in a multi project build on a common project and a project using
-  this project where not all intermediate dependencies are project dependencies.
-  In our dependency graph `A` and `C` would be part of a multi project build, `A` having
-  a project dependency on `B` and
-  `B` would be a binary dependency of `A` with a binary dependency on `C`.
+### Multi project build 
+
+Working in a multi project build on a common project and a project using
+this project where not all intermediate dependencies are project dependencies.
+
+A more concrete example:
+
+We have a multi project build with two sub projects `A` and `C`.
+`A:3.0` depends on project `C:1.0` and binary `B:2.0`.
+Binary `B:2.0` depends on binary `C:2.0`.
+
+What is the runtime classpath of `A`? There is a version conflict between project
+`C:2.0` and binary `C:1.0`. Based on our current rules we would pick binary `C:2.0`,
+but we may prefer the project dependency `C:1.0`.   
  
-2. Working in a composite build on a common project and a project using
-  this project where not all intermediate dependencies are part of included builds.
-  In our dependency graph `A` and `C` would be included builds of a composite build,
-  `A` having its binary dependency on `C` substituted by a project dependency and
-  `B` would be a binary dependency of `A` with a binary dependency on `C`.
+### Composite build 
+
+Working in a composite build on a common project and a project using
+this project where not all intermediate dependencies are part of included builds.
+
+A more concrete example:
+
+We have a composite build with two included builds - `X` and `Y`.
+The included build `X` has a project `A:3.0` which depends on `B:1.0` and `C:1.0`.
+The included build `Y` has project `C:1.0`.
+`B:1.0` depends on binary `C:2.0`.
+
+What is the runtime classpath of project `A`? There is a version conflict between
+project `C:1.0` and binary `C:2.0`. Based on our current rules we would pick
+binary `C:2.0`, but we may prefer the project dependency `C:1.0`.
+  
+### Current behavior  
   
 We still want to keep the current behaviour for two reasons:
 
@@ -82,11 +103,11 @@ In more detail, let us assume that we have the following layout:
     }
     
     group = 'myorg.projectA'
-    version = '1.5'
+    version = '2.0'
     
     dependencies {
         compile project(':projectC')
-        compile 'myorg.projectB:projectB:1.7'
+        compile 'myorg.projectB:projectB:2.0'
     }
 
 `projectC/build.gradle`:
@@ -97,12 +118,12 @@ In more detail, let us assume that we have the following layout:
     }
     
     group = 'myorg.projectC'
-    version = '1.7'
+    version = '2.0'
 
-Let us assume that `projectB` has the maven coordinates `myorg.projectB:projectB:1.7`
-and depends on `myorg.projectC:projectC:1.9`.
+Let us assume that `projectB` has the maven coordinates `myorg.projectB:projectB:2.0`
+and depends on `myorg.projectC:projectC:3.0`.
 
-The default behaviour now is that `projectA` is compiled against `myorg.projectC:projectC:1.9`. If
+The default behaviour now is that `projectA` is compiled against `myorg.projectC:projectC:3.0`. If
 we add
 
     configurations.all {
