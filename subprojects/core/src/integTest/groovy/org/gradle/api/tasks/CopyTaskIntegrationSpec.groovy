@@ -1116,4 +1116,30 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         then:
         skippedTasks.empty
     }
+
+    @NotYetImplemented
+    @Issue("https://issues.gradle.org/browse/GRADLE-3549")
+    def "changing rename makes task out-of-date"() {
+        given:
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'src'
+               into 'dest'
+               rename '(.*).a', '\$1.renamed'
+            }
+        '''.stripIndent()
+        run 'copy'
+
+        buildScript '''
+            task (copy, type:Copy) {
+               from 'src'
+               into 'dest'
+               rename '(.*).a', '\$1.moved'
+            }
+        '''.stripIndent()
+        when:
+        run "copy"
+        then:
+        skippedTasks.empty
+    }
 }
