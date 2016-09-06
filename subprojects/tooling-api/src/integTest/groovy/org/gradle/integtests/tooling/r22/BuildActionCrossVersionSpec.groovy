@@ -47,6 +47,16 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
 }
 """
         builder.buildJar(implJar)
+
+        // Some temporary assertions
+        implJar.delete()
+        builder.buildJar(implJar)
+        def cl0 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
+        cl0.loadClass("ActionImpl").newInstance()
+        cl0.close()
+        implJar.delete()
+        builder.buildJar(implJar)
+
         def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
         def action1 = cl1.loadClass("ActionImpl").newInstance()
 
@@ -55,6 +65,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
             connection.action(action1).run()
         }
         cl1.close()
+        implJar.delete()
 
         then:
         actualJar1 != implJar
@@ -75,9 +86,11 @@ public class ActionImpl implements ${BuildAction.name}<String> {
         String result2 = withConnection { ProjectConnection connection ->
             connection.action(action2).run()
         }
-        def actualJar2 = new File(new URI(result2))
+        cl2.close()
+        implJar.delete()
 
         then:
+        def actualJar2 = new File(new URI(result2))
         actualJar2 != implJar
         actualJar2 != actualJar1
         actualJar2.name == implJar.name
