@@ -180,7 +180,7 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
             public void execute(final Report report) {
                 ConventionMapping mapping = ((IConventionAware) report).getConventionMapping();
                 mapping.map("enabled", Callables.returning(report.getName().equals("html")));
-                new ReportDestination(reportTask, report).map(extension, new ReportBaseDir(reportTask));
+                mapDestination(extension, reportTask, reportTask, report);
             }
         });
     }
@@ -214,57 +214,27 @@ public class JacocoPlugin implements Plugin<ProjectInternal> {
         taskMapping.getConventionValue(reportTask.getReports(), "reports", false).all(new Action<Report>() {
             @Override
             public void execute(final Report report) {
-                new ReportDestination(reportTask, report).map(extension, new ReportBaseDir(task));
+                mapDestination(extension, task, reportTask, report);
             }
         });
     }
 
-    private static class ReportDestination {
-        private final JacocoReport reportTask;
-        private final Report report;
-
-        ReportDestination(JacocoReport reportTask, Report report) {
-            this.reportTask = reportTask;
-            this.report = report;
-        }
-
-        String getDestinationFile() {
-            return reportTask.getName() + "." + report.getName();
-        }
-
-        String getDestinationDirectory() {
-            return report.getName();
-        }
-
-        void map(final JacocoPluginExtension extension, final ReportBaseDir baseDir) {
-            final ConventionMapping mapping = ((IConventionAware) report).getConventionMapping();
-            if (Report.OutputType.DIRECTORY.equals(report.getOutputType())) {
-                mapping.map("destination", new Callable<File>() {
-                    @Override
-                    public File call() {
-                        return new File(extension.getReportsDir(), baseDir.getDir() + "/" + getDestinationDirectory());
-                    }
-                });
-            } else {
-                mapping.map("destination", new Callable<File>() {
-                    @Override
-                    public File call() {
-                        return new File(extension.getReportsDir(), baseDir.getDir() + "/" + getDestinationFile());
-                    }
-                });
-            }
-        }
-    }
-
-    private static class ReportBaseDir {
-        private final Task reportedTask;
-
-        ReportBaseDir(Task reportedTask) {
-            this.reportedTask = reportedTask;
-        }
-
-        public String getDir() {
-            return reportedTask.getName();
+    private void mapDestination(final JacocoPluginExtension extension, final Task reportedTask, final JacocoReport reportTask, final Report report) {
+        final ConventionMapping mapping = ((IConventionAware) report).getConventionMapping();
+        if (Report.OutputType.DIRECTORY.equals(report.getOutputType())) {
+            mapping.map("destination", new Callable<File>() {
+                @Override
+                public File call() {
+                    return new File(extension.getReportsDir(), reportedTask.getName() + "/" + report.getName());
+                }
+            });
+        } else {
+            mapping.map("destination", new Callable<File>() {
+                @Override
+                public File call() {
+                    return new File(extension.getReportsDir(), reportedTask.getName() + "/" + reportTask.getName() + "." + report.getName());
+                }
+            });
         }
     }
 }
