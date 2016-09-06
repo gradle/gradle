@@ -90,6 +90,11 @@ public interface GradleDistribution {
     boolean isToolingApiEventsInEmbeddedModeSupported();
 
     /**
+     * Returns true if the tooling API of this distribution incorrectly locks build action implementation classes.
+     */
+    boolean isToolingApiLocksBuildActionClasses();
+
+    /**
      * Returns the version of the artifact cache layout
      */
     VersionNumber getArtifactCacheLayoutVersion();

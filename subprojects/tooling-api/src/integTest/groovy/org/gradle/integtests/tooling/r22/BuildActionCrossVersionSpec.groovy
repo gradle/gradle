@@ -32,6 +32,8 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
         // Make sure we reuse the same daemon
         toolingApi.requireIsolatedDaemons()
 
+        disableJarCachingWhenUsingOldGradleVersion()
+
         def workDir = temporaryFolder.file("work")
         def implJar = workDir.file("action-impl.jar")
         def builder = new GradleBackedArtifactBuilder(new ForkingGradleExecuter(dist, temporaryFolder), workDir)
@@ -100,5 +102,14 @@ public class ActionImpl implements ${BuildAction.name}<String> {
         cleanup:
         cl1?.close()
         cl2?.close()
+    }
+
+    private void disableJarCachingWhenUsingOldGradleVersion() {
+        if (targetDist.toolingApiLocksBuildActionClasses) {
+            println "-> DISABLE CACHING"
+            // disable URL caching
+            // sun.net.www.protocol.jar.JarURLConnection leaves the JarFile instance open if URLConnection caching is enabled.
+            new URL("jar:file://valid_jar_url_syntax.jar!/").openConnection().setDefaultUseCaches(false)
+        }
     }
 }

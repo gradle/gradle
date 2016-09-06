@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLConnection;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -93,7 +94,9 @@ public class ClasspathInferer {
             // To determine the dependencies of the class, load up the byte code and look for CONSTANT_Class entries in the constant pool
 
             ClassReader reader;
-            InputStream inputStream = resource.openStream();
+            URLConnection urlConnection = resource.openConnection();
+            urlConnection.setUseCaches(false);
+            InputStream inputStream = urlConnection.getInputStream();
             try {
                 reader = new Java9ClassReader(ByteStreams.toByteArray(inputStream));
             } finally {
