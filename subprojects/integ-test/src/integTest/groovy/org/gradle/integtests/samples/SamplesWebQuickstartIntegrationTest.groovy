@@ -15,9 +15,9 @@
  */
 
 package org.gradle.integtests.samples
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ports.ReleasingPortAllocator
 import org.junit.Rule
@@ -26,7 +26,6 @@ import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.UrlValidator.available
 
-@LeaksFileHandles
 class SamplesWebQuickstartIntegrationTest extends AbstractIntegrationSpec {
     @Rule public final Sample sample = new Sample(temporaryFolder, 'webApplication/quickstart')
     @Rule ReleasingPortAllocator portFinder = new ReleasingPortAllocator()
