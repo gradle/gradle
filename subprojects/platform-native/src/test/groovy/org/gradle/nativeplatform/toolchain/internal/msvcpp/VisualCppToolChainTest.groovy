@@ -65,7 +65,7 @@ class VisualCppToolChainTest extends Specification {
         given:
         def operatingSystem = Stub(OperatingSystem)
         operatingSystem.isWindows() >> false
-        def toolChain = new VisualCppToolChain("visualCpp", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, instantiator)
+        def toolChain = new VisualCppToolChain("visualCpp", buildOperationProcessor, operatingSystem, fileResolver, execActionFactory, visualStudioLocator, windowsSdkLocator, ucrtLocator, instantiator)
 
         when:
         def availability = new ToolChainAvailability()
