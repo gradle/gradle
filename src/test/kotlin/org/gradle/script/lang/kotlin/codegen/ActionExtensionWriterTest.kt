@@ -3,8 +3,6 @@ package org.gradle.script.lang.kotlin.codegen
 import org.gradle.api.Project
 import org.gradle.api.plugins.PluginContainer
 
-import org.gradle.script.lang.kotlin.codegen.classNodeFor
-
 import org.hamcrest.CoreMatchers.endsWith
 import org.hamcrest.MatcherAssert.assertThat
 
@@ -35,33 +33,63 @@ package org.gradle.script.lang.kotlin
 
 import org.gradle.api.Action
 
+/**
+ * This is an automatically generated extension for [org.gradle.api.Project.delete].
+ */
 fun org.gradle.api.Project.delete(p0: org.gradle.api.file.DeleteSpec.() -> Unit): org.gradle.api.tasks.WorkResult =
 	delete(Action { it.p0() })
 
+/**
+ * This is an automatically generated extension for [org.gradle.api.Project.javaexec].
+ */
 fun org.gradle.api.Project.javaexec(p0: org.gradle.process.JavaExecSpec.() -> Unit): org.gradle.process.ExecResult =
 	javaexec(Action { it.p0() })
 
+/**
+ * This is an automatically generated extension for [org.gradle.api.Project.exec].
+ */
 fun org.gradle.api.Project.exec(p0: org.gradle.process.ExecSpec.() -> Unit): org.gradle.process.ExecResult =
 	exec(Action { it.p0() })
 
+/**
+ * This is an automatically generated extension for [org.gradle.api.Project.subprojects].
+ */
 fun org.gradle.api.Project.subprojects(p0: org.gradle.api.Project.() -> Unit): Unit =
 	subprojects(Action { it.p0() })
 
+/**
+ * This is an automatically generated extension for [org.gradle.api.Project.allprojects].
+ */
 fun org.gradle.api.Project.allprojects(p0: org.gradle.api.Project.() -> Unit): Unit =
 	allprojects(Action { it.p0() })
 
+/**
+ * This is an automatically generated extension for [org.gradle.api.Project.beforeEvaluate].
+ */
 fun org.gradle.api.Project.beforeEvaluate(p0: org.gradle.api.Project.() -> Unit): Unit =
 	beforeEvaluate(Action { it.p0() })
 
+/**
+ * This is an automatically generated extension for [org.gradle.api.Project.afterEvaluate].
+ */
 fun org.gradle.api.Project.afterEvaluate(p0: org.gradle.api.Project.() -> Unit): Unit =
 	afterEvaluate(Action { it.p0() })
 
+/**
+ * This is an automatically generated extension for [org.gradle.api.Project.configure].
+ */
 fun <T : Any> org.gradle.api.Project.configure(p0: Iterable<T>, p1: T.() -> Unit): Iterable<T> =
 	configure(p0, Action { it.p1() })
 
+/**
+ * This is an automatically generated extension for [org.gradle.api.Project.copy].
+ */
 fun org.gradle.api.Project.copy(p0: org.gradle.api.file.CopySpec.() -> Unit): org.gradle.api.tasks.WorkResult =
 	copy(Action { it.p0() })
 
+/**
+ * This is an automatically generated extension for [org.gradle.api.Project.copySpec].
+ */
 fun org.gradle.api.Project.copySpec(p0: org.gradle.api.file.CopySpec.() -> Unit): org.gradle.api.file.CopySpec =
 	copySpec(Action { it.p0() })
 
@@ -101,6 +129,8 @@ Lorem ipsum.
             endsWith("""
 /**
  * Lorem ipsum.
+ *
+ * This is an automatically generated extension for [org.gradle.api.plugins.PluginContainer.withId].
  *
  * @param id plugin id.
  * @param configuration plugin configuration.

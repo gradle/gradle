@@ -18,7 +18,7 @@ class ApiExtensionsJarGeneratorTest : TestWithTempFiles() {
     @Test
     fun `includes source with documentation taken from ActionExtensions resource`() {
 
-        val inputFile = apiJarWith(org.gradle.api.Project::class.java, org.gradle.api.Action::class.java)
+        val inputFile = apiJarWith(org.gradle.api.Project::class.java)
         val outputFile = tempFile("extensions.jar")
 
         ApiExtensionsJarGenerator(NullCompiler).generate(outputFile, inputFile)
@@ -26,8 +26,14 @@ class ApiExtensionsJarGeneratorTest : TestWithTempFiles() {
         assertThat(
             textForEntryOf(outputFile, "org/gradle/script/lang/kotlin/ActionExtensions.kt"),
             containsString(
-                kdocFor("org.gradle.api.Project.allprojects(org.gradle.api.Project.() -> Unit)")))
+                firstLinesOf(
+                    kdocFor("org.gradle.api.Project.allprojects(org.gradle.api.Project.() -> Unit)"))))
     }
+
+    private fun firstLinesOf(text: String) =
+        // using only the first 4 lines for comparison to avoid
+        // the additional notice automatically added to each method
+        text.lineSequence().take(4).joinToString(separator = "\n")
 
     object NullCompiler : KotlinFileCompiler {
         override fun compileToDirectory(outputDirectory: File, sourceFile: File, classPath: List<File>) = Unit

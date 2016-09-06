@@ -27,14 +27,26 @@ data class KDoc(val text: String) {
             .toList()
     }
 
-    fun format(): String =
-        text.lineSequence().joinToString(prefix = "/**\n", postfix = "\n */\n", separator = "\n") {
-            " * $it".trimEnd()
+    fun format(notice: String? = null): String =
+        StringBuilder().run {
+            appendln("/**")
+
+            var noticeToInsert = notice
+            text.lineSequence().forEach {
+                if (noticeToInsert != null && it.startsWith('@')) {
+                    appendln(" * $noticeToInsert\n *")
+                    noticeToInsert = null
+                }
+                appendln(" * $it".trimEnd())
+            }
+
+            appendln(" */")
+            toString()
         }
 }
 
 private
-val kDocParamRegex = Regex("\n@param\\s+(\\w+)", RegexOption.MULTILINE)
+val kDocParamRegex = Regex("^@param\\s+(\\w+)", RegexOption.MULTILINE)
 
 object MarkdownKDocProvider {
 

@@ -79,14 +79,11 @@ import org.gradle.api.Action
         val parameterTypeNames = signature.parameters.map { kotlinTypeNameFor(it) }
 
         val kDoc = kDocFor(className, method, parameterTypeNames)
-
         val parameterNames = kDoc?.parameterNames ?: (0..parameterTypeNames.size).map { "p$it" }
         val parameters = parameterNames.zip(parameterTypeNames, ::Parameter)
 
-        // kdoc if available
-        kDoc?.let { write(it.format()) }
-
         // extension declaration
+        writeKDocFor(className, method, kDoc)
         write("fun ")
         if (signature.typeParameters.isNotEmpty()) {
             write(signature.typeParameters.joinToString(prefix = "<", postfix = "> ") {
@@ -107,6 +104,16 @@ import org.gradle.api.Action
             )
         }
         write(")\n\n")
+    }
+
+    private fun writeKDocFor(className: String, method: MethodDescriptor, kDoc: KDoc?) {
+        val notice = "This is an automatically generated extension for [$className.${method.name}]."
+        when {
+            kDoc != null ->
+                write(kDoc.format(notice))
+            else ->
+                write("/**\n * $notice\n */\n")
+        }
     }
 
     private fun kDocFor(className: String, method: MethodDescriptor, parameterTypeNames: List<String>): KDoc? {
