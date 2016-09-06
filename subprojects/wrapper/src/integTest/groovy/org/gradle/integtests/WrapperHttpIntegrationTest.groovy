@@ -198,7 +198,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         given:
         TestKeyStore keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)
-        keyStore.configureServerCert(wrapperExecuter)
+        // We need to set the SSL properties as arguments here even for non-embedded test mode
+        // because we want them to be set on the wrapper client JVM, not the daemon one
+        wrapperExecuter.withArgument("-Djavax.net.ssl.trustStore=$keyStore.trustStore.path")
+        wrapperExecuter.withArgument("-Djavax.net.ssl.trustStorePassword=$keyStore.trustStorePassword")
 
         and:
         prepareWrapper("https://jdoe:changeit@localhost:${server.sslPort}")
