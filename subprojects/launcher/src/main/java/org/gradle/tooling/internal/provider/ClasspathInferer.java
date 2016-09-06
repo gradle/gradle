@@ -72,7 +72,7 @@ public class ClasspathInferer {
      */
     private void find(Class<?> target, Collection<Class<?>> visited, Collection<URL> dest) {
         ClassLoader targetClassLoader = target.getClassLoader();
-        if (targetClassLoader == null || targetClassLoader == ClassLoaderUtils.getSystemClassLoader()) {
+        if (targetClassLoader == null || targetClassLoader == ClassLoaderUtils.getPlatformClassLoader()) {
             // A system class, skip it
             return;
         }

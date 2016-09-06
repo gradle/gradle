@@ -1310,7 +1310,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 // Set the context classloader to the bootstrap classloader, to work around how JAXP locates implementation classes
                 // This should ensure that the JAXP classes provided by the JVM are used, rather than some other implementation
                 ClassLoader original = Thread.currentThread().getContextClassLoader();
-                Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getSystemClassLoader());
+                Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
                 try {
                     SAXParser parser = newSAXParser(schema, schemaStream);
                     parser.parse(xmlStream, handler);

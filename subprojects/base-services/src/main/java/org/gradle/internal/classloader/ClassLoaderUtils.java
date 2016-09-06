@@ -26,9 +26,9 @@ import java.net.URLConnection;
 
 public abstract class ClassLoaderUtils {
     /**
-     * Returns the ClassLoader that contains the Java API only. This is different to {@link ClassLoader#getSystemClassLoader()}, which includes the application classes.
+     * Returns the ClassLoader that contains the Java platform classes only. This is different to {@link ClassLoader#getSystemClassLoader()}, which includes the application classes in addition to the platform classes.
      */
-    public static ClassLoader getSystemClassLoader() {
+    public static ClassLoader getPlatformClassLoader() {
         return ClassLoader.getSystemClassLoader().getParent();
     }
 

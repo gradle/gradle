@@ -99,7 +99,7 @@ public class PomReader implements PomParent {
         // Set the context classloader the bootstrap classloader, to work around the way that JAXP locates implementation classes
         // This should ensure that the JAXP classes provided by the JVM are used, rather than some other implementation
         ClassLoader original = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getSystemClassLoader());
+        Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
         try {
             DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
             DOCUMENT_BUILDER_FACTORY.setValidating(false);
@@ -243,7 +243,7 @@ public class PomReader implements PomParent {
         // Set the context classloader the bootstrap classloader, to work around the way that JAXP locates implementation classes
         // This should ensure that the JAXP classes provided by the JVM are used, rather than some other implementation
         ClassLoader original = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getSystemClassLoader());
+        Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
         try {
             InputStream dtdStream = new AddDTDFilterInputStream(stream);
             return getDocBuilder(M2_ENTITY_RESOLVER).parse(dtdStream, systemId);
