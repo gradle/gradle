@@ -19,17 +19,15 @@ import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.NativeIntegrationUnavailableException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.Map;
 
 public class UnsupportedEnvironment implements ProcessEnvironment {
-
-    private final Long pid;
-
-    public UnsupportedEnvironment(Long pid) {
-        this.pid = pid;
-    }
+    private static final Logger LOGGER = LoggerFactory.getLogger(UnsupportedEnvironment.class);
 
     @Override
     public boolean maybeSetEnvironment(Map<String, String> source) {
@@ -73,6 +71,7 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
 
     @Override
     public Long getPid() throws NativeIntegrationException {
+        Long pid = maybeGetPid();
         if (pid != null) {
             return pid;
         }
@@ -81,6 +80,14 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
 
     @Override
     public Long maybeGetPid() {
+        Long pid = null;
+        try {
+            //try to obtain the PID
+            String vmName = ManagementFactory.getRuntimeMXBean().getName();
+            pid = Long.parseLong(vmName.substring(0, vmName.indexOf("@")));
+        } catch (RuntimeException e) {
+            LOGGER.debug("Native-platform process: failed to parse PID from Java VM name - " + e.getMessage());
+        }
         return pid;
     }
 
