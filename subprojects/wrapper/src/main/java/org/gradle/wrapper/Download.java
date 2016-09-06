@@ -24,19 +24,19 @@ public class Download implements IDownload {
     private static final int PROGRESS_CHUNK = 20000;
     private static final int BUFFER_SIZE = 10000;
     private final Logger logger;
-    private final String applicationName;
-    private final String applicationVersion;
+    private final String appName;
+    private final String appVersion;
 
-    public Download(Logger logger, String applicationName, String applicationVersion) {
+    public Download(Logger logger, String appName, String appVersion) {
         this.logger = logger;
-        this.applicationName = applicationName;
-        this.applicationVersion = applicationVersion;
+        this.appName = appName;
+        this.appVersion = appVersion;
         configureProxyAuthentication();
     }
 
     private void configureProxyAuthentication() {
         if (System.getProperty("http.proxyUser") != null) {
-            Authenticator.setDefault(new SystemPropertiesProxyAuthenticator());
+            Authenticator.setDefault(new ProxyAuthenticator());
         }
     }
 
@@ -102,8 +102,7 @@ public class Download implements IDownload {
         if (!"https".equals(address.getScheme())) {
             logger.log("WARNING Using HTTP Basic Authentication over an insecure connection to download the Gradle distribution. Please consider using HTTPS.");
         }
-        String authorizationHeaderValue = "Basic " + base64EncodeForBasicAuthentication(userInfo);
-        connection.setRequestProperty("Authorization", authorizationHeaderValue);
+        connection.setRequestProperty("Authorization", "Basic " + base64Encode(userInfo));
     }
 
     /**
@@ -117,19 +116,16 @@ public class Download implements IDownload {
      * @return Base64 encoded user info
      * @throws RuntimeException if no public Base64 encoder is available on this JVM
      */
-    private String base64EncodeForBasicAuthentication(String userInfo) {
+    private String base64Encode(String userInfo) {
         ClassLoader loader = getClass().getClassLoader();
         try {
-            Class<?> base64Class = loader.loadClass("java.util.Base64");
-            Method getEncoderMethod = base64Class.getMethod("getEncoder");
-            Class<?> encoderClass = loader.loadClass("java.util.Base64$Encoder");
-            Method encodeMethod = encoderClass.getMethod("encodeToString", byte[].class);
+            Method getEncoderMethod = loader.loadClass("java.util.Base64").getMethod("getEncoder");
+            Method encodeMethod = loader.loadClass("java.util.Base64$Encoder").getMethod("encodeToString", byte[].class);
             Object encoder = getEncoderMethod.invoke(null);
             return (String) encodeMethod.invoke(encoder, new Object[]{userInfo.getBytes("UTF-8")});
         } catch (Exception java7OrEarlier) {
             try {
-                Class<?> encoderClass = loader.loadClass("javax.xml.bind.DatatypeConverter");
-                Method encodeMethod = encoderClass.getMethod("printBase64Binary", byte[].class);
+                Method encodeMethod = loader.loadClass("javax.xml.bind.DatatypeConverter").getMethod("printBase64Binary", byte[].class);
                 return (String) encodeMethod.invoke(null, new Object[]{userInfo.getBytes("UTF-8")});
             } catch (Exception java5OrEarlier) {
                 throw new RuntimeException("Downloading Gradle distributions with HTTP Basic Authentication is not supported on your JVM.", java5OrEarlier);
@@ -147,19 +143,16 @@ public class Download implements IDownload {
     }
 
     private String calculateUserAgent() {
-        String appVersion = applicationVersion;
-
         String javaVendor = System.getProperty("java.vendor");
         String javaVersion = System.getProperty("java.version");
         String javaVendorVersion = System.getProperty("java.vm.version");
         String osName = System.getProperty("os.name");
         String osVersion = System.getProperty("os.version");
         String osArch = System.getProperty("os.arch");
-        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", applicationName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
+        return String.format("%s/%s (%s;%s;%s) (%s;%s;%s)", appName, appVersion, osName, osVersion, osArch, javaVendor, javaVersion, javaVendorVersion);
     }
 
-    private static class SystemPropertiesProxyAuthenticator extends
-            Authenticator {
+    private static class ProxyAuthenticator extends Authenticator {
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
             return new PasswordAuthentication(
