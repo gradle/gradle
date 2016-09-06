@@ -24,6 +24,8 @@ import org.gradle.tooling.BuildAction
 import org.gradle.tooling.BuildController
 import org.gradle.tooling.ProjectConnection
 
+import java.nio.file.Files
+
 class BuildActionCrossVersionSpec extends ToolingApiSpecification {
     @TargetGradleVersion(">=2.2")
     def "can change the implementation of an action"() {
@@ -49,12 +51,12 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
         builder.buildJar(implJar)
 
         // Some temporary assertions
-        implJar.delete()
+        Files.delete(implJar.toPath())
         builder.buildJar(implJar)
         def cl0 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
         cl0.loadClass("ActionImpl").newInstance()
         cl0.close()
-        implJar.delete()
+        Files.delete(implJar.toPath())
         builder.buildJar(implJar)
 
         def cl1 = new URLClassLoader([implJar.toURI().toURL()] as URL[], getClass().classLoader)
@@ -65,7 +67,7 @@ public class ActionImpl implements ${BuildAction.name}<java.io.File> {
             connection.action(action1).run()
         }
         cl1.close()
-        implJar.delete()
+        Files.delete(implJar.toPath())
 
         then:
         actualJar1 != implJar
@@ -87,7 +89,7 @@ public class ActionImpl implements ${BuildAction.name}<String> {
             connection.action(action2).run()
         }
         cl2.close()
-        implJar.delete()
+        Files.delete(implJar.toPath())
 
         then:
         def actualJar2 = new File(new URI(result2))
