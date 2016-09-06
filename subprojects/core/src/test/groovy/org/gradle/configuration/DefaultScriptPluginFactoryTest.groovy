@@ -19,7 +19,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.file.FileLookup
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
@@ -66,7 +66,7 @@ public class DefaultScriptPluginFactoryTest extends Specification {
     def classPathScriptRunner = Mock(ScriptRunner)
     def loggingManagerFactory = Mock(Factory) as Factory<LoggingManagerInternal>
     def loggingManager = Mock(LoggingManagerInternal)
-    def fileLookup = Mock(FileLookup)
+    def fileLookup = TestFiles.fileLookup()
     def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
     def documentationRegistry = Mock(DocumentationRegistry)
     def classPathSnapshotter = Mock(ClassPathSnapshotter)
