@@ -22,15 +22,17 @@ import org.gradle.script.lang.kotlin.support.zipTo
 
 import java.io.File
 
-fun generateActionExtensionsJar(outputFile: File, apiJar: File) {
-    ApiExtensionsJarGenerator().generate(outputFile, apiJar)
+fun generateActionExtensionsJar(outputFile: File, apiJar: File, onProgress: () -> Unit) {
+    ApiExtensionsJarGenerator(onProgress = onProgress).generate(outputFile, apiJar)
 }
 
 interface KotlinFileCompiler {
     fun compileToDirectory(outputDirectory: File, sourceFile: File, classPath: List<File>)
 }
 
-class ApiExtensionsJarGenerator(val compiler: KotlinFileCompiler = StandardKotlinFileCompiler) {
+class ApiExtensionsJarGenerator(
+    val compiler: KotlinFileCompiler = StandardKotlinFileCompiler,
+    val onProgress: () -> Unit = {}) {
 
     fun generate(outputFile: File, inputApiJar: File) {
         val tempDir = tempDirFor(outputFile)
@@ -63,6 +65,7 @@ class ApiExtensionsJarGenerator(val compiler: KotlinFileCompiler = StandardKotli
                     val classNode = classNodeFor(zipInputStream)
                     extensionWriter.writeExtensionsFor(classNode)
                 }
+                onProgress()
             }
         }
     }

@@ -20,6 +20,8 @@ import org.gradle.api.internal.ClassPathRegistry
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.api.internal.cache.GeneratedGradleJarCache
 
+import org.gradle.internal.logging.progress.ProgressLoggerFactory
+
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.PluginServiceRegistry
 
@@ -47,8 +49,13 @@ class KotlinScriptServiceRegistry : PluginServiceRegistry {
         private fun createKotlinScriptClassPathProvider(
             classPathRegistry: ClassPathRegistry,
             dependencyFactory: DependencyFactory,
-            jarCache: GeneratedGradleJarCache) =
-            KotlinScriptClassPathProvider(classPathRegistry, dependencyFactory, versionedJarCacheFor(jarCache))
+            jarCache: GeneratedGradleJarCache,
+            progressLoggerFactory: ProgressLoggerFactory) =
+            KotlinScriptClassPathProvider(
+                classPathRegistry,
+                gradleApiJarsProviderFor(dependencyFactory),
+                versionedJarCacheFor(jarCache),
+                StandardJarGenerationProgressMonitorProvider(progressLoggerFactory))
 
         private fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =
             { id, creator -> jarCache["$id-$gradleScriptKotlinVersion", creator] }

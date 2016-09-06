@@ -19,7 +19,7 @@ class ApiExtensionsJarGeneratorTest : TestWithTempFiles() {
     fun `includes source with documentation taken from ActionExtensions resource`() {
 
         val inputFile = apiJarWith(org.gradle.api.Project::class.java)
-        val outputFile = tempFile("extensions.jar")
+        val outputFile = newFile("extensions.jar")
 
         ApiExtensionsJarGenerator(NullCompiler).generate(outputFile, inputFile)
 
@@ -40,7 +40,7 @@ class ApiExtensionsJarGeneratorTest : TestWithTempFiles() {
     }
 
     private fun apiJarWith(vararg classes: Class<*>): File {
-        val inputFile = tempFile("api.jar")
+        val inputFile = newFile("api.jar")
         zipTo(inputFile, classEntriesFor(*classes))
         return inputFile
     }

@@ -38,8 +38,9 @@ typealias ZipInputStreamEntryPredicate = ZipInputStreamEntry.() -> Boolean
 fun removeMethodsMatching(predicate: MethodPredicate,
                           input: InputStream,
                           output: OutputStream,
-                          shouldTransformEntry: ZipInputStreamEntryPredicate = { zipEntry.name.endsWith(".class") }) {
-    transformClasses(input, output, shouldTransformEntry) { classVisitor ->
+                          shouldTransformEntry: ZipInputStreamEntryPredicate = { zipEntry.name.endsWith(".class") },
+                          onProgress: () -> Unit = {}) {
+    transformClasses(input, output, shouldTransformEntry, onProgress) { classVisitor ->
         MethodRemovingVisitor(predicate, classVisitor)
     }
 }
@@ -49,6 +50,7 @@ typealias MethodPredicate = (MethodDescriptor) -> Boolean
 fun transformClasses(input: InputStream,
                      output: OutputStream,
                      shouldTransformEntry: ZipInputStreamEntryPredicate,
+                     onProgress: () -> Unit,
                      decorator: (ClassVisitor) -> ClassVisitor) {
     ZipOutputStream(output).use { zos ->
         zos.setLevel(0)
@@ -70,6 +72,7 @@ fun transformClasses(input: InputStream,
                     zos.closeEntry()
                 }
             }
+            onProgress()
         }
     }
 }

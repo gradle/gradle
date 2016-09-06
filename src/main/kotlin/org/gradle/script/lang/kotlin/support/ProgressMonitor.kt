@@ -14,21 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.script.lang.kotlin.codegen
+package org.gradle.script.lang.kotlin.support
 
-import org.gradle.script.lang.kotlin.support.asm.removeMethodsMatching
+import java.io.Closeable
 
-import java.io.File
-
-fun generateKotlinGradleApiJar(outputFile: File, gradleApiJar: File, onProgress: () -> Unit) {
-    gradleApiJar.inputStream().use { input ->
-        outputFile.outputStream().use { output ->
-            removeMethodsMatching(
-                ::conflictsWithExtension,
-                input.buffered(),
-                output.buffered(),
-                shouldTransformEntry = { isApiClassEntry() },
-                onProgress = onProgress)
-        }
-    }
+interface ProgressMonitor : Closeable {
+    fun onProgress()
 }

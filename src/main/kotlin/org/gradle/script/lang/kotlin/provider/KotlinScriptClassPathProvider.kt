@@ -19,6 +19,8 @@ package org.gradle.script.lang.kotlin.provider
 import org.gradle.script.lang.kotlin.codegen.generateActionExtensionsJar
 import org.gradle.script.lang.kotlin.codegen.generateKotlinGradleApiJar
 
+import org.gradle.script.lang.kotlin.support.ProgressMonitor
+
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 
@@ -34,14 +36,19 @@ import org.jetbrains.kotlin.utils.addToStdlib.singletonList
 
 import java.io.File
 
+import java.util.zip.ZipFile
+
 typealias JarCache = (String, JarGenerator) -> File
 
 typealias JarGenerator = (File) -> Unit
 
+typealias JarsProvider = () -> Collection<File>
+
 class KotlinScriptClassPathProvider(
     val classPathRegistry: ClassPathRegistry,
-    val dependencyFactory: DependencyFactory,
-    val jarCache: JarCache) {
+    val gradleApiJarsProvider: JarsProvider,
+    val jarCache: JarCache,
+    val progressMonitorProvider: JarGenerationProgressMonitorProvider) {
 
     /**
      * Generated Gradle API jar plus supporting libraries such as groovy-all.jar.
@@ -68,7 +75,7 @@ class KotlinScriptClassPathProvider(
      * Returns the generated Gradle API jar plus supporting files such as groovy-all.jar.
      */
     private fun gradleApiFiles() =
-        gradleApiDependency().resolve().flatMap {
+        gradleApiJarsProvider().flatMap {
             when {
                 it.name.startsWith("gradle-api-") ->
                     listOf(
@@ -80,19 +87,23 @@ class KotlinScriptClassPathProvider(
         }
 
     private fun kotlinGradleApiFrom(gradleApiJar: File): File =
-        produce("script-kotlin-api") { outputFile ->
-            generateKotlinGradleApiJar(outputFile, gradleApiJar)
+        produceFrom(gradleApiJar, "script-kotlin-api") { outputFile, onProgress ->
+            generateKotlinGradleApiJar(outputFile, gradleApiJar, onProgress)
         }
 
     private fun kotlinGradleApiExtensionsFrom(gradleApiJar: File): File =
-        produce("script-kotlin-extensions") { outputFile ->
-            generateActionExtensionsJar(outputFile, gradleApiJar)
+        produceFrom(gradleApiJar, "script-kotlin-extensions") { outputFile, onProgress ->
+            generateActionExtensionsJar(outputFile, gradleApiJar, onProgress)
         }
 
-    private fun produce(id: String, generate: JarGenerator): File =
+    private fun produceFrom(gradleApiJar: File, id: String, generate: JarGeneratorWithProgress): File =
         jarCache(id) { outputFile ->
-            generateAtomically(outputFile, generate)
+            progressMonitorFor(outputFile, numberOfEntriesIn(gradleApiJar)).use { progressMonitor ->
+                generateAtomically(outputFile, { generate(it, progressMonitor::onProgress) })
+            }
         }
+
+    typealias JarGeneratorWithProgress = (File, () -> Unit) -> Unit
 
     private fun generateAtomically(outputFile: File, generate: JarGenerator) {
         val tempFile = tempFileFor(outputFile)
@@ -100,14 +111,20 @@ class KotlinScriptClassPathProvider(
         moveFile(tempFile, outputFile)
     }
 
+    private fun progressMonitorFor(outputFile: File, totalWork: Int): ProgressMonitor =
+        progressMonitorProvider.progressMonitorFor(outputFile, totalWork)
+
     private fun tempFileFor(outputFile: File): File =
         createTempFile(outputFile.nameWithoutExtension, outputFile.extension).apply {
             deleteOnExit()
         }
 
-    private fun gradleApiDependency() =
-        (dependencyFactory.gradleApi() as SelfResolvingDependency)
+    private fun numberOfEntriesIn(gradleApiJar: File) =
+        ZipFile(gradleApiJar).use { it.size() }
 }
+
+fun gradleApiJarsProviderFor(dependencyFactory: DependencyFactory): JarsProvider =
+    { (dependencyFactory.gradleApi() as SelfResolvingDependency).resolve() }
 
 fun gradleScriptKotlinJarsFrom(classPathRegistry: ClassPathRegistry): List<File> =
     classPathRegistry.gradleJars().filter {
@@ -127,4 +144,3 @@ fun isKotlinJar(name: String): Boolean =
     name.startsWith("kotlin-stdlib-")
         || name.startsWith("kotlin-reflect-")
         || name.startsWith("kotlin-runtime-")
-

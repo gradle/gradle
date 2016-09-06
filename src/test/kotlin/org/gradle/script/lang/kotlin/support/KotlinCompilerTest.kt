@@ -17,7 +17,7 @@ class KotlinCompilerTest : TestWithTempFiles() {
     @Test
     fun `can compile Kotlin source file into jar`() {
 
-        val sourceFile = tempFile("DeepThought.kt").apply {
+        val sourceFile = newFile("DeepThought.kt").apply {
             writeText("""
                 package adams
 
@@ -27,7 +27,7 @@ class KotlinCompilerTest : TestWithTempFiles() {
             """)
         }
 
-        val outputJar = tempFile("output.jar")
+        val outputJar = newFile("output.jar")
 
         compileToJar(outputJar, sourceFile, loggerFor<KotlinCompilerTest>())
 
