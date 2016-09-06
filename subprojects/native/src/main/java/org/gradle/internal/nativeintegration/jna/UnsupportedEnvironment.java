@@ -21,9 +21,17 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.Map;
 
 public class UnsupportedEnvironment implements ProcessEnvironment {
+
+    private final Long pid;
+
+    public UnsupportedEnvironment(Long pid) {
+        this.pid = pid;
+    }
+
     @Override
     public boolean maybeSetEnvironment(Map<String, String> source) {
         return false;
@@ -66,12 +74,15 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
 
     @Override
     public Long getPid() throws NativeIntegrationException {
+        if (pid != null) {
+            return pid;
+        }
         throw notSupported();
     }
 
     @Override
     public Long maybeGetPid() {
-        return null;
+        return pid;
     }
 
     private NativeIntegrationException notSupported() {

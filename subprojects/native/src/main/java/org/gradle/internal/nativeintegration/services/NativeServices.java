@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -135,7 +136,15 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             }
         }
 
-        return new UnsupportedEnvironment();
+        Long pid = null;
+        try {
+            //try to obtain a PID (works on Solaris)
+            String vmName = ManagementFactory.getRuntimeMXBean().getName();
+            pid = Long.parseLong(vmName.substring(0, vmName.indexOf("@")));
+        } catch (RuntimeException e) {
+            LOGGER.debug("Native-platform process: failed to parse PID from Java VM name - " + e.getMessage());
+        }
+        return new UnsupportedEnvironment(pid);
     }
 
     protected ConsoleDetector createConsoleDetector(OperatingSystem operatingSystem) {
