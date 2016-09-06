@@ -19,6 +19,7 @@ package org.gradle.integtests
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.TestProxyServer
@@ -189,6 +190,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         result.output.contains('Please consider using HTTPS')
     }
 
+    @LeaksFileHandles
     def "does not warn about using basic authentication over secure connection"() {
         given:
         TestKeyStore keyStore = TestKeyStore.init(resources.dir)
@@ -228,15 +230,10 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.expectGetBroken("/gradlew/dist")
 
         when:
-        def exception
-        try {
-            wrapperExecuter.withTasks('hello').run()
-            fail("Expected Exception")
-        } catch (Exception e) {
-            exception = e
-        }
+        wrapperExecuter.withTasks('hello').run()
 
         then:
+        def exception = thrown(Exception)
         !exception.message.contains('changeit')
     }
 
