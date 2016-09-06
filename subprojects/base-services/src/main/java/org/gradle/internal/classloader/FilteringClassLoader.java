@@ -45,7 +45,7 @@ public class FilteringClassLoader extends ClassLoader implements ClassLoaderHier
     private final Set<String> disallowedPackagePrefixes = new HashSet<String>();
 
     static {
-        EXT_CLASS_LOADER = ClassLoader.getSystemClassLoader().getParent();
+        EXT_CLASS_LOADER = ClassLoaderUtils.getSystemClassLoader();
         JavaMethod<ClassLoader, Package[]> method = JavaReflectionUtil.method(ClassLoader.class, Package[].class, "getPackages");
         Package[] systemPackages = method.invoke(EXT_CLASS_LOADER);
         for (Package p : systemPackages) {

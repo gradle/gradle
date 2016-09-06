@@ -25,6 +25,13 @@ import java.net.URL;
 import java.net.URLConnection;
 
 public abstract class ClassLoaderUtils {
+    /**
+     * Returns the ClassLoader that contains the Java API only. This is different to {@link ClassLoader#getSystemClassLoader()}, which includes the application classes.
+     */
+    public static ClassLoader getSystemClassLoader() {
+        return ClassLoader.getSystemClassLoader().getParent();
+    }
+
     public static void tryClose(@Nullable ClassLoader classLoader) {
         CompositeStoppable.stoppable(classLoader).stop();
     }
