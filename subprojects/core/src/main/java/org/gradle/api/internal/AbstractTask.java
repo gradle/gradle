@@ -77,11 +77,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
     private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();
 
-    // TODO Make this final once setProject() is removed
-    private ProjectInternal project;
+    private final ProjectInternal project;
 
-    // TODO Make this final once setName() is removed
-    private String name;
+    private final String name;
 
     private final List<ContextAwareTaskAction> actions = new ArrayList<ContextAwareTaskAction>();
 
