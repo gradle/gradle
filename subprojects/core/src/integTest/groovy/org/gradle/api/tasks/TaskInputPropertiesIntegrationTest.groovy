@@ -247,6 +247,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Ignore
+    @Unroll("can use Enum from buildSrc as input property - flushCaches: #flushCaches")
     @Issue("GRADLE-3537")
     def "can use Enum from buildSrc as input property"() {
         given:
@@ -260,6 +261,16 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         buildFile << """
             import org.gradle.MessageType
+            import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
+
+            if(project.hasProperty('flushCaches')) {
+                println "Flushing InMemoryTaskArtifactCache"
+                gradle.taskGraph.whenReady {
+                    gradle.services.get(InMemoryTaskArtifactCache).cache.asMap().each { k, v ->
+                        v.invalidateAll()
+                    }
+                }
+            }
 
             task createFile {
                 ext.messageType = MessageType.HELLO_WORLD
@@ -281,10 +292,16 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.empty
 
         when:
+        if (flushCaches) {
+            executer.withArgument('-PflushCaches')
+        }
         succeeds 'createFile'
 
         then:
         executedTasks == [':createFile']
         skippedTasks == [':createFile'] as Set
+
+        where:
+        flushCaches << [false, true]
     }
 }
