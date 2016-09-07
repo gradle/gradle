@@ -49,10 +49,10 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
             try {
                 pid = Long.parseLong(runtimeMXBeanName.substring(0, separatorPos));
             } catch (NumberFormatException e) {
-                LOGGER.debug("Native-platform process: failed to parse PID from Java VM name: " + runtimeMXBeanName);
+                LOGGER.debug("Native-platform process: failed to parse PID from Runtime MX bean name: " + runtimeMXBeanName);
             }
         } else {
-            LOGGER.debug("Native-platform process: failed to parse PID from Java VM name");
+            LOGGER.debug("Native-platform process: failed to parse PID from Runtime MX bean name");
         }
         return pid;
     }
