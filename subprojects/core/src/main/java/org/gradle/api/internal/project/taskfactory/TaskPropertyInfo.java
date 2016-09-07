@@ -160,7 +160,7 @@ public class TaskPropertyInfo implements TaskPropertyActionContext {
         final Object finalBean = bean;
         final Object value = DeprecationLogger.whileDisabled(new Factory<Object>() {
             public Object create() {
-                return JavaReflectionUtil.method(finalBean, Object.class, method).invoke(finalBean);
+                return JavaReflectionUtil.method(Object.class, method).invoke(finalBean);
             }
         });
 
