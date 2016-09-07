@@ -26,6 +26,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.ClassLoaderHierarchy;
 import org.gradle.internal.classloader.ClassLoaderSpec;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClassLoaderVisitor;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.SystemClassLoaderSpec;
@@ -121,6 +122,7 @@ public class WorkerProcessClassPathProvider implements ClassPathProvider, Closea
                         GradleWorkerMain.class,
                         BootstrapSecurityManager.class,
                         EncodedStream.EncodedInput.class,
+                        ClassLoaderUtils.class,
                         FilteringClassLoader.class,
                         FilteringClassLoader.Spec.class,
                         ClassLoaderHierarchy.class,
