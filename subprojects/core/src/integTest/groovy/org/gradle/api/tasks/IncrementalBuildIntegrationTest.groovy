@@ -658,4 +658,47 @@ task generate(type: TransformerTask) {
         nonSkippedTasks as List ==  [":otherBuild"]
         skippedTasks as List ==  [":transform", ":build:generate"]
     }
+
+    def "can use outputs and inputs from other task"() {
+        buildFile << """
+            class TaskA extends DefaultTask {
+                @OutputFile
+                File outputFile
+
+                @TaskAction void exec() {
+                    outputFile.text = "output-file"
+                }
+            }
+
+            class TaskB extends DefaultTask {
+                @InputFiles
+                FileCollection inputFiles
+
+                @TaskAction void exec() {
+                    inputFiles.each { file ->
+                        println "Task '\$name' file '\${file.name}'"
+                    }
+                }
+            }
+
+            task a(type: TaskA) {
+                outputFile = file("output.txt")
+            }
+
+            task b(type: TaskB) {
+                inputFiles = tasks.a.outputs.files
+            }
+
+            task b2(type: TaskB) {
+                inputFiles = tasks.b.inputs.files
+            }
+        """
+
+        when:
+        succeeds "b", "b2"
+
+        then:
+        output.contains "Task 'b' file 'output.txt'"
+        output.contains "Task 'b2' file 'output.txt'"
+    }
 }
