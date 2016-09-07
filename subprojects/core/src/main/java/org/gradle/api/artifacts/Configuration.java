@@ -432,4 +432,12 @@ public interface Configuration extends FileCollection {
      * @return copy of this configuration
      */
     Configuration copyRecursive(Closure dependencySpec);
+
+    Configuration attribute(String key, String value);
+
+    Configuration attributes(Map<String, String> attributes);
+
+    Map<String, String> getAttributes();
+
+    boolean hasAttributes();
 }

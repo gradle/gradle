@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
@@ -29,6 +30,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.initialization.ProjectAccessListener;
 
 import java.io.File;
+import java.util.Map;
 import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
@@ -36,6 +38,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private final boolean buildProjectDependencies;
     private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
     private final ProjectAccessListener projectAccessListener;
+    private Configuration dependentConfiguration;
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
         this(dependencyProject, null, projectAccessListener, buildProjectDependencies);
@@ -66,6 +69,26 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     public Configuration getProjectConfiguration() {
+        if (dependentConfiguration != null && dependentConfiguration.hasAttributes()) {
+            ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
+            for (Configuration dependencyConfiguration : dependencyConfigurations) {
+                if (dependencyConfiguration.hasAttributes()) {
+                    Map<String, String> attributes = dependencyConfiguration.getAttributes();
+                    boolean matches = true;
+                    for (Map.Entry<String, String> source : dependentConfiguration.getAttributes().entrySet()) {
+                        String key = source.getKey();
+                        String value = source.getValue();
+                        matches = attributes.containsKey(key) && value.equals(attributes.get(key));
+                        if (!matches) {
+                            break;
+                        }
+                    }
+                    if (matches) {
+                        return dependencyConfiguration;
+                    }
+                }
+            }
+        }
         return dependencyProject.getConfigurations().getByName(getConfiguration());
     }
 
@@ -140,6 +163,11 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void setDependentConfiguration(Configuration dependentConfiguration) {
+        this.dependentConfiguration = dependentConfiguration;
     }
 
     @Override

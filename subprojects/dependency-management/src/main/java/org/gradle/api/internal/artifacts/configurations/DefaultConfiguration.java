@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -72,6 +73,7 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -125,6 +127,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
+    private Map<String, String> attributes;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -705,6 +708,36 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
         super.registerWatchPoints(builder);
+    }
+
+    @Override
+    public Configuration attribute(String key, String value) {
+        ensureAttributes();
+        attributes.put(key, value);
+        return this;
+    }
+
+    @Override
+    public Configuration attributes(Map<String, String> attributes) {
+        ensureAttributes();
+        this.attributes.putAll(attributes);
+        return this;
+    }
+
+    private void ensureAttributes() {
+        if (this.attributes == null) {
+            this.attributes = new HashMap<String, String>();
+        }
+    }
+
+    @Override
+    public Map<String, String> getAttributes() {
+        return attributes == null ? Collections.<String, String>emptyMap() : ImmutableMap.copyOf(attributes);
+    }
+
+    @Override
+    public boolean hasAttributes() {
+        return attributes != null && !attributes.isEmpty();
     }
 
     /**
