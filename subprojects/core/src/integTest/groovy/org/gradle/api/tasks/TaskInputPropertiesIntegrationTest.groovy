@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -246,7 +245,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "b" assertTasksExecuted ":a", ":b"
     }
 
-    @Ignore
     @Unroll("can use Enum from buildSrc as input property - flushCaches: #flushCaches taskType: #taskType")
     @Issue("GRADLE-3537")
     def "can use Enum from buildSrc as input property"() {
