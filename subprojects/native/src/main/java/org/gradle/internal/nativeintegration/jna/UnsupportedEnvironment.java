@@ -35,8 +35,13 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
         pid = extractPIDFromRuntimeMXBeanName();
     }
 
+    /**
+     * The default format of the name of the Runtime MX bean is PID@HOSTNAME.
+     * The PID is parsed assuming that is the format.
+     *
+     * This works on Solaris and should work with any Java VM
+     */
     private Long extractPIDFromRuntimeMXBeanName() {
-        //This works on Solaris and should work with any Java VM
         String runtimeMXBeanName = ManagementFactory.getRuntimeMXBean().getName();
         int separatorPos = runtimeMXBeanName.indexOf('@');
         if (separatorPos > -1) {
