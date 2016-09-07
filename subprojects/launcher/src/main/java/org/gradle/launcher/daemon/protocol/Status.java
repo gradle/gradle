@@ -32,6 +32,7 @@ public class Status implements Serializable {
         this.status = status;
     }
 
+    @Nullable
     public Long getPid() {
         return pid;
     }
