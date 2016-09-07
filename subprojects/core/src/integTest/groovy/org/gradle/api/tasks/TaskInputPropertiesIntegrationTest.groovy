@@ -247,7 +247,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Ignore
-    @Unroll("can use Enum from buildSrc as input property - flushCaches: #flushCaches")
+    @Unroll("can use Enum from buildSrc as input property - flushCaches: #flushCaches useCustomTask: #useCustomTask")
     @Issue("GRADLE-3537")
     def "can use Enum from buildSrc as input property"() {
         given:
@@ -258,9 +258,17 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 HELLO_WORLD
             }
         """
+        file("buildSrc/src/main/java/org/gradle/MyTask.java") << """
+            package org.gradle;
+
+            public class MyTask extends org.gradle.api.DefaultTask {
+
+            }
+        """
 
         buildFile << """
             import org.gradle.MessageType
+            import org.gradle.MyTask
             import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 
             if(project.hasProperty('flushCaches')) {
@@ -272,7 +280,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task createFile {
+            task createFile(type: project.hasProperty('useCustomTask') ? MyTask : DefaultTask) {
                 ext.messageType = MessageType.HELLO_WORLD
                 ext.outputFile = file('output.txt')
                 inputs.property('messageType', messageType)
@@ -283,6 +291,9 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
+        if (useCustomTask) {
+            executer.withArgument('-PuseCustomTask')
+        }
 
         when:
         succeeds 'createFile'
@@ -295,6 +306,9 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         if (flushCaches) {
             executer.withArgument('-PflushCaches')
         }
+        if (useCustomTask) {
+            executer.withArgument('-PuseCustomTask')
+        }
         succeeds 'createFile'
 
         then:
@@ -302,6 +316,6 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks == [':createFile'] as Set
 
         where:
-        flushCaches << [false, true]
+        [flushCaches, useCustomTask] << [[false, true], [false, true]].combinations()
     }
 }
