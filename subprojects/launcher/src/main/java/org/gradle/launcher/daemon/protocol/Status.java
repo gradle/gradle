@@ -16,9 +16,12 @@
 
 package org.gradle.launcher.daemon.protocol;
 
+import org.gradle.api.Nullable;
+
 import java.io.Serializable;
 
 public class Status implements Serializable {
+    @Nullable
     private final Long pid;
     private final String version;
     private final String status;
