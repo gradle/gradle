@@ -32,15 +32,15 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
     private final Long pid;
 
     public UnsupportedEnvironment() {
-        pid = extractPIDFromVMName();
+        pid = extractPIDFromRuntimeMXBeanName();
     }
 
-    private Long extractPIDFromVMName() {
+    private Long extractPIDFromRuntimeMXBeanName() {
         //This works on Solaris and should work with any Java VM
-        String vmName = ManagementFactory.getRuntimeMXBean().getName();
-        int separatorPos = vmName.indexOf('@');
+        String runtimeMXBeanName = ManagementFactory.getRuntimeMXBean().getName();
+        int separatorPos = runtimeMXBeanName.indexOf('@');
         if (separatorPos > -1) {
-            return Long.parseLong(vmName.substring(0, separatorPos));
+            return Long.parseLong(runtimeMXBeanName.substring(0, separatorPos));
         } else {
             LOGGER.debug("Native-platform process: failed to parse PID from Java VM name");
             return null;
