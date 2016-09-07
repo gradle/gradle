@@ -22,6 +22,8 @@ import com.google.common.collect.HashMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multiset;
 import org.gradle.api.Nullable;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.ClassPathSnapshot;
@@ -37,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
+    private static final Logger LOGGER = Logging.getLogger(DefaultClassLoaderCache.class);
 
     private final Object lock = new Object();
     private final Map<ClassLoaderId, CachedClassLoader> byId = Maps.newHashMap();
@@ -60,6 +63,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
                 byId.put(id, newLoader);
 
                 if (cachedLoader != null) {
+                    LOGGER.debug("Releasing previous classloader for {}", id);
                     cachedLoader.release(id);
                 }
 
@@ -238,6 +242,7 @@ public class DefaultClassLoaderCache implements ClassLoaderCache, Stoppable {
                         parent.release(loaderId);
                     }
                     bySpec.remove(spec);
+                    LOGGER.debug("Closing classloader for {} since it is now unused.", loaderId);
                     close();
                 }
             } else {

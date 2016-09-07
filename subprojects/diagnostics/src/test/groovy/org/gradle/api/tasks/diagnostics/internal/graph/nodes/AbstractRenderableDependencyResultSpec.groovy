@@ -20,10 +20,10 @@ import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import spock.lang.Specification
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class AbstractRenderableDependencyResultSpec extends Specification {
 
@@ -43,7 +43,7 @@ class AbstractRenderableDependencyResultSpec extends Specification {
 
     def "renders name for ProjectComponentSelector"() {
         given:
-        def requested = DefaultProjectComponentSelector.newSelector(':a')
+        def requested = TestComponentIdentifiers.newSelector(':a')
 
         expect:
         dep(requested, newProjectId(':a')).name == 'project :a'

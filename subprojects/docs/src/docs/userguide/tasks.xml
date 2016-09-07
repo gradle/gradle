@@ -604,7 +604,7 @@
                     so that you can take advantage of the <link linkend="javaGradle_plugin">Java Gradle
                     Plugin Development plugin</link> to help you develop and publish your own plugins.
                     This plugin checks whether any properties of your custom task classes lack an
-                    incremental buildannotation. This protects you from forgetting to add an appropriate
+                    incremental build annotation. This protects you from forgetting to add an appropriate
                     annotation during development.
                 </para>
 

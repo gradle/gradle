@@ -25,11 +25,11 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface ProjectComponentSelector extends ComponentSelector {
     /**
-     * Identifies the build to select a project from.
+     * The name of the build to select a project from.
      *
-     * @return The build identifier
+     * @return The build name
      */
-    BuildIdentifier getBuild();
+    String getBuildName();
 
     /**
      * The path of the project to select the component from.

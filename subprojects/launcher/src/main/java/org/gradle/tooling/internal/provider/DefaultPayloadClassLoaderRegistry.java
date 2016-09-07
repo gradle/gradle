@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Used in the build process.
+ */
 @ThreadSafe
 public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPayloadClassLoaderRegistry.class);
@@ -80,10 +83,6 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
             public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
                 ClassLoader classLoader = getClassLoader(classLoaderDetails);
                 return Class.forName(className, false, classLoader);
-            }
-
-            public void close() {
-                cache.clear();
             }
         };
     }

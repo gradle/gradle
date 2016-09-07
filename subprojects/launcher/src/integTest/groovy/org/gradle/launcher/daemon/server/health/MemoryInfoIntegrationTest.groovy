@@ -16,9 +16,9 @@
 
 package org.gradle.launcher.daemon.server.health
 
+import org.gradle.launcher.daemon.server.health.memory.MemoryInfo
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import spock.lang.Ignore
 import spock.lang.Specification
 
 class MemoryInfoIntegrationTest extends Specification {
@@ -31,7 +31,6 @@ class MemoryInfoIntegrationTest extends Specification {
         notThrown UnsupportedOperationException
     }
 
-    @Ignore("Permission denied on CI")
     @Requires(TestPrecondition.LINUX)
     def "gets available memory on a real live Linux system"() {
         when:

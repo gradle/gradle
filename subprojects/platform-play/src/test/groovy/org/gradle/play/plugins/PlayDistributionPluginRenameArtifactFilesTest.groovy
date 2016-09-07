@@ -25,7 +25,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentIdenti
 import org.gradle.internal.component.local.model.OpaqueComponentIdentifier
 import spock.lang.Specification
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class PlayDistributionPluginRenameArtifactFilesTest extends Specification {
     def "only attempts to rename projects and not external dependencies based on component id"() {

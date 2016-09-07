@@ -24,24 +24,15 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.gradle.testfixtures.ProjectBuilder
-import org.junit.Rule
-import spock.lang.Shared
-import spock.lang.Specification
+import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-import static TaskFilePropertyPathSensitivity.*
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity.*
 
-class TaskFilePropertyPathSensitivityTest extends Specification {
-    @Shared ProjectInternal project
-    @Shared StringInterner interner
-    @Shared FileCollection files
+class TaskFilePropertyPathSensitivityTest extends AbstractProjectBuilderSpec {
+    StringInterner interner
+    FileCollection files
 
-    @Rule TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
-
-    def setupSpec() {
-        project = (ProjectInternal) ProjectBuilder.builder().withName("test").build()
+    def setup() {
         interner = Mock(StringInterner) {
             intern(_) >> { String string -> string }
         }

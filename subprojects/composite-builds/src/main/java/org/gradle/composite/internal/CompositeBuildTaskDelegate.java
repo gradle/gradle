@@ -24,7 +24,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.initialization.IncludedBuildExecuter;
 import org.gradle.initialization.IncludedBuilds;
-import org.gradle.internal.component.local.model.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 
 import java.util.Collection;
 import java.util.Set;
@@ -57,6 +57,7 @@ public class CompositeBuildTaskDelegate extends DefaultTask {
         IncludedBuildExecuter builder = getServices().get(IncludedBuildExecuter.class);
         IncludedBuild includedBuild = includedBuilds.getBuild(build);
         BuildIdentifier buildId = new DefaultBuildIdentifier(includedBuild.getName());
-        builder.execute(buildId, tasks);
+        // TODO:DAZ Get this from the `BuildIdentity. For now it will always be the root composite build
+        builder.execute(new DefaultBuildIdentifier(":", true), buildId, tasks);
     }
 }

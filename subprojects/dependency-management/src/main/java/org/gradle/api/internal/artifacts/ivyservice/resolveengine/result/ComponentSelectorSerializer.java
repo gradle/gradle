@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.LibraryComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -31,14 +30,11 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.IOException;
 
 public class ComponentSelectorSerializer implements Serializer<ComponentSelector> {
-    private final BuildIdentifierSerializer buildIdentifierSerializer = new BuildIdentifierSerializer();
-
     public ComponentSelector read(Decoder decoder) throws IOException {
         byte id = decoder.readByte();
 
         if (Implementation.BUILD.getId() == id) {
-            BuildIdentifier buildIdentifier = buildIdentifierSerializer.read(decoder);
-            return new DefaultProjectComponentSelector(buildIdentifier, decoder.readString());
+            return new DefaultProjectComponentSelector(decoder.readString(), decoder.readString());
         } else if (Implementation.MODULE.getId() == id) {
             return new DefaultModuleComponentSelector(decoder.readString(), decoder.readString(), decoder.readString());
         } else if (Implementation.LIBRARY.getId() == id) {
@@ -62,8 +58,7 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
         } else if (value instanceof DefaultProjectComponentSelector) {
             ProjectComponentSelector projectComponentSelector = (ProjectComponentSelector) value;
             encoder.writeByte(Implementation.BUILD.getId());
-            BuildIdentifier build = projectComponentSelector.getBuild();
-            buildIdentifierSerializer.write(encoder, build);
+            encoder.writeString(projectComponentSelector.getBuildName());
             encoder.writeString(projectComponentSelector.getProjectPath());
         } else if (value instanceof DefaultLibraryComponentSelector) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) value;
@@ -76,16 +71,16 @@ public class ComponentSelectorSerializer implements Serializer<ComponentSelector
         }
     }
 
-    private static enum Implementation {
+    private enum Implementation {
         MODULE((byte) 1), BUILD((byte) 2), LIBRARY((byte) 3), BINARY((byte) 4);
 
         private final byte id;
 
-        private Implementation(byte id) {
+        Implementation(byte id) {
             this.id = id;
         }
 
-        private byte getId() {
+        byte getId() {
             return id;
         }
     }

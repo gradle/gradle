@@ -18,6 +18,9 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetaData;
 import org.gradle.api.internal.artifacts.ivyservice.CacheLockingArtifactDependencyResolver;
@@ -72,6 +75,8 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectRegistry;
 import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.cache.CacheRepository;
+import org.gradle.initialization.BuildIdentity;
+import org.gradle.initialization.DefaultBuildIdentity;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.installation.CurrentGradleInstallation;
@@ -98,6 +103,21 @@ class DependencyManagementBuildScopeServices {
 
     DependencyManagementServices createDependencyManagementServices(ServiceRegistry parent) {
         return new DefaultDependencyManagementServices(parent);
+    }
+
+    // TODO:DAZ This should not hard-code the assumption that buildName == rootProject.name for included builds
+    BuildIdentity createBuildIdentity(ProjectRegistry<ProjectInternal> projectRegistry) {
+        ProjectInternal rootProject = projectRegistry.getProject(":");
+        if (rootProject == null || rootProject.getGradle().getParent() == null) {
+            // BuildIdentity for a top-level build
+            return new DefaultBuildIdentity(new DefaultBuildIdentifier(":", true));
+        }
+        // BuildIdentity for an included build
+        return new DefaultBuildIdentity(new DefaultBuildIdentifier(rootProject.getName(), true));
+    }
+
+    ComponentIdentifierFactory createComponentIdentifierFactory(BuildIdentity buildIdentity) {
+        return new DefaultComponentIdentifierFactory(buildIdentity);
     }
 
     DependencyFactory createDependencyFactory(
@@ -235,15 +255,13 @@ class DependencyManagementBuildScopeServices {
                                                                 DependencyDescriptorFactory dependencyDescriptorFactory,
                                                                 CacheLockingManager cacheLockingManager,
                                                                 VersionComparator versionComparator,
-                                                                ProjectRegistry<ProjectInternal> projectRegistry,
                                                                 ServiceRegistry serviceRegistry) {
         ArtifactDependencyResolver resolver = new DefaultArtifactDependencyResolver(
             serviceRegistry,
             resolveIvyFactory,
             dependencyDescriptorFactory,
             cacheLockingManager,
-            versionComparator,
-            projectRegistry
+            versionComparator
         );
         return new CacheLockingArtifactDependencyResolver(cacheLockingManager, resolver);
     }
@@ -265,13 +283,14 @@ class DependencyManagementBuildScopeServices {
         return new DefaultLocalComponentRegistry(providers);
     }
 
-    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ServiceRegistry serviceRegistry, CacheLockingManager cacheLockingManager) {
+    ProjectDependencyResolver createProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ServiceRegistry serviceRegistry,
+                                                              CacheLockingManager cacheLockingManager, ComponentIdentifierFactory componentIdentifierFactory) {
         // This doesn't seem to consistently load all ProjectArtifactBuilder instances provided by modules.
         // For embedded integration tests, I'm not convinced that the CompositeProjectArtifactBuilder will always be registered.
         List<ProjectArtifactBuilder> delegateBuilders = serviceRegistry.getAll(ProjectArtifactBuilder.class);
         ProjectArtifactBuilder artifactBuilder = new AggregatingProjectArtifactBuilder(delegateBuilders);
         artifactBuilder = new CacheLockReleasingProjectArtifactBuilder(artifactBuilder, cacheLockingManager);
-        return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder);
+        return new ProjectDependencyResolver(localComponentRegistry, artifactBuilder, componentIdentifierFactory);
     }
 
     ResolverProviderFactory createProjectResolverProviderFactory(final ProjectDependencyResolver resolver) {

@@ -53,7 +53,7 @@ import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier.newId
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class DependencyGraphBuilderTest extends Specification {
     def configuration = Mock(ConfigurationInternal)

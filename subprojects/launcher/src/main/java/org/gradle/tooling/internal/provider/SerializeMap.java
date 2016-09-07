@@ -21,14 +21,14 @@ import java.util.Map;
 public interface SerializeMap {
     /**
      * Visits a class to be serialized, returning the id of the deserialize ClassLoader to associate this class with.
-     * The id is unique only for this serialization.
+     * The id is unique only for this serialization, and is used as the key for the map returned by {@link #getClassLoaders()}.
      *
      * @return The ClassLoader id.
      */
     short visitClass(Class<?> target);
 
     /**
-     * Returns the set of ClassLoaders to use in to deserialize the graph.
+     * Returns the set of ClassLoaders to use to deserialize the graph.
      *
      * @return The map from ClassLoader id to details to use create that ClassLoader.
      */

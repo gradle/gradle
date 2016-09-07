@@ -17,8 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.internal.component.local.model.CurrentBuildIdentifier;
-import org.gradle.internal.component.local.model.DefaultBuildIdentifier;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -28,19 +27,14 @@ import java.io.IOException;
 public class BuildIdentifierSerializer implements Serializer<BuildIdentifier> {
     @Override
     public BuildIdentifier read(Decoder decoder) throws IOException {
-        String buildName = decoder.readNullableString();
-        if (buildName == null) {
-            return new CurrentBuildIdentifier();
-        }
-        return new DefaultBuildIdentifier(buildName);
+        String buildName = decoder.readString();
+        boolean current = decoder.readBoolean();
+        return new DefaultBuildIdentifier(buildName, current);
     }
 
     @Override
     public void write(Encoder encoder, BuildIdentifier value) throws IOException {
-        if (value.isCurrentBuild()) {
-            encoder.writeNullableString(null);
-        } else {
-            encoder.writeNullableString(value.getName());
-        }
+        encoder.writeString(value.getName());
+        encoder.writeBoolean(value.isCurrentBuild());
     }
 }
