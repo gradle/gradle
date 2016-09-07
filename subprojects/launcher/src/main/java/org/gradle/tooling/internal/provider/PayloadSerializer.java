@@ -18,7 +18,6 @@ package org.gradle.tooling.internal.provider;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.UncheckedException;
-import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -27,22 +26,12 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamClass;
 import java.lang.reflect.Proxy;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @ThreadSafe
 public class PayloadSerializer {
-    private static final short SYSTEM_CLASS_LOADER_ID = (short) -1;
-    private static final ClassLoader SYSTEM_CLASS_LOADER = new DefaultClassLoaderFactory().getIsolatedSystemClassLoader();
-    private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
     private final PayloadClassLoaderRegistry classLoaderRegistry;
-
-    static {
-        for (ClassLoader cl = SYSTEM_CLASS_LOADER; cl != null; cl = cl.getParent()) {
-            SYSTEM_CLASS_LOADERS.add(cl);
-        }
-    }
 
     public PayloadSerializer(PayloadClassLoaderRegistry registry) {
         classLoaderRegistry = registry;
@@ -73,22 +62,15 @@ public class PayloadSerializer {
                 }
 
                 private void writeClassLoader(Class<?> targetClass) throws IOException {
-                    ClassLoader classLoader = targetClass.getClassLoader();
-                    if (classLoader == null || SYSTEM_CLASS_LOADERS.contains(classLoader)) {
-                        writeShort(SYSTEM_CLASS_LOADER_ID);
-                    } else {
-                        writeShort(map.visitClass(targetClass));
-                    }
+                    writeShort(map.visitClass(targetClass));
                 }
             };
 
             objectStream.writeObject(payload);
             objectStream.close();
 
-            Map<Short, ClassLoaderDetails> classLoaders = map.getClassLoaders();
-            if (classLoaders.containsKey(SYSTEM_CLASS_LOADER_ID)) {
-                throw new IllegalArgumentException("Unexpected ClassLoader id found");
-            }
+            Map<Short, ClassLoaderDetails> classLoaders = new HashMap<Short, ClassLoaderDetails>();
+            map.collectClassLoaderDefinitions(classLoaders);
             return new SerializedPayload(classLoaders, content.toByteArray());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
@@ -98,7 +80,6 @@ public class PayloadSerializer {
     public Object deserialize(SerializedPayload payload) {
         final DeserializeMap map = classLoaderRegistry.newDeserializeSession();
         try {
-            final ClassLoader systemClassLoader = SYSTEM_CLASS_LOADER;
             final Map<Short, ClassLoaderDetails> classLoaderDetails = (Map<Short, ClassLoaderDetails>) payload.getHeader();
 
             final ObjectInputStream objectStream = new ObjectInputStream(new ByteArrayInputStream(payload.getSerializedModel())) {
@@ -120,9 +101,6 @@ public class PayloadSerializer {
                 private Class<?> readClass() throws IOException, ClassNotFoundException {
                     short id = readShort();
                     String className = readUTF();
-                    if (id == SYSTEM_CLASS_LOADER_ID) {
-                        return Class.forName(className, false, systemClassLoader);
-                    }
                     ClassLoaderDetails classLoader = classLoaderDetails.get(id);
                     return map.resolveClass(classLoader, className);
                 }

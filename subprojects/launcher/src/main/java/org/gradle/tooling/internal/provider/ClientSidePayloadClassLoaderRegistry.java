@@ -33,7 +33,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Used in the tooling API provider to inspect classes.
+ * A {@link PayloadClassLoaderRegistry} used in the client JVM that maps classes loaded by application ClassLoaders. Inspects each class to calculate a minimal classpath to send across to the daemon process to recreate the ClassLoaders.
+ *
+ * <p>Delegates to another {@link PayloadClassLoaderRegistry} to take care of managing the classes serialized from the daemon.
  */
 @ThreadSafe
 public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
@@ -79,7 +81,8 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                 return CLIENT_CLASS_LOADER_ID;
             }
 
-            public Map<Short, ClassLoaderDetails> getClassLoaders() {
+            @Override
+            public void collectClassLoaderDefinitions(Map<Short, ClassLoaderDetails> details) {
                 lock.lock();
                 UUID uuid;
                 try {
@@ -87,9 +90,8 @@ public class ClientSidePayloadClassLoaderRegistry implements PayloadClassLoaderR
                 } finally {
                     lock.unlock();
                 }
-                ClassLoaderDetails details = new ClassLoaderDetails(uuid, new VisitableURLClassLoader.Spec(new ArrayList<URL>(classPath)));
-                classLoaderDetails.put(CLIENT_CLASS_LOADER_ID, details);
-                return classLoaderDetails;
+                details.putAll(classLoaderDetails);
+                details.put(CLIENT_CLASS_LOADER_ID, new ClassLoaderDetails(uuid, new VisitableURLClassLoader.Spec(new ArrayList<URL>(classPath))));
             }
         };
     }

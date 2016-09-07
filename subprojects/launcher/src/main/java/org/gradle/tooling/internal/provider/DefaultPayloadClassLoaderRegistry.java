@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * Used in the build process.
+ * A {@link PayloadClassLoaderRegistry} that maps classes loaded by a set of ClassLoaders that it manages. For ClassLoaders owned by this JVM, inspects the ClassLoader to determine a ClassLoader spec to send across to the peer JVM. For classes serialized from the peer, maintains a set of cached ClassLoaders created using the ClassLoader specs received from the peer.
  */
 @ThreadSafe
 public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
@@ -72,8 +72,9 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 return id;
             }
 
-            public Map<Short, ClassLoaderDetails> getClassLoaders() {
-                return classLoaderDetails;
+            @Override
+            public void collectClassLoaderDefinitions(Map<Short, ClassLoaderDetails> details) {
+                details.putAll(classLoaderDetails);
             }
         };
     }
