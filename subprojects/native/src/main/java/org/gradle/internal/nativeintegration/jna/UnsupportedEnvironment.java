@@ -82,7 +82,7 @@ public class UnsupportedEnvironment implements ProcessEnvironment {
     public Long maybeGetPid() {
         Long pid = null;
         try {
-            //try to obtain the PID
+            //Try to obtain the PID: This works on Solaris and should work with any Java VM
             String vmName = ManagementFactory.getRuntimeMXBean().getName();
             pid = Long.parseLong(vmName.substring(0, vmName.indexOf("@")));
         } catch (RuntimeException e) {
