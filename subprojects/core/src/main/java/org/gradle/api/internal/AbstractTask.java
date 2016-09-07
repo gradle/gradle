@@ -158,7 +158,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
                 taskMutator.assertMutable("Task.getActions()", evt);
             }
         });
-        taskInputs = new DefaultTaskInputs(project.getFileResolver(), getName(), taskMutator);
+        taskInputs = new DefaultTaskInputs(project.getFileResolver(), this, taskMutator);
         taskOutputs = new DefaultTaskOutputs(project.getFileResolver(), this, taskMutator);
     }
 

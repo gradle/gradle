@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.GString;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity;
 import org.gradle.api.internal.file.CompositeFileCollection;
@@ -45,16 +46,17 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     private final FileCollection allInputFiles;
     private final FileCollection allSourceFiles;
     private final FileResolver resolver;
-    private final String taskName;
+    private final TaskInternal task;
     private final TaskMutator taskMutator;
     private final Map<String, Object> properties = new HashMap<String, Object>();
     private final List<PropertySpec> filePropertiesInternal = Lists.newArrayList();
     private SortedSet<TaskInputFilePropertySpec> fileProperties;
 
-    public DefaultTaskInputs(FileResolver resolver, String taskName, TaskMutator taskMutator) {
+    public DefaultTaskInputs(FileResolver resolver, TaskInternal task, TaskMutator taskMutator) {
         this.resolver = resolver;
-        this.taskName = taskName;
+        this.task = task;
         this.taskMutator = taskMutator;
+        String taskName = task.getName();
         this.allInputFiles = new TaskInputUnionFileCollection("task '" + taskName + "' input files", false);
         this.allSourceFiles = new TaskInputUnionFileCollection("task '" + taskName + "' source files", true);
     }
@@ -164,7 +166,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     private TaskInputFilePropertyBuilder addSpec(Object paths, boolean skipWhenEmpty) {
-        PropertySpec spec = new PropertySpec(taskName, skipWhenEmpty, resolver, paths);
+        PropertySpec spec = new PropertySpec(task.getName(), skipWhenEmpty, resolver, paths);
         filePropertiesInternal.add(spec);
         return spec;
     }

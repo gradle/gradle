@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.util.UsesNativeServices
@@ -41,7 +42,11 @@ class DefaultTaskInputsTest extends Specification {
             }
         }
     }
-    private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, "test", taskStatusNagger)
+    def task = Mock(TaskInternal) {
+        getName() >> "task"
+        toString() >> "task 'task'"
+    }
+    private final DefaultTaskInputs inputs = new DefaultTaskInputs(resolver, task, taskStatusNagger)
 
     def "default values"() {
         expect:
