@@ -17,11 +17,39 @@
 package org.gradle.api.internal.tasks;
 
 import java.io.File;
+import java.util.Collection;
 
 import static org.gradle.internal.FileUtils.canonicalize;
 import static org.gradle.util.GFileUtils.mkdirs;
 
 public class TaskOutputsUtil {
+    public static void validateFile(String propertyName, File file, Collection<String> messages) {
+        if (file.exists() && file.isDirectory()) {
+            messages.add(String.format("Cannot write to file '%s' specified for property '%s' as it is a directory.", file, propertyName));
+        }
+
+        for (File candidate = file.getParentFile(); candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
+            if (candidate.exists() && !candidate.isDirectory()) {
+                messages.add(String.format("Cannot write to file '%s' specified for property '%s', as ancestor '%s' is not a directory.", file, propertyName, candidate));
+                break;
+            }
+        }
+    }
+
+    public static void validateDirectory(String propertyName, File directory, Collection<String> messages) {
+        if (directory.exists() && !directory.isDirectory()) {
+            messages.add(String.format("Directory '%s' specified for property '%s' is not a directory.", directory, propertyName));
+            return;
+        }
+
+        for (File candidate = directory; candidate != null && !candidate.isDirectory(); candidate = candidate.getParentFile()) {
+            if (candidate.exists() && !candidate.isDirectory()) {
+                messages.add(String.format("Cannot write to directory '%s' specified for property '%s', as ancestor '%s' is not a directory.", directory, propertyName, candidate));
+                return;
+            }
+        }
+    }
+
     public static void ensureDirectoryExists(File directory) {
         mkdirs(canonicalize(directory));
     }
