@@ -61,7 +61,7 @@ public class DefaultDependenciesToModuleDescriptorConverterTest extends Specific
         1 * configuration.dependencies >> dependencySet
         1 * dependencySet.withType(ModuleDependency) >> toDomainObjectSet(ModuleDependency, dependency)
         1 * configuration.name >> "config"
-        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", dependency) >> dependencyDescriptor
+        1 * dependencyDescriptorFactory.createDependencyDescriptor("config", , dependency) >> dependencyDescriptor
         1 * metaData.addDependency(dependencyDescriptor)
         1 * configuration.excludeRules >> ([] as Set)
         0 * _

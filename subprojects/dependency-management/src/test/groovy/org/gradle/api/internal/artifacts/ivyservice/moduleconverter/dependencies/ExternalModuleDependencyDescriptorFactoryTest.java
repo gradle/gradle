@@ -42,7 +42,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
     @Test
     public void testAddWithNullGroupAndNullVersionShouldHaveEmptyStringModuleRevisionValues() {
         ModuleDependency dependency = new DefaultExternalModuleDependency(null, "gradle-core", null, TEST_DEP_CONF);
-        DslOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, dependency);
+        DslOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, dependency);
         assertThat(dependencyMetaData.getRequested().getGroup(), equalTo(""));
         assertThat(dependencyMetaData.getRequested().getName(), equalTo("gradle-core"));
         assertThat(dependencyMetaData.getRequested().getVersion(), equalTo(""));
@@ -54,7 +54,7 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
                 "gradle-core", "1.0", TEST_DEP_CONF);
         setUpDependency(moduleDependency);
 
-        DslOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, moduleDependency);
+        DslOriginDependencyMetadata dependencyMetaData = externalModuleDependencyDescriptorFactory.createDependencyDescriptor(TEST_CONF, null, moduleDependency);
 
         assertEquals(moduleDependency.isChanging(), dependencyMetaData.isChanging());
         assertEquals(moduleDependency.isForce(), dependencyMetaData.isForce());

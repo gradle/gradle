@@ -47,7 +47,7 @@ public class SelfResolvingDependencyConfigurationResolver implements Configurati
 
         ResolvedConfiguration resolvedConfiguration = results.getResolvedConfiguration();
         Set<Dependency> dependencies = configuration.getAllDependencies();
-        CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
+        CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive(), configuration.getAttributes());
         SelfResolvingFilesProvider provider = new SelfResolvingFilesProvider(resolveContext, dependencies);
 
         results.withResolvedConfiguration(new FilesAggregatingResolvedConfiguration(resolvedConfiguration, provider));

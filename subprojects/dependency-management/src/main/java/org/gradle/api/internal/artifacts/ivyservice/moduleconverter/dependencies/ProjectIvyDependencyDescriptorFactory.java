@@ -29,24 +29,29 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 
+import java.util.Map;
+
 public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     public ProjectIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
     }
 
-    public DslOriginDependencyMetadata createDependencyDescriptor(String configuration, ModuleDependency dependency) {
+    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, Map<String, String> clientAttributes, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
-        ((ConfigurationInternal) projectDependency.getProjectConfiguration()).triggerWhenEmptyActionsIfNecessary();
+        ConfigurationInternal selectedConfiguration = (ConfigurationInternal) projectDependency.findProjectConfiguration(clientAttributes);
+        selectedConfiguration.triggerWhenEmptyActionsIfNecessary();
         Module module = getProjectModule(dependency);
         ModuleVersionSelector requested = new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject());
 
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-                selector, requested, configuration, projectDependency.getProjectConfiguration().getName(),
-                convertArtifacts(dependency.getArtifacts()),
-                convertExcludeRules(configuration, dependency.getExcludeRules()),
-                false, false, dependency.isTransitive());
+            selector, requested, clientConfiguration,
+            clientAttributes,
+            selectedConfiguration.getName(),
+            convertArtifacts(dependency.getArtifacts()),
+            convertExcludeRules(clientConfiguration, dependency.getExcludeRules()),
+            false, false, dependency.isTransitive());
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }
 

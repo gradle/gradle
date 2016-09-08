@@ -29,6 +29,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
@@ -42,13 +43,18 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final boolean changing;
     private final boolean transitive;
     private final ModuleExclusion exclusions;
+    private final Map<String, String> moduleAttributes;
 
-    public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested, String moduleConfiguration, String dependencyConfiguration,
+    public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested,
+                                            String moduleConfiguration,
+                                            Map<String, String> moduleAttributes,
+                                            String dependencyConfiguration,
                                             Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
                                             boolean force, boolean changing, boolean transitive) {
         this.selector = selector;
         this.requested = requested;
         this.moduleConfiguration = moduleConfiguration;
+        this.moduleAttributes = moduleAttributes;
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = artifactNames;
         this.excludes = excludes;
@@ -176,6 +182,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
-        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
+        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
 }

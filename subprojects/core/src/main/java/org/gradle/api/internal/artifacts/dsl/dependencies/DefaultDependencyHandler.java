@@ -27,7 +27,6 @@ import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
-import org.gradle.api.internal.artifacts.dependencies.ProjectDependencyInternal;
 import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
@@ -83,9 +82,6 @@ public class DefaultDependencyHandler extends GroovyObjectSupport implements Dep
 
         Dependency dependency = create(dependencyNotation, configureClosure);
         configuration.getDependencies().add(dependency);
-        if (dependency instanceof ProjectDependencyInternal) {
-            ((ProjectDependencyInternal) dependency).setDependentConfiguration(configuration);
-        }
         return dependency;
     }
 

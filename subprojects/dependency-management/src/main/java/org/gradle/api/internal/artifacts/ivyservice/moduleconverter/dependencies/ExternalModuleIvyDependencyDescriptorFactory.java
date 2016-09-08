@@ -25,12 +25,14 @@ import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadataWrapper;
 import org.gradle.internal.component.model.LocalComponentDependencyMetadata;
 
+import java.util.Map;
+
 public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDependencyDescriptorFactory {
     public ExternalModuleIvyDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
         super(excludeRuleConverter);
     }
 
-    public DslOriginDependencyMetadata createDependencyDescriptor(String configuration, ModuleDependency dependency) {
+    public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, Map<String, String> clientAttributes, ModuleDependency dependency) {
         ExternalModuleDependency externalModuleDependency = (ExternalModuleDependency) dependency;
         boolean force = externalModuleDependency.isForce();
         boolean changing = externalModuleDependency.isChanging();
@@ -40,9 +42,9 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
 
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-                selector, requested, configuration, dependency.getConfiguration(),
+                selector, requested, clientConfiguration, clientAttributes, dependency.getConfiguration(),
                 convertArtifacts(dependency.getArtifacts()),
-                convertExcludeRules(configuration, dependency.getExcludeRules()),
+                convertExcludeRules(clientConfiguration, dependency.getExcludeRules()),
                 force, changing, transitive);
         return new DslOriginDependencyMetadataWrapper(dependencyMetaData, dependency);
     }

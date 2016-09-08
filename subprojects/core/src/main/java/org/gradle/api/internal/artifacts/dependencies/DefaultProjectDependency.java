@@ -38,7 +38,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private final boolean buildProjectDependencies;
     private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
     private final ProjectAccessListener projectAccessListener;
-    private Configuration dependentConfiguration;
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
         this(dependencyProject, null, projectAccessListener, buildProjectDependencies);
@@ -68,28 +67,30 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         return dependencyProject.getVersion().toString();
     }
 
+    @Deprecated
     public Configuration getProjectConfiguration() {
-        if (dependentConfiguration != null && dependentConfiguration.hasAttributes()) {
+        return dependencyProject.getConfigurations().getByName(getConfiguration());
+    }
+
+    @Override
+    public Configuration findProjectConfiguration(Map<String, String> clientAttributes) {
+        Configuration selectedConfiguration = null;
+        if (clientAttributes!=null) {
             ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
             for (Configuration dependencyConfiguration : dependencyConfigurations) {
                 if (dependencyConfiguration.hasAttributes()) {
                     Map<String, String> attributes = dependencyConfiguration.getAttributes();
-                    boolean matches = true;
-                    for (Map.Entry<String, String> source : dependentConfiguration.getAttributes().entrySet()) {
-                        String key = source.getKey();
-                        String value = source.getValue();
-                        matches = attributes.containsKey(key) && value.equals(attributes.get(key));
-                        if (!matches) {
-                            break;
-                        }
-                    }
-                    if (matches) {
-                        return dependencyConfiguration;
+                    if (attributes.entrySet().containsAll(clientAttributes.entrySet())) {
+                        selectedConfiguration = dependencyConfiguration;
+                        break;
                     }
                 }
             }
         }
-        return dependencyProject.getConfigurations().getByName(getConfiguration());
+        if (selectedConfiguration == null) {
+            selectedConfiguration = getProjectConfiguration();
+        }
+        return selectedConfiguration;
     }
 
     public ProjectDependency copy() {
@@ -104,7 +105,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     public Set<File> resolve(boolean transitive) {
-        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive);
+        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive, null);
         context.add(this);
         return context.resolve().getFiles();
     }
@@ -117,7 +118,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     public void resolve(DependencyResolveContext context) {
         boolean transitive = isTransitive() && context.isTransitive();
         if (transitive) {
-            for (Dependency dependency : getProjectConfiguration().getAllDependencies()) {
+            for (Dependency dependency : findProjectConfiguration(context.getAttributes()).getAllDependencies()) {
                 context.add(dependency);
             }
         }
@@ -163,11 +164,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             return false;
         }
         return true;
-    }
-
-    @Override
-    public void setDependentConfiguration(Configuration dependentConfiguration) {
-        this.dependentConfiguration = dependentConfiguration;
     }
 
     @Override
