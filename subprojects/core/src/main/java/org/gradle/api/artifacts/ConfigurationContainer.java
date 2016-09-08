@@ -101,7 +101,7 @@ public interface ConfigurationContainer extends NamedDomainObjectContainer<Confi
      * {@inheritDoc}
      */
     @Override
-    Configuration getByName(String name, Action<? super Configuration> configureClosure) throws UnknownConfigurationException;
+    Configuration getByName(String name, Action<? super Configuration> configureAction) throws UnknownConfigurationException;
 
     /**
      * Creates a configuration, but does not add it to this container.
