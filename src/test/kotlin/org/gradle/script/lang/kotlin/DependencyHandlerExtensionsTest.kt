@@ -1,17 +1,18 @@
 package org.gradle.script.lang.kotlin
 
-import org.gradle.api.artifacts.ExternalModuleDependency
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.Project
-
 import com.nhaarman.mockito_kotlin.any
 import com.nhaarman.mockito_kotlin.anyMap
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
+
+import org.gradle.api.Project
+import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.dsl.DependencyHandler
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.sameInstance
@@ -182,5 +183,60 @@ class DependencyHandlerExtensionsTest {
         }
 
         verify(dependencies.dependencies).add("c", "notation")
+    }
+
+    @Test
+    fun `client module configuration`() {
+
+        val clientModule = mock<ClientModule>()
+
+        val commonsCliDependency = mock<ExternalModuleDependency>("commonsCliDependency")
+
+        val antModule = mock<ClientModule>("antModule")
+        val antLauncherDependency = mock<ExternalModuleDependency>("antLauncherDependency")
+        val antJUnitDependency = mock<ExternalModuleDependency>("antJUnitDependency")
+
+        val dependencies = mock<DependencyHandler>() {
+            on { module("org.codehaus.groovy:groovy:2.4.7") } doReturn clientModule
+
+            on { create("commons-cli:commons-cli:1.0") } doReturn commonsCliDependency
+
+            val antModuleNotation = mapOf("group" to "org.apache.ant", "name" to "ant", "version" to "1.9.6")
+            on { module(antModuleNotation) } doReturn antModule
+            on { create("org.apache.ant:ant-launcher:1.9.6@jar") } doReturn antLauncherDependency
+            on { create("org.apache.ant:ant-junit:1.9.6") } doReturn antJUnitDependency
+
+            on { add("runtime", clientModule) } doReturn clientModule
+        }
+
+        dependencies.apply {
+            val groovy = module("org.codehaus.groovy:groovy:2.4.7") {
+
+                // Configures the module itself
+                isTransitive = false
+
+                dependency("commons-cli:commons-cli:1.0") {
+                    // Configures the external module dependency
+                    isTransitive = false
+                }
+
+                module(group = "org.apache.ant", name = "ant", version = "1.9.6") {
+                    // Configures the inner module dependencies
+                    dependencies(
+                        "org.apache.ant:ant-launcher:1.9.6@jar",
+                        "org.apache.ant:ant-junit:1.9.6")
+                }
+            }
+            runtime(groovy)
+        }
+
+        verify(clientModule).isTransitive = false
+        verify(clientModule).addDependency(commonsCliDependency)
+        verify(clientModule).addDependency(antModule)
+
+        verify(commonsCliDependency).isTransitive = false
+
+        verify(antModule).addDependency(antLauncherDependency)
+        verify(antModule).addDependency(antJUnitDependency)
     }
 }

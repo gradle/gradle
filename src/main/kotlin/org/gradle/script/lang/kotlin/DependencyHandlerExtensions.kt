@@ -16,6 +16,7 @@
 
 package org.gradle.script.lang.kotlin
 
+import org.gradle.api.artifacts.ClientModule
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
@@ -58,6 +59,128 @@ fun DependencyHandler.create(
             "configuration" to configuration,
             "classifier" to classifier,
             "ext" to ext)) as ExternalModuleDependency
+
+/**
+ * Creates a dependency on a client module without adding it to a configuration.
+ *
+ * @param group the group of the module to be added as a dependency.
+ * @param name the name of the module to be added as a dependency.
+ * @param version the optional version of the module to be added as a dependency.
+ * @param configuration the optional configuration of the module to be added as a dependency.
+ * @param classifier the optional classifier of the module artifact to be added as a dependency.
+ * @param ext the optional extension of the module artifact to be added as a dependency.
+ *
+ * @return The dependency.
+ *
+ * @see DependencyHandler.create
+ */
+fun DependencyHandler.module(
+    group: String,
+    name: String,
+    version: String? = null,
+    configuration: String? = null,
+    classifier: String? = null,
+    ext: String? = null): ClientModule =
+
+    module(
+        mapOfNonNullValuesOf(
+            "group" to group,
+            "name" to name,
+            "version" to version,
+            "configuration" to configuration,
+            "classifier" to classifier,
+            "ext" to ext)) as ClientModule
+
+/**
+ * Creates a dependency on a client module without adding it to a configuration.
+ *
+ * @param group the group of the module to be added as a dependency.
+ * @param name the name of the module to be added as a dependency.
+ * @param version the optional version of the module to be added as a dependency.
+ * @param configuration the optional configuration of the module to be added as a dependency.
+ * @param classifier the optional classifier of the module artifact to be added as a dependency.
+ * @param ext the optional extension of the module artifact to be added as a dependency.
+ * @param clientModuleConfiguration The expression to use to configure the dependency.
+ * @return The dependency.
+ *
+ * @see DependencyHandler.create
+ */
+fun DependencyHandler.module(
+    group: String,
+    name: String,
+    version: String? = null,
+    configuration: String? = null,
+    classifier: String? = null,
+    ext: String? = null,
+    clientModuleConfiguration: ClientModuleConfiguration.() -> Unit): ClientModule =
+
+    configureClientModule(
+        module(
+            mapOfNonNullValuesOf(
+                "group" to group,
+                "name" to name,
+                "version" to version,
+                "configuration" to configuration,
+                "classifier" to classifier,
+                "ext" to ext)) as ClientModule,
+        clientModuleConfiguration)
+
+/**
+ * Creates a dependency on a client module without adding it to a configuration.
+ *
+ * @param notation The module notation, in one of the notations described at [DependencyHandler].
+ * @param clientModuleConfiguration The expression to use to configure the dependency.
+ * @return The dependency.
+ */
+fun DependencyHandler.module(
+    notation: Any,
+    clientModuleConfiguration: ClientModuleConfiguration.() -> Unit): ClientModule =
+
+    configureClientModule(module(notation) as ClientModule, clientModuleConfiguration)
+
+private inline
+fun DependencyHandler.configureClientModule(
+    module: ClientModule,
+    clientModuleConfiguration: ClientModuleConfiguration.() -> Unit): ClientModule =
+    module.apply {
+        ClientModuleConfiguration(this@configureClientModule, this@apply).clientModuleConfiguration()
+    }
+
+class ClientModuleConfiguration(
+    private val dependencyHandler: DependencyHandler,
+    val clientModule: ClientModule) : ClientModule by clientModule {
+
+    fun module(group: String,
+               name: String,
+               version: String? = null,
+               configuration: String? = null,
+               classifier: String? = null,
+               ext: String? = null,
+               setup: ClientModuleConfiguration.() -> Unit) {
+        clientModule.addDependency(
+            dependencyHandler.module(group, name, version, configuration, classifier, ext, setup))
+    }
+
+    fun dependency(notation: Any) {
+        clientModule.addDependency(
+            dependencyHandler.create(notation) as ModuleDependency)
+    }
+
+    fun dependency(notation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit) {
+        clientModule.addDependency(
+            create(notation, dependencyConfiguration))
+    }
+
+    fun dependencies(vararg notations: Any) {
+        notations.forEach {
+            clientModule.addDependency(
+                dependencyHandler.create(it) as ModuleDependency)
+        }
+    }
+
+    private fun create(notation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit) =
+        (dependencyHandler.create(notation) as ExternalModuleDependency).apply(dependencyConfiguration)
+}
 
 /**
  * Creates a dependency on a project without adding it to a configuration.
