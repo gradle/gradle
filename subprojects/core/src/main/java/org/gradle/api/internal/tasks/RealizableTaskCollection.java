@@ -73,6 +73,11 @@ public class RealizableTaskCollection<T extends Task> implements TaskCollection<
     }
 
     @Override
+    public T getByName(String name, Action<? super T> configureAction) throws UnknownTaskException {
+        return delegate.getByName(name, configureAction);
+    }
+
+    @Override
     public T getByName(String name) throws UnknownTaskException {
         return delegate.getByName(name);
     }

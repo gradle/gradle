@@ -142,6 +142,18 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
     T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException;
 
     /**
+     * Locates an object by name, failing if there is no such object. The given configure action is executed against
+     * the object before it is returned from this method.
+     *
+     * @param name The object name
+     * @param configureAction The action to use to configure the object.
+     * @return The object with the given name, after the configure action has been applied to it. Never returns null.
+     * @throws UnknownDomainObjectException when there is no such object in this collection.
+     * @since 3.1
+     */
+    T getByName(String name, Action<? super T> configureAction) throws UnknownDomainObjectException;
+
+    /**
      * Locates an object by name, failing if there is no such task. This method is identical to {@link
      * #getByName(String)}. You can call this method in your build script by using the groovy {@code []} operator.
      *
