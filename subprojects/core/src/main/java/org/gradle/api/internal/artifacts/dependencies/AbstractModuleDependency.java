@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
 import org.gradle.util.ConfigureUtil;
@@ -77,6 +78,13 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     public DependencyArtifact artifact(Closure configureClosure) {
         DependencyArtifact artifact = ConfigureUtil.configure(configureClosure, new DefaultDependencyArtifact());
+        artifacts.add(artifact);
+        return artifact;
+    }
+
+    public DependencyArtifact artifact(Action<DependencyArtifact> configureAction) {
+        DependencyArtifact artifact = new DefaultDependencyArtifact();
+        configureAction.execute(artifact);
         artifacts.add(artifact);
         return artifact;
     }

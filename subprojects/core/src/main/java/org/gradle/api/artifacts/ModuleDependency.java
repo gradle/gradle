@@ -15,6 +15,8 @@
  */
 package org.gradle.api.artifacts;
 
+import org.gradle.api.Action;
+
 import groovy.lang.Closure;
 
 import java.util.Map;
@@ -97,6 +99,20 @@ public interface ModuleDependency extends Dependency {
      * @return this
      */
     DependencyArtifact artifact(Closure configureClosure);
+
+    /**
+     * <p>Adds an artifact to this dependency. The given action is passed a {@link
+     * org.gradle.api.artifacts.DependencyArtifact} instance, which it can configure.</p>
+     *
+     * <p>If no artifact is added to a dependency, an implicit default artifact is used. This default artifact has the
+     * same name as the module and its type and extension is <em>jar</em>. If at least one artifact is explicitly added,
+     * the implicit default artifact won't be used any longer.</p>
+     *
+     * @return this
+     *
+     * @since 3.1
+     */
+    DependencyArtifact artifact(Action<DependencyArtifact> configureAction);
 
     /**
      * Returns whether this dependency should be resolved including or excluding its transitive dependencies.
