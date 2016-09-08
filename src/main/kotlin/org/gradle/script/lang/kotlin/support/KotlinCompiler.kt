@@ -50,6 +50,7 @@ import org.slf4j.Logger
 
 import java.io.File
 
+internal
 fun compileKotlinScript(scriptFile: File,
                         scriptDef: KotlinScriptDefinition,
                         classLoader: ClassLoader,
@@ -67,23 +68,26 @@ fun compileKotlinScript(scriptFile: File,
     }
 }
 
+internal
 fun compileToJar(outputJar: File,
                  sourceFile: File,
                  logger: Logger,
                  classPath: List<File> = emptyList()): Boolean =
     compileTo(OUTPUT_JAR, outputJar, sourceFile, logger, classPath)
 
+internal
 fun compileToDirectory(outputDirectory: File,
                        sourceFile: File,
                        logger: Logger,
                        classPath: List<File> = emptyList()): Boolean =
     compileTo(OUTPUT_DIRECTORY, outputDirectory, sourceFile, logger, classPath)
 
-private fun compileTo(outputConfigurationKey: CompilerConfigurationKey<File>,
-                      output: File,
-                      sourceFile: File,
-                      logger: Logger,
-                      classPath: List<File>): Boolean {
+private
+fun compileTo(outputConfigurationKey: CompilerConfigurationKey<File>,
+              output: File,
+              sourceFile: File,
+              logger: Logger,
+              classPath: List<File>): Boolean {
     withRootDisposable { disposable ->
         withMessageCollectorFor(logger) { messageCollector ->
             val configuration = compilerConfigurationFor(messageCollector, sourceFile).apply {
@@ -97,6 +101,7 @@ private fun compileTo(outputConfigurationKey: CompilerConfigurationKey<File>,
     }
 }
 
+private
 inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
     val rootDisposable = newDisposable()
     try {
@@ -106,6 +111,7 @@ inline fun <T> withRootDisposable(action: (Disposable) -> T): T {
     }
 }
 
+private
 inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -> T): T {
     val messageCollector = messageCollectorFor(log)
     try {
@@ -120,6 +126,7 @@ inline fun <T> withMessageCollectorFor(log: Logger, action: (MessageCollector) -
     }
 }
 
+private
 fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFile: File): CompilerConfiguration =
     CompilerConfiguration().apply {
         addKotlinSourceRoots(listOf(sourceFile.canonicalPath))
@@ -127,25 +134,29 @@ fun compilerConfigurationFor(messageCollector: MessageCollector, sourceFile: Fil
         put<MessageCollector>(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY, messageCollector)
     }
 
-private fun CompilerConfiguration.setModuleName(name: String) {
+private
+fun CompilerConfiguration.setModuleName(name: String) {
     put(CommonConfigurationKeys.MODULE_NAME, name)
 }
 
-private fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition) {
+private
+fun CompilerConfiguration.addScriptDefinition(scriptDef: KotlinScriptDefinition) {
     add(JVMConfigurationKeys.SCRIPT_DEFINITIONS, scriptDef)
 }
 
+private
 fun kotlinCoreEnvironmentFor(configuration: CompilerConfiguration, rootDisposable: Disposable) =
     KotlinCoreEnvironment.createForProduction(rootDisposable, configuration, EnvironmentConfigFiles.JVM_CONFIG_FILES)
 
+private
 fun messageCollectorFor(log: Logger): MessageCollector =
     object : MessageCollector {
         override fun hasErrors(): Boolean = false
 
         override fun report(severity: CompilerMessageSeverity, message: String, location: CompilerMessageLocation) {
             fun msg() =
-                    if (location == CompilerMessageLocation.NO_LOCATION) "$message"
-                    else "$message ($location)"
+                if (location == CompilerMessageLocation.NO_LOCATION) "$message"
+                else "$message ($location)"
 
             when (severity) {
                 in CompilerMessageSeverity.ERRORS -> log.error("Error: " + msg())
