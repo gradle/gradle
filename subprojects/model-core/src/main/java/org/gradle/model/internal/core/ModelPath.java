@@ -145,7 +145,10 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
     }
 
     public ModelPath child(String child) {
-        List<String> childComponents = new ArrayList<String>(components);
+        List<String> childComponents = new ArrayList<String>(components.size() + 1);
+        for (String component : components) {
+            childComponents.add(component);
+        }
         childComponents.add(child);
         return path(childComponents);
     }
