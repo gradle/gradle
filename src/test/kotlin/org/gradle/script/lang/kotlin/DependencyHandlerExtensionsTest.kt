@@ -6,6 +6,8 @@ import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.Project
 
 import com.nhaarman.mockito_kotlin.any
+import com.nhaarman.mockito_kotlin.anyMap
+import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.verify
 import com.nhaarman.mockito_kotlin.whenever
@@ -116,19 +118,20 @@ class DependencyHandlerExtensionsTest {
     @Test
     fun `given extensions for common configurations, they will delegate to the appropriate methods`() {
 
-        val dependencies = KotlinDependencyHandler(mock())
-        whenever(dependencies.add(any(), any())).then { it.getArgument(1) }
-
-        val externalModuleDependency: ExternalModuleDependency = mock()
-        whenever(dependencies.create(any<Map<String, String>>())).thenReturn(externalModuleDependency)
-
-        val projectDependency: ProjectDependency = mock()
-        whenever(dependencies.project(any())).thenReturn(projectDependency)
-
-        for (dependency in listOf(externalModuleDependency, projectDependency)) {
-            whenever(dependency.exclude(any())).thenReturn(dependency)
+        val externalModuleDependency = mock<ExternalModuleDependency>() {
+            on { exclude(anyMap()) }.then { it.mock }
+        }
+        val projectDependency = mock<ProjectDependency>() {
+            on { exclude(anyMap()) }.then { it.mock }
+        }
+        val dependencyHandler = mock<DependencyHandler>() {
+            on { create(anyMap<String, String>()) } doReturn externalModuleDependency
+            on { create("org.gradle:baz:1.0-SNAPSHOT") } doReturn externalModuleDependency
+            on { project(any()) } doReturn projectDependency
+            on { add(any(), any()) }.then { it.getArgument(1) }
         }
 
+        val dependencies = KotlinDependencyHandler(dependencyHandler)
         dependencies {
 
             default(group = "org.gradle", name = "foo", version = "1.0") {
