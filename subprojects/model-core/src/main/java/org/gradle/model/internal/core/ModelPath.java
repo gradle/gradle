@@ -147,7 +147,7 @@ public class ModelPath implements Iterable<String>, Comparable<ModelPath> {
 
     public ModelPath child(String child) {
         if (this.components.length == 0) {
-            return path(child, new String[] { child });
+            return path(child, new String[] {child});
         }
         String[] childComponents = new String[components.length + 1];
         arraycopy(components, 0, childComponents, 0, components.length);
