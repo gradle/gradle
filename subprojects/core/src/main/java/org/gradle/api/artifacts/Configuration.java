@@ -63,6 +63,16 @@ public interface Configuration extends FileCollection {
     Configuration resolutionStrategy(Closure closure);
 
     /**
+     * The resolution strategy provides extra details on how to resolve this configuration.
+     * See docs for {@link ResolutionStrategy} for more info and examples.
+     *
+     * @param action action applied to the {@link ResolutionStrategy}
+     * @return this configuration instance
+     * @since 3.1
+     */
+    Configuration resolutionStrategy(Action<ResolutionStrategy> action);
+
+    /**
      * The states a configuration can be into. A configuration is only mutable as long as it is
      * in the unresolved state.
      */

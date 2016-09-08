@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
@@ -585,8 +586,15 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return path;
     }
 
+    @Override
     public Configuration resolutionStrategy(Closure closure) {
         ConfigureUtil.configure(closure, resolutionStrategy);
+        return this;
+    }
+
+    @Override
+    public Configuration resolutionStrategy(Action<ResolutionStrategy> action) {
+        action.execute(resolutionStrategy);
         return this;
     }
 
