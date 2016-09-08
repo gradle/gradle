@@ -99,7 +99,8 @@ public class ReportDaemonStatusClient {
     void printRunningDaemons(final List<Status> statuses) {
         if (!statuses.isEmpty()) {
             for(Status status : statuses) {
-                LOGGER.quiet(String.format(STATUS_FORMAT, status.getPid(), status.getStatus(), status.getVersion()));
+                Long pid = status.getPid();
+                LOGGER.quiet(String.format(STATUS_FORMAT, pid == null ? "PID unknown" : pid, status.getStatus(), status.getVersion()));
             }
         }
     }
@@ -108,7 +109,8 @@ public class ReportDaemonStatusClient {
     void printStoppedDaemons(final List<DaemonStopEvent> stopEvents) {
         if (!stopEvents.isEmpty()) {
             for(DaemonStopEvent event : stopEvents) {
-                LOGGER.quiet(String.format(STATUS_FORMAT, event.getPid(), "STOPPED", "(" + event.getReason() + ")"));
+                Long pid = event.getPid();
+                LOGGER.quiet(String.format(STATUS_FORMAT, pid == null ? "PID unknown" : pid, "STOPPED", "(" + event.getReason() + ")"));
             }
         }
     }

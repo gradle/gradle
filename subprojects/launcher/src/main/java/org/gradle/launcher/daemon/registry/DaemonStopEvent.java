@@ -51,6 +51,7 @@ public class DaemonStopEvent implements Serializable {
         return timestamp;
     }
 
+    @Nullable
     public Long getPid() {
         return pid;
     }

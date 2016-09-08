@@ -133,7 +133,8 @@ public class DefaultDaemonConnector implements DaemonConnector {
 
         final List<DaemonStopEvent> recentStopEvents = DaemonStopEvents.uniqueRecentDaemonStopEvents(stopEvents);
         for (DaemonStopEvent stopEvent : recentStopEvents) {
-            LOGGER.info("Previous Daemon (" + stopEvent.getPid() + ") stopped at " + stopEvent.getTimestamp() + " " + stopEvent.getReason());
+            Long pid = stopEvent.getPid();
+            LOGGER.info("Previous Daemon (" + (pid == null ? "PID unknown" : pid) + ") stopped at " + stopEvent.getTimestamp() + " " + stopEvent.getReason());
         }
 
         LOGGER.lifecycle(DaemonStartupMessage.generate(busyDaemons.size(), idleDaemons.size(), recentStopEvents.size()));

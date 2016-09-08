@@ -20,7 +20,9 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.cache.StringInterner;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -123,7 +125,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return cacheAccess.useCache("Load task history", new Factory<TaskExecutionList>() {
             public TaskExecutionList create() {
                 ClassLoader original = serializer.getClassLoader();
-                serializer.setClassLoader(task.getClass().getClassLoader());
+                ClassLoader projectClassLoader = Cast.cast(ProjectInternal.class, task.getProject()).getClassLoaderScope().getLocalClassLoader();
+                serializer.setClassLoader(projectClassLoader);
                 try {
                     TaskExecutionList history = taskHistoryCache.get(task.getPath());
                     return history == null ? new TaskExecutionList() : history;
