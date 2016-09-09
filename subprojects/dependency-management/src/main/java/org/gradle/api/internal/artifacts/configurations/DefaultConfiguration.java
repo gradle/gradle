@@ -593,7 +593,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public Configuration resolutionStrategy(Action<ResolutionStrategy> action) {
+    public Configuration resolutionStrategy(Action<? super ResolutionStrategy> action) {
         action.execute(resolutionStrategy);
         return this;
     }
