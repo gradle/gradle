@@ -20,6 +20,9 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
+/**
+ * Tests for classloading related bugs build scripts.
+ */
 class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(['GRADLE-3526', 'GRADLE-3553'])
@@ -35,6 +38,7 @@ class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
                         mavenCentral()
                     }
                     dependencies {
+                        // Dynamically changing the classpath here surfaces problems with the ClassLoaderCache
                         classpath "org.apache.commons:commons-lang3:\${version}"
                     }
                 }
@@ -61,6 +65,7 @@ class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         succeeds('doStringOp')
+        // The problem only surfaces on the second run when we start with a clean Gradle user home
         succeeds('doStringOp')
     }
 }
