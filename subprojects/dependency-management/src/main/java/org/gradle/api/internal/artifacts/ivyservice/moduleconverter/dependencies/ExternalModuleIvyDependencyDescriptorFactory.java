@@ -42,7 +42,7 @@ public class ExternalModuleIvyDependencyDescriptorFactory extends AbstractIvyDep
         ModuleComponentSelector selector = DefaultModuleComponentSelector.newSelector(requested);
 
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
-                selector, requested, clientConfiguration, clientAttributes, dependency.getConfiguration(),
+                selector, requested, clientConfiguration, clientAttributes, dependency.getTargetConfiguration().orNull(),
                 convertArtifacts(dependency.getArtifacts()),
                 convertExcludeRules(clientConfiguration, dependency.getExcludeRules()),
                 force, changing, transitive);

@@ -636,7 +636,6 @@ project(':b') {
         executedAndNotSkipped ":a:A1jar", ":a:A2jar", ":a:A3jar"
     }
 
-    @NotYetImplemented
     void "selects configuration in target project which matches the configuration attributes"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
@@ -695,13 +694,13 @@ project(':b') {
         buildFile << '''
             project(':a') {
                 configurations {
+                    compile
                     _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
                     _compileFreeDebug.extendsFrom compile
                     _compileFreeRelease.extendsFrom compile
                 }
                 dependencies {
-                    compile project(':b')
                     compile project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) << {
@@ -749,13 +748,13 @@ project(':b') {
         buildFile << '''
             project(':a') {
                 configurations {
+                    compile
                     _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
                     _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
                     _compileFreeDebug.extendsFrom compile
                     _compileFreeRelease.extendsFrom compile
                 }
                 dependencies {
-                    compile project(':b')
                     compile project(':b')
                 }
                 task checkDebug(dependsOn: configurations._compileFreeDebug) << {
@@ -804,4 +803,64 @@ project(':b') {
         executedAndNotSkipped ':b:barJar'
     }
 
+    def "explicit configuration selection should take precedence"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    compile
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                    _compileFreeDebug.extendsFrom compile
+                    _compileFreeRelease.extendsFrom compile
+                }
+                dependencies {
+                    compile project(path:':b', configuration: 'bar')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) << {
+                    assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) << {
+                    assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                }
+            }
+            project(':b') {
+                configurations {
+                    compile
+                    foo {
+                       extendsFrom compile
+                       attributes(buildType: 'debug', flavor: 'free')
+                    }
+                    bar {
+                       extendsFrom compile
+                       attributes(buildType: 'release', flavor: 'free')
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:barJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executed ':b:barJar'
+    }
 }

@@ -16,7 +16,7 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
-
+import com.google.common.base.Optional;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 
@@ -139,8 +139,20 @@ public interface ModuleDependency extends Dependency {
      * returns null. The default value for the configuration is {@link #DEFAULT_CONFIGURATION}. A dependency source
      * might have multiple configurations. Every configuration represents a different set of artifacts and dependencies
      * for this dependency module.
+     *
+     * @deprecated Use {@link #getTargetConfiguration()} instead
      */
+    @Deprecated
     String getConfiguration();
+
+    /**
+     * Returns the configuration of this dependency module (not the configurations this dependency belongs too). Never
+     * returns null. If absent, the default configuration should be used. A dependency source
+     * might have multiple configurations. Every configuration represents a different set of artifacts and dependencies
+     * for this dependency module.
+     *
+     */
+    Optional<String> getTargetConfiguration();
 
     /**
      * {@inheritDoc}

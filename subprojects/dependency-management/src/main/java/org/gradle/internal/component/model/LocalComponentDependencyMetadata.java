@@ -17,6 +17,7 @@
 package org.gradle.internal.component.model;
 
 import com.google.common.collect.ImmutableSet;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -25,6 +26,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.util.GUtil;
 
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -91,9 +93,9 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        assert fromConfiguration.getHierarchy().contains(moduleConfiguration);
+        assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         Map<String, String> attributes = fromConfiguration.getAttributes();
-        if (attributes!= null && !attributes.isEmpty()) {
+        if (dependencyConfiguration==null && attributes!= null && !attributes.isEmpty()) {
             // CC: this duplicates the logic of org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency.findProjectConfiguration()
             Set<String> configurationNames = targetComponent.getConfigurationNames();
             for (String configurationName : configurationNames) {
@@ -106,21 +108,25 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
                 }
             }
         }
-        ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(dependencyConfiguration);
+        String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
+        ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
-            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, dependencyConfiguration, targetComponent.getComponentId());
+            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
         }
         return ImmutableSet.of(toConfiguration);
     }
 
+    private static String getOrDefaultConfiguration(String configuration) {
+        return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
+    }
     @Override
     public Set<String> getModuleConfigurations() {
-        return ImmutableSet.of(moduleConfiguration);
+        return ImmutableSet.of(getOrDefaultConfiguration(moduleConfiguration));
     }
 
     @Override
     public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        assert fromConfiguration.getHierarchy().contains(moduleConfiguration);
+        assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         return exclusions;
     }
 

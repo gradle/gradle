@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.Map;
@@ -74,8 +75,9 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @Override
     public Configuration findProjectConfiguration(Map<String, String> clientAttributes) {
         Configuration selectedConfiguration = null;
-        if (clientAttributes!=null && !clientAttributes.isEmpty()) {
-            ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
+        ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
+        String declaredConfiguration = getTargetConfiguration().orNull();
+        if (declaredConfiguration == null && clientAttributes!=null && !clientAttributes.isEmpty()) {
             for (Configuration dependencyConfiguration : dependencyConfigurations) {
                 if (dependencyConfiguration.hasAttributes()) {
                     Map<String, String> attributes = dependencyConfiguration.getAttributes();
@@ -87,14 +89,14 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             }
         }
         if (selectedConfiguration == null) {
-            selectedConfiguration = getProjectConfiguration();
+            selectedConfiguration = dependencyConfigurations.getByName(GUtil.elvis(declaredConfiguration, Dependency.DEFAULT_CONFIGURATION));
         }
         return selectedConfiguration;
     }
 
     public ProjectDependency copy() {
         DefaultProjectDependency copiedProjectDependency = new DefaultProjectDependency(dependencyProject,
-                getConfiguration(), projectAccessListener, buildProjectDependencies);
+            getTargetConfiguration().orNull(), projectAccessListener, buildProjectDependencies);
         copyTo(copiedProjectDependency);
         return copiedProjectDependency;
     }
@@ -161,7 +163,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         if (!this.getDependencyProject().equals(that.getDependencyProject())) {
             return false;
         }
-        if (!this.getConfiguration().equals(that.getConfiguration())) {
+        if (!this.getTargetConfiguration().equals(that.getTargetConfiguration())) {
             return false;
         }
         if (this.buildProjectDependencies != that.buildProjectDependencies) {
@@ -172,14 +174,14 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public int hashCode() {
-        return getDependencyProject().hashCode() ^ getConfiguration().hashCode() ^ (buildProjectDependencies ? 1 : 0);
+        return getDependencyProject().hashCode() ^ getTargetConfiguration().hashCode() ^ (buildProjectDependencies ? 1 : 0);
     }
 
 
     @Override
     public String toString() {
         return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration='"
-                + getConfiguration() + '\'' + '}';
+                + getTargetConfiguration().or(Dependency.DEFAULT_CONFIGURATION) + '\'' + '}';
     }
 
     private class TaskDependencyImpl extends AbstractTaskDependency {

@@ -31,6 +31,7 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
+import com.google.common.base.Optional
 
 class ClientModuleResolverTest extends Specification {
     final target = Mock(ComponentMetaDataResolver)
@@ -61,7 +62,7 @@ class ClientModuleResolverTest extends Specification {
         1 * result.getMetaData() >> metaData
         1 * metaData.asMutable() >> mutableMetaData
         1 * clientModule.getDependencies() >> ([dep] as Set)
-        1 * dep.getConfiguration() >> "config"
+        1 * dep.getTargetConfiguration() >> Optional.of("config")
         1 * dependencyDescriptorFactory.createDependencyDescriptor("config", null, dep) >> dependencyMetaData
         1 * mutableMetaData.setDependencies([dependencyMetaData])
         1 * mutableMetaData.artifact('jar', 'jar', null) >> artifact
