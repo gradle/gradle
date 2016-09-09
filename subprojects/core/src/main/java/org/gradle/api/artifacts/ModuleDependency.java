@@ -17,10 +17,13 @@ package org.gradle.api.artifacts;
 
 import org.gradle.api.Action;
 
+import groovy.lang.DelegatesTo;
 import groovy.lang.Closure;
 
 import java.util.Map;
 import java.util.Set;
+
+import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * A {@code ModuleDependency} is a {@link org.gradle.api.artifacts.Dependency} on a module outside the current
@@ -98,7 +101,7 @@ public interface ModuleDependency extends Dependency {
      *
      * @return this
      */
-    DependencyArtifact artifact(Closure configureClosure);
+    DependencyArtifact artifact(@DelegatesTo(value=DependencyArtifact.class, strategy=DELEGATE_FIRST) Closure configureClosure);
 
     /**
      * <p>Adds an artifact to this dependency. The given action is passed a {@link
