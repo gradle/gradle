@@ -743,4 +743,65 @@ project(':b') {
         executedAndNotSkipped ':b:barJar'
     }
 
+    void "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration and target configuration is not top-level"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                    _compileFreeRelease.attributes(buildType: 'release', flavor: 'free')
+                    _compileFreeDebug.extendsFrom compile
+                    _compileFreeRelease.extendsFrom compile
+                }
+                dependencies {
+                    compile project(':b')
+                    compile project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) << {
+                    assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                }
+                task checkRelease(dependsOn: configurations._compileFreeRelease) << {
+                    assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                }
+            }
+            project(':b') {
+                configurations {
+                    compile
+                    foo {
+                       extendsFrom compile
+                       attributes(buildType: 'debug', flavor: 'free')
+                    }
+                    bar {
+                       extendsFrom compile
+                       attributes(buildType: 'release', flavor: 'free')
+                    }
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        executedAndNotSkipped ':b:fooJar'
+
+        when:
+        run ':a:checkRelease'
+
+        then:
+        executedAndNotSkipped ':b:barJar'
+    }
+
 }
