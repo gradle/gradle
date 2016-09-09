@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 /**
  * Tests for classloading related bugs build scripts.
@@ -24,6 +25,7 @@ import spock.lang.Issue
 class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(['GRADLE-3526', 'GRADLE-3553'])
+    @LeaksFileHandles
     def 'apply the same script file causing different buildscript classpaths in different projects'() {
         given:
         multiProjectBuild('root', ['project1', 'project2']) {
