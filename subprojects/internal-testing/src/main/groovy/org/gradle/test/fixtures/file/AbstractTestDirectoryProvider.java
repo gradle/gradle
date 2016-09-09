@@ -97,6 +97,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
                                 FileUtils.forceDelete(dir);
                             } catch(IOException e) {
                                 closeCachedClassLoaders();
+                                throw e;
                             }
                         }
                     });
