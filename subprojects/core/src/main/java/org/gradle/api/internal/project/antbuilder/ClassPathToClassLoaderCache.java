@@ -18,6 +18,8 @@ package org.gradle.api.internal.project.antbuilder;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.internal.classloading.GroovySystemLoader;
+import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.Factory;
@@ -48,8 +50,10 @@ public class ClassPathToClassLoaderCache implements Stoppable {
     private final Lock lock = new ReentrantLock();
     private final Map<ClassPath, CacheEntry> cacheEntries = Maps.newConcurrentMap();
     private final Set<CachedClassLoader> inUseClassLoaders = Sets.newHashSet();
+    private final GroovySystemLoaderFactory groovySystemLoaderFactory;
 
-    public ClassPathToClassLoaderCache() {
+    public ClassPathToClassLoaderCache(GroovySystemLoaderFactory groovySystemLoaderFactory) {
+        this.groovySystemLoaderFactory = groovySystemLoaderFactory;
         this.finalizerThread = new FinalizerThread(cacheEntries, lock);
         this.finalizerThread.start();
     }
@@ -85,10 +89,14 @@ public class ClassPathToClassLoaderCache implements Stoppable {
      * wraps!
      *
      * @param libClasspath the classpath for this classloader
+     * @param gradleApiGroovy the Groovy system used by core Gradle API
+     * @param antBuilderAdapterGroovy the Groovy system used by the Ant builder adapter
      * @param factory the factory to create a new class loader on cache miss
      * @param action the action to execute with the cached class loader
      */
     public void withCachedClassLoader(ClassPath libClasspath,
+                                      GroovySystemLoader gradleApiGroovy,
+                                      GroovySystemLoader antBuilderAdapterGroovy,
                                       Factory<? extends ClassLoader> factory,
                                       Action<? super CachedClassLoader> action) {
         CachedClassLoader cachedClassLoader;
@@ -104,7 +112,8 @@ public class ClassPathToClassLoaderCache implements Stoppable {
                 ClassLoader classLoader = factory.create();
                 cachedClassLoader = new CachedClassLoader(libClasspath, classLoader);
                 cacheEntry = new CacheEntry(libClasspath, cachedClassLoader);
-                Cleanup cleanup = new Cleanup(libClasspath, cachedClassLoader, finalizerThread.getReferenceQueue(), classLoader);
+                GroovySystemLoader groovySystemForLoader = groovySystemLoaderFactory.forClassLoader(classLoader);
+                Cleanup cleanup = new Cleanup(libClasspath, cachedClassLoader, finalizerThread.getReferenceQueue(), classLoader, groovySystemForLoader, gradleApiGroovy, antBuilderAdapterGroovy);
                 finalizerThread.putCleanup(libClasspath, cleanup);
                 cacheEntries.put(libClasspath, cacheEntry);
             } else {

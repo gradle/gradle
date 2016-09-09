@@ -20,6 +20,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ClosureBackedAction;
+import org.gradle.api.internal.classloading.GroovySystemLoader;
+import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.logging.LogLevel;
@@ -29,7 +31,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classloader.CachingClassLoader;
 import org.gradle.internal.classloader.ClassLoaderFactory;
-import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.classloader.MultiParentClassLoader;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
@@ -38,9 +39,7 @@ import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.jvm.Jvm;
 
-import java.io.Closeable;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Vector;
@@ -53,15 +52,20 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     private final ClassLoader baseAntLoader;
     private final ClassPath libClasspath;
     private final ClassLoader antAdapterLoader;
+    private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderFactory classLoaderFactory;
     private final ModuleRegistry moduleRegistry;
     private final ClassPathToClassLoaderCache classLoaderCache;
+    private final GroovySystemLoader gradleApiGroovyLoader;
+    private final GroovySystemLoader antAdapterGroovyLoader;
 
     public DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry, ClassLoaderFactory classLoaderFactory, ModuleRegistry moduleRegistry) {
+        this.classPathRegistry = classPathRegistry;
         this.classLoaderFactory = classLoaderFactory;
         this.moduleRegistry = moduleRegistry;
         this.libClasspath = new DefaultClassPath();
-        this.classLoaderCache = new ClassPathToClassLoaderCache();
+        GroovySystemLoaderFactory groovySystemLoaderFactory = new GroovySystemLoaderFactory();
+        this.classLoaderCache = new ClassPathToClassLoaderCache(groovySystemLoaderFactory);
 
         List<File> antClasspath = Lists.newArrayList(classPathRegistry.getClassPath("ANT").getAsFiles());
         // Need tools.jar for compile tasks
@@ -89,15 +93,21 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
         // Need Transformer (part of AntBuilder API) from base services
         gradleCoreUrls = gradleCoreUrls.plus(moduleRegistry.getModule("gradle-base-services").getImplementationClasspath());
         this.antAdapterLoader = new VisitableURLClassLoader(baseAntLoader, gradleCoreUrls);
+
+        gradleApiGroovyLoader = groovySystemLoaderFactory.forClassLoader(this.getClass().getClassLoader());
+        antAdapterGroovyLoader = groovySystemLoaderFactory.forClassLoader(antAdapterLoader);
     }
 
     protected DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> libClasspath) {
+        this.classPathRegistry = copy.classPathRegistry;
         this.classLoaderFactory = copy.classLoaderFactory;
         this.moduleRegistry = copy.moduleRegistry;
         this.antLoader = copy.antLoader;
         this.baseAntLoader = copy.baseAntLoader;
         this.antAdapterLoader = copy.antAdapterLoader;
         this.libClasspath = new DefaultClassPath(libClasspath);
+        this.gradleApiGroovyLoader = copy.gradleApiGroovyLoader;
+        this.antAdapterGroovyLoader = copy.antAdapterGroovyLoader;
         this.classLoaderCache = copy.classLoaderCache;
     }
 
@@ -113,7 +123,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     }
 
     public void execute(final Closure antClosure) {
-        classLoaderCache.withCachedClassLoader(libClasspath,
+        classLoaderCache.withCachedClassLoader(libClasspath, gradleApiGroovyLoader, antAdapterGroovyLoader,
             new Factory<ClassLoader>() {
                 @Override
                 public ClassLoader create() {
@@ -191,13 +201,7 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
             Class<?> buildListenerClass = cl.loadClass("org.apache.tools.ant.BuildListener");
             Method removeBuildListener = projectClass.getDeclaredMethod("removeBuildListener", buildListenerClass);
             removeBuildListener.invoke(project, antLogger);
-            if (antBuilder instanceof Closeable) {
-                try {
-                    ((Closeable) antBuilder).close();
-                } catch (IOException ignored) {
-                    // do nothing.
-                }
-            }
+            antBuilder.getClass().getDeclaredMethod("close").invoke(antBuilder);
         } catch (Exception ex) {
             throw UncheckedException.throwAsUncheckedException(ex);
         }
@@ -206,6 +210,12 @@ public class DefaultIsolatedAntBuilder implements IsolatedAntBuilder, Stoppable 
     @Override
     public void stop() {
         classLoaderCache.stop();
-        ClassLoaderUtils.tryClose(antAdapterLoader);
+
+        // Remove classes from core Gradle API
+        gradleApiGroovyLoader.discardTypesFrom(antAdapterLoader);
+        gradleApiGroovyLoader.discardTypesFrom(antLoader);
+
+        // Shutdown the adapter Groovy system
+        antAdapterGroovyLoader.shutdown();
     }
 }
