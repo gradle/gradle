@@ -18,11 +18,13 @@ package org.gradle.integtests
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
 
+    @Issue(['GRADLE-3526', 'GRADLE-3553'])
     @NotYetImplemented
-    def "use the same script file in different project"() {
+    def 'apply the same script file causing different buildscript paths in different projects'() {
         given:
         multiProjectBuild('root', ['project1', 'project2']) {
             file('script.gradle') << """
@@ -42,18 +44,17 @@ class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
                         println org.apache.commons.lang3.StringUtils.join('Hello', 'world')
                     }
                 }
-            """
+            """.stripIndent()
 
             file('project1/build.gradle') << """
                 apply from: '${file('script.gradle').absolutePath}'
-            """
-
-            file('project1/version.txt') << "3.4"
+            """.stripIndent()
+            file('project1/version.txt') << '3.4'
 
             file('project2/build.gradle') << """
                 apply from: '${file('script.gradle').absolutePath}'
-            """
-            file('project2/version.txt') << "3.3"
+            """.stripIndent()
+            file('project2/version.txt') << '3.3'
         }
 
         executer.requireOwnGradleUserHomeDir()
