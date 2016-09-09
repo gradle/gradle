@@ -112,7 +112,7 @@ public interface ModuleDependency extends Dependency {
      *
      * @since 3.1
      */
-    DependencyArtifact artifact(Action<DependencyArtifact> configureAction);
+    DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction);
 
     /**
      * Returns whether this dependency should be resolved including or excluding its transitive dependencies.

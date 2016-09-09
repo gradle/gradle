@@ -82,7 +82,8 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
         return artifact;
     }
 
-    public DependencyArtifact artifact(Action<DependencyArtifact> configureAction) {
+    @Override
+    public DependencyArtifact artifact(Action<? super DependencyArtifact> configureAction) {
         DependencyArtifact artifact = new DefaultDependencyArtifact();
         configureAction.execute(artifact);
         artifacts.add(artifact);
