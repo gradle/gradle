@@ -156,9 +156,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
 
         final String displayName = getDisplayName();
-        dependencies = new DefaultDependencySet(displayName + " dependencies", ownDependencies);
+        dependencies = new DefaultDependencySet(displayName + " dependencies", this, ownDependencies);
         inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
-        allDependencies = new DefaultDependencySet(displayName + " all dependencies", inheritedDependencies);
+        allDependencies = new DefaultDependencySet(displayName + " all dependencies", this, inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
         ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));

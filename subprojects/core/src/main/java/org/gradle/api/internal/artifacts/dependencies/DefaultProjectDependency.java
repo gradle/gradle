@@ -36,7 +36,6 @@ import java.util.Set;
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
     private final ProjectInternal dependencyProject;
     private final boolean buildProjectDependencies;
-    private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
     private final ProjectAccessListener projectAccessListener;
 
     public DefaultProjectDependency(ProjectInternal dependencyProject, ProjectAccessListener projectAccessListener, boolean buildProjectDependencies) {
@@ -125,7 +124,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     public TaskDependencyInternal getBuildDependencies() {
-        return taskDependency;
+        return new TaskDependencyImpl(null);
+    }
+
+    @Override
+    public TaskDependencyInternal getTaskDependency(Map<String, String> attributes) {
+        return new TaskDependencyImpl(attributes);
     }
 
     public boolean contentEquals(Dependency dependency) {
@@ -179,6 +183,12 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     private class TaskDependencyImpl extends AbstractTaskDependency {
+        private final Map<String, String> attributes;
+
+        private TaskDependencyImpl(Map<String, String> attributes) {
+            this.attributes = attributes;
+        }
+
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             if (!buildProjectDependencies) {
@@ -186,7 +196,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             }
             projectAccessListener.beforeResolvingProjectDependency(dependencyProject);
 
-            Configuration configuration = getProjectConfiguration();
+            Configuration configuration = findProjectConfiguration(attributes);
             context.add(configuration);
             context.add(configuration.getAllArtifacts());
         }

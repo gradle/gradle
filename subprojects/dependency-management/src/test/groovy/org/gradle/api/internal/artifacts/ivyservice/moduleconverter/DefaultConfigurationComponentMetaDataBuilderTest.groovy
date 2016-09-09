@@ -96,7 +96,7 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         stub.isVisible() >> true
         stub.getExtendsFrom() >> WrapUtil.toSet(extendsFromConfigurations)
         stub.getHierarchy() >> WrapUtil.toSet(extendsFromConfigurations)
-        stub.getAllDependencies() >> new DefaultDependencySet("foo", WrapUtil.toDomainObjectSet(Dependency.class))
+        stub.getAllDependencies() >> new DefaultDependencySet("foo",  Mock(Configuration), WrapUtil.toDomainObjectSet(Dependency.class))
         stub.getArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class), TestFiles.fileCollectionFactory())
         stub.getAllArtifacts() >> new DefaultPublishArtifactSet("foo", WrapUtil.toDomainObjectSet(PublishArtifact.class), TestFiles.fileCollectionFactory())
         return stub;

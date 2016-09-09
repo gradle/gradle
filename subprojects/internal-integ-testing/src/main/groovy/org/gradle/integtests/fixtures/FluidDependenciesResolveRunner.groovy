@@ -33,7 +33,7 @@ public class FluidDependenciesResolveRunner extends AbstractMultiTestRunner {
     @Override
     protected void createExecutions() {
         // Run the test once with early dependency forced and once without
-        add(new ResolveDependencyGraphExecution(true))
+//        add(new ResolveDependencyGraphExecution(true))
         add(new ResolveDependencyGraphExecution(false))
     }
 

@@ -79,6 +79,7 @@ class DefaultProjectDependencyTest extends AbstractProjectBuilderSpec {
         1 * context.transitive >> true
         1 * context.add(dep1)
         1 * context.add(dep2)
+        1 * context.getAttributes()
         0 * _
     }
 
