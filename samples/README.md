@@ -1,6 +1,8 @@
 Sample Kotlin-based Gradle build scripts
 ========================================
 
+_See instructions below in order to [set up your dev environment](#set-up-dev-environment) to benefit from [the available IDE support](#explore-available-ide-support)._
+
 The Gradle projects in this directory demonstrate typical use cases with and features available in Gradle Script Kotlin. They include:
 
  - [`hello-world`](hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
