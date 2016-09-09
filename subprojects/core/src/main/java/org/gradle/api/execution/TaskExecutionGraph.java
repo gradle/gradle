@@ -76,6 +76,8 @@ public interface TaskExecutionGraph {
      * parameter.</p>
      *
      * @param action The action to execute when this graph has been populated.
+     *
+     * @since 3.1
      */
     void whenReady(Action<TaskExecutionGraph> action);
 
@@ -92,6 +94,8 @@ public interface TaskExecutionGraph {
      * parameter.</p>
      *
      * @param action The action to execute when a task is about to be executed.
+     *
+     * @since 3.1
      */
     void beforeTask(Action<Task> action);
 
@@ -109,6 +113,8 @@ public interface TaskExecutionGraph {
      * first parameter.</p>
      *
      * @param action The action to execute when a task has been executed
+     *
+     * @since 3.1
      */
     void afterTask(Action<Task> action);
 
