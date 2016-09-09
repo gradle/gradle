@@ -84,6 +84,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 Collections.singleton(configurationName),
                 true,
                 true,
+                null,
                 entry.getValue());
         }
         return metaData;

@@ -58,8 +58,8 @@ class DefaultConfigurationComponentMetaDataBuilderTest extends Specification {
         converter.addConfigurations(metaData, [config1, config2])
 
         then:
-        _ * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, _ as TaskDependency)
-        _ * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, _ as TaskDependency)
+        _ * metaData.addConfiguration("config1", '', emptySet, emptySet, false, false, [:], _ as TaskDependency)
+        _ * metaData.addConfiguration("config2", '', emptySet, emptySet, false, false, [:], _ as TaskDependency)
         1 * metaData.addArtifacts("config1", artifacts1)
         1 * metaData.addArtifacts("config2", artifacts2)
         0 * metaData._

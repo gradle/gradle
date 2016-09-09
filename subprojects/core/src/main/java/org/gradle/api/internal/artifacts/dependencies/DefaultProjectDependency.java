@@ -74,7 +74,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @Override
     public Configuration findProjectConfiguration(Map<String, String> clientAttributes) {
         Configuration selectedConfiguration = null;
-        if (clientAttributes!=null) {
+        if (clientAttributes!=null && !clientAttributes.isEmpty()) {
             ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
             for (Configuration dependencyConfiguration : dependencyConfigurations) {
                 if (dependencyConfiguration.hasAttributes()) {

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.ProjectDependency;
@@ -39,8 +40,10 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
     public DslOriginDependencyMetadata createDependencyDescriptor(String clientConfiguration, Map<String, String> clientAttributes, ModuleDependency dependency) {
         ProjectDependencyInternal projectDependency = (ProjectDependencyInternal) dependency;
         projectDependency.beforeResolved();
-        ConfigurationInternal selectedConfiguration = (ConfigurationInternal) projectDependency.findProjectConfiguration(clientAttributes);
-        selectedConfiguration.triggerWhenEmptyActionsIfNecessary();
+        // TODO CC: find a better location to do this, on the selected dependency only, instead of all configurations
+        for (Configuration configuration : projectDependency.getDependencyProject().getConfigurations()) {
+            ((ConfigurationInternal)configuration).triggerWhenEmptyActionsIfNecessary();
+        }
         Module module = getProjectModule(dependency);
         ModuleVersionSelector requested = new DefaultModuleVersionSelector(module.getGroup(), module.getName(), module.getVersion());
         ComponentSelector selector = DefaultProjectComponentSelector.newSelector(projectDependency.getDependencyProject());
@@ -48,7 +51,7 @@ public class ProjectIvyDependencyDescriptorFactory extends AbstractIvyDependency
         LocalComponentDependencyMetadata dependencyMetaData = new LocalComponentDependencyMetadata(
             selector, requested, clientConfiguration,
             clientAttributes,
-            selectedConfiguration.getName(),
+            projectDependency.getConfiguration(),
             convertArtifacts(dependency.getArtifacts()),
             convertExcludeRules(clientConfiguration, dependency.getExcludeRules()),
             false, false, dependency.isTransitive());
