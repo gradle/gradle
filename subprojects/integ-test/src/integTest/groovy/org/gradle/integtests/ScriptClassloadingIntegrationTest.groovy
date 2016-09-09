@@ -48,12 +48,12 @@ class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
             """.stripIndent()
 
             file('project1/build.gradle') << """
-                apply from: '${file('script.gradle').absolutePath}'
+                apply from: new File(rootDir, 'script.gradle')
             """.stripIndent()
             file('project1/version.txt') << '3.4'
 
             file('project2/build.gradle') << """
-                apply from: '${file('script.gradle').absolutePath}'
+                apply from: new File(rootDir, 'script.gradle')
             """.stripIndent()
             file('project2/version.txt') << '3.3'
         }
