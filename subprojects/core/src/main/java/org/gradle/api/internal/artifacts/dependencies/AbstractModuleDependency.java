@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.artifacts.DefaultExcludeRuleContainer;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
 import java.util.HashSet;
@@ -77,9 +77,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     }
 
     public DependencyArtifact artifact(Closure configureClosure) {
-        DependencyArtifact artifact = ConfigureUtil.configure(configureClosure, new DefaultDependencyArtifact());
-        artifacts.add(artifact);
-        return artifact;
+        return artifact(ClosureBackedAction.of(configureClosure));
     }
 
     @Override
