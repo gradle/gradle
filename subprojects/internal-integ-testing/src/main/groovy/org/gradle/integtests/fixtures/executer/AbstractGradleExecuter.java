@@ -25,9 +25,11 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
+import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.services.NativeServices;
@@ -594,6 +596,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             return true;
         }
         return requireDaemon;
+    }
+    
+    // gets called by reflection from AbstractTestDirectoryProvider#closeCachedClassLoaders method
+    public static void cleanupCachedClassLoaders() {
+        ClassLoaderCache classLoaderCache = GLOBAL_SERVICES.get(ClassLoaderCache.class);
+        CompositeStoppable.stoppable(classLoaderCache).stop();
     }
 
     enum CliDaemonArgument {
