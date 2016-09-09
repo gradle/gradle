@@ -119,7 +119,7 @@ Initial support for [Play 2.5.x](userguide/play_plugin.html#sec:play_limitations
 
 ### Improved IDEA code assistance performance for Kotlin based build scripts
 
-Gradle 3.1 supports version 0.3.1 of [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), a statically typed build language based on Kotlin.
+Gradle 3.1 supports version 0.3.2 of [Gradle Script Kotlin](https://github.com/gradle/gradle-script-kotlin), a statically typed build language based on Kotlin.
 
 This new version includes an improved dependencies DSL making it possible to configure all aspects of external module and project dependencies via a type-safe and IDE-friendly DSL, as shown here:
 
@@ -143,9 +143,48 @@ This new version includes an improved dependencies DSL making it possible to con
         testRuntime(project(path = ":core")) {
             exclude(group = "org.gradle")
         }
+
+        // Client module dependencies are also supported
+        runtime(
+            module("org.codehaus.groovy:groovy:2.4.7") {
+
+                // Configures the module itself
+                isTransitive = false
+
+                dependency("commons-cli:commons-cli:1.0") {
+                    // Configures the external module dependency
+                    isTransitive = false
+                }
+
+                module(group = "org.apache.ant", name = "ant", version = "1.9.6") {
+                    // Configures the inner module dependencies
+                    dependencies(
+                        "org.apache.ant:ant-launcher:1.9.6@jar",
+                        "org.apache.ant:ant-junit:1.9.6")
+                }
+            }
+        )
     }
 
-Gradle Script Kotlin 0.3.1 also ships with Kotlin 1.1-dev-2053, which greatly improves the performance of code completion within IDEA when used together with a recent Kotlin plugin version. Please check out the full [Gradle Script Kotlin release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.3.1) for details.
+Gradle Script Kotlin 0.3.2 also ships with Kotlin 1.1-dev-2053, which greatly improves the performance of code completion within IDEA when used together with a recent Kotlin plugin version. Please check out the full [Gradle Script Kotlin v0.3.1 release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.3.1), the first release to include it, for details.
+
+Parity with the Groovy based build language was greatly increased. Taking `copySpec` as an example. Before Gradle Script Kotlin v0.3.2 one could write:
+
+    copySpec {
+        it.from("src/data")
+        it.include("*.properties")
+    }
+
+With v0.3.2 it should now read:
+
+    copySpec {
+        from("src/data")
+        include("*.properties")
+    }
+
+Please note that this is a _breaking change_ as many configuration patterns that previously required a qualifying `it` reference no longer do. This behavior is only enabled for non-generic Gradle API methods under the `org.gradle.api` package at this point. Subsequent releases will increasingly cover the full API.
+
+Again for the full scoop please check out the full [Gradle Script Kotlin release notes](https://github.com/gradle/gradle-script-kotlin/releases/tag/v0.3.2).
 
 ### More resilient Daemon
 
