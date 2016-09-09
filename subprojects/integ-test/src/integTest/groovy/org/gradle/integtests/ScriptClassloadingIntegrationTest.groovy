@@ -27,7 +27,7 @@ class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue(['GRADLE-3526', 'GRADLE-3553'])
     @NotYetImplemented
-    def 'apply the same script file causing different buildscript paths in different projects'() {
+    def 'apply the same script file causing different buildscript classpaths in different projects'() {
         given:
         multiProjectBuild('root', ['project1', 'project2']) {
             file('script.gradle') << """
