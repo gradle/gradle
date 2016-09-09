@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
@@ -26,6 +27,8 @@ import org.gradle.internal.HasInternalProtocol;
 import java.io.File;
 import java.util.Map;
 import java.util.Set;
+
+import static groovy.lang.Closure.DELEGATE_FIRST;
 
 /**
  * A {@code Configuration} represents a group of artifacts and their dependencies.
@@ -60,7 +63,7 @@ public interface Configuration extends FileCollection {
      * @return this configuration instance
      * @since 1.0-milestone-6
      */
-    Configuration resolutionStrategy(Closure closure);
+    Configuration resolutionStrategy(@DelegatesTo(value = ResolutionStrategy.class, strategy = DELEGATE_FIRST) Closure closure);
 
     /**
      * The resolution strategy provides extra details on how to resolve this configuration.
