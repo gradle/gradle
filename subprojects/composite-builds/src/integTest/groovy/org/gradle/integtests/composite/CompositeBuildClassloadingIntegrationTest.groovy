@@ -16,7 +16,6 @@
 
 package org.gradle.integtests.composite
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Issue
 /**
@@ -24,7 +23,6 @@ import spock.lang.Issue
  */
 class CompositeBuildClassloadingIntegrationTest extends AbstractCompositeBuildIntegrationTest {
 
-    @NotYetImplemented
     @Issue('GRADLE-3553')
     def "init-script with project dependent classpath and included build"() {
         given:
