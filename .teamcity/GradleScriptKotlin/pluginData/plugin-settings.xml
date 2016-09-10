@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings>
-  <versionedSettings rootId="GradleScriptKotlin_Master" enabled="true" showChanges="true" buildSettings="ALWAYS_USE_CURRENT" />
   <webhooks enabled="true">
     <webhook url="https://hooks.slack.com/services/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" enabled="true" format="tailoredjson">
       <states>
-        <state type="buildInterrupted" enabled="false" />
-        <state type="buildFinished" enabled="true" />
         <state type="beforeBuildFinish" enabled="false" />
+        <state type="responsibilityChanged" enabled="false" />
         <state type="buildSuccessful" enabled="true" />
-        <state type="buildBroken" enabled="false" />
         <state type="buildFixed" enabled="true" />
         <state type="buildFailed" enabled="true" />
-        <state type="responsibilityChanged" enabled="false" />
         <state type="buildStarted" enabled="false" />
+        <state type="buildFinished" enabled="true" />
+        <state type="buildBroken" enabled="false" />
+        <state type="buildInterrupted" enabled="false" />
       </states>
       <build-types enabled-for-all="true" enabled-for-subprojects="true" />
     </webhook>

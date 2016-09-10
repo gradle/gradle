@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<vcs-root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="d9b38756-3b53-4ef8-b91e-55879031d212" type="jetbrains.git" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/9.0/project-config.xsd">
+<vcs-root xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="d9b38756-3b53-4ef8-b91e-55879031d212" type="jetbrains.git" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
   <name>gradle/gradle:gradle-script-kotlin</name>
   <param name="agentCleanFilesPolicy" value="ALL_UNTRACKED" />
   <param name="agentCleanPolicy" value="ON_BRANCH_CHANGE" />

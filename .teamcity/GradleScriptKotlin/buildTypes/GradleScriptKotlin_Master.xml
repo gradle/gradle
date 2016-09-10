@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="9c38e7b5-d1b5-46d1-945f-3cd03c7a41f6" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/9.0/project-config.xsd">
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="9c38e7b5-d1b5-46d1-945f-3cd03c7a41f6" xsi:noNamespaceSchemaLocation="http://www.jetbrains.com/teamcity/schemas/10.0/project-config.xsd">
   <name>Master</name>
   <description />
   <settings>
@@ -67,7 +67,7 @@
       <vcs-entry-ref root-id="GradleScriptKotlin_Master" />
     </vcs-settings>
     <requirements>
-      <equals name="teamcity.agent.jvm.os.name" value="Linux" />
+      <equals id="RQ_431" name="teamcity.agent.jvm.os.name" value="Linux" />
     </requirements>
     <build-triggers>
       <build-trigger id="vcsTrigger" type="vcsTrigger">
