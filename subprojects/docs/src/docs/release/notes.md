@@ -222,11 +222,11 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### Ivy Publish plugin takes into account `transitive` attribute declared for dependencies when generating metadata
 
-Previous versions of Gradle did no reflect `transitive="false"` for a dependency in the generated metadata if the `transitive` attribute was set to `false`. To illustrate the change
+Previous versions of Gradle did not reflect the `transitive` attribute for a dependency in the generated metadata if the `transitive` attribute was set to `false`. To illustrate the change
 in behavior, let's assume the following dependency declaration.
 
     dependencies {
-        compile "commons-dbcp:commons-dbcp:1.4", {
+        compile ("commons-dbcp:commons-dbcp:1.4") {
             transitive = false
         }
     }
