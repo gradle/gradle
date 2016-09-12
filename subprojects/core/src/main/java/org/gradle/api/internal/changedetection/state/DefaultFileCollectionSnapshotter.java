@@ -29,8 +29,11 @@ import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveC
 import java.util.List;
 
 public class DefaultFileCollectionSnapshotter extends AbstractFileCollectionSnapshotter {
+    protected final FileResolver fileResolver;
+
     public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver) {
-        super(snapshotter, cacheAccess, stringInterner, fileResolver);
+        super(snapshotter, cacheAccess, stringInterner);
+        this.fileResolver = fileResolver;
     }
 
     @Override

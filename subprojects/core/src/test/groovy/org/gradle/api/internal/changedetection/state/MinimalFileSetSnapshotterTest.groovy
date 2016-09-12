@@ -43,7 +43,7 @@ class MinimalFileSetSnapshotterTest extends Specification {
     FileResolver fileResolver = Mock()
     FileSystem fileSystem = Mock()
 
-    def minimalFileSnapshotter = new MinimalFileSetSnapshotter(snapshotter, cacheAccess, stringInterner, fileResolver, fileSystem)
+    def minimalFileSnapshotter = new MinimalFileSetSnapshotter(snapshotter, cacheAccess, stringInterner, fileSystem)
 
     def snapshot
 

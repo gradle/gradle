@@ -23,7 +23,6 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.nativeplatform.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
@@ -42,8 +41,8 @@ import java.util.List;
 public class MinimalFileSetSnapshotter extends AbstractFileCollectionSnapshotter {
     private final FileSystem fileSystem;
 
-    public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, CacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem) {
-        super(snapshotter, cacheAccess, stringInterner, fileResolver);
+    public MinimalFileSetSnapshotter(FileSnapshotter snapshotter, CacheAccess cacheAccess, StringInterner stringInterner, FileSystem fileSystem) {
+        super(snapshotter, cacheAccess, stringInterner);
         this.fileSystem = fileSystem;
     }
 

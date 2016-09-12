@@ -16,39 +16,37 @@
 
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
 
 abstract class AbstractFileCollectionSnapshotter implements FileCollectionSnapshotter {
-    protected final FileSnapshotter snapshotter;
-    protected final StringInterner stringInterner;
-    protected final FileResolver fileResolver;
-    protected CacheAccess cacheAccess;
+    private static final DefaultFileCollectionSnapshot EMPTY_SNAPSHOT = new DefaultFileCollectionSnapshot(ImmutableMap.<String, NormalizedFileSnapshot>of(), UNORDERED);
+    private final FileSnapshotter snapshotter;
+    private final StringInterner stringInterner;
+    private final CacheAccess cacheAccess;
 
-    public AbstractFileCollectionSnapshotter(FileSnapshotter snapshotter, CacheAccess cacheAccess, StringInterner stringInterner, FileResolver fileResolver) {
+    public AbstractFileCollectionSnapshotter(FileSnapshotter snapshotter, CacheAccess cacheAccess, StringInterner stringInterner) {
         this.snapshotter = snapshotter;
         this.cacheAccess = cacheAccess;
         this.stringInterner = stringInterner;
-        this.fileResolver = fileResolver;
     }
 
     @Override
     public FileCollectionSnapshot emptySnapshot() {
-        return new DefaultFileCollectionSnapshot(Collections.<String, NormalizedFileSnapshot>emptyMap(), UNORDERED);
+        return EMPTY_SNAPSHOT;
     }
 
     public void registerSerializers(SerializerRegistry registry) {
