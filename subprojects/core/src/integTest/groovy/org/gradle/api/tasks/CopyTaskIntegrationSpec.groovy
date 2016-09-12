@@ -1116,4 +1116,23 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         then:
         skippedTasks.empty
     }
+
+    @Issue("https://issues.gradle.org/browse/GRADLE-3554")
+    def "copy with dependent task executes dependencies"() {
+        given:
+        buildScript '''
+            apply plugin: "war"
+
+            task copy(type: Copy) {
+                from 'src'
+                into 'dest'
+                with tasks.war
+            }
+        '''.stripIndent()
+
+        when:
+        run 'copy'
+        then:
+        executedTasks == [":compileJava", ":processResources", ":classes"]
+    }
 }
