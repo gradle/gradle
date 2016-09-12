@@ -30,11 +30,13 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -65,7 +67,6 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -585,8 +586,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return path;
     }
 
+    @Override
     public Configuration resolutionStrategy(Closure closure) {
-        ConfigureUtil.configure(closure, resolutionStrategy);
+        return resolutionStrategy(ClosureBackedAction.of(closure));
+    }
+
+    @Override
+    public Configuration resolutionStrategy(Action<? super ResolutionStrategy> action) {
+        action.execute(resolutionStrategy);
         return this;
     }
 

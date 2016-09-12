@@ -126,6 +126,11 @@ public class TypedDomainObjectContainerWrapper<U> implements NamedDomainObjectCo
         return delegate.getByName(name, configureClosure);
     }
 
+    @Override
+    public U getByName(String name, Action<? super U> configureAction) throws UnknownDomainObjectException {
+        return delegate.getByName(name, configureAction);
+    }
+
     public Namer<U> getNamer() {
         return delegate.getNamer();
     }

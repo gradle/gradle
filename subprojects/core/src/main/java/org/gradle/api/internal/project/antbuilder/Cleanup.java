@@ -15,30 +15,50 @@
  */
 package org.gradle.api.internal.project.antbuilder;
 
+import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.classpath.ClassPath;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 
-public class Cleanup extends PhantomReference<CachedClassLoader> {
+class Cleanup extends PhantomReference<CachedClassLoader> {
+    enum Mode {
+        DONT_CLOSE_CLASSLOADER,
+        CLOSE_CLASSLOADER
+    }
+
     private final ClassPath key;
     private final ClassLoader classLoader;
+    private final GroovySystemLoader groovySystemForClassLoader;
+    private final GroovySystemLoader gradleApiGroovyLoader;
+    private final GroovySystemLoader antBuilderGroovyLoader;
 
-    public Cleanup(ClassPath classPath,
-                   CachedClassLoader cachedClassLoader,
-                   ReferenceQueue<CachedClassLoader> referenceQueue,
-                   ClassLoader classLoader) {
+    Cleanup(ClassPath classPath,
+            CachedClassLoader cachedClassLoader,
+            ReferenceQueue<CachedClassLoader> referenceQueue,
+            ClassLoader classLoader,
+            GroovySystemLoader groovySystemForClassLoader,
+            GroovySystemLoader gradleApiGroovyLoader,
+            GroovySystemLoader antBuilderGroovyLoader) {
         super(cachedClassLoader, referenceQueue);
+        this.groovySystemForClassLoader = groovySystemForClassLoader;
+        this.gradleApiGroovyLoader = gradleApiGroovyLoader;
+        this.antBuilderGroovyLoader = antBuilderGroovyLoader;
         this.key = classPath;
         this.classLoader = classLoader;
     }
 
-    public ClassPath getKey() {
+    ClassPath getKey() {
         return key;
     }
 
-    public void cleanup() {
-        ClassLoaderUtils.tryClose(classLoader);
+    void cleanup(Mode mode) {
+        groovySystemForClassLoader.shutdown();
+        gradleApiGroovyLoader.discardTypesFrom(classLoader);
+        antBuilderGroovyLoader.discardTypesFrom(classLoader);
+        if (mode == Mode.CLOSE_CLASSLOADER) {
+            ClassLoaderUtils.tryClose(classLoader);
+        }
     }
 }
