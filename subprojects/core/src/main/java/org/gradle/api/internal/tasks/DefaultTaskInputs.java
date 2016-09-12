@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks;
 
 import com.google.common.collect.Lists;
 import groovy.lang.GString;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
@@ -175,13 +174,8 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     public Map<String, Object> getProperties() {
         Map<String, Object> actualProperties = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
-            String propertyName = entry.getKey();
-            try {
-                Object value = prepareValue(entry.getValue());
-                actualProperties.put(propertyName, value);
-            } catch (Exception ex) {
-                throw new InvalidUserDataException(String.format("Error while evaluating property '%s' of %s", propertyName, task), ex);
-            }
+            Object value = prepareValue(entry.getValue());
+            actualProperties.put(entry.getKey(), value);
         }
         return actualProperties;
     }

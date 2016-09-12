@@ -113,7 +113,7 @@ class DefaultCopySpecTest extends Specification {
 
         then:
         spec.sourcePaths.empty
-        spec.children.size() == 2
+        spec.childSpecs.size() == 2
     }
 
     def 'into with Closure'() {
@@ -338,14 +338,14 @@ class DefaultCopySpecTest extends Specification {
 
         then:
         child1
-        spec.children == [child1]
+        spec.childSpecs == [child1]
 
         when:
         DefaultCopySpec child2 = spec.addFirst()
 
         then:
         child2
-        spec.children == [child2, child1]
+        spec.childSpecs == [child2, child1]
     }
 
     def 'add Spec in between two child Specs if given child exists'() {
@@ -356,14 +356,14 @@ class DefaultCopySpecTest extends Specification {
         then:
         child1
         child2
-        spec.children == [child1, child2]
+        spec.childSpecs == [child1, child2]
 
         when:
         DefaultCopySpec child3 = spec.addChildBeforeSpec(child2)
 
         then:
         child3
-        spec.children == [child1, child3, child2]
+        spec.childSpecs == [child1, child3, child2]
     }
 
     def 'append Spec after two child Specs if given child does not exist or is null'() {
@@ -374,14 +374,14 @@ class DefaultCopySpecTest extends Specification {
         then:
         child1
         child2
-        spec.children == [child1, child2]
+        spec.childSpecs == [child1, child2]
 
         when:
         DefaultCopySpec child3 = spec.addChildBeforeSpec(notContainedChild)
 
         then:
         child3
-        spec.children == [child1, child2, child3]
+        spec.childSpecs == [child1, child2, child3]
 
         where:
         notContainedChild << [null, new DefaultCopySpec(fileResolver, instantiator)]
@@ -447,36 +447,6 @@ class DefaultCopySpecTest extends Specification {
 
         where:
         invalidFilteringCharset << [null, "THAT_SURE_IS_AN_INVALID_CHARSET"]
-    }
-
-    def 'can add spec hierarchy as child'() {
-        CopySpec otherSpec = new DefaultCopySpec(fileResolver, instantiator)
-        otherSpec.addChild()
-        def added = []
-
-        spec.addChildSpecListener { CopySpecInternal.ChildSpecAddedEvent event ->
-            added.add event.toString()
-        }
-
-        when:
-        spec.addChild()
-
-        then:
-        added == ['$1']
-
-        when:
-        added.clear()
-        spec.with otherSpec
-
-        then:
-        added == ['$2', '$2$1']
-
-        when:
-        added.clear()
-        otherSpec.addChild().addChild()
-
-        then:
-        added == ['$2$2', '$2$2$1']
     }
 
     private DefaultCopySpec unpackWrapper(CopySpec copySpec) {
