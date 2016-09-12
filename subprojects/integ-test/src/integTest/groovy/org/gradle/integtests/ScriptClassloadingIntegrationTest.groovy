@@ -19,16 +19,27 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
+import spock.lang.Unroll
+
+import static org.gradle.integtests.ScriptClassloadingIntegrationTest.SharedScriptFileType.SHARED_BUILDFILE
+import static org.gradle.integtests.ScriptClassloadingIntegrationTest.SharedScriptFileType.SHARED_SCRIPTPLUGIN
+
 /**
  * Tests for classloading related bugs build scripts.
  */
 class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
+    enum SharedScriptFileType {
+        SHARED_BUILDFILE,
+        SHARED_SCRIPTPLUGIN
+    }
 
     @Issue(['GRADLE-3526', 'GRADLE-3553'])
     @LeaksFileHandles
-    def 'apply the same script file causing different buildscript classpaths in different projects'() {
+    @Unroll
+    def 'apply the same script file causing different buildscript classpaths in different projects #sharedScriptFileType'(SharedScriptFileType sharedScriptFileType) {
         given:
-        multiProjectBuild('root', ['project1', 'project2']) {
+        def subprojectNames = ['project1', 'project2']
+        multiProjectBuild('root', subprojectNames) {
             file('script.gradle') << """
                 buildscript {
                     File searchDir = project.projectDir
@@ -49,15 +60,27 @@ class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
                 }
             """.stripIndent()
 
-            file('project1/build.gradle') << """
-                apply from: new File(rootDir, 'script.gradle')
-            """.stripIndent()
             file('project1/version.txt') << '3.4'
-
-            file('project2/build.gradle') << """
-                apply from: new File(rootDir, 'script.gradle')
-            """.stripIndent()
             file('project2/version.txt') << '3.3'
+
+            switch (sharedScriptFileType) {
+                case SHARED_SCRIPTPLUGIN:
+                    // share the same script file by applying it as a script plugin in the subproject's build file
+                    subprojectNames.each { subprojectName ->
+                        file("${subprojectName}/build.gradle") << """
+                            apply from: new File(rootDir, 'script.gradle')
+                        """.stripIndent()
+                    }
+                    break
+                case SHARED_BUILDFILE:
+                    // share the same script file by setting project.buildFileName in settings.gradle
+                    subprojectNames.each { subprojectName ->
+                        settingsFile << """
+                            project(':${subprojectName}').buildFileName = '../script.gradle'
+                        """.stripIndent()
+                    }
+                    break
+            }
         }
 
         executer.requireOwnGradleUserHomeDir()
@@ -66,5 +89,8 @@ class ScriptClassloadingIntegrationTest extends AbstractIntegrationSpec {
         succeeds('doStringOp')
         // The problem only surfaces on the second run when we start with a clean Gradle user home
         succeeds('doStringOp')
+
+        where:
+        sharedScriptFileType << [SHARED_SCRIPTPLUGIN, SHARED_BUILDFILE]
     }
 }
