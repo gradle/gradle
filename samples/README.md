@@ -13,6 +13,7 @@ The Gradle projects in this directory demonstrate typical use cases with and fea
  - [`modularity`](./modularity): demonstrates the use of `applyFrom` to modularize build scripts
  - [`hello-kotlin`](./hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
  - [`hello-android`](./hello-android): demonstrates a Kotlin-based Gradle build script for a Kotlin-based Android project
+ - [`multi-kotlin-project`](./multi-kotlin-project): demonstrates a [multi-project build](https://docs.gradle.org/current/userguide/multi_project_builds.html) comprising two Kotlin based projects
 
 
 Set up dev environment

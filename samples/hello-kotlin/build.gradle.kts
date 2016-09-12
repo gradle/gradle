@@ -5,7 +5,7 @@ buildscript {
     }
 
     dependencies {
-        classpath(kotlinModule("gradle-plugin"))
+        classpath(kotlinModule("gradle-plugin", version = "1.0.3"))
     }
 }
 
@@ -23,5 +23,5 @@ repositories {
 }
 
 dependencies {
-    compile(kotlinModule("stdlib"))
+    compile(kotlinModule("stdlib", version = "1.0.3"))
 }
