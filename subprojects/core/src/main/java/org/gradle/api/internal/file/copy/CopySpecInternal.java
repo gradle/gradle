@@ -37,4 +37,64 @@ public interface CopySpecInternal extends CopySpec {
 
     CopySpecResolver buildResolverRelativeToParent(CopySpecResolver parent);
 
+    void addChildSpecListener(ChildSpecListener listener);
+
+    void visit(ChildSpecAddress parentPath, ChildSpecVisitor visitor);
+
+    /**
+     * Listener triggered when a spec is added to the hierarchy.
+     */
+    interface ChildSpecListener {
+        void childSpecAdded(ChildSpecAddedEvent event);
+    }
+
+    /**
+     * A visitor to traverse the spec hierarchy.
+     */
+    interface ChildSpecVisitor {
+        void visit(ChildSpecAddress address, CopySpecInternal spec);
+    }
+
+    /**
+     * The address of a spec relative to its parent.
+     */
+    interface ChildSpecAddress {
+        ChildSpecAddress getParent();
+
+        CopySpecInternal getSpec();
+
+        int getAdditionIndex();
+
+        ChildSpecAddress append(CopySpecInternal spec, int additionIndex);
+
+        ChildSpecAddress append(ChildSpecAddress relativeAddress);
+
+        CopySpecResolver unroll(StringBuilder path);
+    }
+
+    /**
+     * An event describing a spec being added at the given path in a spec hierarchy.
+     */
+    class ChildSpecAddedEvent {
+        private final ChildSpecAddress path;
+        private final CopySpecInternal spec;
+
+        public ChildSpecAddedEvent(ChildSpecAddress path, CopySpecInternal spec) {
+            this.path = path;
+            this.spec = spec;
+        }
+
+        public ChildSpecAddress getPath() {
+            return path;
+        }
+
+        public CopySpecInternal getSpec() {
+            return spec;
+        }
+
+        @Override
+        public String toString() {
+            return path.toString();
+        }
+    }
 }

@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.copy;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -57,7 +58,8 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final Set<Object> sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
-    protected final List<CopySpecInternal> childSpecs;
+    private final List<CopySpecInternal> childSpecs;
+    private final List<CopySpecInternal> childSpecsInAdditionOrder;
     protected final Instantiator instantiator;
     private final List<Action<? super FileCopyDetails>> copyActions = new ArrayList<Action<? super FileCopyDetails>>();
     private Integer dirMode;
@@ -66,13 +68,14 @@ public class DefaultCopySpec implements CopySpecInternal {
     private Boolean includeEmptyDirs;
     private DuplicatesStrategy duplicatesStrategy;
     private String filteringCharset;
-
+    private List<ChildSpecListener> childSpecListeners = Lists.newLinkedList();
 
     public DefaultCopySpec(FileResolver resolver, Instantiator instantiator) {
         this.fileResolver = resolver;
         this.instantiator = instantiator;
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<CopySpecInternal>();
+        childSpecsInAdditionOrder = new ArrayList<CopySpecInternal>();
         patternSet = resolver.getPatternSetFactory().create();
         duplicatesStrategy = null;
     }
@@ -90,7 +93,7 @@ public class DefaultCopySpec implements CopySpecInternal {
             } else {
                 copySpecInternal = (CopySpecInternal) copySpec;
             }
-            childSpecs.add(copySpecInternal);
+            addChildSpec(copySpecInternal);
         }
         return this;
     }
@@ -125,19 +128,71 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     protected CopySpecInternal addChildAtPosition(int position) {
         DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileResolver, instantiator, buildRootResolver());
-        childSpecs.add(position, child);
+        addChildSpec(position, child);
         return child;
     }
 
     public CopySpecInternal addChild() {
         DefaultCopySpec child = new SingleParentCopySpec(fileResolver, instantiator, buildRootResolver());
-        childSpecs.add(child);
+        addChildSpec(child);
         return child;
     }
 
     public CopySpecInternal addChildBeforeSpec(CopySpecInternal childSpec) {
         int position = childSpecs.indexOf(childSpec);
         return position != -1 ? addChildAtPosition(position) : addChild();
+    }
+
+    protected void addChildSpec(CopySpecInternal childSpec) {
+        addChildSpec(childSpecs.size(), childSpec);
+    }
+
+    protected void addChildSpec(int index, CopySpecInternal childSpec) {
+        childSpecs.add(index, childSpec);
+
+        // We need a consistent index here
+        int additionIndex = childSpecsInAdditionOrder.size();
+        childSpecsInAdditionOrder.add(childSpec);
+
+        childSpec.visit(new DefaultChildSpecAddress(null, this, additionIndex), new ChildSpecVisitor() {
+            @Override
+            public void visit(final ChildSpecAddress parentPath, CopySpecInternal spec) {
+                spec.addChildSpecListener(new ChildSpecListener() {
+                    @Override
+                    public void childSpecAdded(ChildSpecAddedEvent event) {
+                        // In case more descendants are added later,
+                        // we should notify listeners about them
+                        ChildSpecAddress childPath = parentPath.append(event.getPath());
+                        CopySpecInternal childSpec = event.getSpec();
+                        fireChildSpecListeners(new ChildSpecAddedEvent(childPath, childSpec));
+                    }
+                });
+                // Notify listeners of currently existing descendant spec
+                fireChildSpecListeners(new ChildSpecAddedEvent(parentPath, spec));
+            }
+        });
+    }
+
+    private void fireChildSpecListeners(ChildSpecAddedEvent event) {
+        for (ChildSpecListener listener : childSpecListeners) {
+            listener.childSpecAdded(event);
+        }
+    }
+
+    @Override
+    public void visit(ChildSpecAddress parentPath, ChildSpecVisitor visitor) {
+        visitor.visit(parentPath, this);
+        int childIndex = 0;
+        for (CopySpecInternal childSpec : childSpecsInAdditionOrder) {
+            ChildSpecAddress childPath = parentPath.append(this, childIndex);
+            childSpec.visit(childPath, visitor);
+            childIndex++;
+        }
+    }
+
+    @Override
+    public void addChildSpecListener(ChildSpecListener childSpecListener) {
+        this.childSpecListeners.add(childSpecListener);
     }
 
     public Set<Object> getSourcePaths() {
@@ -586,5 +641,68 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     }
 
+    private class DefaultChildSpecAddress implements ChildSpecAddress {
+        private final DefaultChildSpecAddress parent;
+        private final CopySpecInternal spec;
+        private final int additionIndex;
+
+        public DefaultChildSpecAddress(DefaultChildSpecAddress parent, CopySpecInternal spec, int additionIndex) {
+            this.parent = parent;
+            this.spec = spec;
+            this.additionIndex = additionIndex;
+        }
+
+        @Override
+        public ChildSpecAddress getParent() {
+            return parent;
+        }
+
+        @Override
+        public CopySpecInternal getSpec() {
+            return spec;
+        }
+
+        @Override
+        public int getAdditionIndex() {
+            return additionIndex;
+        }
+
+        @Override
+        public DefaultChildSpecAddress append(CopySpecInternal spec, int additionIndex) {
+            return new DefaultChildSpecAddress(this, spec, additionIndex);
+        }
+
+        @Override
+        public DefaultChildSpecAddress append(ChildSpecAddress relativeAddress) {
+            ChildSpecAddress parent = relativeAddress.getParent();
+            DefaultChildSpecAddress newParent;
+            if (parent == null) {
+                newParent = this;
+            } else {
+                newParent = append(parent);
+            }
+            return new DefaultChildSpecAddress(newParent, relativeAddress.getSpec(), relativeAddress.getAdditionIndex());
+        }
+
+        @Override
+        public CopySpecResolver unroll(StringBuilder path) {
+            CopySpecResolver resolver;
+            if (parent != null) {
+                resolver = spec.buildResolverRelativeToParent(parent.unroll(path));
+            } else {
+                resolver = spec.buildRootResolver();
+            }
+            path.append("$").append(additionIndex + 1);
+            return resolver;
+        }
+
+        @Override
+        public String toString() {
+            String parentPath = parent == null
+                ? ""
+                : parent.toString();
+            return parentPath + "$" + (additionIndex + 1);
+        }
+    }
 }
 
