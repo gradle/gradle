@@ -5,14 +5,14 @@ _See instructions below in order to [set up your dev environment](#set-up-dev-en
 
 The Gradle projects in this directory demonstrate typical use cases with and features available in Gradle Script Kotlin. They include:
 
- - [`hello-world`](hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
- - [`copy`](copy): demonstrates typed task declarations, and configuration of a Gradle `CopySpec`
- - [`task-dependencies`](task-dependencies): demonstrates explicit configuration of task dependencies
- - [`extra-properties`](extra-properties): demonstrates the use of `extra` properties (equivalent of the `ext` properties found in Gradle Script Groovy)
- - [`project-properties`](project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
- - [`modularity`](modularity): demonstrates the use of `applyFrom` to modularize build scripts
- - [`hello-kotlin`](hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
- - [`hello-android`](hello-android): demonstrates a Kotlin-based Gradle build script for a Kotlin-based Android project
+ - [`hello-world`](./hello-world): demonstrates plugin application and configuration, dependency management, JUnit testing
+ - [`copy`](./copy): demonstrates typed task declarations, and configuration of a Gradle `CopySpec`
+ - [`task-dependencies`](./task-dependencies): demonstrates explicit configuration of task dependencies
+ - [`extra-properties`](./extra-properties): demonstrates the use of `extra` properties (equivalent of the `ext` properties found in Gradle Script Groovy)
+ - [`project-properties`](./project-properties): demonstrates project property access via [delegated properties](https://kotlinlang.org/docs/reference/delegated-properties.html)
+ - [`modularity`](./modularity): demonstrates the use of `applyFrom` to modularize build scripts
+ - [`hello-kotlin`](./hello-kotlin): demonstrates a Kotlin-based Gradle build script for a project that is itself written in Kotlin
+ - [`hello-android`](./hello-android): demonstrates a Kotlin-based Gradle build script for a Kotlin-based Android project
 
 
 Set up dev environment
