@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Unroll
 
@@ -51,15 +50,17 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         skippedTasks.empty == !expectSkipped
 
         where:
-        pathSensitive | orderSensitive | expectSkipped
-        ABSOLUTE      | true           | false
-        ABSOLUTE      | false          | false
-        RELATIVE      | true           | false
-        RELATIVE      | false          | false
-        NAME_ONLY     | true           | false
-        NAME_ONLY     | false          | false
-        NONE          | true           | true
-        NONE          | false          | true
+        pathSensitive            | orderSensitive | expectSkipped
+        ABSOLUTE                 | true           | false
+        ABSOLUTE                 | false          | false
+        RELATIVE                 | true           | false
+        RELATIVE                 | false          | false
+        RELATIVE_WITH_FILE_NAMES | true           | false
+        RELATIVE_WITH_FILE_NAMES | false          | false
+        NAME_ONLY                | true           | false
+        NAME_ONLY                | false          | false
+        NONE                     | true           | true
+        NONE                     | false          | true
     }
 
     @Unroll("single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectSkipped (order sensitive: #orderSensitive)")
@@ -90,15 +91,17 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         skippedTasks.empty == !expectSkipped
 
         where:
-        pathSensitive | orderSensitive | expectSkipped
-        ABSOLUTE      | true           | false
-        ABSOLUTE      | false          | false
-        RELATIVE      | true           | false
-        RELATIVE      | false          | false
-        NAME_ONLY     | true           | false
-        NAME_ONLY     | false          | true
-        NONE          | true           | true
-        NONE          | false          | true
+        pathSensitive            | orderSensitive | expectSkipped
+        ABSOLUTE                 | true           | false
+        ABSOLUTE                 | false          | false
+        RELATIVE                 | true           | false
+        RELATIVE                 | false          | false
+        RELATIVE_WITH_FILE_NAMES | true           | false
+        RELATIVE_WITH_FILE_NAMES | false          | false
+        NAME_ONLY                | true           | false
+        NAME_ONLY                | false          | true
+        NONE                     | true           | true
+        NONE                     | false          | true
 
         // NOTE: NAME_ONLY in order-sensitive mode is not skipped,
         // because the order of files and directories do change from:
@@ -143,14 +146,16 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
 
         where:
         pathSensitive | orderSensitive | expectSkipped
-        ABSOLUTE      | true           | false
-        ABSOLUTE      | false          | false
-        RELATIVE      | true           | true
-        RELATIVE      | false          | true
-        NAME_ONLY     | true           | true
-        NAME_ONLY     | false          | true
-        NONE          | true           | true
-        NONE          | false          | true
+        ABSOLUTE                 | true  | false
+        ABSOLUTE                 | false | false
+        RELATIVE                 | true  | true
+        RELATIVE                 | false | true
+        RELATIVE_WITH_FILE_NAMES | true  | true
+        RELATIVE_WITH_FILE_NAMES | false | true
+        NAME_ONLY                | true  | true
+        NAME_ONLY                | false | true
+        NONE                     | true  | true
+        NONE                     | false | true
     }
 
     abstract void execute(String... tasks)
@@ -186,7 +191,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         """
     }
 
-    @NotYetImplemented
     def "copy task stays up-to-date after files are moved but end up copied to the same destination"() {
         file("src/data/input.txt").text = "data"
 

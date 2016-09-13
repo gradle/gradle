@@ -35,6 +35,11 @@ public enum PathSensitivity {
     RELATIVE,
 
     /**
+     * Use the location of the file related to a hierarchy, but keep file names when files are added directly as roots.
+     */
+    RELATIVE_WITH_FILE_NAMES,
+
+    /**
      * Consider only the name of files and directories.
      */
     NAME_ONLY,

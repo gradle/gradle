@@ -82,6 +82,18 @@ class TaskFilePropertyPathSensitivityTest extends AbstractProjectBuilderSpec {
         snapshots[file("dir/resources/b/input-2.txt")] == "b/input-2.txt"
     }
 
+    def "sensitivity RELATIVE_WITH_FILE_NAMES"() {
+        def snapshots = normalizeWith RELATIVE_WITH_FILE_NAMES
+        expect:
+        snapshots[file("dir/libs/library-a.jar")]      == "library-a.jar"
+        snapshots[file("dir/libs/library-b.jar")]      == "library-b.jar"
+        snapshots[file("dir/resources/input.txt")]     == "input.txt"
+        snapshots[file("dir/resources/a")]             == "a"
+        snapshots[file("dir/resources/a/input-1.txt")] == "a/input-1.txt"
+        snapshots[file("dir/resources/b")]             == "b"
+        snapshots[file("dir/resources/b/input-2.txt")] == "b/input-2.txt"
+    }
+
     def "sensitivity ABSOLUTE"() {
         def snapshots = normalizeWith ABSOLUTE
         expect:

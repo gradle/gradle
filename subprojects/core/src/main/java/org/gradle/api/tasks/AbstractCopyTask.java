@@ -15,6 +15,7 @@
  */
 package org.gradle.api.tasks;
 
+import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
@@ -22,6 +23,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.ConventionTask;
@@ -31,6 +33,7 @@ import org.gradle.api.internal.file.copy.ClosureBackedTransformer;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopyActionExecuter;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.internal.file.copy.CopySpecResolver;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.specs.Spec;
@@ -41,6 +44,7 @@ import javax.inject.Inject;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
 /**
@@ -52,7 +56,34 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     private final CopySpecInternal mainSpec;
 
     protected AbstractCopyTask() {
+        final Set<String> paths = Sets.newLinkedHashSet();
         this.rootSpec = createRootSpec();
+        rootSpec.addChildSpecListener(new CopySpecInternal.CopySpecListener() {
+            @Override
+            public void childSpecAdded(CopySpecInternal.CopySpecAddress path, CopySpecInternal spec) {
+                StringBuilder specPropertyNameBuilder = new StringBuilder("rootSpec");
+                CopySpecResolver parentResolver = path.unroll(specPropertyNameBuilder);
+                final CopySpecResolver resolver = spec.buildResolverRelativeToParent(parentResolver);
+                String specPropertyName = specPropertyNameBuilder.toString();
+
+                getInputs().files(new Callable<FileTree>() {
+                        @Override
+                        public FileTree call() throws Exception {
+                            return resolver.getSource();
+                        }
+                    })
+                    .withPropertyName(specPropertyName)
+                    .withPathSensitivity(PathSensitivity.RELATIVE_WITH_FILE_NAMES)
+                    .skipWhenEmpty();
+
+                getInputs().property(specPropertyName + ".destPath", new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return resolver.getDestPath().getPathString();
+                    }
+                });
+            }
+        });
         this.mainSpec = rootSpec.addChild();
     }
 
@@ -99,7 +130,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * Returns the source files for this task.
      * @return The source files. Never returns null.
      */
-    @InputFiles @SkipWhenEmpty @Optional
+    @Internal
     public FileCollection getSource() {
         return rootSpec.buildRootResolver().getAllSource();
     }

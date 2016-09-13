@@ -46,15 +46,17 @@ public enum TaskFilePropertyPathSensitivity {
             if (fileDetails instanceof SingletonFileTree.SingletonFileVisitDetails) {
                 return new IgnoredPathFileSnapshot(snapshot);
             }
-            String[] segments = fileDetails.getRelativePath().getSegments();
-            StringBuilder builder = new StringBuilder();
-            for (int i = 0, len = segments.length; i < len; i++) {
-                if (i != 0) {
-                    builder.append('/');
-                }
-                builder.append(segments[i]);
-            }
-            return getRelativeSnapshot(fileDetails, builder.toString(), snapshot, stringInterner);
+            return getRelativeSnapshot(fileDetails, snapshot, stringInterner);
+        }
+    },
+
+    /**
+     * Use the location of the file related to a hierarchy, but keep file names when files are added directly as roots.
+     */
+    RELATIVE_WITH_FILE_NAMES {
+        @Override
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+            return getRelativeSnapshot(fileDetails, snapshot, stringInterner);
         }
     },
 
@@ -91,6 +93,8 @@ public enum TaskFilePropertyPathSensitivity {
                 return ABSOLUTE;
             case RELATIVE:
                 return RELATIVE;
+            case RELATIVE_WITH_FILE_NAMES:
+                return RELATIVE_WITH_FILE_NAMES;
             case NAME_ONLY:
                 return NAME_ONLY;
             case NONE:
@@ -98,6 +102,18 @@ public enum TaskFilePropertyPathSensitivity {
             default:
                 throw new IllegalArgumentException("Unknown path usage: " + pathSensitivity);
         }
+    }
+
+    private static NormalizedFileSnapshot getRelativeSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+        String[] segments = fileDetails.getRelativePath().getSegments();
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0, len = segments.length; i < len; i++) {
+            if (i != 0) {
+                builder.append('/');
+            }
+            builder.append(segments[i]);
+        }
+        return getRelativeSnapshot(fileDetails, builder.toString(), snapshot, stringInterner);
     }
 
     private static NormalizedFileSnapshot getRelativeSnapshot(FileTreeElement fileDetails, String normalizedPath, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
