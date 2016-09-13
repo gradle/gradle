@@ -80,6 +80,8 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
         if (superTestClassFile != null) {
             return superTestClassFile;
+        } else if (superClassName.startsWith("java/") || superClassName.startsWith("javax/")) { // GRADLE-1682
+            return null;
         } else { // super test class file not in test class directories
             return classFileExtractionManager.getLibraryClassFile(superClassName);
         }
