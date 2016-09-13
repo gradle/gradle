@@ -109,7 +109,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
      * Decide whether an entry should be considered to be part of the output. Entries that are considered outputs are:
      * <ul>
      *     <li>an entry that did not exist before the execution, but exists after the execution</li>
-     *     <li>an entry that did exist before the execution, and has been changed durign the execution</li>
+     *     <li>an entry that did exist before the execution, and has been changed during the execution</li>
      *     <li>an entry that did wasn't changed during the execution, but was already considered an output during the previous execution</li>
      * </ul>
      */
