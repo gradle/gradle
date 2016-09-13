@@ -24,12 +24,12 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
+import org.gradle.api.internal.file.collections.SingletonFileTree;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.CacheAccess;
@@ -131,7 +131,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         public void visitCollection(FileCollectionInternal fileCollection) {
             for (File file : fileCollection) {
                 if (file.isFile()) {
-                    fileTreeElements.add(new DefaultFileVisitDetails(file, fileSystem, fileSystem));
+                    visitTree(new FileTreeAdapter(new SingletonFileTree(file)));
                 } else if (file.isDirectory()) {
                     visitTree(new FileTreeAdapter(new DirectoryFileTree(file, patternSetFactory.create())));
                 } else {
