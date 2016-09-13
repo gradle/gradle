@@ -8,6 +8,8 @@ Gradle 3.1 now supports this scenario with the introduction of **Composite Build
 
 As with many previous Gradle releases, you will also benefit from some performance improvements, this time in the form of [**faster dependency resolution**](#faster-dependency-resolution). From testing, Android users specifically could see **up to a 50% reduction** in configuration and Android Studio sync time.
 
+Build cancellation has improved when using the Daemon. Cancelling a build with Ctrl-C after the first build [no longer terminates the Gradle Daemon](#more-resilient-daemon). 
+
 Our Play Framework and Kotlin build script users will also be happy as 3.1 now has (limited) support for **Play 2.5.x** and the Kotlin build script support gets a more fully-featured syntax for declaring dependencies and faster code completion.
 
 Finally, be sure to check out the [potential breaking changes](#potential-breaking-changes) in case they affect you.
@@ -188,7 +190,7 @@ Again for the full scoop please check out the full [Gradle Script Kotlin release
 
 ### More resilient Daemon
 
-In previous Gradle versions, if the Daemon client process improperly disconnected from the Daemon while a build was running, the Daemon process would exit and a subsequent build would have to start a new Daemon.  In Gradle 3.1, the Daemon will now remain running and attempt to cancel the build instead.  This allows subsequent builds to reuse the Daemon and reap the performance benefits of a warm Daemon.
+In previous Gradle versions, if the Daemon client process improperly disconnected from the Daemon while a build was running, the Daemon process would exit and a subsequent build would have to start a new Daemon. In Gradle 3.1, the Daemon will now remain running and attempt to cancel the build instead. This allows subsequent builds to reuse the Daemon and reap the performance benefits of a warm Daemon. This behavior will be further improved in Gradle 3.2.
 
 ## Promoted features
 
