@@ -146,7 +146,7 @@
             <title>“<literal>java-library</literal>”
             </title>
             <para>
-                The “<literal>java-library</literal>” build init type is not inferable. It must be explicitly specified.
+                The “<literal>java-library</literal>” build init type cannot be inferred. It must be explicitly specified.
             </para>
             <para>
                 It has the following features:
@@ -174,7 +174,7 @@
             <title>“<literal>scala-library</literal>”
             </title>
             <para>
-                The “<literal>scala-library</literal>” build init type is not inferable. It must be explicitly specified.
+                The “<literal>scala-library</literal>” build init type cannot be inferred. It must be explicitly specified.
             </para>
             <para>
                 It has the following features:
@@ -195,7 +195,7 @@
             <title>“<literal>groovy-library</literal>”
             </title>
             <para>
-                The “<literal>groovy-library</literal>” build init type is not inferable. It must be explicitly specified.
+                The “<literal>groovy-library</literal>” build init type cannot be inferred. It must be explicitly specified.
             </para>
             <para>
                 It has the following features:
@@ -209,6 +209,25 @@
                 <listitem>Uses <ulink url="http://spockframework.org">Spock testing framework</ulink> for testing</listitem>
                 <listitem>Has directories in the conventional locations for source code</listitem>
                 <listitem>Contains a sample Groovy class and an associated Spock specification, if there are no existing source or test files</listitem>
+            </itemizedlist>
+        </section>
+        <section id="sec:gradlePlugin_">
+            <title>“<literal>gradle-plugin</literal>”
+            </title>
+            <para>
+                The “<literal>gradle-plugin</literal>” build init type cannot be inferred. It must be explicitly specified.
+            </para>
+            <para>
+                It has the following features:
+            </para>
+            <itemizedlist>
+                <listitem>Uses the “<literal>groovy</literal>” plugin.</listitem>
+                <listitem>Uses the <link linkend="javaGradle_plugin">“<literal>java-gradle-plugin</literal>”</link> plugin.</listitem>
+                <listitem>Uses the “<literal>jcenter</literal>” dependency repository.</listitem>
+                <listitem>Uses <link linkend="test_kit">Gradle TestKit</link>.</listitem>
+                <listitem>Uses <ulink url="http://spockframework.org">Spock testing framework</ulink> for functional tests.</listitem>
+                <listitem>Has directories in the conventional locations for source code.</listitem>
+                <listitem>Contains a sample Gradle plugin, custom Gradle task and an associated TestKit functional test, if there are no existing source or test files.</listitem>
             </itemizedlist>
         </section>
         <section id="sec:basic">

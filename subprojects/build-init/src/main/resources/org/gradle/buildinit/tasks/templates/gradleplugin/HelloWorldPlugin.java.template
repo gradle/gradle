@@ -1,0 +1,12 @@
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+
+/**
+ * Gradle Plugin for using a HelloWorld task.
+ */
+public class HelloWorldPlugin implements Plugin<Project> {
+    public void apply(Project project) {
+        // Creates a task of type HelloWorld named 'helloWorld'
+        project.getTasks().create("helloWorld", HelloWorld.class);
+    }
+}

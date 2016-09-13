@@ -25,6 +25,10 @@ See the User guide section on “[authenticated distribution download](userguide
 
 As stated in the User guide, please note that this shouldn't be used over insecure connections.
 
+### Generate `gradle-plugin` template project with `init`
+
+The [Build Init plugin](userguide/build_init_plugin.html) can now generate a complete Gradle plugin template project.  The generated project has a custom Gradle plugin, task and uses Gradle TestKit and Spock.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
