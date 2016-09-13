@@ -28,6 +28,7 @@ public enum PathSensitivity {
      * Consider the full path of files and directories.
      */
     ABSOLUTE,
+
     /**
      * Consider the path for each file or directory relative to the root it was included via.
      */
