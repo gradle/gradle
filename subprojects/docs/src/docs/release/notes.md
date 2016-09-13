@@ -63,6 +63,7 @@ We would like to thank the following community members for making contributions 
 - [Shintaro Katafuchi](https://github.com/hotchemi) - Fixed typo in `ShadedJar.java` under `buildSrc`
 - [Jörn Huxhorn](https://github.com/huxi) - Show location in build file for deprecation warning
 - [Jeff Baranski](https://github.com/jbaranski) - Fix doc bug with turning off daemon in a .bat file
+- [Justin Sievenpiper](https://github.com/jsievenpiper) - Prevent navigating down to JDK classes (in TestFrameworkDetector)
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
