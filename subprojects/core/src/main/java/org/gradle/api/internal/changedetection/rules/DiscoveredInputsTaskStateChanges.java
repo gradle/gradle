@@ -57,7 +57,7 @@ public class DiscoveredInputsTaskStateChanges implements TaskStateChanges, Disco
     private FileCollectionSnapshot getCurrent() {
         if (getPrevious() != null) {
             // Get the current state of the files from the previous execution
-            return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getFiles()));
+            return createSnapshot(snapshotter, fileCollectionFactory.fixed("Discovered input files", getPrevious().getElements()));
         } else {
             return null;
         }

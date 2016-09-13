@@ -35,6 +35,14 @@ public interface FileCollectionSnapshot {
      */
     Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String title);
 
+    /**
+     * Returns the elements of this snapshot, including regular files, directories and missing files
+     */
+    Collection<File> getElements();
+
+    /**
+     * Returns the regular files that make up this snapshot.
+     */
     Collection<File> getFiles();
 
     Map<String, NormalizedFileSnapshot> getSnapshots();

@@ -31,14 +31,14 @@ import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
 
-import static TaskFilePropertyCompareStrategy.*
 import static TaskFilePropertyPathSensitivity.ABSOLUTE
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
 
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
     def stringInterner = new StringInterner()
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.resolver())
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.fileSystem(), TestFiles.resolver().patternSetFactory)
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -62,14 +62,71 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
     def getFilesReturnsOnlyTheFilesWhichExisted() {
         given:
         TestFile file = tmpDir.createFile('file1')
-        TestFile dir = tmpDir.createDir('file2')
+        TestFile dir = tmpDir.createDir('dir')
+        TestFile file2 = dir.createFile('file2')
         TestFile noExist = tmpDir.file('file3')
 
         when:
         def snapshot = snapshotter.snapshot(files(file, dir, noExist), UNORDERED, ABSOLUTE)
 
         then:
-        snapshot.files as List == [file]
+        snapshot.files as List == [file, file2]
+    }
+
+    def "retains order of files in the snapshot"() {
+        given:
+        TestFile file = tmpDir.createFile('file1')
+        TestFile file2 = tmpDir.createFile('file2')
+        TestFile file3 = tmpDir.createFile('file3')
+
+        when:
+        def snapshot = snapshotter.snapshot(files(file, file2, file3), ORDERED, ABSOLUTE)
+
+        then:
+        snapshot.files == [file, file2, file3]
+    }
+
+    def getElementsReturnsAllFilesRegardlessOfWhetherTheyExistedOrNot() {
+        given:
+        TestFile file = tmpDir.createFile('file1')
+        TestFile noExist = tmpDir.file('file3')
+
+        when:
+        def snapshot = snapshotter.snapshot(files(file, noExist), UNORDERED, ABSOLUTE)
+
+        then:
+        snapshot.elements == [file, noExist]
+    }
+
+    // Documenting existing behaviour
+    def getElementsDoesNotIncludeRootDirectories() {
+        given:
+        TestFile file = tmpDir.createFile('file1')
+        TestFile dir = tmpDir.createDir('dir')
+        TestFile dir2 = dir.createDir('dir2')
+        TestFile file2 = dir2.createFile('file2')
+        TestFile noExist = tmpDir.file('file3')
+
+        when:
+        def snapshot = snapshotter.snapshot(files(file, dir, noExist), UNORDERED, ABSOLUTE)
+
+        then:
+        snapshot.elements == [file, dir2, file2, noExist]
+    }
+
+    // Documenting existing behaviour
+    def "retains order of elements in the snapshot with missing files at the end"() {
+        given:
+        TestFile file = tmpDir.createFile('file1')
+        TestFile file2 = tmpDir.file('file2')
+        TestFile file3 = tmpDir.file('file3')
+        TestFile file4 = tmpDir.createFile('file4')
+
+        when:
+        def snapshot = snapshotter.snapshot(files(file, file2, file3, file4), ORDERED, ABSOLUTE)
+
+        then:
+        snapshot.elements == [file, file4, file2, file3]
     }
 
     def generatesEventWhenFileAdded() {
@@ -253,18 +310,6 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         snapshot.files.empty
         1 * listener.added(file.path)
         0 * listener._
-    }
-
-    def "retains order of files in the snapshot"() {
-        given:
-        def testfiles = [*10..1].collect { tmpDir.createFile("file$it") }
-        def testfileNames = testfiles.collect { it.name }
-
-        when:
-        def snapshot = snapshotter.snapshot(files(testfiles as File[]), ORDERED, ABSOLUTE)
-
-        then:
-        snapshot.files.collect { it.name } == testfileNames
     }
 
     private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {

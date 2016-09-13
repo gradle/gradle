@@ -45,6 +45,11 @@ public class OutputFilesCollectionSnapshot implements FileCollectionSnapshot {
         this.filesSnapshot = filesSnapshot;
     }
 
+    @Override
+    public Collection<File> getElements() {
+        return filesSnapshot.getElements();
+    }
+
     public Collection<File> getFiles() {
         return filesSnapshot.getFiles();
     }
