@@ -37,7 +37,7 @@ class TestNGJdkNavigationTest extends AbstractIntegrationTest {
     void shouldNotNavigateIntoJdkClasses() {
         executer.withTasks('test').run()
 
-        new DefaultTestExecutionResult(testDirectory).testClass('org.grade.Test1').assertTestPassed('shouldPass')
+        new DefaultTestExecutionResult(testDirectory).testClass('org.gradle.Test1').assertTestPassed('shouldPass')
     }
 
 }
