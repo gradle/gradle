@@ -1175,4 +1175,43 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         then:
         executedTasks == [":compileJava", ":processResources", ":classes", ":copy"]
     }
+
+    @Unroll
+    def "changing spec-level property #property makes task out-of-date"() {
+        given:
+        buildScript """
+            task (copy, type:Copy) {
+               from ('src') {
+                  $property = $oldValue
+               }
+               into 'dest'
+            }
+        """
+        run 'copy'
+
+        sleep 1000
+        buildScript """
+            task (copy, type:Copy) {
+               from ('src') {
+                  $property = $newValue
+               }
+               into 'dest'
+            }
+        """
+
+        when:
+        run "copy", "--info"
+        then:
+        skippedTasks.empty
+        output.contains "Value of input property 'rootSpec\$1\$1.$property' has changed for task ':copy'"
+
+        where:
+        property             | oldValue                     | newValue
+        "caseSensitive"      | false                        | true
+        "includeEmptyDirs"   | false                        | true
+        "duplicatesStrategy" | "DuplicatesStrategy.EXCLUDE" | "DuplicatesStrategy.INCLUDE"
+        "dirMode"            | "0700"                       | "0755"
+        "fileMode"           | "0600"                       | "0644"
+        "filteringCharset"   | "'iso8859-1'"                | "'utf-8'"
+    }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks;
 
-import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
@@ -56,11 +55,10 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     private final CopySpecInternal mainSpec;
 
     protected AbstractCopyTask() {
-        final Set<String> paths = Sets.newLinkedHashSet();
         this.rootSpec = createRootSpec();
         rootSpec.addChildSpecListener(new CopySpecInternal.CopySpecListener() {
             @Override
-            public void childSpecAdded(CopySpecInternal.CopySpecAddress path, CopySpecInternal spec) {
+            public void childSpecAdded(CopySpecInternal.CopySpecAddress path, final CopySpecInternal spec) {
                 StringBuilder specPropertyNameBuilder = new StringBuilder("rootSpec");
                 CopySpecResolver parentResolver = path.unroll(specPropertyNameBuilder);
                 final CopySpecResolver resolver = spec.buildResolverRelativeToParent(parentResolver);
@@ -80,6 +78,42 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                     @Override
                     public String call() throws Exception {
                         return resolver.getDestPath().getPathString();
+                    }
+                });
+                getInputs().property(specPropertyName + ".caseSensitive", new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return spec.isCaseSensitive();
+                    }
+                });
+                getInputs().property(specPropertyName + ".includeEmptyDirs", new Callable<Boolean>() {
+                    @Override
+                    public Boolean call() throws Exception {
+                        return spec.getIncludeEmptyDirs();
+                    }
+                });
+                getInputs().property(specPropertyName + ".duplicatesStrategy", new Callable<DuplicatesStrategy>() {
+                    @Override
+                    public DuplicatesStrategy call() throws Exception {
+                        return spec.getDuplicatesStrategy();
+                    }
+                });
+                getInputs().property(specPropertyName + ".dirMode", new Callable<Integer>() {
+                    @Override
+                    public Integer call() throws Exception {
+                        return spec.getDirMode();
+                    }
+                });
+                getInputs().property(specPropertyName + ".fileMode", new Callable<Integer>() {
+                    @Override
+                    public Integer call() throws Exception {
+                        return spec.getFileMode();
+                    }
+                });
+                getInputs().property(specPropertyName + ".filteringCharset", new Callable<String>() {
+                    @Override
+                    public String call() throws Exception {
+                        return spec.getFilteringCharset();
                     }
                 });
             }
@@ -152,7 +186,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Input
+    @Internal
     public boolean isCaseSensitive() {
         return getMainSpec().isCaseSensitive();
     }
@@ -167,7 +201,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Input
+    @Internal
     public boolean getIncludeEmptyDirs() {
         return getMainSpec().getIncludeEmptyDirs();
     }
@@ -189,7 +223,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Input
+    @Internal
     public DuplicatesStrategy getDuplicatesStrategy() {
         return getRootSpec().getDuplicatesStrategy();
     }
@@ -454,7 +488,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Optional @Input
+    @Internal
     public Integer getDirMode() {
         return getMainSpec().getDirMode();
     }
@@ -462,7 +496,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Optional @Input
+    @Internal
     public Integer getFileMode() {
         return getMainSpec().getFileMode();
     }
@@ -502,7 +536,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     /**
      * {@inheritDoc}
      */
-    @Input
+    @Internal
     public String getFilteringCharset() {
         return getMainSpec().getFilteringCharset();
     }
