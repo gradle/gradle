@@ -154,7 +154,6 @@ public class TaskExecutionServices {
                 instantiator,
                 outputFilesSnapshotter,
                 fileCollectionSnapshotter,
-                fileCollectionSnapshotter,
                 fileCollectionFactory,
                 classLoaderHierarchyHasher
             )
