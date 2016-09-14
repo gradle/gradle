@@ -29,8 +29,8 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
     }
 
     @Override
-    public boolean attachActions(final TaskPropertyActionContext context) {
-        context.attachActions(context.getType());
+    public void attachActions(final TaskPropertyActionContext context) {
+        context.setNestedType(context.getType());
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, final Callable<Object> futureValue) {
                 task.getInputs().property(context.getName() + ".class", new Callable<Object>() {
@@ -41,11 +41,6 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
                 });
             }
         });
-        return true;
     }
 
-    @Override
-    public boolean getMustNotBeNullByDefault() {
-        return true;
-    }
 }

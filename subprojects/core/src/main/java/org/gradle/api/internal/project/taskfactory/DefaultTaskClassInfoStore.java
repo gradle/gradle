@@ -39,6 +39,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
+    private final TaskClassValidatorExtractor validatorExtractor = new TaskClassValidatorExtractor();
+
     private final LoadingCache<Class<? extends Task>, TaskClassInfo> classInfos = CacheBuilder.newBuilder()
         .weakKeys()
         .build(new CacheLoader<Class<? extends Task>, TaskClassInfo>() {
@@ -47,8 +49,7 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 TaskClassInfo taskClassInfo = new TaskClassInfo();
                 findTaskActions(type, taskClassInfo);
 
-                TaskClassValidator validator = new TaskClassValidator();
-                validator.attachActions(null, type);
+                TaskClassValidator validator = validatorExtractor.extractValidator(type);
                 taskClassInfo.setValidator(validator);
 
                 taskClassInfo.setCacheable(type.isAnnotationPresent(CacheableTask.class));

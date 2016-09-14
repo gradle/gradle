@@ -26,17 +26,12 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         return Input.class;
     }
 
-    public boolean attachActions(final TaskPropertyActionContext context) {
+    public void attachActions(final TaskPropertyActionContext context) {
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
                 task.getInputs().property(context.getName(), futureValue);
             }
         });
-        return true;
     }
 
-    @Override
-    public boolean getMustNotBeNullByDefault() {
-        return true;
-    }
 }
