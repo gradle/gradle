@@ -18,8 +18,12 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.encoding.Identifier
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Unroll
+
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 class MavenHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -387,5 +391,35 @@ task listJars << {
         failure.assertHasDescription("Could not resolve all dependencies for configuration ':compile'.")
                 .assertHasCause('Credentials must be an instance of: org.gradle.api.artifacts.repositories.PasswordCredentials')
     }
+
+
+    public void "resolves artifact-only module via HTTP not modified"() {
+        given:
+        buildFile << """
+            repositories {
+                maven {
+                    url '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'group:projectA:1.0@zip' }
+            task listJars << {
+                assert configurations.compile.collect { it.name } == ['projectA-1.0.zip']
+            }
+        """
+
+        when:
+        server.expect('/repo/group/projectA/1.0/projectA-1.0.pom', false, ['GET'], new HttpServer.ActionSupport('Not Modified') {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.sendError(304, 'Not Modified')
+            }
+        })
+
+        then:
+        fails 'listJars'
+
+        errorOutput.contains('Response 304: Not Modified has no content!')
+    }
+
 
 }

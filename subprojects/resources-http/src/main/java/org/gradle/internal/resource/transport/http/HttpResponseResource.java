@@ -16,6 +16,7 @@
 package org.gradle.internal.resource.transport.http;
 
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -117,7 +118,11 @@ public class HttpResponseResource implements ExternalResourceReadResponse {
         }
         LOGGER.debug("Attempting to download resource {}.", source);
         this.wasOpened = true;
-        return response.getEntity().getContent();
+        final HttpEntity entity = response.getEntity();
+        if (entity == null) {
+            throw new IOException(String.format("Response %d: %s has no content!", getStatusCode(), response.getStatusLine().getReasonPhrase()));
+        }
+        return entity.getContent();
     }
 
     @Override
