@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.junit.runner.RunWith
@@ -250,4 +251,212 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         executed ':b:barJar'
     }
 
+    /**
+     * Whenever a dependency on a project is found and that the client configuration
+     * defines attributes, we try to find a target configuration with the same attributes
+     * declared. However if no such configuration exists, what should we do?
+     * This test implements option 1, which is falling back on the default configuration,
+     * without error.
+     *
+     * Rationale: it mimics the current behavior of Gradle Android builds. It will cause
+     * the build of artifacts which are not necessary for a specific task, but it won't fail
+     * the build.
+     */
+    def "selects default configuration when no match is found"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) << {
+                    assert configurations._compileFreeDebug.collect { it.name } == []
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo
+                    bar
+                    create 'default'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:checkDebug'
+
+        then:
+        notExecuted ':b:fooJar', ':b:barJar'
+
+    }
+
+    /**
+     * Whenever a dependency on a project is found and that the client configuration
+     * defines attributes, we try to find a target configuration with the same attributes
+     * declared. However if no such configuration exists, what should we do?
+     * This test implements option 2, which is to fail with a reasonable error message.
+     *
+     * Rationale: if a source configuration defines attributes, we expect to find a dependent
+     * configuration with exactly the same attributes. If no such configuration is found, we
+     * don't know what to choose, and therefore should fail. The drawback of this approach is
+     * how do deal with mixing different categories of projects, consumers which define
+     * constraints and dependencies which don't care. Typically, what if project A-debug depends
+     * on library B, but B doesn't have a debug or release variant, only the default one.
+     */
+    @NotYetImplemented
+    def "fails with reasonable error when no match is found"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
+                }
+                dependencies {
+                    _compileFreeDebug project(':b')
+                }
+                task checkDebug(dependsOn: configurations._compileFreeDebug) << {
+                    assert configurations._compileFreeDebug.collect { it.name } == []
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo
+                    bar
+                    create 'default'
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        fails ':a:checkDebug'
+
+        then:
+        failure.assertHasCause('A reasonable error message')
+
+    }
+
+    /**
+     * Whenever a dependency on a project is found and that the client configuration
+     * defines attributes, we try to find a target configuration with the same attributes
+     * declared. However if 2 configurations on the target project declares the same attributes,
+     * we don't know which one to choose.
+     *
+     * This test implements a first option, which is to make this an error case.
+     */
+    @NotYetImplemented
+    def "should fail with reasonable error message if more than one configuration matches the attributes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    compile.attributes(buildType: 'debug')
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile)
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes(buildType: 'debug')
+                    bar.attributes(buildType: 'debug')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        fails ':a:check'
+
+        then:
+        failure.assertHasCause('A reasonable error message')
+    }
+
+    /**
+     * Whenever a dependency on a project is found and that the client configuration
+     * defines attributes, we try to find a target configuration with the same attributes
+     * declared. However if 2 configurations on the target project declares the same attributes,
+     * we don't know which one to choose.
+     *
+     * This test implements a first option, which is to make this an error case.
+     */
+    @NotYetImplemented
+    def "should find all matching configuration artifacts if more than one configuration matches the attributes"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    compile.attributes(buildType: 'debug')
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) << {
+                    assert configurations.compile.collect { it.name } == [ 'b-foo.jar', 'b-bar.jar' ]
+                }
+            }
+            project(':b') {
+                configurations {
+                    foo.attributes(buildType: 'debug')
+                    bar.attributes(buildType: 'debug')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    foo fooJar
+                    bar barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:check'
+
+        then:
+        executedAndNotSkipped ':b:fooJar', ':b:barJar'
+    }
 }
