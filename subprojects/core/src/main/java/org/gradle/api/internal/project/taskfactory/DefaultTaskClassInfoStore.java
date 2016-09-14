@@ -39,7 +39,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
-    private final TaskClassValidatorExtractor validatorExtractor = new TaskClassValidatorExtractor();
+    private final TaskClassValidatorExtractor validatorExtractor;
 
     private final LoadingCache<Class<? extends Task>, TaskClassInfo> classInfos = CacheBuilder.newBuilder()
         .weakKeys()
@@ -56,6 +56,10 @@ public class DefaultTaskClassInfoStore implements TaskClassInfoStore {
                 return taskClassInfo;
             }
         });
+
+    public DefaultTaskClassInfoStore(TaskClassValidatorExtractor validatorExtractor) {
+        this.validatorExtractor = validatorExtractor;
+    }
 
     @Override
     public TaskClassInfo getTaskClassInfo(Class<? extends Task> type) {

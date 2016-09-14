@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.Task;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface TaskClassValidatorExtractor {
-    TaskClassValidator extractValidator(Class<? extends Task> type);
+@Target({ElementType.METHOD, ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@interface SearchPath {
 }

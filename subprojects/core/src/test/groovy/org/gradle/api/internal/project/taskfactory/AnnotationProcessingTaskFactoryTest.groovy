@@ -36,6 +36,8 @@ import static org.gradle.api.internal.project.taskfactory.AnnotationProcessingTa
 class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
     private AnnotationProcessingTaskFactory factory
     private ITaskFactory delegate
+    private TaskClassInfoStore taskClassInfoStore
+
     private Map args = new HashMap()
 
     private String inputValue = "value"
@@ -48,7 +50,8 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
 
     def setup() {
         delegate = Mock(ITaskFactory)
-        factory = new AnnotationProcessingTaskFactory(new DefaultTaskClassInfoStore(), delegate)
+        taskClassInfoStore = new DefaultTaskClassInfoStore(new DefaultTaskClassValidatorExtractor())
+        factory = new AnnotationProcessingTaskFactory(taskClassInfoStore, delegate)
         testDir = temporaryFolder.testDirectory
         existingFile = testDir.file("file.txt").touch()
         missingFile = testDir.file("missing.txt")
