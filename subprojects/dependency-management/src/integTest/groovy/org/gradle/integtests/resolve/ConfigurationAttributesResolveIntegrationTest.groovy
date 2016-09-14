@@ -459,4 +459,119 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         then:
         executedAndNotSkipped ':b:fooJar', ':b:barJar'
     }
+
+    /**
+     * If a configuration defines attributes, and that the target project declares configurations
+     * with attributes too, should the attributes of parent configurations in the target project
+     * be used?
+     *
+     * This test implements option 1, "yes", which basically means that attributes of a configuration
+     * are inherited.
+     *
+     * Rationale: configurations are inherited, so why wouldn't be attributes too?
+     */
+    @NotYetImplemented
+    def "attributes of parent configurations should be used when matching"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    compile.attributes(p1: 'foo', p2: 'bar')
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile) << {
+                    assert configurations.compile.collect { it.name } == ['b-foo.jar']
+                }
+            }
+            project(':b') {
+                configurations {
+                    debug.attributes(p1: 'foo')
+                    compile.extendsFrom debug
+                    compile.attributes(p2: 'bar')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    debug fooJar
+                    compile barJar
+                }
+            }
+
+        '''
+
+        when:
+        run ':a:check'
+
+        then:
+        executedAndNotSkipped ':b:barJar'
+
+    }
+
+    /**
+     * If a configuration defines attributes, and that the target project declares configurations
+     * with attributes too, should the attributes of parent configurations in the target project
+     * be used?
+     *
+     * This test implements option 2, "no", which basically means that attributes of a configuration
+     * are never inherited.
+     *
+     * Rationale: if we make configuration inherit attributes, then it means that 2 "child" configurations
+     * could easily have the same set of attributes. It also means that just adding a configuration could
+     * make resolution fail if we decide that 2 configurations with the same attributes lead to an error.
+     *
+     * Also, since configurations can have multiple parents, it would be very easy to face a situation
+     * where ordering of the "extendsFrom" clauses trigger different resolution results.
+     *
+     * There's another reason for not allowing inheritance: it allows more precise selection, while still
+     * allowing the build author/plugin writer to decide what attributes should be copied to child configurations.
+     *
+     */
+    def "attributes of parent configurations should not be used when matching"() {
+        given:
+        file('settings.gradle') << "include 'a', 'b'"
+        buildFile << '''
+            project(':a') {
+                configurations {
+                    compile.attributes(p1: 'foo', p2: 'bar')
+                }
+                dependencies {
+                    compile project(':b')
+                }
+                task check(dependsOn: configurations.compile)
+            }
+            project(':b') {
+                configurations {
+                    debug.attributes(p1: 'foo')
+                    compile.extendsFrom debug
+                    compile.attributes(p2: 'bar')
+                }
+                task fooJar(type: Jar) {
+                   baseName = 'b-foo'
+                }
+                task barJar(type: Jar) {
+                   baseName = 'b-bar'
+                }
+                artifacts {
+                    debug fooJar
+                    compile barJar
+                }
+            }
+
+        '''
+
+        when:
+        fails ':a:check'
+
+        then:
+        // todo: depending on choices we will make, we need to look either for a "no matching configuration" or "no such configuration 'default'" error
+        failure.error.contains("default")
+
+    }
 }
