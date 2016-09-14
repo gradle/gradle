@@ -1,19 +1,27 @@
-task taskX << {
-    println 'taskX'
+task taskX {
+    doLast {
+        println 'taskX'
+    }
 }
 
 taskX.dependsOn {
     tasks.findAll { task -> task.name.startsWith('lib') }
 }
 
-task lib1 << {
-    println 'lib1'
+task lib1 {
+    doLast {
+        println 'lib1'
+    }
 }
 
-task lib2 << {
-    println 'lib2'
+task lib2 {
+    doLast {
+        println 'lib2'
+    }
 }
 
-task notALib << {
-    println 'notALib'
+task notALib {
+    doLast {
+        println 'notALib'
+    }
 }

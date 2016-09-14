@@ -1,3 +1,5 @@
-task consume << {
-    println("Consuming message: ${rootProject.producerMessage}")
+task consume {
+    doLast {
+        println("Consuming message: ${rootProject.producerMessage}")
+    }
 }

@@ -1,11 +1,15 @@
 project('projectA') {
-    task taskX(dependsOn: ':projectB:taskY') << {
-        println 'taskX'
+    task taskX(dependsOn: ':projectB:taskY') {
+        doLast {
+            println 'taskX'
+        }
     }
 }
 
 project('projectB') {
-    task taskY << {
-        println 'taskY'
+    task taskY {
+        doLast {
+            println 'taskY'
+        }
     }
 }

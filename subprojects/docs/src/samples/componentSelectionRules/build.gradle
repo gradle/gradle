@@ -55,8 +55,10 @@ dependencies {
 }
 // END SNIPPET reject-version-1.1
 
-task printRejectConfig << {
-    configurations.rejectConfig.each { println "Resolved: ${it.name}" }
+task printRejectConfig {
+    doLast {
+        configurations.rejectConfig.each { println "Resolved: ${it.name}" }
+    }
 }
 
 // START SNIPPET component-selection-with-metadata
@@ -87,8 +89,10 @@ dependencies {
     metadataRulesConfig "org.sample:lib:+"
 }
 
-task printMetadataRulesConfig << {
-    configurations.metadataRulesConfig.each { println "Resolved: ${it.name}" }
+task printMetadataRulesConfig {
+    doLast {
+        configurations.metadataRulesConfig.each { println "Resolved: ${it.name}" }
+    }
 }
 
 // START SNIPPET targeted-component-selection
@@ -111,8 +115,10 @@ dependencies {
     targetConfig "org.sample:api:1.+"
 }
 
-task printTargetConfig << {
-    configurations.targetConfig.each { println "Resolved: ${it.name}" }
+task printTargetConfig {
+    doLast {
+        configurations.targetConfig.each { println "Resolved: ${it.name}" }
+    }
 }
 
 // START SNIPPET api-component-selection
@@ -140,8 +146,10 @@ dependencies {
     ruleSourceConfig "org.sample:api:1.+"
 }
 
-task printRuleSourceConfig << {
-    configurations.ruleSourceConfig.each { println "Resolved: ${it.name}" }
+task printRuleSourceConfig {
+    doLast {
+        configurations.ruleSourceConfig.each { println "Resolved: ${it.name}" }
+    }
 }
 
 configurations {

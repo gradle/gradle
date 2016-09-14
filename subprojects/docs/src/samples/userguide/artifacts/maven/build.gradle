@@ -78,7 +78,9 @@ install {
 //END SNIPPET customize-installer
 
 //START SNIPPET mappings
-task mappings << {
-    println conf2ScopeMappings.mappings
+task mappings {
+    doLast {
+        println conf2ScopeMappings.mappings
+    }
 }
 //END SNIPPET mappings

@@ -1,3 +1,5 @@
-task hello << {
-    ant.echo('hello from Ant')
+task hello {
+    doLast {
+        ant.echo('hello from Ant')
+    }
 }

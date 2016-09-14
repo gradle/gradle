@@ -1,4 +1,6 @@
-task hello << {
-    String greeting = 'hello from Ant'
-    ant.echo(message: greeting)
+task hello {
+    doLast {
+        String greeting = 'hello from Ant'
+        ant.echo(message: greeting)
+    }
 }

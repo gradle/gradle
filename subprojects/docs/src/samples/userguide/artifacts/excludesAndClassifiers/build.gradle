@@ -32,11 +32,15 @@ dependencies {
 }
 // END SNIPPET exclude-dependencies
 
-task resolveCompile << {
-	println configurations.compile.resolve()
-	println configurations.otherConf.resolve()
+task resolveCompile {
+    doLast {
+        println configurations.compile.resolve()
+        println configurations.otherConf.resolve()
+    }
 }
 
-task resolveRuntime << {
-	println configurations.runtime.resolve()
+task resolveRuntime {
+    doLast {
+        println configurations.runtime.resolve()
+    }
 }

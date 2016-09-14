@@ -1,10 +1,12 @@
-task check << {
-    ant.taskdef(resource: 'checkstyletask.properties') {
-        classpath {
-            fileset(dir: 'libs', includes: '*.jar')
+task check {
+    doLast {
+        ant.taskdef(resource: 'checkstyletask.properties') {
+            classpath {
+                fileset(dir: 'libs', includes: '*.jar')
+            }
         }
-    }
-    ant.checkstyle(config: 'checkstyle.xml') {
-        fileset(dir: 'src')
+        ant.checkstyle(config: 'checkstyle.xml') {
+            fileset(dir: 'src')
+        }
     }
 }

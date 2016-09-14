@@ -1,5 +1,7 @@
-task compile << {
-    println 'We are doing the compile.'
+task compile {
+    doLast {
+        println 'We are doing the compile.'
+    }
 }
 
 compile.doFirst {
@@ -7,6 +9,8 @@ compile.doFirst {
     // But this is used in an integration test so we want defined behavior.
     if (true) { throw new StopExecutionException() }
 }
-task myTask(dependsOn: 'compile') << {
-   println 'I am not affected'
+task myTask(dependsOn: 'compile') {
+    doLast {
+        println 'I am not affected'
+    }
 }

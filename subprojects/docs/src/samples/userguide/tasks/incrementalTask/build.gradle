@@ -1,26 +1,34 @@
-task originalInputs() << {
-    file('inputs').mkdir()
-    file('inputs/1.txt').text = "Content for file 1."
-    file('inputs/2.txt').text = "Content for file 2."
-    file('inputs/3.txt').text = "Content for file 3."
+task originalInputs() {
+    doLast {
+        file('inputs').mkdir()
+        file('inputs/1.txt').text = "Content for file 1."
+        file('inputs/2.txt').text = "Content for file 2."
+        file('inputs/3.txt').text = "Content for file 3."
+    }
 }
 
 // START SNIPPET updated-inputs
-task updateInputs() << {
-    file('inputs/1.txt').text = "Changed content for existing file 1."
-    file('inputs/4.txt').text = "Content for new file 4."
+task updateInputs() {
+    doLast {
+        file('inputs/1.txt').text = "Changed content for existing file 1."
+        file('inputs/4.txt').text = "Content for new file 4."
+    }
 }
 // END SNIPPET updated-inputs
 
 // START SNIPPET removed-input
-task removeInput() << {
-    file('inputs/3.txt').delete()
+task removeInput() {
+    doLast {
+        file('inputs/3.txt').delete()
+    }
 }
 // END SNIPPET removed-input
 
 // START SNIPPET removed-output
-task removeOutput() << {
-    file("$buildDir/outputs/1.txt").delete()
+task removeOutput() {
+    doLast {
+        file("$buildDir/outputs/1.txt").delete()
+    }
 }
 // END SNIPPET removed-output
 
