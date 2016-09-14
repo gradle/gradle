@@ -71,7 +71,7 @@ class TaskFilePropertyPathSensitivityTest extends AbstractProjectBuilderSpec {
     }
 
     def "sensitivity RELATIVE"() {
-        def snapshots = normalizeWith RELATIVE
+        def snapshots = normalizeWith CLASSPATH
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "IGNORED"
         snapshots[file("dir/libs/library-b.jar")]      == "IGNORED"
@@ -83,7 +83,7 @@ class TaskFilePropertyPathSensitivityTest extends AbstractProjectBuilderSpec {
     }
 
     def "sensitivity RELATIVE_WITH_FILE_NAMES"() {
-        def snapshots = normalizeWith RELATIVE_WITH_FILE_NAMES
+        def snapshots = normalizeWith RELATIVE
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "library-a.jar"
         snapshots[file("dir/libs/library-b.jar")]      == "library-b.jar"

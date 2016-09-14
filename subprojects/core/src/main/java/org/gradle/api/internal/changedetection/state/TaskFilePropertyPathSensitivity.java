@@ -37,9 +37,9 @@ public enum TaskFilePropertyPathSensitivity {
     },
 
     /**
-     * Use the location of the file related to a hierarchy.
+     * Use the location of the file related to a classpath.
      */
-    RELATIVE {
+    CLASSPATH {
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
             // Ignore path of root files and directories
@@ -51,9 +51,9 @@ public enum TaskFilePropertyPathSensitivity {
     },
 
     /**
-     * Use the location of the file related to a hierarchy, but keep file names when files are added directly as roots.
+     * Use the location of the file related to a hierarchy.
      */
-    RELATIVE_WITH_FILE_NAMES {
+    RELATIVE {
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
             // Ignore path of root directories
@@ -99,10 +99,10 @@ public enum TaskFilePropertyPathSensitivity {
         switch (pathSensitivity) {
             case ABSOLUTE:
                 return ABSOLUTE;
+            case CLASSPATH:
+                return CLASSPATH;
             case RELATIVE:
                 return RELATIVE;
-            case RELATIVE_WITH_FILE_NAMES:
-                return RELATIVE_WITH_FILE_NAMES;
             case NAME_ONLY:
                 return NAME_ONLY;
             case NONE:

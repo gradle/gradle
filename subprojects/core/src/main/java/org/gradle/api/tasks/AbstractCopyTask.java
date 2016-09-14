@@ -71,7 +71,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
                         }
                     })
                     .withPropertyName(specPropertyName)
-                    .withPathSensitivity(PathSensitivity.RELATIVE_WITH_FILE_NAMES)
+                    .withPathSensitivity(PathSensitivity.RELATIVE)
                     .skipWhenEmpty();
 
                 getInputs().property(specPropertyName + ".destPath", new Callable<String>() {

@@ -34,13 +34,14 @@ public enum PathSensitivity {
 
     /**
      * Consider the path for each file or directory relative to the root it was included via.
+     * For files added directly both path and file name is ignored.
      */
-    RELATIVE,
+    CLASSPATH,
 
     /**
-     * Use the location of the file related to a hierarchy, but keep file names when files are added directly as roots.
+     * Use the location of the file related to a hierarchy.
      */
-    RELATIVE_WITH_FILE_NAMES,
+    RELATIVE,
 
     /**
      * Consider only the name of files and directories.

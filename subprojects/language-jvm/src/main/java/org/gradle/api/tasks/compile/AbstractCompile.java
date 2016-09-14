@@ -44,7 +44,7 @@ public abstract class AbstractCompile extends SourceTask {
      */
     @OrderSensitive
     @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.CLASSPATH)
     public FileCollection getClasspath() {
         return classpath;
     }
