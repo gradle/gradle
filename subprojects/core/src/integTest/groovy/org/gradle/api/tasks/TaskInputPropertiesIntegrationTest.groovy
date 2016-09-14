@@ -154,11 +154,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skippedTasks.isEmpty()
-        outputContains "Output property 'outputs1' file ${file("build/output2")} has been added."
         outputContains "Output property 'outputs1' file ${file("build/output1")} has been removed."
-        outputContains "Output property 'outputs2' file ${file("build/output1")} has been added."
-        // Note: "Output property 'outputs2' file ${file("build/output2")} has been removed." is missing
-        // due to limitation of only 3 changes printed
+        outputContains "Output property 'outputs2' file ${file("build/output2")} has been removed."
     }
 
     def "no deprecation warning printed when @OutputDirectories or @OutputFiles is used on Map property"() {

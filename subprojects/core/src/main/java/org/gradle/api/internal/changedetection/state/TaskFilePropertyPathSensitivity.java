@@ -42,7 +42,7 @@ public enum TaskFilePropertyPathSensitivity {
     RELATIVE {
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
-            // Ignore path of root files
+            // Ignore path of root files and directories
             if (fileDetails instanceof SingletonFileTree.SingletonFileVisitDetails) {
                 return new IgnoredPathFileSnapshot(snapshot);
             }
@@ -66,6 +66,10 @@ public enum TaskFilePropertyPathSensitivity {
     NAME_ONLY {
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+            // Ignore path of root directories
+            if (fileDetails instanceof SingletonFileTree.SingletonFileVisitDetails && fileDetails.isDirectory()) {
+                return new IgnoredPathFileSnapshot(snapshot);
+            }
             return getRelativeSnapshot(fileDetails, fileDetails.getName(), snapshot, stringInterner);
         }
     },

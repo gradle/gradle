@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
 class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
@@ -162,7 +161,6 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         ":incremental" in skippedTasks
     }
 
-    @NotYetImplemented
     def "incremental task is skipped when run with no changes with discovered empty directory"() {
         discoveredDir.file('empty/dir').mkdirs()
 

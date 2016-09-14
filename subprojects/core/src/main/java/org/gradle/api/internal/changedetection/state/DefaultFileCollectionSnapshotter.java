@@ -34,7 +34,7 @@ import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeplatform.filesystem.FileSystem;
+import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
@@ -48,15 +48,13 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     private final FileSnapshotter snapshotter;
     private final StringInterner stringInterner;
     private final CacheAccess cacheAccess;
-    private final FileSystem fileSystem;
     private final Factory<PatternSet> patternSetFactory;
 
-    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
+    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, Factory<PatternSet> patternSetFactory) {
         this.snapshotter = snapshotter;
         this.cacheAccess = cacheAccess;
         this.stringInterner = stringInterner;
         this.patternSetFactory = patternSetFactory;
-        this.fileSystem = fileSystem;
     }
 
     @Override
@@ -122,7 +120,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         private final List<FileTreeElement> fileTreeElements;
         private final List<FileTreeElement> missingFiles;
 
-        public FileCollectionVisitorImpl(List<FileTreeElement> fileTreeElements, List<FileTreeElement> missingFiles) {
+        FileCollectionVisitorImpl(List<FileTreeElement> fileTreeElements, List<FileTreeElement> missingFiles) {
             this.fileTreeElements = fileTreeElements;
             this.missingFiles = missingFiles;
         }
@@ -133,6 +131,8 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                 if (file.isFile()) {
                     visitTree(new FileTreeAdapter(new SingletonFileTree(file)));
                 } else if (file.isDirectory()) {
+                    // Visit the directory itself, then its contents
+                    fileTreeElements.add(new SingletonFileTree.SingletonFileVisitDetails(file, FileSystems.getDefault(), true));
                     visitTree(new FileTreeAdapter(new DirectoryFileTree(file, patternSetFactory.create())));
                 } else {
                     missingFiles.add(new MissingFileVisitDetails(file));

@@ -38,7 +38,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
     def cacheAccess = Stub(TaskArtifactStateCacheAccess)
     def stringInterner = new StringInterner()
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.fileSystem(), TestFiles.resolver().patternSetFactory)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.resolver().patternSetFactory)
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -98,8 +98,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         snapshot.elements == [file, noExist]
     }
 
-    // Documenting existing behaviour
-    def getElementsDoesNotIncludeRootDirectories() {
+    def getElementsIncludesRootDirectories() {
         given:
         TestFile file = tmpDir.createFile('file1')
         TestFile dir = tmpDir.createDir('dir')
@@ -111,7 +110,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         def snapshot = snapshotter.snapshot(files(file, dir, noExist), UNORDERED, ABSOLUTE)
 
         then:
-        snapshot.elements == [file, dir2, file2, noExist]
+        snapshot.elements == [file, dir, dir2, file2, noExist]
     }
 
     // Documenting existing behaviour

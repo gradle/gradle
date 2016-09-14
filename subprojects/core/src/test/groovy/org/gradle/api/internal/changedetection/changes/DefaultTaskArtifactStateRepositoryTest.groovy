@@ -79,8 +79,8 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
         def stringInterner = new StringInterner()
         def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner)
-        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.fileSystem(), TestFiles.resolver().patternSetFactory)
-        FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter, stringInterner)
+        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.resolver().patternSetFactory)
+        FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter)
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) // new ConfigurableClassLoaderHierarchyHasher([:], Mock(ClassLoaderHasher))
         SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
         inputFilesSnapshotter.registerSerializers(serializerRegistry);
@@ -207,7 +207,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         TaskInternal inputFilesRemoved = builder.withInputFiles(file: [inputFile], dir: [], missingFile: [missingInputFile]).task()
 
         then:
-        inputsOutOfDate(inputFilesRemoved).withRemovedFile(inputDirFile)
+        inputsOutOfDate(inputFilesRemoved).withRemovedFiles(inputDir, inputDirFile)
     }
 
     def artifactsAreNotUpToDateWhenAnyInputFileHasChangedHash() {
@@ -230,7 +230,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         inputFile.createDir()
 
         then:
-        inputsOutOfDate(task).withRemovedFile(inputFile)
+        inputsOutOfDate(task).withModifiedFile(inputFile)
     }
 
     def artifactsAreNotUpToDateWhenAnyInputFileNoLongerExists() {
@@ -639,6 +639,12 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
             assert added == []
             assert modified == []
             assert removed == [file]
+        }
+
+        void withRemovedFiles(File... files) {
+            assert added == []
+            assert modified == []
+            assert removed == files as List
         }
     }
 

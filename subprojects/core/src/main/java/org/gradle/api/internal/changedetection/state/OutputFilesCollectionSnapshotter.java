@@ -18,13 +18,9 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
-import org.gradle.internal.serialize.DefaultSerializerRegistry;
 import org.gradle.internal.serialize.SerializerRegistry;
 
-import java.io.File;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,45 +29,33 @@ import java.util.Map;
  */
 public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshotter {
     private final FileCollectionSnapshotter snapshotter;
-    private final StringInterner stringInterner;
 
-    public OutputFilesCollectionSnapshotter(FileCollectionSnapshotter snapshotter, StringInterner stringInterner) {
+    public OutputFilesCollectionSnapshotter(FileCollectionSnapshotter snapshotter) {
         this.snapshotter = snapshotter;
-        this.stringInterner = stringInterner;
     }
 
     public void registerSerializers(SerializerRegistry registry) {
-        DefaultSerializerRegistry nested = new DefaultSerializerRegistry();
-        snapshotter.registerSerializers(nested);
-        registry.register(OutputFilesCollectionSnapshot.class, new OutputFilesCollectionSnapshot.SerializerImpl(nested.build(FileCollectionSnapshot.class), stringInterner));
+        snapshotter.registerSerializers(registry);
     }
 
     public FileCollectionSnapshot emptySnapshot() {
-        return new OutputFilesCollectionSnapshot(Collections.<String, Boolean>emptyMap(), snapshotter.emptySnapshot());
+        return snapshotter.emptySnapshot();
     }
 
     @Override
     public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, TaskFilePropertyPathSensitivity pathSensitivity) {
-        return new OutputFilesCollectionSnapshot(getRoots(files), snapshotter.snapshot(files, compareStrategy, pathSensitivity));
+        return snapshotter.snapshot(files, compareStrategy, pathSensitivity);
     }
 
     @Override
     public FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec) {
-        return new OutputFilesCollectionSnapshot(getRoots(propertySpec.getPropertyFiles()), snapshotter.snapshot(propertySpec));
-    }
-
-    private Map<String, Boolean> getRoots(FileCollection files) {
-        Map<String, Boolean> roots = new HashMap<String, Boolean>();
-        for (File file : files.getFiles()) {
-            roots.put(stringInterner.intern(file.getAbsolutePath()), file.exists());
-        }
-        return roots;
+        return snapshotter.snapshot(propertySpec);
     }
 
     /**
      * Returns a new snapshot that filters out entries that should not be considered outputs of the task.
      */
-    public OutputFilesCollectionSnapshot createOutputSnapshot(
+    public FileCollectionSnapshot createOutputSnapshot(
         FileCollectionSnapshot afterPreviousExecution,
         FileCollectionSnapshot beforeExecution,
         FileCollectionSnapshot afterExecution,
@@ -95,14 +79,14 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             }
             // Are all files snapshot after execution accounted for as new entries?
             if (newEntryCount == afterSnapshots.size()) {
-                filesSnapshot = unwrap(afterExecution);
+                filesSnapshot = afterExecution;
             } else {
                 filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.OUTPUT);
             }
         } else {
-            filesSnapshot = unwrap(afterExecution);
+            filesSnapshot = afterExecution;
         }
-        return new OutputFilesCollectionSnapshot(getRoots(roots), filesSnapshot);
+        return filesSnapshot;
     }
 
     /**
@@ -128,12 +112,5 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             return true;
         }
         return false;
-    }
-
-    private static FileCollectionSnapshot unwrap(FileCollectionSnapshot filesSnapshot) {
-        if (filesSnapshot instanceof OutputFilesCollectionSnapshot) {
-            return ((OutputFilesCollectionSnapshot) filesSnapshot).getFilesSnapshot();
-        }
-        return filesSnapshot;
     }
 }
