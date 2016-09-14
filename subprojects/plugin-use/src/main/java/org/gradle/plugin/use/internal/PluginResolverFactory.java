@@ -55,6 +55,7 @@ class PluginResolverFactory implements Factory<PluginResolver> {
         this.injectedClasspathPluginResolver = injectedClasspathPluginResolver;
     }
 
+    @Override
     public PluginResolver create() {
         List<PluginResolver> resolvers = new LinkedList<PluginResolver>();
         addDefaultResolvers(resolvers);
