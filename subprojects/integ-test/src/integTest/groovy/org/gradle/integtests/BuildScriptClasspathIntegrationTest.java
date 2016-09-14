@@ -193,9 +193,10 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
         );
         testFile("child/build.gradle").writelns(
                 "assert parent.buildscript.classLoader == buildscript.classLoader",
-                "task hello << ",
-                "{",
-                "    new org.gradle.test.BuildClass()",
+                "task hello {",
+                "    doLast {",
+                "        new org.gradle.test.BuildClass()",
+                "    }",
                 "}"
         );
         inTestDirectory().withTasks("hello").run();

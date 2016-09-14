@@ -153,8 +153,10 @@ class PluginUseClassLoadingIntegrationSpec extends AbstractIntegrationSpec {
 
         buildScript """
             evaluationDependsOnChildren()
-            task verify <<  {
-                project(":p1").pluginClass.is(project(":p2").pluginClass)
+            task verify {
+                doLast {
+                    project(":p1").pluginClass.is(project(":p2").pluginClass)
+                }
             }
         """
 

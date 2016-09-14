@@ -191,8 +191,10 @@ public interface IvyPublication extends Publication {
      *   classifier "source"
      * }
      *
-     * task genDocs &lt;&lt; {
+     * task genDocs {
+     *   doLast {
      *     // Generate 'my-docs-file.htm'
+     *   }
      * }
      *
      * publishing {
@@ -224,8 +226,10 @@ public interface IvyPublication extends Publication {
      *   classifier "source"
      * }
 
-     * task genDocs &lt;&lt; {
+     * task genDocs {
+     *   doLast {
      *     // Generate 'my-docs-file.htm'
+     *   }
      * }
      *
      * publishing {
