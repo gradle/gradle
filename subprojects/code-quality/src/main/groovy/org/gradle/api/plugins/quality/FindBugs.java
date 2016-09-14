@@ -36,12 +36,12 @@ import org.gradle.api.plugins.quality.internal.findbugs.FindBugsWorkerManager;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.SingleFileReport;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -309,8 +309,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Compile class path for the classes to be analyzed. The classes on this class path are used during analysis but aren't analyzed themselves.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getClasspath() {
         return classpath;
     }
@@ -322,8 +321,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Class path holding the FindBugs library.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getFindbugsClasspath() {
         return findbugsClasspath;
     }
@@ -335,8 +333,7 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
     /**
      * Class path holding any additional FindBugs plugins.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getPluginClasspath() {
         return pluginClasspath;
     }

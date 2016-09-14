@@ -56,6 +56,7 @@ public class DefaultTaskClassValidatorExtractor implements TaskClassValidatorExt
         new InputFilePropertyAnnotationHandler(),
         new InputDirectoryPropertyAnnotationHandler(),
         new InputFilesPropertyAnnotationHandler(),
+        new ClasspathPropertyAnnotationHandler(),
         new OutputFilePropertyAnnotationHandler(),
         new OutputFilesPropertyAnnotationHandler(),
         new OutputDirectoryPropertyAnnotationHandler(),

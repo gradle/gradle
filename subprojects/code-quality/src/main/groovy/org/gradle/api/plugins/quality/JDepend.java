@@ -24,10 +24,9 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.plugins.quality.internal.JDependInvoker;
 import org.gradle.api.plugins.quality.internal.JDependReportsImpl;
 import org.gradle.api.reporting.Reporting;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
@@ -127,8 +126,7 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
     /**
      * The class path containing the JDepend library to be used.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getJdependClasspath() {
         return jdependClasspath;
     }

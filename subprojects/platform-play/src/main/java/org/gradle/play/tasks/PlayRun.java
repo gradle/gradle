@@ -20,11 +20,11 @@ import org.gradle.api.Incubating;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.compile.BaseForkOptions;
 import org.gradle.deployment.internal.DeploymentRegistry;
@@ -62,12 +62,10 @@ public class PlayRun extends ConventionTask {
     @InputFiles
     private Set<File> assetsDirs;
 
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     private FileCollection runtimeClasspath;
 
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     private FileCollection changingClasspath;
 
     private BaseForkOptions forkOptions;

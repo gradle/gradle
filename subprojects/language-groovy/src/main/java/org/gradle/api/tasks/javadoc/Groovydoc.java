@@ -24,12 +24,11 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.AntGroovydoc;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
@@ -133,8 +132,7 @@ public class Groovydoc extends SourceTask {
      *
      * @return The classpath containing the Groovy library to be used
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
     }
@@ -151,8 +149,7 @@ public class Groovydoc extends SourceTask {
      *
      * @return The classpath used to locate classes referenced by the documented sources
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getClasspath() {
         return classpath;
     }

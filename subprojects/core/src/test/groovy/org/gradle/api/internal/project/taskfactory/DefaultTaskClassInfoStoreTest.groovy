@@ -17,7 +17,9 @@
 package org.gradle.api.internal.project.taskfactory
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Console
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
@@ -42,6 +44,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
         @InputFile File inputFile
         @InputDirectory File inputDirectory
         @InputFiles File inputFiles
+        @Classpath FileCollection classpath
         @OutputFile File outputFile
         @OutputFiles Set<File> outputFiles
         @OutputDirectory File outputDirectory
@@ -57,7 +60,7 @@ class DefaultTaskClassInfoStoreTest extends Specification {
         expect:
         !info.incremental
         !info.cacheable
-        info.validator.validatedProperties*.name.sort() == ["inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
+        info.validator.validatedProperties*.name.sort() == ["classpath", "inputDirectory", "inputFile", "inputFiles", "inputString", "outputDirectories", "outputDirectory", "outputFile", "outputFiles"]
         info.nonAnnotatedPropertyNames.empty
     }
 

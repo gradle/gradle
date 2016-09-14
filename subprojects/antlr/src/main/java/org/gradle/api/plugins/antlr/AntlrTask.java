@@ -25,10 +25,10 @@ import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
 import org.gradle.api.plugins.antlr.internal.AntlrSpec;
 import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory;
 import org.gradle.api.plugins.antlr.internal.AntlrWorkerManager;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.SourceTask;
@@ -164,8 +164,7 @@ public class AntlrTask extends SourceTask {
      *
      * @return The Ant task implementation classpath.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getAntlrClasspath() {
         return antlrClasspath;
     }

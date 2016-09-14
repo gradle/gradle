@@ -27,11 +27,11 @@ import org.gradle.api.plugins.quality.internal.PmdInvoker;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
@@ -131,8 +131,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     /**
      * The class path containing the PMD library to be used.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getPmdClasspath() {
         return pmdClasspath;
     }
@@ -255,8 +254,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      *
      * This is only well supported for PMD 5.2.1 or better.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     @Optional
     @Incubating
     public FileCollection getClasspath() {
