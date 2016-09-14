@@ -60,6 +60,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 
 import java.beans.PropertyChangeEvent;
@@ -501,6 +502,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task leftShift(final Closure action) {
+        DeprecationLogger.nagUserOfDiscontinuedMethod("Task.leftShift(Closure)", "Please use Task.doLast(Action) instead.");
+
         hasCustomActions = true;
         if (action == null) {
             throw new InvalidUserDataException("Action must not be null!");

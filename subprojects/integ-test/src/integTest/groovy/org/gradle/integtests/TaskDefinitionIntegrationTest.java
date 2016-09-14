@@ -29,7 +29,7 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "task task",
                 "task withOptions(dependsOn: [nothing, withAction, emptyOptions, task])",
                 "task withOptionsAndAction(dependsOn: withOptions) << { }");
-        inTestDirectory().withTasks("withOptionsAndAction").run().assertTasksExecuted(":emptyOptions", ":nothing",
+        inTestDirectory().expectDeprecationWarning().withTasks("withOptionsAndAction").run().assertTasksExecuted(":emptyOptions", ":nothing",
                 ":task", ":withAction", ":withOptions", ":withOptionsAndAction");
     }
 
@@ -42,7 +42,7 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "task \"emptyOptions$v\"()",
                 "task \"withOptions$v\"(dependsOn: [nothingTask, withActionTask, emptyOptionsTask])",
                 "task \"withOptionsAndAction$v\"(dependsOn: withOptionsTask) << { }");
-        inTestDirectory().withTasks("withOptionsAndActionTask").run().assertTasksExecuted(":emptyOptionsTask",
+        inTestDirectory().expectDeprecationWarning().withTasks("withOptionsAndActionTask").run().assertTasksExecuted(":emptyOptionsTask",
                 ":nothingTask", ":withActionTask", ":withOptionsTask", ":withOptionsAndActionTask");
     }
 
@@ -54,7 +54,7 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "task 'emptyOptions'()",
                 "task 'withOptions'(dependsOn: [nothing, withAction, emptyOptions])",
                 "task 'withOptionsAndAction'(dependsOn: withOptions) << { }");
-        inTestDirectory().withTasks("withOptionsAndAction").run().assertTasksExecuted(":emptyOptions", ":nothing",
+        inTestDirectory().expectDeprecationWarning().withTasks("withOptionsAndAction").run().assertTasksExecuted(":emptyOptions", ":nothing",
                 ":withAction", ":withOptions", ":withOptionsAndAction");
     }
 
@@ -86,7 +86,7 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "a = task(withOptionsAndAction, description: 'description') << { }",
                 "a = task(anotherWithAction).doFirst\n{}",
                 "task all(dependsOn: tasks as List)");
-        inTestDirectory().withTasks("all").run().assertTasksExecuted(":anotherWithAction", ":dynamic", ":emptyOptions",
+        inTestDirectory().expectDeprecationWarning().withTasks("all").run().assertTasksExecuted(":anotherWithAction", ":dynamic", ":emptyOptions",
                 ":nothing", ":string", ":stringWithAction", ":stringWithOptions", ":stringWithOptionsAndAction",
                 ":withAction", ":withOptions", ":withOptionsAndAction", ":all");
     }
