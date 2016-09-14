@@ -105,7 +105,7 @@ public class GroovyCompile extends AbstractCompile {
      * {@inheritDoc}
      */
     @Override
-    @PathSensitive(PathSensitivity.NAME_ONLY)
+    @PathSensitive(PathSensitivity.NAME_ONLY) // Java source files are supported, too. Therefore we should care about the names.
     public FileTree getSource() {
         return super.getSource();
     }
