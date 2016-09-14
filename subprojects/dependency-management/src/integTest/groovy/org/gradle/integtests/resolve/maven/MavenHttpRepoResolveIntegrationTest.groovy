@@ -401,7 +401,7 @@ task listJars {
     }
 
 
-    public void "resolves artifact-only module via HTTP not modified"() {
+    def "resolves artifact-only module via HTTP not modified"() {
         given:
         buildFile << """
             repositories {
@@ -411,8 +411,10 @@ task listJars {
             }
             configurations { compile }
             dependencies { compile 'group:projectA:1.0@zip' }
-            task listJars << {
-                assert configurations.compile.collect { it.name } == ['projectA-1.0.zip']
+            task listJars {
+                doLast {
+                    assert configurations.compile.collect { it.name } == ['projectA-1.0.zip']
+                }
             }
         """
 
@@ -428,6 +430,4 @@ task listJars {
 
         errorOutput.contains('Response 304: Not Modified has no content!')
     }
-
-
 }
