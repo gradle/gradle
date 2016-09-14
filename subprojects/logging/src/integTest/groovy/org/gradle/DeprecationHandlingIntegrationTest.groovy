@@ -71,7 +71,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
             task broken(type: DeprecatedTask) {
                 doLast {
-                    otherFeature() // line 8
+                    otherFeature() // line 9
                 }
             }
         """.stripIndent()
@@ -87,7 +87,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains('build.gradle:2)')
         output.contains('build.gradle:4)')
-        output.contains('build.gradle:8)')
+        output.contains('build.gradle:9)')
         !output.contains('(Native Method)')
 
         and:
@@ -110,7 +110,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
 
             task broken(type: DeprecatedTask) {
                 doLast {
-                    otherFeature() // line 8
+                    otherFeature() // line 9
                 }
             }
         """.stripIndent()
@@ -125,7 +125,7 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
         then:
         output.contains('build.gradle:2)')
         output.contains('build.gradle:4)')
-        output.contains('build.gradle:8)')
+        output.contains('build.gradle:9)')
 
         and:
         output.count(PLUGIN_DEPRECATION_MESSAGE) == 1
