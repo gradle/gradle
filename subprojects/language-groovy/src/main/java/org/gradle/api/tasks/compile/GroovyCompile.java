@@ -18,6 +18,7 @@ package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.compile.CleaningGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.DefaultGroovyJavaJointCompileSpec;
@@ -27,10 +28,13 @@ import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompilerFactory;
 import org.gradle.api.internal.tasks.compile.daemon.CompilerDaemonManager;
 import org.gradle.api.internal.tasks.compile.daemon.InProcessCompilerDaemonFactory;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OrderSensitive;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.language.base.internal.compile.Compiler;
@@ -41,6 +45,7 @@ import java.io.File;
 /**
  * Compiles Groovy source files, and optionally, Java source files.
  */
+@CacheableTask
 public class GroovyCompile extends AbstractCompile {
     private Compiler<GroovyJavaJointCompileSpec> compiler;
     private FileCollection groovyClasspath;
@@ -97,6 +102,15 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    public FileTree getSource() {
+        return super.getSource();
+    }
+
+    /**
      * Gets the options for the Groovy compilation. To set specific options for the nested Java compilation, use {@link
      * #getOptions()}.
      *
@@ -124,6 +138,7 @@ public class GroovyCompile extends AbstractCompile {
      */
     @OrderSensitive
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
     }
