@@ -41,16 +41,20 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependenc
                 two 'org:lib:1.+'
             }
             //runs first and resolves
-            task resolveOne << {
-                configurations.one.files
+            task resolveOne {
+                doLast {
+                    configurations.one.files
+                }
             }
             //runs second, purges repo
             task purgeRepo(type: Delete, dependsOn: resolveOne) {
                 delete "${mavenRepo.uri}"
             }
             //runs last, still works even thoug local repo is empty
-            task resolveTwo(dependsOn: purgeRepo) << {
-                println "Resolved " + configurations.two.files*.name
+            task resolveTwo(dependsOn: purgeRepo) {
+                doLast {
+                    println "Resolved " + configurations.two.files*.name
+                }
             }
         """
 
@@ -72,7 +76,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependenc
                 configurations { conf }
                 repositories { ivy { url "${ivyRepo.uri}" } }
                 dependencies { conf 'org:lib:1.0' }
-                task resolveConf << { println path + " " + configurations.conf.files*.name }
+                task resolveConf { doLast { println path + " " + configurations.conf.files*.name } }
             }
             task purgeRepo(type: Delete, dependsOn: ':impl:resolveConf') {
                 delete "${ivyRepo.uri}"
@@ -100,7 +104,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependenc
             allprojects {
                 configurations { conf }
                 dependencies { conf 'org:lib:1.0' }
-                task resolveConf << { println "\$path " + configurations.conf.files*.name }
+                task resolveConf { doLast { println "\$path " + configurations.conf.files*.name } }
             }
             repositories { ivy { url "${ivyRepo.uri}" } }
             project(":impl") {
@@ -145,7 +149,7 @@ class CachingDependencyMetadataInMemoryIntegrationTest extends AbstractDependenc
                 repositories { mavenLocal() }
                 dependencies { classpath 'org:provider:1.0-SNAPSHOT' }
             }
-            task printName << { println "Name: " + new Name() }
+            task printName { doLast { println "Name: " + new Name() } }
         """
 
         inDirectory("consumer"); run "printName"

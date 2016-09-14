@@ -73,12 +73,16 @@ ext.url = new URL("${url}")
 
 [jettyRun, jettyRunWar]*.daemon = true
 
-task runTest(dependsOn: jettyRun) << {
-    callServlet()
+task runTest(dependsOn: jettyRun) {
+    doLast {
+        callServlet()
+    }
 }
 
-task runWarTest(dependsOn: jettyRunWar) << {
-    callServlet()
+task runWarTest(dependsOn: jettyRunWar) {
+    doLast {
+        callServlet()
+    }
 }
 
 private void callServlet() {

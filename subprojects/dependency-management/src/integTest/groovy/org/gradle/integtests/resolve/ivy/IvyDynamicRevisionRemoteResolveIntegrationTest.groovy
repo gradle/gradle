@@ -248,7 +248,7 @@ dependencies {
     staticVersions group: "group", name: "projectA", version: "1.1"
     compile group: "group", name: "projectA", version: "latest.milestone"
 }
-task cache << { configurations.staticVersions.files }
+task cache { doLast { configurations.staticVersions.files } }
 """
 
         and:

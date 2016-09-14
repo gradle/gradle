@@ -21,7 +21,11 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
     def "can execute build without specifying any arguments"() {
         given:
         buildScript """
-            task help << { file('out.txt').text = "help" }
+            task help {
+                doLast {
+                    file('out.txt').text = "help"
+                }
+            }
         """
 
         when:
@@ -34,8 +38,16 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
     def "can execute build with multiple tasks"() {
         given:
         buildScript """
-            task t1 << { file("out.txt").text = "t1" }
-            task t2 << { file("out.txt") << "t2" }
+            task t1 {
+                doLast {
+                    file("out.txt").text = "t1"
+                }
+            }
+            task t2 {
+                doLast {
+                    file("out.txt") << "t2"
+                }
+            }
         """
 
         when:
@@ -48,8 +60,10 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
     def "can provide non task arguments"() {
         given:
         buildScript """
-            task writeValue << {
-                file("out.txt").text = project.value
+            task writeValue {
+                doLast {
+                    file("out.txt").text = project.value
+                }
             }
         """
 

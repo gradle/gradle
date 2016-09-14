@@ -45,8 +45,10 @@ dependencies {
         }
     }
 }
-task resolve << {
-    configurations.modules.resolve()
+task resolve {
+    doLast {
+        configurations.modules.resolve()
+    }
 }
 """
 
@@ -69,8 +71,10 @@ dependencies {
         }
     }
 }
-task resolve << {
-    configurations.modules.resolve()
+task resolve {
+    doLast {
+        configurations.modules.resolve()
+    }
 }
 """
 
@@ -97,10 +101,12 @@ dependencies {
         all { details -> details.changing = true }
     }
 }
-task resolve << {
-    copy {
-        from configurations.modules
-        into "modules"
+task resolve {
+    doLast {
+        copy {
+            from configurations.modules
+            into "modules"
+        }
     }
 }
 """
@@ -146,10 +152,12 @@ dependencies {
         all { details -> details.changing = false }
     }
 }
-task resolve << {
-    copy {
-        from configurations.modules
-        into "modules"
+task resolve {
+    doLast {
+        copy {
+            from configurations.modules
+            into "modules"
+        }
     }
 }
 """

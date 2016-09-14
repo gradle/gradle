@@ -74,17 +74,21 @@ stopPort = ${stopPort}
 println "httpPort: \$httpPort"
 println "stopPort: \$stopPort"
 
-task runTest << {
-    URL url = new URL("http://localhost:\$httpPort/quickstart")
-    println url.text
+task runTest {
+    doLast {
+        URL url = new URL("http://localhost:\$httpPort/quickstart")
+        println url.text
+    }
 }
 
-task sayHearthyGoodbye << {
-    //this task should last for a few seconds
-    //to neatly expose issues with jetty killing the main process
-    println "About to say goodbye..."
-    Thread.sleep(2000)
-    println "Jetty will miss you!"
+task sayHearthyGoodbye {
+    doLast {
+        //this task should last for a few seconds
+        //to neatly expose issues with jetty killing the main process
+        println "About to say goodbye..."
+        Thread.sleep(2000)
+        println "Jetty will miss you!"
+    }
 }
 """
 

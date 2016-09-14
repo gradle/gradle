@@ -45,13 +45,15 @@ buildscript {
     }
 }
 
-task check << {
-    assert buildscript.configurations.classpath.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
-    def result = buildscript.configurations.classpath.incoming.resolutionResult
+task check {
+    doLast {
+        assert buildscript.configurations.classpath.collect { it.name } == ['test-1.45.jar', 'other-preview-1.jar']
+        def result = buildscript.configurations.classpath.incoming.resolutionResult
 
-    // Check root component
-    def rootId = result.root.id
-    assert rootId instanceof ProjectComponentIdentifier
+        // Check root component
+        def rootId = result.root.id
+        assert rootId instanceof ProjectComponentIdentifier
+    }
 }
 """
 

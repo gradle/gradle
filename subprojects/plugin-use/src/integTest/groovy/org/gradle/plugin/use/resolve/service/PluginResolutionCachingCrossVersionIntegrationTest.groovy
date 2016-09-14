@@ -52,8 +52,10 @@ class PluginResolutionCachingCrossVersionIntegrationTest extends CrossVersionInt
         service.start()
         file("build.gradle") << """
             plugins { id '$PLUGIN_ID' version '$VERSION' }
-            task pluginApplied << {
-                assert project.pluginApplied
+            task pluginApplied {
+                doLast {
+                    assert project.pluginApplied
+                }
             }
         """
 

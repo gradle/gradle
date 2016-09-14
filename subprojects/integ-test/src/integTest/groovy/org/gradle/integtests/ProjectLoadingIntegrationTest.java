@@ -192,9 +192,11 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
         TestFile subDirectory = getTestDirectory().file("subdirectory");
         TestFile buildFile = subDirectory.file("build.gradle");
-        buildFile.writelns("task('do-stuff') << {",
+        buildFile.writelns("task('do-stuff') {",
+                "doLast {",
                 "assert prop == 'value'",
                 "assert !project.hasProperty('otherProp')",
+                "}",
                 "}");
         testFile("subdirectory/gradle.properties").write("prop=value");
 

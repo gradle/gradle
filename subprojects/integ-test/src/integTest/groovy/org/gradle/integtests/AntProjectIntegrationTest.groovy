@@ -37,7 +37,7 @@ public class AntProjectIntegrationTest extends AbstractIntegrationTest {
 """
         testFile('build.gradle') << """
 ant.importBuild(file('build.xml'))
-task init << { buildDir.mkdirs() }
+task init { doLast { buildDir.mkdirs() } }
 task ant(dependsOn: target1)
 """
         TestFile target1File = testFile('build/target1.txt')

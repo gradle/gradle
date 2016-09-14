@@ -95,10 +95,12 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
                 }
             }
 
-            task checkConf << {
-                def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
-                assert artifacts.size() == 0
-                assert candidates == ${candidates}
+            task checkConf {
+                doLast {
+                    def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
+                    assert artifacts.size() == 0
+                    assert candidates == ${candidates}
+                }
             }
 """
 
@@ -223,10 +225,12 @@ Required by:
                 }
             }
 
-            task checkConf << {
-                def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
-                assert artifacts.size() == 0
-                assert candidates == ${candidates}
+            task checkConf {
+                doLast {
+                    def artifacts = configurations.conf.resolvedConfiguration.lenientConfiguration.getArtifacts(Specs.SATISFIES_ALL)
+                    assert artifacts.size() == 0
+                    assert candidates == ${candidates}
+                }
             }
 """
 

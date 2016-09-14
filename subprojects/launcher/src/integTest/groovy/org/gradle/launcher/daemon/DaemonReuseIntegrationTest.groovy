@@ -49,9 +49,11 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "canceled daemon is reused when it becomes available"() {
         buildFile << """
-            task block << {
-                new URL("${getUrl('started')}").text
-                new URL("${getUrl('block')}").text
+            task block {
+                doLast {
+                    new URL("${getUrl('started')}").text
+                    new URL("${getUrl('block')}").text
+                }
             }
         """
 
@@ -82,9 +84,11 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "does not attempt to reuse a canceled daemon that is not compatible"() {
         buildFile << """
-            task block << {
-                new URL("${getUrl('started')}").text
-                java.util.concurrent.locks.LockSupport.park()
+            task block {
+                doLast {
+                    new URL("${getUrl('started')}").text
+                    java.util.concurrent.locks.LockSupport.park()
+                }
             }
         """
 
@@ -113,9 +117,11 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "starts a new daemon when daemons with canceled builds do not become available"() {
         buildFile << """
-            task block << {
-                new URL("${getUrl('started')}").text
-                java.util.concurrent.locks.LockSupport.park()
+            task block {
+                doLast {
+                    new URL("${getUrl('started')}").text
+                    java.util.concurrent.locks.LockSupport.park()
+                }
             }
         """
 
@@ -148,9 +154,11 @@ class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
         expectEvent("started1")
         expectEvent("started2")
         buildFile << """
-            task block << {
-                new URL("${getUrl('started')}\$buildNum").text
-                java.util.concurrent.locks.LockSupport.park()
+            task block {
+                doLast {
+                    new URL("${getUrl('started')}\$buildNum").text
+                    java.util.concurrent.locks.LockSupport.park()
+                }
             }
         """
 

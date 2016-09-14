@@ -166,12 +166,14 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "copy action"() {
         given:
         buildScript '''
-            task copyIt << {
-               copy {
-                  from 'src'
-                  into 'dest'
-                  exclude '**/ignore/**'
-               }
+            task copyIt {
+                doLast {
+                    copy {
+                        from 'src'
+                        into 'dest'
+                        exclude '**/ignore/**'
+                    }
+                }
             }
         '''.stripIndent()
 
@@ -195,11 +197,13 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "copy single files"() {
         given:
         buildScript '''
-            task copyIt << {
-               copy {
-                  from 'src/one/one.a', 'src/two/two.a'
-                  into 'dest/two'
-               }
+            task copyIt {
+                doLast {
+                    copy {
+                        from 'src/one/one.a', 'src/two/two.a'
+                        into 'dest/two'
+                    }
+                }
             }
         '''.stripIndent()
 
@@ -282,12 +286,14 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "copy from file tree"() {
         given:
         buildScript '''
-        task cpy << {
-               copy {
+        task cpy {
+            doLast {
+                copy {
                     from fileTree(dir: 'src', excludes: ['**/ignore/**'], includes: ['*', '*/*'])
                     into 'dest\'
                 }
             }
+        }
         '''.stripIndent()
 
         when:
@@ -308,12 +314,14 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "copy from file collection"() {
         given:
         buildScript '''
-            task copy << {
-               copy {
-                    from files('src')
-                    into 'dest\'
-                    exclude '**/ignore/**\'
-                    exclude '*/*/*/**\'
+            task copy {
+                doLast {
+                    copy {
+                        from files('src')
+                        into 'dest\'
+                        exclude '**/ignore/**\'
+                        exclude '*/*/*/**\'
+                    }
                 }
             }
         '''.stripIndent()
@@ -339,11 +347,13 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         buildScript '''
             configurations { compile }
             dependencies { compile files('a.jar') }
-            task copy << {
-               copy {
-                    from files('src2') + fileTree('src') { exclude '**/ignore/**' } + configurations.compile
-                    into 'dest'
-                    include { fte -> fte.relativePath.segments.length < 3 && (fte.file.directory || fte.file.name.contains('a')) }
+            task copy {
+                doLast {
+                    copy {
+                        from files('src2') + fileTree('src') { exclude '**/ignore/**' } + configurations.compile
+                        into 'dest'
+                        include { fte -> fte.relativePath.segments.length < 3 && (fte.file.directory || fte.file.name.contains('a')) }
+                    }
                 }
             }
         '''.stripIndent()
@@ -823,10 +833,12 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
 
         buildFile << """
-            task copyFiles << {
-                copy {
-                    from 'res'
-                    into 'build/resources'
+            task copyFiles {
+                doLast {
+                    copy {
+                        from 'res'
+                        into 'build/resources'
+                    }
                 }
             }
         """
@@ -847,10 +859,12 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         def weirdFileName = "القيادة والسيطرة - الإدارة.lnk"
 
         buildFile << """
-            task copyFiles << {
-                copy {
-                    from 'res'
-                    into 'build/resources'
+            task copyFiles {
+                doLast {
+                    copy {
+                        from 'res'
+                        into 'build/resources'
+                    }
                 }
             }
         """

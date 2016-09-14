@@ -39,7 +39,7 @@ abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractHt
         repositories {
             ivy { url "${ivyRepo.uri}" }
         }
-        task resolveConf << { configurations.conf.files }
+        task resolveConf { doLast { configurations.conf.files } }
         """
     }
 
@@ -50,7 +50,7 @@ abstract class AbstractComponentSelectionRulesIntegrationTest extends AbstractHt
         repositories {
             ivy { url "${ivyHttpRepo.uri}" }
         }
-        task resolveConf << { configurations.conf.files }
+        task resolveConf { doLast { configurations.conf.files } }
         """
     }
 

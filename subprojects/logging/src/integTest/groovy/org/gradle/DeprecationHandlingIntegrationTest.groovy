@@ -69,8 +69,10 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             DeprecatedTask.someFeature() // line 4
             DeprecatedTask.someFeature()
 
-            task broken(type: DeprecatedTask) << {
-                otherFeature() // line 8
+            task broken(type: DeprecatedTask) {
+                doLast {
+                    otherFeature() // line 8
+                }
             }
         """.stripIndent()
 
@@ -106,8 +108,10 @@ class DeprecationHandlingIntegrationTest extends AbstractIntegrationSpec {
             DeprecatedTask.someFeature() // line 4
             DeprecatedTask.someFeature()
 
-            task broken(type: DeprecatedTask) << {
-                otherFeature() // line 8
+            task broken(type: DeprecatedTask) {
+                doLast {
+                    otherFeature() // line 8
+                }
             }
         """.stripIndent()
 

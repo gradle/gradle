@@ -28,8 +28,10 @@ class ArtifactDeclarationIntegrationTest extends AbstractIntegrationSpec {
                 foo file("foo")
                 foo file("foo.txt")
             }
-            task checkArtifacts << {
-                assert configurations.foo.artifacts.files*.name == ["foo", "foo.txt"]
+            task checkArtifacts {
+                doLast {
+                    assert configurations.foo.artifacts.files*.name == ["foo", "foo.txt"]
+                }
             }
         """
 

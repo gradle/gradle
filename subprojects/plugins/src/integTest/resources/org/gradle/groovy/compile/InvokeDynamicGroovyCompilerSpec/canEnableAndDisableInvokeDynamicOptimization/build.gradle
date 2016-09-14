@@ -18,6 +18,8 @@ task compileWithoutOptimization(type: GroovyCompile) {
     groovyOptions.optimizationOptions.indy = false
 }
 
-task sanityCheck(dependsOn: [compileWithOptimization, compileWithoutOptimization]) << {
-    assert file("$compileWithOptimization.destinationDir/MethodInvocations.class").size() != file("$compileWithoutOptimization.destinationDir/MethodInvocations.class").size()
+task sanityCheck(dependsOn: [compileWithOptimization, compileWithoutOptimization]) {
+    doLast {
+        assert file("$compileWithOptimization.destinationDir/MethodInvocations.class").size() != file("$compileWithoutOptimization.destinationDir/MethodInvocations.class").size()
+    }
 }

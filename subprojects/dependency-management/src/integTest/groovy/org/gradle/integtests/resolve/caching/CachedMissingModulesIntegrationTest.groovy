@@ -38,7 +38,7 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         when:
@@ -73,7 +73,7 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         when:
@@ -304,7 +304,7 @@ Required by:
         conf2 'group:projectA:1.+'
     }
 
-    task cache << { configurations.conf1.files }
+    task cache { doLast { configurations.conf1.files } }
     task retrieve(type: Sync) {
         into 'libs'
         from configurations.conf2
@@ -414,10 +414,12 @@ Required by:
                 config1 'group:projectA:1.0'
             }
 
-            task resolveConfig1 << {
+            task resolveConfig1 {
+                doLast {
                    configurations.config1.incoming.resolutionResult.allDependencies{
                         it instanceof UnresolvedDependencyResult
                    }
+               }
             }
 
             project(":subproject"){
@@ -427,9 +429,11 @@ Required by:
                 dependencies{
                     config2 'group:projectA:1.0'
                 }
-                task resolveConfig2 << {
-                    configurations.config2.incoming.resolutionResult.allDependencies{
-                        it instanceof UnresolvedDependencyResult
+                task resolveConfig2 {
+                    doLast {
+                        configurations.config2.incoming.resolutionResult.allDependencies{
+                            it instanceof UnresolvedDependencyResult
+                        }
                     }
                 }
             }

@@ -30,10 +30,12 @@ class ExternalScriptExecutionIntegrationSpec extends AbstractIntegrationSpec {
         and:
         def scriptFile = file("script.gradle")
         scriptFile.setText("""
-task check << {
-    assert java.nio.charset.Charset.defaultCharset().name() == "UTF-8"
-    // embed a euro character in the text - this is encoded differently in ISO-8859-15 and UTF-8
-    assert '\u20AC'.charAt(0) == 0x20AC
+task check {
+    doLast {
+        assert java.nio.charset.Charset.defaultCharset().name() == "UTF-8"
+        // embed a euro character in the text - this is encoded differently in ISO-8859-15 and UTF-8
+        assert '\u20AC'.charAt(0) == 0x20AC
+    }
 }
 """, "ISO-8859-15")
         assert scriptFile.getText("ISO-8859-15") != scriptFile.getText("UTF-8")
@@ -54,10 +56,12 @@ task check << {
         and:
         def scriptFile = file("script.gradle")
         scriptFile.setText("""
-task check << {
-    assert java.nio.charset.Charset.defaultCharset().name() == "ISO-8859-15"
-    // embed a euro character in the text - this is encoded differently in ISO-8859-15 and UTF-8
-    assert '\u20AC'.charAt(0) == 0x20AC
+task check {
+    doLast {
+        assert java.nio.charset.Charset.defaultCharset().name() == "ISO-8859-15"
+        // embed a euro character in the text - this is encoded differently in ISO-8859-15 and UTF-8
+        assert '\u20AC'.charAt(0) == 0x20AC
+    }
 }
 """, "UTF-8")
         assert scriptFile.getText("ISO-8859-15") != scriptFile.getText("UTF-8")

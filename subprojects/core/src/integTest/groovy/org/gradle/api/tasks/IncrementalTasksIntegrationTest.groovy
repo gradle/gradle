@@ -135,12 +135,14 @@ class IncrementalTasksIntegrationTest extends AbstractIntegrationSpec {
         discovered = [ 'file0.txt', 'file1.txt', 'file2.txt' ]
     }
 
-    task incrementalCheck(dependsOn: "incremental") << {
-        assert incremental.incrementalExecution == project.ext.incrementalExecution
-        assert incremental.addedFiles.collect({ it.name }).sort() == project.ext.added
-        assert incremental.changedFiles.collect({ it.name }).sort() == project.ext.changed
-        assert incremental.removedFiles.collect({ it.name }).sort() == project.ext.removed
-        assert incremental.discoveredFiles.collect({ it.name }).sort() == project.ext.discovered
+    task incrementalCheck(dependsOn: "incremental") {
+        doLast {
+            assert incremental.incrementalExecution == project.ext.incrementalExecution
+            assert incremental.addedFiles.collect({ it.name }).sort() == project.ext.added
+            assert incremental.changedFiles.collect({ it.name }).sort() == project.ext.changed
+            assert incremental.removedFiles.collect({ it.name }).sort() == project.ext.removed
+            assert incremental.discoveredFiles.collect({ it.name }).sort() == project.ext.discovered
+        }
     }
 """
     }

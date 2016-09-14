@@ -34,7 +34,7 @@ class BadPomFileResolveIntegrationTest extends AbstractHttpDependencyResolutionT
             dependencies {
                 compile "group:artifact:1.0"
             }
-            task libs << { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar'] }
+            task libs { doLast { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar'] } }
         """
 
         expect:
@@ -53,7 +53,7 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken << { println configurations.compile.files }
+task showBroken { doLast { println configurations.compile.files } }
 """
 
         and:
@@ -82,7 +82,7 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken << { println configurations.compile.files }
+task showBroken { doLast { println configurations.compile.files } }
 """
 
         and:
@@ -112,7 +112,7 @@ repositories {
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
-task showBroken << { println configurations.compile.files }
+task showBroken { doLast { println configurations.compile.files } }
 """
 
         when:
@@ -150,7 +150,7 @@ repositories {
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
-task showBroken << { println configurations.compile.files }
+task showBroken { doLast { println configurations.compile.files } }
 """
 
         when:
@@ -180,7 +180,7 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task showBroken << { println configurations.compile.files }
+task showBroken { doLast { println configurations.compile.files } }
 """
 
         and:

@@ -56,8 +56,10 @@ dependencies {
         }
     }
 }
-task resolve << {
-    configurations.modules.files
+task resolve {
+    doLast {
+        configurations.modules.files
+    }
 }
 """
 

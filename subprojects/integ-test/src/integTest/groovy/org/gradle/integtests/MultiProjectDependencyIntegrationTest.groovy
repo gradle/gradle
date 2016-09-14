@@ -125,9 +125,11 @@ allprojects {
 
         buildFile << """
 project(':a') {
-    task writeOutputFile << {
-        file('build').mkdirs()
-        file('build/output.txt') << "${outputValue}"
+    task writeOutputFile {
+        doLast {
+            file('build').mkdirs()
+            file('build/output.txt') << "${outputValue}"
+        }
     }
 }
 project(':c') {

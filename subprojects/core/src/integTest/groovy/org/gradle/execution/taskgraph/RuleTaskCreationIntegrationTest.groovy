@@ -583,7 +583,7 @@ foo configured
         buildFile << """
 tasks.create(name: 'taskContainerTask', type: DefaultTask) { }
 
-task standardTask << {}
+task standardTask
 
 model {
   tasks {

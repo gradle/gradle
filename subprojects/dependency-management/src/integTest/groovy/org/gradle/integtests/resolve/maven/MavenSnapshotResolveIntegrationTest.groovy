@@ -502,11 +502,13 @@ subprojects {
         compile "org.gradle.integtests.resolve:testproject:1.0-SNAPSHOT"
     }
 
-    task lock << {
-        configurations.compile.each { file ->
-            println "locking " + file
-            def lockFile = new RandomAccessFile(file.canonicalPath, 'r')
-            fileLocks[file] = lockFile
+    task lock {
+        doLast {
+            configurations.compile.each { file ->
+                println "locking " + file
+                def lockFile = new RandomAccessFile(file.canonicalPath, 'r')
+                fileLocks[file] = lockFile
+            }
         }
     }
 
@@ -520,10 +522,12 @@ project('second') {
     lock.dependsOn ':first:lock'
     retrieve.dependsOn ':first:retrieve'
 
-    task cleanup << {
-        fileLocks.each { key, value ->
-            println "unlocking " + key
-            value.close()
+    task cleanup {
+        doLast {
+            fileLocks.each { key, value ->
+                println "unlocking " + key
+                value.close()
+            }
         }
     }
     cleanup.dependsOn 'retrieve'

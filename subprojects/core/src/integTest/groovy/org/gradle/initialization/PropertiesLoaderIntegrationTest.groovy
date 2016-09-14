@@ -29,12 +29,16 @@ class PropertiesLoaderIntegrationTest extends AbstractIntegrationSpec {
 org.gradle.configureondemand=true
 """
         buildFile << """
-task assertCodEnabled << {
-    assert gradle.startParameter.configureOnDemand
+task assertCodEnabled {
+    doLast {
+        assert gradle.startParameter.configureOnDemand
+    }
 }
 
-task assertCodDisabled << {
-    assert !gradle.startParameter.configureOnDemand
+task assertCodDisabled {
+    doLast {
+        assert !gradle.startParameter.configureOnDemand
+    }
 }
 """
 
@@ -54,8 +58,10 @@ task assertCodDisabled << {
 systemProp.mySystemProp=properties file
 """
         buildFile << """
-task printSystemProp << {
-    println "mySystemProp=\${System.getProperty('mySystemProp')}"
+task printSystemProp {
+    doLast {
+        println "mySystemProp=\${System.getProperty('mySystemProp')}"
+    }
 }
 """
         when:
@@ -78,12 +84,16 @@ task printSystemProp << {
         executer.withEnvironmentVars 'GRADLE_OPTS': '-Dorg.gradle.configureondemand=true'
 
         buildFile << """
-task assertCodEnabled << {
-    assert gradle.startParameter.configureOnDemand
+task assertCodEnabled {
+    doLast {
+        assert gradle.startParameter.configureOnDemand
+    }
 }
 
-task assertCodDisabled << {
-    assert !gradle.startParameter.configureOnDemand
+task assertCodDisabled {
+    doLast {
+        assert !gradle.startParameter.configureOnDemand
+    }
 }
 """
 
@@ -103,8 +113,10 @@ task assertCodDisabled << {
         executer.withEnvironmentVars 'GRADLE_OPTS': '-DmySystemProp=jvmarg'
 
         buildFile << """
-task printSystemProp << {
-    println "mySystemProp=\${System.getProperty('mySystemProp')}"
+task printSystemProp {
+    doLast {
+        println "mySystemProp=\${System.getProperty('mySystemProp')}"
+    }
 }
 """
         when:

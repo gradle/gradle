@@ -368,7 +368,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         }
         apply type: Rules
 
-        task customTask << { }
+        task customTask
         customTask.dependsOn tasks.withType(ClimbTask)
         """
 
@@ -393,7 +393,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         apply type: Rules
 
         task oldClimber(type: ClimbTask) { }
-        task customTask << { }
+        task customTask
 
         customTask.dependsOn tasks.withType(ClimbTask)
         """
@@ -451,7 +451,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         }
         apply type: Rules
 
-        task customTask << { }
+        task customTask
 
         afterEvaluate {
             customTask.dependsOn tasks.withType(ClimbTask)
@@ -480,7 +480,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         }
         apply type: Rules
 
-        task customTask << { }
+        task customTask { doLast {} }
 
         customTask.dependsOn tasks.withType(ClimbTask)
         """
@@ -496,7 +496,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     def "can not depend on a general Task"() {
         given:
         buildFile << """
-        task customTask << { }
+        task customTask
         customTask.dependsOn tasks.withType(Task)
         """
 
@@ -522,7 +522,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         }
         apply type: Rules
 
-        task customTask << { }
+        task customTask
         def t = tasks.withType(Task).withType(ClimbTask)
         customTask.dependsOn t
         """
@@ -547,7 +547,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         }
         apply type: Rules
 
-        task customTask << { }
+        task customTask
         customTask.dependsOn tasks.withType(ClimbTask).matching { true }
         """
 
@@ -571,8 +571,8 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         }
         apply type: Rules
 
-        task foo << { }
-        task customTask << { }
+        task foo
+        task customTask
         customTask.dependsOn tasks.withType(ClimbTask) + [tasks.foo]
         """
 
@@ -598,7 +598,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
         }
         apply type: Rules
 
-        task customTask << { }
+        task customTask
         customTask.dependsOn tasks.withType(ClimbTask) + tasks.withType(JumpTask)
         """
 

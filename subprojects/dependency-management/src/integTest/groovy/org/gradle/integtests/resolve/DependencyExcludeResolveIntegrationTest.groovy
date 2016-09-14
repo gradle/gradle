@@ -70,8 +70,10 @@ dependencies {
     }
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == [${resolvedJars.collect { "'$it'" }.join(", ")}]
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == [${resolvedJars.collect { "'$it'" }.join(", ")}]
+    }
 }
 """
 

@@ -32,8 +32,10 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "tears down the daemon process when the client disconnects and build does not cancel in a timely manner"() {
         buildFile << """
-            task block << {
-                new URL("$server.uri").text
+            task block {
+                doLast {
+                    new URL("$server.uri").text
+                }
             }
         """
 
@@ -53,8 +55,10 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "daemon is idle after the client disconnects and build cancels in a timely manner"() {
         buildFile << """
-            task block << {
-                new URL("$server.uri").text
+            task block {
+                doLast {
+                    new URL("$server.uri").text
+                }
             }
         """
 
@@ -81,8 +85,10 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         withGetSidProject()
         succeeds(":getSid:install")
         buildFile << """
-            task block << {
-                new URL("$server.uri").text
+            task block {
+                doLast {
+                    new URL("$server.uri").text
+                }
             }
         """
 
@@ -103,8 +109,10 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
 
     def "client logs useful information when daemon crashes"() {
         buildFile << """
-            task block << {
-                new URL("$server.uri").text
+            task block {
+                doLast {
+                    new URL("$server.uri").text
+                }
             }
         """
 

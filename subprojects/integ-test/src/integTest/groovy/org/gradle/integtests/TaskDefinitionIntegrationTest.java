@@ -61,7 +61,7 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canDefineTasksInNestedBlocks() {
         testFile("build.gradle").writelns(
-                "2.times { task \"dynamic$it\" << { } }",
+                "2.times { task \"dynamic$it\" }",
                 "if (dynamic0) { task inBlock }",
                 "def task() { task inMethod }",
                 "task()", "def cl = { -> task inClosure }",

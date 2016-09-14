@@ -55,8 +55,10 @@ dependencies {
     compile 'group:projectA:1.2'
     compile 'group:projectB:2.+'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar','projectB-2.3.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar','projectB-2.3.jar']
+    }
 }
 """
 
@@ -117,8 +119,10 @@ dependencies {
     compile 'group:projectC:3.1-SNAPSHOT'
     compile 'group:projectD:4-SNAPSHOT'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-2.3.jar', 'projectC-3.1-SNAPSHOT.jar', 'projectD-4-SNAPSHOT.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-2.3.jar', 'projectC-3.1-SNAPSHOT.jar', 'projectD-4-SNAPSHOT.jar']
+    }
 }
 """
 
@@ -173,8 +177,10 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
 }
 """
 
@@ -219,8 +225,10 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
 }
 """
 
@@ -271,8 +279,10 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
 }
 """
 
@@ -320,8 +330,10 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
 }
 """
 
@@ -363,8 +375,10 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
 }
 """
 
@@ -403,8 +417,10 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.2'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
 }
 """
 

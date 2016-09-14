@@ -140,9 +140,11 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             }
 
             project(":api") {
-                task addDependency << {
-                   dependencies {
-                        compile "org.utils:extra:1.5"
+                task addDependency {
+                    doLast {
+                        dependencies {
+                            compile "org.utils:extra:1.5"
+                        }
                     }
                 }
             }
@@ -152,26 +154,34 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                     compile project(":api")
                 }
 
-                task addDependency << {
-                    dependencies {
-                        compile "org.utils:extra:1.5"
+                task addDependency {
+                    doLast {
+                        dependencies {
+                            compile "org.utils:extra:1.5"
+                        }
                     }
                 }
 
-                task modifyConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.compile]) << {
-                    def files = configurations.compile.files
-                    assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
-                    assert files*.exists() == [ true, true ]
+                task modifyConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.compile]) {
+                    doLast {
+                        def files = configurations.compile.files
+                        assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
+                        assert files*.exists() == [ true, true ]
+                    }
                 }
-                task modifyParentConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.testCompile]) << {
-                    def files = configurations.testCompile.files
-                    assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
-                    assert files*.exists() == [ true, true ]
+                task modifyParentConfigDuringTaskExecution(dependsOn: [':impl:addDependency', configurations.testCompile]) {
+                    doLast {
+                        def files = configurations.testCompile.files
+                        assert files*.name.sort() == ["api.jar", "extra-1.5.jar"]
+                        assert files*.exists() == [ true, true ]
+                    }
                 }
-                task modifyDependentConfigDuringTaskExecution(dependsOn: [':api:addDependency', configurations.compile]) << {
-                    def files = configurations.compile.files
-                    assert files*.name.sort() == ["api.jar"] // Late dependency is not honoured
-                    assert files*.exists() == [ true ]
+                task modifyDependentConfigDuringTaskExecution(dependsOn: [':api:addDependency', configurations.compile]) {
+                    doLast {
+                        def files = configurations.compile.files
+                        assert files*.name.sort() == ["api.jar"] // Late dependency is not honoured
+                        assert files*.exists() == [ true ]
+                    }
                 }
             }
 """
@@ -211,8 +221,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
             }
 
             project(":api") {
-                task addArtifact << {
-                    artifacts { compile file("some.jar") }
+                task addArtifact {
+                    doLast {
+                        artifacts { compile file("some.jar") }
+                    }
                 }
             }
 
@@ -220,8 +232,10 @@ class UnsupportedConfigurationMutationTest extends AbstractIntegrationSpec {
                 dependencies {
                     compile project(":api")
                 }
-                task addArtifact << {
-                    artifacts { compile file("some.jar") }
+                task addArtifact {
+                    doLast {
+                        artifacts { compile file("some.jar") }
+                    }
                 }
 
                 task addArtifactToConfigDuringTaskExecution(dependsOn: [':impl:addArtifact', configurations.compile])

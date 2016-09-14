@@ -40,14 +40,16 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsTaskActionExecutionFailsWithRuntimeException() {
         File buildFile = testFile("build.gradle").writelns(
-                "task brokenClosure << {",
-                "    throw new RuntimeException('broken closure')",
+                "task brokenClosure {",
+                "    doLast {",
+                "        throw new RuntimeException('broken closure')",
+                "    }",
                 "}")
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenClosure").runWithFailure()
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
-        failure.assertHasLineNumber(2)
+        failure.assertHasLineNumber(3)
         failure.assertHasDescription("Execution failed for task ':brokenClosure'.")
         failure.assertHasCause("broken closure")
     }
@@ -84,15 +86,17 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationTest {
         TestFile buildFile = testFile("b/build.gradle")
         buildFile.writelns(
                 "project(':a') {",
-                "    task a << {",
-                "        throw new RuntimeException('broken')",
+                "    task a {",
+                "        doLast {",
+                "             throw new RuntimeException('broken')",
+                "        }",
                 "    }",
                 "}")
 
         ExecutionFailure failure = inTestDirectory().withTasks("a").runWithFailure()
 
         failure.assertHasFileName(String.format("Build file '%s'", buildFile))
-        failure.assertHasLineNumber(3)
+        failure.assertHasLineNumber(4)
         failure.assertHasDescription("Execution failed for task ':a:a'.")
         failure.assertHasCause("broken")
     }

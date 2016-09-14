@@ -65,7 +65,11 @@ announce.local = ({title, message -> println "[\$title][\$message]" } as Announc
         buildFile << """
 apply plugin: 'build-announcements'
 
-task broken << { throw new RuntimeException() }
+task broken {
+    doLast {
+        throw new RuntimeException()
+    }
+}
 
 announce.local = ({title, message -> println "[\$title][\$message]" } as Announcer)
 """
@@ -81,8 +85,16 @@ announce.local = ({title, message -> println "[\$title][\$message]" } as Announc
         buildFile << """
 apply plugin: 'build-announcements'
 
-task broken1 << { throw new RuntimeException() }
-task broken2 << { throw new RuntimeException() }
+task broken1 {
+    doLast {
+        throw new RuntimeException()
+    }
+}
+task broken2 {
+    doLast {
+        throw new RuntimeException()
+    }
+}
 
 announce.local = ({title, message -> println "[\$title][\$message]" } as Announcer)
 """

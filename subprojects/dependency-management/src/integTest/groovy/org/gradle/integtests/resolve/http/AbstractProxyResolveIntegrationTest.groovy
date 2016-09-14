@@ -50,8 +50,10 @@ abstract class AbstractProxyResolveIntegrationTest extends AbstractHttpDependenc
         buildFile << """
 configurations { compile }
 dependencies { compile 'org.gradle.test:some-lib:1.2.17' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['some-lib-1.2.17.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['some-lib-1.2.17.jar']
+    }
 }
 """
     }

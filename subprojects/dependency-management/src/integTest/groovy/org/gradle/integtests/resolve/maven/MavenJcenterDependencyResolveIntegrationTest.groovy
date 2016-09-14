@@ -39,27 +39,31 @@ dependencies {
     compile "ch.qos.logback:logback-classic:1.0.13"
 }
 
-task check << {
-    def compile = configurations.compile
-    assert compile.resolvedConfiguration.firstLevelModuleDependencies.collect { it.name } == [
-        'ch.qos.logback:logback-classic:1.0.13',
-    ]
+task check {
+    doLast {
+        def compile = configurations.compile
+        assert compile.resolvedConfiguration.firstLevelModuleDependencies.collect { it.name } == [
+            'ch.qos.logback:logback-classic:1.0.13',
+        ]
 
-    assert compile.collect { it.name } == [
-        'logback-classic-1.0.13.jar',
-        'logback-core-1.0.13.jar',
-        'slf4j-api-1.7.5.jar'
-    ]
+        assert compile.collect { it.name } == [
+            'logback-classic-1.0.13.jar',
+            'logback-core-1.0.13.jar',
+            'slf4j-api-1.7.5.jar'
+        ]
 
-    assert compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == [
-        'logback-classic-1.0.13.jar',
-        'logback-core-1.0.13.jar',
-        'slf4j-api-1.7.5.jar'
-    ]
+        assert compile.resolvedConfiguration.resolvedArtifacts.collect { it.file.name } == [
+            'logback-classic-1.0.13.jar',
+            'logback-core-1.0.13.jar',
+            'slf4j-api-1.7.5.jar'
+        ]
+    }
 }
 
-task repoNames << {
-    println repositories*.name
+task repoNames {
+    doLast {
+        println repositories*.name
+    }
 }
 """
 

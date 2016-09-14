@@ -204,8 +204,10 @@ config
                 foo 'foo:bar:2.0'
             }
 
-            task resolveConf << {
-                configurations.foo.each { println it }
+            task resolveConf {
+                doLast {
+                    configurations.foo.each { println it }
+                }
             }
         """
 

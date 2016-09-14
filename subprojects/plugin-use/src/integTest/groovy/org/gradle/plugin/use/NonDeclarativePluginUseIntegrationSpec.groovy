@@ -203,12 +203,16 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractIntegrationSpec {
 
             $USE
 
-            task scriptTask << {
-                println "scriptTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+            task scriptTask {
+                doLast {
+                    println "scriptTask - " + this.getClass().classLoader.getResource('d/v.txt').text
+                }
             }
 
-            task buildscriptDependencies << {
-                println "buildscriptDependencies - " + buildscript.configurations.classpath.resolvedConfiguration.resolvedArtifacts.find { it.name == "test" }.moduleVersion.id.version
+            task buildscriptDependencies {
+                doLast {
+                    println "buildscriptDependencies - " + buildscript.configurations.classpath.resolvedConfiguration.resolvedArtifacts.find { it.name == "test" }.moduleVersion.id.version
+                }
             }
         """
 

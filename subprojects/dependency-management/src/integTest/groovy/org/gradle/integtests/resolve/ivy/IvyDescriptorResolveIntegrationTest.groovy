@@ -35,15 +35,17 @@ dependencies {
     compile "org.gradle:test:1.45"
 }
 
-task check << {
-    configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
-        it.children.each { transitive ->
-            assert transitive.moduleGroup == "org.gradle.111"
-            assert transitive.moduleName == "module_111"
-            assert transitive.moduleVersion == "v_111"
+task check {
+    doLast {
+        configurations.compile.resolvedConfiguration.firstLevelModuleDependencies.each {
+            it.children.each { transitive ->
+                assert transitive.moduleGroup == "org.gradle.111"
+                assert transitive.moduleName == "module_111"
+                assert transitive.moduleVersion == "v_111"
+            }
         }
+        assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'module_111-v_111.jar']
     }
-    assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'module_111-v_111.jar']
 }
 """
 
@@ -72,8 +74,10 @@ dependencies {
     compile "org.gradle:test:1.45"
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'dep_module-1.1.jar']
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'dep_module-1.1.jar']
+    }
 }
 """
 
@@ -112,8 +116,10 @@ dependencies {
     compile "org.gradle:test:1.45"
 }
 
-task check << {
-    assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'dep_module-1.1.jar']
+task check {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['test-1.45.jar', 'dep_module-1.1.jar']
+    }
 }
 """
 

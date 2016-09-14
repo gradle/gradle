@@ -84,21 +84,23 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
                 executer.withDefaultCharacterEncoding(buildEncoding)
             }
             executer.usingProjectDirectory buildDirWithScript(builds.size(), """
-                task('watch') << {
-                    println "waiting for stop file"
-                    long sanityCheck = System.currentTimeMillis() + 120000L
-                    while(!file("stop").exists()) {
-                        sleep 100
-                        if (file("exit").exists()) {
-                            println "found exit file, exiting"
-                            System.exit(1)
+                task('watch') {
+                    doLast {
+                        println "waiting for stop file"
+                        long sanityCheck = System.currentTimeMillis() + 120000L
+                        while(!file("stop").exists()) {
+                            sleep 100
+                            if (file("exit").exists()) {
+                                println "found exit file, exiting"
+                                System.exit(1)
+                            }
+                            if (System.currentTimeMillis() > sanityCheck) {
+                                println "timed out waiting for stop file, failing"
+                                throw new RuntimeException("It seems the stop file was never created")
+                            }
                         }
-                        if (System.currentTimeMillis() > sanityCheck) {
-                            println "timed out waiting for stop file, failing"
-                            throw new RuntimeException("It seems the stop file was never created")
-                        }
+                        println 'noticed stop file, finishing'
                     }
-                    println 'noticed stop file, finishing'
                 }
             """)
             builds << executer.start()

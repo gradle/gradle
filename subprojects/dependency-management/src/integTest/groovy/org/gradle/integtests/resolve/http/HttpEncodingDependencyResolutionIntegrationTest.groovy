@@ -31,8 +31,10 @@ repositories {
 }
 configurations { compile }
 dependencies { compile 'group:projectA:1.2' }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar']
+    }
 }
 """
 

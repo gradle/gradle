@@ -41,12 +41,16 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         server.start()
         server.expectUserAgent(matchesNameAndVersion("gradlew", GradleVersion.current().getVersion()))
         file("build.gradle") << """
-    task hello << {
-        println 'hello'
+    task hello {
+        doLast {
+            println 'hello'
+        }
     }
 
-    task echoProperty << {
-        println "fooD=" + project.properties["fooD"]
+    task echoProperty {
+        doLast {
+            println "fooD=" + project.properties["fooD"]
+        }
     }
 """
     }

@@ -38,8 +38,10 @@ project.logger.quiet("quiet log message");
 project.logger.info ("info log message");
 project.logger.debug("debug log message");
 
-task log << {
-    println "task log message"
+task log {
+    doLast {
+        println "task log message"
+    }
 }
 """
 
@@ -65,8 +67,10 @@ project.logger.quiet("quiet logging");
 project.logger.info ("info logging");
 project.logger.debug("debug logging");
 
-task log << {
-    println "task logging"
+task log {
+    doLast {
+        println "task logging"
+    }
 }
 """
 

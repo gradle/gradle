@@ -32,7 +32,7 @@ configurations { missing }
 dependencies {
     missing 'group:projectA:1.2'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         when:
@@ -95,7 +95,7 @@ dependencies {
     missing 'group:projectA:1.2'
     missing 'group:projectB:1.0-milestone-9'
 }
-task showMissing << { println configurations.missing.files }
+task showMissing { doLast { println configurations.missing.files } }
 """
 
         when:
@@ -174,7 +174,7 @@ project(':child1') {
         compile 'group:projectD:1.0GA'
     }
 }
-task showMissing << { println configurations.compile.files }
+task showMissing { doLast { println configurations.compile.files } }
 """
 
         when:
@@ -236,7 +236,7 @@ configurations { broken }
 dependencies {
     broken 'group:projectA:1.3'
 }
-task showBroken << { println configurations.broken.files }
+task showBroken { doLast { println configurations.broken.files } }
 """
 
         when:

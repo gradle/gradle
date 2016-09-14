@@ -67,16 +67,18 @@ dependencies {
     compile 'org.gradle:changing:1.0'
 }
 
-task check << {
-    def file = configurations.compile.singleFile
-    println "THREAD $count -> checking \$file.name size: \${file.length()}"
-    file.withInputStream { instr ->
-        def zipStream = new ZipInputStream(instr)
-        def entries = []
-        for (ZipEntry entry = zipStream.nextEntry; entry != null; entry = zipStream.nextEntry) {
-            entries << entry.name
+task check {
+    doLast {
+        def file = configurations.compile.singleFile
+        println "THREAD $count -> checking \$file.name size: \${file.length()}"
+        file.withInputStream { instr ->
+            def zipStream = new ZipInputStream(instr)
+            def entries = []
+            for (ZipEntry entry = zipStream.nextEntry; entry != null; entry = zipStream.nextEntry) {
+                entries << entry.name
+            }
+            assert entries == ['a', 'b']
         }
-        assert entries == ['a', 'b']
     }
 }
         """

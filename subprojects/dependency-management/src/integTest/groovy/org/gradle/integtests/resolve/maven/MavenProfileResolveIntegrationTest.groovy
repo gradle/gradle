@@ -133,7 +133,7 @@ dependencies { compile 'groupA:artifactA:1.2' }
             }
             configurations { compile }
             dependencies { compile 'groupA:artifactA:1.2' }
-            task libs << { assert configurations.compile.files*.name == ['artifactA-1.2.jar', 'artifactB-1.4.jar'] }
+            task libs { doLast { assert configurations.compile.files*.name == ['artifactA-1.2.jar', 'artifactB-1.4.jar'] } }
         """
 
         when:
