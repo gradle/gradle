@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.groovy.compile
+package org.gradle.java.compile
 
 import org.gradle.AbstractCachedCompileIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
 
-class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
-    String compilationTask = ':compileGroovy'
+class CachedJavaCompileIntegrationTest extends AbstractCachedCompileIntegrationTest {
+    String compilationTask = ':compileJava'
     String compiledFile = "build/classes/main/Hello.class"
 
-    @Override
     def setupProjectInDirectory(TestFile project = temporaryFolder.testDirectory) {
         project.with {
             file('build.gradle').text = """
             plugins {
-                id 'groovy'
+                id 'java'
                 id 'application'
             }
 
@@ -43,43 +42,13 @@ class CachedGroovyCompileIntegrationTest extends AbstractCachedCompileIntegratio
             }
         """.stripIndent()
 
-        file('src/main/groovy/Hello.groovy') << """
-            class Hello {
+        file('src/main/java/Hello.java') << """
+            public class Hello {
                 public static void main(String... args) {
-                    println "Hello!"
+                    System.out.println("Hello!");
                 }
             }
         """.stripIndent()
         }
-    }
-
-    def "compilation is cached if location of the Groovy library is different"() {
-        given:
-        populateCache()
-
-        executer.requireOwnGradleUserHomeDir() // dependency will be downloaded into a different directory
-
-        when:
-        succeedsWithCache compilationTask
-
-        then:
-        compileIsCached()
-    }
-
-    def "compilation is not cached if we change the version of the Groovy library"() {
-        given:
-        populateCache()
-        buildFile.text = """
-            plugins { id 'groovy' }
-
-            repositories { mavenCentral() }
-            dependencies { compile 'org.codehaus.groovy:groovy-all:2.4.5' }
-        """.stripIndent()
-
-        when:
-        succeedsWithCache compilationTask
-
-        then:
-        compileIsNotCached()
     }
 }
