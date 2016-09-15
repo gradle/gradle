@@ -23,7 +23,9 @@ import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore("TODO: Fix GradleHandle.abort() so that it doesn't hang")
 class DaemonReuseIntegrationTest extends DaemonIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()
 
