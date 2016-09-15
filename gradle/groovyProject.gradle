@@ -80,6 +80,7 @@ if (file("src/jmh").exists()) {
     apply from: "$rootDir/gradle/jmh.gradle"
 }
 
+@org.gradle.api.tasks.CacheableTask
 class ClasspathManifest extends DefaultTask {
 
     FileCollection input = project.configurations.runtime
