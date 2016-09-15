@@ -38,7 +38,6 @@ public interface DirectoryReport extends ConfigurableReport {
      *
       */
     @Internal
-    // TODO:LPTR This should be handled as a relative path
     File getEntryPoint();
 
     @Override
