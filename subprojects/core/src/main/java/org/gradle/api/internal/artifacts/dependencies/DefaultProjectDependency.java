@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -31,10 +33,19 @@ import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.util.GUtil;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependencyInternal {
+    private static final Function<Configuration, String> CONFIG_NAME = new Function<Configuration, String>() {
+        @Override
+        public String apply(Configuration input) {
+            return input.getName();
+        }
+    };
+
     private final ProjectInternal dependencyProject;
     private final boolean buildProjectDependencies;
     private final ProjectAccessListener projectAccessListener;
@@ -78,14 +89,19 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
         ConfigurationContainer dependencyConfigurations = getDependencyProject().getConfigurations();
         String declaredConfiguration = getTargetConfiguration().orNull();
         if (declaredConfiguration == null && clientAttributes!=null && !clientAttributes.isEmpty()) {
+            List<Configuration> candidateConfigurations = new ArrayList<Configuration>(1);
             for (Configuration dependencyConfiguration : dependencyConfigurations) {
                 if (dependencyConfiguration.hasAttributes()) {
                     Map<String, String> attributes = dependencyConfiguration.getAttributes();
                     if (attributes.entrySet().containsAll(clientAttributes.entrySet())) {
-                        selectedConfiguration = dependencyConfiguration;
-                        break;
+                        candidateConfigurations.add(dependencyConfiguration);
                     }
                 }
+            }
+            if (candidateConfigurations.size()==1) {
+                selectedConfiguration = candidateConfigurations.get(0);
+            } else if (!candidateConfigurations.isEmpty()) {
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Lists.transform(candidateConfigurations, CONFIG_NAME) + ". All of then match the client attributes " + clientAttributes);
             }
         }
         if (selectedConfiguration == null) {

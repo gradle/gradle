@@ -331,7 +331,6 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
      *
      * This test implements a first option, which is to make this an error case.
      */
-    @NotYetImplemented
     def "should fail with reasonable error message if more than one configuration matches the attributes"() {
         given:
         file('settings.gradle') << "include 'a', 'b'"
@@ -368,59 +367,7 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
         fails ':a:check'
 
         then:
-        failure.assertHasCause('A reasonable error message')
-    }
-
-    /**
-     * Whenever a dependency on a project is found and that the client configuration
-     * defines attributes, we try to find a target configuration with the same attributes
-     * declared. However if 2 configurations on the target project declares the same attributes,
-     * we don't know which one to choose.
-     *
-     * This test implements a first option, which is to make this an error case.
-     */
-    @NotYetImplemented
-    def "should find all matching configuration artifacts if more than one configuration matches the attributes"() {
-        given:
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << '''
-            project(':a') {
-                configurations {
-                    compile.attributes(buildType: 'debug')
-                }
-                dependencies {
-                    compile project(':b')
-                }
-                task check(dependsOn: configurations.compile) {
-                    doLast {
-                        assert configurations.compile.collect { it.name } == [ 'b-foo.jar', 'b-bar.jar' ]
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    foo.attributes(buildType: 'debug')
-                    bar.attributes(buildType: 'debug')
-                }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
-            }
-
-        '''
-
-        when:
-        run ':a:check'
-
-        then:
-        executedAndNotSkipped ':b:fooJar', ':b:barJar'
+        failure.assertHasCause 'Cannot choose between the following configurations: [bar, foo]. All of then match the client attributes {buildType=debug}'
     }
 
     /**
