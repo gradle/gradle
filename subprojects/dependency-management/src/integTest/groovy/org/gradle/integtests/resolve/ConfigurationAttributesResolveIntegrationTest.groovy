@@ -36,11 +36,15 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                     _compileFreeDebug project(':b')
                     _compileFreeRelease project(':b')
                 }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) << {
-                    assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                       assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
                 }
-                task checkRelease(dependsOn: configurations._compileFreeRelease) << {
-                    assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                       assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                    }
                 }
             }
             project(':b') {
@@ -90,11 +94,15 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 dependencies {
                     compile project(':b')
                 }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) << {
-                    assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
                 }
-                task checkRelease(dependsOn: configurations._compileFreeRelease) << {
-                    assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                        assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                    }
                 }
             }
             project(':b') {
@@ -144,11 +152,15 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 dependencies {
                     compile project(':b')
                 }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) << {
-                    assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-foo.jar']
+                    }
                 }
-                task checkRelease(dependsOn: configurations._compileFreeRelease) << {
-                    assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                        assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                    }
                 }
             }
             project(':b') {
@@ -205,11 +217,15 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 dependencies {
                     compile project(path:':b', configuration: 'bar')
                 }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) << {
-                    assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == ['b-bar.jar']
+                    }
                 }
-                task checkRelease(dependsOn: configurations._compileFreeRelease) << {
-                    assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                task checkRelease(dependsOn: configurations._compileFreeRelease) {
+                    doLast {
+                        assert configurations._compileFreeRelease.collect { it.name } == ['b-bar.jar']
+                    }
                 }
             }
             project(':b') {
@@ -273,8 +289,10 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 dependencies {
                     _compileFreeDebug project(':b')
                 }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) << {
-                    assert configurations._compileFreeDebug.collect { it.name } == []
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
                 }
             }
             project(':b') {
@@ -330,8 +348,10 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 dependencies {
                     _compileFreeDebug project(':b')
                 }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) << {
-                    assert configurations._compileFreeDebug.collect { it.name } == []
+                task checkDebug(dependsOn: configurations._compileFreeDebug) {
+                    doLast {
+                        assert configurations._compileFreeDebug.collect { it.name } == []
+                    }
                 }
             }
             project(':b') {
@@ -430,8 +450,10 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 dependencies {
                     compile project(':b')
                 }
-                task check(dependsOn: configurations.compile) << {
-                    assert configurations.compile.collect { it.name } == [ 'b-foo.jar', 'b-bar.jar' ]
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                        assert configurations.compile.collect { it.name } == [ 'b-foo.jar', 'b-bar.jar' ]
+                    }
                 }
             }
             project(':b') {
@@ -482,8 +504,10 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
                 dependencies {
                     compile project(':b')
                 }
-                task check(dependsOn: configurations.compile) << {
-                    assert configurations.compile.collect { it.name } == ['b-foo.jar']
+                task check(dependsOn: configurations.compile) {
+                    doLast {
+                        assert configurations.compile.collect { it.name } == ['b-foo.jar']
+                    }
                 }
             }
             project(':b') {
