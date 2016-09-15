@@ -36,10 +36,12 @@ import org.jetbrains.kotlin.script.KotlinScriptDefinitionFromTemplate
 import org.slf4j.Logger
 
 import java.io.File
+import java.io.PrintStream
 
 import java.lang.reflect.InvocationTargetException
 
 import java.net.URLClassLoader
+import java.util.*
 
 import kotlin.reflect.KClass
 
@@ -195,9 +197,50 @@ class KotlinBuildScriptCompiler(
         try {
             scriptClass.getConstructor(Project::class.java).newInstance(target)
         } catch(e: InvocationTargetException) {
+            if (e.cause is Error) {
+                logClassLoaderHierarchyOf(scriptClass, target as Project)
+            }
             throw e.targetException
         }
     }
+
+    private fun logClassLoaderHierarchyOf(scriptClass: Class<*>, project: Project) {
+        classLoaderHierarchyFileFor(project).let(::PrintStream).use {
+            writeClassLoaderHierarchyJsonTo(it, scriptClass, targetScope, pathFormatterFor(project))
+        }
+    }
+
+    private fun classLoaderHierarchyFileFor(project: Project) =
+        File(project.buildDir, "ClassLoaderHierarchy.json").apply {
+            parentFile.mkdirs()
+        }
+
+    private fun pathFormatterFor(project: Project): PathStringFormatter {
+        val baseDirs = baseDirsOf(project)
+        return { pathString ->
+            var result = pathString
+            baseDirs.forEach { baseDir ->
+                result = result.replace(baseDir.second, baseDir.first)
+            }
+            result
+        }
+    }
+
+    private fun baseDirsOf(project: Project) =
+        arrayListOf<Pair<String, String>>().apply {
+            withBaseDir("PROJECT_ROOT", project.rootDir)
+            withBaseDir("GRADLE", project.gradle.gradleHomeDir)
+            withBaseDir("GRADLE_USER", project.gradle.gradleUserHomeDir)
+            withBaseDir("HOME", userHome())
+        }
+
+    private fun ArrayList<Pair<String, String>>.withBaseDir(key: String, dir: File) {
+        val label = '$' + key
+        add(label + '/' to dir.toURI().toURL().toString())
+        add(label to dir.canonicalPath)
+    }
+
+    private fun userHome() = File(System.getProperty("user.home"))
 
     private fun tempBuildscriptFileFor(buildscript: String) =
         createTempFile("buildscript-section", ".gradle.kts").apply {

@@ -1,4 +1,4 @@
-package org.gradle.script.lang.kotlin.support
+package org.gradle.script.lang.kotlin
 
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -28,5 +28,12 @@ class FoldersDsl(val root: File) {
         (+this).withFolders(subFolders)
 
     operator fun String.unaryPlus(): File =
-        File(root, this).apply { mkdirs() }.canonicalFile
+        asCanonicalFile().apply { mkdirs() }
+
+    fun withFile(fileName: String, content: String) =
+        fileName.asCanonicalFile().apply { parentFile.mkdirs() }.writeText(content)
+
+    private fun String.asCanonicalFile(): File =
+        File(root, this).canonicalFile
+
 }

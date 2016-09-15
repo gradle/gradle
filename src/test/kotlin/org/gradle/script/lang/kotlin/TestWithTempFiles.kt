@@ -8,14 +8,14 @@ import java.io.File
 abstract class TestWithTempFiles {
 
     @JvmField
-    @Rule val tempDir = TemporaryFolder()
+    @Rule val tempFolder = TemporaryFolder()
 
     protected val root: File
-        get() = tempDir.root
+        get() = tempFolder.root
 
     protected fun file(fileName: String) =
         File(root, fileName)
 
     protected fun newFile(fileName: String) =
-        tempDir.newFile(fileName)!!
+        tempFolder.newFile(fileName)!!
 }

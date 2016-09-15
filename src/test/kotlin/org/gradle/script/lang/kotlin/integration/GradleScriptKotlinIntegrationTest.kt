@@ -316,13 +316,6 @@ class GradleScriptKotlinIntegrationTest {
     private fun gradleRunner() =
         gradleRunnerFor(projectDir.root)
 
-    private fun gradleRunnerFor(projectDir: File): GradleRunner =
-        GradleRunner
-            .create()
-            .withDebug(false)
-            .withGradleInstallation(customInstallation())
-            .withProjectDir(projectDir)
-
     private fun assertBuildScriptModelClassPathContains(vararg files: File) {
         assertThat(
             kotlinBuildScriptModelCanonicalClassPath(),
@@ -339,14 +332,22 @@ class GradleScriptKotlinIntegrationTest {
 
     private fun customDaemonRegistry() =
         File("build/custom/daemon-registry")
-
-    private fun customInstallation() =
-        File("build/custom").listFiles()?.let {
-            it.singleOrNull { it.name.startsWith("gradle") } ?:
-                throw IllegalStateException(
-                    "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`.")
-        } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
 }
+
+fun gradleRunnerFor(projectDir: File): GradleRunner =
+    GradleRunner
+        .create()
+        .withDebug(true)
+        .withGradleInstallation(customInstallation())
+        .withProjectDir(projectDir)
+
+private
+fun customInstallation() =
+    File("build/custom").listFiles()?.let {
+        it.singleOrNull { it.name.startsWith("gradle") } ?:
+            throw IllegalStateException(
+                "Expected 1 custom installation but found ${it.size}. Run `./gradlew clean customInstallation`.")
+    } ?: throw IllegalStateException("Custom installation not found. Run `./gradlew customInstallation`.")
 
 inline fun <T> withDaemonRegistry(registryBase: File, block: () -> T) =
     withSystemProperty("org.gradle.daemon.registry.base", registryBase.absolutePath, block)

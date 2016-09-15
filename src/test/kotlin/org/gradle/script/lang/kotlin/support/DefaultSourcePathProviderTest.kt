@@ -1,5 +1,6 @@
 package org.gradle.script.lang.kotlin.support
 
+import org.gradle.script.lang.kotlin.FolderBasedTest
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.CoreMatchers.hasItems
 
