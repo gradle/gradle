@@ -28,13 +28,12 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.SingletonFileTree;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.CacheAccess;
 import org.gradle.internal.Factory;
-import org.gradle.internal.nativeintegration.services.FileSystems;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
 
 import java.io.File;
@@ -48,12 +47,14 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     private final FileSnapshotter snapshotter;
     private final StringInterner stringInterner;
     private final CacheAccess cacheAccess;
+    private final FileSystem fileSystem;
     private final Factory<PatternSet> patternSetFactory;
 
-    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, Factory<PatternSet> patternSetFactory) {
+    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
         this.snapshotter = snapshotter;
         this.cacheAccess = cacheAccess;
         this.stringInterner = stringInterner;
+        this.fileSystem = fileSystem;
         this.patternSetFactory = patternSetFactory;
     }
 
@@ -71,7 +72,8 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         final List<FileTreeElement> fileTreeElements = Lists.newLinkedList();
         final List<FileTreeElement> missingFiles = Lists.newArrayList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
-        fileCollection.visitRootElements(new FileCollectionVisitorImpl(fileTreeElements, missingFiles));
+        FileCollectionVisitorImpl visitor = new FileCollectionVisitorImpl(fileTreeElements, missingFiles);
+        fileCollection.visitRootElements(visitor);
 
         if (fileTreeElements.isEmpty() && missingFiles.isEmpty()) {
             return emptySnapshot();
@@ -129,11 +131,11 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         public void visitCollection(FileCollectionInternal fileCollection) {
             for (File file : fileCollection) {
                 if (file.isFile()) {
-                    visitTree(new FileTreeAdapter(new SingletonFileTree(file)));
+                    fileTreeElements.add(new SingletonFileTree.SingletonFileVisitDetails(file, fileSystem, false));
                 } else if (file.isDirectory()) {
                     // Visit the directory itself, then its contents
-                    fileTreeElements.add(new SingletonFileTree.SingletonFileVisitDetails(file, FileSystems.getDefault(), true));
-                    visitTree(new FileTreeAdapter(new DirectoryFileTree(file, patternSetFactory.create())));
+                    fileTreeElements.add(new SingletonFileTree.SingletonFileVisitDetails(file, fileSystem, true));
+                    visitDirectory(new DirectoryFileTree(file, patternSetFactory.create()));
                 } else {
                     missingFiles.add(new MissingFileVisitDetails(file));
                 }
@@ -143,6 +145,10 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         @Override
         public void visitTree(FileTreeInternal fileTree) {
             fileTree.visitTreeOrBackingFile(this);
+        }
+
+        private void visitDirectory(DirectoryFileTree directoryFileTree) {
+            directoryFileTree.visit(this);
         }
 
         @Override
