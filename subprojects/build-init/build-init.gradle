@@ -71,9 +71,7 @@ class GenerateVersionProperties extends DefaultTask {
         def groovyVersion = VersionNumber.parse(versionProperties['groovy'])
         versionProperties.put('spock', "1.0-groovy-${groovyVersion.major}.${groovyVersion.minor}" as String)
 
-        outputFile.withOutputStream { outputStream ->
-            versionProperties.store(outputStream, "Version values used in build-init templates")
-        }
+        new org.gradle.build.CleanProperties(versionProperties).store(outputFile, "Version values used in build-init templates")
     }
 
     private void findLatest(String name, String notation, Properties dest) {
