@@ -88,7 +88,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     @Override
     public String getDependencyConfiguration() {
-        return dependencyConfiguration;
+        return getOrDefaultConfiguration(dependencyConfiguration);
     }
 
     @Override
