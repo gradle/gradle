@@ -34,6 +34,7 @@ import java.util.jar.JarFile;
 import java.io.*;
 import java.util.*;
 
+@CacheableTask
 public class ShadedJar extends DefaultTask {
     private FileCollection sourceFiles;
     private File classesDir;
@@ -119,6 +120,7 @@ public class ShadedJar extends DefaultTask {
     /**
      * The source files to generate the jar from.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileCollection getSourceFiles() {
         return sourceFiles;
