@@ -140,6 +140,37 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.output.contains('org.springframework:spring-core: -> 4.0.3.RELEASE')
     }
 
+    def 'spring boot plugin'() {
+        given:
+        buildFile << """
+            buildscript {
+                repositories {
+                    mavenCentral()
+                }
+                dependencies {
+                    classpath('org.springframework.boot:spring-boot-gradle-plugin:1.4.0.RELEASE')
+                }
+            }
+
+            apply plugin: 'spring-boot'
+        """.stripIndent()
+
+        file('src/main/java/example/Application.java') << """
+            package example;
+
+            public class Application {
+                public static void main(String[] args) {}
+            }
+        """.stripIndent()
+
+        when:
+        def result = runner('build').build()
+
+        then:
+        result.task(':findMainClass').outcome == SUCCESS
+        result.task(':bootRepackage').outcome == SUCCESS
+    }
+
     def 'tomcat plugin'() {
         given:
         def httpPort = portAllocator.assignPort()
