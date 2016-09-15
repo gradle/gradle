@@ -35,12 +35,15 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.ParallelizableTask;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.TaskValidationException;
@@ -104,6 +107,7 @@ import java.util.Map;
  */
 @Incubating
 @ParallelizableTask
+@CacheableTask
 @SuppressWarnings("WeakerAccess")
 public class ValidateTaskProperties extends DefaultTask implements VerificationTask {
     private File classesDir;
@@ -268,6 +272,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
     /**
      * The directory containing the classes to validate.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     @SkipWhenEmpty
     public File getClassesDir() {

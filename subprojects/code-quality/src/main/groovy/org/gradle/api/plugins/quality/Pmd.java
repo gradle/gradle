@@ -21,17 +21,21 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.plugins.quality.internal.PmdInvoker;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
@@ -49,6 +53,7 @@ import java.util.List;
  * @see PmdPlugin
  * @see PmdExtension
  */
+@CacheableTask
 public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdReports> {
 
     private FileCollection pmdClasspath;
@@ -129,6 +134,15 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileTree getSource() {
+        return super.getSource();
+    }
+
+    /**
      * The class path containing the PMD library to be used.
      */
     @Classpath
@@ -192,6 +206,7 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
      * Example: ruleSetFiles = files("config/pmd/myRuleSets.xml")
      */
     @InputFiles
+    @PathSensitive(PathSensitivity.NONE)
     public FileCollection getRuleSetFiles() {
         return ruleSetFiles;
     }

@@ -18,7 +18,6 @@ package org.gradle.api.reporting;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Internal;
-import org.gradle.api.tasks.OutputDirectory;
 
 import java.io.File;
 
@@ -42,7 +41,6 @@ public interface DirectoryReport extends ConfigurableReport {
     // TODO:LPTR This should be handled as a relative path
     File getEntryPoint();
 
-    @OutputDirectory
     @Override
     File getDestination();
 
