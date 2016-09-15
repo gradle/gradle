@@ -14,17 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.build
+package org.gradle.plugins.classycle
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetOutput
 import org.gradle.api.tasks.TaskAction
 
@@ -35,30 +33,25 @@ class Classycle extends DefaultTask {
 
     @InputFiles
     SourceSetOutput sourceSetOutput
+
     @Input
     String reportName
-    @Internal
-    File analysis
-
-    void setSourceSet(SourceSet sourceSet) {
-        this.sourceSetOutput = sourceSet.output
-        this.reportName = sourceSet.name
-    }
 
     @OutputFile
-    File report
+    File getReportFile() {
+        new File(reportDir, "${reportName}.txt")
+    }
+
+    @Internal
+    File getAnalysisFile() {
+        new File(reportDir, "${reportName}_analysis.xml")
+    }
+
+    @Internal
+    File reportDir
 
     @Input
     Set<String> excludePatterns
-
-    @Internal
-    private ReportingExtension reporting
-
-    void setReporting(ReportingExtension reportingExtension) {
-        this.reporting = reportingExtension
-        report = reporting.file("classycle/${reportName}.txt")
-        analysis = reporting.file("classycle/${reportName}_analysis.xml")
-    }
 
     @Inject
     public IsolatedAntBuilder getAntBuilder() {
@@ -70,12 +63,12 @@ class Classycle extends DefaultTask {
         if (!sourceSetOutput.classesDir.directory) {
             return;
         }
-        antBuilder.withClasspath(project.configurations.classycle.files).execute {
+        antBuilder.withClasspath(project.configurations.getByName(ClassyclePlugin.CLASSYCLE_CONFIGURATION_NAME).files).execute {
             ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask")
             ant.taskdef(name: "classycleReport", classname: "classycle.ant.ReportTask")
-            report.parentFile.mkdirs()
+            reportFile.parentFile.mkdirs()
             try {
-                ant.classycleDependencyCheck(reportFile: report, failOnUnwantedDependencies: true, mergeInnerClasses: true,
+                ant.classycleDependencyCheck(reportFile: reportFile, failOnUnwantedDependencies: true, mergeInnerClasses: true,
                     """
                         show allResults
                         check absenceOfPackageCycles > 1 in org.gradle.*
@@ -89,8 +82,8 @@ class Classycle extends DefaultTask {
                 }
             } catch (e) {
                 try {
-                    ant.unzip(src: project.rootProject.file("gradle/classycle_report_resources.zip"), dest: reporting.file("classcycle"))
-                    ant.classycleReport(reportFile: analysis, reportType: 'xml', mergeInnerClasses: true, title: "${project.name} ${reportName} (${path})") {
+                    ant.unzip(src: project.rootProject.file("gradle/classycle_report_resources.zip"), dest: reportDir)
+                    ant.classycleReport(reportFile: analysisFile, reportType: 'xml', mergeInnerClasses: true, title: "${project.name} ${reportName} (${path})") {
                         fileset(dir: sourceSetOutput.classesDir) {
                             excludePatterns.each { excludePattern ->
                                 exclude(name: excludePattern)
@@ -103,7 +96,7 @@ class Classycle extends DefaultTask {
                 def clickableUrl = {
                     new URI("file", "", it.toURI().getPath(), null, null).toString()
                 }
-                throw new RuntimeException("Classycle check failed: $e.message. See failure report at ${clickableUrl(report)} and analysis report at ${clickableUrl(analysis)}", e)
+                throw new RuntimeException("Classycle check failed: $e.message. See failure report at ${clickableUrl(reportFile)} and analysis report at ${clickableUrl(analysisFile)}", e)
             }
         }
     }

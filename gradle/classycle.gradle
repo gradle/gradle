@@ -2,27 +2,10 @@ allprojects {
     ext.useClassycle = { params = [:] ->
         def excludePatterns = params.exclude ?: []
 
-        configurations {
-            classycle
-        }
+        apply plugin: org.gradle.plugins.classycle.ClassyclePlugin
 
-        dependencies {
-            classycle 'classycle:classycle:1.4@jar'
-        }
-
-        task classycle
-
-        sourceSets.all { sourceSet ->
-            def reportingExtension = reporting
-            def taskName = sourceSet.getTaskName('classycle', null)
-            task(taskName, type: org.gradle.build.Classycle) {
-                it.sourceSet = sourceSet
-                it.excludePatterns = excludePatterns
-                it.reporting = reportingExtension
-            }
-            classycle.dependsOn taskName
-            check.dependsOn taskName
-            codeQuality.dependsOn taskName
+        tasks.withType(org.gradle.plugins.classycle.Classycle).all() {
+            it.excludePatterns = excludePatterns
         }
     }
 }
