@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.internal.cache.StringInterner;
 
-import java.util.SortedSet;
-
-public interface TaskInputsInternal extends TaskInputs {
-    @Override
-    TaskInputFilePropertyBuilderInternal files(Object... paths);
-
-    @Override
-    TaskInputFilePropertyBuilderInternal file(Object path);
-
-    @Override
-    TaskInputFilePropertyBuilderInternal dir(Object dirPath);
-
-    SortedSet<TaskInputFilePropertySpec> getFileProperties();
+public interface SnapshotNormalizationStrategy {
+    NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner);
 }

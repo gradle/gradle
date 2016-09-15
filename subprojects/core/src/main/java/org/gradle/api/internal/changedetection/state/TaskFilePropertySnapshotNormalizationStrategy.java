@@ -24,7 +24,7 @@ import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.hash.HashUtil;
 
-public enum TaskFilePropertyPathSensitivity {
+public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNormalizationStrategy {
     /**
      * Use the absolute path of the files.
      */
@@ -93,14 +93,10 @@ public enum TaskFilePropertyPathSensitivity {
 
     private static final String EMPTY_STRING = "";
 
-    public abstract NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner);
-
-    public static TaskFilePropertyPathSensitivity valueOf(PathSensitivity pathSensitivity) {
+    public static TaskFilePropertySnapshotNormalizationStrategy valueOf(PathSensitivity pathSensitivity) {
         switch (pathSensitivity) {
             case ABSOLUTE:
                 return ABSOLUTE;
-            case CLASSPATH:
-                return CLASSPATH;
             case RELATIVE:
                 return RELATIVE;
             case NAME_ONLY:

@@ -53,8 +53,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         pathSensitive | orderSensitive | expectSkipped
         ABSOLUTE      | true           | false
         ABSOLUTE      | false          | false
-        CLASSPATH     | true           | false
-        CLASSPATH     | false          | false
         RELATIVE      | true           | false
         RELATIVE      | false          | false
         NAME_ONLY     | true           | false
@@ -94,8 +92,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         pathSensitive | orderSensitive | expectSkipped
         ABSOLUTE      | true           | false
         ABSOLUTE      | false          | false
-        CLASSPATH     | true           | false
-        CLASSPATH     | false          | false
         RELATIVE      | true           | false
         RELATIVE      | false          | false
         NAME_ONLY     | true           | false
@@ -148,8 +144,6 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         pathSensitive | orderSensitive | expectSkipped
         ABSOLUTE      | true           | false
         ABSOLUTE      | false          | false
-        CLASSPATH     | true           | true
-        CLASSPATH     | false          | true
         RELATIVE      | true           | true
         RELATIVE      | false          | true
         NAME_ONLY     | true           | true

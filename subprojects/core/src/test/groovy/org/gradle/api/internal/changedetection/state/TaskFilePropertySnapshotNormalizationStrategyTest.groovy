@@ -26,9 +26,9 @@ import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveCont
 import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity.*
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.*
 
-class TaskFilePropertyPathSensitivityTest extends AbstractProjectBuilderSpec {
+class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractProjectBuilderSpec {
     StringInterner interner
     FileCollection files
 
@@ -70,7 +70,7 @@ class TaskFilePropertyPathSensitivityTest extends AbstractProjectBuilderSpec {
         snapshots[file("dir/resources/b/input-2.txt")] == "input-2.txt"
     }
 
-    def "sensitivity RELATIVE"() {
+    def "sensitivity CLASSPATH"() {
         def snapshots = normalizeWith CLASSPATH
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "IGNORED"
@@ -82,7 +82,7 @@ class TaskFilePropertyPathSensitivityTest extends AbstractProjectBuilderSpec {
         snapshots[file("dir/resources/b/input-2.txt")] == "b/input-2.txt"
     }
 
-    def "sensitivity RELATIVE_WITH_FILE_NAMES"() {
+    def "sensitivity RELATIVE"() {
         def snapshots = normalizeWith RELATIVE
         expect:
         snapshots[file("dir/libs/library-a.jar")]      == "library-a.jar"
@@ -116,7 +116,7 @@ class TaskFilePropertyPathSensitivityTest extends AbstractProjectBuilderSpec {
         project.file(path)
     }
 
-    private def normalizeWith(TaskFilePropertyPathSensitivity type) {
+    private def normalizeWith(TaskFilePropertySnapshotNormalizationStrategy type) {
         List<FileVisitDetails> fileTreeElements = []
         ResolvableFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(project.fileResolver)
         context.add(files)

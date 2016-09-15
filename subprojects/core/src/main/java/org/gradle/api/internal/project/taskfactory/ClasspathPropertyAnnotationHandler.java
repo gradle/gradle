@@ -17,8 +17,8 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.tasks.Classpath;
-import org.gradle.api.tasks.PathSensitivity;
 
 import java.lang.annotation.Annotation;
 import java.util.concurrent.Callable;
@@ -36,7 +36,7 @@ public class ClasspathPropertyAnnotationHandler implements PropertyAnnotationHan
                 task.getInputs().files(futureValue)
                     .withPropertyName(context.getName())
                     .orderSensitive(true)
-                    .withPathSensitivity(PathSensitivity.CLASSPATH);
+                    .withSnapshotNormalizationStrategy(TaskFilePropertySnapshotNormalizationStrategy.CLASSPATH);
             }
         });
     }

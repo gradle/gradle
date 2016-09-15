@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
-import org.gradle.api.internal.tasks.TaskInputFilePropertySpec;
-import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.TaskFilePropertyBuilder;
 
-import java.util.SortedSet;
-
-public interface TaskInputsInternal extends TaskInputs {
-    @Override
-    TaskInputFilePropertyBuilderInternal files(Object... paths);
+public interface TaskFilePropertyBuilderInternal extends TaskFilePropertyBuilder {
+    TaskFilePropertyBuilderInternal withSnapshotNormalizationStrategy(SnapshotNormalizationStrategy snapshotNormalizationStrategy);
 
     @Override
-    TaskInputFilePropertyBuilderInternal file(Object path);
+    TaskFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity);
 
     @Override
-    TaskInputFilePropertyBuilderInternal dir(Object dirPath);
-
-    SortedSet<TaskInputFilePropertySpec> getFileProperties();
+    TaskFilePropertyBuilderInternal withPropertyName(String propertyName);
 }

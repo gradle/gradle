@@ -31,7 +31,7 @@ import org.gradle.util.ChangeListener
 import org.junit.Rule
 import spock.lang.Specification
 
-import static TaskFilePropertyPathSensitivity.ABSOLUTE
+import static TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.*
 
 public class DefaultFileCollectionSnapshotterTest extends Specification {

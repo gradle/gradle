@@ -19,7 +19,7 @@ package org.gradle.api.internal.changedetection.state
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity.DefaultNormalizedFileSnapshot
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.DefaultNormalizedFileSnapshot
 import org.gradle.internal.serialize.SerializerSpec
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED

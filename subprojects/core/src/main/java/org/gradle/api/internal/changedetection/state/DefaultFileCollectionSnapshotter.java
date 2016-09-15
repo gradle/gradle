@@ -67,7 +67,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final TaskFilePropertyPathSensitivity pathSensitivity) {
+    public FileCollectionSnapshot snapshot(FileCollection input, TaskFilePropertyCompareStrategy compareStrategy, final SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
         final List<FileTreeElement> fileTreeElements = Lists.newLinkedList();
         final List<FileTreeElement> missingFiles = Lists.newArrayList();
         FileCollectionInternal fileCollection = (FileCollectionInternal) input;
@@ -90,7 +90,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                         } else {
                             snapshot = new FileHashSnapshot(snapshotter.snapshot(fileDetails).getHash(), fileDetails.getLastModified());
                         }
-                        NormalizedFileSnapshot normalizedSnapshot = pathSensitivity.getNormalizedSnapshot(fileDetails, snapshot, stringInterner);
+                        NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails, snapshot, stringInterner);
                         if (normalizedSnapshot != null) {
                             snapshots.put(absolutePath, normalizedSnapshot);
                         }
@@ -99,7 +99,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                 for (FileTreeElement missingFileDetails : missingFiles) {
                     String absolutePath = getInternedAbsolutePath(missingFileDetails.getFile());
                     if (!snapshots.containsKey(absolutePath)) {
-                        snapshots.put(absolutePath, pathSensitivity.getNormalizedSnapshot(missingFileDetails, MissingFileSnapshot.getInstance(), stringInterner));
+                        snapshots.put(absolutePath, snapshotNormalizationStrategy.getNormalizedSnapshot(missingFileDetails, MissingFileSnapshot.getInstance(), stringInterner));
                     }
                 }
             }
@@ -109,7 +109,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
 
     @Override
     public FileCollectionSnapshot snapshot(TaskFilePropertySpec propertySpec) {
-        return snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareStrategy(), propertySpec.getPathSensitivity());
+        return snapshot(propertySpec.getPropertyFiles(), propertySpec.getCompareStrategy(), propertySpec.getSnapshotNormalizationStrategy());
     }
 
     private String getInternedAbsolutePath(File file) {

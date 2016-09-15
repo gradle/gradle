@@ -43,8 +43,8 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, TaskFilePropertyPathSensitivity pathSensitivity) {
-        return snapshotter.snapshot(files, compareStrategy, pathSensitivity);
+    public FileCollectionSnapshot snapshot(FileCollection files, TaskFilePropertyCompareStrategy compareStrategy, SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
+        return snapshotter.snapshot(files, compareStrategy, snapshotNormalizationStrategy);
     }
 
     @Override

@@ -17,11 +17,11 @@
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity;
 
 public interface TaskFilePropertySpec extends TaskPropertySpec {
     FileCollection getPropertyFiles();
     TaskFilePropertyCompareStrategy getCompareStrategy();
-    TaskFilePropertyPathSensitivity getPathSensitivity();
+    SnapshotNormalizationStrategy getSnapshotNormalizationStrategy();
 }

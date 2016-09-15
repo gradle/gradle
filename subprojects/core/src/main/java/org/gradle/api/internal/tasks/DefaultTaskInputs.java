@@ -21,8 +21,9 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInputsInternal;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -39,7 +40,7 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED;
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.UNORDERED;
-import static org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity.ABSOLUTE;
+import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
 import static org.gradle.api.internal.tasks.TaskPropertyUtils.ensurePropertiesHaveNames;
 import static org.gradle.util.GUtil.uncheckedCall;
 
@@ -82,30 +83,30 @@ public class DefaultTaskInputs implements TaskInputsInternal {
     }
 
     @Override
-    public TaskInputFilePropertyBuilder files(final Object... paths) {
-        return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertyBuilder>() {
+    public TaskInputFilePropertyBuilderInternal files(final Object... paths) {
+        return taskMutator.mutate("TaskInputs.files(Object...)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
-            public TaskInputFilePropertyBuilder call() {
+            public TaskInputFilePropertyBuilderInternal call() {
                 return addSpec(paths);
             }
         });
     }
 
     @Override
-    public TaskInputFilePropertyBuilder file(final Object path) {
-        return taskMutator.mutate("TaskInputs.file(Object)", new Callable<TaskInputFilePropertyBuilder>() {
+    public TaskInputFilePropertyBuilderInternal file(final Object path) {
+        return taskMutator.mutate("TaskInputs.file(Object)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
-            public TaskInputFilePropertyBuilder call() {
+            public TaskInputFilePropertyBuilderInternal call() {
                 return addSpec(path);
             }
         });
     }
 
     @Override
-    public TaskInputFilePropertyBuilder dir(final Object dirPath) {
-        return taskMutator.mutate("TaskInputs.dir(Object)", new Callable<TaskInputFilePropertyBuilder>() {
+    public TaskInputFilePropertyBuilderInternal dir(final Object dirPath) {
+        return taskMutator.mutate("TaskInputs.dir(Object)", new Callable<TaskInputFilePropertyBuilderInternal>() {
             @Override
-            public TaskInputFilePropertyBuilder call() {
+            public TaskInputFilePropertyBuilderInternal call() {
                 return addSpec(resolver.resolveFilesAsTree(dirPath));
             }
         });
@@ -162,11 +163,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return this;
     }
 
-    private TaskInputFilePropertyBuilder addSpec(Object paths) {
+    private TaskInputFilePropertyBuilderInternal addSpec(Object paths) {
         return addSpec(paths, false);
     }
 
-    private TaskInputFilePropertyBuilder addSpec(Object paths, boolean skipWhenEmpty) {
+    private TaskInputFilePropertyBuilderInternal addSpec(Object paths, boolean skipWhenEmpty) {
         PropertySpec spec = new PropertySpec(task.getName(), skipWhenEmpty, resolver, paths);
         filePropertiesInternal.add(spec);
         return spec;
@@ -222,13 +223,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         return this;
     }
 
-    private class PropertySpec extends AbstractTaskPropertyBuilder implements TaskInputFilePropertySpec, TaskInputFilePropertyBuilder {
+    private class PropertySpec extends AbstractTaskPropertyBuilder implements TaskInputFilePropertySpec, TaskInputFilePropertyBuilderInternal {
 
         private final TaskPropertyFileCollection files;
         private boolean skipWhenEmpty;
         private boolean optional;
         private TaskFilePropertyCompareStrategy compareStrategy = UNORDERED;
-        private TaskFilePropertyPathSensitivity pathSensitivity = ABSOLUTE;
+        private SnapshotNormalizationStrategy snapshotNormalizationStrategy = ABSOLUTE;
 
         public PropertySpec(String taskName, boolean skipWhenEmpty, FileResolver resolver, Object paths) {
             this.files = new TaskPropertyFileCollection(taskName, "input", this, resolver, paths);
@@ -241,7 +242,7 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskInputFilePropertyBuilder withPropertyName(String propertyName) {
+        public TaskInputFilePropertyBuilderInternal withPropertyName(String propertyName) {
             setPropertyName(propertyName);
             return this;
         }
@@ -251,13 +252,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskInputFilePropertyBuilder skipWhenEmpty(boolean skipWhenEmpty) {
+        public TaskInputFilePropertyBuilderInternal skipWhenEmpty(boolean skipWhenEmpty) {
             this.skipWhenEmpty = skipWhenEmpty;
             return this;
         }
 
         @Override
-        public TaskInputFilePropertyBuilder skipWhenEmpty() {
+        public TaskInputFilePropertyBuilderInternal skipWhenEmpty() {
             return skipWhenEmpty(true);
         }
 
@@ -266,13 +267,13 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskInputFilePropertyBuilder optional(boolean optional) {
+        public TaskInputFilePropertyBuilderInternal optional(boolean optional) {
             this.optional = optional;
             return this;
         }
 
         @Override
-        public TaskInputFilePropertyBuilder optional() {
+        public TaskInputFilePropertyBuilderInternal optional() {
             return optional(true);
         }
 
@@ -282,30 +283,35 @@ public class DefaultTaskInputs implements TaskInputsInternal {
         }
 
         @Override
-        public TaskInputFilePropertyBuilder orderSensitive() {
+        public TaskInputFilePropertyBuilderInternal orderSensitive() {
             return orderSensitive(true);
         }
 
         @Override
-        public TaskInputFilePropertyBuilder orderSensitive(boolean orderSensitive) {
+        public TaskInputFilePropertyBuilderInternal orderSensitive(boolean orderSensitive) {
             this.compareStrategy = orderSensitive ? ORDERED : UNORDERED;
             return this;
         }
 
         @Override
-        public TaskFilePropertyPathSensitivity getPathSensitivity() {
-            return pathSensitivity;
+        public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
+            return snapshotNormalizationStrategy;
         }
 
         @Override
-        public TaskInputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
-            this.pathSensitivity = TaskFilePropertyPathSensitivity.valueOf(sensitivity);
+        public TaskInputFilePropertyBuilderInternal withPathSensitivity(PathSensitivity sensitivity) {
+            return withSnapshotNormalizationStrategy(TaskFilePropertySnapshotNormalizationStrategy.valueOf(sensitivity));
+        }
+
+        @Override
+        public TaskInputFilePropertyBuilderInternal withSnapshotNormalizationStrategy(SnapshotNormalizationStrategy snapshotNormalizationStrategy) {
+            this.snapshotNormalizationStrategy = snapshotNormalizationStrategy;
             return this;
         }
 
         @Override
         public String toString() {
-            return getPropertyName() + " " + compareStrategy.name() + " " + pathSensitivity.name();
+            return getPropertyName() + " (" + compareStrategy + ", " + snapshotNormalizationStrategy + ")";
         }
 
         // --- Deprecated delegate methods

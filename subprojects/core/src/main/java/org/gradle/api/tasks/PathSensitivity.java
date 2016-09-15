@@ -33,12 +33,6 @@ public enum PathSensitivity {
     ABSOLUTE,
 
     /**
-     * Consider the path for each file or directory relative to the root it was included via.
-     * For files added directly both path and file name is ignored.
-     */
-    CLASSPATH,
-
-    /**
      * Use the location of the file related to a hierarchy.
      */
     RELATIVE,
