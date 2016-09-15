@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
+import org.gradle.api.execution.TaskOutputCacheListener;
+import org.gradle.api.execution.TaskOutputCacheListener.NotCachedReason;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -47,11 +49,13 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskOutputPacker packer;
     private final TaskExecuter delegate;
     private TaskOutputCache cache;
+    private final TaskOutputCacheListener taskOutputCacheListener;
 
-    public SkipCachedTaskExecuter(TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskExecuter delegate) {
+    public SkipCachedTaskExecuter(TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskOutputCacheListener taskOutputCacheListener, TaskExecuter delegate) {
         this.taskCaching = taskCaching;
         this.startParameter = startParameter;
         this.packer = packer;
+        this.taskOutputCacheListener = taskOutputCacheListener;
         this.delegate = delegate;
         SingleMessageLogger.incubatingFeatureUsed("Task output caching");
     }
@@ -72,6 +76,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         LOGGER.debug("Determining if {} is cached already", task);
 
         TaskCacheKey cacheKey = null;
+        NotCachedReason reason = null;
         if (cacheEnabled) {
             if (taskOutputs.hasDeclaredOutputs()) {
                 if (taskOutputs.isCacheAllowed()) {
@@ -94,21 +99,29 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                             });
                             if (found) {
                                 state.upToDate("FROM-CACHE");
+                                taskOutputCacheListener.fromCache(task);
                                 return;
                             }
+                            reason = NotCachedReason.NOT_IN_CACHE;
                         } catch (Exception e) {
                             LOGGER.warn("Could not load cached output for {} with cache key {}", task, cacheKey, e);
+                            reason = NotCachedReason.ERROR_LOADING_CACHE_ENTRY;
                         }
                     }
                 } else {
                     LOGGER.info("Not caching {} because it declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`", task);
+                    reason = NotCachedReason.MULTIPLE_OUTPUTS;
                 }
             } else {
                 LOGGER.info("Not caching {} as task has declared no outputs", task);
+                reason = NotCachedReason.NO_OUTPUTS;
             }
         } else {
             LOGGER.debug("Not caching {} as task output is not cacheable.", task);
+            reason = NotCachedReason.NOT_CACHEABLE;
         }
+
+        taskOutputCacheListener.notCached(task, reason);
 
         delegate.execute(task, state, context);
 
