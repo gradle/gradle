@@ -326,65 +326,6 @@ class ConfigurationAttributesResolveIntegrationTest extends AbstractIntegrationS
     /**
      * Whenever a dependency on a project is found and that the client configuration
      * defines attributes, we try to find a target configuration with the same attributes
-     * declared. However if no such configuration exists, what should we do?
-     * This test implements option 2, which is to fail with a reasonable error message.
-     *
-     * Rationale: if a source configuration defines attributes, we expect to find a dependent
-     * configuration with exactly the same attributes. If no such configuration is found, we
-     * don't know what to choose, and therefore should fail. The drawback of this approach is
-     * how do deal with mixing different categories of projects, consumers which define
-     * constraints and dependencies which don't care. Typically, what if project A-debug depends
-     * on library B, but B doesn't have a debug or release variant, only the default one.
-     */
-    @NotYetImplemented
-    def "fails with reasonable error when no match is found"() {
-        given:
-        file('settings.gradle') << "include 'a', 'b'"
-        buildFile << '''
-            project(':a') {
-                configurations {
-                    _compileFreeDebug.attributes(buildType: 'debug', flavor: 'free')
-                }
-                dependencies {
-                    _compileFreeDebug project(':b')
-                }
-                task checkDebug(dependsOn: configurations._compileFreeDebug) {
-                    doLast {
-                        assert configurations._compileFreeDebug.collect { it.name } == []
-                    }
-                }
-            }
-            project(':b') {
-                configurations {
-                    foo
-                    bar
-                    create 'default'
-                }
-                task fooJar(type: Jar) {
-                   baseName = 'b-foo'
-                }
-                task barJar(type: Jar) {
-                   baseName = 'b-bar'
-                }
-                artifacts {
-                    foo fooJar
-                    bar barJar
-                }
-            }
-
-        '''
-
-        when:
-        fails ':a:checkDebug'
-
-        then:
-        failure.assertHasCause('A reasonable error message')
-
-    }
-
-    /**
-     * Whenever a dependency on a project is found and that the client configuration
-     * defines attributes, we try to find a target configuration with the same attributes
      * declared. However if 2 configurations on the target project declares the same attributes,
      * we don't know which one to choose.
      *
