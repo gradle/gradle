@@ -25,7 +25,6 @@ import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 
 class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
@@ -81,7 +80,6 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
 
     // TODO: Need a windows equivalent of this test
     @Requires(TestPrecondition.NOT_WINDOWS)
-    @Ignore("Ignored temporarily since processEnvironment.maybeDetach() is commented out in DaemonMain#doAction")
     def "session id of daemon is different from daemon client"() {
         given:
         withGetSidProject()

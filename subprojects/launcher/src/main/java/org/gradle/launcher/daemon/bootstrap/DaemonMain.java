@@ -113,9 +113,7 @@ public class DaemonMain extends EntryPoint {
 
         // Detach the process from the parent terminal/console
         ProcessEnvironment processEnvironment = daemonServices.get(ProcessEnvironment.class);
-        // TODO: LH Temporarily disabled to investigate Process.destroy() not killing the child process
-        // TODO: LH This problem makes GradleHandle.abort() hang in tests
-        //processEnvironment.maybeDetach();
+        processEnvironment.maybeDetach();
 
         LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", startupOpts);
 
