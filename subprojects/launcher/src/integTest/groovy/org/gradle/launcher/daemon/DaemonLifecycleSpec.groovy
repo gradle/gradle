@@ -28,6 +28,7 @@ import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.launcher.daemon.testing.DaemonEventSequenceBuilder
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 import static org.gradle.test.fixtures.ConcurrentTestUtil.poll
@@ -516,6 +517,7 @@ class DaemonLifecycleSpec extends DaemonIntegrationSpec {
 
     // GradleHandle.abort() does not work reliably on windows and creates flakiness
     @Requires(TestPrecondition.NOT_WINDOWS)
+    @Ignore("TODO: Fix GradleHandle.abort() so that it doesn't hang")
     def "daemon stops immediately if stop is requested and then client disconnects"() {
         when:
         startBuild()
