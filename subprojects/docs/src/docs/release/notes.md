@@ -79,7 +79,6 @@ for the left shift operation. Please use the existing methods `doFirst` and `doL
 
 We would like to thank the following community members for making contributions to this release of Gradle.
 
-- [Vladislav Bauer](https://github.com/vbauer) - Remove code duplication in Jacoco plugin
 - [Shintaro Katafuchi](https://github.com/hotchemi) - Fixed typo in `ShadedJar.java` under `buildSrc`
 - [Jörn Huxhorn](https://github.com/huxi) - Show location in build file for deprecation warning
 - [Jeff Baranski](https://github.com/jbaranski) - Fix doc bug with turning off daemon in a .bat file
