@@ -53,26 +53,42 @@ The following are the newly deprecated items in this Gradle release. If you have
 
 ### The left shift operator on the Task interface
 
-The left shift (`<<`) operator acts as alias for adding a `doLast` action for an existing task. For newcomers to Gradle the meaning of the operator is not immediately apparent and
- leads to mixing configuration code with action code. Consequently, mis-configured task lead to unexpected runtime behavior. Let's consider the following two examples to illustrate common
- issues.
+The left shift (`<<`) operator acts as alias for adding a `doLast` action for an existing task. For newcomers to Gradle, the meaning of the operator is not immediately apparent and 
+leads to mixing configuration code with action code. Consequently, mis-configured task lead to unexpected runtime behavior. Let's consider the following two examples to illustrate common 
+mistakes.
  
-Definition of a default task that configures the `description` property and defines an action using the left shift operator. As a result, the task would not configure the task's description.
-
+_Definition of a default task that configures the `description` property and defines an action using the left shift operator:_ As a result, the task would not configure the task's description.
+    
+    // WRONG: Description assigned in execution phase
     task helloWorld << {
         description = 'Prints out a message.'
         println 'Hello world!'
     }
+    
+    // CORRECT: Description assigned in configuration phase
+    task helloWorld {
+        description = 'Prints out a message.'
+        doLast {
+            println 'Hello world!'
+        }
+    }
 
-Definition of an enhanced task using the left shift operator. As a result, the task is always `UP-TO-DATE` as the inputs and outputs of the `Copy` task are configured during the execution 
+_Definition of an enhanced task using the left shift operator:_ As a result, the task is always `UP-TO-DATE` as the inputs and outputs of the `Copy` task are configured during the execution 
 phase of the Gradle build lifecycle which is to late for Gradle to pick up the configuration.
 
+    // WRONG: Configuring task in execution phase
     task copy(type: Copy) << {
         from 'source'
         into "$buildDir/output"
     }
+    
+    // CORRECT: Configuring task in configuration phase
+    task copy(type: Copy) {
+        from 'source'
+        into "$buildDir/output"
+    }
 
-With this version of Gradle, the left shift operator on the `Task` interface is deprecated and is scheduled to be removed with the next major version. There's no direct replacement
+With this version of Gradle, the left shift operator on the `Task` interface is deprecated and is scheduled to be removed with the next major release. There's no direct replacement
 for the left shift operation. Please use the existing methods `doFirst` and `doLast` to define task actions.
 
 ## Potential breaking changes
