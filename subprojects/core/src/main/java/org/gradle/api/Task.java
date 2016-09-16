@@ -45,7 +45,6 @@ import java.util.Set;
  * task myTask { configure closure }
  * task myTask(type: SomeType)
  * task myTask(type: SomeType) { configure closure }
- * task myType { doLast { task action } }
  * </pre>
  *
  * <p>Each task has a name, which can be used to refer to the task within its owning project, and a fully qualified
@@ -366,7 +365,7 @@ public interface Task extends Comparable<Task>, ExtensionAware {
 
     /**
      * <p>Adds the given closure to the end of this task's action list.  The closure is passed this task as a parameter
-     * when executed.</p>
+     * when executed. You can call this method from your build script using the &lt;&lt; left shift operator.</p>
      *
      * @param action The action closure to execute.
      * @return This task.
