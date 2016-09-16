@@ -16,6 +16,12 @@ build file to the console. When passing the command line option `-s` or `-S`
 to Gradle then the whole stack trace is printed out.
 The improved log message should make it much easier to spot and fix those warnings.
 
+    > gradle tasks
+    The Jetty plugin has been deprecated and is scheduled to be removed in Gradle 4.0. Consider using the Gretty (https://github.com/akhikhl/gretty) plugin instead.
+            at build_dhrhtn4oo56t198zc6nkf59c4.run(/home/someuser/project-dir/build.gradle:3)
+    
+    ...
+
 ### The Wrapper can now use HTTP Basic Authentication to download distributions
 
 The Gradle Wrapper can now download Gradle distributions from a server requiring authentication.
