@@ -16,16 +16,14 @@
 
 package org.gradle.build
 
-class CleanProperties {
-    private Properties properties
+class ReproduciblePropertiesWriter {
 
-    CleanProperties(Properties properties) {
-        this.properties = properties
-    }
-
-    void store(File file, String comment = null) {
+    /**
+     * Writes {@link Properties} to a file without including the timestamp comment
+     */
+    static void store(Properties properties, File file, String comment = null) {
         def sw = new StringWriter()
-        properties.store(sw, comment)
+        properties.store(sw, null)
         String lineSeparator = System.lineSeparator()
         def content = sw.toString().split(lineSeparator).findAll { !it.startsWith("#") }.join(lineSeparator)
         file.withWriter("8859_1") { BufferedWriter bw ->

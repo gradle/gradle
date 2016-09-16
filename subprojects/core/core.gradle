@@ -108,11 +108,7 @@ class PluginsManifest extends DefaultTask {
 
     @TaskAction
     def generate() {
-        // Remove Properties timestamp for reproducible build
-        def sw = new StringWriter()
-        pluginProperties.store(sw, "")
-        def content = sw.toString().split(/\n/).findAll { !it.startsWith("#") }.join("\n")
-        propertiesFile.setText(content, "utf-8")
+        org.gradle.build.ReproduciblePropertiesWriter.store(pluginProperties, propertiesFile)
     }
 }
 

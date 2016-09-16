@@ -58,7 +58,7 @@ class PrepareVersionsInfo extends DefaultTask {
         properties.mostRecentSnapshot = mostRecentSnapshot
         properties.versions = versions.join(' ')
 
-        new org.gradle.build.CleanProperties(properties).store(destFile)
+        org.gradle.build.ReproduciblePropertiesWriter.store(properties, destFile)
     }
 }
 

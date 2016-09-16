@@ -56,7 +56,7 @@ class GenerateVersionProperties extends DefaultTask {
         resolveFiles()
     }
 
-    def resolveFiles() {
+    void resolveFiles() {
         Properties versionProperties = new Properties()
 
         findLatest('scala-library', 'org.scala-lang:scala-library:latest.release', versionProperties)
@@ -71,7 +71,7 @@ class GenerateVersionProperties extends DefaultTask {
         def groovyVersion = VersionNumber.parse(versionProperties['groovy'])
         versionProperties.put('spock', "1.0-groovy-${groovyVersion.major}.${groovyVersion.minor}" as String)
 
-        new org.gradle.build.CleanProperties(versionProperties).store(outputFile, "Version values used in build-init templates")
+        org.gradle.build.ReproduciblePropertiesWriter.store(versionProperties, outputFile, "Version values used in build-init templates")
     }
 
     private void findLatest(String name, String notation, Properties dest) {
