@@ -27,7 +27,7 @@ public class NativeDependencyResolverServices {
         List<LibraryBinaryLocator> locators = new ArrayList<LibraryBinaryLocator>();
         locators.add(new ProjectLibraryBinaryLocator(projectModelResolver));
         locators.add(new PrebuiltLibraryBinaryLocator(projectModelResolver));
-        return new ChainedLibraryBinaryLocator(locators);
+        return new CachingLibraryBinaryLocator(new ChainedLibraryBinaryLocator(locators));
     }
 
     public NativeDependencyResolver createResolver(LibraryBinaryLocator locator, FileCollectionFactory fileCollectionFactory) {

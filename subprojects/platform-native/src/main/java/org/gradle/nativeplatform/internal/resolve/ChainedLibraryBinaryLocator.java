@@ -17,8 +17,8 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.Nullable;
 import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.NativeLibraryRequirement;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,16 +30,15 @@ public class ChainedLibraryBinaryLocator implements LibraryBinaryLocator {
         this.locators.addAll(locators);
     }
 
+    @Nullable
     @Override
-    public DomainObjectSet<NativeLibraryBinary> getBinaries(NativeLibraryRequirement requirement) {
+    public DomainObjectSet<NativeLibraryBinary> getBinaries(LibraryIdentifier library) {
         for (LibraryBinaryLocator locator : locators) {
-            DomainObjectSet<NativeLibraryBinary> binaries = locator.getBinaries(requirement);
+            DomainObjectSet<NativeLibraryBinary> binaries = locator.getBinaries(library);
             if (binaries != null) {
                 return binaries;
             }
         }
         return null;
     }
-
-
 }
