@@ -19,6 +19,7 @@ package org.gradle.internal.component.model;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
@@ -121,7 +122,7 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
             if (candidateConfigurations.size()==1) {
                 return ImmutableSet.of(candidateConfigurations.get(0));
             } else if (!candidateConfigurations.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Lists.transform(candidateConfigurations, CONFIG_NAME) + ". All of then match the client attributes " + attributes);
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + attributes);
             }
         }
         String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);

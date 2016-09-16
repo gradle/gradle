@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -101,7 +102,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             if (candidateConfigurations.size()==1) {
                 selectedConfiguration = candidateConfigurations.get(0);
             } else if (!candidateConfigurations.isEmpty()) {
-                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Lists.transform(candidateConfigurations, CONFIG_NAME) + ". All of then match the client attributes " + clientAttributes);
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + clientAttributes);
             }
         }
         if (selectedConfiguration == null) {
