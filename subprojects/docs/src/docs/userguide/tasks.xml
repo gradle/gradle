@@ -107,8 +107,9 @@
         <tip>
             <title>Don't forget about the build phases</title>
             <para>A task has both configuration and actions.
-                When using the <literal>&lt;&lt;</literal>, you are simply using a shortcut to define an action.
-                Code defined in the configuration section of your task will get executed during the configuration phase of the build regardless of what task was targeted.
+                When using the <literal>doLast</literal> block, you define an action that is only executed if required.
+                In contrast, code defined in the configuration section of your task will always get executed during the configuration
+                phase of the build regardless of what task was targeted.
                 See <xref linkend="build_lifecycle"/> for more details about the build lifecycle.
             </para>
         </tip>
