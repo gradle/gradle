@@ -25,7 +25,7 @@ import spock.lang.Issue
 class TestNGJdkNavigationIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    TestResources resources = new TestResources(testDirectoryProvider)
+    final TestResources resources = new TestResources(testDirectoryProvider)
 
     def shouldNotNavigateToJdkClasses() {
         when:
