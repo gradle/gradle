@@ -135,7 +135,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                 } else if (file.isDirectory()) {
                     // Visit the directory itself, then its contents
                     fileTreeElements.add(new SingletonFileTree.SingletonFileVisitDetails(file, fileSystem, true));
-                    visitDirectory(new DirectoryFileTree(file, patternSetFactory.create()));
+                    visitDirectoryTree(new DirectoryFileTree(file, patternSetFactory.create()));
                 } else {
                     missingFiles.add(new MissingFileVisitDetails(file));
                 }
@@ -147,8 +147,9 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
             fileTree.visitTreeOrBackingFile(this);
         }
 
-        private void visitDirectory(DirectoryFileTree directoryFileTree) {
-            directoryFileTree.visit(this);
+        @Override
+        public void visitDirectoryTree(DirectoryFileTree directoryTree) {
+            directoryTree.visit(this);
         }
 
         @Override
