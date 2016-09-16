@@ -9,12 +9,12 @@ Add-->
 <!--
 ### Example new and noteworthy
 -->
-### Location of deprecation warning in build file is shown
+### Origin of deprecation warning within build script is rendered on command line
 
 For each deprecation warning Gradle now prints its location in the
-build file to the console. When passing `-s` or `-S` as a command
-line option to Gradle then the whole stack trace is printed out.
-This should make it much easier to spot and fix those warnings.
+build file to the console. When passing the command line option `-s` or `-S`
+to Gradle then the whole stack trace is printed out.
+The improved log message should make it much easier to spot and fix those warnings.
 
 ### The Wrapper can now use HTTP Basic Authentication to download distributions
 

@@ -152,6 +152,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             case ALWAYS:
             case ALWAYS_FULL:
                 LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(true);
+                break;
             default:
                 LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
         }
