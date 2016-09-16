@@ -36,4 +36,9 @@ public interface NativeLibraryRequirement {
      * The required linkage.
      */
     String getLinkage();
+
+    /**
+     * Creates a copy of this requirement with the specified project path
+     */
+    NativeLibraryRequirement withProjectPath(String projectPath);
 }
