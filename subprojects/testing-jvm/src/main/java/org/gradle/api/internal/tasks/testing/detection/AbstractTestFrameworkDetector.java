@@ -81,7 +81,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
 
         if (superTestClassFile != null) {
             return superTestClassFile;
-        } else if (AbstractTestFrameworkDetector.JAVA_LANG_OBJECT.equals(superClassName)) {
+        } else if (JAVA_LANG_OBJECT.equals(superClassName)) {
             // java.lang.Object found, which is not a test class
             return null;
         } else {
