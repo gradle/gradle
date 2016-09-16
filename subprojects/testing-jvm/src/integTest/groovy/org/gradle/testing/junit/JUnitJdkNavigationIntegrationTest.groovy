@@ -22,25 +22,17 @@ import org.junit.Rule
 import spock.lang.Issue
 
 @Issue("GRADLE-1682")
-class JUnitJdkNavigationTest extends AbstractIntegrationSpec {
+class JUnitJdkNavigationIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
     final TestResources resources = new TestResources(testDirectoryProvider)
 
-    def setup() {
-        executer.noExtraLogging()
-    }
-
-    def shouldNotNavigateThroughJdkClasses() {
-        given:
-        buildFile
-
+    def shouldNotNavigateToJdkClasses() {
         when:
-        run('test')
+        succeeds('test')
 
         then:
-        DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)
-        result.assertTestClassesExecuted('org.gradle.Test1')
+        def result = new DefaultTestExecutionResult(testDirectory)
         result.testClass('org.gradle.Test1').assertTestPassed('shouldPass')
     }
 
