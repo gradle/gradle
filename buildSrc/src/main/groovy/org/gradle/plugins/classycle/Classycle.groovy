@@ -20,10 +20,10 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.SourceSetOutput
+import org.gradle.api.tasks.SkipWhenEmpty
 import org.gradle.api.tasks.TaskAction
 
 import javax.inject.Inject
@@ -31,8 +31,9 @@ import javax.inject.Inject
 @CacheableTask
 class Classycle extends DefaultTask {
 
-    @InputFiles
-    SourceSetOutput sourceSetOutput
+    @InputDirectory
+    @SkipWhenEmpty
+    File classesDir
 
     @Input
     String reportName
@@ -60,9 +61,6 @@ class Classycle extends DefaultTask {
 
     @TaskAction
     void generate() {
-        if (!sourceSetOutput.classesDir.directory) {
-            return;
-        }
         antBuilder.withClasspath(project.configurations.getByName(ClassyclePlugin.CLASSYCLE_CONFIGURATION_NAME).files).execute {
             ant.taskdef(name: "classycleDependencyCheck", classname: "classycle.ant.DependencyCheckingTask")
             ant.taskdef(name: "classycleReport", classname: "classycle.ant.ReportTask")
@@ -74,7 +72,7 @@ class Classycle extends DefaultTask {
                         check absenceOfPackageCycles > 1 in org.gradle.*
                     """
                 ) {
-                    fileset(dir: sourceSetOutput.classesDir) {
+                    fileset(dir: classesDir) {
                         excludePatterns.each { excludePattern ->
                             exclude(name: excludePattern)
                         }
@@ -84,7 +82,7 @@ class Classycle extends DefaultTask {
                 try {
                     ant.unzip(src: project.rootProject.file("gradle/classycle_report_resources.zip"), dest: reportDir)
                     ant.classycleReport(reportFile: analysisFile, reportType: 'xml', mergeInnerClasses: true, title: "${project.name} ${reportName} (${path})") {
-                        fileset(dir: sourceSetOutput.classesDir) {
+                        fileset(dir: classesDir) {
                             excludePatterns.each { excludePattern ->
                                 exclude(name: excludePattern)
                             }
