@@ -43,7 +43,8 @@ class ClassyclePlugin implements Plugin<Project> {
             project.tasks.create(taskName, Classycle, { Classycle task ->
                 task.reportName = sourceSet.name
                 task.classesDir = sourceSet.output.classesDir
-                task.reportDir = reporting.file('classcycle')
+                task.reportDir = reporting.file('classycle')
+                task.dependsOn(sourceSet.output)
             } as Action<Classycle>)
             classycleTask.dependsOn(taskName)
             project.tasks.getByPath('check').dependsOn(taskName)
