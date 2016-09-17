@@ -15,16 +15,17 @@
  */
 package org.gradle.api.internal.artifacts
 
-import spock.lang.Specification
-import org.gradle.api.artifacts.SelfResolvingDependency
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.internal.DefaultDomainObjectSet
 import org.gradle.api.tasks.TaskDependency
+import spock.lang.Specification
 
 class DefaultDependencySetTest extends Specification {
     final DefaultDomainObjectSet<Dependency> store = new DefaultDomainObjectSet<Dependency>(Dependency)
-    final DefaultDependencySet set = new DefaultDependencySet('dependencies', store)
+    final DefaultDependencySet set = new DefaultDependencySet('dependencies', Mock(Configuration), store)
 
     def "set is built by the union of tasks that build the self-resolving dependencies in the set"() {
         SelfResolvingDependency dep1 = Mock()

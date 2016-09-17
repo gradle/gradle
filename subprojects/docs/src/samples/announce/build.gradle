@@ -14,8 +14,10 @@ announce {
 
 
 //START SNIPPET announce-usage
-task helloWorld << {  
-    println "Hello, world!"
+task helloWorld {
+    doLast {
+        println "Hello, world!"
+    }
 }  
 
 helloWorld.doLast {  

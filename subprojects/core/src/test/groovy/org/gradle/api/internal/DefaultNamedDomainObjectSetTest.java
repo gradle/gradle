@@ -383,6 +383,21 @@ public class DefaultNamedDomainObjectSetTest {
     }
 
     @Test
+    public void canApplyActionToDomainObjectByName() {
+        Bean bean = new Bean("a");
+        container.add(bean);
+
+        assertThat(container.getByName("a", new Action<Bean>() {
+            @Override
+            public void execute(Bean bean) {
+                bean.setBeanProperty("hi");
+            }
+        }), sameInstance(bean));
+
+        assertThat(bean.getBeanProperty(), equalTo("hi"));
+    }
+
+    @Test
     public void configureDomainObjectInvokesRuleForUnknownDomainObject() {
         Bean bean = new Bean();
         addRuleFor(bean);

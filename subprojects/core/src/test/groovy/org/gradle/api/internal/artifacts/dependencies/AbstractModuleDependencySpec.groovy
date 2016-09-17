@@ -46,6 +46,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         dependency.artifacts.isEmpty()
         dependency.excludeRules.isEmpty()
         dependency.configuration == Dependency.DEFAULT_CONFIGURATION
+        !dependency.targetConfiguration.present
     }
 
     def "cannot create with null name"() {
@@ -108,6 +109,7 @@ abstract class AbstractModuleDependencySpec extends Specification {
         assert copiedDependency.group == dependency.group
         assert copiedDependency.name == dependency.name
         assert copiedDependency.version == dependency.version
+        assert copiedDependency.targetConfiguration == dependency.targetConfiguration
         assert copiedDependency.configuration == dependency.configuration
         assert copiedDependency.transitive == dependency.transitive
         assert copiedDependency.artifacts == dependency.artifacts

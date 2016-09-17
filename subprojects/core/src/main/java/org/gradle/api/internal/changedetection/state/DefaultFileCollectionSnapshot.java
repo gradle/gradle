@@ -59,10 +59,19 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     }
 
     @Override
+    public List<File> getElements() {
+        List<File> files = Lists.newArrayListWithCapacity(snapshots.size());
+        for (String name : snapshots.keySet()) {
+            files.add(new File(name));
+        }
+        return files;
+    }
+
+    @Override
     public List<File> getFiles() {
         List<File> files = Lists.newArrayList();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : snapshots.entrySet()) {
-            if (!(entry.getValue().getSnapshot() instanceof DirSnapshot)) {
+            if (entry.getValue().getSnapshot() instanceof FileHashSnapshot) {
                 files.add(new File(entry.getKey()));
             }
         }

@@ -75,22 +75,26 @@ installer.pom.project {
 deployer.pom.groupId = 'deployGroup'
 
 // START SNIPPET new-pom
-task writeNewPom << {
-    pom {
-        project {
-            inceptionYear '2008'
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
+task writeNewPom {
+    doLast {
+        pom {
+            project {
+                inceptionYear '2008'
+                licenses {
+                    license {
+                        name 'The Apache Software License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution 'repo'
+                    }
                 }
             }
-        }
-    }.writeTo("$buildDir/newpom.xml")
+        }.writeTo("$buildDir/newpom.xml")
+    }
 }
 // END SNIPPET new-pom
 
-task writeDeployerPom(dependsOn: uploadArchives) << {
-    deployer.pom.writeTo("$buildDir/deployerpom.xml")
+task writeDeployerPom(dependsOn: uploadArchives) {
+    doLast {
+        deployer.pom.writeTo("$buildDir/deployerpom.xml")
+    }
 }

@@ -70,8 +70,10 @@ doStuff()
 
     def "produces reasonable error message when task execution fails"() {
         externalScript << '''
-task doStuff << {
-    throw new RuntimeException('fail')
+task doStuff {
+    doLast {
+        throw new RuntimeException('fail')
+    }
 }
 '''
         when:
@@ -81,7 +83,7 @@ task doStuff << {
         failure.assertHasDescription('Execution failed for task \':doStuff\'.')
                 .assertHasCause('fail')
                 .assertHasFileName("Script '${externalScript}'")
-                .assertHasLineNumber(3)
+                .assertHasLineNumber(4)
     }
 }
 

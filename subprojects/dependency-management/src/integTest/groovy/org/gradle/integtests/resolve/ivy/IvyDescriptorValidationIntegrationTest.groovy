@@ -32,8 +32,10 @@ class IvyDescriptorValidationIntegrationTest extends AbstractDependencyResolutio
   dependencies {
       compile 'org.test:projectA:[1.3,1.5]'
   }
-  task resolve << {
-      configurations.compile.resolve()
+  task resolve {
+      doLast {
+          configurations.compile.resolve()
+      }
   }
   """
 

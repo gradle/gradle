@@ -11,7 +11,9 @@ buildscript {
 }
 // END SNIPPET declare-classpath
 
-task encode << {
-    def byte[] encodedString = new Base64().encode('hello world\n'.getBytes())
-    println new String(encodedString)
+task encode {
+    doLast {
+        def byte[] encodedString = new Base64().encode('hello world\n'.getBytes())
+        println new String(encodedString)
+    }
 }

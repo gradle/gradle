@@ -20,6 +20,7 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.initialization.BuildRequestContext
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecuter
 import org.gradle.launcher.exec.BuildActionParameters
@@ -34,7 +35,8 @@ class RunBuildActionTest extends Specification {
     final Map<String, String> systemProperties = [key: 'value']
     final BuildActionParameters parameters = Mock()
     final ServiceRegistry sharedServices = Mock()
-    final RunBuildAction action = new RunBuildAction(client, startParameter, clientMetaData, startTime, parameters, sharedServices)
+    final Stoppable stoppable = Mock()
+    final RunBuildAction action = new RunBuildAction(client, startParameter, clientMetaData, startTime, parameters, sharedServices, stoppable)
 
     def runsBuildUsingDaemon() {
         when:
@@ -50,6 +52,7 @@ class RunBuildActionTest extends Specification {
             assert build == parameters
             assert services == sharedServices
         }
+        1 * stoppable.stop()
         0 * _._
     }
 }

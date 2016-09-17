@@ -18,12 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.DependencySubstitution;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
-import org.gradle.api.invocation.Gradle;
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -32,12 +27,10 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult;
 public class DependencySubstitutionResolver implements DependencyToComponentIdResolver {
     private final DependencyToComponentIdResolver resolver;
     private final Action<DependencySubstitution> rule;
-    private final ProjectRegistry<ProjectInternal> projectRegistry;
 
-    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencySubstitution> rule, ProjectRegistry<ProjectInternal> projectRegistry) {
+    public DependencySubstitutionResolver(DependencyToComponentIdResolver resolver, Action<DependencySubstitution> rule) {
         this.resolver = resolver;
         this.rule = rule;
-        this.projectRegistry = projectRegistry;
     }
 
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
@@ -50,38 +43,10 @@ public class DependencySubstitutionResolver implements DependencyToComponentIdRe
             return;
         }
         if (details.isUpdated()) {
-            ComponentSelector target = localize(details.getTarget());
-            resolver.resolve(dependency.withTarget(target), result);
+            resolver.resolve(dependency.withTarget(details.getTarget()), result);
             result.setSelectionReason(details.getSelectionReason());
             return;
         }
         resolver.resolve(dependency, result);
-    }
-
-    /**
-     * Convert a ProjectComponentSelector to a 'local' one, if the target is the currently executing build.
-     * Doing so means that `target.isCurrentBuild()` will be correct for any substituted selectors.
-     *
-     * TODO:DAZ This is probably not the right place for this logic.
-     * But at the moment this is the first build-scoped service that can do the translation.
-     */
-    private ComponentSelector localize(ComponentSelector target) {
-        if (target instanceof ProjectComponentSelector) {
-            return localize((ProjectComponentSelector) target);
-        }
-        return target;
-    }
-
-    private ProjectComponentSelector localize(ProjectComponentSelector target) {
-        if (target.getBuild().isCurrentBuild()) {
-            return target;
-        }
-
-        // See if this is a substitution into the current build
-        Gradle currentBuild = projectRegistry.getProject(":").getGradle();
-        if (currentBuild.getRootProject().getName().equals(target.getBuild().getName())) {
-            return DefaultProjectComponentSelector.newSelector(target.getProjectPath());
-        }
-        return target;
     }
 }

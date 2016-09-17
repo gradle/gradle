@@ -130,7 +130,7 @@ repositories {
 }
 configurations { compile }
 dependencies { compile 'org:child:1.0' }
-task libs << { assert configurations.compile.files*.name == ['child-1.0.jar', 'child_dep-1.7.jar', 'typed_dep-1.8.bar', 'classified_dep-1.9-classy.jar', 'fq_dep-2.1-classy.bar'] }
+task libs { doLast { assert configurations.compile.files*.name == ['child-1.0.jar', 'child_dep-1.7.jar', 'typed_dep-1.8.bar', 'classified_dep-1.9-classy.jar', 'fq_dep-2.1-classy.bar'] } }
 """
 
         expect:
@@ -446,7 +446,7 @@ task retrieve(type: Sync) {
             dependencies {
                 compile "group:artifact:1.0"
             }
-            task libs << { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar', 'myartifact-1.1.jar'] }
+            task libs { doLast { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar', 'myartifact-1.1.jar'] } }
         """
 
         and:
@@ -478,7 +478,7 @@ task retrieve(type: Sync) {
             dependencies {
                 compile "group:artifact:1.0"
             }
-            task libs << { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar', 'myartifact-1.3.jar'] }
+            task libs { doLast { assert configurations.compile.files.collect {it.name} == ['artifact-1.0.jar', 'myartifact-1.3.jar'] } }
         """
 
         and:

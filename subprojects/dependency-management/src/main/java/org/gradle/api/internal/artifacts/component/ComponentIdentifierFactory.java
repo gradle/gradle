@@ -17,8 +17,14 @@
 package org.gradle.api.internal.artifacts.component;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
+import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.internal.artifacts.Module;
 
 public interface ComponentIdentifierFactory {
     ComponentIdentifier createComponentIdentifier(Module module);
+
+    ProjectComponentSelector createProjectComponentSelector(String projectPath);
+
+    ProjectComponentIdentifier createProjectComponentIdentifier(ProjectComponentSelector selector);
 }

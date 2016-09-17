@@ -35,6 +35,11 @@ public class ProjectNativeLibraryRequirement implements NativeLibraryRequirement
     }
 
     @Override
+    public NativeLibraryRequirement withProjectPath(String projectPath) {
+        return new ProjectNativeLibraryRequirement(projectPath, libraryName, linkage);
+    }
+
+    @Override
     public String getProjectPath() {
         return projectPath;
     }

@@ -24,15 +24,18 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.initialization.loadercache.HashClassPathSnapshotter;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OrderSensitive;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
 import java.util.Properties;
 
@@ -53,8 +56,7 @@ public class PluginUnderTestMetadata extends DefaultTask {
     /**
      * The code under test. Defaults to {@code sourceSets.main.runtimeClasspath}.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getPluginClasspath() {
         return pluginClasspath;
     }

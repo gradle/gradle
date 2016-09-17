@@ -44,7 +44,7 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
         return InputDirectory.class;
     }
 
-    public boolean attachActions(final TaskPropertyActionContext context) {
+    public void attachActions(final TaskPropertyActionContext context) {
         context.setValidationAction(inputDirValidation);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
@@ -55,11 +55,6 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
                     .withPathSensitivity(getPathSensitivity(context));
             }
         });
-        return true;
     }
 
-    @Override
-    public boolean getMustNotBeNullByDefault() {
-        return true;
-    }
 }

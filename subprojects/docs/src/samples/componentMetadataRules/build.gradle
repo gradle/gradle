@@ -21,10 +21,12 @@ dependencies {
     config2 "org.sample:client:latest.release"
 }
 
-task listConfigs << {
-    configurations.config1.each { println it.name }
-    println()
-    configurations.config2.each { println it.name}
+task listConfigs {
+    doLast {
+        configurations.config1.each { println it.name }
+        println()
+        configurations.config2.each { println it.name }
+    }
 }
 // END SNIPPET latest-selector
 
@@ -41,8 +43,10 @@ dependencies {
 }
 // END SNIPPET custom-status-scheme
 
-task listApi << {
-    configurations.config3.each { println "Resolved: ${it.name}" }
+task listApi {
+    doLast {
+        configurations.config3.each { println "Resolved: ${it.name}" }
+    }
 }
 
 // START SNIPPET custom-status-scheme-module
@@ -56,8 +60,10 @@ dependencies {
 }
 // END SNIPPET custom-status-scheme-module
 
-task listLib << {
-    configurations.config4.each { println "Resolved: ${it.name}" }
+task listLib {
+    doLast {
+        configurations.config4.each { println "Resolved: ${it.name}" }
+    }
 }
 
 // START SNIPPET rule-source-component-metadata-rule
@@ -76,8 +82,10 @@ class CustomStatusRule {
 }
 // END SNIPPET rule-source-component-metadata-rule
 
-task listWithRule << {
-    configurations.config5.each { println "Resolved: ${it.name}" }
+task listWithRule {
+    doLast {
+        configurations.config5.each { println "Resolved: ${it.name}" }
+    }
 }
 
 // START SNIPPET ivy-component-metadata-rule
@@ -93,6 +101,8 @@ dependencies {
 }
 // END SNIPPET ivy-component-metadata-rule
 
-task listWithIvyRule << {
-    configurations.config6.each { println "Resolved: ${it.name}" }
+task listWithIvyRule {
+    doLast {
+        configurations.config6.each { println "Resolved: ${it.name}" }
+    }
 }

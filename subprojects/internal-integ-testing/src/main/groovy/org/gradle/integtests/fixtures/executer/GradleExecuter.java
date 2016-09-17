@@ -180,7 +180,7 @@ public interface GradleExecuter {
     GradleExecuter withNoExplicitNativeServicesDir();
 
     /**
-     * Don't activate full deprecation stack trace.
+     * Disables the rendering of stack traces for deprecation logging.
      */
     GradleExecuter withFullDeprecationStackTraceDisabled();
 

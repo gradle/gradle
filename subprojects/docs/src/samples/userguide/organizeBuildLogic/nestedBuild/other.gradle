@@ -1,3 +1,5 @@
-task hello << {
-    println "hello from the other build."
+task hello {
+    doLast {
+        println "hello from the other build."
+    }
 }

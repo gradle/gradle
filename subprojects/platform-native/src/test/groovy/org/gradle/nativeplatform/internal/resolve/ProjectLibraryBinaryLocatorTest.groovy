@@ -22,9 +22,7 @@ import org.gradle.model.ModelMap
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.nativeplatform.NativeBinarySpec
 import org.gradle.nativeplatform.NativeLibraryBinary
-import org.gradle.nativeplatform.NativeLibraryRequirement
 import org.gradle.nativeplatform.NativeLibrarySpec
-import org.gradle.nativeplatform.internal.ProjectNativeLibraryRequirement
 import org.gradle.platform.base.ComponentSpecContainer
 import spock.lang.Specification
 
@@ -33,7 +31,6 @@ import static org.gradle.model.internal.type.ModelTypes.modelMap
 class ProjectLibraryBinaryLocatorTest extends Specification {
     def projectModel = Mock(ModelRegistry)
     def projectLocator = Mock(ProjectModelResolver)
-    def requirement = Mock(NativeLibraryRequirement)
     def library = Mock(NativeLibrarySpec)
     def binary = Mock(MockNativeLibraryBinary)
     def binaries = Mock(ModelMap)
@@ -47,33 +44,9 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
         nativeBinaries.values() >> [binary]
     }
 
-    def "locates binaries for library in same project"() {
-        when:
-        requirement = new ProjectNativeLibraryRequirement("libName", null)
-
-        and:
-        projectLocator.resolveProjectModel(null) >> projectModel
-        findLibraryInProject()
-
-        then:
-        locator.getBinaries(requirement) == convertedBinaries
-    }
-
     def "locates binaries for library in other project"() {
         when:
-        requirement = new ProjectNativeLibraryRequirement("other", "libName", null)
-
-        and:
-        projectLocator.resolveProjectModel("other") >> projectModel
-        findLibraryInProject()
-
-        then:
-        locator.getBinaries(requirement) == convertedBinaries
-    }
-
-    def "parses map notation for library with static linkage"() {
-        when:
-        requirement = new ProjectNativeLibraryRequirement("other", "libName", "static")
+        def requirement = new LibraryIdentifier("other", "libName")
 
         and:
         projectLocator.resolveProjectModel("other") >> projectModel
@@ -85,34 +58,36 @@ class ProjectLibraryBinaryLocatorTest extends Specification {
 
     def "fails for unknown project"() {
         when:
-        requirement = new ProjectNativeLibraryRequirement("unknown", "libName", "static")
+        def requirement = new LibraryIdentifier("unknown", "libName")
+        def failure = new UnknownProjectException("unknown")
 
         and:
-        projectLocator.resolveProjectModel("unknown") >> { throw new UnknownProjectException("unknown")}
+        projectLocator.resolveProjectModel("unknown") >> { throw failure }
 
         and:
         locator.getBinaries(requirement)
 
         then:
-        thrown(UnknownProjectException)
+        def e = thrown(UnknownProjectException)
+        e.is(failure)
     }
 
-    def "fails for unknown library"() {
+    def "returns null for unknown library"() {
         when:
-        requirement = new ProjectNativeLibraryRequirement("other", "unknown", "static")
+        def requirement = new LibraryIdentifier("other", "unknown")
 
         and:
         projectLocator.resolveProjectModel("other") >> projectModel
         def libraries = findLibraryContainer(projectModel)
-        libraries.get("unknown") >> { null }
+        libraries.get("unknown") >> null
 
         then:
         locator.getBinaries(requirement) == null
     }
 
-    def "fails when project does not have libraries"() {
+    def "returns null when project does not have libraries"() {
         when:
-        requirement = new ProjectNativeLibraryRequirement("other", "libName", "static")
+        def requirement = new LibraryIdentifier("other", "libName")
 
         and:
         projectLocator.resolveProjectModel("other") >> projectModel

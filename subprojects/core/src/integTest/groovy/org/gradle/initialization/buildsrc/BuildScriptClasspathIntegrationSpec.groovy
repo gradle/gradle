@@ -51,8 +51,10 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
                 dependencies { classpath name: 'test', version: '1.3-BUILD-SNAPSHOT' }
             }
 
-            task hello << {
-                println new org.gradle.test.BuildClass().message()
+            task hello {
+                doLast {
+                    println new org.gradle.test.BuildClass().message()
+                }
             }
         '''
         ArtifactBuilder builder = artifactBuilder()
@@ -107,8 +109,10 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
                 }
             }
 
-            task showBuildscript << {
-                showUrls(getClass().getClassLoader())
+            task showBuildscript {
+                doLast {
+                    showUrls(getClass().getClassLoader())
+                }
             }
 
             def showUrls(classloader) {
@@ -166,8 +170,10 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec {
                 dependencies { classpath name: 'test', version: '1.3-BUILD-SNAPSHOT' }
             }
 
-            task hello << {
-                println new org.gradle.test.BuildClass().message()
+            task hello {
+                doLast {
+                    println new org.gradle.test.BuildClass().message()
+                }
             }
         '''
         ArtifactBuilder builder = artifactBuilder()

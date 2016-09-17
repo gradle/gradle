@@ -50,6 +50,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.PatternMatchers;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.internal.classloader.ClassLoaderUtils;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.DefaultMutableIvyModuleResolveMetadata;
@@ -1309,7 +1310,7 @@ public class IvyXmlModuleDescriptorParser extends AbstractModuleDescriptorParser
                 // Set the context classloader to the bootstrap classloader, to work around how JAXP locates implementation classes
                 // This should ensure that the JAXP classes provided by the JVM are used, rather than some other implementation
                 ClassLoader original = Thread.currentThread().getContextClassLoader();
-                Thread.currentThread().setContextClassLoader(ClassLoader.getSystemClassLoader().getParent());
+                Thread.currentThread().setContextClassLoader(ClassLoaderUtils.getPlatformClassLoader());
                 try {
                     SAXParser parser = newSAXParser(schema, schemaStream);
                     parser.parse(xmlStream, handler);

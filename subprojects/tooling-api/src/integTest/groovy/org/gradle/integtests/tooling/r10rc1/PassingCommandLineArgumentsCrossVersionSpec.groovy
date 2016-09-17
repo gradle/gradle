@@ -43,8 +43,10 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
     def "understands system properties"() {
         given:
         file("build.gradle") << """
-        task printProperty << {
-            file('sysProperty.txt') << System.getProperty('sysProperty')
+        task printProperty {
+            doLast {
+                file('sysProperty.txt') << System.getProperty('sysProperty')
+            }
         }
 """
 
@@ -153,8 +155,8 @@ class PassingCommandLineArgumentsCrossVersionSpec extends ToolingApiSpecificatio
     def "can overwrite task names via build arguments"() {
         given:
         file('build.gradle') << """
-task foo << { assert false }
-task bar << { assert true }
+task foo { doLast { assert false } }
+task bar { doLast { assert true } }
 """
 
         when:

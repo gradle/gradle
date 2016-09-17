@@ -31,7 +31,7 @@ class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
     def "empty list of tasks to execute when asking for BuildEnvironment is treated like null tasks and does not fail"() {
         projectDir.file('build.gradle') << """
             defaultTasks 'alpha'
-            task alpha() << { throw new RuntimeException() }
+            task alpha() { doLast { throw new RuntimeException() } }
         """
 
         def outputStream = new ByteArrayOutputStream()
@@ -55,7 +55,7 @@ class ModelBuilderCrossVersionSpec extends ToolingApiSpecification {
     def "empty list of tasks to execute when asking for model from target Gradle is treated like null tasks and executes no tasks"() {
         projectDir.file('build.gradle') << """
             defaultTasks 'alpha'
-            task alpha() << { throw new RuntimeException() }
+            task alpha() { doLast { throw new RuntimeException() } }
         """
 
         def outputStream = new ByteArrayOutputStream()

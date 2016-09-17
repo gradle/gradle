@@ -322,9 +322,11 @@ project(':api') {
         file('a/build.gradle') << """
             configurations { conf }
             dependencies { conf project(path: ":b", configuration: "conf") }
-            task resolveConf << {
-              //resolves at execution time, forcing 'b' to get configured
-              configurations.conf.files
+            task resolveConf {
+                doLast {
+                    //resolves at execution time, forcing 'b' to get configured
+                    configurations.conf.files
+                }
             }
         """
 

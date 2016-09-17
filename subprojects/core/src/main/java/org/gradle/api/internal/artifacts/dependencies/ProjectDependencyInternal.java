@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+
+import java.util.Map;
 
 public interface ProjectDependencyInternal extends ProjectDependency {
 
@@ -25,4 +28,5 @@ public interface ProjectDependencyInternal extends ProjectDependency {
      */
     public void beforeResolved();
 
+    TaskDependencyInternal getTaskDependency(Map<String, String> attributes);
 }

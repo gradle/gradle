@@ -55,8 +55,10 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task check << {
-                println "CUSTOM CHECK"
+            task check {
+                doLast {
+                    println "CUSTOM CHECK"
+                }
             }
 """
         when:

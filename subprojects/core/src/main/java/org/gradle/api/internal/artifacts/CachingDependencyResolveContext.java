@@ -17,25 +17,33 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.internal.graph.CachingDirectedGraphWalker;
 import org.gradle.internal.graph.DirectedGraph;
-import org.gradle.api.internal.file.UnionFileCollection;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class CachingDependencyResolveContext implements DependencyResolveContext {
     private final List<Object> queue = new ArrayList<Object>();
     private final CachingDirectedGraphWalker<Object, FileCollection> walker = new CachingDirectedGraphWalker<Object, FileCollection>(new DependencyGraph());
     private final boolean transitive;
+    private final Map<String, String> attributes;
 
-    public CachingDependencyResolveContext(boolean transitive) {
+    public CachingDependencyResolveContext(boolean transitive, Map<String, String> attributes) {
         this.transitive = transitive;
+        this.attributes = attributes;
     }
 
     public boolean isTransitive() {
         return transitive;
+    }
+
+    @Override
+    public Map<String, String> getAttributes() {
+        return attributes;
     }
 
     public FileCollection resolve() {

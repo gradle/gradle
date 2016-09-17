@@ -41,7 +41,7 @@ public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHan
         return InputFile.class;
     }
 
-    public boolean attachActions(final TaskPropertyActionContext context) {
+    public void attachActions(final TaskPropertyActionContext context) {
         context.setValidationAction(inputFileValidation);
         context.setConfigureAction(new UpdateAction() {
             public void update(TaskInternal task, Callable<Object> futureValue) {
@@ -50,11 +50,6 @@ public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHan
                     .withPathSensitivity(getPathSensitivity(context));
             }
         });
-        return true;
     }
 
-    @Override
-    public boolean getMustNotBeNullByDefault() {
-        return true;
-    }
 }

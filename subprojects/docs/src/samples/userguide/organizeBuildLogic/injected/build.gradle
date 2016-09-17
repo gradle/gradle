@@ -6,11 +6,13 @@ subprojects {
     ext.srcDir = { file(srcDirName) }
 
     // Define a task
-    task show << {
-        println 'project: ' + project.path
-        println 'srcDirName: ' + srcDirName
-        File srcDir = srcDir()
-        println 'srcDir: ' + rootProject.relativePath(srcDir)
+    task show {
+        doLast {
+            println 'project: ' + project.path
+            println 'srcDirName: ' + srcDirName
+            File srcDir = srcDir()
+            println 'srcDir: ' + rootProject.relativePath(srcDir)
+        }
     }
 }
 

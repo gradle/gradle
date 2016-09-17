@@ -1,5 +1,7 @@
-tasks.create(name: 'hello') << {
-    println "hello"
+tasks.create(name: 'hello') {
+    doLast {
+        println "hello"
+    }
 }
 
 tasks.create(name: 'copy', type: Copy) {

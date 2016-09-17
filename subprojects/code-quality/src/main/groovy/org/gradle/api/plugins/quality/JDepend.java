@@ -24,10 +24,12 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.plugins.quality.internal.JDependInvoker;
 import org.gradle.api.plugins.quality.internal.JDependReportsImpl;
 import org.gradle.api.reporting.Reporting;
+import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
-import org.gradle.api.tasks.OrderSensitive;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.reflect.Instantiator;
@@ -38,6 +40,7 @@ import java.io.File;
 /**
  * Analyzes code with <a href="http://clarkware.com/software/JDepend.html">JDepend</a>.
  */
+@CacheableTask
 public class JDepend extends DefaultTask implements Reporting<JDependReports> {
 
     private FileCollection jdependClasspath;
@@ -53,6 +56,7 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
     /**
      * The directory containing the classes to be analyzed.
      */
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     @SkipWhenEmpty
     public File getClassesDir() {
@@ -127,8 +131,7 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
     /**
      * The class path containing the JDepend library to be used.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getJdependClasspath() {
         return jdependClasspath;
     }

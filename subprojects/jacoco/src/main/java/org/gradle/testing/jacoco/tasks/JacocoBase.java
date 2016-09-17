@@ -18,8 +18,7 @@ package org.gradle.testing.jacoco.tasks;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OrderSensitive;
+import org.gradle.api.tasks.Classpath;
 
 /**
  * Base class for Jacoco tasks.
@@ -32,8 +31,7 @@ public abstract class JacocoBase extends DefaultTask {
     /**
      * Classpath containing Jacoco classes for use by the task.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getJacocoClasspath() {
         return jacocoClasspath;
     }

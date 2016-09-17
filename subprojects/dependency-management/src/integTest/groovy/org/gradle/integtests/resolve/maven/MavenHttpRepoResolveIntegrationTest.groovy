@@ -18,8 +18,12 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.encoding.Identifier
+import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Unroll
+
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 class MavenHttpRepoResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -150,8 +154,10 @@ dependencies {
     compile 'group:projectA:1.2@jar'
     compile 'group:projectB:1.2:classy@jar'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.2-classy.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.2-classy.jar']
+    }
 }
 """
 
@@ -196,8 +202,10 @@ dependencies {
     compile 'group:projectA:1.2@jar'
     compile 'group:projectB:1.2:classy@jar'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.2-classy.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.2.jar', 'projectB-1.2-classy.jar']
+    }
 }
 """
 
@@ -238,8 +246,10 @@ configurations {
 dependencies {
     compile 'group:projectA:1.0', 'group:projectB:1.0'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar']
+    }
 }
 """
 
@@ -285,8 +295,10 @@ configurations { compile }
 dependencies {
     compile 'group:projectA:1.0', 'group:projectB:1.0'
 }
-task listJars << {
-    assert configurations.compile.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar']
+task listJars {
+    doLast {
+        assert configurations.compile.collect { it.name } == ['projectA-1.0.jar', 'projectB-1.0.jar']
+    }
 }
 """
 
@@ -388,4 +400,34 @@ task listJars << {
                 .assertHasCause('Credentials must be an instance of: org.gradle.api.artifacts.repositories.PasswordCredentials')
     }
 
+
+    def "resolves artifact-only module via HTTP not modified"() {
+        given:
+        buildFile << """
+            repositories {
+                maven {
+                    url '${mavenHttpRepo.uri}'
+                }
+            }
+            configurations { compile }
+            dependencies { compile 'group:projectA:1.0@zip' }
+            task listJars {
+                doLast {
+                    assert configurations.compile.collect { it.name } == ['projectA-1.0.zip']
+                }
+            }
+        """
+
+        when:
+        server.expect('/repo/group/projectA/1.0/projectA-1.0.pom', false, ['GET'], new HttpServer.ActionSupport('Not Modified') {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                response.sendError(304, 'Not Modified')
+            }
+        })
+
+        then:
+        fails 'listJars'
+
+        errorOutput.contains('Response 304: Not Modified has no content!')
+    }
 }

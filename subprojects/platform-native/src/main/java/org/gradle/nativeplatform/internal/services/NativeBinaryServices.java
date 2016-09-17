@@ -47,6 +47,7 @@ public class NativeBinaryServices implements PluginServiceRegistry {
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
+        registration.addProvider(new NativeDependencyResolverServices());
         registration.add(DefaultVisualStudioLocator.class);
         registration.add(DefaultWindowsSdkLocator.class);
         registration.add(DefaultUcrtLocator.class);
@@ -59,6 +60,5 @@ public class NativeBinaryServices implements PluginServiceRegistry {
 
     @Override
     public void registerProjectServices(ServiceRegistration registration) {
-        registration.addProvider(new NativeDependencyResolverServices());
     }
 }

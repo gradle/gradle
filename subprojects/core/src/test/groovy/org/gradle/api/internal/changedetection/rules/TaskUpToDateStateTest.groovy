@@ -24,12 +24,12 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
+import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.collections.SimpleFileCollection
-import org.gradle.api.internal.tasks.TaskFilePropertySpec
 import org.gradle.api.internal.tasks.TaskInputFilePropertySpec
 import org.gradle.api.internal.tasks.TaskPropertySpec
 import org.gradle.internal.classloader.ClassLoaderHierarchyHasher
@@ -43,7 +43,6 @@ class TaskUpToDateStateTest extends Specification {
     private TaskHistoryRepository.History stubHistory
     private OutputFilesCollectionSnapshotter stubOutputFileSnapshotter
     private FileCollectionSnapshotter stubInputFileSnapshotter
-    private FileCollectionSnapshotter stubDiscoveredInputFileSnapshotter
     private FileCollectionFactory fileCollectionFactory = Mock(FileCollectionFactory)
     private classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher)
 
@@ -56,7 +55,6 @@ class TaskUpToDateStateTest extends Specification {
         this.stubHistory = Stub(TaskHistoryRepository.History)
         this.stubOutputFileSnapshotter = Stub(OutputFilesCollectionSnapshotter)
         this.stubInputFileSnapshotter = Stub(FileCollectionSnapshotter)
-        this.stubDiscoveredInputFileSnapshotter = Stub(FileCollectionSnapshotter)
     }
 
     def "constructor invokes snapshots" () {
@@ -64,10 +62,9 @@ class TaskUpToDateStateTest extends Specification {
         FileCollectionSnapshot stubSnapshot = Stub(FileCollectionSnapshot)
         OutputFilesCollectionSnapshotter mockOutputFileSnapshotter = Mock(OutputFilesCollectionSnapshotter)
         FileCollectionSnapshotter mockInputFileSnapshotter = Mock(FileCollectionSnapshotter)
-        FileCollectionSnapshotter mockDiscoveredInputFileSnapshotter = Mock(FileCollectionSnapshotter)
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotter, mockDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
+        new TaskUpToDateState(stubTask, stubHistory, mockOutputFileSnapshotter, mockInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
 
         then:
         noExceptionThrown()
@@ -85,7 +82,7 @@ class TaskUpToDateStateTest extends Specification {
         _ * stubInputFileSnapshotter.snapshot(_) >> { throw cause }
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
+        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
 
         then:
         1 * mockInputs.getProperties() >> [:]
@@ -101,17 +98,11 @@ class TaskUpToDateStateTest extends Specification {
     @Issue("https://issues.gradle.org/browse/GRADLE-2967")
     def "constructor adds context when output snapshot throws UncheckedIOException" () {
         setup:
-        def mockOutputProperty = Mock(TaskFilePropertySpec) {
-            getPropertyName() >> "out"
-            getFiles() >> {
-                new SimpleFileCollection(new File("b"))
-            }
-        }
         def cause = new UncheckedIOException("thrown from stub")
         _ * stubOutputFileSnapshotter.snapshot(_) >> { throw cause }
 
         when:
-        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, stubDiscoveredInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
+        new TaskUpToDateState(stubTask, stubHistory, stubOutputFileSnapshotter, stubInputFileSnapshotter, fileCollectionFactory, classLoaderHierarchyHasher)
 
         then:
         1 * mockInputs.getProperties() >> [:]
@@ -129,7 +120,7 @@ class TaskUpToDateStateTest extends Specification {
                 propertyName: entry.key,
                 propertyFiles: new SimpleFileCollection([new File(entry.value)]),
                 compareStrategy: TaskFilePropertyCompareStrategy.UNORDERED,
-                pathSensitivity: TaskFilePropertyPathSensitivity.ABSOLUTE
+                snapshotNormalizationStrategy: TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE
             )
         } as SortedSet
     }
@@ -138,7 +129,7 @@ class TaskUpToDateStateTest extends Specification {
         String propertyName
         FileCollection propertyFiles
         TaskFilePropertyCompareStrategy compareStrategy
-        TaskFilePropertyPathSensitivity pathSensitivity
+        SnapshotNormalizationStrategy snapshotNormalizationStrategy
 
         @Override
         int compareTo(TaskPropertySpec o) {

@@ -36,8 +36,10 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
         and:
         file('other/build.gradle') << '''
             assert gradle.parent != null
-            task dostuff << {
-                assert gradle.parent != null
+            task dostuff {
+                doLast {
+                    assert gradle.parent != null
+                }
             }
 '''
 
@@ -55,8 +57,10 @@ class BuildAggregationIntegrationTest extends AbstractIntegrationSpec {
         file('buildSrc/build.gradle') << '''
             apply plugin: 'java'
             assert gradle.parent != null
-            classes << {
-                assert gradle.parent != null
+            classes {
+                doLast {
+                    assert gradle.parent != null
+                }
             }
 '''
 

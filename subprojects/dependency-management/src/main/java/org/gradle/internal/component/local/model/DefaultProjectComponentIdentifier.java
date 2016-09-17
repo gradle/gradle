@@ -19,8 +19,10 @@ import com.google.common.base.Objects;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.initialization.IncludedBuild;
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.initialization.BuildIdentity;
 
 public class DefaultProjectComponentIdentifier implements ProjectComponentIdentifier {
     private final BuildIdentifier buildIdentifier;
@@ -72,16 +74,11 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return displayName;
     }
 
-    static String fullPath(BuildIdentifier build, String projectPath) {
+    private static String fullPath(BuildIdentifier build, String projectPath) {
         if (build.isCurrentBuild()) {
             return projectPath;
         }
         return ":" + build.getName() + projectPath;
-    }
-
-    // TODO:DAZ Need to get rid of usages of this, so we always have a true build id
-    public static ProjectComponentIdentifier newProjectId(String projectPath) {
-        return new DefaultProjectComponentIdentifier(new CurrentBuildIdentifier(), projectPath);
     }
 
     public static ProjectComponentIdentifier newProjectId(IncludedBuild build, String projectPath) {
@@ -89,15 +86,9 @@ public class DefaultProjectComponentIdentifier implements ProjectComponentIdenti
         return new DefaultProjectComponentIdentifier(buildIdentifier, projectPath);
     }
 
-    public static ProjectComponentIdentifier newProjectId(ProjectComponentSelector selector) {
-        return new DefaultProjectComponentIdentifier(selector.getBuild(), selector.getProjectPath());
-    }
-
     public static ProjectComponentIdentifier newProjectId(Project project) {
-        return newProjectId(project.getPath());
+        BuildIdentifier buildId = ((ProjectInternal) project).getServices().get(BuildIdentity.class).getCurrentBuild();
+        return new DefaultProjectComponentIdentifier(buildId, project.getPath());
     }
 
-    public static ProjectComponentIdentifier rootId(ProjectComponentIdentifier projectComponentIdentifier) {
-        return new DefaultProjectComponentIdentifier(projectComponentIdentifier.getBuild(), ":");
-    }
 }

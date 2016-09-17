@@ -17,7 +17,7 @@
 package org.gradle.api.reporting;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Internal;
 
 /**
  * The reporting configuration for the {@link GenerateBuildDashboard} task.
@@ -29,6 +29,6 @@ public interface BuildDashboardReports extends ReportContainer<Report> {
      *
      * @return The build dashboard HTML report
      */
-    @Nested
+    @Internal
     DirectoryReport getHtml();
 }

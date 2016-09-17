@@ -459,7 +459,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable {
     }
 
     private static Object invoke(Method method, Object target, Object... args) {
-        return JavaReflectionUtil.method(target, Object.class, method).invoke(target, args);
+        return JavaReflectionUtil.method(Object.class, method).invoke(target, args);
     }
 
     interface ServiceProvider {

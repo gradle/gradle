@@ -25,7 +25,13 @@ import org.gradle.util.CollectionUtils;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class OptionReader {
     private final ListMultimap<Class<?>, OptionElement> cachedOptionElements = ArrayListMultimap.create();
@@ -133,7 +139,7 @@ public class OptionReader {
                             && method.getParameterTypes().length == 0
                             && !Modifier.isStatic(method.getModifiers())) {
 
-                        methods.add(JavaReflectionUtil.method(Object.class, Collection.class, method));
+                        methods.add(JavaReflectionUtil.method(Collection.class, method));
                     } else {
                         throw new OptionValidationException(
                                 String.format("@OptionValues annotation not supported on method '%s' in class '%s'. Supported method must be non-static, return a Collection<String> and take no parameters.",

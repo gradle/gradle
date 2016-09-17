@@ -46,8 +46,10 @@ task nestedBuildLog(type: GradleBuild) {
     startParameter.taskNames = ['log']
 }
 
-task log(dependsOn: [logInfo, logLifecycle, nestedBuildLog]) << {
-    println('A task message which is logged at QUIET level')
+task log(dependsOn: [logInfo, logLifecycle, nestedBuildLog]) {
+    doLast {
+        println('A task message which is logged at QUIET level')
+    }
 }
 
 // warn is the default log level for echo

@@ -48,8 +48,12 @@ public class DaemonStopEvents {
 
         // User likely doesn't care about daemons that stopped a long time ago
         for (DaemonStopEvent event : sortedEvents) {
-            if (event.occurredInLastHours(RECENTLY) && !uniqueStoppedPids.contains(event.getPid())) {
-                uniqueStoppedPids.add(event.getPid());
+            Long pid = event.getPid();
+            if (event.occurredInLastHours(RECENTLY) && !uniqueStoppedPids.contains(pid)) {
+                // We can only determine if two DaemonStopEvent point at the same daemon if we know the PIDs
+                if (pid != null) {
+                    uniqueStoppedPids.add(pid);
+                }
                 recentStopEvents.add(event);
             }
         }

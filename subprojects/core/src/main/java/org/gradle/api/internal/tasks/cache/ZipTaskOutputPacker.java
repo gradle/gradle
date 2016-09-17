@@ -22,6 +22,7 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.TaskOutputsInternal;
@@ -47,48 +48,51 @@ public class ZipTaskOutputPacker implements TaskOutputPacker {
     public void pack(TaskOutputsInternal taskOutputs, OutputStream output) throws IOException {
         final ZipOutputStream zipOutput = new ZipOutputStream(output);
         for (TaskOutputFilePropertySpec spec : taskOutputs.getFileProperties()) {
-            CacheableTaskOutputFilePropertySpec propertySpec = (CacheableTaskOutputFilePropertySpec) spec;
-            final String propertyName = propertySpec.getPropertyName();
-            switch (propertySpec.getOutputType()) {
-                case DIRECTORY:
-                    final String propertyRoot = "property-" + propertyName + "/";
-                    zipOutput.putNextEntry(new ZipEntry(propertyRoot));
-                    new DirectoryFileTree(propertySpec.getOutputFile()).visit(new FileVisitor() {
-                        @Override
-                        public void visitDir(FileVisitDetails dirDetails) {
-                            String path = dirDetails.getRelativePath().getPathString();
-                            try {
-                                zipOutput.putNextEntry(new ZipEntry(propertyRoot + path + "/"));
-                            } catch (IOException e) {
-                                throw Throwables.propagate(e);
-                            }
-                        }
-
-                        @Override
-                        public void visitFile(FileVisitDetails fileDetails) {
-                            String path = fileDetails.getRelativePath().getPathString();
-                            try {
-                                zipOutput.putNextEntry(new ZipEntry(propertyRoot + path));
-                                fileDetails.copyTo(zipOutput);
-                            } catch (IOException e) {
-                                throw Throwables.propagate(e);
-                            }
-                        }
-                    });
-                    break;
-                case FILE:
-                    try {
-                        zipOutput.putNextEntry(new ZipEntry("property-" + propertyName));
-                        Files.copy(propertySpec.getOutputFile(), zipOutput);
-                    } catch (IOException e) {
-                        throw Throwables.propagate(e);
-                    }
-                    break;
-                default:
-                    throw new AssertionError();
+            try {
+                packProperty((CacheableTaskOutputFilePropertySpec) spec, zipOutput);
+            } catch (Exception ex) {
+                throw new GradleException(String.format("Could not pack property '%s'", spec.getPropertyName()), ex);
             }
         }
         zipOutput.finish();
+    }
+
+    private void packProperty(CacheableTaskOutputFilePropertySpec propertySpec, final ZipOutputStream zipOutput) throws IOException {
+        final String propertyName = propertySpec.getPropertyName();
+        switch (propertySpec.getOutputType()) {
+            case DIRECTORY:
+                final String propertyRoot = "property-" + propertyName + "/";
+                zipOutput.putNextEntry(new ZipEntry(propertyRoot));
+                new DirectoryFileTree(propertySpec.getOutputFile()).visit(new FileVisitor() {
+                    @Override
+                    public void visitDir(FileVisitDetails dirDetails) {
+                        String path = dirDetails.getRelativePath().getPathString();
+                        try {
+                            zipOutput.putNextEntry(new ZipEntry(propertyRoot + path + "/"));
+                        } catch (IOException e) {
+                            throw Throwables.propagate(e);
+                        }
+                    }
+
+                    @Override
+                    public void visitFile(FileVisitDetails fileDetails) {
+                        String path = fileDetails.getRelativePath().getPathString();
+                        try {
+                            zipOutput.putNextEntry(new ZipEntry(propertyRoot + path));
+                            fileDetails.copyTo(zipOutput);
+                        } catch (IOException e) {
+                            throw Throwables.propagate(e);
+                        }
+                    }
+                });
+                break;
+            case FILE:
+                zipOutput.putNextEntry(new ZipEntry("property-" + propertyName));
+                Files.copy(propertySpec.getOutputFile(), zipOutput);
+                break;
+            default:
+                throw new AssertionError();
+        }
     }
 
     private static final Pattern PROPERTY_PATH = Pattern.compile("property-([^/]+)(?:/(.*))?");

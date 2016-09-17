@@ -17,7 +17,6 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -155,11 +154,8 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         skippedTasks.isEmpty()
-        outputContains "Output property 'outputs1' file ${file("build/output2")} has been added."
         outputContains "Output property 'outputs1' file ${file("build/output1")} has been removed."
-        outputContains "Output property 'outputs2' file ${file("build/output1")} has been added."
-        // Note: "Output property 'outputs2' file ${file("build/output2")} has been removed." is missing
-        // due to limitation of only 3 changes printed
+        outputContains "Output property 'outputs2' file ${file("build/output2")} has been removed."
     }
 
     def "no deprecation warning printed when @OutputDirectories or @OutputFiles is used on Map property"() {
@@ -246,7 +242,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "b" assertTasksExecuted ":a", ":b"
     }
 
-    @Ignore
+    @Unroll("can use Enum from buildSrc as input property - flushCaches: #flushCaches taskType: #taskType")
     @Issue("GRADLE-3537")
     def "can use Enum from buildSrc as input property"() {
         given:
@@ -257,11 +253,29 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 HELLO_WORLD
             }
         """
+        file("buildSrc/src/main/java/org/gradle/MyTask.java") << """
+            package org.gradle;
+
+            public class MyTask extends org.gradle.api.DefaultTask {
+
+            }
+        """
 
         buildFile << """
             import org.gradle.MessageType
+            import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 
-            task createFile {
+            if(project.hasProperty('flushCaches')) {
+                println "Flushing InMemoryTaskArtifactCache"
+                gradle.taskGraph.whenReady {
+                    gradle.services.get(InMemoryTaskArtifactCache).cache.asMap().each { k, v ->
+                        v.invalidateAll()
+                    }
+                }
+            }
+"""
+        def taskDefinitionPart = """
+            task createFile(type: $taskType) {
                 ext.messageType = MessageType.HELLO_WORLD
                 ext.outputFile = file('output.txt')
                 inputs.property('messageType', messageType)
@@ -271,7 +285,19 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
                     outputFile << messageType
                 }
             }
-        """
+"""
+        if (taskType == 'MyScriptPluginTask') {
+            buildFile << """
+apply from:'scriptPlugin.gradle'
+"""
+            file("scriptPlugin.gradle") << taskDefinitionPart
+            file("scriptPlugin.gradle") << "class $taskType extends DefaultTask {}\n"
+        } else {
+            buildFile << taskDefinitionPart
+            if (taskType == 'MyBuildScriptTask') {
+                buildFile << "class $taskType extends DefaultTask {}\n"
+            }
+        }
 
         when:
         succeeds 'createFile'
@@ -281,10 +307,16 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.empty
 
         when:
+        if (flushCaches) {
+            executer.withArgument('-PflushCaches')
+        }
         succeeds 'createFile'
 
         then:
         executedTasks == [':createFile']
         skippedTasks == [':createFile'] as Set
+
+        where:
+        [flushCaches, taskType] << [[false, true], ['DefaultTask', 'org.gradle.MyTask', 'MyBuildScriptTask', 'MyScriptPluginTask']].combinations()
     }
 }

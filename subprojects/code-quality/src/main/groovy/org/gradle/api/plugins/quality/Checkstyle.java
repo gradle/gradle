@@ -20,19 +20,22 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.plugins.quality.internal.CheckstyleInvoker;
 import org.gradle.api.plugins.quality.internal.CheckstyleReportsImpl;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
+import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OrderSensitive;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
@@ -46,8 +49,8 @@ import java.util.Map;
 /**
  * Runs Checkstyle against some source files.
  */
+@CacheableTask
 public class Checkstyle extends SourceTask implements VerificationTask, Reporting<CheckstyleReports> {
-
 
     private FileCollection checkstyleClasspath;
     private FileCollection classpath;
@@ -139,10 +142,18 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileTree getSource() {
+        return super.getSource();
+    }
+
+    /**
      * The class path containing the Checkstyle library to be used.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getCheckstyleClasspath() {
         return checkstyleClasspath;
     }
@@ -154,8 +165,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * The class path containing the compiled classes for the source files to be analyzed.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public FileCollection getClasspath() {
         return classpath;
     }

@@ -21,7 +21,7 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.util.Collection;
 
-import static org.gradle.api.internal.project.taskfactory.OutputPropertyAnnotationUtil.validateDirectory;
+import static org.gradle.api.internal.tasks.TaskOutputsUtil.validateDirectory;
 import static org.gradle.api.internal.tasks.TaskOutputsUtil.ensureDirectoryExists;
 
 @SuppressWarnings("deprecation")

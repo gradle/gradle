@@ -50,24 +50,28 @@ public class ConnectionScopeServices {
         return shutdownCoordinator;
     }
 
-    ProviderConnection createProviderConnection(BuildExecuter buildActionExecuter, DaemonClientFactory daemonClientFactory,
+    ProviderConnection createProviderConnection(BuildExecuter buildActionExecuter,
+                                                DaemonClientFactory daemonClientFactory,
                                                 ServiceRegistry serviceRegistry,
                                                 JvmVersionDetector jvmVersionDetector,
                                                 // This is here to trigger creation of the ShutdownCoordinator. Could do this in a nicer way
                                                 ShutdownCoordinator shutdownCoordinator) {
+        ClassLoaderCache classLoaderCache = new ClassLoaderCache();
         return new ProviderConnection(
                 serviceRegistry,
                 loggingServices,
                 daemonClientFactory,
                 buildActionExecuter,
                 new PayloadSerializer(
-                        new ClientSidePayloadClassLoaderRegistry(
+                        new WellKnownClassLoaderRegistry(
+                            new ClientSidePayloadClassLoaderRegistry(
                                 new DefaultPayloadClassLoaderRegistry(
-                                        new ClassLoaderCache(),
-                                        new ClientSidePayloadClassLoaderFactory(
-                                                new ModelClassLoaderFactory())),
-                                new ClasspathInferer())),
-                jvmVersionDetector
+                                    classLoaderCache,
+                                    new ClientSidePayloadClassLoaderFactory(
+                                        new ModelClassLoaderFactory())),
+                                new ClasspathInferer(),
+                                classLoaderCache))),
+            jvmVersionDetector
         );
     }
 

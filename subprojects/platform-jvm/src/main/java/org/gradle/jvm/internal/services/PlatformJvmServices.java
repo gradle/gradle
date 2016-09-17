@@ -20,10 +20,8 @@ import org.gradle.api.internal.artifacts.ResolveContext;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DelegatingComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
-import org.gradle.jvm.internal.resolve.DefaultLibraryResolutionErrorMessageBuilder;
+import org.gradle.api.internal.project.taskfactory.ClasspathPropertyAnnotationHandler;
 import org.gradle.api.internal.resolve.DefaultLocalLibraryResolver;
-import org.gradle.jvm.internal.resolve.JvmLocalLibraryMetaDataAdapter;
-import org.gradle.jvm.internal.resolve.JvmVariantSelector;
 import org.gradle.api.internal.resolve.LocalLibraryDependencyResolver;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.api.internal.resolve.VariantSelector;
@@ -31,14 +29,17 @@ import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.PluginServiceRegistry;
 import org.gradle.jvm.JvmBinarySpec;
-import org.gradle.jvm.internal.resolve.DefaultJavaPlatformVariantAxisCompatibility;
 import org.gradle.jvm.internal.JarBinaryRenderer;
-import org.gradle.jvm.platform.JavaPlatform;
-import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
+import org.gradle.jvm.internal.resolve.DefaultJavaPlatformVariantAxisCompatibility;
+import org.gradle.jvm.internal.resolve.DefaultLibraryResolutionErrorMessageBuilder;
 import org.gradle.jvm.internal.resolve.DefaultVariantAxisCompatibilityFactory;
+import org.gradle.jvm.internal.resolve.JvmLibraryResolveContext;
+import org.gradle.jvm.internal.resolve.JvmLocalLibraryMetaDataAdapter;
+import org.gradle.jvm.internal.resolve.JvmVariantSelector;
 import org.gradle.jvm.internal.resolve.VariantAxisCompatibilityFactory;
 import org.gradle.jvm.internal.resolve.VariantsMetaData;
-import org.gradle.jvm.internal.resolve.JvmLibraryResolveContext;
+import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.process.internal.ExecActionFactory;
 
@@ -47,6 +48,7 @@ public class PlatformJvmServices implements PluginServiceRegistry {
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.add(JarBinaryRenderer.class);
         registration.add(VariantAxisCompatibilityFactory.class, DefaultVariantAxisCompatibilityFactory.of(JavaPlatform.class, new DefaultJavaPlatformVariantAxisCompatibility()));
+        registration.add(ClasspathPropertyAnnotationHandler.class);
     }
 
     @Override

@@ -44,21 +44,23 @@ dependencies {
     allowsCollections "org.mockito:mockito-core:1.8", someDependency
 }
 
-task checkDeps << {
-    def deps = configurations.conf.incoming.dependencies
-    assert deps.contains(someDependency)
-    assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' && it.name == 'mockito-core' && it.version == '1.8'  }
-    assert deps.find { it instanceof ExternalDependency && it.group == 'org.spockframework' && it.name == 'spock-core' && it.version == '1.0'  }
-    assert deps.find { it instanceof ClientModule && it.name == 'moduleOne' && it.group == 'org.foo' }
-    assert deps.find { it instanceof ClientModule && it.name == 'moduleTwo' && it.version == '1.0' }
+task checkDeps {
+    doLast {
+        def deps = configurations.conf.incoming.dependencies
+        assert deps.contains(someDependency)
+        assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' && it.name == 'mockito-core' && it.version == '1.8'  }
+        assert deps.find { it instanceof ExternalDependency && it.group == 'org.spockframework' && it.name == 'spock-core' && it.version == '1.0'  }
+        assert deps.find { it instanceof ClientModule && it.name == 'moduleOne' && it.group == 'org.foo' }
+        assert deps.find { it instanceof ClientModule && it.name == 'moduleTwo' && it.version == '1.0' }
 
-    deps = configurations.gradleStuff.dependencies
-    assert deps.findAll { it instanceof SelfResolvingDependency }.size() > 0 : "should include gradle api jars"
+        deps = configurations.gradleStuff.dependencies
+        assert deps.findAll { it instanceof SelfResolvingDependency }.size() > 0 : "should include gradle api jars"
 
-    deps = configurations.allowsCollections.dependencies
-    assert deps.size() == 2
-    assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' }
-    assert deps.contains(someDependency)
+        deps = configurations.allowsCollections.dependencies
+        assert deps.size() == 2
+        assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' }
+        assert deps.contains(someDependency)
+    }
 }
 """
         then:
@@ -86,14 +88,16 @@ dependencies {
     confTwo project(path: ':otherProject', configuration: 'otherConf')
 }
 
-task checkDeps << {
-    def deps = configurations.conf.incoming.dependencies
-    assert deps.size() == 1
-    assert deps.find { it.dependencyProject.path == ':otherProject' }
+task checkDeps {
+    doLast {
+        def deps = configurations.conf.incoming.dependencies
+        assert deps.size() == 1
+        assert deps.find { it.dependencyProject.path == ':otherProject' }
 
-    deps = configurations.confTwo.incoming.dependencies
-    assert deps.size() == 1
-    assert deps.find { it.dependencyProject.path == ':otherProject' && it.projectConfiguration.name == 'otherConf' }
+        deps = configurations.confTwo.incoming.dependencies
+        assert deps.size() == 1
+        assert deps.find { it.dependencyProject.path == ':otherProject' && it.projectConfiguration.name == 'otherConf' }
+    }
 }
 """
         then:
@@ -115,16 +119,18 @@ dependencies {
     }
 }
 
-task checkDeps << {
-    def deps = configurations.conf.incoming.dependencies
-    assert deps.size() == 1
-    def dep = deps.find { it instanceof ClientModule && it.name == 'moduleOne' }
-    assert dep
-    assert dep.dependencies.size() == 4
-    assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'bar' && it.version == '1.0' && it.transitive == true }
-    assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'one' && it.version == '1' }
-    assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'two' && it.version == '1' }
-    assert dep.dependencies.find { it.group == 'high' && it.name == 'five' && it.version == '5' && it.transitive == false }
+task checkDeps {
+    doLast {
+        def deps = configurations.conf.incoming.dependencies
+        assert deps.size() == 1
+        def dep = deps.find { it instanceof ClientModule && it.name == 'moduleOne' }
+        assert dep
+        assert dep.dependencies.size() == 4
+        assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'bar' && it.version == '1.0' && it.transitive == true }
+        assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'one' && it.version == '1' }
+        assert dep.dependencies.find { it.group == 'org.foo' && it.name == 'two' && it.version == '1' }
+        assert dep.dependencies.find { it.group == 'high' && it.name == 'five' && it.version == '5' && it.transitive == false }
+    }
 }
 """
         then:
@@ -197,11 +203,13 @@ task checkDeps
               conf gradleApi()
             }
 
-            task check << {
-              assert dependencies.gradleApi().contentEquals(dependencies.gradleApi())
-              assert dependencies.gradleApi().is(dependencies.gradleApi())
-              assert dependencies.gradleApi() == dependencies.gradleApi()
-              assert configurations.conf.dependencies.contains(dependencies.gradleApi())
+            task check {
+                doLast {
+                    assert dependencies.gradleApi().contentEquals(dependencies.gradleApi())
+                    assert dependencies.gradleApi().is(dependencies.gradleApi())
+                    assert dependencies.gradleApi() == dependencies.gradleApi()
+                    assert configurations.conf.dependencies.contains(dependencies.gradleApi())
+                }
             }
         """
 

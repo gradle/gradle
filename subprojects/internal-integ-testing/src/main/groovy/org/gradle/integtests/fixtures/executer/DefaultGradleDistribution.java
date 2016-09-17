@@ -135,6 +135,11 @@ public class DefaultGradleDistribution implements GradleDistribution {
     }
 
     @Override
+    public boolean isToolingApiLocksBuildActionClasses() {
+        return isSameOrOlder("3.0");
+    }
+
+    @Override
     public boolean isToolingApiLoggingInEmbeddedModeSupported() {
         return isSameOrNewer("2.9-rc-1");
     }

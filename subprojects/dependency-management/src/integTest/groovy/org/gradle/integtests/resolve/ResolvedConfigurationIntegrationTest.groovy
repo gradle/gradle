@@ -45,20 +45,22 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationSpe
                 compile 'org.foo:rock:1.0' //contains unresolved transitive dependency
             }
 
-            task validate << {
-                LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+            task validate {
+                doLast {
+                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
 
-                def unresolved = compile.getUnresolvedModuleDependencies()
-                def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
+                    def unresolved = compile.getUnresolvedModuleDependencies()
+                    def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
 
-                assert resolved.size() == 3
-                assert resolved.find { it.moduleName == 'hiphop' }
-                assert resolved.find { it.moduleName == 'rock' }
-                assert resolved.find { it.moduleName == 'child' }
+                    assert resolved.size() == 3
+                    assert resolved.find { it.moduleName == 'hiphop' }
+                    assert resolved.find { it.moduleName == 'rock' }
+                    assert resolved.find { it.moduleName == 'child' }
 
-                assert unresolved.size() == 2
-                assert unresolved.find { it.selector.group == 'unresolved.org' && it.selector.name == 'hiphopxx' && it.selector.version == '3.0' }
-                assert unresolved.find { it.selector.name == 'some unresolved dependency' }
+                    assert unresolved.size() == 2
+                    assert unresolved.find { it.selector.group == 'unresolved.org' && it.selector.name == 'hiphopxx' && it.selector.version == '3.0' }
+                    assert unresolved.find { it.selector.name == 'some unresolved dependency' }
+                }
             }
         """
 
@@ -80,24 +82,26 @@ public class ResolvedConfigurationIntegrationTest extends AbstractIntegrationSpe
                 someConf 'org.foo:hiphopxx:1.0' //does not exist
             }
 
-            task validate << {
-                LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
+            task validate {
+                doLast {
+                    LenientConfiguration compile = configurations.compile.resolvedConfiguration.lenientConfiguration
 
-                def unresolved = compile.getUnresolvedModuleDependencies()
-                def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
+                    def unresolved = compile.getUnresolvedModuleDependencies()
+                    def resolved = compile.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
 
-                assert resolved.size() == 1
-                assert resolved.find { it.moduleName == 'hiphop' }
-                assert unresolved.size() == 0
+                    assert resolved.size() == 1
+                    assert resolved.find { it.moduleName == 'hiphop' }
+                    assert unresolved.size() == 0
 
-                LenientConfiguration someConf = configurations.someConf.resolvedConfiguration.lenientConfiguration
+                    LenientConfiguration someConf = configurations.someConf.resolvedConfiguration.lenientConfiguration
 
-                unresolved = someConf.getUnresolvedModuleDependencies()
-                resolved = someConf.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
+                    unresolved = someConf.getUnresolvedModuleDependencies()
+                    resolved = someConf.getFirstLevelModuleDependencies(Specs.SATISFIES_ALL)
 
-                assert resolved.size() == 0
-                assert unresolved.size() == 1
-                assert unresolved.find { it.selector.name == 'hiphopxx' }
+                    assert resolved.size() == 0
+                    assert unresolved.size() == 1
+                    assert unresolved.find { it.selector.name == 'hiphopxx' }
+                }
             }
         """
 

@@ -16,6 +16,8 @@
 package org.gradle.api.execution;
 
 import groovy.lang.Closure;
+
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 
 import java.util.List;
@@ -70,12 +72,32 @@ public interface TaskExecutionGraph {
     void whenReady(Closure closure);
 
     /**
+     * <p>Adds an action to be called when this graph has been populated. This graph is passed to the action as a
+     * parameter.</p>
+     *
+     * @param action The action to execute when this graph has been populated.
+     *
+     * @since 3.1
+     */
+    void whenReady(Action<TaskExecutionGraph> action);
+
+    /**
      * <p>Adds a closure to be called immediately before a task is executed. The task is passed to the closure as a
      * parameter.</p>
      *
      * @param closure The closure to execute when a task is about to be executed.
      */
     void beforeTask(Closure closure);
+
+    /**
+     * <p>Adds an action to be called immediately before a task is executed. The task is passed to the action as a
+     * parameter.</p>
+     *
+     * @param action The action to execute when a task is about to be executed.
+     *
+     * @since 3.1
+     */
+    void beforeTask(Action<Task> action);
 
     /**
      * <p>Adds a closure to be called immediately after a task has executed. The task is passed to the closure as the
@@ -85,6 +107,16 @@ public interface TaskExecutionGraph {
      * @param closure The closure to execute when a task has been executed
      */
     void afterTask(Closure closure);
+
+    /**
+     * <p>Adds an action to be called immediately after a task has executed. The task is passed to the action as the
+     * first parameter.</p>
+     *
+     * @param action The action to execute when a task has been executed
+     *
+     * @since 3.1
+     */
+    void afterTask(Action<Task> action);
 
     /**
      * <p>Determines whether the given task is included in the execution plan.</p>

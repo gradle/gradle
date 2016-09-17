@@ -278,6 +278,57 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.contains ":customTask"
     }
 
+    def 'ad hoc tasks are not cacheable by default'() {
+        given:
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+
+        expect:
+        taskIsNotCached ':adHocTask'
+    }
+
+    def 'ad hoc tasks are cached when explicitely requested'() {
+        given:
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+        buildFile << """
+        adHocTask { outputs.cacheIf { true } }"""
+
+        expect:
+        taskIsCached ':adHocTask'
+    }
+
+    String adHocTaskWithInputs() {
+        """
+        task adHocTask {
+            def outputFile = file("\$buildDir/output.txt")
+            inputs.file(file("input.txt"))
+            outputs.file(outputFile)
+            doLast {
+                project.mkdir outputFile.parentFile
+                outputFile.text = file("input.txt").text
+            }
+        }""".stripIndent()
+    }
+
+    void taskIsNotCached(String task) {
+        runWithCache task
+        assert nonSkippedTasks.contains(task)
+        runWithCache 'clean'
+
+        runWithCache task
+        assert nonSkippedTasks.contains(task)
+    }
+
+    void taskIsCached(String task) {
+        runWithCache task
+        assert nonSkippedTasks.contains(task)
+        runWithCache 'clean'
+
+        runWithCache task
+        assert skippedTasks.contains(task)
+    }
+
     def runWithCache(String... tasks) {
         enableCache()
         run tasks

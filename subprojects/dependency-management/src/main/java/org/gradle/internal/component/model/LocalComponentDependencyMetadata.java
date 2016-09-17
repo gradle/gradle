@@ -16,7 +16,11 @@
 
 package org.gradle.internal.component.model;
 
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionSelector;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
@@ -25,13 +29,23 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusion;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.util.GUtil;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class LocalComponentDependencyMetadata implements LocalOriginDependencyMetadata {
+    private static final Function<ConfigurationMetadata, String> CONFIG_NAME = new Function<ConfigurationMetadata, String>() {
+        @Override
+        public String apply(ConfigurationMetadata input) {
+            return input.getName();
+        }
+    };
+
     private final ComponentSelector selector;
     private final ModuleVersionSelector requested;
     private final String moduleConfiguration;
@@ -42,13 +56,18 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     private final boolean changing;
     private final boolean transitive;
     private final ModuleExclusion exclusions;
+    private final Map<String, String> moduleAttributes;
 
-    public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested, String moduleConfiguration, String dependencyConfiguration,
+    public LocalComponentDependencyMetadata(ComponentSelector selector, ModuleVersionSelector requested,
+                                            String moduleConfiguration,
+                                            Map<String, String> moduleAttributes,
+                                            String dependencyConfiguration,
                                             Set<IvyArtifactName> artifactNames, List<Exclude> excludes,
                                             boolean force, boolean changing, boolean transitive) {
         this.selector = selector;
         this.requested = requested;
         this.moduleConfiguration = moduleConfiguration;
+        this.moduleAttributes = moduleAttributes;
         this.dependencyConfiguration = dependencyConfiguration;
         this.artifactNames = artifactNames;
         this.excludes = excludes;
@@ -80,27 +99,51 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
 
     @Override
     public String getDependencyConfiguration() {
-        return dependencyConfiguration;
+        return getOrDefaultConfiguration(dependencyConfiguration);
     }
 
     @Override
     public Set<ConfigurationMetadata> selectConfigurations(ComponentResolveMetadata fromComponent, ConfigurationMetadata fromConfiguration, ComponentResolveMetadata targetComponent) {
-        assert fromConfiguration.getHierarchy().contains(moduleConfiguration);
-        ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(dependencyConfiguration);
+        assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
+        Map<String, String> attributes = fromConfiguration.getAttributes();
+        if (dependencyConfiguration==null && attributes!= null && !attributes.isEmpty()) {
+            // CC: this duplicates the logic of org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency.findProjectConfiguration()
+            Set<String> configurationNames = targetComponent.getConfigurationNames();
+            List<ConfigurationMetadata> candidateConfigurations = new ArrayList<ConfigurationMetadata>(1);
+            for (String configurationName : configurationNames) {
+                ConfigurationMetadata dependencyConfiguration = targetComponent.getConfiguration(configurationName);
+                Map<String, String> dependencyConfigurationAttributes = dependencyConfiguration.getAttributes();
+                if (dependencyConfigurationAttributes != null && !dependencyConfigurationAttributes.isEmpty()) {
+                    if (dependencyConfigurationAttributes.entrySet().containsAll(attributes.entrySet())) {
+                        candidateConfigurations.add(dependencyConfiguration);
+                    }
+                }
+            }
+            if (candidateConfigurations.size()==1) {
+                return ImmutableSet.of(candidateConfigurations.get(0));
+            } else if (!candidateConfigurations.isEmpty()) {
+                throw new IllegalArgumentException("Cannot choose between the following configurations: " + Sets.newTreeSet(Lists.transform(candidateConfigurations, CONFIG_NAME)) + ". All of then match the client attributes " + attributes);
+            }
+        }
+        String targetConfiguration = GUtil.elvis(dependencyConfiguration, Dependency.DEFAULT_CONFIGURATION);
+        ConfigurationMetadata toConfiguration = targetComponent.getConfiguration(targetConfiguration);
         if (toConfiguration == null) {
-            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, dependencyConfiguration, targetComponent.getComponentId());
+            throw new ConfigurationNotFoundException(fromComponent.getComponentId(), moduleConfiguration, targetConfiguration, targetComponent.getComponentId());
         }
         return ImmutableSet.of(toConfiguration);
     }
 
+    private static String getOrDefaultConfiguration(String configuration) {
+        return GUtil.elvis(configuration, Dependency.DEFAULT_CONFIGURATION);
+    }
     @Override
     public Set<String> getModuleConfigurations() {
-        return ImmutableSet.of(moduleConfiguration);
+        return ImmutableSet.of(getOrDefaultConfiguration(moduleConfiguration));
     }
 
     @Override
     public ModuleExclusion getExclusions(ConfigurationMetadata fromConfiguration) {
-        assert fromConfiguration.getHierarchy().contains(moduleConfiguration);
+        assert fromConfiguration.getHierarchy().contains(getOrDefaultConfiguration(moduleConfiguration));
         return exclusions;
     }
 
@@ -176,6 +219,6 @@ public class LocalComponentDependencyMetadata implements LocalOriginDependencyMe
     }
 
     private LocalOriginDependencyMetadata copyWithTarget(ComponentSelector selector, ModuleVersionSelector requested) {
-        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
+        return new LocalComponentDependencyMetadata(selector, requested, moduleConfiguration, moduleAttributes, dependencyConfiguration, artifactNames, excludes, force, changing, transitive);
     }
 }

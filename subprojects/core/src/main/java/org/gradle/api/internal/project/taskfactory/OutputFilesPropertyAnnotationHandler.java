@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.internal.tasks.TaskOutputsUtil;
 import org.gradle.api.tasks.OutputFiles;
 
 import java.io.File;
@@ -33,7 +34,7 @@ public class OutputFilesPropertyAnnotationHandler extends AbstractPluralOutputPr
 
     @Override
     protected void doValidate(String propertyName, File file, Collection<String> messages) {
-        OutputPropertyAnnotationUtil.validateFile(propertyName, file, messages);
+        TaskOutputsUtil.validateFile(propertyName, file, messages);
     }
 
     @Override

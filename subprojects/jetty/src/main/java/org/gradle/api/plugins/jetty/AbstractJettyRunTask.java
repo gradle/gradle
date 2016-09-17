@@ -22,11 +22,10 @@ import org.gradle.api.plugins.jetty.internal.ConsoleScanner;
 import org.gradle.api.plugins.jetty.internal.JettyPluginServer;
 import org.gradle.api.plugins.jetty.internal.JettyPluginWebAppContext;
 import org.gradle.api.plugins.jetty.internal.Monitor;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.OrderSensitive;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -41,7 +40,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URLClassLoader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Base class for all tasks which deploy a web application to an embedded Jetty web container.
@@ -574,8 +578,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     /**
      * Returns the classpath to make available to the web application.
      */
-    @OrderSensitive
-    @InputFiles
+    @Classpath
     public Iterable<File> getAdditionalRuntimeJars() {
         return additionalRuntimeJars;
     }

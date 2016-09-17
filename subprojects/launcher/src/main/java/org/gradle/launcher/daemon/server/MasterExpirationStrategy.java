@@ -26,6 +26,7 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.launcher.daemon.server.health.HealthExpirationStrategy;
 import org.gradle.launcher.daemon.server.health.LowMemoryDaemonExpirationStrategy;
+import org.gradle.launcher.daemon.server.health.memory.MemoryInfo;
 
 import java.util.concurrent.TimeUnit;
 
@@ -54,7 +55,7 @@ public class MasterExpirationStrategy implements DaemonExpirationStrategy {
         strategies.add(new DaemonIdleTimeoutExpirationStrategy(daemon, params.getIdleTimeout(), TimeUnit.MILLISECONDS));
 
         // Expire recently unused Daemons when memory pressure is high
-        addLowMemoryDaemonExpirationStrategyWhenSupported(daemon, params.getIdleTimeout(), strategies);
+        addLowMemoryDaemonExpirationStrategyWhenSupported(daemon, strategies);
 
         // Expire when Daemon Registry becomes unreachable for some reason
         strategies.add(new DaemonRegistryUnavailableExpirationStrategy(daemon));
@@ -62,9 +63,9 @@ public class MasterExpirationStrategy implements DaemonExpirationStrategy {
         this.strategy = new AnyDaemonExpirationStrategy(strategies.build());
     }
 
-    private void addLowMemoryDaemonExpirationStrategyWhenSupported(Daemon daemon, int idleTimeout, ImmutableList.Builder<DaemonExpirationStrategy> strategies) {
+    private void addLowMemoryDaemonExpirationStrategyWhenSupported(Daemon daemon, ImmutableList.Builder<DaemonExpirationStrategy> strategies) {
         try {
-            final LowMemoryDaemonExpirationStrategy lowMemoryDaemonExpirationStrategy = LowMemoryDaemonExpirationStrategy.belowFreePercentage(0.05);
+            final LowMemoryDaemonExpirationStrategy lowMemoryDaemonExpirationStrategy = new LowMemoryDaemonExpirationStrategy(new MemoryInfo(), 0.05);
             // this is to check that the JVM supports calling MemoryInfo.getFreePhysicalMemory
             lowMemoryDaemonExpirationStrategy.checkExpiration();
             strategies.add(new AllDaemonExpirationStrategy(ImmutableList.of(

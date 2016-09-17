@@ -29,8 +29,10 @@ class CompositeBuildTaskDependencyIntegrationTest extends AbstractCompositeBuild
         buildB = multiProjectBuild("buildB", ['b1', 'b2']) {
             buildFile << """
                 allprojects {
-                    task logProject << {
-                        println "Executing build '" + project.rootProject.name + "' project '" + project.path + "' task '" + path + "'"
+                    task logProject {
+                        doLast {
+                            println "Executing build '" + project.rootProject.name + "' project '" + project.path + "' task '" + path + "'"
+                        }
                     }
                 }
 """

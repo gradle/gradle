@@ -41,7 +41,7 @@ public class SingletonFileTree implements MinimalFileTree {
     }
 
     public void visit(FileVisitor visitor) {
-        visitor.visitFile(new SingletonFileVisitDetails(file, fileSystem));
+        visitor.visitFile(new SingletonFileVisitDetails(file, fileSystem, false));
     }
 
     @Override
@@ -56,8 +56,8 @@ public class SingletonFileTree implements MinimalFileTree {
 
     // This is used so that we can detect the single-file origin of the details, and ignore the relative path
     public static class SingletonFileVisitDetails extends DefaultFileVisitDetails {
-        public SingletonFileVisitDetails(File file, FileSystem fileSystem) {
-            super(file, new RelativePath(true, file.getName()), new AtomicBoolean(), fileSystem, fileSystem, false);
+        public SingletonFileVisitDetails(File file, FileSystem fileSystem, boolean isDirectory) {
+            super(file, new RelativePath(true, file.getName()), new AtomicBoolean(), fileSystem, fileSystem, isDirectory);
         }
     }
 }

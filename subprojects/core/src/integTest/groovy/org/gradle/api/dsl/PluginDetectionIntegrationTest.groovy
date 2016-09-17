@@ -50,7 +50,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
             assert pluginManager.hasPlugin("$detectedBy")
             assert pluginManager.findPlugin("$detectedBy").id == "$detectedBy"
 
-            task verify << { assert operations == ['applying', 'withId for JavaPlugin', 'withPlugin', 'applied'] }
+            task verify { doLast { assert operations == ['applying', 'withId for JavaPlugin', 'withPlugin', 'applied'] } }
         """
 
         expect:
@@ -93,7 +93,7 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
             apply type: ruleSourceClass
             operations << "applied"
 
-            task verify << { assert operations == ['applying', 'withType', 'withId', 'withPlugin', 'applied'] }
+            task verify { doLast { assert operations == ['applying', 'withType', 'withId', 'withPlugin', 'applied'] } }
 
             gradle.buildFinished { loader.close() }
         """

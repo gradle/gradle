@@ -134,19 +134,21 @@ tasks.withType(AssembleDslDocTask) {
     classDocbookDir = dslSrcDir
 }
 
-task configureCss << {
-    def images = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
-        [it.name, it.bytes.encodeBase64().toString()]
-    }
+task configureCss {
+    doLast {
+        def images = fileTree(dir: "src/docs/css/images", include: "*.*").files.collectEntries {
+            [it.name, it.bytes.encodeBase64().toString()]
+        }
 
-    def fonts = configurations.fonts.resolvedConfiguration.resolvedArtifacts.collectEntries {
-        def id = it.moduleVersion.id
-        ["${id.group}-${id.name}".toString(), it.file.bytes.encodeBase64().toString()]
-    }
+        def fonts = configurations.fonts.resolvedConfiguration.resolvedArtifacts.collectEntries {
+            def id = it.moduleVersion.id
+            ["${id.group}-${id.name}".toString(), it.file.bytes.encodeBase64().toString()]
+        }
 
-    ext.tokens = images + fonts
-    css.inputs.property 'tokens', tokens
-    css.filter ReplaceTokens, tokens: tokens
+        ext.tokens = images + fonts
+        css.inputs.property 'tokens', tokens
+        css.filter ReplaceTokens, tokens: tokens
+    }
 }
 
 task css(type: Sync, dependsOn: configureCss) {

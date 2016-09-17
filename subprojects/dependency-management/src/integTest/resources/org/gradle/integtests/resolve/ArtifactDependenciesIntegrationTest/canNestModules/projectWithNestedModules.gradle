@@ -20,7 +20,9 @@ file("projectA-1.2.jar").text = ''
 file("projectB-1.5.jar").text = ''
 file("projectC-2.0.jar").text = ''
 
-task listJars << {
-    List jars = configurations.compile.collect { it.name }
-    assert jars == ['projectA-1.2.jar', 'projectB-1.5.jar', 'projectC-2.0.jar']
+task listJars {
+    doLast {
+        List jars = configurations.compile.collect { it.name }
+        assert jars == ['projectA-1.2.jar', 'projectB-1.5.jar', 'projectC-2.0.jar']
+    }
 }

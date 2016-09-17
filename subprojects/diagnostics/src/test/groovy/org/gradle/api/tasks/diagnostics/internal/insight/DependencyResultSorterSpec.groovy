@@ -23,11 +23,11 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultV
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyEdge
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import spock.lang.Specification
 import spock.lang.Unroll
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class DependencyResultSorterSpec extends Specification {
     def versionSelectorScheme = new DefaultVersionSelectorScheme(new DefaultVersionComparator())
@@ -52,7 +52,7 @@ class DependencyResultSorterSpec extends Specification {
     }
 
     def "sorts by comparing ProjectComponentSelector on left and ModuleComponentSelector on right"() {
-        def d1 = newDependency(DefaultProjectComponentSelector.newSelector(":hisProject"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
+        def d1 = newDependency(TestComponentIdentifiers.newSelector(":hisProject"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
         def d2 = newDependency(DefaultModuleComponentSelector.newSelector("org.aha", "aha", "1.0"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
 
         when:
@@ -64,7 +64,7 @@ class DependencyResultSorterSpec extends Specification {
 
     def "sorts by comparing ModuleComponentSelector on left and ProjectComponentSelector on right"() {
         def d1 = newDependency(DefaultModuleComponentSelector.newSelector("org.aha", "aha", "1.0"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
-        def d2 = newDependency(DefaultProjectComponentSelector.newSelector(":hisProject"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
+        def d2 = newDependency(TestComponentIdentifiers.newSelector(":hisProject"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
 
         when:
         def sorted = DependencyResultSorter.sort([d1, d2], versionSelectorScheme, versionComparator)
@@ -160,16 +160,16 @@ class DependencyResultSorterSpec extends Specification {
     }
 
     def "sorts by requested ProjectComponentSelector by project path"() {
-        def d1 = newDependency(DefaultProjectComponentSelector.newSelector(":hisProject"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
+        def d1 = newDependency(TestComponentIdentifiers.newSelector(":hisProject"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
 
-        def d2 = newDependency(DefaultProjectComponentSelector.newSelector(":myPath"), DefaultModuleComponentIdentifier.newId("org.gradle", "core", "2.0"))
-        def d3 = newDependency(DefaultProjectComponentSelector.newSelector(":newPath"), DefaultModuleComponentIdentifier.newId("org.gradle", "core", "2.0"))
-        def d4 = newDependency(DefaultProjectComponentSelector.newSelector(":path2:path6"), DefaultModuleComponentIdentifier.newId("org.gradle", "core", "2.0"))
+        def d2 = newDependency(TestComponentIdentifiers.newSelector(":myPath"), DefaultModuleComponentIdentifier.newId("org.gradle", "core", "2.0"))
+        def d3 = newDependency(TestComponentIdentifiers.newSelector(":newPath"), DefaultModuleComponentIdentifier.newId("org.gradle", "core", "2.0"))
+        def d4 = newDependency(TestComponentIdentifiers.newSelector(":path2:path6"), DefaultModuleComponentIdentifier.newId("org.gradle", "core", "2.0"))
 
-        def d5 = newDependency(DefaultProjectComponentSelector.newSelector(":path3:path2"), DefaultModuleComponentIdentifier.newId("org.gradle", "xxxx", "1.0"))
+        def d5 = newDependency(TestComponentIdentifiers.newSelector(":path3:path2"), DefaultModuleComponentIdentifier.newId("org.gradle", "xxxx", "1.0"))
 
-        def d6 = newDependency(DefaultProjectComponentSelector.newSelector(":project2"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
-        def d7 = newDependency(DefaultProjectComponentSelector.newSelector(":project5"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
+        def d6 = newDependency(TestComponentIdentifiers.newSelector(":project2"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
+        def d7 = newDependency(TestComponentIdentifiers.newSelector(":project5"), DefaultModuleComponentIdentifier.newId("org.gradle", "zzzz", "3.0"))
 
         when:
         def sorted = DependencyResultSorter.sort([d5, d3, d6, d1, d2, d7, d4], versionSelectorScheme, versionComparator)

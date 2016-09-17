@@ -28,8 +28,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
+import org.gradle.api.internal.changedetection.state.SnapshotNormalizationStrategy;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertyPathSensitivity;
+import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
@@ -246,7 +247,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     abstract private class BasePropertySpec extends AbstractTaskPropertyBuilder implements TaskPropertySpec, TaskOutputFilePropertyBuilder {
         private boolean optional;
-        private TaskFilePropertyPathSensitivity pathSensitivity = TaskFilePropertyPathSensitivity.ABSOLUTE;
+        private SnapshotNormalizationStrategy snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.ABSOLUTE;
 
         @Override
         public TaskOutputFilePropertyBuilder withPropertyName(String propertyName) {
@@ -269,13 +270,13 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
             return this;
         }
 
-        public TaskFilePropertyPathSensitivity getPathSensitivity() {
-            return pathSensitivity;
+        public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
+            return snapshotNormalizationStrategy;
         }
 
         @Override
         public TaskOutputFilePropertyBuilder withPathSensitivity(PathSensitivity sensitivity) {
-            this.pathSensitivity = TaskFilePropertyPathSensitivity.valueOf(sensitivity);
+            this.snapshotNormalizationStrategy = TaskFilePropertySnapshotNormalizationStrategy.valueOf(sensitivity);
             return this;
         }
 
@@ -285,7 +286,7 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
         @Override
         public String toString() {
-            return getPropertyName() + " " + getCompareStrategy().name() + " " + pathSensitivity.name();
+            return getPropertyName() + " (" + getCompareStrategy() + " " + snapshotNormalizationStrategy + ")";
         }
 
         // --- Deprecated delegate methods
@@ -457,8 +458,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         }
 
         @Override
-        public TaskFilePropertyPathSensitivity getPathSensitivity() {
-            return parentProperty.getPathSensitivity();
+        public SnapshotNormalizationStrategy getSnapshotNormalizationStrategy() {
+            return parentProperty.getSnapshotNormalizationStrategy();
         }
 
         @Override

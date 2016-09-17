@@ -23,8 +23,10 @@ class UserHomeDirCrossVersionSpec extends ToolingApiSpecification {
         toolingApi.requireIsolatedDaemons()
         File userHomeDir = temporaryFolder.createDir('userhomedir')
         projectDir.file('settings.gradle') << 'rootProject.name="test"'
-        projectDir.file('build.gradle') << """task gradleBuild << {
-    logger.lifecycle 'userHomeDir=' + gradle.gradleUserHomeDir
+        projectDir.file('build.gradle') << """task gradleBuild {
+    doLast {
+        logger.lifecycle 'userHomeDir=' + gradle.gradleUserHomeDir
+    }
 }
 """
         ByteArrayOutputStream baos = new ByteArrayOutputStream()

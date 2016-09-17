@@ -289,7 +289,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     }
 
     private RESTClient createClient() {
-        client = new RESTClient("$teamCityUrl/httpAuth/app/rest/")
+        client = new RESTClient("$teamCityUrl/httpAuth/app/rest/9.1")
         client.auth.basic(teamCityUsername, teamCityPassword)
         client
     }

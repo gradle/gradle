@@ -33,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * A {@link PayloadClassLoaderRegistry} that maps classes loaded by a set of ClassLoaders that it manages. For ClassLoaders owned by this JVM, inspects the ClassLoader to determine a ClassLoader spec to send across to the peer JVM. For classes serialized from the peer, maintains a set of cached ClassLoaders created using the ClassLoader specs received from the peer.
+ */
 @ThreadSafe
 public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPayloadClassLoaderRegistry.class);
@@ -69,8 +72,9 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
                 return id;
             }
 
-            public Map<Short, ClassLoaderDetails> getClassLoaders() {
-                return classLoaderDetails;
+            @Override
+            public void collectClassLoaderDefinitions(Map<Short, ClassLoaderDetails> details) {
+                details.putAll(classLoaderDetails);
             }
         };
     }
@@ -80,10 +84,6 @@ public class DefaultPayloadClassLoaderRegistry implements PayloadClassLoaderRegi
             public Class<?> resolveClass(ClassLoaderDetails classLoaderDetails, String className) throws ClassNotFoundException {
                 ClassLoader classLoader = getClassLoader(classLoaderDetails);
                 return Class.forName(className, false, classLoader);
-            }
-
-            public void close() {
-                cache.clear();
             }
         };
     }

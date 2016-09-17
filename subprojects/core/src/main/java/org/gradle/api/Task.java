@@ -43,7 +43,6 @@ import java.util.Set;
  * <pre>
  * task myTask
  * task myTask { configure closure }
- * task myType &lt;&lt; { task action }
  * task myTask(type: SomeType)
  * task myTask(type: SomeType) { configure closure }
  * </pre>
@@ -56,12 +55,12 @@ import java.util.Set;
  * <h3>Task Actions</h3>
  *
  * <p>A <code>Task</code> is made up of a sequence of {@link Action} objects. When the task is executed, each of the
- * actions is executed in turn, by calling {@link Action#execute}.  You can add actions to a task by calling {@link
+ * actions is executed in turn, by calling {@link Action#execute}. You can add actions to a task by calling {@link
  * #doFirst(Action)} or {@link #doLast(Action)}.</p>
  *
  * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
  * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or
- * {@link #doLast(groovy.lang.Closure)}  or using the left-shift {@code <<} operator.</p>
+ * {@link #doLast(groovy.lang.Closure)}.</p>
  *
  * <p>There are 2 special exceptions which a task action can throw to abort execution and continue without failing the
  * build. A task action can abort execution of the action and continue to the next action of the task by throwing a
@@ -370,7 +369,10 @@ public interface Task extends Comparable<Task>, ExtensionAware {
      *
      * @param action The action closure to execute.
      * @return This task.
+     *
+     * @deprecated Use {@link #doLast(Closure action)}
      */
+    @Deprecated
     Task leftShift(Closure action);
 
     /**

@@ -113,7 +113,7 @@
                 <td>Truncated stacktraces are printed. We recommend this over full stacktraces. Groovy full stacktraces
                     are extremely verbose (Due to the underlying dynamic invocation mechanisms. Yet they usually do not
                     contain relevant information for what has gone wrong in <emphasis>your</emphasis> code.)
-                    With this option stack traces for deprecation warnings are printed to the console, too.
+                    This option renders stacktraces for deprecation warnings.
                 </td>
             </tr>
             <tr>
@@ -121,7 +121,7 @@
                     <literal>-S</literal> or <literal>--full-stacktrace</literal>
                 </td>
                 <td>The full stacktraces are printed out.
-                    With this option stack traces for deprecation warnings are printed to the console, too.
+                    This option renders stacktraces for deprecation warnings.
                 </td>
             </tr>
 

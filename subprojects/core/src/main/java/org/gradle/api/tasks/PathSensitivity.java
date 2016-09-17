@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
+
 /**
  * Enumeration of different path handling strategies for task properties.
  *
@@ -23,13 +25,15 @@ package org.gradle.api.tasks;
  *
  * @since 3.1
  */
+@Incubating
 public enum PathSensitivity {
     /**
      * Consider the full path of files and directories.
      */
     ABSOLUTE,
+
     /**
-     * Consider the path for each file or directory relative to the root it was included via.
+     * Use the location of the file related to a hierarchy.
      */
     RELATIVE,
 

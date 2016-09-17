@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.configurations;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -30,11 +31,13 @@ import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.PublishArtifactSet;
+import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolvableDependencies;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolutionResult;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.ClosureBackedAction;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
@@ -46,7 +49,7 @@ import org.gradle.api.internal.artifacts.DefaultResolverResults;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.ResolverResults;
-import org.gradle.api.internal.artifacts.component.DefaultComponentIdentifierFactory;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.ConfigurationComponentMetaDataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.projectresult.ResolvedProjectConfiguration;
@@ -65,12 +68,12 @@ import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -95,6 +98,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final ResolutionStrategyInternal resolutionStrategy;
     private final ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder;
     private final FileCollectionFactory fileCollectionFactory;
+    private final ComponentIdentifierFactory componentIdentifierFactory;
 
     private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
     private final MutationValidator parentMutationValidator = new MutationValidator() {
@@ -123,6 +127,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private ResolverResults cachedResolverResults = new DefaultResolverResults();
     private boolean dependenciesModified;
+    private Map<String, String> attributes;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 ConfigurationResolver resolver, ListenerManager listenerManager,
@@ -131,7 +136,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                                 ProjectAccessListener projectAccessListener,
                                 ProjectFinder projectFinder,
                                 ConfigurationComponentMetaDataBuilder configurationComponentMetaDataBuilder,
-                                FileCollectionFactory fileCollectionFactory) {
+                                FileCollectionFactory fileCollectionFactory, ComponentIdentifierFactory componentIdentifierFactory) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -143,6 +148,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         this.projectFinder = projectFinder;
         this.configurationComponentMetaDataBuilder = configurationComponentMetaDataBuilder;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.componentIdentifierFactory = componentIdentifierFactory;
 
         dependencyResolutionListeners = listenerManager.createAnonymousBroadcaster(DependencyResolutionListener.class);
 
@@ -150,9 +156,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         ownDependencies.beforeChange(validateMutationType(this, MutationType.DEPENDENCIES));
 
         final String displayName = getDisplayName();
-        dependencies = new DefaultDependencySet(displayName + " dependencies", ownDependencies);
+        dependencies = new DefaultDependencySet(displayName + " dependencies", this, ownDependencies);
         inheritedDependencies = CompositeDomainObjectSet.create(Dependency.class, ownDependencies);
-        allDependencies = new DefaultDependencySet(displayName + " all dependencies", inheritedDependencies);
+        allDependencies = new DefaultDependencySet(displayName + " all dependencies", this, inheritedDependencies);
 
         DefaultDomainObjectSet<PublishArtifact> ownArtifacts = new DefaultDomainObjectSet<PublishArtifact>(PublishArtifact.class);
         ownArtifacts.beforeChange(validateMutationType(this, MutationType.ARTIFACTS));
@@ -522,7 +528,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private DefaultConfiguration createCopy(Set<Dependency> dependencies, boolean recursive) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
         DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
-            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory);
+            configurationsProvider, resolver, listenerManager, metaDataProvider, resolutionStrategy.copy(), projectAccessListener, projectFinder, configurationComponentMetaDataBuilder, fileCollectionFactory, componentIdentifierFactory);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
         // copying extendsFrom could mess up dependencies when copy was re-resolved
@@ -572,7 +578,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     public ComponentResolveMetadata toRootComponentMetaData() {
         Module module = getModule();
         Set<? extends Configuration> configurations = getAll();
-        ComponentIdentifier componentIdentifier = new DefaultComponentIdentifierFactory().createComponentIdentifier(module);
+        ComponentIdentifier componentIdentifier = componentIdentifierFactory.createComponentIdentifier(module);
         ModuleVersionIdentifier moduleVersionIdentifier = DefaultModuleVersionIdentifier.newId(module);
         DefaultLocalComponentMetadata metaData = new DefaultLocalComponentMetadata(moduleVersionIdentifier, componentIdentifier, module.getStatus());
         configurationComponentMetaDataBuilder.addConfigurations(metaData, configurations);
@@ -583,8 +589,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return path;
     }
 
+    @Override
     public Configuration resolutionStrategy(Closure closure) {
-        ConfigureUtil.configure(closure, resolutionStrategy);
+        return resolutionStrategy(ClosureBackedAction.of(closure));
+    }
+
+    @Override
+    public Configuration resolutionStrategy(Action<? super ResolutionStrategy> action) {
+        action.execute(resolutionStrategy);
         return this;
     }
 
@@ -696,6 +708,36 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
         }
         super.registerWatchPoints(builder);
+    }
+
+    @Override
+    public Configuration attribute(String key, String value) {
+        ensureAttributes();
+        attributes.put(key, value);
+        return this;
+    }
+
+    @Override
+    public Configuration attributes(Map<String, String> attributes) {
+        ensureAttributes();
+        this.attributes.putAll(attributes);
+        return this;
+    }
+
+    private void ensureAttributes() {
+        if (this.attributes == null) {
+            this.attributes = new HashMap<String, String>();
+        }
+    }
+
+    @Override
+    public Map<String, String> getAttributes() {
+        return attributes == null ? null : ImmutableMap.copyOf(attributes);
+    }
+
+    @Override
+    public boolean hasAttributes() {
+        return attributes != null && !attributes.isEmpty();
     }
 
     /**

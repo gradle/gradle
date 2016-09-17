@@ -296,6 +296,11 @@ abstract class AbstractModuleComponentResolveMetadata implements ModuleComponent
             return visible;
         }
 
+        @Override
+        public Map<String, String> getAttributes() {
+            return null;
+        }
+
         public List<DependencyMetadata> getDependencies() {
             return configDependencies;
         }

@@ -30,18 +30,22 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
         buildFile.text = """
         import org.gradle.integtest.test.BuildSrcTask
 
-        task blocking(type:BuildSrcTask)<< {
-            file("run1washere.lock").createNewFile()
-            while(!file("run2washere.lock").exists()){
-                sleep 10
+        task blocking(type:BuildSrcTask) {
+            doLast {
+                file("run1washere.lock").createNewFile()
+                while(!file("run2washere.lock").exists()){
+                    sleep 10
+                }
             }
         }
 
-        task releasing(type:BuildSrcTask) << {
-            while(!file("run1washere.lock").exists()){
-                sleep 10
+        task releasing(type:BuildSrcTask) {
+            doLast {
+                while(!file("run1washere.lock").exists()){
+                    sleep 10
+                }
+                file("run2washere.lock").createNewFile()
             }
-            file("run2washere.lock").createNewFile()
         }
         """
         when:

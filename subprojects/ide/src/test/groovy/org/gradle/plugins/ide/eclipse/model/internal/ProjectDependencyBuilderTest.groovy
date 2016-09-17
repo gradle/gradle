@@ -25,7 +25,7 @@ import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.plugins.ide.internal.resolver.model.IdeProjectDependency
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class ProjectDependencyBuilderTest extends AbstractProjectBuilderSpec {
     def ProjectComponentIdentifier projectId = newProjectId("anything")

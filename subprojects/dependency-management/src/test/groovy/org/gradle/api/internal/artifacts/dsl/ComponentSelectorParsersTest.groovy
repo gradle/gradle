@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.dsl;
-
+package org.gradle.api.internal.artifacts.dsl
 
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.Project
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.component.ProjectComponentSelector
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.initialization.BuildIdentity
+import org.gradle.initialization.DefaultBuildIdentity
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
+import org.gradle.api.internal.artifacts.component.DefaultBuildIdentifier
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
@@ -94,8 +97,11 @@ public class ComponentSelectorParsersTest extends Specification {
 
     def "understands project input"() {
         when:
-        def project = Mock(Project) {
+        def services = new DefaultServiceRegistry()
+        services.add(BuildIdentity, new DefaultBuildIdentity(new DefaultBuildIdentifier("TEST")))
+        def project = Mock(ProjectInternal) {
             getPath() >> ":bar"
+            getServices() >> services
         }
         def v = multiParser().parseNotation(project) as List
 

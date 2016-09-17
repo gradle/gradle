@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentSelector;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.component.external.model.MetadataSourcedComponentArtifacts;
 import org.gradle.internal.component.local.model.DefaultProjectComponentSelector;
@@ -41,22 +42,22 @@ import org.gradle.internal.resolve.result.BuildableComponentResolveResult;
 
 import java.io.File;
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId;
-
 public class ProjectDependencyResolver implements ComponentMetaDataResolver, DependencyToComponentIdResolver, ArtifactResolver {
     private final LocalComponentRegistry localComponentRegistry;
     private final ProjectArtifactBuilder artifactBuilder;
+    private final ComponentIdentifierFactory componentIdentifierFactory;
 
-    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ProjectArtifactBuilder artifactBuilder) {
+    public ProjectDependencyResolver(LocalComponentRegistry localComponentRegistry, ProjectArtifactBuilder artifactBuilder, ComponentIdentifierFactory componentIdentifierFactory) {
         this.localComponentRegistry = localComponentRegistry;
         this.artifactBuilder = artifactBuilder;
+        this.componentIdentifierFactory = componentIdentifierFactory;
     }
 
     @Override
     public void resolve(DependencyMetadata dependency, BuildableComponentIdResolveResult result) {
         if (dependency.getSelector() instanceof ProjectComponentSelector) {
             ProjectComponentSelector selector = (ProjectComponentSelector) dependency.getSelector();
-            ProjectComponentIdentifier project = newProjectId(selector);
+            ProjectComponentIdentifier project = componentIdentifierFactory.createProjectComponentIdentifier(selector);
             LocalComponentMetadata componentMetaData = localComponentRegistry.getComponent(project);
             if (componentMetaData == null) {
                 result.failed(new ModuleVersionResolveException(selector, project + " not found."));

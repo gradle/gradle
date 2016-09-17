@@ -16,8 +16,12 @@
 
 package org.gradle.api.internal.artifacts;
 
+import java.util.Map;
+
 public interface DependencyResolveContext {
     boolean isTransitive();
-    
+
     void add(Object dependency);
+
+    Map<String, String> getAttributes();
 }

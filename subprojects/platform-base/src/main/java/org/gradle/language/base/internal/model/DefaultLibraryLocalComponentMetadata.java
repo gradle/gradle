@@ -84,6 +84,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
                 Collections.singleton(configurationName),
                 true,
                 true,
+                null,
                 entry.getValue());
         }
         return metaData;
@@ -156,7 +157,7 @@ public class DefaultLibraryLocalComponentMetadata extends DefaultLocalComponentM
      */
     private LocalOriginDependencyMetadata dependencyMetadataFor(ComponentSelector selector, ModuleVersionSelector requested, String usageConfigurationName, String mappedUsageConfiguration) {
         return new LocalComponentDependencyMetadata(
-                selector, requested, usageConfigurationName, mappedUsageConfiguration,
+                selector, requested, usageConfigurationName, null, mappedUsageConfiguration,
                 Collections.<IvyArtifactName>emptySet(),
                 EXCLUDE_RULES,
                 false, false, true);

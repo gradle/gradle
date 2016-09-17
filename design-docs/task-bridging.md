@@ -22,7 +22,7 @@ class Rules extends RuleSource {
 }
 apply type: Rules
 
-task customTask << { }
+task customTask { doLast {} }
 customTask.dependsOn tasks.withType(ClimbTask)
 ```
 

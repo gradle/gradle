@@ -16,8 +16,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule
 
 import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory
 import org.gradle.internal.component.local.model.LocalComponentMetadata
+import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import org.gradle.internal.component.model.ComponentOverrideMetadata
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata
 import org.gradle.internal.component.model.DependencyMetadata
@@ -26,19 +27,21 @@ import org.gradle.internal.resolve.result.BuildableComponentIdResolveResult
 import org.gradle.internal.resolve.result.BuildableComponentResolveResult
 import spock.lang.Specification
 
-import static org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId
+import static org.gradle.internal.component.local.model.TestComponentIdentifiers.newProjectId
 
 class ProjectDependencyResolverTest extends Specification {
     final LocalComponentRegistry registry = Mock()
     final ProjectArtifactBuilder artifactBuilder = Mock()
-    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, artifactBuilder)
+    final ComponentIdentifierFactory componentIdentifierFactory = Mock()
+    final ProjectDependencyResolver resolver = new ProjectDependencyResolver(registry, artifactBuilder, componentIdentifierFactory)
 
     def "resolves project dependency"() {
         setup:
+        def selector = TestComponentIdentifiers.newSelector(":project")
         def componentMetaData = Mock(LocalComponentMetadata)
         def result = Mock(BuildableComponentIdResolveResult)
         def dependencyMetaData = Stub(DependencyMetadata) {
-            getSelector() >> DefaultProjectComponentSelector.newSelector(":project")
+            getSelector() >> selector
         }
         def id = newProjectId(":project")
 
@@ -46,6 +49,7 @@ class ProjectDependencyResolverTest extends Specification {
         resolver.resolve(dependencyMetaData, result)
 
         then:
+        1 * componentIdentifierFactory.createProjectComponentIdentifier(selector) >> id
         1 * registry.getComponent(id) >> componentMetaData
         1 * result.resolved(componentMetaData)
         0 * result._

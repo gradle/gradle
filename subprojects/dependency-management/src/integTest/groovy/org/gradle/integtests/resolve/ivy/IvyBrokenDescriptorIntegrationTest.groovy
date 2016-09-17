@@ -27,7 +27,7 @@ class IvyBrokenDescriptorIntegrationTest extends AbstractHttpDependencyResolutio
                 }
             }
             configurations { compile }
-            task showBroken << { println configurations.compile.files }
+            task showBroken { doLast { println configurations.compile.files } }
         """
     }
 

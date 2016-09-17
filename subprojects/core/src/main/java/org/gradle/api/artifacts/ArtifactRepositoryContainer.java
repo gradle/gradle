@@ -16,6 +16,8 @@
 package org.gradle.api.artifacts;
 
 import groovy.lang.Closure;
+
+import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectList;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.util.Configurable;
@@ -79,6 +81,11 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * {@inheritDoc}
      */
     ArtifactRepository getByName(String name, Closure configureClosure) throws UnknownRepositoryException;
+
+    /**
+     * {@inheritDoc}
+     */
+    ArtifactRepository getByName(String name, Action<? super ArtifactRepository> configureAction) throws UnknownRepositoryException;
 
     /**
      * {@inheritDoc}

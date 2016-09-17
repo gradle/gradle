@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.component.ProjectComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
+import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.VersionSelectionReasons;
 import org.gradle.internal.Actions;
@@ -46,10 +47,6 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
         .toType(ComponentSelector.class)
         .converter(new ModuleSelectorStringNotationConverter())
         .toComposite();
-    private static final NotationParser<Object, ComponentSelector> PROJECT_SELECTOR_NOTATION_PARSER = NotationParserBuilder
-        .toType(ComponentSelector.class)
-        .fromCharSequence(new ProjectPathConverter())
-        .toComposite();
     private final Set<Action<? super DependencySubstitution>> substitutionRules;
     private final NotationParser<Object, ComponentSelector> moduleSelectorNotationParser;
     private final NotationParser<Object, ComponentSelector> projectSelectorNotationParser;
@@ -58,8 +55,12 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private boolean hasDependencySubstitutionRule;
 
-    public static DefaultDependencySubstitutions forResolutionStrategy() {
-        return new DefaultDependencySubstitutions(VersionSelectionReasons.SELECTED_BY_RULE, PROJECT_SELECTOR_NOTATION_PARSER);
+    public static DefaultDependencySubstitutions forResolutionStrategy(ComponentIdentifierFactory componentIdentifierFactory) {
+        NotationParser<Object, ComponentSelector> projectSelectorNotationParser = NotationParserBuilder
+            .toType(ComponentSelector.class)
+            .fromCharSequence(new ProjectPathConverter(componentIdentifierFactory))
+            .toComposite();
+        return new DefaultDependencySubstitutions(VersionSelectionReasons.SELECTED_BY_RULE, projectSelectorNotationParser);
     }
 
     public static DefaultDependencySubstitutions forIncludedBuild(IncludedBuild build) {
@@ -153,15 +154,13 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
             projectSelectorNotationParser);
     }
 
-    private static NotationParser<Object, ComponentSelector> createModuleSelectorNotationParser() {
-        return MODULE_SELECTOR_NOTATION_PARSER;
-    }
-
-    private static NotationParser<Object, ComponentSelector> createProjectSelectorNotationParser() {
-        return PROJECT_SELECTOR_NOTATION_PARSER;
-    }
-
     private static class ProjectPathConverter implements NotationConverter<String, ProjectComponentSelector> {
+        private final ComponentIdentifierFactory componentIdentifierFactory;
+
+        private ProjectPathConverter(ComponentIdentifierFactory componentIdentifierFactory) {
+            this.componentIdentifierFactory = componentIdentifierFactory;
+        }
+
         @Override
         public void describe(DiagnosticsVisitor visitor) {
             visitor.example("Project paths, e.g. ':api'.");
@@ -169,7 +168,7 @@ public class DefaultDependencySubstitutions implements DependencySubstitutionsIn
 
         @Override
         public void convert(String notation, NotationConvertResult<? super ProjectComponentSelector> result) throws TypeConversionException {
-            result.converted(DefaultProjectComponentSelector.newSelector(notation));
+            result.converted(componentIdentifierFactory.createProjectComponentSelector(notation));
         }
     }
 

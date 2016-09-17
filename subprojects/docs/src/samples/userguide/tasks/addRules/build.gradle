@@ -1,8 +1,10 @@
 // START SNIPPET task-rule
 tasks.addRule("Pattern: ping<ID>") { String taskName ->
     if (taskName.startsWith("ping")) {
-        task(taskName) << {
-            println "Pinging: " + (taskName - 'ping')
+        task(taskName) {
+            doLast {
+                println "Pinging: " + (taskName - 'ping')
+            }
         }
     }
 }

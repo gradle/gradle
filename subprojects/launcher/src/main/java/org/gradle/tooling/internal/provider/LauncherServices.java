@@ -78,9 +78,10 @@ public class LauncherServices implements PluginServiceRegistry {
 
         PayloadSerializer createPayloadSerializer(ClassLoaderCache classLoaderCache, PayloadClassLoaderFactory classLoaderFactory) {
             return new PayloadSerializer(
-                new DefaultPayloadClassLoaderRegistry(
-                    classLoaderCache,
-                    classLoaderFactory)
+                new WellKnownClassLoaderRegistry(
+                    new DefaultPayloadClassLoaderRegistry(
+                        classLoaderCache,
+                        classLoaderFactory))
             );
         }
     }

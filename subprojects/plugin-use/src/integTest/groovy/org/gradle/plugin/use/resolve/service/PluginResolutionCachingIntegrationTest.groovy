@@ -44,8 +44,10 @@ class PluginResolutionCachingIntegrationTest extends AbstractIntegrationSpec {
         service.start()
         buildScript """
             plugins { id '$PLUGIN_ID' version '$VERSION' }
-            task pluginApplied << {
-                assert project.pluginApplied
+            task pluginApplied {
+                doLast {
+                    assert project.pluginApplied
+                }
             }
         """
     }

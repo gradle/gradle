@@ -25,10 +25,12 @@ class DaemonSystemPropertiesIntegrationTest extends DaemonIntegrationSpec {
     def "standard and sun. client JVM system properties are not carried over to daemon JVM"() {
         given:
         file("build.gradle") << """
-task verify << {
-    assert System.getProperty("java.vendor") != "hollywood"
-    assert System.getProperty("java.vendor") != null
-    assert System.getProperty("sun.sunny") == null
+task verify {
+    doLast {
+        assert System.getProperty("java.vendor") != "hollywood"
+        assert System.getProperty("java.vendor") != null
+        assert System.getProperty("sun.sunny") == null
+    }
 }
         """
 
@@ -39,8 +41,10 @@ task verify << {
     def "other client JVM system properties are carried over to daemon JVM"() {
         given:
         file("build.gradle") << """
-task verify << {
-    assert System.getProperty("foo.bar") == "baz"
+task verify {
+    doLast {
+        assert System.getProperty("foo.bar") == "baz"
+    }
 }
         """
 

@@ -215,10 +215,12 @@ dependencies {
     compile 'org:child:2'
     compile 'org:dep:2'
 }
-task checkDeps(dependsOn: configurations.compile) << {
-    assert configurations.compile*.name == ['child-2.jar', 'dep-2.jar', 'parent-2.jar']
-    configurations.compile.resolvedConfiguration.firstLevelModuleDependencies*.name
-    configurations.compile.incoming.resolutionResult.allComponents*.id
+task checkDeps(dependsOn: configurations.compile) {
+    doLast {
+        assert configurations.compile*.name == ['child-2.jar', 'dep-2.jar', 'parent-2.jar']
+        configurations.compile.resolvedConfiguration.firstLevelModuleDependencies*.name
+        configurations.compile.incoming.resolutionResult.allComponents*.id
+    }
 }
 """
 
@@ -244,8 +246,10 @@ dependencies {
     compile 'org:dep:2.2'
 }
 
-task checkDeps << {
-    assert configurations.compile*.name == ['dep-2.2.jar', 'external-1.4.jar']
+task checkDeps {
+    doLast {
+        assert configurations.compile*.name == ['dep-2.2.jar', 'external-1.4.jar']
+    }
 }
 """
 
@@ -269,8 +273,10 @@ dependencies {
     compile 'org:dep:2.2'
 }
 
-task checkDeps << {
-    assert configurations.compile*.name == ['external-1.2.jar', 'dep-2.2.jar']
+task checkDeps {
+    doLast {
+        assert configurations.compile*.name == ['external-1.2.jar', 'dep-2.2.jar']
+    }
 }
 """
 
@@ -295,8 +301,10 @@ dependencies {
     compile 'org:dep:2.2'
 }
 
-task checkDeps << {
-    assert configurations.compile*.name == ['dep-2.2.jar', 'external-1.4.jar']
+task checkDeps {
+    doLast {
+        assert configurations.compile*.name == ['dep-2.2.jar', 'external-1.4.jar']
+    }
 }
 """
 
@@ -348,8 +356,10 @@ project(':tool') {
 	    }
 	}
 
-	task checkDeps << {
-        assert configurations.compile*.name.contains('foo-1.4.9.jar')
+	task checkDeps {
+        doLast {
+            assert configurations.compile*.name.contains('foo-1.4.9.jar')
+        }
     }
 }
 
@@ -394,11 +404,13 @@ configurations.all {
     }
 }
 
-task checkDeps << {
-    def deps = configurations.compile*.name
-    assert deps.contains('someArtifact-1.0.jar')
-    assert deps.contains('foo-1.3.0.jar')
-    assert deps.size() == 2
+task checkDeps {
+    doLast {
+        def deps = configurations.compile*.name
+        assert deps.contains('someArtifact-1.0.jar')
+        assert deps.contains('foo-1.3.0.jar')
+        assert deps.size() == 2
+    }
 }
 """
 
@@ -437,16 +449,18 @@ task checkDeps << {
             dependencies {
                 conf 'org:a:1.0', 'org:a:2.0'
             }
-            task checkDeps << {
-                assert configurations.conf*.name == ['a-2.0.jar', 'b-2.0.jar']
-                def result = configurations.conf.incoming.resolutionResult
-                assert result.allComponents.size() == 3
-                def root = result.root
-                assert root.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0', 'org:a:2.0']
-                def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
-                assert a.dependencies*.toString() == ['org:b:2.0']
-                def b = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }
-                assert b.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0']
+            task checkDeps {
+                doLast {
+                    assert configurations.conf*.name == ['a-2.0.jar', 'b-2.0.jar']
+                    def result = configurations.conf.incoming.resolutionResult
+                    assert result.allComponents.size() == 3
+                    def root = result.root
+                    assert root.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0', 'org:a:2.0']
+                    def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
+                    assert a.dependencies*.toString() == ['org:b:2.0']
+                    def b = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }
+                    assert b.dependencies*.toString() == ['org:a:1.0 -> org:a:2.0']
+                }
             }
         """
 
@@ -492,16 +506,18 @@ task checkDeps << {
                 conf "org:a:1.0", "org:b:1.0"
             }
 
-        task checkDeps << {
-            assert configurations.conf*.name == ['a-1.0.jar', 'b-1.0.jar', 'b-child-1.0.jar', 'target-1.0.jar', 'in-conflict-2.0.jar', 'target-child-1.0.jar']
-            def result = configurations.conf.incoming.resolutionResult
-            assert result.allComponents.size() == 7
-            def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
-            assert a.dependencies*.toString() == ['org:in-conflict:1.0 -> org:in-conflict:2.0']
-            def bChild = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b-child' }
-            assert bChild.dependencies*.toString() == ['org:in-conflict:2.0']
-            def target = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'target' }
-            assert target.dependents*.from*.toString() == ['org:in-conflict:2.0']
+        task checkDeps {
+            doLast {
+                assert configurations.conf*.name == ['a-1.0.jar', 'b-1.0.jar', 'b-child-1.0.jar', 'target-1.0.jar', 'in-conflict-2.0.jar', 'target-child-1.0.jar']
+                def result = configurations.conf.incoming.resolutionResult
+                assert result.allComponents.size() == 7
+                def a = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'a' }
+                assert a.dependencies*.toString() == ['org:in-conflict:1.0 -> org:in-conflict:2.0']
+                def bChild = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b-child' }
+                assert bChild.dependencies*.toString() == ['org:in-conflict:2.0']
+                def target = result.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'target' }
+                assert target.dependents*.from*.toString() == ['org:in-conflict:2.0']
+            }
         }
         """
 
@@ -681,9 +697,11 @@ dependencies {
     compile "org:c:2"
 }
 
-task checkDeps(dependsOn: configurations.compile) << {
-    assert configurations.compile*.name == ['a-2.jar', 'c-2.jar', 'b-1.jar']
-    assert configurations.compile.incoming.resolutionResult.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }.dependencies.size() == 1
+task checkDeps(dependsOn: configurations.compile) {
+    doLast {
+        assert configurations.compile*.name == ['a-2.jar', 'c-2.jar', 'b-1.jar']
+        assert configurations.compile.incoming.resolutionResult.allComponents.find { it.id instanceof ModuleComponentIdentifier && it.id.module == 'b' }.dependencies.size() == 1
+    }
 }
 """
 
@@ -713,8 +731,10 @@ task checkDeps(dependsOn: configurations.compile) << {
             dependencies {
                 conf 'org:a:1.0', 'org:b:1.0', 'org:c:1.0'
             }
-            task resolve << {
-                configurations.conf.files
+            task resolve {
+                doLast {
+                    configurations.conf.files
+                }
             }
         """
 

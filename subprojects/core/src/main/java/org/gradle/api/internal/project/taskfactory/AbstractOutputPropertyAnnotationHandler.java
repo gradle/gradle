@@ -23,7 +23,7 @@ import java.util.concurrent.Callable;
 
 public abstract class AbstractOutputPropertyAnnotationHandler implements PropertyAnnotationHandler {
 
-    public boolean attachActions(final TaskPropertyActionContext context) {
+    public void attachActions(final TaskPropertyActionContext context) {
         context.setValidationAction(new ValidationAction() {
             @Override
             public void validate(String propertyName, Object value, Collection<String> messages) {
@@ -36,15 +36,10 @@ public abstract class AbstractOutputPropertyAnnotationHandler implements Propert
                 AbstractOutputPropertyAnnotationHandler.this.update(context, task, futureValue);
             }
         });
-        return true;
     }
 
     protected abstract void validate(String propertyName, Object value, Collection<String> messages);
 
     protected abstract void update(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);
 
-    @Override
-    public boolean getMustNotBeNullByDefault() {
-        return true;
-    }
 }

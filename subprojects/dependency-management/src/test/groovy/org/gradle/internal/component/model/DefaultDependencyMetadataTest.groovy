@@ -22,7 +22,7 @@ import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.descriptor.Artifact
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.local.model.DefaultProjectComponentSelector
+import org.gradle.internal.component.local.model.TestComponentIdentifiers
 import spock.lang.Specification
 
 import static org.gradle.api.internal.artifacts.DefaultModuleVersionSelector.newSelector
@@ -59,7 +59,7 @@ abstract class DefaultDependencyMetadataTest extends Specification {
 
     def "creates a copy with new requested project selector"() {
         def metadata = create(requested)
-        def selector = DefaultProjectComponentSelector.newSelector(":project")
+        def selector = TestComponentIdentifiers.newSelector(":project")
 
         when:
         def copy = metadata.withTarget(selector)
