@@ -18,9 +18,9 @@ package org.gradle.tooling.internal.provider;
 
 import net.jcip.annotations.ThreadSafe;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.io.StreamByteBuffer;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -40,8 +40,8 @@ public class PayloadSerializer {
     public SerializedPayload serialize(Object payload) {
         final SerializeMap map = classLoaderRegistry.newSerializeSession();
         try {
-            ByteArrayOutputStream content = new ByteArrayOutputStream();
-            final ObjectOutputStream objectStream = new ObjectOutputStream(content) {
+            StreamByteBuffer buffer = new StreamByteBuffer();
+            final ObjectOutputStream objectStream = new ObjectOutputStream(buffer.getOutputStream()) {
                 @Override
                 protected void writeClassDescriptor(ObjectStreamClass desc) throws IOException {
                     Class<?> targetClass = desc.forClass();
@@ -71,7 +71,7 @@ public class PayloadSerializer {
 
             Map<Short, ClassLoaderDetails> classLoaders = new HashMap<Short, ClassLoaderDetails>();
             map.collectClassLoaderDefinitions(classLoaders);
-            return new SerializedPayload(classLoaders, content.toByteArray());
+            return new SerializedPayload(classLoaders, buffer.readAsByteArray());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
