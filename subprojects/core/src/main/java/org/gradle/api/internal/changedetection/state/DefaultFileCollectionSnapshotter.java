@@ -28,11 +28,10 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SingletonFileTree;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.cache.CacheAccess;
-import org.gradle.internal.Factory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
 
@@ -48,14 +47,14 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     private final StringInterner stringInterner;
     private final CacheAccess cacheAccess;
     private final FileSystem fileSystem;
-    private final Factory<PatternSet> patternSetFactory;
+    private final DirectoryFileTreeFactory directoryFileTreeFactory;
 
-    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileSystem fileSystem, Factory<PatternSet> patternSetFactory) {
+    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.snapshotter = snapshotter;
         this.cacheAccess = cacheAccess;
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
-        this.patternSetFactory = patternSetFactory;
+        this.directoryFileTreeFactory = directoryFileTreeFactory;
     }
 
     @Override
@@ -135,7 +134,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                 } else if (file.isDirectory()) {
                     // Visit the directory itself, then its contents
                     fileTreeElements.add(new SingletonFileTree.SingletonFileVisitDetails(file, fileSystem, true));
-                    visitDirectoryTree(new DirectoryFileTree(file, patternSetFactory.create()));
+                    visitDirectoryTree(directoryFileTreeFactory.create(file));
                 } else {
                     missingFiles.add(new MissingFileVisitDetails(file));
                 }

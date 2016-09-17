@@ -37,7 +37,7 @@ import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapsh
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.hash.DefaultHasher;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.cache.TaskOutputPacker;
@@ -130,10 +130,11 @@ public class TaskExecutionServices {
         return new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner);
     }
 
-    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter, FileSnapshotter fileSnapshotter,
-                                                                  StringInterner stringInterner, FileResolver fileResolver, FileSystem fileSystem, FileCollectionFactory fileCollectionFactory,
-                                                                  ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
-        FileCollectionSnapshotter fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileSystem, fileResolver.getPatternSetFactory());
+    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSnapshotter fileSnapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
+        return new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileSystem, directoryFileTreeFactory);
+    }
+
+    TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter,  StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotter fileCollectionSnapshotter) {
         OutputFilesCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter);
 
         SerializerRegistry serializerRegistry = new DefaultSerializerRegistry();

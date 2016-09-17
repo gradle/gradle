@@ -21,6 +21,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter
 import org.gradle.api.invocation.Gradle
@@ -65,6 +66,7 @@ class TaskExecutionServicesTest extends Specification {
         _ * parent.get(FileSystem) >> Mock(FileSystem)
         _ * parent.get(FileCollectionFactory) >> Mock(FileCollectionFactory)
         _ * parent.get(StringInterner) >> new StringInterner()
+        _ * parent.get(DirectoryFileTreeFactory) >> Mock(DirectoryFileTreeFactory)
         _ * parent.get(ClassLoaderHierarchyHasher) >> Mock(ClassLoaderHierarchyHasher)
         _ * cacheRepository.cache(gradle, 'taskArtifacts') >> cacheBuilder
         _ * cacheBuilder.withDisplayName(!null) >> cacheBuilder

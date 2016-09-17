@@ -34,7 +34,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -144,7 +144,7 @@ public class ValidateTaskProperties extends DefaultTask implements VerificationT
             throw Throwables.propagate(e);
         }
 
-        new DirectoryFileTree(getClassesDir()).visit(new FileVisitor() {
+        getServices().get(DirectoryFileTreeFactory.class).create(getClassesDir()).visit(new FileVisitor() {
             @Override
             public void visitDir(FileVisitDetails dirDetails) {
             }
