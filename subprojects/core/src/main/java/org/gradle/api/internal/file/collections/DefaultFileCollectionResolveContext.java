@@ -43,14 +43,14 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
     protected final PathToFileResolver fileResolver;
     private final List<Object> queue = new LinkedList<Object>();
     private List<Object> addTo = queue;
-    protected final Converter<? extends FileCollectionInternal> fileCollectionConverter;
-    protected final Converter<? extends FileTreeInternal> fileTreeConverter;
+    private final Converter<? extends FileCollectionInternal> fileCollectionConverter;
+    private final Converter<? extends FileTreeInternal> fileTreeConverter;
 
     public DefaultFileCollectionResolveContext(FileResolver fileResolver) {
         this(fileResolver, new FileCollectionConverter(), new FileTreeConverter(fileResolver.getPatternSetFactory()));
     }
 
-    protected DefaultFileCollectionResolveContext(PathToFileResolver fileResolver, Converter<? extends FileCollectionInternal> fileCollectionConverter, Converter<? extends FileTreeInternal> fileTreeConverter) {
+    private DefaultFileCollectionResolveContext(PathToFileResolver fileResolver, Converter<? extends FileCollectionInternal> fileCollectionConverter, Converter<? extends FileTreeInternal> fileTreeConverter) {
         this.fileResolver = fileResolver;
         this.fileCollectionConverter = fileCollectionConverter;
         this.fileTreeConverter = fileTreeConverter;
