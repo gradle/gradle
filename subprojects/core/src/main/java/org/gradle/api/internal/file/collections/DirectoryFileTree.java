@@ -16,7 +16,11 @@
 
 package org.gradle.api.internal.file.collections;
 
-import org.gradle.api.file.*;
+import org.gradle.api.file.DirectoryTree;
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.Logger;
@@ -45,27 +49,40 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFileTree, RandomAccessFileCollection, LocalFileTree, DirectoryTree {
     private static final Logger LOGGER = Logging.getLogger(DirectoryFileTree.class);
+    private static final Factory<DirectoryWalker> DEFAULT_DIRECTORY_WALKER_FACTORY = new DefaultDirectoryWalkerFactory();
 
     private final File dir;
-
-    private PatternSet patternSet;
-    private boolean postfix;
-    private final FileSystem fileSystem = FileSystems.getDefault();
-    private static final Factory<DirectoryWalker> DEFAULT_DIRECTORY_WALKER_FACTORY = new DefaultDirectoryWalkerFactory();
+    private final PatternSet patternSet;
+    private final boolean postfix;
+    private final FileSystem fileSystem;
     private final Factory<DirectoryWalker> directoryWalkerFactory;
 
+    /**
+     * Use {@link DirectoryFileTreeFactory} instead.
+     */
+    @Deprecated
     public DirectoryFileTree(File dir) {
-        this(dir, new PatternSet());
+        this(dir, new PatternSet(), FileSystems.getDefault());
     }
 
+    /**
+     * Use {@link DirectoryFileTreeFactory} instead.
+     */
+    @Deprecated
     public DirectoryFileTree(File dir, PatternSet patternSet) {
-        this(dir, patternSet, DEFAULT_DIRECTORY_WALKER_FACTORY);
+        this(dir, patternSet, FileSystems.getDefault());
     }
 
-    DirectoryFileTree(File dir, PatternSet patternSet, Factory<DirectoryWalker> directoryWalkerFactory) {
+    public DirectoryFileTree(File dir, PatternSet patternSet, FileSystem fileSystem) {
+        this(FileUtils.canonicalize(dir), patternSet, DEFAULT_DIRECTORY_WALKER_FACTORY, fileSystem, false);
+    }
+
+    DirectoryFileTree(File dir, PatternSet patternSet, Factory<DirectoryWalker> directoryWalkerFactory, FileSystem fileSystem, boolean postfix) {
         this.patternSet = patternSet;
-        this.dir = FileUtils.canonicalize(dir);
+        this.dir = dir;
         this.directoryWalkerFactory = directoryWalkerFactory;
+        this.fileSystem = fileSystem;
+        this.postfix = postfix;
     }
 
     public String getDisplayName() {
@@ -94,7 +111,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     public DirectoryFileTree filter(PatternFilterable patterns) {
         PatternSet patternSet = this.patternSet.intersect();
         patternSet.copyFrom(patterns);
-        return new DirectoryFileTree(dir, patternSet, directoryWalkerFactory);
+        return new DirectoryFileTree(dir, patternSet, directoryWalkerFactory, fileSystem, postfix);
     }
 
     public boolean contains(File file) {
@@ -151,13 +168,15 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     /**
-     * Traverse directories (but not files) in postfix rather than prefix order.
+     * Returns a copy that traverses directories (but not files) in postfix rather than prefix order.
      *
      * @return {@code this}
      */
     public DirectoryFileTree postfix() {
-        postfix = true;
-        return this;
+        if (postfix) {
+            return this;
+        }
+        return new DirectoryFileTree(dir, patternSet, directoryWalkerFactory, fileSystem, true);
     }
 
     public PatternSet getPatternSet() {
