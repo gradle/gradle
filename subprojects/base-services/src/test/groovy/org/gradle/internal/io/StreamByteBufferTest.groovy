@@ -1,0 +1,261 @@
+/*
+ * Copyright 2016 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.gradle.internal.io
+
+import groovy.transform.CompileStatic
+import spock.lang.Specification
+
+class StreamByteBufferTest extends Specification {
+    private static final int TESTROUNDS = 10000
+    private static final String TEST_STRING = "Hello \u00f6\u00e4\u00e5\u00d6\u00c4\u00c5"
+
+    static byte[] testbuffer = new byte[256 * TESTROUNDS]
+
+    @CompileStatic
+    def setupSpec() {
+        for (int i = 0; i < TESTROUNDS; i++) {
+            for (int j = 0; j < 256; j++) {
+                testbuffer[i * 256 + j] = (byte) (j & 0xff)
+            }
+        }
+    }
+
+    def "can convert to byte array"() {
+        given:
+        def byteBuffer = createTestInstance()
+        expect:
+        byteBuffer.readAsByteArray() == testbuffer
+    }
+
+    def "reads source InputStream fully"() {
+        given:
+        def byteBuffer = new StreamByteBuffer()
+        def byteArrayInputStream = new ByteArrayInputStream(testbuffer)
+
+        when:
+        byteBuffer.readFully(byteArrayInputStream)
+
+        then:
+        byteBuffer.totalBytesUnread() == testbuffer.length
+        byteBuffer.readAsByteArray() == testbuffer
+    }
+
+    def "reads source InputStream up to limit"() {
+        given:
+        def byteBuffer = new StreamByteBuffer()
+        def byteArrayInputStream = new ByteArrayInputStream(testbuffer)
+        byte[] testBufferPart = new byte[limit]
+        System.arraycopy(testbuffer, 0, testBufferPart, 0, limit)
+
+        when:
+        byteBuffer.readFrom(byteArrayInputStream, limit)
+
+        then:
+        byteBuffer.totalBytesUnread() == limit
+        byteBuffer.readAsByteArray() == testBufferPart
+
+        where:
+        limit << [1, 8191, 8192, 8193, 8194]
+    }
+
+    def "converts to String"() {
+        given:
+        def byteBuffer = new StreamByteBuffer()
+        def pw = new PrintWriter(new OutputStreamWriter(byteBuffer.getOutputStream(), "UTF-8"))
+
+        when:
+        pw.print(TEST_STRING)
+        pw.close()
+
+        then:
+        byteBuffer.readAsString("UTF-8") == TEST_STRING
+    }
+
+    def "empty buffer to String returns empty String"() {
+        given:
+        def byteBuffer = new StreamByteBuffer()
+
+        expect:
+        byteBuffer.readAsString() == ''
+    }
+
+    def "can use InputStream interface to read from buffer"() {
+        given:
+        def byteBuffer = createTestInstance()
+        def input = byteBuffer.getInputStream()
+        def bytesOut = new ByteArrayOutputStream(byteBuffer
+                .totalBytesUnread())
+
+        when:
+        copy(input, bytesOut, 2048)
+
+        then:
+        bytesOut.toByteArray() == testbuffer
+    }
+
+    def "can use InputStream and OutputStream interfaces to access buffer"() {
+        given:
+        def streamBuf = new StreamByteBuffer(32000)
+        def output = streamBuf.getOutputStream()
+
+        when:
+        output.write(1)
+        output.write(2)
+        output.write(3)
+        output.write(255)
+        output.close()
+
+        then:
+        def input = streamBuf.getInputStream()
+        input.read() == 1
+        input.read() == 2
+        input.read() == 3
+        input.read() == 255
+        input.read() == -1
+        input.close()
+    }
+
+    def "can write array and read one-by-one"() {
+        given:
+        def streamBuf = new StreamByteBuffer(32000)
+        def output = streamBuf.getOutputStream()
+        byte[] bytes = [(byte) 1, (byte) 2, (byte) 3] as byte[]
+
+        when:
+        output.write(bytes)
+        output.close()
+
+        then:
+        def input = streamBuf.getInputStream()
+        input.read() == 1
+        input.read() == 2
+        input.read() == 3
+        input.read() == -1
+        input.close()
+    }
+
+    def "smoke test read to array"(int streamByteBufferSize, int testBufferSize) {
+        expect:
+        def streamBuf = new StreamByteBuffer(streamByteBufferSize)
+        def output = streamBuf.getOutputStream()
+        for (int i = 0; i < testBufferSize; i++) {
+            output.write(i % (Byte.MAX_VALUE * 2))
+        }
+        output.close()
+
+        byte[] buffer = new byte[testBufferSize]
+        def input = streamBuf.getInputStream()
+        assert testBufferSize == input.available()
+        int readBytes = input.read(buffer)
+        assert readBytes == testBufferSize
+        for (int i = 0; i < buffer.length; i++) {
+            assert (byte) (i % (Byte.MAX_VALUE * 2)) == buffer[i]
+        }
+        assert input.read() == -1
+        input.close()
+
+        where:
+        [streamByteBufferSize, testBufferSize] << [[10000, 10000], [1, 10000], [2, 10000], [10000, 2], [10000, 1]]
+    }
+
+    def "smoke test read one by one"(int streamByteBufferSize, int testBufferSize) {
+        expect:
+        def streamBuf = new StreamByteBuffer(streamByteBufferSize)
+        def output = streamBuf.getOutputStream()
+        for (int i = 0; i < testBufferSize; i++) {
+            output.write(i % (Byte.MAX_VALUE * 2))
+        }
+        output.close()
+
+        def input = streamBuf.getInputStream()
+        assert input.available() == testBufferSize
+        for (int i = 0; i < testBufferSize; i++) {
+            assert input.read() == i % (Byte.MAX_VALUE * 2)
+        }
+        assert input.read() == -1
+        input.close()
+
+        where:
+        [streamByteBufferSize, testBufferSize] << [[10000, 10000], [1, 10000], [2, 10000], [10000, 2], [10000, 1]]
+    }
+
+    def "can write buffer to OutputStream"() {
+        given:
+        def byteBuffer = createTestInstance()
+        def bytesOut = new ByteArrayOutputStream(byteBuffer.totalBytesUnread())
+
+        when:
+        byteBuffer.writeTo(bytesOut)
+
+        then:
+        bytesOut.toByteArray() == testbuffer
+    }
+
+    def "can copy buffer to OutputStream one-by-one"() {
+        given:
+        def byteBuffer = createTestInstance()
+        def input = byteBuffer.getInputStream()
+        def bytesOut = new ByteArrayOutputStream(byteBuffer.totalBytesUnread())
+
+        when:
+        copyOneByOne(input, bytesOut)
+
+        then:
+        bytesOut.toByteArray() == testbuffer
+    }
+
+    private static int copy(InputStream input, OutputStream output, int bufSize) throws IOException {
+        byte[] buffer = new byte[bufSize]
+        int count = 0
+        int n = 0
+        while (-1 != (n = input.read(buffer))) {
+            output.write(buffer, 0, n)
+            count += n
+        }
+        return count
+    }
+
+    private static int copyOneByOne(InputStream input, OutputStream output) throws IOException {
+        int count = 0
+        int b
+        while (-1 != (b = input.read())) {
+            output.write(b)
+            count++
+        }
+        return count
+    }
+
+    StreamByteBuffer createTestInstance() throws IOException {
+        StreamByteBuffer byteBuffer = new StreamByteBuffer()
+        OutputStream output = byteBuffer.getOutputStream()
+        copyAllFromTestBuffer(output, 27)
+        return byteBuffer
+    }
+
+    private void copyAllFromTestBuffer(OutputStream output, int partsize) throws IOException {
+        int position = 0
+        int bytesLeft = testbuffer.length
+        while (bytesLeft > 0) {
+            output.write(testbuffer, position, partsize)
+            position += partsize
+            bytesLeft -= partsize
+            if (bytesLeft < partsize) {
+                partsize = bytesLeft
+            }
+        }
+    }
+}
