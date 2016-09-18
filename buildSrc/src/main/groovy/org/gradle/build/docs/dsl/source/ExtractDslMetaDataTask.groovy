@@ -28,7 +28,11 @@ import org.codehaus.groovy.antlr.treewalker.PreOrderTraversal
 import org.codehaus.groovy.antlr.treewalker.SourceCodeTraversal
 import org.codehaus.groovy.antlr.treewalker.Visitor
 import org.gradle.api.Action
+import org.gradle.api.file.FileTree
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.dsl.source.model.ClassMetaData
@@ -43,9 +47,19 @@ import org.gradle.api.Transformer
  * Extracts meta-data from the Groovy and Java source files which make up the Gradle API. Persists the meta-data to a file
  * for later use in generating documentation for the DSL, such as by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.
  */
+@CacheableTask
 class ExtractDslMetaDataTask extends SourceTask {
     @OutputFile
     def File destFile
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @PathSensitive(PathSensitivity.NAME_ONLY)
+    public FileTree getSource() {
+        return super.getSource();
+    }
 
     @TaskAction
     def extract() {
@@ -75,9 +89,9 @@ class ExtractDslMetaDataTask extends SourceTask {
         try {
             sourceFile.withReader { reader ->
                 if (sourceFile.name.endsWith('.java')) {
-                    parseJava(sourceFile, reader, repository)
+                    parseJava(reader, repository)
                 } else {
-                    parseGroovy(sourceFile, reader, repository)
+                    parseGroovy(reader, repository)
                 }
             }
         } catch (Exception e) {
@@ -85,7 +99,7 @@ class ExtractDslMetaDataTask extends SourceTask {
         }
     }
 
-    def parseJava(File sourceFile, Reader input, ClassMetaDataRepository<ClassMetaData> repository) {
+    def parseJava(Reader input, ClassMetaDataRepository<ClassMetaData> repository) {
         SourceBuffer sourceBuffer = new SourceBuffer();
         UnicodeEscapingReader unicodeReader = new UnicodeEscapingReader(input, sourceBuffer);
         JavaLexer lexer = new JavaLexer(unicodeReader);
@@ -108,7 +122,7 @@ class ExtractDslMetaDataTask extends SourceTask {
         visitor.complete()
     }
 
-    def parseGroovy(File sourceFile, Reader input, ClassMetaDataRepository<ClassMetaData> repository) {
+    def parseGroovy(Reader input, ClassMetaDataRepository<ClassMetaData> repository) {
         SourceBuffer sourceBuffer = new SourceBuffer();
         UnicodeEscapingReader unicodeReader = new UnicodeEscapingReader(input, sourceBuffer);
         GroovyLexer lexer = new GroovyLexer(unicodeReader);
