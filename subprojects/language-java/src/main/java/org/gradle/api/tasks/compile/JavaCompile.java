@@ -34,7 +34,6 @@ import org.gradle.api.internal.tasks.compile.incremental.deps.LocalClassSetAnaly
 import org.gradle.api.internal.tasks.compile.incremental.jar.JarSnapshotCache;
 import org.gradle.api.internal.tasks.compile.incremental.jar.LocalJarClasspathSnapshotStore;
 import org.gradle.api.tasks.CacheableTask;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.ParallelizableTask;
@@ -180,7 +179,7 @@ public class JavaCompile extends AbstractCompile {
         return new CleaningJavaCompiler(javaCompiler, getAntBuilderFactory(), getOutputs());
     }
 
-    @Internal
+    @Nested
     protected JavaPlatform getPlatform() {
         return DefaultJavaPlatform.current();
     }
