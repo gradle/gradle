@@ -24,6 +24,7 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.MapFileTree;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -44,6 +45,7 @@ import java.util.concurrent.Callable;
 /**
  * Assembles an EAR archive.
  */
+@CacheableTask
 public class Ear extends Jar {
     public static final String EAR_EXTENSION = "ear";
 
