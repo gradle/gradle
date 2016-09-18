@@ -46,6 +46,7 @@ import org.gradle.api.internal.tasks.cache.config.TaskCachingInternal;
 import org.gradle.api.internal.tasks.execution.ExecuteActionsTaskExecuter;
 import org.gradle.api.internal.tasks.execution.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.execution.PostExecutionAnalysisTaskExecuter;
+import org.gradle.api.internal.tasks.execution.ResolveTaskArtifactStateTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipCachedTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
@@ -85,18 +86,20 @@ public class TaskExecutionServices {
         return new ExecuteAtMostOnceTaskExecuter(
             new SkipOnlyIfTaskExecuter(
                 new SkipTaskWithNoActionsExecuter(
-                    new SkipEmptySourceFilesTaskExecuter(
-                        taskInputsListener,
-                        new ValidatingTaskExecuter(
-                            new SkipUpToDateTaskExecuter(
-                                repository,
-                                createSkipCachedExecuterIfNecessary(
-                                    startParameter,
-                                    gradle.getTaskCaching(),
-                                    packer,
-                                    new PostExecutionAnalysisTaskExecuter(
-                                        new ExecuteActionsTaskExecuter(
-                                            listenerManager.getBroadcaster(TaskActionListener.class)
+                    new ResolveTaskArtifactStateTaskExecuter(
+                        repository,
+                        new SkipEmptySourceFilesTaskExecuter(
+                            taskInputsListener,
+                            new ValidatingTaskExecuter(
+                                new SkipUpToDateTaskExecuter(
+                                    createSkipCachedExecuterIfNecessary(
+                                        startParameter,
+                                        gradle.getTaskCaching(),
+                                        packer,
+                                        new PostExecutionAnalysisTaskExecuter(
+                                            new ExecuteActionsTaskExecuter(
+                                                listenerManager.getBroadcaster(TaskActionListener.class)
+                                            )
                                         )
                                     )
                                 )

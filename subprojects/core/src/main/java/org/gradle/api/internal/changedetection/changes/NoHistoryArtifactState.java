@@ -19,10 +19,16 @@ package org.gradle.api.internal.changedetection.changes;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
+import org.gradle.api.internal.file.collections.FileCollectionAdapter;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.tasks.cache.TaskCacheKey;
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs;
 
+import java.io.File;
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 
 class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory {
     public boolean isUpToDate(Collection<String> messages) {
@@ -55,6 +61,47 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     public FileCollection getOutputFiles() {
-        throw new UnsupportedOperationException();
+        return EmptyFileCollection.INSTANCE;
+    }
+
+
+    private static class EmptyFileCollection extends FileCollectionAdapter implements Serializable {
+
+        private static final long serialVersionUID = -5671359228892430322L;
+
+        private static final FileCollection INSTANCE = new EmptyFileCollection();
+
+        private EmptyFileCollection() {
+            super(EmptyFileSet.INSTANCE);
+        }
+
+        private Object readResolve() {
+            return INSTANCE;
+        }
+    }
+
+    private static class EmptyFileSet implements MinimalFileSet, Serializable {
+
+        private static final long serialVersionUID = 8533471127662131385L;
+
+        private static final Set<File> EMPTY_FILE_SET = Collections.emptySet();
+        private static final MinimalFileSet INSTANCE = new EmptyFileSet();
+
+        private EmptyFileSet() {
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            return EMPTY_FILE_SET;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "empty file collection";
+        }
+
+        private Object readResolve() {
+            return INSTANCE;
+        }
     }
 }
