@@ -16,8 +16,9 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.JavaVersion;
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec;
+import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 
 public class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -31,6 +32,7 @@ public class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegr
         setJavaVersion originalJavaVersion
     }
 
+    @Ignore
     public void "not up-to-date when default Java version changes"() {
         given:
         buildFile << """
