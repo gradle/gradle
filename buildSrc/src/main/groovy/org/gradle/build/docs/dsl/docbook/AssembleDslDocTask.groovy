@@ -18,9 +18,12 @@ package org.gradle.build.docs.dsl.docbook
 import groovy.transform.CompileStatic
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
+import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.BuildableDOMCategory
 import org.gradle.build.docs.DocGenerationException
@@ -54,17 +57,27 @@ import org.w3c.dom.Element
  * as dsl doc, javadoc or groovydoc.</li>
  * </ul>
  */
+@CacheableTask
 class AssembleDslDocTask extends DefaultTask {
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     File sourceFile
+
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     File classMetaDataFile
+
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     File pluginsMetaDataFile
+
+    @PathSensitive(PathSensitivity.NAME_ONLY)
     @InputDirectory
     File classDocbookDir
+
     @OutputFile
     File destFile
+
     @OutputFile
     File linksFile
 
