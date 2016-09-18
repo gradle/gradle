@@ -288,6 +288,7 @@ task patchExternalModules(type: Sync) {
     // Include any dependency jars that are not available in the core runtime
     from configurations.externalModulesRuntime.minus(configurations.coreRuntime)
     into patchedExternalModulesDir
+    outputs.cacheIf { true }
     doLast {
         new ClasspathManifestPatcher(rootProject, configurations.externalModulesRuntime, configurations.externalModules)
             .writePatchedFilesTo(destinationDir)
