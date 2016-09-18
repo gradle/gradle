@@ -19,13 +19,25 @@ package org.gradle.build
 class ReproduciblePropertiesWriter {
 
     /**
-     * Writes {@link Properties} to a file without including the timestamp comment
+     * Writes {@link Map} of data as {@link Properties} to a file, but without including the timestamp comment.
+     */
+    static void store(Map<String, ?> data, File file, String comment = null) {
+        def properties = new Properties()
+        data.each { key, value ->
+            properties.put(key, value == null ? null : value.toString())
+        }
+        store(properties, file, comment)
+    }
+
+    /**
+     * Writes {@link Properties} to a file, but without including the timestamp comment.
      */
     static void store(Properties properties, File file, String comment = null) {
         def sw = new StringWriter()
         properties.store(sw, null)
         String lineSeparator = System.lineSeparator()
         def content = sw.toString().split(lineSeparator).findAll { !it.startsWith("#") }.join(lineSeparator)
+        file.parentFile.mkdirs()
         file.withWriter("8859_1") { BufferedWriter bw ->
             if (comment) {
                 bw.write("# ${comment}")
