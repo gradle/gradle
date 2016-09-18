@@ -86,6 +86,28 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.containsAll ":compileJava", ":jar"
     }
 
+    def "buildSrc is loaded from cache"() {
+        file("buildSrc/src/main/groovy/MyTask.groovy") << """
+            import org.gradle.api.*
+
+            class MyTask extends DefaultTask {}
+        """
+        when:
+        succeedsWithCache "jar"
+        then:
+        skippedTasks.empty
+
+        expect:
+        succeedsWithCache "clean"
+        file("buildSrc/build").deleteDir()
+
+        when:
+        succeedsWithCache "jar"
+        then:
+        output.contains ":buildSrc:compileGroovy FROM-CACHE"
+        output.contains ":buildSrc:jar FROM-CACHE"
+    }
+
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
