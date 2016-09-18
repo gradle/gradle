@@ -95,6 +95,8 @@ class ExecutionTimeTaskConfigurationIntegrationTest extends AbstractIntegrationS
         "outputs.files('a')"                                        | "TaskOutputs.files(Object...)"
         "outputs.namedFiles(['prop':'a'])"                          | "TaskOutputs.namedFiles(Map)"
         "outputs.namedFiles({ ['prop':'a'] })"                      | "TaskOutputs.namedFiles(Callable)"
+        "outputs.namedDirectories(['prop':'a'])"                    | "TaskOutputs.namedDirectories(Map)"
+        "outputs.namedDirectories({ ['prop':'a'] })"                | "TaskOutputs.namedDirectories(Callable)"
         "outputs.dir('a')"                                          | "TaskOutputs.dir(Object)"
     }
 }
