@@ -59,17 +59,17 @@ class GenerateVersionProperties extends DefaultTask {
     def resolveFiles() {
         Properties versionProperties = new Properties()
 
-        findLatest('scala-library', 'org.scala-lang:scala-library:latest.release', versionProperties)
-        def scalaVersion = VersionNumber.parse(versionProperties['scala-library'])
-        versionProperties.put('scala', "${scalaVersion.major}.${scalaVersion.minor}" as String)
-        findLatest('scalatest', "org.scalatest:scalatest_${versionProperties.scala}:latest.release", versionProperties)
-        findLatest('scala-xml', "org.scala-lang.modules:scala-xml_${versionProperties.scala}:latest.release", versionProperties)
-        findLatest('groovy', 'org.codehaus.groovy:groovy:latest.release', versionProperties)
-        findLatest('junit', 'junit:junit:latest.release', versionProperties)
-        findLatest('testng', 'org.testng:testng:latest.release', versionProperties)
-        findLatest('slf4j', 'org.slf4j:slf4j-api:latest.release', versionProperties)
-        def groovyVersion = VersionNumber.parse(versionProperties['groovy'])
-        versionProperties.put('spock', "1.0-groovy-${groovyVersion.major}.${groovyVersion.minor}" as String)
+        versionProperties.putAll([
+            'scala-library': '2.11.8',
+            scala: '2.11',
+            scalatest: '3.0.0',
+            'scala-xml': '1.0.5',
+            groovy: '2.4.7',
+            junit: '4.12',
+            testng: '6.9.12',
+            slf4j: '1.7.21',
+            spock: '1.0-groovy-2.4'
+        ])
 
         outputFile.withOutputStream { outputStream ->
             versionProperties.store(outputStream, "Version values used in build-init templates")
