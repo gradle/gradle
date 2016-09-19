@@ -18,6 +18,8 @@ package org.gradle.api.plugins.quality
 
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 
+import java.util.regex.Pattern
+
 class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
     @Override
     protected String getTaskName() {
@@ -72,6 +74,6 @@ class CheckstyleRelocationIntegrationTest extends AbstractTaskRelocationIntegrat
 
     @Override
     protected extractResults() {
-        return file("build/reports/checkstyle/checkstyle.xml").text.replaceAll("${file()}${File.separator}.*?${File.separator}", "")
+        return file("build/reports/checkstyle/checkstyle.xml").text.replaceAll(Pattern.quote(file().absolutePath + File.separator) + ".*?" + Pattern.quote(File.separator), "")
     }
 }
