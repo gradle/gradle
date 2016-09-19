@@ -49,10 +49,6 @@ public class JDepend extends DefaultTask implements Reporting<JDependReports> {
 
     private final JDependReports reports;
 
-
-    /**
-     * Returns the directory containing the classes to be analyzed.
-     */
     /**
      * The directory containing the classes to be analyzed.
      */
