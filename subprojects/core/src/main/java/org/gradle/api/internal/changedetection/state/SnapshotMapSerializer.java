@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.collect.Maps;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.DefaultNormalizedFileSnapshot;
 import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.IgnoredPathFileSnapshot;
@@ -27,8 +26,8 @@ import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.serialize.Serializer;
 
-import java.io.EOFException;
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class SnapshotMapSerializer implements Serializer<Map<String, NormalizedFileSnapshot>> {
@@ -49,9 +48,9 @@ public class SnapshotMapSerializer implements Serializer<Map<String, NormalizedF
     }
 
     @Override
-    public Map<String, NormalizedFileSnapshot> read(Decoder decoder) throws EOFException, Exception {
-        Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
+    public Map<String, NormalizedFileSnapshot> read(Decoder decoder) throws Exception {
         int snapshotsCount = decoder.readSmallInt();
+        Map<String, NormalizedFileSnapshot> snapshots = new LinkedHashMap<String, NormalizedFileSnapshot>(snapshotsCount);
         for (int i = 0; i < snapshotsCount; i++) {
             String absolutePath = stringInterner.intern(decoder.readString());
             NormalizedFileSnapshot snapshot = readSnapshot(absolutePath, decoder, stringInterner);
