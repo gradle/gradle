@@ -79,6 +79,9 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
 
         then:
         daemons.daemon.becomesIdle()
+
+        and:
+        daemons.daemon.log.contains(DaemonMessages.CANCELED_BUILD)
     }
 
     // TODO: Need a windows equivalent of this test
