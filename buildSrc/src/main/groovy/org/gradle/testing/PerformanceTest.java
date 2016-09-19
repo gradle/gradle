@@ -17,6 +17,7 @@
 package org.gradle.testing;
 
 import org.gradle.api.internal.tasks.options.Option;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.Optional;
@@ -25,6 +26,7 @@ import java.io.File;
 /**
  * A test that checks execution time and memory consumption.
  */
+@CacheableTask
 public class PerformanceTest extends DistributionTest {
 
 
