@@ -299,12 +299,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     /**
      * {@inheritDoc}
-     *
-     * <p>The sources for this task are relatively relocatable even though it produces output that
-     * includes absolute paths. This is a compromise made to ensure that results can be reused
-     * between different builds. The downside is that up-to-date results, or results loaded
-     * from cache can show different absolute paths than would be produced if the task was
-     * executed.</p>
      */
     @Override
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -314,12 +308,6 @@ public class FindBugs extends SourceTask implements VerificationTask, Reporting<
 
     /**
      * The classes to be analyzed.
-     *
-     * <p>The classes for this task are relatively relocatable even though it produces output that
-     * includes absolute paths. This is a compromise made to ensure that results can be reused
-     * between different builds. The downside is that up-to-date results, or results loaded
-     * from cache can show different absolute paths than would be produced if the task was
-     * executed.</p>
      */
     @SkipWhenEmpty
     @PathSensitive(PathSensitivity.RELATIVE)
