@@ -25,10 +25,12 @@ import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
+import spock.lang.Ignore
 
 class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
+    @Ignore
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "tears down the daemon process when the client disconnects and build does not cancel in a timely manner"() {
         buildFile << """
@@ -52,6 +54,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.stops()
     }
 
+    @Ignore
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "daemon is idle after the client disconnects and build cancels in a timely manner"() {
         buildFile << """
