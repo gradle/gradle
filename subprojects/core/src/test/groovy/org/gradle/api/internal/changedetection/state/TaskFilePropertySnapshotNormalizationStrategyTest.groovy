@@ -21,9 +21,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext
-import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.*
@@ -117,28 +114,23 @@ class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractProjectB
     }
 
     private def normalizeWith(TaskFilePropertySnapshotNormalizationStrategy type) {
-        List<FileVisitDetails> fileTreeElements = []
-        ResolvableFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(project.fileResolver)
-        context.add(files)
-        List<FileTreeInternal> fileTrees = context.resolveAsFileTrees()
-        for (FileTreeInternal fileTree : fileTrees) {
-            fileTree.visitTreeOrBackingFile(new FileVisitor() {
-                @Override
-                public void visitDir(FileVisitDetails dirDetails) {
-                    fileTreeElements.add(dirDetails)
-                }
+        List<FileDetails> fileTreeElements = []
+        files.asFileTree.visit(new FileVisitor() {
+            @Override
+            public void visitDir(FileVisitDetails dirDetails) {
+                fileTreeElements.add(new DefaultFileDetails(dirDetails.file.path, FileDetails.FileType.Directory, dirDetails))
+            }
 
-                @Override
-                public void visitFile(FileVisitDetails fileDetails) {
-                    fileTreeElements.add(fileDetails)
-                }
-            })
-        }
+            @Override
+            public void visitFile(FileVisitDetails fileDetails) {
+                fileTreeElements.add(new DefaultFileDetails(fileDetails.file.path, FileDetails.FileType.RegularFile, fileDetails))
+            }
+        })
 
         Map<File, String> snapshots = [:]
         fileTreeElements.each { details ->
             IncrementalFileSnapshot snapshot
-            if (details.directory) {
+            if (details.type == FileDetails.FileType.Directory) {
                 snapshot = DirSnapshot.instance
             } else {
                 snapshot = new FileHashSnapshot(HashCode.fromInt(1))
@@ -152,7 +144,7 @@ class TaskFilePropertySnapshotNormalizationStrategyTest extends AbstractProjectB
             } else {
                 normalizedPath = normalizedSnapshot.normalizedPath
             }
-            snapshots.put(details.file, normalizedPath)
+            snapshots.put(new File(details.path), normalizedPath)
         }
         return snapshots
     }

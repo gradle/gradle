@@ -17,9 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.base.Objects;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.collections.SingletonFileTree;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.hash.HashUtil;
@@ -30,9 +28,8 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
      */
     ABSOLUTE {
         @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
-            final String absolutePath = stringInterner.intern(fileDetails.getFile().getAbsolutePath());
-            return new NonNormalizedFileSnapshot(absolutePath, snapshot);
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+            return new NonNormalizedFileSnapshot(fileDetails.getPath(), snapshot);
         }
     },
 
@@ -41,9 +38,9 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
      */
     CLASSPATH {
         @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
             // Ignore path of root files and directories
-            if (fileDetails instanceof SingletonFileTree.SingletonFileVisitDetails) {
+            if (fileDetails.isRoot()) {
                 return new IgnoredPathFileSnapshot(snapshot);
             }
             return getRelativeSnapshot(fileDetails, snapshot, stringInterner);
@@ -55,9 +52,9 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
      */
     RELATIVE {
         @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
             // Ignore path of root directories
-            if (fileDetails instanceof SingletonFileTree.SingletonFileVisitDetails && fileDetails.isDirectory()) {
+            if (fileDetails.isRoot() && fileDetails.getType() == FileDetails.FileType.Directory) {
                 return new IgnoredPathFileSnapshot(snapshot);
             }
             return getRelativeSnapshot(fileDetails, snapshot, stringInterner);
@@ -69,9 +66,9 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
      */
     NAME_ONLY {
         @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
             // Ignore path of root directories
-            if (fileDetails instanceof SingletonFileTree.SingletonFileVisitDetails && fileDetails.isDirectory()) {
+            if (fileDetails.isRoot() && fileDetails.getType() == FileDetails.FileType.Directory) {
                 return new IgnoredPathFileSnapshot(snapshot);
             }
             return getRelativeSnapshot(fileDetails, fileDetails.getName(), snapshot, stringInterner);
@@ -83,8 +80,8 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
      */
     NONE {
         @Override
-        public NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
-            if (fileDetails.isDirectory()) {
+        public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+            if (fileDetails.getType() == FileDetails.FileType.Directory) {
                 return null;
             }
             return new IgnoredPathFileSnapshot(snapshot);
@@ -108,7 +105,7 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         }
     }
 
-    private static NormalizedFileSnapshot getRelativeSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+    private static NormalizedFileSnapshot getRelativeSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
         String[] segments = fileDetails.getRelativePath().getSegments();
         StringBuilder builder = new StringBuilder();
         for (int i = 0, len = segments.length; i < len; i++) {
@@ -120,8 +117,8 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
         return getRelativeSnapshot(fileDetails, builder.toString(), snapshot, stringInterner);
     }
 
-    private static NormalizedFileSnapshot getRelativeSnapshot(FileTreeElement fileDetails, String normalizedPath, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
-        String absolutePath = stringInterner.intern(fileDetails.getFile().getAbsolutePath());
+    private static NormalizedFileSnapshot getRelativeSnapshot(FileDetails fileDetails, String normalizedPath, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
+        String absolutePath = fileDetails.getPath();
         if (absolutePath.endsWith(normalizedPath)) {
             return new IndexedNormalizedFileSnapshot(absolutePath, absolutePath.length() - normalizedPath.length(), snapshot);
         } else {
