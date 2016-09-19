@@ -193,7 +193,7 @@ class AndroidDexingSoakTest extends DaemonIntegrationSpec {
 
 
                 dependencies {
-                    classpath 'com.android.tools.build:gradle:2.2.0-alpha7'
+                    classpath 'com.android.tools.build:gradle:2.2.0'
                 }
             }
 
