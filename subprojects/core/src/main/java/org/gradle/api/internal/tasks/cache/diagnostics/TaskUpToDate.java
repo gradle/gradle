@@ -16,6 +16,25 @@
 
 package org.gradle.api.internal.tasks.cache.diagnostics;
 
-public interface TaskExecutionStatisticsListener {
-    void buildFinished(TaskExecutionStatistics statistics);
+import org.gradle.api.Task;
+
+public class TaskUpToDate extends TaskExecutionEvent {
+    public TaskUpToDate(Task task) {
+        super(task);
+    }
+
+    @Override
+    public boolean isCached() {
+        return false;
+    }
+
+    @Override
+    public boolean isTaskCacheable() {
+        return false;
+    }
+
+    @Override
+    public boolean isUpToDate() {
+        return true;
+    }
 }

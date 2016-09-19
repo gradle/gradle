@@ -36,4 +36,9 @@ public class TaskNotCached extends TaskExecutionEvent {
     public boolean isTaskCacheable() {
         return reason.isTaskCacheable();
     }
+
+    @Override
+    public boolean isUpToDate() {
+        return false;
+    }
 }

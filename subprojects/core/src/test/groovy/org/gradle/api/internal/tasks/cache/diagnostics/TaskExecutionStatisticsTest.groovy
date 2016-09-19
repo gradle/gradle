@@ -34,6 +34,7 @@ class TaskExecutionStatisticsTest extends Specification {
 
         diagnostics.event(cached())
         diagnostics.event(cached())
+        4.times { diagnostics.event(upToDate()) }
         diagnostics.event(notCached())
         diagnostics.event(notCached())
         diagnostics.event(cached())
@@ -42,14 +43,63 @@ class TaskExecutionStatisticsTest extends Specification {
         diagnostics.getCachedTasksCount() == 3
     }
 
+    def 'all tasks are reported'() {
+        given:
+        3.times { diagnostics.event(cached()) }
+        2.times { diagnostics.event(notCached()) }
+        4.times { diagnostics.event(upToDate()) }
+        9.times { diagnostics.event(executed()) }
+        7.times { diagnostics.event(cached()) }
+
+        expect:
+        diagnostics.allTasksCount == 25
+    }
+
+    def 'up to date tasks are reported'() {
+        given:
+        3.times { diagnostics.event(cached()) }
+        2.times { diagnostics.event(notCached()) }
+        10.times { diagnostics.event(upToDate()) }
+        7.times { diagnostics.event(cached()) }
+        4.times { diagnostics.event(upToDate()) }
+
+        expect:
+        diagnostics.upToDateTaskCount == 14
+    }
+
+    def 'skipped tasks are reported'() {
+        given:
+        3.times { diagnostics.event(cached()) }
+        2.times { diagnostics.event(notCached()) }
+        10.times { diagnostics.event(upToDate()) }
+        5.times { diagnostics.event(skipped()) }
+        7.times { diagnostics.event(cached()) }
+        4.times { diagnostics.event(upToDate()) }
+
+        expect:
+        diagnostics.skippedTaskCount == 5
+    }
+
     def 'executed tasks are reported'() {
         given:
         3.times { diagnostics.event(cached()) }
         2.times { diagnostics.event(notCached()) }
+        1.times { diagnostics.event(upToDate()) }
+        5.times { diagnostics.event(skipped()) }
         7.times { diagnostics.event(cached()) }
+        9.times { diagnostics.event(executed()) }
+        4.times { diagnostics.event(upToDate()) }
 
         expect:
-        diagnostics.executedTasksCount == 12
+        diagnostics.executedTaskCount == 9
+    }
+
+    TaskExecuted executed() {
+        new TaskExecuted(task())
+    }
+
+    TaskSkipped skipped() {
+        new TaskSkipped(task())
     }
 
     def 'cacheable tasks are reported'() {
@@ -59,6 +109,10 @@ class TaskExecutionStatisticsTest extends Specification {
         expect:
         diagnostics.cacheableTasksCount == 4
 
+    }
+
+    TaskUpToDate upToDate() {
+        new TaskUpToDate(task())
     }
 
     private TaskCached cached() {

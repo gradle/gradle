@@ -32,4 +32,9 @@ public class TaskCached extends TaskExecutionEvent {
     public boolean isTaskCacheable() {
         return true;
     }
+
+    @Override
+    public boolean isUpToDate() {
+        return false;
+    }
 }

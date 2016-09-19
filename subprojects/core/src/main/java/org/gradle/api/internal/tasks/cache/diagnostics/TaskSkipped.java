@@ -16,6 +16,15 @@
 
 package org.gradle.api.internal.tasks.cache.diagnostics;
 
-public interface TaskExecutionStatisticsListener {
-    void buildFinished(TaskExecutionStatistics statistics);
+import org.gradle.api.Task;
+
+public class TaskSkipped extends TaskExecutionEvent {
+    public TaskSkipped(Task task) {
+        super(task);
+    }
+
+    @Override
+    public boolean isSkipped() {
+        return true;
+    }
 }

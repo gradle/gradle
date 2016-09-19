@@ -27,8 +27,25 @@ public abstract class TaskExecutionEvent {
         taskClass = task.getClass().getName();
     }
 
-    public abstract boolean isCached();
-    public abstract boolean isTaskCacheable();
+    public boolean isCached() {
+        return false;
+    }
+
+    public boolean isTaskCacheable() {
+        return false;
+    }
+
+    public boolean isUpToDate() {
+        return false;
+    }
+
+    public boolean isSkipped() {
+        return false;
+    }
+
+    public boolean isExecuted() {
+        return false;
+    }
 
     public String getTaskName() {
         return taskName;

@@ -17,34 +17,57 @@
 package org.gradle.api.internal.tasks.cache;
 
 import org.gradle.api.Task;
+import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.TaskOutputCacheListener;
 import org.gradle.api.internal.tasks.cache.diagnostics.TaskCached;
+import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecuted;
 import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatistics;
 import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatisticsListener;
 import org.gradle.api.internal.tasks.cache.diagnostics.TaskNotCached;
+import org.gradle.api.internal.tasks.cache.diagnostics.TaskSkipped;
+import org.gradle.api.internal.tasks.cache.diagnostics.TaskUpToDate;
+import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
 
-public class TaskExecutionEventAdapter implements TaskOutputCacheListener, BuildCompletionListener {
-    private final TaskExecutionStatistics diagnostics;
+public class TaskExecutionEventAdapter implements TaskOutputCacheListener, BuildCompletionListener, TaskExecutionListener {
+    private final TaskExecutionStatistics statistics;
     private final TaskExecutionStatisticsListener listener;
 
     public TaskExecutionEventAdapter(TaskExecutionStatisticsListener listener) {
         this.listener = listener;
-        diagnostics = new TaskExecutionStatistics();
+        statistics = new TaskExecutionStatistics();
     }
 
     @Override
     public void fromCache(Task task) {
-        diagnostics.event(new TaskCached(task));
+        statistics.event(new TaskCached(task));
     }
 
     @Override
     public void notCached(Task task, NotCachedReason reason) {
-        diagnostics.event(new TaskNotCached(task, reason));
+        statistics.taskNotCached(new TaskNotCached(task, reason));
     }
 
     @Override
     public void completed() {
-        listener.buildFinished(diagnostics);
+        listener.buildFinished(statistics);
+    }
+
+    @Override
+    public void beforeExecute(Task task) {
+        // do nothing
+    }
+
+    @Override
+    public void afterExecute(Task task, TaskState state) {
+        if (state.getUpToDate() && "UP-TO-DATE".equals(state.getSkipMessage())) {
+            statistics.event(new TaskUpToDate(task));
+        }
+        if (!state.getUpToDate() && state.getSkipped()) {
+            statistics.event(new TaskSkipped(task));
+        }
+        if (!state.getUpToDate() && !state.getSkipped()) {
+            statistics.event(new TaskExecuted(task));
+        }
     }
 }

@@ -16,6 +16,15 @@
 
 package org.gradle.api.internal.tasks.cache.diagnostics;
 
-public interface TaskExecutionStatisticsListener {
-    void buildFinished(TaskExecutionStatistics statistics);
+import org.gradle.api.Task;
+
+public class TaskExecuted extends TaskExecutionEvent {
+    public TaskExecuted(Task task) {
+        super(task);
+    }
+
+    @Override
+    public boolean isExecuted() {
+        return true;
+    }
 }

@@ -21,23 +21,43 @@ import java.util.List;
 
 public class TaskExecutionStatistics {
     private final List<TaskExecutionEvent> events = new ArrayList<TaskExecutionEvent>();
-    private int executedTasksCount = 0;
-    private int cachedTasksCount = 0;
-    private int cacheableTasksCount = 0;
+    private final List<TaskNotCached> notCachedEvents = new ArrayList<TaskNotCached>();
+    private int allTasksCount;
+    private int cachedTasksCount;
+    private int cacheableTasksCount;
+    private int upToDateTaskCount;
+    private int skippedTaskCount;
+    private int executedTaskCount;
 
     public void event(TaskExecutionEvent event) {
         events.add(event);
-        executedTasksCount++;
+        allTasksCount++;
+        if (event.isUpToDate()) {
+            upToDateTaskCount++;
+        }
         if (event.isCached()) {
             cachedTasksCount++;
         }
         if (event.isTaskCacheable()) {
             cacheableTasksCount++;
         }
+        if (event.isSkipped()) {
+            skippedTaskCount++;
+        }
+        if (event.isExecuted()) {
+            executedTaskCount++;
+        }
     }
 
-    public int getExecutedTasksCount() {
-        return executedTasksCount;
+    public void taskNotCached(TaskNotCached event) {
+        notCachedEvents.add(event);
+        if (event.isTaskCacheable()) {
+            cacheableTasksCount++;
+        }
+    }
+
+    public int getAllTasksCount() {
+        return allTasksCount;
     }
 
     public int getCachedTasksCount() {
@@ -46,5 +66,17 @@ public class TaskExecutionStatistics {
 
     public int getCacheableTasksCount() {
         return cacheableTasksCount;
+    }
+
+    public int getUpToDateTaskCount() {
+        return upToDateTaskCount;
+    }
+
+    public int getSkippedTaskCount() {
+        return skippedTaskCount;
+    }
+
+    public int getExecutedTaskCount() {
+        return executedTaskCount;
     }
 }

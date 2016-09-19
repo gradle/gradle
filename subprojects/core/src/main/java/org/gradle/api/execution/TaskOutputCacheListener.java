@@ -19,7 +19,7 @@ package org.gradle.api.execution;
 import org.gradle.api.Task;
 
 /**
- * Listener for events of the Task output cache
+ * Listener for events of the Task output cache.
  */
 public interface TaskOutputCacheListener {
     /**
@@ -32,7 +32,7 @@ public interface TaskOutputCacheListener {
     void notCached(Task task, NotCachedReason reason);
 
     /**
-     * Why something was not cached
+     * Reason why something was not cached.
      */
     enum NotCachedReason {
         NOT_IN_CACHE(true),

@@ -22,9 +22,11 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
-import static org.gradle.internal.util.NumberUtil.percentOf;
+import java.text.DecimalFormat;
 
 public class CacheStatisticsReporter implements TaskExecutionStatisticsListener {
+    private static final DecimalFormat PERCENT_FORMAT = new DecimalFormat("###");
+
     private final StyledTextOutputFactory textOutputFactory;
 
     public CacheStatisticsReporter(StyledTextOutputFactory textOutputFactory) {
@@ -32,18 +34,40 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
     }
 
     @Override
-    public void buildFinished(TaskExecutionStatistics diagnostics) {
+    public void buildFinished(TaskExecutionStatistics statistics) {
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.LIFECYCLE);
-        int cacheableTasks = diagnostics.getCacheableTasksCount();
-        int executedTasks = diagnostics.getExecutedTasksCount();
-        int cachedTasks = diagnostics.getCachedTasksCount();
+        int cacheableTasks = statistics.getCacheableTasksCount();
         textOutput.println();
-        textOutput.println("You are using the task output cache!");
-        if (executedTasks == 0) {
+        textOutput.println("You are using the task output cache");
+        if (cacheableTasks == 0) {
             textOutput.formatln("No executed tasks were cacheable - the task output cache has no effect");
         } else {
-            textOutput.formatln("%d%% executed tasks were cacheable (%d out of %d) ", percentOf(cacheableTasks, executedTasks), cacheableTasks, executedTasks);
-            textOutput.formatln("%d%% cacheable tasks have been found in the cache (%d out of %d)", percentOf(cachedTasks, cacheableTasks), cachedTasks, cacheableTasks);
+            int cachedTasks = statistics.getCachedTasksCount();
+            int allTasks = statistics.getAllTasksCount();
+            int upToDateTasks = statistics.getUpToDateTaskCount();
+            textOutput.formatln("%d tasks in build, out of which %d (%s%%) were cacheable", allTasks, cacheableTasks, roundedPercentOf(cacheableTasks, allTasks));
+            statisticsLine(textOutput, upToDateTasks, allTasks, "up-to-date");
+            statisticsLine(textOutput, cachedTasks, allTasks, "loaded from cache");
+            statisticsLine(textOutput, statistics.getSkippedTaskCount(), allTasks, "skipped");
+            statisticsLine(textOutput, statistics.getExecutedTaskCount(), allTasks, "executed");
         }
     }
+
+    private void statisticsLine(StyledTextOutput textOutput, int fraction, int total, String description) {
+        if (fraction > 0) {
+            int numberLength = Integer.toString(total).length();
+            String percent = String.format("(%s%%)", roundedPercentOf(fraction, total));
+            textOutput.formatln("%" + numberLength + "d " + "%6s %s", fraction, percent, description);
+        }
+    }
+
+    private static String roundedPercentOf(long fraction, long total) {
+        if (total < 0 || fraction < 0) {
+            throw new IllegalArgumentException("Unable to calculate percentage: " + fraction + " of " + total
+                + ". All inputs must be >= 0");
+        }
+        float out = (total == 0) ? 0 : fraction * 100.0f / total;
+        return PERCENT_FORMAT.format(out);
+    }
+
 }
