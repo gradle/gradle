@@ -21,7 +21,7 @@ abstract class AbstractTaskRelocationIntegrationTest extends AbstractIntegration
     def "task is relocatable"() {
         when:
         setupProjectInOriginalLocation()
-        succeeds taskName, "--info"
+        succeeds taskName
         def originalResults = extractResults()
         then:
         nonSkippedTasks.contains taskName
