@@ -16,6 +16,7 @@
 package org.gradle.build.docs
 
 import groovy.xml.DOMBuilder
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
@@ -23,15 +24,22 @@ import org.w3c.dom.Document
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Element
 import groovy.xml.dom.DOMCategory
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.*
 import groovy.xml.XmlUtil
 
 /**
  * Generates a chapter containing a summary of the readme files for the samples.
  */
+@CacheableTask
 class AssembleSamplesDocTask extends SourceTask {
     @OutputFile
     File destFile
+
+    @Override
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public FileTree getSource() {
+        return super.getSource()
+    }
 
     @TaskAction
     def generate() {
