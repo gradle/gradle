@@ -311,6 +311,36 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         0 * listener._
     }
 
+    def "caches file type in memory until notified of potential changes"() {
+        def dir = tmpDir.createDir('dir')
+        def file = tmpDir.createFile('file')
+        def missing = tmpDir.file('missing')
+
+        given:
+        def snapshot = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
+
+        when:
+        dir.deleteDir().createFile()
+        missing.createFile()
+
+        def snapshot2 = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
+        changes(snapshot2, snapshot, listener)
+
+        then:
+        0 * listener._
+
+        when:
+        snapshotter.startTaskActions()
+
+        def snapshot3 = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
+        changes(snapshot3, snapshot, listener)
+
+        then:
+        1 * listener.changed(dir.absolutePath)
+        1 * listener.changed(missing.absolutePath)
+        0 * listener._
+    }
+
     private static void changes(FileCollectionSnapshot newSnapshot, FileCollectionSnapshot oldSnapshot, ChangeListener<String> listener) {
         newSnapshot.iterateContentChangesSince(oldSnapshot, "TYPE").each { FileChange change ->
             switch (change.type) {

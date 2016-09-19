@@ -69,6 +69,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
             return temporaryFolder.createDir("history-cache")
         }
     }
+    DefaultFileCollectionSnapshotter fileCollectionSnapshotter
     DefaultTaskArtifactStateRepository repository
 
     def setup() {
@@ -78,14 +79,14 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
         def stringInterner = new StringInterner()
         def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner)
-        FileCollectionSnapshotter inputFilesSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
-        FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(inputFilesSnapshotter)
+        fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
+        FileCollectionSnapshotter outputFilesSnapshotter = new OutputFilesCollectionSnapshotter(fileCollectionSnapshotter)
         def classLoaderHierarchyHasher = Mock(ConfigurableClassLoaderHierarchyHasher) // new ConfigurableClassLoaderHierarchyHasher([:], Mock(ClassLoaderHasher))
         SerializerRegistry<FileCollectionSnapshot> serializerRegistry = new DefaultSerializerRegistry<FileCollectionSnapshot>();
-        inputFilesSnapshotter.registerSerializers(serializerRegistry);
+        fileCollectionSnapshotter.registerSerializers(serializerRegistry);
         outputFilesSnapshotter.registerSerializers(serializerRegistry);
         TaskHistoryRepository taskHistoryRepository = new CacheBackedTaskHistoryRepository(cacheAccess, new CacheBackedFileSnapshotRepository(cacheAccess, serializerRegistry.build(FileCollectionSnapshot), new RandomLongIdGenerator()), stringInterner)
-        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, inputFilesSnapshotter, TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher)
+        repository = new DefaultTaskArtifactStateRepository(taskHistoryRepository, DirectInstantiator.INSTANCE, outputFilesSnapshotter, fileCollectionSnapshotter, TestFiles.fileCollectionFactory(), classLoaderHierarchyHasher)
     }
 
     def artifactsAreNotUpToDateWhenCacheIsEmpty() {
@@ -612,9 +613,13 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         for (TaskInternal task : tasks) {
             TaskArtifactState state = repository.getStateFor(task)
             state.isUpToDate([])
+            // reset state
+            fileCollectionSnapshotter.startTaskActions()
             task.execute()
             state.afterTask()
         }
+        // reset state
+        fileCollectionSnapshotter.startTaskActions()
     }
 
     private static class ChangedFiles {

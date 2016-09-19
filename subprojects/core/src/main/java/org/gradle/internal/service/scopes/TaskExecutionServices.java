@@ -51,6 +51,7 @@ import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
+import org.gradle.api.internal.tasks.execution.TaskActionExecutionListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
@@ -96,6 +97,7 @@ public class TaskExecutionServices {
                                     packer,
                                     new PostExecutionAnalysisTaskExecuter(
                                         new ExecuteActionsTaskExecuter(
+                                            listenerManager.getBroadcaster(TaskActionExecutionListener.class),
                                             listenerManager.getBroadcaster(TaskActionListener.class)
                                         )
                                     )
@@ -130,8 +132,10 @@ public class TaskExecutionServices {
         return new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner);
     }
 
-    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSnapshotter fileSnapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
-        return new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileSystem, directoryFileTreeFactory);
+    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSnapshotter fileSnapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
+        DefaultFileCollectionSnapshotter snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileSystem, directoryFileTreeFactory);
+        listenerManager.addListener(snapshotter);
+        return snapshotter;
     }
 
     TaskArtifactStateRepository createTaskArtifactStateRepository(Instantiator instantiator, TaskArtifactStateCacheAccess cacheAccess, StartParameter startParameter,  StringInterner stringInterner, FileCollectionFactory fileCollectionFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher, FileCollectionSnapshotter fileCollectionSnapshotter) {
