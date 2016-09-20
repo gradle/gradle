@@ -15,13 +15,12 @@
  */
 
 package org.gradle.api.internal.changedetection.state
-import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Ignore
 import spock.lang.Issue
 
-class InMemoryTaskArtifactsIntegrationTest extends DaemonIntegrationSpec {
-
-
+class TaskEnumTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup(){
         buildFile << """
 task someTask {
@@ -46,7 +45,7 @@ enum SomeEnum {
         run "someTask"
 
         when:
-        run "someTask", "-i"
+        run "someTask"
 
         then:
         skippedTasks.contains(":someTask")

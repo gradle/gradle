@@ -61,7 +61,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
-    def "task is not up-to-date after file moved between properties"() {
+    def "task is not up-to-date after file moved between input properties"() {
         (1..3).each {
             file("input${it}.txt").createNewFile()
         }
@@ -91,7 +91,13 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
 
         then:
-        skippedTasks.isEmpty()
+        executedAndNotSkipped ':test'
+
+        when:
+        succeeds "test"
+
+        then:
+        skipped ':test'
 
         // Keep the same files, but move one of them to the other property
         buildFile.delete()
@@ -106,13 +112,19 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test", "--info"
 
         then:
-        skippedTasks.isEmpty()
+        executedAndNotSkipped ':test'
         outputContains "Input property 'inputs1' file ${file("input2.txt")} has been removed."
         outputContains "Input property 'inputs2' file ${file("input2.txt")} has been added."
+
+        when:
+        succeeds "test"
+
+        then:
+        skipped ':test'
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
-    def "task is not up-to-date after swapping output directories between properties"() {
+    def "task is not up-to-date after swapping directories between output properties"() {
         file("buildSrc/src/main/groovy/TaskWithTwoOutputDirectoriesProperties.groovy") << """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
@@ -138,7 +150,13 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
 
         then:
-        skippedTasks.isEmpty()
+        executedAndNotSkipped ':test'
+
+        when:
+        succeeds "test"
+
+        then:
+        skipped ':test'
 
         // Keep the same files, but move one of them to the other property
         buildFile.delete()
@@ -153,9 +171,15 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test", "--info"
 
         then:
-        skippedTasks.isEmpty()
+        executedAndNotSkipped ':test'
         outputContains "Output property 'outputs1' file ${file("build/output1")} has been removed."
         outputContains "Output property 'outputs2' file ${file("build/output2")} has been removed."
+
+        when:
+        succeeds "test"
+
+        then:
+        skipped ':test'
     }
 
     def "no deprecation warning printed when @OutputDirectories or @OutputFiles is used on Map property"() {
