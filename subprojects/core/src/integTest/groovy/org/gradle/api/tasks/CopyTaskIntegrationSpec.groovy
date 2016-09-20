@@ -1189,7 +1189,6 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         """
         run 'copy'
 
-        sleep 1000
         buildScript """
             task (copy, type:Copy) {
                from ('src') {
@@ -1198,6 +1197,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
                into 'dest'
             }
         """
+        buildFile.makeOlder()
 
         when:
         run "copy", "--info"
