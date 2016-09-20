@@ -28,27 +28,8 @@ public interface TaskOutputCacheListener {
     void fromCache(Task task);
     /**
      * Called when a task has been not been found in the cache.
+     *
+     * @param cacheable true if the task satisfies the requirements for being cacheable
      */
-    void notCached(Task task, NotCachedReason reason);
-
-    /**
-     * Reason why something was not cached.
-     */
-    enum NotCachedReason {
-        NOT_IN_CACHE(true),
-        ERROR_LOADING_CACHE_ENTRY(true),
-        MULTIPLE_OUTPUTS(false),
-        NO_OUTPUTS(false),
-        NOT_CACHEABLE(false);
-
-        private final boolean taskCacheable;
-
-        NotCachedReason(boolean taskCacheable) {
-            this.taskCacheable = taskCacheable;
-        }
-
-        public boolean isTaskCacheable() {
-            return taskCacheable;
-        }
-    }
+    void notCached(Task task, boolean cacheable);
 }

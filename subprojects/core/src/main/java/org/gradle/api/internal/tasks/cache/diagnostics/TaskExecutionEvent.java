@@ -16,42 +16,9 @@
 
 package org.gradle.api.internal.tasks.cache.diagnostics;
 
-import org.gradle.api.Task;
-
-public abstract class TaskExecutionEvent {
-    private final String taskName;
-    private final String taskClass;
-
-    TaskExecutionEvent(Task task) {
-        taskName = task.getName();
-        taskClass = task.getClass().getName();
-    }
-
-    public boolean isCached() {
-        return false;
-    }
-
-    public boolean isTaskCacheable() {
-        return false;
-    }
-
-    public boolean isUpToDate() {
-        return false;
-    }
-
-    public boolean isSkipped() {
-        return false;
-    }
-
-    public boolean isExecuted() {
-        return false;
-    }
-
-    public String getTaskName() {
-        return taskName;
-    }
-
-    public String getTaskClass() {
-        return taskClass;
-    }
+public enum TaskExecutionEvent {
+    CACHED,
+    UP_TO_DATE,
+    SKIPPED,
+    EXECUTED
 }

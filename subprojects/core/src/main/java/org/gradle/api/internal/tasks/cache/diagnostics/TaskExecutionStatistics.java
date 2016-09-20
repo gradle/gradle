@@ -16,42 +16,24 @@
 
 package org.gradle.api.internal.tasks.cache.diagnostics;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.google.common.base.Functions;
+import com.google.common.collect.Maps;
+
+import java.util.Arrays;
+import java.util.Map;
 
 public class TaskExecutionStatistics {
-    private final List<TaskExecutionEvent> events = new ArrayList<TaskExecutionEvent>();
-    private final List<TaskNotCached> notCachedEvents = new ArrayList<TaskNotCached>();
+    private final Map<TaskExecutionEvent, Integer> taskCounts = Maps.newHashMap(Maps.toMap(Arrays.asList(TaskExecutionEvent.values()), Functions.constant(0)));
     private int allTasksCount;
-    private int cachedTasksCount;
     private int cacheableTasksCount;
-    private int upToDateTaskCount;
-    private int skippedTaskCount;
-    private int executedTaskCount;
 
     public void event(TaskExecutionEvent event) {
-        events.add(event);
         allTasksCount++;
-        if (event.isUpToDate()) {
-            upToDateTaskCount++;
-        }
-        if (event.isCached()) {
-            cachedTasksCount++;
-        }
-        if (event.isTaskCacheable()) {
-            cacheableTasksCount++;
-        }
-        if (event.isSkipped()) {
-            skippedTaskCount++;
-        }
-        if (event.isExecuted()) {
-            executedTaskCount++;
-        }
+        taskCounts.put(event, taskCounts.get(event) + 1);
     }
 
-    public void taskNotCached(TaskNotCached event) {
-        notCachedEvents.add(event);
-        if (event.isTaskCacheable()) {
+    public void taskCacheable(boolean cacheable) {
+        if (cacheable) {
             cacheableTasksCount++;
         }
     }
@@ -60,23 +42,23 @@ public class TaskExecutionStatistics {
         return allTasksCount;
     }
 
-    public int getCachedTasksCount() {
-        return cachedTasksCount;
-    }
-
     public int getCacheableTasksCount() {
         return cacheableTasksCount;
     }
 
     public int getUpToDateTaskCount() {
-        return upToDateTaskCount;
+        return taskCounts.get(TaskExecutionEvent.UP_TO_DATE);
+    }
+
+    public int getCachedTasksCount() {
+        return taskCounts.get(TaskExecutionEvent.CACHED);
     }
 
     public int getSkippedTaskCount() {
-        return skippedTaskCount;
+        return taskCounts.get(TaskExecutionEvent.SKIPPED);
     }
 
     public int getExecutedTaskCount() {
-        return executedTaskCount;
+        return taskCounts.get(TaskExecutionEvent.EXECUTED);
     }
 }

@@ -19,13 +19,9 @@ package org.gradle.api.internal.tasks.cache;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.TaskOutputCacheListener;
-import org.gradle.api.internal.tasks.cache.diagnostics.TaskCached;
-import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecuted;
+import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionEvent;
 import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatistics;
 import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatisticsListener;
-import org.gradle.api.internal.tasks.cache.diagnostics.TaskNotCached;
-import org.gradle.api.internal.tasks.cache.diagnostics.TaskSkipped;
-import org.gradle.api.internal.tasks.cache.diagnostics.TaskUpToDate;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
 
@@ -40,12 +36,13 @@ public class TaskExecutionEventAdapter implements TaskOutputCacheListener, Build
 
     @Override
     public void fromCache(Task task) {
-        statistics.event(new TaskCached(task));
+        statistics.event(TaskExecutionEvent.CACHED);
+        statistics.taskCacheable(true);
     }
 
     @Override
-    public void notCached(Task task, NotCachedReason reason) {
-        statistics.taskNotCached(new TaskNotCached(task, reason));
+    public void notCached(Task task, boolean cacheable) {
+        statistics.taskCacheable(cacheable);
     }
 
     @Override
@@ -61,13 +58,13 @@ public class TaskExecutionEventAdapter implements TaskOutputCacheListener, Build
     @Override
     public void afterExecute(Task task, TaskState state) {
         if (state.getUpToDate() && "UP-TO-DATE".equals(state.getSkipMessage())) {
-            statistics.event(new TaskUpToDate(task));
+            statistics.event(TaskExecutionEvent.UP_TO_DATE);
         }
         if (!state.getUpToDate() && state.getSkipped()) {
-            statistics.event(new TaskSkipped(task));
+            statistics.event(TaskExecutionEvent.SKIPPED);
         }
         if (!state.getUpToDate() && !state.getSkipped()) {
-            statistics.event(new TaskExecuted(task));
+            statistics.event(TaskExecutionEvent.EXECUTED);
         }
     }
 }

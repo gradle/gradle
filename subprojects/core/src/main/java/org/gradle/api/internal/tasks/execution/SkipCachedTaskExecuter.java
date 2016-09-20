@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.execution;
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
 import org.gradle.api.execution.TaskOutputCacheListener;
-import org.gradle.api.execution.TaskOutputCacheListener.NotCachedReason;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -76,10 +75,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         LOGGER.debug("Determining if {} is cached already", task);
 
         TaskCacheKey cacheKey = null;
-        NotCachedReason reason = null;
+        boolean cacheable = false;
         if (cacheEnabled) {
             if (taskOutputs.hasDeclaredOutputs()) {
                 if (taskOutputs.isCacheAllowed()) {
+                    cacheable = true;
                     TaskArtifactState taskState = context.getTaskArtifactState();
                     try {
                         cacheKey = taskState.calculateCacheKey();
@@ -102,26 +102,21 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                                 taskOutputCacheListener.fromCache(task);
                                 return;
                             }
-                            reason = NotCachedReason.NOT_IN_CACHE;
                         } catch (Exception e) {
                             LOGGER.warn("Could not load cached output for {} with cache key {}", task, cacheKey, e);
-                            reason = NotCachedReason.ERROR_LOADING_CACHE_ENTRY;
                         }
                     }
                 } else {
                     LOGGER.info("Not caching {} because it declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`", task);
-                    reason = NotCachedReason.MULTIPLE_OUTPUTS;
                 }
             } else {
                 LOGGER.info("Not caching {} as task has declared no outputs", task);
-                reason = NotCachedReason.NO_OUTPUTS;
             }
         } else {
             LOGGER.debug("Not caching {} as task output is not cacheable.", task);
-            reason = NotCachedReason.NOT_CACHEABLE;
         }
 
-        taskOutputCacheListener.notCached(task, reason);
+        taskOutputCacheListener.notCached(task, cacheable);
 
         delegate.execute(task, state, context);
 

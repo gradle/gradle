@@ -95,7 +95,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
-        1 * taskOutputCacheListener.notCached(task, TaskOutputCacheListener.NotCachedReason.NOT_IN_CACHE)
+        1 * taskOutputCacheListener.notCached(task, true)
 
         then:
         1 * taskOutputCache.store(cacheKey, _)
@@ -123,7 +123,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> new RuntimeException()
-        1 * taskOutputCacheListener.notCached(task, TaskOutputCacheListener.NotCachedReason.NOT_IN_CACHE)
+        1 * taskOutputCacheListener.notCached(task, true)
         0 * _
     }
 
@@ -137,7 +137,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * taskOutputCacheListener.notCached(task, TaskOutputCacheListener.NotCachedReason.NOT_CACHEABLE)
+        1 * taskOutputCacheListener.notCached(task, false)
         0 * _
     }
 
@@ -153,7 +153,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * taskOutputCacheListener.notCached(task, TaskOutputCacheListener.NotCachedReason.MULTIPLE_OUTPUTS)
+        1 * taskOutputCacheListener.notCached(task, false)
         0 * _
     }
 
@@ -168,7 +168,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * taskOutputCacheListener.notCached(task, TaskOutputCacheListener.NotCachedReason.NO_OUTPUTS)
+        1 * taskOutputCacheListener.notCached(task, false)
         0 * _
     }
 
@@ -226,7 +226,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
-        1 * taskOutputCacheListener.notCached(task, TaskOutputCacheListener.NotCachedReason.ERROR_LOADING_CACHE_ENTRY)
+        1 * taskOutputCacheListener.notCached(task, true)
 
         then:
         1 * taskOutputCache.store(cacheKey, _)
@@ -254,7 +254,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
-        1 * taskOutputCacheListener.notCached(task, TaskOutputCacheListener.NotCachedReason.NOT_IN_CACHE)
+        1 * taskOutputCacheListener.notCached(task, true)
 
         then:
         1 * taskOutputCache.store(cacheKey, _) >> { throw new RuntimeException("Bad result") }
