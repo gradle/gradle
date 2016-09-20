@@ -42,7 +42,7 @@ enum SomeEnum {
     }
 
     @Issue("GRADLE-3018")
-    @IgnoreIf({!GradleContextualExecuter.longLivingProcess}) // broken across process boundaries
+    @IgnoreIf({!GradleContextualExecuter.embedded}) // broken across process boundaries
     def "cached task state handles enum input properties"(){
         given:
         run "someTask"
