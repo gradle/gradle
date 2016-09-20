@@ -32,4 +32,24 @@ class FactoriesTest extends Specification {
         1 * r.run()
         0 * r._
     }
+
+    def "factory gets cached"() {
+        given:
+        Factory factory = Mock()
+        Factory cachedFactory = Factories.softReferenceCache(factory)
+
+        when:
+        def value = cachedFactory.create()
+
+        then:
+        1 * factory.create() >> 123
+        value == 123
+
+        when:
+        value = cachedFactory.create()
+
+        then:
+        0 * _._
+        value == 123
+    }
 }

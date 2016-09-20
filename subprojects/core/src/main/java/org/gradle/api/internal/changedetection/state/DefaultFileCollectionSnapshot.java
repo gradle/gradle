@@ -20,6 +20,8 @@ import com.google.common.collect.Lists;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
+import org.gradle.internal.Factories;
+import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -33,6 +35,18 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final TaskFilePropertyCompareStrategy compareStrategy;
     private final boolean pathIsAbsolute;
+    private final Factory<List<File>> cachedElementsFactory = Factories.softReferenceCache(new Factory<List<File>>() {
+        @Override
+        public List<File> create() {
+            return doGetElements();
+        }
+    });
+    private final Factory<List<File>> cachedFilesFactory = Factories.softReferenceCache(new Factory<List<File>>() {
+        @Override
+        public List<File> create() {
+            return doGetFiles();
+        }
+    });
 
     public DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, TaskFilePropertyCompareStrategy compareStrategy, boolean pathIsAbsolute) {
         this.snapshots = snapshots;
@@ -62,6 +76,10 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
 
     @Override
     public List<File> getElements() {
+        return cachedElementsFactory.create();
+    }
+
+    private List<File> doGetElements() {
         List<File> files = Lists.newArrayListWithCapacity(snapshots.size());
         for (String name : snapshots.keySet()) {
             files.add(new File(name));
@@ -71,6 +89,10 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
 
     @Override
     public List<File> getFiles() {
+        return cachedFilesFactory.create();
+    }
+
+    private List<File> doGetFiles() {
         List<File> files = Lists.newArrayList();
         for (Map.Entry<String, NormalizedFileSnapshot> entry : snapshots.entrySet()) {
             if (entry.getValue().getSnapshot() instanceof FileHashSnapshot) {
