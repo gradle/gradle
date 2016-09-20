@@ -17,7 +17,9 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
 class TaskEnumTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -40,6 +42,7 @@ enum SomeEnum {
     }
 
     @Issue("GRADLE-3018")
+    @IgnoreIf({!GradleContextualExecuter.longLivingProcess}) // broken across process boundaries
     def "cached task state handles enum input properties"(){
         given:
         run "someTask"
