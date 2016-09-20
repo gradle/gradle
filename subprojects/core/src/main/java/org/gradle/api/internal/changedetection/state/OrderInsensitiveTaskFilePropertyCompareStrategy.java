@@ -29,8 +29,8 @@ import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -64,7 +64,7 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
      * A more efficient implementation when absolute paths are used.
      */
     private Iterator<TaskStateChange> iterateChangesForAbsolutePaths(final Map<String, NormalizedFileSnapshot> current, final Map<String, NormalizedFileSnapshot> previous, final String fileType) {
-        final Set<String> unaccountedForPreviousSnapshots = new HashSet<String>(previous.keySet());
+        final Set<String> unaccountedForPreviousSnapshots = new LinkedHashSet<String>(previous.keySet());
         final Iterator<Entry<String, NormalizedFileSnapshot>> currentEntries = current.entrySet().iterator();
         final List<String> added = new ArrayList<String>();
         return new AbstractIterator<TaskStateChange>() {
