@@ -28,6 +28,11 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
      */
     ABSOLUTE {
         @Override
+        public boolean isPathAbsolute() {
+            return true;
+        }
+
+        @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
             return new NonNormalizedFileSnapshot(fileDetails.getPath(), snapshot);
         }
@@ -37,6 +42,11 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
      * Use the location of the file related to a classpath.
      */
     CLASSPATH {
+        @Override
+        public boolean isPathAbsolute() {
+            return false;
+        }
+
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
             // Ignore path of root files and directories
@@ -52,6 +62,11 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
      */
     RELATIVE {
         @Override
+        public boolean isPathAbsolute() {
+            return false;
+        }
+
+        @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
             // Ignore path of root directories
             if (fileDetails.isRoot() && fileDetails.getType() == FileDetails.FileType.Directory) {
@@ -66,6 +81,11 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
      */
     NAME_ONLY {
         @Override
+        public boolean isPathAbsolute() {
+            return false;
+        }
+
+        @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
             // Ignore path of root directories
             if (fileDetails.isRoot() && fileDetails.getType() == FileDetails.FileType.Directory) {
@@ -79,6 +99,11 @@ public enum TaskFilePropertySnapshotNormalizationStrategy implements SnapshotNor
      * Ignore the file path completely.
      */
     NONE {
+        @Override
+        public boolean isPathAbsolute() {
+            return false;
+        }
+
         @Override
         public NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner) {
             if (fileDetails.getType() == FileDetails.FileType.Directory) {

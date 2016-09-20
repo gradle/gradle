@@ -49,7 +49,7 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
  * <p>Implementation performs some in-memory caching, should be notified of potential changes by calling {@link #startTaskActions()}.</p>
  */
 public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter, TaskActionExecutionListener {
-    private static final DefaultFileCollectionSnapshot EMPTY_SNAPSHOT = new DefaultFileCollectionSnapshot(ImmutableMap.<String, NormalizedFileSnapshot>of(), UNORDERED);
+    private static final DefaultFileCollectionSnapshot EMPTY_SNAPSHOT = new DefaultFileCollectionSnapshot(ImmutableMap.<String, NormalizedFileSnapshot>of(), UNORDERED, true);
     private final FileSnapshotter snapshotter;
     private final StringInterner stringInterner;
     private final CacheAccess cacheAccess;
@@ -120,7 +120,7 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
                 }
             }
         });
-        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy);
+        return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
     }
 
     @Override

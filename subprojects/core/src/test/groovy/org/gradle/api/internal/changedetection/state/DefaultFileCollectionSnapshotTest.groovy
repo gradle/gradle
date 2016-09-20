@@ -31,11 +31,11 @@ class DefaultFileCollectionSnapshotTest extends Specification {
         def oldSnapshot = new DefaultFileCollectionSnapshot([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
-        ], UNORDERED)
+        ], UNORDERED, false)
         def newSnapshot = new DefaultFileCollectionSnapshot([
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
-        ], UNORDERED)
+        ], UNORDERED, false)
         when:
         oldSnapshot.appendToCacheKey(builder)
         then:
@@ -60,11 +60,11 @@ class DefaultFileCollectionSnapshotTest extends Specification {
         def oldSnapshot = new DefaultFileCollectionSnapshot([
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
-        ], ORDERED)
+        ], ORDERED, false)
         def newSnapshot = new DefaultFileCollectionSnapshot([
             "file2.txt": new DefaultNormalizedFileSnapshot("file2.txt", new FileHashSnapshot(HashCode.fromInt(234))),
             "file1.txt": new DefaultNormalizedFileSnapshot("file1.txt", new FileHashSnapshot(HashCode.fromInt(123))),
-        ], ORDERED)
+        ], ORDERED, false)
         when:
         oldSnapshot.appendToCacheKey(builder)
         then:

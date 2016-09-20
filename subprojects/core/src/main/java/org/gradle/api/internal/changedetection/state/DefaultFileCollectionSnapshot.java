@@ -32,10 +32,12 @@ import java.util.Map;
 class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
     private final Map<String, NormalizedFileSnapshot> snapshots;
     private final TaskFilePropertyCompareStrategy compareStrategy;
+    private final boolean pathIsAbsolute;
 
-    public DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, TaskFilePropertyCompareStrategy compareStrategy) {
+    public DefaultFileCollectionSnapshot(Map<String, NormalizedFileSnapshot> snapshots, TaskFilePropertyCompareStrategy compareStrategy, boolean pathIsAbsolute) {
         this.snapshots = snapshots;
         this.compareStrategy = compareStrategy;
+        this.pathIsAbsolute = pathIsAbsolute;
     }
 
     @Override
@@ -50,7 +52,7 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
 
     @Override
     public Iterator<TaskStateChange> iterateContentChangesSince(FileCollectionSnapshot oldSnapshot, String fileType) {
-        return compareStrategy.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType);
+        return compareStrategy.iterateContentChangesSince(snapshots, oldSnapshot.getSnapshots(), fileType, pathIsAbsolute);
     }
 
     @Override
@@ -88,12 +90,14 @@ class DefaultFileCollectionSnapshot implements FileCollectionSnapshot {
         public DefaultFileCollectionSnapshot read(Decoder decoder) throws Exception {
             TaskFilePropertyCompareStrategy compareStrategy = TaskFilePropertyCompareStrategy.values()[decoder.readSmallInt()];
             Map<String, NormalizedFileSnapshot> snapshots = snapshotMapSerializer.read(decoder);
-            return new DefaultFileCollectionSnapshot(snapshots, compareStrategy);
+            boolean pathIsUnique = decoder.readBoolean();
+            return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, pathIsUnique);
         }
 
         public void write(Encoder encoder, DefaultFileCollectionSnapshot value) throws Exception {
             encoder.writeSmallInt(value.compareStrategy.ordinal());
             snapshotMapSerializer.write(encoder, value.snapshots);
+            encoder.writeBoolean(value.pathIsAbsolute);
         }
     }
 }

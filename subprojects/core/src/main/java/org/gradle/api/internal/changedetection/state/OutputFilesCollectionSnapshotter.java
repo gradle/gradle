@@ -81,7 +81,7 @@ public class OutputFilesCollectionSnapshotter implements FileCollectionSnapshott
             if (newEntryCount == afterSnapshots.size()) {
                 filesSnapshot = afterExecution;
             } else {
-                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.OUTPUT);
+                filesSnapshot = new DefaultFileCollectionSnapshot(outputEntries.build(), TaskFilePropertyCompareStrategy.OUTPUT, true);
             }
         } else {
             filesSnapshot = afterExecution;

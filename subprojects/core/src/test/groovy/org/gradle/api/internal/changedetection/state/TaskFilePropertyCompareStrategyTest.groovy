@@ -71,6 +71,21 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
+    def "non-trivial addition with absolute paths (#strategy)"() {
+        expect:
+        changesUsingAbsolutePaths(strategy,
+            ["one": snapshot("one"), "two": snapshot("two")],
+            ["one": snapshot("one")]
+        ) == results
+
+        where:
+        strategy  | results
+        ORDERED   | [change("two", ADDED)]
+        UNORDERED | [change("two", ADDED)]
+        OUTPUT    | []
+    }
+
+    @Unroll
     def "trivial removal (#strategy)"() {
         expect:
         changes(strategy,
@@ -95,12 +110,36 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
+    def "non-trivial removal with absolute paths (#strategy)"() {
+        expect:
+        changesUsingAbsolutePaths(strategy,
+            ["one": snapshot("one")],
+            ["one": snapshot("one"), "two": snapshot("two")]
+        ) == [change("two", REMOVED)]
+
+        where:
+        strategy << [ORDERED, UNORDERED, OUTPUT]
+    }
+
+    @Unroll
     def "non-trivial modification (#strategy)"() {
         expect:
         changes(strategy,
             ["one-new": snapshot("one"), "two-new": snapshot("two", "9876cafe")],
             ["one-old": snapshot("one"), "two-old": snapshot("two", "face1234")]
         ) == [change("two-new", MODIFIED)]
+
+        where:
+        strategy << [ORDERED, UNORDERED, OUTPUT]
+    }
+
+    @Unroll
+    def "non-trivial modification with absolute paths (#strategy)"() {
+        expect:
+        changesUsingAbsolutePaths(strategy,
+            ["one": snapshot("one"), "two": snapshot("two", "9876cafe")],
+            ["one": snapshot("one"), "two": snapshot("two", "face1234")]
+        ) == [change("two", MODIFIED)]
 
         where:
         strategy << [ORDERED, UNORDERED, OUTPUT]
@@ -137,6 +176,21 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     @Unroll
+    def "non-trivial replacement with absolute paths (#strategy)"() {
+        expect:
+        changesUsingAbsolutePaths(strategy,
+            ["one": snapshot("one"), "two": snapshot("two"), "four": snapshot("four")],
+            ["one": snapshot("one"), "three": snapshot("three"), "four": snapshot("four")]
+        ) == results
+
+        where:
+        strategy  | results
+        ORDERED   | [change("two", REPLACED)]
+        UNORDERED | [change("three", REMOVED), change("two", ADDED)]
+        OUTPUT    | [change("three", REMOVED)]
+    }
+
+    @Unroll
     def "reordering (#strategy)"() {
         expect:
         changes(strategy,
@@ -147,6 +201,21 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
         where:
         strategy | results
         ORDERED   | [change("two-new", REPLACED), change("three-new", REPLACED)]
+        UNORDERED | []
+        OUTPUT    | []
+    }
+
+    @Unroll
+    def "reordering with absolute paths (#strategy)"() {
+        expect:
+        changesUsingAbsolutePaths(strategy,
+            ["one": snapshot("one"), "two": snapshot("two"), "three": snapshot("three")],
+            ["one": snapshot("one"), "three": snapshot("three"), "two": snapshot("two")]
+        ) == results
+
+        where:
+        strategy | results
+        ORDERED   | [change("two", REPLACED), change("three", REPLACED)]
         UNORDERED | []
         OUTPUT    | []
     }
@@ -176,7 +245,11 @@ class TaskFilePropertyCompareStrategyTest extends Specification {
     }
 
     def changes(TaskFilePropertyCompareStrategy strategy, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
-        Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test"))
+        Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test", false))
+    }
+
+    def changesUsingAbsolutePaths(TaskFilePropertyCompareStrategy strategy, Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous) {
+        Lists.newArrayList(strategy.iterateContentChangesSince(current, previous, "test", true))
     }
 
     def snapshot(String normalizedPath, String hashCode = "1234abcd") {
