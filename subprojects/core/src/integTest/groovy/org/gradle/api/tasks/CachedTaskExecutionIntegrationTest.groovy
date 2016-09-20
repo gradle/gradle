@@ -313,11 +313,77 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("input.txt") << "data"
         buildFile << adHocTaskWithInputs()
-        buildFile << """
-        adHocTask { outputs.cacheIf { true } }"""
+        buildFile << 'adHocTask { outputs.cacheIf { true } }'
 
         expect:
         taskIsCached ':adHocTask'
+    }
+
+    def 'task execution statistics are reported'() {
+        given:
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+        buildFile << """
+            adHocTask { outputs.cacheIf { true } }
+
+            task executedTask {
+                doLast {
+                    println 'Hello world'
+                }
+            }
+        """
+
+        buildFile << assertStatisticsListener()
+
+        expect:
+        runTasksCheckingStatistics(['adHocTask', 'executedTask', 'compileJava'],
+            allTasksCount: 3, cacheableTasksCount: 2, executedTasksCount: 3)
+
+        when:
+        assert file('build/output.txt').delete()
+
+        then:
+        runTasksCheckingStatistics(['adHocTask', 'executedTask', 'compileJava'],
+            allTasksCount: 3, cacheableTasksCount: 1, cachedTasksCount: 1, upToDateTasksCount: 1, executedTasksCount: 1)
+    }
+
+    private runTasksCheckingStatistics(Map<String, Integer> statistics, List<String> tasks) {
+        runWithCache(*(tasks + statisticsProjectProperties(statistics)))
+    }
+
+    private String assertStatisticsListener() {
+        def counts = [
+            'allTasksCount',
+            'cacheableTasksCount',
+            'skippedTasksCount',
+            'upToDateTasksCount',
+            'executedTasksCount',
+            'cachedTasksCount'
+        ]
+
+        """
+            import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatisticsListener
+            import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatistics
+
+            gradle.addListener(new TaskExecutionStatisticsListener() {
+                void buildFinished(TaskExecutionStatistics statistics) {
+                ${counts.collect { count -> "assert statistics.${count} == Integer.valueOf(project.${count})" }.join('\n')}
+                }
+            })
+        """
+    }
+
+    private List<String> statisticsProjectProperties(Map options) {
+        options = [
+            allTasksCount: 0,
+            cacheableTasksCount: 0,
+            skippedTasksCount: 0,
+            upToDateTasksCount: 0,
+            executedTasksCount: 0,
+            cachedTasksCount: 0
+        ] + options
+
+        options.collect { key, value -> "-P${key}=${value}"}
     }
 
     String adHocTaskWithInputs() {
@@ -330,7 +396,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 project.mkdir outputFile.parentFile
                 outputFile.text = file("input.txt").text
             }
-        }""".stripIndent()
+        }
+        """.stripIndent()
     }
 
     void taskIsNotCached(String task) {

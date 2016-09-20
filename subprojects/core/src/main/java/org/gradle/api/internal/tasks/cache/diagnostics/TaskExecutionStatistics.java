@@ -46,7 +46,7 @@ public class TaskExecutionStatistics {
         return cacheableTasksCount;
     }
 
-    public int getUpToDateTaskCount() {
+    public int getUpToDateTasksCount() {
         return taskCounts.get(TaskExecutionEvent.UP_TO_DATE);
     }
 
@@ -54,11 +54,11 @@ public class TaskExecutionStatistics {
         return taskCounts.get(TaskExecutionEvent.CACHED);
     }
 
-    public int getSkippedTaskCount() {
+    public int getSkippedTasksCount() {
         return taskCounts.get(TaskExecutionEvent.SKIPPED);
     }
 
-    public int getExecutedTaskCount() {
+    public int getExecutedTasksCount() {
         return taskCounts.get(TaskExecutionEvent.EXECUTED);
     }
 }

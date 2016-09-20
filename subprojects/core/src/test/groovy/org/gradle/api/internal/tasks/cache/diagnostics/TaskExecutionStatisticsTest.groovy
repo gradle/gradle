@@ -23,70 +23,40 @@ import static org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionEvent
 
 @Subject(TaskExecutionStatistics)
 class TaskExecutionStatisticsTest extends Specification {
-    private diagnostics = new TaskExecutionStatistics()
+    private statistics = new TaskExecutionStatistics()
 
-    def 'cached tasks are reported'() {
+    def 'tasks states are counted correctly'() {
         given:
-        diagnostics.event(CACHED)
-        diagnostics.event(CACHED)
-        4.times { diagnostics.event(EXECUTED) }
-        diagnostics.event(CACHED)
+        [
+            CACHED,
+            CACHED,
+            EXECUTED,
+            SKIPPED,
+            UP_TO_DATE,
+            SKIPPED,
+            UP_TO_DATE,
+            UP_TO_DATE,
+            CACHED,
+            EXECUTED,
+            UP_TO_DATE,
+            UP_TO_DATE,
+            CACHED,
+            SKIPPED
+        ].each { statistics.event(it) }
 
         expect:
-        diagnostics.getCachedTasksCount() == 3
+        statistics.cachedTasksCount == 4
+        statistics.executedTasksCount == 2
+        statistics.skippedTasksCount == 3
+        statistics.upToDateTasksCount == 5
+        statistics.allTasksCount == 14
     }
 
-    def 'all tasks are reported'() {
+    def 'cacheable tasks are counted correctly'() {
         given:
-        3.times { diagnostics.event(CACHED) }
-        4.times { diagnostics.event(EXECUTED) }
-        9.times { diagnostics.event(EXECUTED) }
-        7.times { diagnostics.event(CACHED) }
+        [true, true, false, true, false, true].each { statistics.taskCacheable(it) }
 
         expect:
-        diagnostics.allTasksCount == 23
-    }
-
-    def 'up to date tasks are reported'() {
-        given:
-        3.times { diagnostics.event(CACHED) }
-        10.times { diagnostics.event(UP_TO_DATE) }
-        7.times { diagnostics.event(CACHED) }
-        4.times { diagnostics.event(UP_TO_DATE) }
-
-        expect:
-        diagnostics.upToDateTaskCount == 14
-    }
-
-    def 'skipped tasks are reported'() {
-        given:
-        3.times { diagnostics.event(CACHED) }
-        10.times { diagnostics.event(EXECUTED) }
-        5.times { diagnostics.event(SKIPPED) }
-        7.times { diagnostics.event(CACHED) }
-        4.times { diagnostics.event(EXECUTED) }
-
-        expect:
-        diagnostics.skippedTaskCount == 5
-    }
-
-    def 'executed tasks are reported'() {
-        given:
-        3.times { diagnostics.event(CACHED) }
-        5.times { diagnostics.event(SKIPPED) }
-        7.times { diagnostics.event(EXECUTED) }
-        9.times { diagnostics.event(UP_TO_DATE) }
-        4.times { diagnostics.event(EXECUTED) }
-
-        expect:
-        diagnostics.executedTaskCount == 11
-    }
-
-    def 'cacheable tasks are reported'() {
-        given:
-        [true, true, false, true, false, true].each { diagnostics.taskCacheable(it) }
-
-        expect:
-        diagnostics.cacheableTasksCount == 4
+        statistics.cacheableTasksCount == 4
     }
 }
