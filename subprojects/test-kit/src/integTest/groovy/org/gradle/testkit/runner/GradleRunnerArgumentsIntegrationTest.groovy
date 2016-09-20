@@ -88,7 +88,9 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
         """
 
         when:
-        runner("writeValue", "--parallel").build()
+        runner("writeValue", "--parallel")
+            .withGradleVersion("3.1")
+            .build()
 
         then:
         file("out.txt").text == "true"
@@ -107,7 +109,9 @@ class GradleRunnerArgumentsIntegrationTest extends BaseGradleRunnerIntegrationTe
         """
 
         when:
-        runner("writeValue", "-Dorg.gradle.parallel=true").build()
+        runner("writeValue", "-Dorg.gradle.parallel=true")
+            .withGradleVersion("3.1")
+            .build()
 
         then:
         file("out.txt").text == "true"
