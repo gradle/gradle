@@ -151,6 +151,12 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         return theData;
     }
 
+    public void invalidateAll() {
+        for(Cache<Object, Object> subcache : cache.asMap().values()) {
+            subcache.invalidateAll();
+        }
+    }
+
     private static class LoggingEvictionListener implements RemovalListener<Object, Object> {
         private static Logger logger = Logging.getLogger(LoggingEvictionListener.class);
         private static final String EVICTION_MITIGATION_MESSAGE = "\nPerformance may suffer from in-memory cache misses. Increase max heap size of Gradle build process to reduce cache misses.";
