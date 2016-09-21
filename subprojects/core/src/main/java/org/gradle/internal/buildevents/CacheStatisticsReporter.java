@@ -38,19 +38,14 @@ public class CacheStatisticsReporter implements TaskExecutionStatisticsListener 
         StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.LIFECYCLE);
         int cacheableTasks = statistics.getCacheableTasksCount();
         textOutput.println();
-        textOutput.println("You are using the task output cache");
-        if (cacheableTasks == 0) {
-            textOutput.formatln("No executed tasks were cacheable - the task output cache has no effect");
-        } else {
-            int cachedTasks = statistics.getCachedTasksCount();
-            int allTasks = statistics.getAllTasksCount();
-            int upToDateTasks = statistics.getUpToDateTasksCount();
-            textOutput.formatln("%d tasks in build, out of which %d (%s%%) were cacheable", allTasks, cacheableTasks, roundedPercentOf(cacheableTasks, allTasks));
-            statisticsLine(textOutput, upToDateTasks, allTasks, "up-to-date");
-            statisticsLine(textOutput, cachedTasks, allTasks, "loaded from cache");
-            statisticsLine(textOutput, statistics.getSkippedTasksCount(), allTasks, "skipped");
-            statisticsLine(textOutput, statistics.getExecutedTasksCount(), allTasks, "executed");
-        }
+        int cachedTasks = statistics.getCachedTasksCount();
+        int allTasks = statistics.getAllTasksCount();
+        int upToDateTasks = statistics.getUpToDateTasksCount();
+        textOutput.formatln("%d tasks in build, out of which %d (%s%%) were cacheable", allTasks, cacheableTasks, roundedPercentOf(cacheableTasks, allTasks));
+        statisticsLine(textOutput, upToDateTasks, allTasks, "up-to-date");
+        statisticsLine(textOutput, cachedTasks, allTasks, "loaded from cache");
+        statisticsLine(textOutput, statistics.getSkippedTasksCount(), allTasks, "skipped");
+        statisticsLine(textOutput, statistics.getExecutedTasksCount(), allTasks, "executed");
     }
 
     private void statisticsLine(StyledTextOutput textOutput, int fraction, int total, String description) {
