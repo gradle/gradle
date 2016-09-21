@@ -112,6 +112,7 @@ We would like to thank the following community members for making contributions 
 - [Alex Proca](https://github.com/alexproca) - Limit Unix Start Scripts to use POSIX standard sh
 - [Spencer Allain](https://github.com/merscwog) - Do not require password for truststore
 - [Sandu Turcan](https://github.com/idlsoft) - Added `preferProjectModules()` option to dependency resolution strategy
+- [Oliver Trosien](https://github.com/otrosien) - Wrong location of test resources in documentation
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
