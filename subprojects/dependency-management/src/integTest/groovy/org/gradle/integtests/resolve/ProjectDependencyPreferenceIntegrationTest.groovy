@@ -35,7 +35,7 @@ class ProjectDependencyPreferenceIntegrationTest extends AbstractIntegrationSpec
         mavenRepo.module("org.utils", "api-ext", '1.0').dependsOn("org.utils", "api", versionExternal).publish()
         settingsFile << 'include "api", "moduleA", "moduleB"'
 
-        def projectPrioritySetting = "preferProjectModules = $preferProjectModules"
+        def projectPrioritySetting = preferProjectModules ? "preferProjectModules()" : ""
         String apiDependency = forcedVersion == null && forcedVersion != 'project' ?
             'conf project(":api")' : "conf ('org.utils:api:$forcedVersion') { force = true }"
 

@@ -36,14 +36,14 @@ import java.util.concurrent.TimeUnit;
  *     // e.g. multiple different versions of the same dependency (group and name are equal)
  *     failOnVersionConflict()
  *
+ *     // prefer modules that are part of this build (multi-project or composite build) over external modules
+ *     preferProjectModules()
+ *
  *     // force certain versions of dependencies (including transitive)
  *     //  *append new forced modules:
  *     force 'asm:asm-all:3.3.1', 'commons-io:commons-io:1.4'
  *     //  *replace existing forced modules with new ones:
  *     forcedModules = ['asm:asm-all:3.3.1']
- *
- *     // prefer modules that are part of this build (multi-project or composite build) over external modules
- *     preferProjectModules = true
  *
  *     // add dependency substitution rules
  *     dependencySubstitution {
@@ -91,21 +91,14 @@ public interface ResolutionStrategy {
      * apply plugin: 'java' //so that there are some configurations
      *
      * configurations.all {
-     *   resolutionStrategy.preferProjectModules = true
+     *   resolutionStrategy.preferProjectModules()
      * }
      * </pre>
      *
      * @return prefer project modules
      * @since 3.2
      */
-    boolean isPreferProjectModules();
-
-    /**
-     * Modify the {@link #isPreferProjectModules} setting.
-     *
-     * @since 3.2
-     */
-    void setPreferProjectModules(boolean value);
+    void preferProjectModules();
 
     /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.
