@@ -95,7 +95,6 @@ public interface ResolutionStrategy {
      * }
      * </pre>
      *
-     * @return prefer project modules
      * @since 3.2
      */
     void preferProjectModules();
