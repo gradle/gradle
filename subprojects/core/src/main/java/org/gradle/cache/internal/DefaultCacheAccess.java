@@ -352,6 +352,14 @@ public class DefaultCacheAccess implements CacheCoordinator {
         CacheDecorator decorator = parameters.getCacheDecorator();
         if (decorator != null) {
             indexedCache = decorator.decorate(cacheFile.getAbsolutePath(), parameters.getCacheName(), indexedCache, getCacheAccessWorker());
+            if (fileLock == null) {
+                useCache("Initial operation", new Runnable() {
+                    @Override
+                    public void run() {
+                        // Empty initial operation to trigger onStartWork calls
+                    }
+                });
+            }
         }
 
         lock.lock();
