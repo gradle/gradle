@@ -33,9 +33,8 @@ class DefaultPrebuiltSharedLibraryBinaryTest extends Specification {
         expect:
         binary.toString() == "prebuilt shared library 'lib:name'"
         binary.displayName == "prebuilt shared library 'lib:name'"
-        binary.headerDirs.toString() == "Headers for prebuilt shared library 'lib:name'"
-        binary.linkFiles.toString() == "Link files for prebuilt shared library 'lib:name'"
-        binary.runtimeFiles.toString() == "Runtime files for prebuilt shared library 'lib:name'"
+        binary.linkFiles.toString() == "link files for prebuilt shared library 'lib:name'"
+        binary.runtimeFiles.toString() == "runtime files for prebuilt shared library 'lib:name'"
     }
 
     def "uses library file when link file not set"() {
