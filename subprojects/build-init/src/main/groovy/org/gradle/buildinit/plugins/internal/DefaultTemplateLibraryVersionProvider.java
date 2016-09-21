@@ -16,6 +16,7 @@
 package org.gradle.buildinit.plugins.internal;
 
 import com.google.common.base.Throwables;
+import org.gradle.api.JavaVersion;
 
 import java.io.IOException;
 import java.util.Properties;
@@ -33,6 +34,10 @@ public class DefaultTemplateLibraryVersionProvider implements TemplateLibraryVer
     }
 
     public String getVersion(String module) {
+        if (module.equals("testng") && !JavaVersion.current().isJava8Compatible()) {
+            // Use the highest version that runs on Java 7
+            return "6.9.12";
+        }
         return libraryVersions.getProperty(module);
     }
 }
