@@ -18,11 +18,11 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import spock.lang.IgnoreIf
+import org.gradle.util.Requires
 
+@Requires(adhoc = { AvailableJavaHomes.differentJdk != null })
 public class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
-    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     public void "not up-to-date when default Java version changes"() {
         given:
         buildFile << """
