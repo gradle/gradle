@@ -83,7 +83,7 @@ public interface ResolutionStrategy {
      * Returns the current {@link #setPreferProjectModules} setting
      *
      * @return prefer project modules
-     * @since 3.0
+     * @since 3.2
      */
     boolean isPreferProjectModules();
 
@@ -100,7 +100,7 @@ public interface ResolutionStrategy {
      * }
      * </pre>
      *
-     * @since 3.0
+     * @since 3.2
      */
     void setPreferProjectModules(boolean value);
 
