@@ -21,8 +21,10 @@ import org.gradle.cache.CacheAccess;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -110,7 +112,7 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     }
 
     private static class FlushOperationsCommand implements Runnable {
-        private CountDownLatch latch = new CountDownLatch(1);
+        private CountDownLatch latch = new CountDownLatch(2);
 
         @Override
         public void run() {
@@ -137,6 +139,8 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
                     if (runnableClass == ShutdownOperationsCommand.class) {
                         break;
                     } else if (runnableClass == FlushOperationsCommand.class) {
+                        // not holding the cache's lock, call operation twice to trigger latch
+                        runnable.run();
                         runnable.run();
                     } else {
                         flushOperations(runnable, batchWindow, maximumLockingTimeMillis);
@@ -152,6 +156,8 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
             synchronized (failureLock) {
                 failureHolder.set(t);
                 for (Runnable runnable : pendingFlushOperations) {
+                    // call twice to make sure that latch trips
+                    runnable.run();
                     runnable.run();
                 }
             }
@@ -163,29 +169,41 @@ class CacheAccessWorker implements Runnable, Stoppable, AsyncCacheAccess {
     }
 
     private void flushOperations(final Runnable updateOperation, final long timeoutMillis, final long maximumLockingTimeMillis) {
-        cacheAccess.useCache("CacheAccessWorker flushing operations", new Runnable() {
-            @Override
-            public void run() {
-                long lockingStarted = System.currentTimeMillis();
-                if (updateOperation != null) {
-                    updateOperation.run();
-                }
-                Runnable otherOperation;
-                try {
-                    while ((otherOperation = workQueue.poll(timeoutMillis, TimeUnit.MILLISECONDS)) != null) {
-                        otherOperation.run();
-                        final Class<? extends Runnable> runnableClass = otherOperation.getClass();
-                        if (runnableClass == ShutdownOperationsCommand.class
-                                || runnableClass == FlushOperationsCommand.class
-                                || maximumLockingTimeMillis > 0L && System.currentTimeMillis() - lockingStarted > maximumLockingTimeMillis) {
-                            break;
-                        }
+        final List<Runnable> flushOperations = new ArrayList<Runnable>();
+        try {
+            cacheAccess.useCache("CacheAccessWorker flushing operations", new Runnable() {
+                @Override
+                public void run() {
+                    long lockingStarted = System.currentTimeMillis();
+                    if (updateOperation != null) {
+                        updateOperation.run();
                     }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    Runnable otherOperation;
+                    try {
+                        while ((otherOperation = workQueue.poll(timeoutMillis, TimeUnit.MILLISECONDS)) != null) {
+                            otherOperation.run();
+                            final Class<? extends Runnable> runnableClass = otherOperation.getClass();
+                            if (runnableClass == FlushOperationsCommand.class) {
+                                flushOperations.add(otherOperation);
+                            }
+                            if (runnableClass == ShutdownOperationsCommand.class
+                                    || runnableClass == FlushOperationsCommand.class
+                                    || maximumLockingTimeMillis > 0L && System.currentTimeMillis() - lockingStarted > maximumLockingTimeMillis) {
+                                break;
+                            }
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
                 }
+            });
+        } finally {
+            for (Runnable flushOperation : flushOperations) {
+                // call 2nd time to trigger latch
+                // this tells the flusher thread that the "useCache" block has exited.
+                flushOperation.run();
             }
-        });
+        }
     }
 
     public synchronized void stop() {
