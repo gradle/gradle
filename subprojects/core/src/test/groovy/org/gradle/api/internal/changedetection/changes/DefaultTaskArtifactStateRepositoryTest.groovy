@@ -28,7 +28,7 @@ import org.gradle.api.internal.changedetection.state.DefaultFileCollectionSnapsh
 import org.gradle.api.internal.changedetection.state.DefaultTaskArtifactStateCacheAccess
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter
-import org.gradle.api.internal.changedetection.state.NoOpDecorator
+import org.gradle.cache.internal.AsyncCacheAccessDecorator
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository
@@ -76,7 +76,7 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
         gradle = project.getGradle()
         task  = builder.task()
         CacheRepository cacheRepository = new DefaultCacheRepository(mapping, new InMemoryCacheFactory())
-        TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new NoOpDecorator())
+        TaskArtifactStateCacheAccess cacheAccess = new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new AsyncCacheAccessDecorator())
         def stringInterner = new StringInterner()
         def snapshotter = new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner)
         fileCollectionSnapshotter = new DefaultFileCollectionSnapshotter(snapshotter, cacheAccess, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())

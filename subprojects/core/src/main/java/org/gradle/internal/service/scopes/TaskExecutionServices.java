@@ -33,7 +33,7 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.api.internal.changedetection.state.NoOpDecorator;
+import org.gradle.cache.internal.AsyncCacheAccessDecorator;
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
@@ -125,7 +125,7 @@ public class TaskExecutionServices {
         if (environment.isLongLivingProcess()) {
             decorator = inMemoryTaskArtifactCache;
         } else {
-            decorator = new NoOpDecorator();
+            decorator = new AsyncCacheAccessDecorator();
         }
         return new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, decorator);
     }

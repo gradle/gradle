@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,8 @@
 
 package org.gradle.cache.internal;
 
-public interface CacheDecorator {
-    /**
-     * @param cacheId Unique id for this cache instance.
-     * @param cacheName Name for the type of contents stored in this cache instance.
-     */
-    <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> original, AsyncCacheAccess asyncCacheAccess);
+public class AsyncCacheAccessDecorator implements CacheDecorator {
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> original, AsyncCacheAccess asyncCacheAccess) {
+        return new AsyncCacheAccessDecoratedCache<K, V>(asyncCacheAccess, original);
+    }
 }

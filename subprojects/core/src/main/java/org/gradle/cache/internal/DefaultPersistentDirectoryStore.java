@@ -20,6 +20,7 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.filelock.LockOptions;
 import org.gradle.internal.Factory;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.util.GFileUtils;
 
@@ -29,13 +30,15 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final File dir;
     private final LockOptions lockOptions;
     private final FileLockManager lockManager;
+    private final ExecutorFactory executorFactory;
     private final String displayName;
     private CacheCoordinator cacheAccess;
 
-    public DefaultPersistentDirectoryStore(File dir, String displayName, LockOptions lockOptions, FileLockManager fileLockManager) {
+    public DefaultPersistentDirectoryStore(File dir, String displayName, LockOptions lockOptions, FileLockManager fileLockManager, ExecutorFactory executorFactory) {
         this.dir = dir;
         this.lockOptions = lockOptions;
         this.lockManager = fileLockManager;
+        this.executorFactory = executorFactory;
         this.displayName = displayName != null ? (displayName + " (" + dir + ")") : ("cache directory " + dir.getName() + " (" + dir + ")");
     }
 
@@ -52,7 +55,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     }
 
     private CacheCoordinator createCacheAccess() {
-        return new DefaultCacheAccess(displayName, getLockTarget(), dir, lockManager, getInitAction());
+        return new DefaultCacheAccess(displayName, getLockTarget(), dir, lockManager, getInitAction(), executorFactory);
     }
 
     protected File getLockTarget() {

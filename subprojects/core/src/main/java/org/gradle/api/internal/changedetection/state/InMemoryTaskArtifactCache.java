@@ -25,17 +25,17 @@ import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.cache.internal.AsyncCacheAccess;
 import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.cache.internal.FileLock;
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class InMemoryTaskArtifactCache implements CacheDecorator {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
-    private final static Object NULL = new Object();
     private static final Map<String, Integer> CACHE_CAPS = new CacheCapSizer().calculateCaps();
 
     static class CacheCapSizer {
@@ -73,63 +73,21 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             .maximumSize(CACHE_CAPS.size() * 2) //X2 to factor in a child build (for example buildSrc)
             .build();
 
-    private final Map<String, FileLock.State> states = new HashMap<String, FileLock.State>();
+    private final Map<String, AtomicReference<FileLock.State>> states = new HashMap<String, AtomicReference<FileLock.State>>();
 
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(final String cacheId, String cacheName, final MultiProcessSafePersistentIndexedCache<K, V> original) {
-        final Cache<Object, Object> data = loadData(cacheId, cacheName);
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(final String cacheId, String cacheName, final MultiProcessSafePersistentIndexedCache<K, V> original, final AsyncCacheAccess asyncCacheAccess) {
+        return new InMemoryDecoratedCache<K, V>(asyncCacheAccess, original, loadData(cacheId, cacheName), cacheId, getFileLockStateReference(cacheId));
+    }
 
-        return new MultiProcessSafePersistentIndexedCache<K, V>() {
-            public void close() {
-                original.close();
+    private AtomicReference<FileLock.State> getFileLockStateReference(String cacheId) {
+        synchronized (lock) {
+            AtomicReference<FileLock.State> fileLockStateReference = states.get(cacheId);
+            if (fileLockStateReference == null) {
+                fileLockStateReference = new AtomicReference<FileLock.State>(null);
+                states.put(cacheId, fileLockStateReference);
             }
-
-            public V get(K key) {
-                assert key instanceof String || key instanceof Long || key instanceof File : "Unsupported key type: " + key;
-                Object value = data.getIfPresent(key);
-                if (value == NULL) {
-                    return null;
-                }
-                if (value != null) {
-                    return (V) value;
-                }
-                V out = original.get(key);
-                data.put(key, out == null ? NULL : out);
-                return out;
-            }
-
-            public void put(K key, V value) {
-                original.put(key, value);
-                data.put(key, value);
-            }
-
-            public void remove(K key) {
-                data.put(key, NULL);
-                original.remove(key);
-            }
-
-            public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
-                boolean outOfDate = false;
-                synchronized (lock) {
-                    FileLock.State previousState = states.get(cacheId);
-                    if (previousState == null) {
-                        outOfDate = true;
-                    } else if (currentCacheState.hasBeenUpdatedSince(previousState)) {
-                        LOG.info("Invalidating in-memory cache of {}", cacheId);
-                        outOfDate = true;
-                    }
-                }
-
-                if (outOfDate) {
-                    data.invalidateAll();
-                }
-            }
-
-            public void onEndWork(FileLock.State currentCacheState) {
-                synchronized (lock) {
-                    states.put(cacheId, currentCacheState);
-                }
-            }
-        };
+            return fileLockStateReference;
+        }
     }
 
     private Cache<Object, Object> loadData(String cacheId, String cacheName) {

@@ -16,16 +16,20 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.cache.internal.AsyncCacheAccess
 import org.gradle.cache.internal.MultiProcessSafePersistentIndexedCache
 import spock.lang.Specification
+
+import java.util.concurrent.Callable
 
 class InMemoryTaskArtifactCacheTest extends Specification {
     def cacheFactory = new InMemoryTaskArtifactCache()
     def target = Mock(MultiProcessSafePersistentIndexedCache)
+    def asyncCacheAccess = Mock(AsyncCacheAccess)
 
     def "caches result from backing cache"() {
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target)
+        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -34,6 +38,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "result"
 
         and:
+        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
         1 * target.get("key") >> "result"
         0 * target._
 
@@ -49,7 +54,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
     def "caches null result from backing cache"() {
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target)
+        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -58,6 +63,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == null
 
         and:
+        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
         1 * target.get("key") >> null
         0 * target._
 
@@ -73,7 +79,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
     def "caches result of putting item"() {
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target)
+        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -82,15 +88,18 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "result"
 
         and:
+        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
         1 * target.get("key") >> "result"
         0 * target._
 
         when:
         cache.put("key", "new value")
+        Thread.sleep(100L)
 
         then:
+        1 * asyncCacheAccess.enqueue(_) >> { Runnable action -> action.run() }
         1 * target.put("key", "new value")
-        0 * target._
+        0 * _._
 
         when:
         result = cache.get("key")
@@ -104,7 +113,7 @@ class InMemoryTaskArtifactCacheTest extends Specification {
 
     def "caches result of removing item"() {
         given:
-        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target)
+        def cache = cacheFactory.decorate("path/fileSnapshots.bin", "fileSnapshots", target, asyncCacheAccess)
 
         when:
         def result = cache.get("key")
@@ -113,15 +122,18 @@ class InMemoryTaskArtifactCacheTest extends Specification {
         result == "result"
 
         and:
+        1 * asyncCacheAccess.read(_) >> { Callable task -> task.call() }
         1 * target.get("key") >> "result"
         0 * target._
 
         when:
         cache.remove("key")
+        Thread.sleep(100L)
 
         then:
+        1 * asyncCacheAccess.enqueue(_) >> { Runnable action -> action.run() }
         1 * target.remove("key")
-        0 * target._
+        0 * _._
 
         when:
         result = cache.get("key")

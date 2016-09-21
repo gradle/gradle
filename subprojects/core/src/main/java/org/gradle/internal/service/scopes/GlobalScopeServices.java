@@ -196,8 +196,8 @@ public class GlobalScopeServices {
         return new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
     }
 
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager) {
-        return new DefaultCacheFactory(fileLockManager);
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
+        return new DefaultCacheFactory(fileLockManager, executorFactory);
     }
 
     ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, HashingClassLoaderFactory classLoaderFactory) {

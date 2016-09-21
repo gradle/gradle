@@ -325,6 +325,7 @@ a.format = '- %s -'
         // Output files already exist before using this version of Gradle
         // delete .gradle dir to simulate this
         when:
+        executer.withArguments("--stop").run()
         file('.gradle').assertIsDir().deleteDir()
         outputFileA.makeOlder()
         outputFileB.makeOlder()
@@ -475,6 +476,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         // Output files already exist before using this version of Gradle
         // delete .gradle dir to simulate this
         when:
+        executer.withArguments("--stop").run()
         file('.gradle').assertIsDir().deleteDir()
         outputAFile.makeOlder()
         outputBFile.makeOlder()
@@ -604,6 +606,7 @@ task b(type: DirTransformerTask) {
         // Output files already exist before using this version of Gradle
         // Simulate this by removing the .gradle dir
         when:
+        executer.withArguments("--stop").run()
         file('.gradle').assertIsDir().deleteDir()
         file('build/file1.txt').makeOlder()
         file('build/file2.txt').makeOlder()

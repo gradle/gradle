@@ -18,6 +18,7 @@ package org.gradle.cache.internal
 import org.gradle.api.Action
 import org.gradle.cache.CacheValidator
 import org.gradle.cache.internal.locklistener.NoOpFileLockContentionHandler
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -32,7 +33,7 @@ class DefaultCacheFactoryTest extends Specification {
     final Action<?> opened = Mock()
     final Action<?> closed = Mock()
     final ProcessMetaDataProvider metaDataProvider = Mock()
-    private final DefaultCacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler())) {
+    private final DefaultCacheFactory factory = new DefaultCacheFactory(new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler()), Mock(ExecutorFactory)) {
         @Override
         void onOpen(Object cache) {
             opened.execute(cache)

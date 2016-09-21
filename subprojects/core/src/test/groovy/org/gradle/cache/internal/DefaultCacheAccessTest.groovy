@@ -38,7 +38,7 @@ class DefaultCacheAccessTest extends ConcurrentSpec {
     DefaultCacheAccess access = newAccess()
 
     private DefaultCacheAccess newAccess() {
-        new DefaultCacheAccess("<display-name>", lockFile, cacheDir, lockManager, initializationAction) {
+        new DefaultCacheAccess("<display-name>", lockFile, cacheDir, lockManager, initializationAction, executorFactory) {
             @Override
             def <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
                 return backingCache

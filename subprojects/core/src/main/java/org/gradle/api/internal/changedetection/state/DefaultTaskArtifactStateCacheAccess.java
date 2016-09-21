@@ -30,11 +30,11 @@ import java.io.Closeable;
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
 public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCacheAccess, Closeable {
-    private final CacheDecorator inMemoryDecorator;
+    private final CacheDecorator cacheDecorator;
     private final PersistentCache cache;
 
     public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository, CacheDecorator decorator) {
-        this.inMemoryDecorator = decorator;
+        this.cacheDecorator = decorator;
         cache = cacheRepository
                 .cache(gradle, "taskArtifacts")
                 .withDisplayName("task history cache")
@@ -48,23 +48,23 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
 
     public <K, V> PersistentIndexedCache<K, V> createCache(final String cacheName, final Class<K> keyType, final Serializer<V> valueSerializer) {
         PersistentIndexedCacheParameters<K, V> parameters = new PersistentIndexedCacheParameters<K, V>(cacheName, keyType, valueSerializer)
-                .cacheDecorator(inMemoryDecorator);
+                .cacheDecorator(cacheDecorator);
         return cache.createCache(parameters);
     }
 
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        return cache.useCache(operationDisplayName, action);
+        return action.create();
     }
 
     public void useCache(String operationDisplayName, Runnable action) {
-        cache.useCache(operationDisplayName, action);
+        action.run();
     }
 
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        return cache.longRunningOperation(operationDisplayName, action);
+        return action.create();
     }
 
     public void longRunningOperation(String operationDisplayName, Runnable action) {
-        cache.longRunningOperation(operationDisplayName, action);
+        action.run();
     }
 }
