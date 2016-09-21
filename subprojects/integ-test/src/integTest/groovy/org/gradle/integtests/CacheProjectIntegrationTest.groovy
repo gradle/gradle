@@ -66,6 +66,22 @@ public class CacheProjectIntegrationTest extends AbstractIntegrationTest {
         repo.module("commons-lang", "commons-lang", "2.6").publish().allowAll()
 
         server.start()
+
+        int minimumBuildTimeMillis = 1000
+        // this is here to ensure that the lastModified() timestamps actually change in between builds.
+        executer.beforeExecute {
+            def initScript = file("init.gradle")
+            initScript.text = """
+            def startAt = System.nanoTime()
+            gradle.buildFinished {
+                long sinceStart = (System.nanoTime() - startAt) / 1000000L
+                if (sinceStart > 0 && sinceStart < $minimumBuildTimeMillis) {
+                  sleep($minimumBuildTimeMillis - sinceStart)
+                }
+            }
+        """
+            withArgument("-I").withArgument(initScript.absolutePath)
+        }
     }
 
     private void updateCaches() {
