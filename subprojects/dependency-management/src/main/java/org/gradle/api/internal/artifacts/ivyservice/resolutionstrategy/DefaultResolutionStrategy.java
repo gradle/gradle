@@ -98,8 +98,8 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     }
 
     public void setPreferProjectModules(boolean value) {
-        mutationValidator.validateMutation(STRATEGY);
         if (this.conflictResolution instanceof LatestConflictResolution) {
+            mutationValidator.validateMutation(STRATEGY);
             ((LatestConflictResolution) this.conflictResolution).setPreferProjectModules(value);
         }
     }
