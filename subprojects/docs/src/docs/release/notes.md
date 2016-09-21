@@ -111,6 +111,7 @@ We would like to thank the following community members for making contributions 
 - [Justin Sievenpiper](https://github.com/jsievenpiper) - Prevent navigating down to JDK classes when detecting the parent test class
 - [Alex Proca](https://github.com/alexproca) - Limit Unix Start Scripts to use POSIX standard sh
 - [Spencer Allain](https://github.com/merscwog) - Do not require password for truststore
+- [Sandu Turcan](https://github.com/idlsoft) - Added `preferProjectModules()` option to dependency resolution strategy
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
