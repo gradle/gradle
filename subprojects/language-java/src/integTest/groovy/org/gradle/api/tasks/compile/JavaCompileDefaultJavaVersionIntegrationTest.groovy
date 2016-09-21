@@ -20,7 +20,10 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.util.Requires
 
-@Requires(adhoc = { AvailableJavaHomes.differentJdk != null })
+import static org.gradle.api.JavaVersion.VERSION_1_7
+import static org.gradle.api.JavaVersion.VERSION_1_8
+
+@Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_7) && AvailableJavaHomes.getJdk(VERSION_1_8) })
 public class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
     public void "not up-to-date when default Java version changes"() {
@@ -39,17 +42,19 @@ public class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegr
         """
 
         when:
+        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_7).javaHome
         succeeds "compileJava"
         then:
         nonSkippedTasks.contains ":compileJava"
 
         when:
+        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_7).javaHome
         succeeds "compileJava"
         then:
         skippedTasks.contains ":compileJava"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.differentJdk.javaHome
+        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
         succeeds "compileJava", "--info"
         then:
         nonSkippedTasks.contains ":compileJava"
