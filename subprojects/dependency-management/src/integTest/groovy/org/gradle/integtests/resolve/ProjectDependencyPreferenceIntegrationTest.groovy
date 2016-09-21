@@ -26,6 +26,8 @@ class ProjectDependencyPreferenceIntegrationTest extends AbstractIntegrationSpec
      */
     @Unroll
     void "project dependency (#versionInProject) vs external dependency (#versionExternal) resolved in favor of #winner, when preferProjectModules=#preferProjectModules and forcedVersion=#forcedVersion"() {
+        when:
+
         mavenRepo.module("org.utils", "api", versionExternal).publish()
         if (forcedVersion != null && forcedVersion != 'project' && forcedVersion != versionExternal) {
             mavenRepo.module("org.utils", "api", forcedVersion).publish()
@@ -41,60 +43,60 @@ class ProjectDependencyPreferenceIntegrationTest extends AbstractIntegrationSpec
             "dependencySubstitution { substitute module('org.utils:api') with project(':api') }" : ''
 
         buildFile << """
-            project(":api") {
-                group "org.utils"
-                version = $versionInProject
+project(":api") {
+    group "org.utils"
+    version = $versionInProject
+    $common
+    configurations.create("default").extendsFrom(configurations.conf)
+}
 
-                $common
-                configurations.create("default").extendsFrom(configurations.conf)
+project(":moduleA") {
+    $common
+    configurations.create("default").extendsFrom(configurations.conf)
+    dependencies {
+        conf project(":api")
+    }
+}
+
+project(":moduleB") {
+    $common
+    configurations.create("default").extendsFrom(configurations.conf)
+
+    dependencies {
+        conf "org.utils:api:1.0"
+        conf "org.utils:api-ext:1.0"
+        conf project(":moduleA")
+        $apiDependency
+    }
+
+    configurations.conf.resolutionStrategy{
+        $projectPrioritySetting
+        $substitutionSetting
+    }
+
+    task check {
+        doLast {
+            def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
+            def apiProjectDependency = deps.find {
+                it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
+                it.requested.matchesStrictly(projectId(":api"))
             }
+            assert apiProjectDependency && apiProjectDependency.selected.componentId == $winner
+        }
+    }
+}
 
-            project(":moduleA") {
-                $common
-                configurations.create("default").extendsFrom(configurations.conf)
-                dependencies {
-                    conf project(":api")
-                }
-            }
+def moduleId(String group, String name, String version) {
+    return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(group, name, version)
+}
 
-            project(":moduleB") {
-
-                $common
-                configurations.create("default").extendsFrom(configurations.conf)
-
-                dependencies {
-                    conf "org.utils:api:1.0"
-                    conf "org.utils:api-ext:1.0"
-                    conf project(":moduleA")
-                    $apiDependency
-                }
-
-                configurations.conf.resolutionStrategy{
-                    $projectPrioritySetting
-                    $substitutionSetting
-                }
-
-                task check << {
-                    def deps = configurations.conf.incoming.resolutionResult.allDependencies as List
-                    def apiProjectDependency = deps.find {
-                        it instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult &&
-                        it.requested.matchesStrictly(projectId(":api"))
-                    }
-                    assert apiProjectDependency && apiProjectDependency.selected.componentId == $winner
-                }
-            }
-
-            def moduleId(String group, String name, String version) {
-                return org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier.newId(group, name, version)
-            }
-
-            def projectId(String projectPath) {
-                return org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newId(projectPath)
-            }
-
+def projectId(String projectPath) {
+    return org.gradle.internal.component.local.model.DefaultProjectComponentIdentifier.newProjectId(rootProject.subprojects.find { it.path == projectPath})
+}
 """
-        expect:
-        succeeds "moduleB:check"
+
+        then:
+        succeeds('moduleB:check') != null
 
         where:
         versionInProject | versionExternal | winner                                | preferProjectModules | forcedVersion
@@ -107,22 +109,16 @@ class ProjectDependencyPreferenceIntegrationTest extends AbstractIntegrationSpec
     }
 
     String getCommon() {
-        """configurations { conf }
-        repositories {
-            maven { url "${mavenRepo.uri}" }
-        }
-        task resolveConf << { configurations.conf.files }
+"""
+    configurations { conf }
+    repositories {
+        maven { url "${mavenRepo.uri}" }
+    }
+    task resolveConf { doLast { configurations.conf.files } }
 
-        //resolving the configuration at the end:
-        gradle.startParameter.taskNames += 'resolveConf'
-        """
+    //resolving the configuration at the end:
+    gradle.startParameter.taskNames += 'resolveConf'
+"""
     }
 
-    void "without this empty test the real one is ignored, possibly because of Unroll"() {
-        def v = 0
-        when:
-        v++
-        then:
-        assert v == 1
-    }
 }
