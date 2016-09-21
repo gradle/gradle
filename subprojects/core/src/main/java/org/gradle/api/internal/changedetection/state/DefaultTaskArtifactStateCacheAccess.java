@@ -52,6 +52,11 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
         return cache.createCache(parameters);
     }
 
+    @Override
+    public void flush() {
+        cache.flush();
+    }
+
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
         return action.create();
     }

@@ -22,4 +22,6 @@ public interface AsyncCacheAccess {
     void enqueue(Runnable task);
 
     <T> T read(Callable<T> task);
+
+    void flush();
 }

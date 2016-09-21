@@ -367,6 +367,13 @@ public class DefaultCacheAccess implements CacheCoordinator {
         return indexedCache;
     }
 
+    @Override
+    public synchronized void flush() {
+        if(_cacheAccessWorker != null) {
+            _cacheAccessWorker.flush();
+        }
+    }
+
     <K, V> BTreePersistentIndexedCache<K, V> doCreateCache(File cacheFile, Serializer<K> keySerializer, Serializer<V> valueSerializer) {
         return new BTreePersistentIndexedCache<K, V>(cacheFile, keySerializer, valueSerializer);
     }

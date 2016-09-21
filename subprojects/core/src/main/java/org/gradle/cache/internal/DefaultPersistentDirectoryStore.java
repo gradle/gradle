@@ -101,6 +101,13 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         return cacheAccess.newCache(new PersistentIndexedCacheParameters<K, V>(name, keyType, valueSerializer));
     }
 
+    @Override
+    public void flush() {
+        if (cacheAccess != null) {
+            cacheAccess.flush();
+        }
+    }
+
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
         return cacheAccess.useCache(operationDisplayName, action);
     }

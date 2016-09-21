@@ -174,6 +174,11 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
             return reference.cache.createCache(name, keyType, valueSerializer);
         }
 
+        @Override
+        public void flush() {
+            reference.cache.flush();
+        }
+
         public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
             return reference.cache.longRunningOperation(operationDisplayName, action);
         }

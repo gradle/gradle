@@ -17,13 +17,11 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
 class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
-    @Ignore("TODO: LH Fix reporting of AsyncCacheAccess errors")
     def "reports which properties are not serializable"() {
         buildFile << """
             task foo {
@@ -40,7 +38,7 @@ class TaskInputPropertiesIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when: fails "foo"
-        then: failure.assertHasCause("Unable to store task input properties. Property 'b' with value 'xxx")
+        then: failure.assertHasCause("Could not add entry ':foo' to cache taskArtifacts.bin")
     }
 
     def "deals gracefully with not serializable contents of GStrings"() {
