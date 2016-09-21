@@ -17,10 +17,6 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.DefaultNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.IgnoredPathFileSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.IndexedNormalizedFileSnapshot;
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.NonNormalizedFileSnapshot;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.HashCodeSerializer;

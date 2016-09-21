@@ -17,7 +17,6 @@
 package org.gradle.api.internal.changedetection.state
 
 import com.google.common.hash.HashCode
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.DefaultNormalizedFileSnapshot
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder
 import spock.lang.Specification
 

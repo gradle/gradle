@@ -16,13 +16,16 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-/**
- * An immutable snapshot of the type and content of a file.
- *
- * Should implement {@link #equals(Object)} and {@link #hashCode()} to compare these.
- */
-public interface IncrementalFileSnapshot extends FileSnapshot {
-    boolean isContentUpToDate(IncrementalFileSnapshot snapshot);
+public class DefaultNormalizedFileSnapshot extends AbstractNormalizedFileSnapshot {
+    private final String normalizedPath;
 
-    boolean isContentAndMetadataUpToDate(IncrementalFileSnapshot snapshot);
+    public DefaultNormalizedFileSnapshot(String normalizedPath, IncrementalFileSnapshot snapshot) {
+        super(snapshot);
+        this.normalizedPath = normalizedPath;
+    }
+
+    @Override
+    public String getNormalizedPath() {
+        return normalizedPath;
+    }
 }
