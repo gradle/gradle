@@ -18,21 +18,18 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.util.Requires
+import spock.lang.IgnoreIf
 
-import static org.gradle.api.JavaVersion.VERSION_1_7
-import static org.gradle.api.JavaVersion.VERSION_1_8
-
-@Requires(adhoc = { AvailableJavaHomes.getJdks(VERSION_1_7, VERSION_1_8) })
 public class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegrationSpec {
 
+    @IgnoreIf({ AvailableJavaHomes.differentJdk == null })
     public void "not up-to-date when default Java version changes"() {
         given:
         buildFile << """
             apply plugin: "java"
 
-            sourceCompatibility = "1.7"
-            targetCompatibility = "1.7"
+            sourceCompatibility = "1.6"
+            targetCompatibility = "1.6"
         """
 
         and:
@@ -42,19 +39,17 @@ public class JavaCompileDefaultJavaVersionIntegrationTest extends AbstractIntegr
         """
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_7).javaHome
         succeeds "compileJava"
         then:
         nonSkippedTasks.contains ":compileJava"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_7).javaHome
         succeeds "compileJava"
         then:
         skippedTasks.contains ":compileJava"
 
         when:
-        executer.withJavaHome AvailableJavaHomes.getJdk(VERSION_1_8).javaHome
+        executer.withJavaHome AvailableJavaHomes.differentJdk.javaHome
         succeeds "compileJava", "--info"
         then:
         nonSkippedTasks.contains ":compileJava"
