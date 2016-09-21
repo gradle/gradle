@@ -69,7 +69,7 @@ project(":moduleB") {
         $apiDependency
     }
 
-    configurations.conf.resolutionStrategy{
+    configurations.conf.resolutionStrategy {
         $projectPrioritySetting
         $substitutionSetting
     }

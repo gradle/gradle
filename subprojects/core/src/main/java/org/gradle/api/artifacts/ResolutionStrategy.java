@@ -42,6 +42,9 @@ import java.util.concurrent.TimeUnit;
  *     //  *replace existing forced modules with new ones:
  *     forcedModules = ['asm:asm-all:3.3.1']
  *
+ *     // prefer modules that are part of this build (multi-project or composite build) over external modules
+ *     preferProjectModules = true
+ *
  *     // add dependency substitution rules
  *     dependencySubstitution {
  *       substitute module('org.gradle:api') with project(':api')
@@ -80,14 +83,6 @@ public interface ResolutionStrategy {
     ResolutionStrategy failOnVersionConflict();
 
     /**
-     * Returns the current {@link #setPreferProjectModules} setting
-     *
-     * @return prefer project modules
-     * @since 3.2
-     */
-    boolean isPreferProjectModules();
-
-    /**
      * Gradle can resolve conflicts purely by version number or prioritize project dependencies over binary.
      * The default is <b>by version number</b>.<p>
      * This applies to both first level and transitive dependencies. See example below:
@@ -99,6 +94,14 @@ public interface ResolutionStrategy {
      *   resolutionStrategy.preferProjectModules = true
      * }
      * </pre>
+     *
+     * @return prefer project modules
+     * @since 3.2
+     */
+    boolean isPreferProjectModules();
+
+    /**
+     * Modify the {@link #isPreferProjectModules} setting.
      *
      * @since 3.2
      */
