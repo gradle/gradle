@@ -74,7 +74,6 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
             public IncrementalCompilation create() {
                 DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
                 IncrementalCompileProcessor processor = createProcessor(compileStateCache, sourceIncludesParser, spec.getIncludeRoots());
-                // TODO - do not hold the lock while processing the source files - this prevents other tasks from executing concurrently
                 return processor.processSourceFiles(spec.getSourceFiles());
             }
         });
