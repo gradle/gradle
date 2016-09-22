@@ -442,7 +442,7 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
 
         when: "temp files are written"
         // default excludes from Ant, https://github.com/apache/ant/blob/b37d64d/src/main/org/apache/tools/ant/DirectoryScanner.java#L149-L195
-        ['some_file~', '#some_file#', '.#somefile', '._otherfile', '%something%', '.DS_Store/file'].each {
+        ['some_file~', '#some_file#', '.#somefile', '._otherfile', '%something%', '.DS_Store'].each {
             file(it).text = 'content'
         }
 

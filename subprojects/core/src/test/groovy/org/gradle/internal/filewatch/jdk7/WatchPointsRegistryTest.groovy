@@ -289,9 +289,9 @@ class WatchPointsRegistryTest extends Specification {
         appendInput(projectRoot)
 
         expect:
-        !registry.shouldFire(projectRoot.file('.git'))
-        !registry.shouldFire(projectRoot.file('.git/objects/a3/c2b9970a20cb63ab0e63c2fb281aa4d6f9b261'))
-        !registry.shouldFire(projectRoot.file('some_temp_file~'))
+        ['.git', '.git/objects/a3/c2b9970a20cb63ab0e63c2fb281aa4d6f9b261', 'some_file~', '#some_file#', '.#somefile', '._otherfile', '%something%', '.DS_Store'].each {
+            assert !registry.shouldFire(projectRoot.file(it))
+        }
     }
 
     def "sub directory gets watched when first input is a single file, where useDirectoryTree: #useDirectoryTree"() {
