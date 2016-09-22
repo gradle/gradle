@@ -50,7 +50,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
     private final TaskExecutionListSerializer serializer;
     private final StringInterner stringInterner;
 
-    public CacheBackedTaskHistoryRepository(TaskArtifactStateCacheAccess cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner) {
+    public CacheBackedTaskHistoryRepository(TaskHistoryStore cacheAccess, FileSnapshotRepository snapshotRepository, StringInterner stringInterner) {
         this.snapshotRepository = snapshotRepository;
         this.stringInterner = stringInterner;
         this.serializer = new TaskExecutionListSerializer(stringInterner);

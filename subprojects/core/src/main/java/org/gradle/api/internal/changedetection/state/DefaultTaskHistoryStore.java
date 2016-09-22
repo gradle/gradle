@@ -28,11 +28,11 @@ import java.io.Closeable;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCacheAccess, Closeable {
+public class DefaultTaskHistoryStore implements TaskHistoryStore, Closeable {
     private final CacheDecorator cacheDecorator;
     private final PersistentCache cache;
 
-    public DefaultTaskArtifactStateCacheAccess(Gradle gradle, CacheRepository cacheRepository, CacheDecorator decorator) {
+    public DefaultTaskHistoryStore(Gradle gradle, CacheRepository cacheRepository, CacheDecorator decorator) {
         this.cacheDecorator = decorator;
         cache = cacheRepository
                 .cache(gradle, "taskArtifacts")

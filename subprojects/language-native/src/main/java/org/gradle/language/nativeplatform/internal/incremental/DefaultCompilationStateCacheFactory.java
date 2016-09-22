@@ -16,7 +16,7 @@
 
 package org.gradle.language.nativeplatform.internal.incremental;
 
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
+import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStateCache;
 
@@ -24,7 +24,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
 
     private final PersistentIndexedCache<String, CompilationState> compilationStateIndexedCache;
 
-    public DefaultCompilationStateCacheFactory(TaskArtifactStateCacheAccess cacheAccess) {
+    public DefaultCompilationStateCacheFactory(TaskHistoryStore cacheAccess) {
         compilationStateIndexedCache = cacheAccess.createCache("compilationState", String.class, new CompilationStateSerializer());
     }
 

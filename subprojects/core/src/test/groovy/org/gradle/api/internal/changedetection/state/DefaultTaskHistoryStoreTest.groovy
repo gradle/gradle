@@ -24,7 +24,7 @@ import org.gradle.cache.internal.FileLockManager
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import spock.lang.Specification
 
-class DefaultTaskArtifactStateCacheAccessTest extends Specification {
+class DefaultTaskHistoryStoreTest extends Specification {
     final GradleInternal gradle = Mock()
     final CacheRepository cacheRepository = Mock()
 
@@ -33,7 +33,7 @@ class DefaultTaskArtifactStateCacheAccessTest extends Specification {
         PersistentCache backingCache = Mock()
 
         when:
-        new DefaultTaskArtifactStateCacheAccess(gradle, cacheRepository, new AsyncCacheAccessDecorator())
+        new DefaultTaskHistoryStore(gradle, cacheRepository, new AsyncCacheAccessDecorator())
 
         then:
         1 * cacheRepository.cache(gradle, "taskArtifacts") >> cacheBuilder

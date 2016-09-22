@@ -20,7 +20,7 @@ import org.gradle.BuildResult;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
+import org.gradle.api.internal.changedetection.state.TaskHistoryStore;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildConfigurationActionExecuter;
@@ -127,7 +127,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     private void flushPendingCacheOperations() {
-        gradle.getServices().get(TaskArtifactStateCacheAccess.class).flush();
+        gradle.getServices().get(TaskHistoryStore.class).flush();
     }
 
     private void doBuildStages(Stage upTo) {

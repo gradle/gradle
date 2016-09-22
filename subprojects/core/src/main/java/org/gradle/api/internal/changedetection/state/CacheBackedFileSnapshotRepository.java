@@ -24,7 +24,7 @@ public class CacheBackedFileSnapshotRepository implements FileSnapshotRepository
     private final PersistentIndexedCache<Long, FileCollectionSnapshot> cache;
     private IdGenerator<Long> idGenerator = new RandomLongIdGenerator();
 
-    public CacheBackedFileSnapshotRepository(TaskArtifactStateCacheAccess cacheAccess, Serializer<FileCollectionSnapshot> serializer, IdGenerator<Long> idGenerator) {
+    public CacheBackedFileSnapshotRepository(TaskHistoryStore cacheAccess, Serializer<FileCollectionSnapshot> serializer, IdGenerator<Long> idGenerator) {
         this.idGenerator = idGenerator;
         cache = cacheAccess.createCache("fileSnapshots", Long.class, serializer);
     }

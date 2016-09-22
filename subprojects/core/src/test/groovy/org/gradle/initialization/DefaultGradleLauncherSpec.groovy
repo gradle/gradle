@@ -23,7 +23,7 @@ import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.ExceptionAnalyser
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
+import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -50,7 +50,7 @@ public class DefaultGradleLauncherSpec extends Specification {
     def buildExecuter = Mock(BuildExecuter.class);
     def buildConfigurationActionExecuter = Mock(BuildConfigurationActionExecuter.class);
     def buildScopeServices = Mock(ServiceRegistry)
-    def taskArtifactStateCacheAccess = Mock(TaskArtifactStateCacheAccess)
+    def taskArtifactStateCacheAccess = Mock(TaskHistoryStore)
 
     private ProjectInternal expectedRootProject;
     private ProjectInternal expectedCurrentProject;
@@ -103,7 +103,7 @@ public class DefaultGradleLauncherSpec extends Specification {
         _ * gradleMock.getServices() >> buildScopeServices
         0 * gradleMock._
 
-        buildScopeServices.get(TaskArtifactStateCacheAccess) >> taskArtifactStateCacheAccess
+        buildScopeServices.get(TaskHistoryStore) >> taskArtifactStateCacheAccess
     }
 
     DefaultGradleLauncher launcher() {

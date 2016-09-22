@@ -16,13 +16,13 @@
 
 package org.gradle.execution.taskgraph
 
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
+import org.gradle.api.internal.changedetection.state.TaskHistoryStore
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.operations.BuildOperationWorkerRegistry
 import spock.lang.Specification
 
 public class TaskPlanExecutorFactoryTest extends Specification {
-    final TaskArtifactStateCacheAccess cache = Mock()
+    final TaskHistoryStore cache = Mock()
     final ExecutorFactory executorFactory = Mock()
     final BuildOperationWorkerRegistry buildOperationWorkerRegistry = Mock()
 

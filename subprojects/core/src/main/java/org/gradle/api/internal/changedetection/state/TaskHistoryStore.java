@@ -18,7 +18,7 @@ package org.gradle.api.internal.changedetection.state;
 import org.gradle.cache.PersistentStore;
 
 /**
- * Provides access to the task history cache.
+ * Provides access to the persistent task history store.
  */
-public interface TaskArtifactStateCacheAccess extends PersistentStore {
+public interface TaskHistoryStore extends PersistentStore {
 }
