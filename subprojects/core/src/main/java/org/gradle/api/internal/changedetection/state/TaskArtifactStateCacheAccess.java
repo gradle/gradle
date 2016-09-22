@@ -16,10 +16,17 @@
 package org.gradle.api.internal.changedetection.state;
 
 import org.gradle.cache.CacheAccess;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
+import org.gradle.internal.serialize.Serializer;
 
 /**
  * Provides access to the task history cache.
  */
 public interface TaskArtifactStateCacheAccess extends PersistentStore, CacheAccess {
+    /**
+     * Creates an indexed cache implementation. This cache may be used from any thread without synchronizing access using {@link CacheAccess}.
+     * Keys and values must be immutable, as they may be shared across multiple threads.
+     */
+    <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
 }
