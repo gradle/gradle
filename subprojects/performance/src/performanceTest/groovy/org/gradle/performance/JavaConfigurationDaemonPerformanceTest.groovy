@@ -66,6 +66,13 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         where:
         testProject     | targetVersions
         // TODO: Restore 'last' when sufficent performance gains are made.
+        // Wolf: The reason for rebasing was that as part of the task output
+        // cache project made it possible that CopySpec are correctly
+        // respected for up to date checking. This leads to more snapshots
+        // being created and therefore has a CPU and Memory impact but is
+        // necessary for correctness. The nightly build we rebased on is just
+        // after the day the changes have been introduced (September 14th)
+        // See https://github.com/gradle/task-output-cache/issues/25
         "bigOldJava"    | ['3.2-20160915000027+0000']
         "mediumOldJava" | ['3.2-20160915000027+0000']
         "smallOldJava"  | ['3.2-20160915000027+0000']
