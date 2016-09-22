@@ -49,6 +49,8 @@ import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -181,6 +183,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
         private final FileSystemChangeWaiter waiter;
         private final AtomicBoolean cacheDirectoryIgnored = new AtomicBoolean(false);
         private final ReentrantLock lock = new ReentrantLock();
+        private final Set<File> ignoredBuildDirectories = new HashSet<File>();
 
         public ContinuousBuildTaskInputsListener(FileSystemChangeWaiter waiter) {
             this.waiter = waiter;
@@ -192,6 +195,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
             lock.lock();
             try {
                 ignoreGradleCacheDirectory(taskInternal);
+                ignoreBuildDirectory(taskInternal);
                 waiter.watch(watchPoints);
             } finally {
                 lock.unlock();
@@ -210,6 +214,13 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
                 // cache dir defined in org.gradle.cache.internal.DefaultCacheScopeMapping
                 waiter.ignoreDirectory(new File(rootProjectDir, ".gradle"));
                 cacheDirectoryIgnored.set(true);
+            }
+        }
+
+        private void ignoreBuildDirectory(TaskInternal taskInternal) {
+            File projectBuildDir = taskInternal.getProject().getBuildDir();
+            if(ignoredBuildDirectories.add(projectBuildDir)) {
+                waiter.ignoreDirectory(projectBuildDir);
             }
         }
     }
