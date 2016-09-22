@@ -22,12 +22,9 @@ import spock.lang.Specification
 
 class DefaultSourceIncludesTest extends Specification {
     List<Include> includes = [ '"quoted1"', "<system1>", '"quoted2"', "macro1", "<system2>", "macro2" ].collect { DefaultInclude.parse(it, false) }
-    DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives()
+    DefaultIncludeDirectives sourceIncludes = new DefaultIncludeDirectives(includes)
 
     def "can filter includes" () {
-        given:
-        sourceIncludes.addAll(includes)
-
         expect:
         sourceIncludes.quotedIncludes.collect { it.value } == [ "quoted1", "quoted2" ]
         sourceIncludes.systemIncludes.collect { it.value } == [ "system1", "system2" ]
@@ -35,9 +32,6 @@ class DefaultSourceIncludesTest extends Specification {
     }
 
     def "order is preserved" () {
-        given:
-        sourceIncludes.addAll(includes)
-
         expect:
         sourceIncludes.includesAndImports.collect { it.value } == [ "quoted1", "system1", "quoted2", "macro1", "system2", "macro2" ]
     }

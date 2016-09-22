@@ -21,7 +21,6 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.changes.DiscoveredInputRecorder;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
-import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.tasks.SimpleWorkResult;
 import org.gradle.api.logging.Logger;
@@ -29,7 +28,6 @@ import org.gradle.api.logging.Logging;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.cache.PersistentStateCache;
-import org.gradle.internal.Factory;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.tasks.SimpleStaleClassCleaner;
 import org.gradle.language.nativeplatform.internal.IncludeDirectives;
@@ -50,16 +48,14 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
     private final Compiler<T> delegateCompiler;
     private final boolean importsAreIncludes;
     private final TaskInternal task;
-    private final TaskArtifactStateCacheAccess cacheAccess;
     private final FileSnapshotter fileSnapshotter;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final CompilationStateCacheFactory compilationStateCacheFactory;
 
     private final CSourceParser sourceParser = new RegexBackedCSourceParser();
 
-    public IncrementalNativeCompiler(TaskInternal task, TaskArtifactStateCacheAccess cacheAccess, FileSnapshotter fileSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public IncrementalNativeCompiler(TaskInternal task, FileSnapshotter fileSnapshotter, CompilationStateCacheFactory compilationStateCacheFactory, Compiler<T> delegateCompiler, NativeToolChain toolChain, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.task = task;
-        this.cacheAccess = cacheAccess;
         this.fileSnapshotter = fileSnapshotter;
         this.compilationStateCacheFactory = compilationStateCacheFactory;
         this.delegateCompiler = delegateCompiler;
@@ -69,14 +65,10 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
 
     @Override
     public WorkResult execute(final T spec) {
-        final PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(task.getPath());
-        final IncrementalCompilation compilation = cacheAccess.useCache("process source files", new Factory<IncrementalCompilation>() {
-            public IncrementalCompilation create() {
-                DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
-                IncrementalCompileProcessor processor = createProcessor(compileStateCache, sourceIncludesParser, spec.getIncludeRoots());
-                return processor.processSourceFiles(spec.getSourceFiles());
-            }
-        });
+        PersistentStateCache<CompilationState> compileStateCache = compilationStateCacheFactory.create(task.getPath());
+        DefaultSourceIncludesParser sourceIncludesParser = new DefaultSourceIncludesParser(sourceParser, importsAreIncludes);
+        IncrementalCompileProcessor processor = createProcessor(compileStateCache, sourceIncludesParser, spec.getIncludeRoots());
+        IncrementalCompilation compilation = processor.processSourceFiles(spec.getSourceFiles());
 
         spec.setSourceFileIncludeDirectives(mapIncludes(spec.getSourceFiles(), compilation.getFinalState()));
 
@@ -89,12 +81,7 @@ public class IncrementalNativeCompiler<T extends NativeCompileSpec> implements C
             workResult = doCleanIncrementalCompile(spec);
         }
 
-        cacheAccess.useCache("update compilation state", new Factory<Void>() {
-            public Void create() {
-                compileStateCache.set(compilation.getFinalState());
-                return null;
-            }
-        });
+        compileStateCache.set(compilation.getFinalState());
 
         return workResult;
     }
