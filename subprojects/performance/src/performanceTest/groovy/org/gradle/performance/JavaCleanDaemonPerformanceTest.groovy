@@ -69,7 +69,6 @@ class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest
         testProject            | targetVersions
         "bigOldJava"           | ['2.8', 'last']
         "mediumOldJava"        | ['2.8', 'last']
-        // TODO: Restore 'last' when sufficent performance gains are made.
-        "smallOldJava"         | ['3.1-20160818000032+0000']
+        "smallOldJava"         | ['last']
     }
 }

@@ -40,9 +40,8 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionPerformanceTe
         where:
         testProject       | targetVersions
         "small"           | ['2.8', 'last']
-        // TODO: Restore 'last' when sufficient performance gains are made.
-        "multi"           | ['3.1-20160825000026+0000']
-        "lotDependencies" | ['3.1-20160825000026+0000']
-        "bigOldJava"      | ['3.1-20160825000026+0000']
+        "multi"           | ['last']
+        "lotDependencies" | ['last']
+        "bigOldJava"      | ['last']
     }
 }

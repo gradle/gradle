@@ -40,7 +40,6 @@ class TaskCreationPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject         | targetVersions
-        // TODO: Restore 'last' when sufficient performance gains are made.
-        "createLotsOfTasks" | ['3.1-20160818000032+0000']
+        "createLotsOfTasks" | ['last']
     }
 }

@@ -67,7 +67,6 @@ class JavaConfigurationDaemonPerformanceTest extends AbstractCrossVersionPerform
         testProject     | targetVersions
         "bigOldJava"    | ['2.11', 'last']
         "mediumOldJava" | ['2.11', 'last']
-        // TODO: Restore 'last' when sufficent performance gains are made.
-        "smallOldJava"  | ['3.1-20160818000032+0000']
+        "smallOldJava"  | ['last']
     }
 }

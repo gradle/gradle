@@ -37,9 +37,8 @@ class JavaTestExecutionPerformanceTest extends AbstractCrossVersionPerformanceTe
 
         where:
         template          | size     | description                 | gradleTasks           | targetVersions
-        // TODO: Restore 'last' when sufficent performance gains are made.
-        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['3.1-20160818000032+0000']
-        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['3.1-20160818000032+0000']
+        'mediumWithJUnit' | 'medium' | 'runs tests only'           | ['cleanTest', 'test'] | ['last']
+        'mediumWithJUnit' | 'medium' | 'clean build and run tests' | ['clean', 'test']     | ['last']
     }
 
     @Unroll("#description build for #template")

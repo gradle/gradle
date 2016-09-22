@@ -77,7 +77,6 @@ class JavaFullAssembleDaemonPerformanceTest extends AbstractCrossVersionPerforma
         "bigOldJavaMoreSource" | ['2.11', 'last']
         "bigOldJava"           | ['2.11', 'last']
         "mediumOldJava"        | ['2.11', 'last']
-        // TODO: Restore 'last' when sufficient performance gains are made.
-        "smallOldJava"         | ['3.1-20160818000032+0000']
+        "smallOldJava"         | ['last']
     }
 }

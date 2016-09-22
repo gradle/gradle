@@ -39,9 +39,8 @@ class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject       | targetVersions
-        // TODO: Restore 'last' when sufficent performance gains are made.
-        "small"           | ['3.1-20160818000032+0000']
-        "multi"           | ['3.1-20160818000032+0000']
+        "small"           | ['last']
+        "multi"           | ['last']
         "lotDependencies" | ['2.4', '2.8', 'last']
     }
 }
