@@ -31,7 +31,6 @@ import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SingletonFileTree;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
 import org.gradle.api.internal.tasks.execution.TaskActionExecutionListener;
-import org.gradle.cache.CacheAccess;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
 
@@ -52,15 +51,13 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     private static final DefaultFileCollectionSnapshot EMPTY_SNAPSHOT = new DefaultFileCollectionSnapshot(ImmutableMap.<String, NormalizedFileSnapshot>of(), UNORDERED, true);
     private final FileSnapshotter snapshotter;
     private final StringInterner stringInterner;
-    private final CacheAccess cacheAccess;
     private final FileSystem fileSystem;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     // Map from interned absolute path for a file to known details for the file. Currently used only for root files, not those nested in a directory
     private final Map<String, DefaultFileDetails> rootFiles = new ConcurrentHashMap<String, DefaultFileDetails>();
 
-    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
+    public DefaultFileCollectionSnapshotter(FileSnapshotter snapshotter, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.snapshotter = snapshotter;
-        this.cacheAccess = cacheAccess;
         this.stringInterner = stringInterner;
         this.fileSystem = fileSystem;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
@@ -94,32 +91,27 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
         }
 
         final Map<String, NormalizedFileSnapshot> snapshots = Maps.newLinkedHashMap();
-
-        cacheAccess.useCache("Create file snapshot", new Runnable() {
-            public void run() {
-                for (DefaultFileDetails fileDetails : fileTreeElements) {
-                    String absolutePath = fileDetails.path;
-                    if (!snapshots.containsKey(absolutePath)) {
-                        IncrementalFileSnapshot snapshot;
-                        if (fileDetails.type == Directory) {
-                            snapshot = DirSnapshot.getInstance();
-                        } else {
-                            snapshot = new FileHashSnapshot(snapshotter.snapshot(fileDetails.details).getHash(), fileDetails.details.getLastModified());
-                        }
-                        NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails, snapshot, stringInterner);
-                        if (normalizedSnapshot != null) {
-                            snapshots.put(absolutePath, normalizedSnapshot);
-                        }
-                    }
+        for (DefaultFileDetails fileDetails : fileTreeElements) {
+            String absolutePath = fileDetails.path;
+            if (!snapshots.containsKey(absolutePath)) {
+                IncrementalFileSnapshot snapshot;
+                if (fileDetails.type == Directory) {
+                    snapshot = DirSnapshot.getInstance();
+                } else {
+                    snapshot = new FileHashSnapshot(snapshotter.snapshot(fileDetails.details).getHash(), fileDetails.details.getLastModified());
                 }
-                for (DefaultFileDetails missingFileDetails : missingFiles) {
-                    String absolutePath = missingFileDetails.path;
-                    if (!snapshots.containsKey(absolutePath)) {
-                        snapshots.put(absolutePath, snapshotNormalizationStrategy.getNormalizedSnapshot(missingFileDetails, MissingFileSnapshot.getInstance(), stringInterner));
-                    }
+                NormalizedFileSnapshot normalizedSnapshot = snapshotNormalizationStrategy.getNormalizedSnapshot(fileDetails, snapshot, stringInterner);
+                if (normalizedSnapshot != null) {
+                    snapshots.put(absolutePath, normalizedSnapshot);
                 }
             }
-        });
+        }
+        for (DefaultFileDetails missingFileDetails : missingFiles) {
+            String absolutePath = missingFileDetails.path;
+            if (!snapshots.containsKey(absolutePath)) {
+                snapshots.put(absolutePath, snapshotNormalizationStrategy.getNormalizedSnapshot(missingFileDetails, MissingFileSnapshot.getInstance(), stringInterner));
+            }
+        }
         return new DefaultFileCollectionSnapshot(snapshots, compareStrategy, snapshotNormalizationStrategy.isPathAbsolute());
     }
 

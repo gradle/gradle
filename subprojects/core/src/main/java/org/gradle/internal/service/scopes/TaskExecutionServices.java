@@ -33,7 +33,6 @@ import org.gradle.api.internal.changedetection.state.FileCollectionSnapshot;
 import org.gradle.api.internal.changedetection.state.FileCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.FileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
-import org.gradle.cache.internal.AsyncCacheAccessDecorator;
 import org.gradle.api.internal.changedetection.state.OutputFilesCollectionSnapshotter;
 import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess;
 import org.gradle.api.internal.changedetection.state.TaskHistoryRepository;
@@ -56,6 +55,7 @@ import org.gradle.api.internal.tasks.execution.TaskActionExecutionListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.internal.AsyncCacheAccessDecorator;
 import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.execution.taskgraph.TaskPlanExecutor;
 import org.gradle.execution.taskgraph.TaskPlanExecutorFactory;
@@ -134,8 +134,8 @@ public class TaskExecutionServices {
         return new CachingFileSnapshotter(new DefaultHasher(), cacheAccess, stringInterner);
     }
 
-    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSnapshotter fileSnapshotter, TaskArtifactStateCacheAccess cacheAccess, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
-        DefaultFileCollectionSnapshotter snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, fileSystem, directoryFileTreeFactory);
+    FileCollectionSnapshotter createFileCollectionSnapshotter(FileSnapshotter fileSnapshotter, StringInterner stringInterner, FileSystem fileSystem, DirectoryFileTreeFactory directoryFileTreeFactory, ListenerManager listenerManager) {
+        DefaultFileCollectionSnapshotter snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, stringInterner, fileSystem, directoryFileTreeFactory);
         listenerManager.addListener(snapshotter);
         return snapshotter;
     }
