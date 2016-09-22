@@ -35,6 +35,13 @@ As stated in the User guide, please note that this shouldn't be used over insecu
 
 In Gradle 3.1 we made a number of improvements to allow the daemon to cancel a running build when a client disconnects unexpectedly, but there were situations where pressing ctrl-c during a build could still cause the Daemon to exit.  With this release, any time ctrl-c is sent, the Daemon will attempt to cancel the running build.  As long as the build cancels in a timely manner, the Daemon will then be available for reuse and subsequent builds will reap the performance benefits of a warmed up Daemon.
 
+### Continuous build usability improvements
+
+Continuous build now ignores changes in the root project's `.gradle` directory and in all `build` directories. 
+This change is important for projects that have the project directory as an input in some task in the build. 
+Furthermore changes are now ignored to files or directories matching the default excludes that Gradle uses. 
+Some of the default excludes patterns are `.git`, `.hg`, `*~`, `#*#`, `.DS_Store`, `.#*` , `._*`.
+
 ## Promoted features
 
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
