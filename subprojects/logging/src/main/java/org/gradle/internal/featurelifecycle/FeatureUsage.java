@@ -27,9 +27,9 @@ public class FeatureUsage {
     private final String message;
     private final List<StackTraceElement> stack;
 
-    public FeatureUsage(String message, Class<?> calledFrom) {
+    public FeatureUsage(String message) {
         this.message = message;
-        this.stack = Collections.unmodifiableList(createStackTrace(calledFrom));
+        this.stack = Collections.unmodifiableList(createStackTrace());
     }
 
     FeatureUsage(String message, List<StackTraceElement> stack) {
@@ -48,24 +48,20 @@ public class FeatureUsage {
         return stack;
     }
 
-    private static List<StackTraceElement> createStackTrace(Class<?> calledFrom) {
+    private static List<StackTraceElement> createStackTrace() {
         StackTraceElement[] originalStack = new Exception().getStackTrace();
-        final String calledFromName = calledFrom.getName();
+        //final String calledFromName = calledFrom.getName();
         boolean calledFromFound = false;
         int caller;
         for (caller = 0; caller < originalStack.length; caller++) {
             StackTraceElement current = originalStack[caller];
             String className = current.getClassName();
             if (!calledFromFound) {
-                if (className.startsWith(calledFromName)) {
+                if (isFeatureUsageElement(className)) {
                     calledFromFound = true;
                 }
             } else {
-                if (!className.startsWith(calledFromName)
-                    // this gets rid of stuff like org.gradle.internal.featurelifecycle.BasicNagger$nagUserWith
-                    // (i.e. extra call stack entries for interfaces)
-                    // that happens in case of calls by Groovy classes.
-                    && !className.startsWith("org.gradle.internal.featurelifecycle")) {
+                if (!isFeatureUsageElement(className)) {
                     break;
                 }
             }
@@ -84,16 +80,25 @@ public class FeatureUsage {
     private static int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {
         for (; caller < stackTrace.length; caller++) {
             String currentClassName = stackTrace[caller].getClassName();
-            if (!currentClassName.startsWith("org.codehaus.groovy.")
-                && !currentClassName.startsWith("org.gradle.internal.metaobject.")
-                && !currentClassName.startsWith("groovy.")
-                && !currentClassName.startsWith("java.")
-                && !currentClassName.startsWith("jdk.internal.")
-                ) {
+            if (!isSystemStackElement(currentClassName)) {
                 break;
             }
         }
         return caller;
+    }
+
+    private static boolean isFeatureUsageElement(String className) {
+        return className.startsWith("org.gradle.internal.featurelifecycle.")
+            // TODO: remove the following line after deleting old loggers
+            || className.startsWith("org.gradle.util.");
+    }
+
+    private static boolean isSystemStackElement(String className) {
+        return className.startsWith("org.codehaus.groovy.")
+            || className.startsWith("org.gradle.internal.metaobject.")
+            || className.startsWith("groovy.")
+            || className.startsWith("java.")
+            || className.startsWith("jdk.internal.");
     }
 
     @Override

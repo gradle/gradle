@@ -22,9 +22,9 @@ import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.Unroll
 
-import static org.gradle.internal.notfeaturelifecycle.SimulatedDeprecationMessageLogger.DIRECT_CALL
-import static org.gradle.internal.notfeaturelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL
-import static org.gradle.internal.notfeaturelifecycle.SimulatedDeprecationMessageLogger.INDIRECT_CALL_2
+import static SimulatedDeprecationMessageLogger.DIRECT_CALL
+import static SimulatedDeprecationMessageLogger.INDIRECT_CALL
+import static SimulatedDeprecationMessageLogger.INDIRECT_CALL_2
 
 @Subject(FeatureUsage)
 class FeatureUsageTest extends Specification {

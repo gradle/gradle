@@ -17,6 +17,7 @@
 package org.gradle.internal.notfeaturelifecycle
 
 import org.gradle.internal.featurelifecycle.FeatureUsage
+import org.gradle.internal.featurelifecycle.SimulatedDeprecationMessageLogger
 
 /**
  * Package is notfeaturelifecycle, i.e. anything but featurelifecycle, because of
