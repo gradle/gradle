@@ -21,6 +21,7 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.concurrent.StoppableExecutor;
 import org.gradle.internal.filewatch.jdk7.Jdk7FileWatcherFactory;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,15 +32,17 @@ public class DefaultFileWatcherFactory implements FileWatcherFactory, Stoppable 
 
     private static final int STOP_TIMEOUT_SECONDS = 10;
     private final StoppableExecutor executor;
+    private final FileSystem fileSystem;
 
     private FileWatcherFactory fileWatcherFactory;
 
-    public DefaultFileWatcherFactory(ExecutorFactory executorFactory) {
+    public DefaultFileWatcherFactory(ExecutorFactory executorFactory, FileSystem fileSystem) {
         this.executor = executorFactory.create("filewatcher");
+        this.fileSystem = fileSystem;
     }
 
     protected FileWatcherFactory createFileWatcherFactory() {
-        return new Jdk7FileWatcherFactory(executor);
+        return new Jdk7FileWatcherFactory(executor, fileSystem);
     }
 
     @Override

@@ -17,6 +17,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
 import org.gradle.internal.nativeintegration.filesystem.Chmod;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.nativeintegration.filesystem.Stat;
 import org.gradle.util.GFileUtils;
 
@@ -33,6 +34,11 @@ public class DefaultFileTreeElement extends AbstractFileTreeElement {
         this.file = file;
         this.relativePath = relativePath;
         this.stat = stat;
+    }
+
+    public static DefaultFileTreeElement of(File file, FileSystem fileSystem) {
+        RelativePath path = RelativePath.parse(!file.isDirectory(), file.getAbsolutePath());
+        return new DefaultFileTreeElement(file, path, fileSystem, fileSystem);
     }
 
     public File getFile() {

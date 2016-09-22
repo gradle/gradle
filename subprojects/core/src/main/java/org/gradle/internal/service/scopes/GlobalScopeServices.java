@@ -342,8 +342,8 @@ public class GlobalScopeServices {
         return new DefaultImportsReader();
     }
 
-    FileWatcherFactory createFileWatcherFactory(ExecutorFactory executorFactory) {
-        return new DefaultFileWatcherFactory(executorFactory);
+    FileWatcherFactory createFileWatcherFactory(ExecutorFactory executorFactory, FileSystem fileSystem) {
+        return new DefaultFileWatcherFactory(executorFactory, fileSystem);
     }
 
     StringInterner createStringInterner() {
