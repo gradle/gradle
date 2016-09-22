@@ -57,19 +57,23 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
         cache.flush();
     }
 
+    @Override
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        return action.create();
+        throw new UnsupportedOperationException();
     }
 
+    @Override
     public void useCache(String operationDisplayName, Runnable action) {
-        action.run();
+        throw new UnsupportedOperationException();
     }
 
+    @Override
     public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        return action.create();
+        throw new UnsupportedOperationException();
     }
 
+    @Override
     public void longRunningOperation(String operationDisplayName, Runnable action) {
-        action.run();
+        throw new UnsupportedOperationException();
     }
 }
