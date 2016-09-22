@@ -22,7 +22,6 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.CacheDecorator;
 import org.gradle.cache.internal.FileLockManager;
-import org.gradle.internal.Factory;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.Closeable;
@@ -55,25 +54,5 @@ public class DefaultTaskArtifactStateCacheAccess implements TaskArtifactStateCac
     @Override
     public void flush() {
         cache.flush();
-    }
-
-    @Override
-    public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void useCache(String operationDisplayName, Runnable action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <T> T longRunningOperation(String operationDisplayName, Factory<? extends T> action) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void longRunningOperation(String operationDisplayName, Runnable action) {
-        throw new UnsupportedOperationException();
     }
 }
