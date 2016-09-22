@@ -34,6 +34,7 @@ class WatchPointsRegistry {
     private final CombinedRootSubset rootSubset = new CombinedRootSubset();
     private ImmutableSet<? extends File> allRequestedRoots;
     private final boolean createNewStartingPointsUnderExistingRoots;
+    private FileSystemSubset ignoredRoots = FileSystemSubset.builder().build();
 
     public WatchPointsRegistry(boolean createNewStartingPointsUnderExistingRoots) {
         this.createNewStartingPointsUnderExistingRoots = createNewStartingPointsUnderExistingRoots;
@@ -45,15 +46,19 @@ class WatchPointsRegistry {
     }
 
     public boolean shouldFire(File file) {
-        return rootSubset.contains(file);
+        return rootSubset.contains(file) && !ignoredRoots.contains(file);
     }
 
     public boolean shouldWatch(File directory) {
-        final boolean result = rootSubset.isInRootsOrAncestorOrAnyRoot(directory) || isAncestorOfAnyRoot(directory, allRequestedRoots, true);
+        final boolean result = (rootSubset.isInRootsOrAncestorOrAnyRoot(directory) || isAncestorOfAnyRoot(directory, allRequestedRoots, true)) && !ignoredRoots.contains(directory);
         if (!result && LOG.isDebugEnabled()) {
             LOG.debug("not watching directory: {} allRequestedRoots: {} roots: {} unfiltered: {}", directory, allRequestedRoots, rootSubset.roots, rootSubset.combinedFileSystemSubset);
         }
         return result;
+    }
+
+    public void ignoreDirectory(File directory) {
+        ignoredRoots = FileSystemSubset.builder().add(ignoredRoots).add(directory).build();
     }
 
     class Delta {
@@ -95,7 +100,7 @@ class WatchPointsRegistry {
         private ImmutableSet<File> filterCurrentWatchPoints(Iterable<? extends File> startingWatchPointCandidates) {
             final ImmutableSet.Builder<File> newStartingPoints = ImmutableSet.builder();
             for (File file : startingWatchPointCandidates) {
-                if (!allRequestedRoots.contains(file) || !currentWatchPoints.contains(file)) {
+                if ((!allRequestedRoots.contains(file) || !currentWatchPoints.contains(file)) && !ignoredRoots.contains(file)) {
                     newStartingPoints.add(file);
                 }
             }
@@ -119,7 +124,7 @@ class WatchPointsRegistry {
             return Iterables.filter(FileUtils.calculateRoots(enclosingDirsThatExist), new Predicate<File>() {
                 @Override
                 public boolean apply(File input) {
-                    return inCombinedRootsOrAncestorOfAnyRoot(input, roots, unfiltered);
+                    return inCombinedRootsOrAncestorOfAnyRoot(input, roots, unfiltered) && !ignoredRoots.contains(input);
                 }
             });
         }
@@ -133,7 +138,7 @@ class WatchPointsRegistry {
         }
 
         public boolean shouldWatch(File file) {
-            boolean result = (inCombinedRootsOrAncestorOfAnyRootThis(file) || isAncestorOfAnyRoot(file, allRequestedRoots)) && !isAncestorOfAnyRoot(file, currentWatchPoints);
+            boolean result = (inCombinedRootsOrAncestorOfAnyRootThis(file) || isAncestorOfAnyRoot(file, allRequestedRoots)) && !isAncestorOfAnyRoot(file, currentWatchPoints) && !ignoredRoots.contains(file);
             if (!result) {
                 LOG.debug("not watching file: {} currentWatchPoints: {} allRequestedRoots: {} roots: {} unfiltered: {}", file, currentWatchPoints, allRequestedRoots, roots, combinedRoots);
             }

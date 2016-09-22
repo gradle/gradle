@@ -20,6 +20,7 @@ import net.jcip.annotations.ThreadSafe;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.internal.concurrent.Stoppable;
 
+import java.io.File;
 import java.io.IOException;
 
 @ThreadSafe
@@ -39,4 +40,6 @@ public interface FileWatcher extends Stoppable {
     boolean isRunning();
 
     void watch(FileSystemSubset fileSystemSubset) throws IOException;
+
+    void ignoreDirectory(File directory);
 }

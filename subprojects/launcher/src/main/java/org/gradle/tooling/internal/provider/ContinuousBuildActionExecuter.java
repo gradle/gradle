@@ -48,6 +48,10 @@ import org.gradle.launcher.exec.BuildExecuter;
 import org.gradle.util.DisconnectableInputStream;
 import org.gradle.util.SingleMessageLogger;
 
+import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class ContinuousBuildActionExecuter implements BuildExecuter {
     private final BuildActionExecuter<BuildActionParameters> delegate;
     private final ListenerManager listenerManager;
@@ -164,14 +168,7 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
     }
 
     private Object executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemChangeWaiter waiter, ServiceRegistry buildSessionScopeServices) {
-        TaskInputsListener listener = new TaskInputsListener() {
-            @Override
-            public void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs) {
-                FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
-                fileSystemInputs.registerWatchPoints(fileSystemSubsetBuilder);
-                waiter.watch(fileSystemSubsetBuilder.build());
-            }
-        };
+        TaskInputsListener listener = new ContinuousBuildTaskInputsListener(waiter);
         listenerManager.addListener(listener);
         try {
             return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
@@ -180,4 +177,40 @@ public class ContinuousBuildActionExecuter implements BuildExecuter {
         }
     }
 
+    private static class ContinuousBuildTaskInputsListener implements TaskInputsListener {
+        private final FileSystemChangeWaiter waiter;
+        private final AtomicBoolean cacheDirectoryIgnored = new AtomicBoolean(false);
+        private final ReentrantLock lock = new ReentrantLock();
+
+        public ContinuousBuildTaskInputsListener(FileSystemChangeWaiter waiter) {
+            this.waiter = waiter;
+        }
+
+        @Override
+        public void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs) {
+            FileSystemSubset watchPoints = resolveWatchPoints(fileSystemInputs);
+            lock.lock();
+            try {
+                ignoreGradleCacheDirectory(taskInternal);
+                waiter.watch(watchPoints);
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        private FileSystemSubset resolveWatchPoints(FileCollectionInternal fileSystemInputs) {
+            FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
+            fileSystemInputs.registerWatchPoints(fileSystemSubsetBuilder);
+            return fileSystemSubsetBuilder.build();
+        }
+
+        private void ignoreGradleCacheDirectory(TaskInternal taskInternal) {
+            if (!cacheDirectoryIgnored.get()) {
+                File rootProjectDir = taskInternal.getProject().getRootProject().getRootDir();
+                // cache dir defined in org.gradle.cache.internal.DefaultCacheScopeMapping
+                waiter.ignoreDirectory(new File(rootProjectDir, ".gradle"));
+                cacheDirectoryIgnored.set(true);
+            }
+        }
+    }
 }
