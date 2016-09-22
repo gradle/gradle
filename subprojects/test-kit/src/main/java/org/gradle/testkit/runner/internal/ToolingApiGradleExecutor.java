@@ -69,7 +69,11 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         if (SHUTDOWN_REGISTERED.compareAndSet(false, true)) {
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
                 public void run() {
-                    DefaultGradleConnector.close();
+                    try {
+                        DefaultGradleConnector.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }, CLEANUP_THREAD_NAME));
         }

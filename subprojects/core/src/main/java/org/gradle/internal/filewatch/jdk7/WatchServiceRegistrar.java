@@ -275,5 +275,8 @@ class WatchServiceRegistrar implements FileWatcherListener {
         return Thread.currentThread().isInterrupted() || !watcher.isRunning();
     }
 
+    public void ignoreDirectory(File directory) {
+        watchPointsRegistry.ignoreDirectory(directory);
+    }
 }
 

@@ -34,4 +34,9 @@ public interface PersistentStore extends CacheAccess {
      * <p>The returned cache may not be used by an action being run from {@link #longRunningOperation(String, org.gradle.internal.Factory)}.
      */
     <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
+
+    /**
+     * Flushes any pending changes to disk.
+     */
+    void flush();
 }

@@ -18,6 +18,7 @@ package org.gradle.cache.internal
 
 import org.gradle.api.Action
 import org.gradle.cache.CacheValidator
+import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
@@ -37,7 +38,7 @@ class DefaultPersistentDirectoryCacheSpec extends Specification {
         def init = { initd = true } as Action
         unlockUncleanly(new File(dir, "cache.properties"))
         def cache = new DefaultPersistentDirectoryCache(
-                dir, "test", { true } as CacheValidator, [:], mode(FileLockManager.LockMode.Exclusive), init, createDefaultFileLockManager()
+                dir, "test", { true } as CacheValidator, [:], mode(FileLockManager.LockMode.Exclusive), init, createDefaultFileLockManager(), Mock(ExecutorFactory)
         )
 
         when:

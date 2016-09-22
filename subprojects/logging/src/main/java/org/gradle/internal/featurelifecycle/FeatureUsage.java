@@ -32,6 +32,9 @@ public class FeatureUsage {
         this.stack = Collections.unmodifiableList(createStackTrace());
     }
 
+    /*
+     * Only used in tests.
+     */
     FeatureUsage(String message, List<StackTraceElement> stack) {
         if (stack == null) {
             throw new NullPointerException("stack");
@@ -50,7 +53,6 @@ public class FeatureUsage {
 
     private static List<StackTraceElement> createStackTrace() {
         StackTraceElement[] originalStack = new Exception().getStackTrace();
-        //final String calledFromName = calledFrom.getName();
         boolean calledFromFound = false;
         int caller;
         for (caller = 0; caller < originalStack.length; caller++) {
@@ -73,7 +75,6 @@ public class FeatureUsage {
         for (; caller < originalStack.length; caller++) {
             result.add(originalStack[caller]);
         }
-
         return result;
     }
 

@@ -56,7 +56,7 @@ public class TestFiles {
     }
 
     public static DirectoryFileTreeFactory directoryFileTreeFactory() {
-        return new DefaultDirectoryFileTreeFactory();
+        return new DefaultDirectoryFileTreeFactory(getPatternSetFactory(), fileSystem());
     }
 
     public static FileCollectionFactory fileCollectionFactory() {

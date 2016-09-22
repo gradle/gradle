@@ -17,7 +17,6 @@ package org.gradle.api.file;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.util.CollectionUtils;
 
 import java.io.File;
 import java.io.Serializable;
@@ -34,6 +33,7 @@ import java.util.ListIterator;
 public class RelativePath implements Serializable, Comparable<RelativePath> {
     private static final StringInterner PATH_SEGMENT_STRING_INTERNER = new StringInterner();
     private static final String FILE_PATH_SEPARATORS = File.separatorChar != '/' ? ("/" + File.separator) : File.separator;
+    private static final RelativePath EMPTY_PARENT_DIRECTORY = new RelativePath(false);
     private final boolean endsWithFile;
     private final String[] segments;
 
@@ -97,7 +97,17 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
     }
 
     public String getPathString() {
-        return CollectionUtils.join("/", segments);
+        if (segments.length == 0) {
+            return "";
+        }
+        StringBuilder path = new StringBuilder(256);
+        for (int i = 0, len = segments.length; i < len; i++) {
+            if (i != 0) {
+                path.append('/');
+            }
+            path.append(segments[i]);
+        }
+        return path.toString();
     }
 
     public File getFile(File baseDir) {
@@ -151,12 +161,16 @@ public class RelativePath implements Serializable, Comparable<RelativePath> {
      * @return The parent of this path, or null if this is the root path.
      */
     public RelativePath getParent() {
-        if (segments.length == 0) {
-            return null;
+        switch (segments.length) {
+            case 0:
+                return null;
+            case 1:
+                return EMPTY_PARENT_DIRECTORY;
+            default:
+                String[] parentSegments = new String[segments.length - 1];
+                copySegments(parentSegments, segments);
+                return new RelativePath(false, parentSegments);
         }
-        String[] parentSegments = new String[segments.length - 1];
-        copySegments(parentSegments, segments);
-        return new RelativePath(false, parentSegments);
     }
 
     public static RelativePath parse(boolean isFile, String path) {

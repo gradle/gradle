@@ -47,6 +47,25 @@ public interface TaskOutputsInternal extends TaskOutputs {
      */
     TaskOutputFilePropertyBuilder namedFiles(Map<?, ?> paths);
 
+    /**
+     * Register some named outputs for this task.
+     *
+     * @param paths A {@link Callable} returning the actual output directories. The keys of the returned map should not
+     * be {@code null}, and they must be
+     * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>}.
+     * The values will be evaluated to individual files as per {@link org.gradle.api.Project#file(Object)}.
+     */
+    TaskOutputFilePropertyBuilder namedDirectories(Callable<Map<?, ?>> paths);
+
+    /**
+     * Register some named outputs for this task.
+     *
+     * @param paths The output directories. The keys of the map should not be {@code null}, and they must be
+     * <a href="http://docs.oracle.com/javase/specs/jls/se7/html/jls-3.html#jls-3.8">valid Java identifiers</a>}.
+     * The values will be evaluated to individual files as per {@link org.gradle.api.Project#file(Object)}.
+     */
+    TaskOutputFilePropertyBuilder namedDirectories(Map<?, ?> paths);
+
     Spec<? super TaskInternal> getUpToDateSpec();
 
     SortedSet<TaskOutputFilePropertySpec> getFileProperties();

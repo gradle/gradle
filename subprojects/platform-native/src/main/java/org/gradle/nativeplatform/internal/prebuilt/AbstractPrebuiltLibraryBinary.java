@@ -76,7 +76,7 @@ public abstract class AbstractPrebuiltLibraryBinary implements NativeLibraryBina
 
     @Override
     public FileCollection getHeaderDirs() {
-        return fileCollectionFactory.fixed("Headers for " + getDisplayName(), library.getHeaders().getSrcDirs());
+        return library.getHeaders().getSourceDirectories();
     }
 
     protected FileCollection createFileCollection(File file, String fileCollectionDisplayName, String fileDescription) {

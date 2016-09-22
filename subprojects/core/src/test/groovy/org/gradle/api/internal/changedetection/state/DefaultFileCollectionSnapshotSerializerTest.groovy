@@ -19,7 +19,6 @@ package org.gradle.api.internal.changedetection.state
 import com.google.common.base.Charsets
 import com.google.common.hash.Hashing
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.changedetection.state.TaskFilePropertySnapshotNormalizationStrategy.DefaultNormalizedFileSnapshot
 import org.gradle.internal.serialize.SerializerSpec
 
 import static org.gradle.api.internal.changedetection.state.TaskFilePropertyCompareStrategy.ORDERED
@@ -36,7 +35,7 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
             "/1": new DefaultNormalizedFileSnapshot("1", DirSnapshot.getInstance()),
             "/2": new DefaultNormalizedFileSnapshot("2", MissingFileSnapshot.getInstance()),
             "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash))
-        ], UNORDERED), serializer)
+        ], UNORDERED, true), serializer)
 
         then:
         out.snapshots.size() == 3
@@ -47,6 +46,8 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
         out.snapshots['/3'].normalizedPath == "3"
         out.snapshots['/3'].snapshot instanceof FileHashSnapshot
         out.snapshots['/3'].snapshot.hash == hash
+        out.compareStrategy == UNORDERED
+        out.pathIsAbsolute
     }
 
     def "should retain order in serialization"() {
@@ -56,7 +57,7 @@ class DefaultFileCollectionSnapshotSerializerTest extends SerializerSpec {
             "/3": new DefaultNormalizedFileSnapshot("3", new FileHashSnapshot(hash)),
             "/2": new DefaultNormalizedFileSnapshot("2", MissingFileSnapshot.getInstance()),
             "/1": new DefaultNormalizedFileSnapshot("1", DirSnapshot.getInstance())
-        ], ORDERED), serializer)
+        ], ORDERED, true), serializer)
 
         then:
         out.snapshots.keySet() as List == ['/3', '/2', '/1']

@@ -363,6 +363,48 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         executedAndNotSkipped(":a")
     }
 
+    def "gradle cache directory gets ignored"() {
+        given:
+        def aFile = file("A")
+        buildFile << """
+        task a {
+            inputs.dir projectDir
+            doLast {}
+        }
+        """
+
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+
+        when: "file in .gradle directory is changed"
+        file('.gradle/some_file.txt').text = 'content'
+
+        then:
+        noBuildTriggered()
+    }
+
+    def "build directory gets ignored"() {
+        given:
+        def aFile = file("A")
+        buildFile << """
+        task a {
+            inputs.dir projectDir
+            doLast {}
+        }
+        """
+
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+
+        when: "file in build directory is changed"
+        file('build/some_file.txt').text = 'content'
+
+        then:
+        noBuildTriggered()
+    }
+
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "exit hint does not mention enter when not on windows"() {
         when:

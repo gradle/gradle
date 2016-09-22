@@ -17,6 +17,7 @@ package org.gradle.testfixtures.internal;
 
 import org.gradle.cache.internal.CacheFactory;
 import org.gradle.cache.internal.FileLockManager;
+import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
 
 public class TestGlobalScopeServices extends GlobalScopeServices {
@@ -25,7 +26,7 @@ public class TestGlobalScopeServices extends GlobalScopeServices {
     }
 
     @Override
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager) {
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
         return new InMemoryCacheFactory();
     }
 }

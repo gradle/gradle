@@ -29,6 +29,7 @@ import org.gradle.internal.filewatch.FileWatcherListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.ref.SoftReference;
 import java.nio.file.ClosedWatchServiceException;
@@ -60,6 +61,11 @@ public class WatchServiceFileWatcherBacking {
         @Override
         public void watch(FileSystemSubset fileSystemSubset) throws IOException {
             WatchServiceFileWatcherBacking.this.watchServiceRegistrar.watch(fileSystemSubset);
+        }
+
+        @Override
+        public void ignoreDirectory(File directory) {
+            WatchServiceFileWatcherBacking.this.watchServiceRegistrar.ignoreDirectory(directory);
         }
 
         @Override

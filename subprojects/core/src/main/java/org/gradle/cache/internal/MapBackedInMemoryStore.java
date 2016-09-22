@@ -34,6 +34,11 @@ public class MapBackedInMemoryStore implements PersistentStore {
     }
 
     @Override
+    public void flush() {
+
+    }
+
+    @Override
     public <T> T useCache(String operationDisplayName, Factory<? extends T> action) {
         lock.lock();
         try {

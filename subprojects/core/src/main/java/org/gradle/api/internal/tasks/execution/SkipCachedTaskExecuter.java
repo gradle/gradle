@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
+import org.gradle.api.execution.TaskOutputCacheListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
@@ -47,11 +48,13 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskOutputPacker packer;
     private final TaskExecuter delegate;
     private TaskOutputCache cache;
+    private final TaskOutputCacheListener taskOutputCacheListener;
 
-    public SkipCachedTaskExecuter(TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskExecuter delegate) {
+    public SkipCachedTaskExecuter(TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskOutputCacheListener taskOutputCacheListener, TaskExecuter delegate) {
         this.taskCaching = taskCaching;
         this.startParameter = startParameter;
         this.packer = packer;
+        this.taskOutputCacheListener = taskOutputCacheListener;
         this.delegate = delegate;
         SingleMessageLogger.incubatingFeatureUsed("Task output caching");
     }
@@ -72,9 +75,11 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         LOGGER.debug("Determining if {} is cached already", task);
 
         TaskCacheKey cacheKey = null;
+        boolean cacheable = false;
         if (cacheEnabled) {
             if (taskOutputs.hasDeclaredOutputs()) {
                 if (taskOutputs.isCacheAllowed()) {
+                    cacheable = true;
                     TaskArtifactState taskState = context.getTaskArtifactState();
                     try {
                         cacheKey = taskState.calculateCacheKey();
@@ -94,6 +99,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                             });
                             if (found) {
                                 state.upToDate("FROM-CACHE");
+                                taskOutputCacheListener.fromCache(task);
                                 return;
                             }
                         } catch (Exception e) {
@@ -109,6 +115,8 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
         } else {
             LOGGER.debug("Not caching {} as task output is not cacheable.", task);
         }
+
+        taskOutputCacheListener.notCached(task, cacheable);
 
         delegate.execute(task, state, context);
 

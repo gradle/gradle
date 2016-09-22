@@ -16,9 +16,13 @@
 
 package org.gradle.api.internal.changedetection.state;
 
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 
 public interface SnapshotNormalizationStrategy {
-    NormalizedFileSnapshot getNormalizedSnapshot(FileTreeElement fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner);
+    /**
+     * Returns true when the normalized path is an absolute path and so uniquely identifies each file in a collection snapshot.
+     */
+    boolean isPathAbsolute();
+
+    NormalizedFileSnapshot getNormalizedSnapshot(FileDetails fileDetails, IncrementalFileSnapshot snapshot, StringInterner stringInterner);
 }

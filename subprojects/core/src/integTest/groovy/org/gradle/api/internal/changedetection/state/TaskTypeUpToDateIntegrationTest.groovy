@@ -46,7 +46,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks == ([":copy"] as Set)
     }
 
-    def "task declared in build script is not up-to-date after build script change"() {
+    def "task with type declared in build script is not up-to-date after build script change"() {
         file("input.txt") << "input"
 
         buildFile << declareSimpleCopyTask(false)
@@ -63,6 +63,9 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         succeeds "copy"
         then:
         skippedTasks.empty
+
+        when: succeeds "copy"
+        then: skippedTasks == ([":copy"] as Set)
     }
 
     def "task with action declared in build script is not up-to-date after build script change"() {
@@ -90,6 +93,9 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         succeeds "copy"
         then:
         skippedTasks.empty
+
+        when: succeeds "copy"
+        then: skippedTasks == ([":copy"] as Set)
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2936")
@@ -116,6 +122,9 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         succeeds "copy"
         then:
         skippedTasks.empty
+
+        when: succeeds "copy"
+        then: skippedTasks == ([":copy"] as Set)
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1910")
@@ -145,6 +154,9 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         succeeds "copy"
         then:
         skippedTasks.empty
+
+        when: succeeds "copy"
+        then: skippedTasks == ([":copy"] as Set)
     }
 
     private static String declareSimpleCopyTask(boolean modification = false) {

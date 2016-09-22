@@ -80,6 +80,11 @@ public class InMemoryCacheFactory implements CacheFactory {
             return createCache(name, valueSerializer);
         }
 
+        @Override
+        public void flush() {
+
+        }
+
         public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
             assertNotClosed();
             return createCache(parameters.getCacheName(), parameters.getValueSerializer());

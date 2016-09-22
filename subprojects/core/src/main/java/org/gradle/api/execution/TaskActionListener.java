@@ -18,7 +18,7 @@ package org.gradle.api.execution;
 import org.gradle.api.Task;
 
 /**
- * <p>A {@code TaskWorkListener} is notified of the actions that a task performs.</p>
+ * <p>A {@code TaskActionListener} is notified of the actions that a task performs.</p>
  */
 public interface TaskActionListener {
     /**

@@ -16,18 +16,23 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
+import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.DirectoryTree;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
@@ -43,10 +48,11 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     private final List<Object> source = new ArrayList<Object>();
     private final String name;
     private final String displayName;
-    private final PathToFileResolver fileResolver;
+    private final FileResolver fileResolver;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final PatternSet patterns;
     private final PatternSet filter;
+    private final FileCollection dirs;
 
     public DefaultSourceDirectorySet(String name, String displayName, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory) {
         this.name = name;
@@ -55,6 +61,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.patterns = fileResolver.getPatternSetFactory().create();
         this.filter = fileResolver.getPatternSetFactory().create();
+        dirs = new FileCollectionAdapter(new SourceDirectories());
     }
 
     @Deprecated
@@ -69,6 +76,11 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
 
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public FileCollection getSourceDirectories() {
+        return dirs;
     }
 
     public Set<File> getSrcDirs() {
@@ -159,14 +171,26 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
                 SourceDirectorySet nested = (SourceDirectorySet) path;
                 result.addAll(nested.getSrcDirTrees());
             } else {
-                File srcDir = fileResolver.resolve(path);
-                if (srcDir.exists() && !srcDir.isDirectory()) {
-                    throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.", srcDir));
+                for (File srcDir : fileResolver.resolveFiles(path)) {
+                    if (srcDir.exists() && !srcDir.isDirectory()) {
+                        throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.", srcDir));
+                    }
+                    result.add(directoryFileTreeFactory.create(srcDir, patterns));
                 }
-                result.add(directoryFileTreeFactory.create(srcDir, patterns));
             }
         }
         return result;
+    }
+
+    @Override
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        for (Object path : source) {
+            if (path instanceof SourceDirectorySet) {
+                context.add(((SourceDirectorySet) path).getBuildDependencies());
+            } else {
+                context.add(fileResolver.resolveFiles(path));
+            }
+        }
     }
 
     @Override
@@ -202,5 +226,22 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     public SourceDirectorySet source(SourceDirectorySet source) {
         this.source.add(source);
         return this;
+    }
+
+    private class SourceDirectories implements MinimalFileSet, Buildable {
+        @Override
+        public TaskDependency getBuildDependencies() {
+            return DefaultSourceDirectorySet.this.getBuildDependencies();
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            return getSrcDirs();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 }

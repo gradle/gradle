@@ -23,6 +23,7 @@ import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.ExceptionAnalyser
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.changedetection.state.TaskArtifactStateCacheAccess
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
@@ -34,6 +35,7 @@ import org.gradle.internal.Factory
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.progress.BuildOperationDetails
 import org.gradle.internal.progress.BuildOperationExecutor
+import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildScopeServices
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -47,6 +49,8 @@ public class DefaultGradleLauncherSpec extends Specification {
     def buildBroadcaster = Mock(BuildListener.class);
     def buildExecuter = Mock(BuildExecuter.class);
     def buildConfigurationActionExecuter = Mock(BuildConfigurationActionExecuter.class);
+    def buildScopeServices = Mock(ServiceRegistry)
+    def taskArtifactStateCacheAccess = Mock(TaskArtifactStateCacheAccess)
 
     private ProjectInternal expectedRootProject;
     private ProjectInternal expectedCurrentProject;
@@ -96,7 +100,10 @@ public class DefaultGradleLauncherSpec extends Specification {
         _ * gradleMock.getDefaultProject() >> expectedCurrentProject
         _ * gradleMock.getTaskGraph() >> taskExecuterMock
         _ * gradleMock.getStartParameter() >> expectedStartParams
+        _ * gradleMock.getServices() >> buildScopeServices
         0 * gradleMock._
+
+        buildScopeServices.get(TaskArtifactStateCacheAccess) >> taskArtifactStateCacheAccess
     }
 
     DefaultGradleLauncher launcher() {
@@ -121,6 +128,7 @@ public class DefaultGradleLauncherSpec extends Specification {
         then:
         buildResult.getGradle() is gradleMock
         buildResult.failure == null
+        1 * taskArtifactStateCacheAccess.flush()
     }
 
     public void testGetBuildAnalysis() {
