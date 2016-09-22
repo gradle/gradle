@@ -35,7 +35,6 @@ public interface PersistentStore extends CacheAccess {
      */
     <K, V> PersistentIndexedCache<K, V> createCache(String name, Class<K> keyType, Serializer<V> valueSerializer);
 
-
     /**
      * Flushes any pending changes to disk.
      */
