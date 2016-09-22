@@ -15,6 +15,9 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
@@ -31,10 +34,12 @@ import org.gradle.internal.serialize.Serializer;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,7 +48,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private final TaskArtifactStateCacheAccess cacheAccess;
     private final FileSnapshotRepository snapshotRepository;
-    private final PersistentIndexedCache<String, TaskExecutionList> taskHistoryCache;
+    private final PersistentIndexedCache<String, ImmutableList<TaskExecutionSnapshot>> taskHistoryCache;
     private final TaskExecutionListSerializer serializer;
     private final StringInterner stringInterner;
 
@@ -113,8 +118,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                                 snapshotRepository.remove(execution.discoveredFilesSnapshotId);
                             }
                         }
-                        previousExecutions.beforeSerialized();
-                        taskHistoryCache.put(task.getPath(), previousExecutions);
+                        taskHistoryCache.put(task.getPath(), previousExecutions.snapshot());
                     }
                 });
             }
@@ -128,8 +132,14 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 ClassLoader projectClassLoader = Cast.cast(ProjectInternal.class, task.getProject()).getClassLoaderScope().getLocalClassLoader();
                 serializer.setClassLoader(projectClassLoader);
                 try {
-                    TaskExecutionList history = taskHistoryCache.get(task.getPath());
-                    return history == null ? new TaskExecutionList() : history;
+                    List<TaskExecutionSnapshot> history = taskHistoryCache.get(task.getPath());
+                    TaskExecutionList result = new TaskExecutionList();
+                    if (history != null) {
+                        for (TaskExecutionSnapshot taskExecutionSnapshot : history) {
+                            result.executions.add(new LazyTaskExecution(taskExecutionSnapshot));
+                        }
+                    }
+                    return result;
                 } finally {
                     serializer.setClassLoader(original);
                 }
@@ -137,12 +147,12 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         });
     }
 
-    private Set<String> getDeclaredOutputFilePaths(TaskInternal task) {
+    private ImmutableSet<String> getDeclaredOutputFilePaths(TaskInternal task) {
         Set<String> declaredOutputFilePaths = new HashSet<String>();
         for (File file : task.getOutputs().getFiles()) {
             declaredOutputFilePaths.add(stringInterner.intern(file.getAbsolutePath()));
         }
-        return declaredOutputFilePaths;
+        return ImmutableSet.copyOf(declaredOutputFilePaths);
     }
 
     private LazyTaskExecution findBestMatchingPreviousExecution(TaskExecution currentExecution, Collection<LazyTaskExecution> previousExecutions) {
@@ -169,31 +179,30 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
         return bestMatch;
     }
 
-    private static class TaskExecutionListSerializer implements Serializer<TaskExecutionList> {
-
+    private static class TaskExecutionListSerializer implements Serializer<ImmutableList<TaskExecutionSnapshot>> {
         private ClassLoader classLoader;
         private final StringInterner stringInterner;
 
-        public TaskExecutionListSerializer(StringInterner stringInterner) {
+        TaskExecutionListSerializer(StringInterner stringInterner) {
             this.stringInterner = stringInterner;
         }
 
-        public TaskExecutionList read(Decoder decoder) throws Exception {
-            byte executions = decoder.readByte();
-            TaskExecutionList history = new TaskExecutionList();
-            LazyTaskExecution.LazyTaskExecutionSerializer executionSerializer = new LazyTaskExecution.LazyTaskExecutionSerializer(classLoader, stringInterner);
-            for (int i = 0; i < executions; i++) {
-                LazyTaskExecution exec = executionSerializer.read(decoder);
-                history.executions.add(exec);
+        public ImmutableList<TaskExecutionSnapshot> read(Decoder decoder) throws Exception {
+            byte count = decoder.readByte();
+            List<TaskExecutionSnapshot> executions = new ArrayList<TaskExecutionSnapshot>(count);
+            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(classLoader, stringInterner);
+            for (int i = 0; i < count; i++) {
+                TaskExecutionSnapshot exec = executionSerializer.read(decoder);
+                executions.add(exec);
             }
-            return history;
+            return ImmutableList.copyOf(executions);
         }
 
-        public void write(Encoder encoder, TaskExecutionList value) throws Exception {
-            int size = value.executions.size();
+        public void write(Encoder encoder, ImmutableList<TaskExecutionSnapshot> value) throws Exception {
+            int size = value.size();
             encoder.writeByte((byte) size);
-            LazyTaskExecution.LazyTaskExecutionSerializer executionSerializer = new LazyTaskExecution.LazyTaskExecutionSerializer(classLoader, stringInterner);
-            for (LazyTaskExecution execution : value.executions) {
+            LazyTaskExecution.TaskExecutionSnapshotSerializer executionSerializer = new LazyTaskExecution.TaskExecutionSnapshotSerializer(classLoader, stringInterner);
+            for (TaskExecutionSnapshot execution : value) {
                 executionSerializer.write(encoder, execution);
             }
         }
@@ -209,29 +218,47 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
 
     private static class TaskExecutionList {
         private final Deque<LazyTaskExecution> executions = new ArrayDeque<LazyTaskExecution>();
+
         public String toString() {
             return super.toString() + "[" + executions.size() + "]";
         }
 
-        public void beforeSerialized() {
-            //cleaning up the transient fields, so that any in-memory caching is happy
+        public ImmutableList<TaskExecutionSnapshot> snapshot() {
+            List<TaskExecutionSnapshot> snapshots = new ArrayList<TaskExecutionSnapshot>(executions.size());
             for (LazyTaskExecution execution : executions) {
-                execution.snapshotRepository = null;
-                execution.cacheAccess = null;
+                snapshots.add(execution.snapshot());
             }
+            return ImmutableList.copyOf(snapshots);
         }
     }
 
-    //TODO SF extract & unit test
     private static class LazyTaskExecution extends TaskExecution {
-        private Map<String, Long> inputFilesSnapshotIds;
-        private Map<String, Long> outputFilesSnapshotIds;
+        private ImmutableSortedMap<String, Long> inputFilesSnapshotIds;
+        private ImmutableSortedMap<String, Long> outputFilesSnapshotIds;
         private Long discoveredFilesSnapshotId;
         private transient FileSnapshotRepository snapshotRepository;
         private transient Map<String, FileCollectionSnapshot> inputFilesSnapshot;
         private transient Map<String, FileCollectionSnapshot> outputFilesSnapshot;
         private transient FileCollectionSnapshot discoveredFilesSnapshot;
         private transient TaskArtifactStateCacheAccess cacheAccess;
+
+        /**
+         * Creates a mutable copy of the given snapshot.
+         */
+        LazyTaskExecution(TaskExecutionSnapshot taskExecutionSnapshot) {
+            setTaskClass(taskExecutionSnapshot.getTaskClass());
+            setTaskClassLoaderHash(taskExecutionSnapshot.getTaskClassLoaderHash());
+            setTaskActionsClassLoaderHash(taskExecutionSnapshot.getTaskActionsClassLoaderHash());
+            // Take copy of input properties map
+            setInputProperties(new HashMap<String, Object>(taskExecutionSnapshot.getInputProperties()));
+            setDeclaredOutputFilePaths(taskExecutionSnapshot.getDeclaredOutputFilePaths());
+            inputFilesSnapshotIds = taskExecutionSnapshot.getInputFilesSnapshotIds();
+            outputFilesSnapshotIds = taskExecutionSnapshot.getOutputFilesSnapshotIds();
+            discoveredFilesSnapshotId = taskExecutionSnapshot.getDiscoveredFilesSnapshotId();
+        }
+
+        LazyTaskExecution() {
+        }
 
         @Override
         public Map<String, FileCollectionSnapshot> getInputFilesSnapshot() {
@@ -296,48 +323,70 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             outputFilesSnapshotIds = null;
         }
 
-        static class LazyTaskExecutionSerializer implements Serializer<LazyTaskExecution> {
+        public TaskExecutionSnapshot snapshot() {
+            return new TaskExecutionSnapshot(
+                getTaskClass(),
+                getDeclaredOutputFilePaths(),
+                getTaskClassLoaderHash(),
+                getTaskActionsClassLoaderHash(),
+                new HashMap<String, Object>(getInputProperties()),
+                inputFilesSnapshotIds,
+                discoveredFilesSnapshotId,
+                outputFilesSnapshotIds);
+        }
+
+        static class TaskExecutionSnapshotSerializer implements Serializer<TaskExecutionSnapshot> {
             private final InputPropertiesSerializer inputPropertiesSerializer;
             private final StringInterner stringInterner;
 
-            public LazyTaskExecutionSerializer(ClassLoader classLoader, StringInterner stringInterner) {
+            public TaskExecutionSnapshotSerializer(ClassLoader classLoader, StringInterner stringInterner) {
                 this.inputPropertiesSerializer = new InputPropertiesSerializer(classLoader);
                 this.stringInterner = stringInterner;
             }
 
-            public LazyTaskExecution read(Decoder decoder) throws Exception {
-                LazyTaskExecution execution = new LazyTaskExecution();
-                execution.inputFilesSnapshotIds = readSnapshotIds(decoder);
-                execution.outputFilesSnapshotIds = readSnapshotIds(decoder);
-                execution.discoveredFilesSnapshotId = decoder.readLong();
-                execution.setTaskClass(decoder.readString());
+            public TaskExecutionSnapshot read(Decoder decoder) throws Exception {
+                ImmutableSortedMap<String, Long> inputFilesSnapshotIds = readSnapshotIds(decoder);
+                ImmutableSortedMap<String, Long> outputFilesSnapshotIds = readSnapshotIds(decoder);
+                Long discoveredFilesSnapshotId = decoder.readLong();
+                String taskClass = decoder.readString();
+                HashCode taskClassLoaderHash = null;
                 if (decoder.readBoolean()) {
-                    execution.setTaskClassLoaderHash(HashCode.fromBytes(decoder.readBinary()));
+                    taskClassLoaderHash = HashCode.fromBytes(decoder.readBinary());
                 }
+                HashCode taskActionsClassLoaderHash = null;
                 if (decoder.readBoolean()) {
-                    execution.setTaskActionsClassLoaderHash(HashCode.fromBytes(decoder.readBinary()));
+                    taskActionsClassLoaderHash = HashCode.fromBytes(decoder.readBinary());
                 }
-                int outputFiles = decoder.readInt();
+                int outputFiles = decoder.readSmallInt();
                 Set<String> files = new HashSet<String>();
                 for (int j = 0; j < outputFiles; j++) {
                     files.add(stringInterner.intern(decoder.readString()));
                 }
-                execution.setDeclaredOutputFilePaths(files);
+                ImmutableSet<String> declaredOutputFilePaths = ImmutableSet.copyOf(files);
 
-                boolean inputProperties = decoder.readBoolean();
-                if (inputProperties) {
-                    Map<String, Object> map = inputPropertiesSerializer.read(decoder);
-                    execution.setInputProperties(map);
+                boolean hasInputProperties = decoder.readBoolean();
+                Map<String, Object> inputProperties;
+                if (hasInputProperties) {
+                    inputProperties = inputPropertiesSerializer.read(decoder);
                 } else {
-                    execution.setInputProperties(new HashMap<String, Object>());
+                    inputProperties = ImmutableMap.of();
                 }
-                return execution;
+                return new TaskExecutionSnapshot(
+                    taskClass,
+                    declaredOutputFilePaths,
+                    taskClassLoaderHash,
+                    taskActionsClassLoaderHash,
+                    inputProperties,
+                    inputFilesSnapshotIds,
+                    discoveredFilesSnapshotId,
+                    outputFilesSnapshotIds
+                );
             }
 
-            public void write(Encoder encoder, LazyTaskExecution execution) throws Exception {
-                writeSnapshotIds(encoder, execution.inputFilesSnapshotIds);
-                writeSnapshotIds(encoder, execution.outputFilesSnapshotIds);
-                encoder.writeLong(execution.discoveredFilesSnapshotId);
+            public void write(Encoder encoder, TaskExecutionSnapshot execution) throws Exception {
+                writeSnapshotIds(encoder, execution.getInputFilesSnapshotIds());
+                writeSnapshotIds(encoder, execution.getOutputFilesSnapshotIds());
+                encoder.writeLong(execution.getDiscoveredFilesSnapshotId());
                 encoder.writeString(execution.getTaskClass());
                 HashCode classLoaderHash = execution.getTaskClassLoaderHash();
                 if (classLoaderHash == null) {
@@ -353,7 +402,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                     encoder.writeBoolean(true);
                     encoder.writeBinary(actionsClassLoaderHash.asBytes());
                 }
-                encoder.writeInt(execution.getDeclaredOutputFilePaths().size());
+                encoder.writeSmallInt(execution.getDeclaredOutputFilePaths().size());
                 for (String outputFile : execution.getDeclaredOutputFilePaths()) {
                     encoder.writeString(outputFile);
                 }
@@ -365,8 +414,8 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
                 }
             }
 
-            private static Map<String, Long> readSnapshotIds(Decoder decoder) throws IOException {
-                int count = decoder.readInt();
+            private static ImmutableSortedMap<String, Long> readSnapshotIds(Decoder decoder) throws IOException {
+                int count = decoder.readSmallInt();
                 ImmutableSortedMap.Builder<String, Long> builder = ImmutableSortedMap.naturalOrder();
                 for (int snapshotIdx = 0; snapshotIdx < count; snapshotIdx++) {
                     String property = decoder.readString();
@@ -377,7 +426,7 @@ public class CacheBackedTaskHistoryRepository implements TaskHistoryRepository {
             }
 
             private static void writeSnapshotIds(Encoder encoder, Map<String, Long> ids) throws IOException {
-                encoder.writeInt(ids.size());
+                encoder.writeSmallInt(ids.size());
                 for (Map.Entry<String, Long> entry : ids.entrySet()) {
                     encoder.writeString(entry.getKey());
                     encoder.writeLong(entry.getValue());

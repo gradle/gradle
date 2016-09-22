@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.hash.HashCode;
 import org.apache.commons.lang.SerializationUtils;
@@ -33,25 +34,25 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The persistent state for a single task execution.
+ * The state for a single task execution.
  */
 public abstract class TaskExecution {
     private String taskClass;
     private HashCode taskClassLoaderHash;
     private HashCode taskActionsClassLoaderHash;
     private Map<String, Object> inputProperties;
-    private Set<String> declaredOutputFilePaths;
+    private ImmutableSet<String> declaredOutputFilePaths;
 
     /**
      * Returns the absolute path of every declared output file and directory.
      * The returned set includes potentially missing files as well, and does
      * not include the resolved contents of directories.
      */
-    public Set<String> getDeclaredOutputFilePaths() {
+    public ImmutableSet<String> getDeclaredOutputFilePaths() {
         return declaredOutputFilePaths;
     }
 
-    public void setDeclaredOutputFilePaths(Set<String> declaredOutputFilePaths) {
+    public void setDeclaredOutputFilePaths(ImmutableSet<String> declaredOutputFilePaths) {
         this.declaredOutputFilePaths = declaredOutputFilePaths;
     }
 
