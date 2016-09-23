@@ -44,8 +44,9 @@ public class TestDataGenerator extends ReportRenderer<PerformanceTestHistory, Wr
                 out.println(", ");
             }
             out.print("{");
-            out.print("\"date\":\"" + format.date(new Date(results.getStartTime())) + "\"");
+            out.print("\"id\": \"" + results.getExecutionId() + "\"");
             out.print(", \"branch\":\"" + results.getVcsBranch() + "\"");
+            out.print(", \"date\":\"" + format.date(new Date(results.getStartTime())) + "\"");
             out.print(", \"commits\":[\"");
             out.print(Joiner.on("\",\"").join(results.getVcsCommits()));
             out.print("\"]");

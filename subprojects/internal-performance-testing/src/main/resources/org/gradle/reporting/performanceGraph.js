@@ -62,7 +62,17 @@
               var text = revLabel + ', date: ' + executionLabel.date + ', '+ label + ' ' + item.datapoint[1] + unit;
               $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();
             }
-          }).bind('plotselected', zoomFunction(chart)).bind('dblclick', zoomFunction(chart, true));
+          }).bind('plotselected', zoomFunction(chart)).bind('dblclick', zoomFunction(chart, true))
+          .bind("plotclick",
+            function (event, pos, item) {
+              var executionLabel = executionLabels[item.datapoint[0]];
+              var resultRow = $('#result' + executionLabel.id);
+              if (resultRow) {
+                $('.history tr').css("background-color","");
+                resultRow.css("background-color","orange");
+                $('html, body').animate({scrollTop: resultRow.offset().top}, 1000);
+              }
+          });
         }
       });
     });

@@ -123,6 +123,7 @@ public class TestPageGenerator extends HtmlPageGenerator<PerformanceTestHistory>
             end();
             for (PerformanceTestExecution results : testHistory.getExecutions()) {
                 tr();
+                id("result" + results.getExecutionId());
                 textCell(format.timestamp(new Date(results.getStartTime())));
                 textCell(results.getVcsBranch());
 

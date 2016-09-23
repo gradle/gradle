@@ -124,6 +124,11 @@ public class CrossBuildPerformanceTestHistory implements PerformanceTestHistory 
         }
 
         @Override
+        public String getExecutionId() {
+            return String.valueOf(Math.abs(getVcsCommits() != null ? getVcsCommits().hashCode() : hashCode()));
+        }
+
+        @Override
         public String getVersionUnderTest() {
             return results.getVersionUnderTest();
         }
