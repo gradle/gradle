@@ -66,11 +66,14 @@
           .bind("plotclick",
             function (event, pos, item) {
               var executionLabel = executionLabels[item.datapoint[0]];
-              var resultRow = $('#result' + executionLabel.id);
+              var resultRowId = 'result' + executionLabel.id;
+              var resultRow = $('#' + resultRowId);
               if (resultRow) {
                 $('.history tr').css("background-color","");
                 resultRow.css("background-color","orange");
-                $('html, body').animate({scrollTop: resultRow.offset().top}, 1000);
+                $('html, body').animate({scrollTop: resultRow.offset().top}, 1000, function() {
+                    window.location.hash = resultRowId;
+                });
               }
           });
         }
@@ -82,3 +85,10 @@
     createPerformanceGraph: createPerformanceGraph
   }
 })($, window);
+
+$(document).ready(function() {
+    var resultRowId = window.location.hash;
+    if (resultRowId) {
+        $(resultRowId).css("background-color","orange");
+    }
+});
