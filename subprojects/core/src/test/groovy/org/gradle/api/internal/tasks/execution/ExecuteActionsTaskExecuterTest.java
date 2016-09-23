@@ -56,7 +56,7 @@ public class ExecuteActionsTaskExecuterTest {
     private final StandardOutputCapture standardOutputCapture = context.mock(StandardOutputCapture.class);
     private final Sequence sequence = context.sequence("seq");
     private final TaskActionListener publicListener = context.mock(TaskActionListener.class);
-    private final TaskActionExecutionListener internalListener = context.mock(TaskActionExecutionListener.class);
+    private final TaskOutputsGenerationListener internalListener = context.mock(TaskOutputsGenerationListener.class);
     private final ExecuteActionsTaskExecuter executer = new ExecuteActionsTaskExecuter(internalListener, publicListener);
 
     @Before
@@ -111,7 +111,7 @@ public class ExecuteActionsTaskExecuterTest {
             oneOf(publicListener).beforeActions(task);
             inSequence(sequence);
 
-            oneOf(internalListener).startTaskActions();
+            oneOf(internalListener).beforeTaskOutputsGenerated();
             inSequence(sequence);
 
             oneOf(state).setExecuting(true);
@@ -179,7 +179,7 @@ public class ExecuteActionsTaskExecuterTest {
                 oneOf(publicListener).beforeActions(task);
                 inSequence(sequence);
 
-                oneOf(internalListener).startTaskActions();
+                oneOf(internalListener).beforeTaskOutputsGenerated();
                 inSequence(sequence);
 
                 oneOf(state).setExecuting(true);
@@ -233,7 +233,7 @@ public class ExecuteActionsTaskExecuterTest {
             oneOf(publicListener).beforeActions(task);
             inSequence(sequence);
 
-            oneOf(internalListener).startTaskActions();
+            oneOf(internalListener).beforeTaskOutputsGenerated();
             inSequence(sequence);
 
             oneOf(state).setExecuting(true);
@@ -287,7 +287,7 @@ public class ExecuteActionsTaskExecuterTest {
             oneOf(publicListener).beforeActions(task);
             inSequence(sequence);
 
-            oneOf(internalListener).startTaskActions();
+            oneOf(internalListener).beforeTaskOutputsGenerated();
             inSequence(sequence);
 
             oneOf(state).setExecuting(true);
@@ -334,7 +334,7 @@ public class ExecuteActionsTaskExecuterTest {
             oneOf(publicListener).beforeActions(task);
             inSequence(sequence);
 
-            oneOf(internalListener).startTaskActions();
+            oneOf(internalListener).beforeTaskOutputsGenerated();
             inSequence(sequence);
 
             oneOf(state).setExecuting(true);

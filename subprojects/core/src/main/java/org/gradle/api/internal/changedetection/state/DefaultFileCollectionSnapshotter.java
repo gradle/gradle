@@ -30,7 +30,7 @@ import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.SingletonFileTree;
 import org.gradle.api.internal.tasks.TaskFilePropertySpec;
-import org.gradle.api.internal.tasks.execution.TaskActionExecutionListener;
+import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.serialize.SerializerRegistry;
 
@@ -45,9 +45,9 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 /**
  * Responsible for calculating a {@link FileCollectionSnapshot} for a particular {@link FileCollection}.
  *
- * <p>Implementation performs some in-memory caching, should be notified of potential changes by calling {@link #startTaskActions()}.</p>
+ * <p>Implementation performs some in-memory caching, should be notified of potential changes by calling {@link #beforeTaskOutputsGenerated()}.</p>
  */
-public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter, TaskActionExecutionListener {
+public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshotter, TaskOutputsGenerationListener {
     private static final DefaultFileCollectionSnapshot EMPTY_SNAPSHOT = new DefaultFileCollectionSnapshot(ImmutableMap.<String, NormalizedFileSnapshot>of(), UNORDERED, true);
     private final FileSnapshotter snapshotter;
     private final StringInterner stringInterner;
@@ -64,8 +64,8 @@ public class DefaultFileCollectionSnapshotter implements FileCollectionSnapshott
     }
 
     @Override
-    public void startTaskActions() {
-        // When a task action is executed, throw away all cached state. This is intentionally very simple, to be improved later
+    public void beforeTaskOutputsGenerated() {
+        // When the task outputs are generated, throw away all cached state. This is intentionally very simple, to be improved later
         rootFiles.clear();
     }
 

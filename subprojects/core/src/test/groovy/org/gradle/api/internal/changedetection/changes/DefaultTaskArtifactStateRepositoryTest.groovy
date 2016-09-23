@@ -614,12 +614,12 @@ public class DefaultTaskArtifactStateRepositoryTest extends AbstractProjectBuild
             TaskArtifactState state = repository.getStateFor(task)
             state.isUpToDate([])
             // reset state
-            fileCollectionSnapshotter.startTaskActions()
+            fileCollectionSnapshotter.beforeTaskOutputsGenerated()
             task.execute()
             state.afterTask()
         }
         // reset state
-        fileCollectionSnapshotter.startTaskActions()
+        fileCollectionSnapshotter.beforeTaskOutputsGenerated()
     }
 
     private static class ChangedFiles {

@@ -51,7 +51,7 @@ import org.gradle.api.internal.tasks.execution.SkipEmptySourceFilesTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipOnlyIfTaskExecuter;
 import org.gradle.api.internal.tasks.execution.SkipTaskWithNoActionsExecuter;
 import org.gradle.api.internal.tasks.execution.SkipUpToDateTaskExecuter;
-import org.gradle.api.internal.tasks.execution.TaskActionExecutionListener;
+import org.gradle.api.internal.tasks.execution.TaskOutputsGenerationListener;
 import org.gradle.api.internal.tasks.execution.ValidatingTaskExecuter;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.cache.CacheRepository;
@@ -99,7 +99,7 @@ public class TaskExecutionServices {
                                     listenerManager,
                                     new PostExecutionAnalysisTaskExecuter(
                                         new ExecuteActionsTaskExecuter(
-                                            listenerManager.getBroadcaster(TaskActionExecutionListener.class),
+                                            listenerManager.getBroadcaster(TaskOutputsGenerationListener.class),
                                             listenerManager.getBroadcaster(TaskActionListener.class)
                                         )
                                     )
@@ -114,7 +114,7 @@ public class TaskExecutionServices {
 
     private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, ListenerManager listenerManager, TaskExecuter delegate) {
         if (startParameter.isTaskOutputCacheEnabled()) {
-            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, listenerManager.getBroadcaster(TaskOutputCacheListener.class), listenerManager.getBroadcaster(TaskActionExecutionListener.class), delegate);
+            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, listenerManager.getBroadcaster(TaskOutputCacheListener.class), listenerManager.getBroadcaster(TaskOutputsGenerationListener.class), delegate);
         } else {
             return delegate;
         }

@@ -326,7 +326,7 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         0 * listener._
 
         when:
-        snapshotter.startTaskActions()
+        snapshotter.beforeTaskOutputsGenerated()
 
         def snapshot3 = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
         changes(snapshot3, snapshot, listener)

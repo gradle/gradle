@@ -49,7 +49,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
     def startParameter = Mock(StartParameter)
     def cacheKey = Mock(TaskCacheKey)
     def taskOutputCacheListener = Mock(TaskOutputCacheListener)
-    def internalTaskExecutionListener = Mock(TaskActionExecutionListener)
+    def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
 
     def executer = new SkipCachedTaskExecuter(taskCaching, taskOutputPacker, startParameter, taskOutputCacheListener, internalTaskExecutionListener, delegate)
 
@@ -72,7 +72,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskOutputCache.load(cacheKey, _) >> true
         1 * taskState.upToDate("FROM-CACHE")
         1 * taskOutputCacheListener.fromCache(task)
-        1 * internalTaskExecutionListener.startTaskActions()
+        1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
         0 * _
     }
 
