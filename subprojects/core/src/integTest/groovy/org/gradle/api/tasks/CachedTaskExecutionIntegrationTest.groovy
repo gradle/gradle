@@ -326,25 +326,28 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     @IgnoreIf({GradleContextualExecuter.parallel})
     def 'can load twice from the cache with no changes'() {
         given:
-        buildFile.text  = "apply plugin: 'java'"
+        buildFile << """
+            apply plugin: "application"
+            mainClassName = "Hello"
+        """
 
         when:
-        runWithCache 'clean', 'jar'
+        runWithCache 'clean', 'run'
 
         then:
-        nonSkippedTasks.contains ':jar'
+        nonSkippedTasks.contains ':compileJava'
 
         when:
-        runWithCache 'clean', 'jar'
+        runWithCache 'clean', 'run'
 
         then:
-        skippedTasks.contains ':jar'
+        skippedTasks.contains ':compileJava'
 
         when:
-        runWithCache 'clean', 'jar'
+        runWithCache 'clean', 'run'
 
         then:
-        skippedTasks.contains ':jar'
+        skippedTasks.contains ':compileJava'
     }
 
     def 'task execution statistics are reported'() {
