@@ -68,7 +68,10 @@ class JavaCleanDaemonPerformanceTest extends AbstractCrossVersionPerformanceTest
         where:
         testProject            | targetVersions
         "bigOldJava"           | ['2.8', 'last']
-        "mediumOldJava"        | ['2.8', 'last']
-        "smallOldJava"         | ['last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        "mediumOldJava"        | ['3.2-20160915000027+0000']
+        "smallOldJava"         | ['3.2-20160915000027+0000']
     }
 }

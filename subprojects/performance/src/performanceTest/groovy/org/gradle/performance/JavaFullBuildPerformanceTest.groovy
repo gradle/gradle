@@ -39,8 +39,11 @@ class JavaFullBuildPerformanceTest extends AbstractCrossVersionPerformanceTest {
 
         where:
         testProject       | targetVersions
-        "small"           | ['last']
-        "multi"           | ['last']
-        "lotDependencies" | ['2.4', '2.8', 'last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        "small"           | ['3.2-20160915000027+0000']
+        "multi"           | ['3.2-20160915000027+0000']
+        "lotDependencies" | ['3.2-20160915000027+0000']
     }
 }

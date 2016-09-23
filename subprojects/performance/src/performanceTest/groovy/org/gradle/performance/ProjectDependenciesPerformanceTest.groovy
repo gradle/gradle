@@ -28,7 +28,10 @@ class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformance
         runner.testProject = "lotProjectDependencies"
         runner.tasksToRun = ['resolveDependencies']
         runner.useDaemon = true
-        runner.targetVersions = ['2.11', 'last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        runner.targetVersions = ['3.2-20160915000027+0000']
 
         when:
         def result = runner.run()
