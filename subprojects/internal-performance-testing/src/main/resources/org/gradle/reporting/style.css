@@ -150,7 +150,13 @@ a.compare-link {
     padding: 3px 5px;
 }
 
-a:hover.commit-link, a:hover.compare-link {
+a.chart-legend {
+    text-decoration: none;
+    color: #444;
+    padding: 3px 5px;
+}
+
+a:hover.commit-link, a:hover.compare-link, a:hover.chart-legend {
     background-color: #00c489;
     color: white;
 }

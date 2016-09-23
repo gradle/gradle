@@ -5,6 +5,20 @@
     }).join('|');
   }
 
+  var plots = [];
+
+  var togglePlot = function(chartId, label) {
+    var plot = plots[chartId];
+    var plotData = plot.getData();
+    $.each(plotData, function(index, value) {
+        if(value.label == label) {
+            value.points.show = value.lines.show = !value.lines.show;
+        }
+    });
+    plot.setData(plotData);
+    plot.draw();
+  }
+
   var createPerformanceGraph = function(jsonFile, dataSelector, label, unit, chartId) {
     $(function() {
       $.ajax({ url: jsonFile, dataType: 'json',
@@ -15,7 +29,14 @@
               points: { show: true },
               lines: { show: true }
             },
-            legend: { noColumns: 0, margin: 1 },
+            legend: {
+                noColumns: 0,
+                margin: 1,
+                labelFormatter:
+                    function(label, series) {
+                       return '<a href="#" class="chart-legend" onClick="performanceTests.togglePlot(\''+chartId+'\', \''+label+'\'); return false;">'+label+'</a>';
+                    }
+            },
             grid: { hoverable: true, clickable: true },
             xaxis: { tickFormatter:
                 function(index, value) {
@@ -30,6 +51,7 @@
             yaxis: { min: 0 }, selection: { mode: 'xy' } };
           var data = dataSelector(allData)
           var chart = $.plot('#' + chartId, data, options);
+          plots[chartId] = chart;
           var zoomFunction = function(plot, reset) {
             var reset = reset || false;
             return function (event, ranges) {
@@ -82,7 +104,8 @@
   };
 
   window.performanceTests = {
-    createPerformanceGraph: createPerformanceGraph
+    createPerformanceGraph: createPerformanceGraph,
+    togglePlot: togglePlot
   }
 })($, window);
 
