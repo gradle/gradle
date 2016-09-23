@@ -1,9 +1,15 @@
 (function ($) {
+  var renderCommitIds = function(commits) {
+    return commits.map(function(commit) {
+        return commit.substring(0, 7);
+    }).join('|');
+  }
+
   var createPerformanceGraph = function(jsonFile, dataSelector, label, unit, chartId) {
     $(function() {
       $.ajax({ url: jsonFile, dataType: 'json',
         success: function(allData) {
-          var labels = allData.labels;
+          var executionLabels = allData.executionLabels;
           var options = {
             series: {
               points: { show: true },
@@ -11,7 +17,16 @@
             },
             legend: { noColumns: 0, margin: 1 },
             grid: { hoverable: true, clickable: true },
-            xaxis: { tickFormatter: function(index, value) { return labels[index]; } },
+            xaxis: { tickFormatter:
+                function(index, value) {
+                    if (index === parseInt(index, 10)) { // portable way to check if sth is an integer
+                        var executionLabel = executionLabels[index];
+                        return executionLabel ? executionLabel.date : "";
+                    } else {
+                        return "";
+                    }
+                }
+            },
             yaxis: { min: 0 }, selection: { mode: 'xy' } };
           var data = dataSelector(allData)
           var chart = $.plot('#' + chartId, data, options);
@@ -37,7 +52,14 @@
             if (!item) {
               $('#tooltip').hide();
             } else {
-              var text = 'Version: ' + item.series.label + ', date: ' + labels[item.datapoint[0]] + ', '+ label + ' ' + item.datapoint[1] + unit;
+              var executionLabel = executionLabels[item.datapoint[0]];
+              var revLabel;
+              if(item.series.label == executionLabel.branch) {
+                revLabel = 'rev: ' + renderCommitIds(executionLabel.commits) + '/' + executionLabel.branch;
+              } else {
+                revLabel = 'Version: ' + item.series.label;
+              }
+              var text = revLabel + ', date: ' + executionLabel.date + ', '+ label + ' ' + item.datapoint[1] + unit;
               $('#tooltip').html(text).css({top: item.pageY - 10, left: item.pageX + 10}).show();
             }
           }).bind('plotselected', zoomFunction(chart)).bind('dblclick', zoomFunction(chart, true));
