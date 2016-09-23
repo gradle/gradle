@@ -11,14 +11,18 @@ The basic setup for the dependencies will be something like the following.
 Let us assume we have a dependency graph like this:
 
 <pre>
-    A ───────> C
-    │          ^
-    │          │
-    │          │
-    └───> B ───┘
+ProjectA ─(project dependency)─> ModuleC       //parts of the build
+ |
+ └> ModuleB(1.0) ──────────────> ModuleC(2.0)  //from repository
 </pre>
 
-That means `A` depends on `B` and `C`, and `B` depends on `C`.
+That means `ProjectA` depends on modules `MoudleB` and `ModuleC`, using a project dependency
+to refer to a variant of `ModuleC` of unspecified version that is a project in the build.
+The external `ModuleB:1.0` depends on `ModuleC:2.0`.
+This leads to dependency conflicts between the different dependencies to `ModuleC`.
+The goal of this feature is to introduce a conflict resolution mechanism that selects the
+dependency based on the type of a dependency (is it a _module_ or a _project_ dependency?) 
+rather than deciding primarily based on module versions.
 
 The two situations where a dependency conflict as above occur are as follows.
 
@@ -29,13 +33,16 @@ this project where not all intermediate dependencies are project dependencies.
 
 A more concrete example:
 
-We have a multi project build with two sub projects `A` and `C`.
-`A:3.0` depends on project `C:1.0` and binary `B:2.0`.
-Binary `B:2.0` depends on binary `C:2.0`.
+We have a multi project build with two sub projects `ProjectA` and `ModuleC`.
+`ProjectA` depends on `ModuleC` and binary `ModuleB:1.0`.
+Binary `ModuleB:1.0` depends on binary `ModuleC:2.0`.
 
-What is the runtime classpath of `A`? There is a version conflict between project
-`C:2.0` and binary `C:1.0`. Based on our current rules we would pick binary `C:2.0`,
-but we may prefer the project dependency `C:1.0`.   
+What is the runtime classpath of `ProjectA`? There is a version conflict between subproject
+`ModuleC` and binary `ModuleC:2.0`. Based on our current rules we would pick binary `ModuleC:2.0`
+if the subproject `ModuleC` defines a lower or no version or subproject `ModuleC` is it defines 
+a version equal or higher to `2.0`. This can be counter intuitive, as it is not specified in the
+project dependency itself, which version is desired. Thus we may prefer to always pick the project 
+dependency `ModuleC`.   
  
 ### Composite build 
 
@@ -45,14 +52,15 @@ this project where not all intermediate dependencies are part of included builds
 A more concrete example:
 
 We have a composite build with two included builds - `X` and `Y`.
-The included build `X` has a project `A:3.0` which depends on `B:1.0` and `C:1.0`.
-The included build `Y` has project `C:1.0`.
-`B:1.0` depends on binary `C:2.0`.
+The included build `X` has a project `ProjectA` which depends on `MoudleB:2.0` and `ModuleC:1.0`.
+The included build `Y` has project `ModuleC:1.0`.
+`MoudleB:2.0` depends on binary `MoudleC:2.0`.
 
-What is the runtime classpath of project `A`? There is a version conflict between
-project `C:1.0` and binary `C:2.0`. Based on our current rules we would pick
-binary `C:2.0`, but we may prefer the project dependency `C:1.0`.
-  
+What is the runtime classpath of project `ProjectA`? There is a version conflict between
+project `ModuleC:1.0` and binary `ModuleC:2.0`. ~~Based on our current rules we would pick
+binary ModuleC:2.0~~. _This is not true (anymore?) because the automatic dependency substitution
+of composite builds already leads to the behavior that the project dependency is always picked._
+
 ### Current behavior  
   
 We still want to keep the current behaviour for two reasons:
@@ -92,38 +100,24 @@ In more detail, let us assume that we have the following layout:
 
 `settings.gradle`:
    
-    include ':projectA'
-    include ':projectC'
+    include ':projectA', ':projectC'
 
 `projectA/build.gradle`:
-
-    plugins {
-        id 'java'
-        id 'maven-publish'
-    }
-    
-    group = 'myorg.projectA'
-    version = '2.0'
     
     dependencies {
         compile project(':projectC')
-        compile 'myorg.projectB:projectB:2.0'
+        compile 'myorg.moduleB:moduleB:1.0'
     }
 
 `projectC/build.gradle`:
-
-    plugins {
-        id 'java'
-        id 'maven-publish'
-    }
     
     group = 'myorg.projectC'
-    version = '2.0'
+    version = '1.0'
 
-Let us assume that `projectB` has the maven coordinates `myorg.projectB:projectB:2.0`
-and depends on `myorg.projectC:projectC:3.0`.
+Let us assume that `moduleB` has the maven coordinates `myorg.moduleB:moduleB:1.0`
+and depends on `myorg.projectC:projectC:2.0`.
 
-The default behaviour now is that `projectA` is compiled against `myorg.projectC:projectC:3.0`. If
+The default behaviour now is that `projectA` is compiled against `myorg.projectC:projectC:2.0`. If
 we add
 
     configurations.all {
