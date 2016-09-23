@@ -305,7 +305,7 @@ public class TestFile extends File {
      */
     public TestFile makeOlder() {
         // Just move back 2 seconds
-        setLastModified(lastModified() - 2000L);
+        assert setLastModified(lastModified() - 2000L);
         return this;
     }
 
