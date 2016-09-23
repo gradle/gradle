@@ -22,24 +22,24 @@ class TestPageGeneratorTest extends Specification {
 
     def "transforms a single commit id to a url"() {
         when:
-        def urls = new TestPageGenerator().urlify(['123456'])
+        def urls = new TestPageGenerator().createGitHubLinks(['123456'])
 
         then:
-        urls[0].value == 'https://github.com/gradle/gradle/commit/123456'
+        urls[0].url == 'https://github.com/gradle/gradle/commit/123456'
     }
 
     def "transforms two commit ids to urls"() {
         when:
-        def urls = new TestPageGenerator().urlify(['123456', 'abcdefg'])
+        def urls = new TestPageGenerator().createGitHubLinks(['123456', 'abcdefg'])
 
         then:
-        urls[0].value == 'https://github.com/gradle/gradle/commit/123456'
-        urls[1].value == 'https://github.com/gradle/dotcom/commit/abcdefg'
+        urls[0].url == 'https://github.com/gradle/gradle/commit/123456'
+        urls[1].url == 'https://github.com/gradle/dotcom/commit/abcdefg'
     }
 
     def "accepts no vcs commit ids"() {
         expect:
-        new TestPageGenerator().urlify(inputs).isEmpty()
+        new TestPageGenerator().createGitHubLinks(inputs).isEmpty()
 
         where:
         inputs << [[], null]
