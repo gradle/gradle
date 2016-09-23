@@ -59,8 +59,6 @@ abstract class AbstractProjectDependencyConflictResolutionConfigurationIntegrati
     @Unroll
     def "project dependency (#versionInProject) vs external dependency (#versionExternal) resolves to winner, when preferProjectModules=#preferProjectModules and forceVersion=#forceVersion and depSubstitution=#depSubstitution"() {
         given:
-        temporaryFolder.suppressCleanup();
-
         //required for composite builds
         buildTestFixture.withBuildInSubDir()
 
