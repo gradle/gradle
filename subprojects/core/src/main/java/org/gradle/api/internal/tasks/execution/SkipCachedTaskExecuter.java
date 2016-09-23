@@ -49,12 +49,14 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
     private final TaskExecuter delegate;
     private TaskOutputCache cache;
     private final TaskOutputCacheListener taskOutputCacheListener;
+    private final TaskActionExecutionListener internalTaskActionExecutionListener;
 
-    public SkipCachedTaskExecuter(TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskOutputCacheListener taskOutputCacheListener, TaskExecuter delegate) {
+    public SkipCachedTaskExecuter(TaskCachingInternal taskCaching, TaskOutputPacker packer, StartParameter startParameter, TaskOutputCacheListener taskOutputCacheListener, TaskActionExecutionListener internalTaskActionExecutionListener, TaskExecuter delegate) {
         this.taskCaching = taskCaching;
         this.startParameter = startParameter;
         this.packer = packer;
         this.taskOutputCacheListener = taskOutputCacheListener;
+        this.internalTaskActionExecutionListener = internalTaskActionExecutionListener;
         this.delegate = delegate;
         SingleMessageLogger.incubatingFeatureUsed("Task output caching");
     }
@@ -99,6 +101,7 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                             });
                             if (found) {
                                 state.upToDate("FROM-CACHE");
+                                internalTaskActionExecutionListener.startTaskActions();
                                 taskOutputCacheListener.fromCache(task);
                                 return;
                             }

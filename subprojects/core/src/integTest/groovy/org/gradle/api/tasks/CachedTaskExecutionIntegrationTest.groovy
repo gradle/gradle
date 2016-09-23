@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks
 
-import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -322,7 +321,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         taskIsCached ':adHocTask'
     }
 
-    @NotYetImplemented
     @IgnoreIf({GradleContextualExecuter.parallel})
     def 'can load twice from the cache with no changes'() {
         given:

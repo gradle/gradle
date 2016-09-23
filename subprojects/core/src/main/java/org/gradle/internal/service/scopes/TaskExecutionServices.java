@@ -114,7 +114,7 @@ public class TaskExecutionServices {
 
     private static TaskExecuter createSkipCachedExecuterIfNecessary(StartParameter startParameter, TaskCachingInternal taskCaching, TaskOutputPacker packer, ListenerManager listenerManager, TaskExecuter delegate) {
         if (startParameter.isTaskOutputCacheEnabled()) {
-            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, listenerManager.getBroadcaster(TaskOutputCacheListener.class), delegate);
+            return new SkipCachedTaskExecuter(taskCaching, packer, startParameter, listenerManager.getBroadcaster(TaskOutputCacheListener.class), listenerManager.getBroadcaster(TaskActionExecutionListener.class), delegate);
         } else {
             return delegate;
         }
