@@ -16,9 +16,12 @@
 
 package org.gradle.api.tasks
 
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -317,6 +320,31 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
         expect:
         taskIsCached ':adHocTask'
+    }
+
+    @NotYetImplemented
+    @IgnoreIf({GradleContextualExecuter.parallel})
+    def 'can load twice from the cache with no changes'() {
+        given:
+        buildFile.text  = "apply plugin: 'java'"
+
+        when:
+        runWithCache 'clean', 'jar'
+
+        then:
+        nonSkippedTasks.contains ':jar'
+
+        when:
+        runWithCache 'clean', 'jar'
+
+        then:
+        skippedTasks.contains ':jar'
+
+        when:
+        runWithCache 'clean', 'jar'
+
+        then:
+        skippedTasks.contains ':jar'
     }
 
     def 'task execution statistics are reported'() {
