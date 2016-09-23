@@ -72,7 +72,7 @@ public class SingleOperationPersistentStore<V> {
 
     private void initCaches(String operation) {
         String identifier = uncapitalize(toCamelCase(cacheName));
-        cacheAccess = cacheRepository.store(scope, identifier)
+        cacheAccess = cacheRepository.cache(scope, identifier)
                 .withDisplayName(cacheName + " " + operation + " cache")
                 .withLockOptions(mode(FileLockManager.LockMode.Exclusive))
                 .open();

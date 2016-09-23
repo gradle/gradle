@@ -37,7 +37,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
 
     public DefaultCacheLockingManager(CacheRepository cacheRepository) {
         cache = cacheRepository
-                .store(CacheLayout.ROOT.getKey())
+                .cache(CacheLayout.ROOT.getKey())
                 .withCrossVersionCache()
                 .withDisplayName("artifact cache")
                 .withLockOptions(mode(FileLockManager.LockMode.None)) // Don't need to lock anything until we use the caches

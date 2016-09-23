@@ -34,6 +34,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+/**
+ * A {@link CacheDecorator} that wraps each cache with an in-memory cache that is used to short-circuit reads from the backing cache.
+ * The in-memory cache is invalidated when the backing cache is changed by another process.
+ */
 public class InMemoryTaskArtifactCache implements CacheDecorator {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
     private static final Map<String, Integer> CACHE_CAPS = new CacheCapSizer().calculateCaps();
@@ -67,7 +71,6 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         }
     }
 
-
     private final Object lock = new Object();
     private final Cache<String, Cache<Object, Object>> cache = CacheBuilder.newBuilder()
             .maximumSize(CACHE_CAPS.size() * 2) //X2 to factor in a child build (for example buildSrc)
@@ -75,7 +78,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
 
     private final Map<String, AtomicReference<FileLock.State>> states = new HashMap<String, AtomicReference<FileLock.State>>();
 
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(final String cacheId, String cacheName, final MultiProcessSafePersistentIndexedCache<K, V> original, final AsyncCacheAccess asyncCacheAccess) {
+    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> original, AsyncCacheAccess asyncCacheAccess) {
         return new InMemoryDecoratedCache<K, V>(asyncCacheAccess, original, loadData(cacheId, cacheName), cacheId, getFileLockStateReference(cacheId));
     }
 

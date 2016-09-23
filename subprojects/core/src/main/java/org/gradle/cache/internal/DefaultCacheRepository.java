@@ -38,14 +38,6 @@ public class DefaultCacheRepository implements CacheRepository {
         this.factory = factory;
     }
 
-    public CacheBuilder store(String key) {
-        return new PersistentStoreBuilder(null, key);
-    }
-
-    public CacheBuilder store(Object scope, String key) {
-        return new PersistentStoreBuilder(scope, key);
-    }
-
     public CacheBuilder cache(String key) {
         return new PersistentCacheBuilder(null, key);
     }
@@ -136,20 +128,6 @@ public class DefaultCacheRepository implements CacheRepository {
         @Override
         protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
             return factory.open(cacheDir, displayName, validator, properties, lockOptions, initializer);
-        }
-    }
-
-    private class PersistentStoreBuilder extends AbstractCacheBuilder {
-        private PersistentStoreBuilder(Object scope, String key) {
-            super(scope, key);
-        }
-
-        @Override
-        protected PersistentCache doOpen(File cacheDir, Map<String, ?> properties, CacheValidator validator) {
-            if (!properties.isEmpty()) {
-                throw new UnsupportedOperationException("Properties are not supported for stores.");
-            }
-            return factory.openStore(cacheDir, displayName, lockOptions, initializer);
         }
     }
 }
