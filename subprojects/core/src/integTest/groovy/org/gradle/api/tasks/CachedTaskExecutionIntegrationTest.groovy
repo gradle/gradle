@@ -88,6 +88,21 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         skippedTasks.containsAll ":compileJava", ":jar"
     }
 
+    def 'cached tasks are executed with --rerun-tasks'() {
+        when:
+        succeedsWithCache "jar"
+        then:
+        skippedTasks.empty
+
+        expect:
+        succeedsWithCache "clean"
+
+        when:
+        succeedsWithCache "jar", "--rerun-tasks"
+        then:
+        nonSkippedTasks.containsAll ":compileJava", ":jar"
+    }
+
     def "buildSrc is loaded from cache"() {
         file("buildSrc/src/main/groovy/MyTask.groovy") << """
             import org.gradle.api.*
@@ -311,7 +326,7 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         taskIsNotCached ':adHocTask'
     }
 
-    def 'ad hoc tasks are cached when explicitely requested'() {
+    def 'ad hoc tasks are cached when explicitly requested'() {
         given:
         file("input.txt") << "data"
         buildFile << adHocTaskWithInputs()

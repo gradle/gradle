@@ -91,23 +91,29 @@ public class SkipCachedTaskExecuter implements TaskExecuter {
                     }
 
                     if (cacheKey != null) {
-                        try {
-                            boolean found = getCache().load(cacheKey, new TaskOutputReader() {
-                                @Override
-                                public void readFrom(InputStream input) throws IOException {
-                                    packer.unpack(taskOutputs, input);
-                                    LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getTime());
+                        if (taskState.isAllowedToUseCachedResults()) {
+                            try {
+                                boolean found = getCache().load(cacheKey, new TaskOutputReader() {
+                                    @Override
+                                    public void readFrom(InputStream input) throws IOException {
+                                        packer.unpack(taskOutputs, input);
+                                        LOGGER.info("Unpacked output for {} from cache (took {}).", task, clock.getTime());
+                                    }
+                                });
+                                if (found) {
+                                    state.upToDate("FROM-CACHE");
+                                    taskOutputsGenerationListener.beforeTaskOutputsGenerated();
+                                    taskOutputCacheListener.fromCache(task);
+                                    return;
                                 }
-                            });
-                            if (found) {
-                                state.upToDate("FROM-CACHE");
-                                taskOutputsGenerationListener.beforeTaskOutputsGenerated();
-                                taskOutputCacheListener.fromCache(task);
-                                return;
+                            } catch (Exception e) {
+                                LOGGER.warn("Could not load cached output for {} with cache key {}", task, cacheKey, e);
                             }
-                        } catch (Exception e) {
-                            LOGGER.warn("Could not load cached output for {} with cache key {}", task, cacheKey, e);
+                        } else {
+                            LOGGER.info("Not loading {} from cache because loading from cache is disabled", task);
                         }
+                    } else {
+                        LOGGER.info("Not caching {} because no valid cache key was generated", task);
                     }
                 } else {
                     LOGGER.info("Not caching {} because it declares multiple output files for a single output property via `@OutputFiles`, `@OutputDirectories` or `TaskOutputs.files()`", task);

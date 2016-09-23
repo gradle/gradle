@@ -112,6 +112,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         @Override
+        public boolean isAllowedToUseCachedResults() {
+            return true;
+        }
+
+        @Override
         public TaskCacheKey calculateCacheKey() {
             // Ensure that states are created
             getStates();

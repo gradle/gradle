@@ -65,6 +65,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
@@ -76,7 +77,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         0 * _
     }
 
-    def "executes task when no cached result is available"() {
+    def "executes task and stores result when no cached result is available"() {
         when:
         executer.execute(task, taskState, taskContext)
 
@@ -88,6 +89,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
@@ -104,6 +106,33 @@ public class SkipCachedTaskExecuterTest extends Specification {
         0 * _
     }
 
+    def "executes task and stores result when use of cached result is not allowed"() {
+        when:
+        executer.execute(task, taskState, taskContext)
+
+        then:
+        1 * task.getOutputs() >> outputs
+        1 * outputs.hasDeclaredOutputs() >> true
+        1 * outputs.isCacheAllowed() >> true
+        1 * outputs.isCacheEnabled() >> true
+
+        1 * taskContext.getTaskArtifactState() >> taskArtifactState
+        1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> false
+
+        then:
+        1 * delegate.execute(task, taskState, taskContext)
+        1 * taskState.getFailure() >> null
+        1 * taskOutputCacheListener.notCached(task, true)
+
+        then:
+        1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
+        1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
+        1 * taskOutputCache.getDescription() >> "test"
+        1 * taskOutputCache.store(cacheKey, _)
+        0 * _
+    }
+
     def "does not cache results when executed task fails"() {
         when:
         executer.execute(task, taskState, taskContext)
@@ -116,6 +145,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
@@ -219,6 +249,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache
@@ -247,6 +278,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         1 * taskContext.getTaskArtifactState() >> taskArtifactState
         1 * taskArtifactState.calculateCacheKey() >> cacheKey
+        1 * taskArtifactState.isAllowedToUseCachedResults() >> true
 
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
         1 * taskOutputCacheFactory.createCache(_) >> taskOutputCache

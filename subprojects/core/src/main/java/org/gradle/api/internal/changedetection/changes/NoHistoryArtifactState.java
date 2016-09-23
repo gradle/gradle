@@ -37,6 +37,11 @@ class NoHistoryArtifactState implements TaskArtifactState, TaskExecutionHistory 
     }
 
     @Override
+    public boolean isAllowedToUseCachedResults() {
+        return false;
+    }
+
+    @Override
     public TaskCacheKey calculateCacheKey() {
         return null;
     }
