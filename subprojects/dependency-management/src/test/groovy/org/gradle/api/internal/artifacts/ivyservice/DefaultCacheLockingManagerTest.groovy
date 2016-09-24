@@ -58,7 +58,7 @@ class DefaultCacheLockingManagerTest extends Specification {
 
         when:
         CacheLockingManager cacheLockingManager = new DefaultCacheLockingManager(cacheRepository)
-        File fileStore = cacheLockingManager.createMetaDataStore()
+        File fileStore = cacheLockingManager.getMetaDataStoreDirectory()
 
         then:
         fileStore == new File(testCacheDir, CacheLayout.META_DATA.key + System.properties['file.separator'] + 'descriptors')

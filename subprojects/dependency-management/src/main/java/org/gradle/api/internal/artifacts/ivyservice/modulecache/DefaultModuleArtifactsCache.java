@@ -125,8 +125,8 @@ public class DefaultModuleArtifactsCache implements ModuleArtifactsCache {
 
     private static class ModuleArtifactsCacheEntry {
         private final Set<ModuleComponentArtifactIdentifier> artifacts;
-        public BigInteger moduleDescriptorHash;
-        public long createTimestamp;
+        public final BigInteger moduleDescriptorHash;
+        public final long createTimestamp;
 
         ModuleArtifactsCacheEntry(Set<ModuleComponentArtifactIdentifier> artifacts, long createTimestamp, BigInteger moduleDescriptorHash) {
             this.artifacts = artifacts;

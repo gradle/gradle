@@ -45,7 +45,7 @@ public class DefaultModuleMetaDataCache implements ModuleMetaDataCache {
         this.timeProvider = timeProvider;
         this.cacheLockingManager = cacheLockingManager;
 
-        moduleMetadataStore = new ModuleMetadataStore(new PathKeyFileStore(cacheLockingManager.createMetaDataStore()), new ModuleMetadataSerializer());
+        moduleMetadataStore = new ModuleMetadataStore(new PathKeyFileStore(cacheLockingManager.getMetaDataStoreDirectory()), new ModuleMetadataSerializer());
     }
 
     private PersistentIndexedCache<RevisionKey, ModuleMetadataCacheEntry> getCache() {

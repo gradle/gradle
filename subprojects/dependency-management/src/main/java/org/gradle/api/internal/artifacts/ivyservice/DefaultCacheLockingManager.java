@@ -77,7 +77,7 @@ public class DefaultCacheLockingManager implements CacheLockingManager, Closeabl
         return createCacheRelativeDir(CacheLayout.FILE_STORE);
     }
 
-    public File createMetaDataStore() {
+    public File getMetaDataStoreDirectory() {
         return new File(createCacheRelativeDir(CacheLayout.META_DATA), "descriptors");
     }
 
