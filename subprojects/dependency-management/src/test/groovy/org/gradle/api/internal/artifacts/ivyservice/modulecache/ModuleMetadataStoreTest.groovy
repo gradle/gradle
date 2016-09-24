@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.modulecache
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository
 import org.gradle.internal.component.external.descriptor.MutableModuleDescriptorState
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultMutableMavenModuleResolveMetadata
@@ -30,28 +29,23 @@ import spock.lang.Specification
 class ModuleMetadataStoreTest extends Specification {
 
     @Rule TestNameTestDirectoryProvider temporaryFolder
-    ModuleMetadataStore store
     PathKeyFileStore pathKeyFileStore = Mock()
-    ModuleComponentRepository repository = Mock()
+    String repository = "repositoryId"
     LocallyAvailableResource fileStoreEntry = Mock()
     ModuleComponentIdentifier moduleComponentIdentifier = DefaultModuleComponentIdentifier.newId("org.test", "testArtifact", "1.0")
     ModuleMetadataSerializer serializer = Mock()
-
-    def setup() {
-        store = new ModuleMetadataStore(pathKeyFileStore, serializer);
-        _ * repository.getId() >> "repositoryId"
-    }
+    ModuleMetadataStore store = new ModuleMetadataStore(pathKeyFileStore, serializer);
 
     def "getModuleDescriptorFile returns null for not cached descriptors"() {
         when:
         pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/descriptor.bin") >> null
         then:
-        null == store.getModuleDescriptor(repository, moduleComponentIdentifier)
+        null == store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier))
     }
 
     def "getModuleDescriptorFile uses PathKeyFileStore to get file"() {
         when:
-        store.getModuleDescriptor(repository, moduleComponentIdentifier);
+        store.getModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier));
         then:
         1 * pathKeyFileStore.get("org.test/testArtifact/1.0/repositoryId/descriptor.bin") >> null
     }
@@ -62,7 +56,7 @@ class ModuleMetadataStoreTest extends Specification {
         def descriptor = new DefaultMutableMavenModuleResolveMetadata(moduleComponentIdentifier, new MutableModuleDescriptorState(moduleComponentIdentifier), "packaging", false, []).asImmutable()
 
         when:
-        store.putModuleDescriptor(repository, descriptor)
+        store.putModuleDescriptor(new ModuleComponentAtRepositoryKey(repository, moduleComponentIdentifier), descriptor)
         then:
         1 * pathKeyFileStore.add("org.test/testArtifact/1.0/repositoryId/descriptor.bin", _) >> { path, action ->
             action.execute(descriptorFile); fileStoreEntry

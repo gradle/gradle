@@ -17,7 +17,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
@@ -40,8 +39,8 @@ public class ModuleMetadataStore {
         this.moduleMetadataSerializer = moduleMetadataSerializer;
     }
 
-    public MutableModuleComponentResolveMetadata getModuleDescriptor(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
-        String filePath = getFilePath(repository, moduleComponentIdentifier);
+    public MutableModuleComponentResolveMetadata getModuleDescriptor(ModuleComponentAtRepositoryKey component) {
+        String filePath = getFilePath(component);
         final LocallyAvailableResource resource = metaDataStore.get(filePath);
         if (resource != null) {
             try {
@@ -58,8 +57,8 @@ public class ModuleMetadataStore {
         return null;
     }
 
-    public LocallyAvailableResource putModuleDescriptor(ModuleComponentRepository repository, final ModuleComponentResolveMetadata metadata) {
-        String filePath = getFilePath(repository, metadata.getComponentId());
+    public LocallyAvailableResource putModuleDescriptor(ModuleComponentAtRepositoryKey component, final ModuleComponentResolveMetadata metadata) {
+        String filePath = getFilePath(component);
         return metaDataStore.add(filePath, new Action<File>() {
             public void execute(File moduleDescriptorFile) {
                 try {
@@ -76,8 +75,9 @@ public class ModuleMetadataStore {
         });
     }
 
-    private String getFilePath(ModuleComponentRepository repository, ModuleComponentIdentifier moduleComponentIdentifier) {
-        return moduleComponentIdentifier.getGroup() + "/" + moduleComponentIdentifier.getModule() + "/" + moduleComponentIdentifier.getVersion() + "/" + repository.getId() + "/descriptor.bin";
+    private String getFilePath(ModuleComponentAtRepositoryKey componentId) {
+        ModuleComponentIdentifier moduleComponentIdentifier = componentId.getComponentId();
+        return moduleComponentIdentifier.getGroup() + "/" + moduleComponentIdentifier.getModule() + "/" + moduleComponentIdentifier.getVersion() + "/" + componentId.getRepositoryId() + "/descriptor.bin";
     }
 
 }
