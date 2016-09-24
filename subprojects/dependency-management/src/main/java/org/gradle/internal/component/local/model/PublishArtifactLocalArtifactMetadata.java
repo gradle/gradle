@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 
@@ -41,17 +40,7 @@ public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtif
 
     public String getDisplayName() {
         StringBuilder result = new StringBuilder();
-        result.append(publishArtifact.getName());
-        String classifier = publishArtifact.getClassifier();
-        if (GUtil.isTrue(classifier)) {
-            result.append("-");
-            result.append(classifier);
-        }
-        String extension = publishArtifact.getExtension();
-        if (GUtil.isTrue(extension)) {
-            result.append(".");
-            result.append(extension);
-        }
+        result.append(getName());
         result.append(" (")
               .append(componentDisplayName)
               .append(")");
