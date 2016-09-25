@@ -140,11 +140,13 @@ class IncrementalNativeCompilerTest extends Specification {
 
         def compilation = Mock(IncrementalCompilation)
         def sourceState = Mock(CompilationFileState)
-        def finalState = new CompilationState(ImmutableSet.of(), ImmutableMap.of(sourceFile, sourceState))
+        def sourceFiles = ImmutableSet.copyOf([sourceFile])
+        def map = ImmutableMap.copyOf(Collections.singletonMap(sourceFile, sourceState))
+        def finalState = new CompilationState(sourceFiles, map)
 
         compilation.discoveredInputs >> [includedFile]
         compilation.getFinalState() >> finalState
-        sourceState.getResolvedIncludes() >> ImmutableSet.of(new ResolvedInclude("MACRO", null))
+        sourceState.getResolvedIncludes() >> ImmutableSet.copyOf([new ResolvedInclude("MACRO", null)])
 
         when:
         compiler.handleDiscoveredInputs(spec, compilation, taskInputs)
