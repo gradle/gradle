@@ -218,6 +218,27 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     }
 
     @Override
+    public TaskOutputFilePropertyBuilder namedDirectories(final Callable<Map<?, ?>> paths) {
+        return taskMutator.mutate("TaskOutputs.namedDirectories(Callable)", new Callable<TaskOutputFilePropertyBuilder>() {
+            @Override
+            public TaskOutputFilePropertyBuilder call() throws Exception {
+                return addSpec(new CompositePropertySpec(resolver, OutputType.DIRECTORY, paths));
+            }
+        });
+    }
+
+    @Override
+    public TaskOutputFilePropertyBuilder namedDirectories(final Map<?, ?> paths) {
+        return taskMutator.mutate("TaskOutputs.namedDirectories(Map)", new Callable<TaskOutputFilePropertyBuilder>() {
+            @Override
+            public TaskOutputFilePropertyBuilder call() throws Exception {
+                Callable<Map<?, ?>> callable = Callables.<Map<?, ?>>returning(ImmutableMap.copyOf(paths));
+                return addSpec(new CompositePropertySpec(resolver, OutputType.DIRECTORY, callable));
+            }
+        });
+    }
+
+    @Override
     public TaskOutputFilePropertyBuilder files(final Object... paths) {
         return taskMutator.mutate("TaskOutputs.files(Object...)", new Callable<TaskOutputFilePropertyBuilder>() {
             @Override
@@ -465,6 +486,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         @Override
         public int compareTo(TaskPropertySpec o) {
             return getPropertyName().compareTo(o.getPropertyName());
+        }
+
+        @Override
+        public String toString() {
+            return getPropertyName();
         }
     }
 }

@@ -217,7 +217,7 @@ public class Javadoc extends SourceTask {
     /**
      * Returns the amount of memory allocated to this task.
      */
-    @Optional @Input
+    @Internal
     public String getMaxMemory() {
         return maxMemory;
     }

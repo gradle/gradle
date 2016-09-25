@@ -196,8 +196,8 @@ public class GlobalScopeServices {
         return new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
     }
 
-    protected CacheFactory createCacheFactory(FileLockManager fileLockManager) {
-        return new DefaultCacheFactory(fileLockManager);
+    protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory) {
+        return new DefaultCacheFactory(fileLockManager, executorFactory);
     }
 
     ClassLoaderRegistry createClassLoaderRegistry(ClassPathRegistry classPathRegistry, HashingClassLoaderFactory classLoaderFactory) {
@@ -279,8 +279,8 @@ public class GlobalScopeServices {
         return new DefaultFileLookup(fileSystem, patternSetFactory);
     }
 
-    DirectoryFileTreeFactory createDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory) {
-        return new DefaultDirectoryFileTreeFactory(patternSetFactory);
+    DirectoryFileTreeFactory createDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory, FileSystem fileSystem) {
+        return new DefaultDirectoryFileTreeFactory(patternSetFactory, fileSystem);
     }
 
     FileCollectionFactory createFileCollectionFactory() {
@@ -342,8 +342,8 @@ public class GlobalScopeServices {
         return new DefaultImportsReader();
     }
 
-    FileWatcherFactory createFileWatcherFactory(ExecutorFactory executorFactory) {
-        return new DefaultFileWatcherFactory(executorFactory);
+    FileWatcherFactory createFileWatcherFactory(ExecutorFactory executorFactory, FileSystem fileSystem) {
+        return new DefaultFileWatcherFactory(executorFactory, fileSystem);
     }
 
     StringInterner createStringInterner() {

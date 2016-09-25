@@ -21,6 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
@@ -44,6 +45,7 @@ import java.util.zip.ZipInputStream;
  *
  * It is assumed that the layout of the directories follow the JVM conventions. This allows us to effectively skip opening the class files to determine the real package name.
  */
+@CacheableTask
 public class PackageListGenerator extends DefaultTask {
     public static final List<String> DEFAULT_EXCLUDES = Arrays.asList(
         "org/gradle",

@@ -17,8 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 
 class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     public static final String ORIGINAL_HELLO_WORLD = """
@@ -84,6 +86,43 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         succeedsWithCache "jar"
         then:
         skippedTasks.containsAll ":compileJava", ":jar"
+    }
+
+    def 'cached tasks are executed with --rerun-tasks'() {
+        when:
+        succeedsWithCache "jar"
+        then:
+        skippedTasks.empty
+
+        expect:
+        succeedsWithCache "clean"
+
+        when:
+        succeedsWithCache "jar", "--rerun-tasks"
+        then:
+        nonSkippedTasks.containsAll ":compileJava", ":jar"
+    }
+
+    def "buildSrc is loaded from cache"() {
+        file("buildSrc/src/main/groovy/MyTask.groovy") << """
+            import org.gradle.api.*
+
+            class MyTask extends DefaultTask {}
+        """
+        when:
+        succeedsWithCache "jar"
+        then:
+        skippedTasks.empty
+
+        expect:
+        succeedsWithCache "clean"
+        file("buildSrc/build").deleteDir()
+
+        when:
+        succeedsWithCache "jar"
+        then:
+        output.contains ":buildSrc:compileGroovy FROM-CACHE"
+        output.contains ":buildSrc:jar FROM-CACHE"
     }
 
     def "outputs are correctly loaded from cache"() {
@@ -287,15 +326,108 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         taskIsNotCached ':adHocTask'
     }
 
-    def 'ad hoc tasks are cached when explicitely requested'() {
+    def 'ad hoc tasks are cached when explicitly requested'() {
+        given:
+        file("input.txt") << "data"
+        buildFile << adHocTaskWithInputs()
+        buildFile << 'adHocTask { outputs.cacheIf { true } }'
+
+        expect:
+        taskIsCached ':adHocTask'
+    }
+
+    @IgnoreIf({GradleContextualExecuter.parallel})
+    def 'can load twice from the cache with no changes'() {
+        given:
+        buildFile << """
+            apply plugin: "application"
+            mainClassName = "Hello"
+        """
+
+        when:
+        runWithCache 'clean', 'run'
+
+        then:
+        nonSkippedTasks.contains ':compileJava'
+
+        when:
+        runWithCache 'clean', 'run'
+
+        then:
+        skippedTasks.contains ':compileJava'
+
+        when:
+        runWithCache 'clean', 'run'
+
+        then:
+        skippedTasks.contains ':compileJava'
+    }
+
+    def 'task execution statistics are reported'() {
         given:
         file("input.txt") << "data"
         buildFile << adHocTaskWithInputs()
         buildFile << """
-        adHocTask { outputs.cacheIf { true } }"""
+            adHocTask { outputs.cacheIf { true } }
+
+            task executedTask {
+                doLast {
+                    println 'Hello world'
+                }
+            }
+        """
+
+        buildFile << assertStatisticsListener()
 
         expect:
-        taskIsCached ':adHocTask'
+        runTasksCheckingStatistics(['adHocTask', 'executedTask', 'compileJava'],
+            allTasksCount: 3, cacheableTasksCount: 2, executedTasksCount: 3)
+
+        when:
+        assert file('build/output.txt').delete()
+
+        then:
+        runTasksCheckingStatistics(['adHocTask', 'executedTask', 'compileJava'],
+            allTasksCount: 3, cacheableTasksCount: 1, cachedTasksCount: 1, upToDateTasksCount: 1, executedTasksCount: 1)
+    }
+
+    private runTasksCheckingStatistics(Map<String, Integer> statistics, List<String> tasks) {
+        runWithCache(*(tasks + statisticsProjectProperties(statistics)))
+    }
+
+    private String assertStatisticsListener() {
+        def counts = [
+            'allTasksCount',
+            'cacheableTasksCount',
+            'skippedTasksCount',
+            'upToDateTasksCount',
+            'executedTasksCount',
+            'cachedTasksCount'
+        ]
+
+        """
+            import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatisticsListener
+            import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatistics
+
+            gradle.addListener(new TaskExecutionStatisticsListener() {
+                void buildFinished(TaskExecutionStatistics statistics) {
+                ${counts.collect { count -> "assert statistics.${count} == Integer.valueOf(project.${count})" }.join('\n')}
+                }
+            })
+        """
+    }
+
+    private List<String> statisticsProjectProperties(Map options) {
+        options = [
+            allTasksCount: 0,
+            cacheableTasksCount: 0,
+            skippedTasksCount: 0,
+            upToDateTasksCount: 0,
+            executedTasksCount: 0,
+            cachedTasksCount: 0
+        ] + options
+
+        options.collect { key, value -> "-P${key}=${value}"}
     }
 
     String adHocTaskWithInputs() {
@@ -308,7 +440,8 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 project.mkdir outputFile.parentFile
                 outputFile.text = file("input.txt").text
             }
-        }""".stripIndent()
+        }
+        """.stripIndent()
     }
 
     void taskIsNotCached(String task) {

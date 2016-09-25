@@ -64,6 +64,8 @@ import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler;
 import org.gradle.api.internal.project.taskfactory.TaskClassInfoStore;
 import org.gradle.api.internal.project.taskfactory.TaskClassValidatorExtractor;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
+import org.gradle.api.internal.tasks.cache.TaskExecutionEventAdapter;
+import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatisticsListener;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.CacheRepository;
@@ -383,6 +385,10 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProfileEventAdapter createProfileEventAdapter() {
         return new ProfileEventAdapter(get(BuildRequestMetaData.class), get(TimeProvider.class), get(ListenerManager.class).getBroadcaster(ProfileListener.class));
+    }
+
+    protected TaskExecutionEventAdapter createTaskOutputCacheAdapter() {
+        return new TaskExecutionEventAdapter(get(ListenerManager.class).getBroadcaster(TaskExecutionStatisticsListener.class));
     }
 
     protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {

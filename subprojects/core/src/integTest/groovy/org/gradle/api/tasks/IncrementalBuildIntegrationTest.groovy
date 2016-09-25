@@ -21,8 +21,6 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
 
-import static org.hamcrest.Matchers.equalTo
-
 class IncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
 
     private TestFile writeDirTransformerTask() {
@@ -140,8 +138,8 @@ task b(type: TransformerTask, dependsOn: a) {
         outputFileA.text == '[content]'
         outputFileB.text == '[[content]]'
 
-        when:
         // No changes
+        when:
         succeeds "b"
 
         then:
@@ -150,7 +148,7 @@ task b(type: TransformerTask, dependsOn: a) {
         outputFileA.assertHasNotChangedSince(aSnapshot)
         outputFileB.assertHasNotChangedSince(bSnapshot)
 
-        // Update timestamp, no content changes
+        // Update input timestamp, no content changes
         when:
         inputFile.makeOlder()
         succeeds "b"
@@ -161,7 +159,7 @@ task b(type: TransformerTask, dependsOn: a) {
         outputFileA.assertHasNotChangedSince(aSnapshot)
         outputFileB.assertHasNotChangedSince(bSnapshot)
 
-        // Change content
+        // Change input content
         when:
         inputFile.text = 'new content'
         succeeds "b"
@@ -173,6 +171,12 @@ task b(type: TransformerTask, dependsOn: a) {
         outputFileB.assertHasChangedSince(bSnapshot)
         outputFileA.text == '[new content]'
         outputFileB.text == '[[new content]]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
 
         // Delete intermediate output file
         when:
@@ -198,6 +202,90 @@ task b(type: TransformerTask, dependsOn: a) {
         outputFileA.text == '[new content]'
         outputFileB.text == '[[new content]]'
 
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
+
+        // Change intermediate output file
+        when:
+        outputFileA.text = 'changed'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a"]
+        skippedTasks.sort() ==  [":b"]
+
+        outputFileA.text == '[new content]'
+        outputFileB.text == '[[new content]]'
+
+        // Change intermediate output file timestamp
+        when:
+        outputFileA.makeOlder()
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() ==  [":a", ":b"]
+
+        // Change input file location
+        when:
+        buildFile << '''
+a.inputFile = file('new-a-input.txt')
+'''
+        file('new-a-input.txt').text = 'new content'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a"]
+        skippedTasks.sort() ==  [":b"]
+        outputFileA.text == '[new content]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
+
+        // Change final output file destination
+        when:
+        buildFile.text += '''
+b.outputFile = file('new-output.txt')
+'''
+        succeeds "b"
+        outputFileB = file('new-output.txt')
+
+        then:
+        skippedTasks.sort() ==  [":a"]
+        nonSkippedTasks.sort() ==  [":b"]
+
+        outputFileB.text == '[[new content]]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
+
+        // Change intermediate output file destination
+        when:
+        buildFile << '''
+a.outputFile = file('new-a-output.txt')
+b.inputFile = a.outputFile
+'''
+        succeeds "b"
+        outputFileA = file('new-a-output.txt')
+
+        then:
+        nonSkippedTasks.sort() ==  [":a", ":b"]
+        outputFileA.text == '[new content]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() == [":a", ":b"]
+
         // Change build file in a way which does not affect the task
         when:
         buildFile.text += '''
@@ -211,34 +299,24 @@ task c
         // Change an input property of the first task (the content format)
         when:
         buildFile.text += '''
-a.format = '     %s     '
+a.format = '- %s -'
 '''
         succeeds "b"
 
         then:
         nonSkippedTasks.sort() ==  [":a", ":b"]
 
-        outputFileA.text == '     new content     '
-        outputFileB.text == '[     new content     ]'
+        outputFileA.text == '- new content -'
+        outputFileB.text == '[- new content -]'
 
-        // Change final output file destination
         when:
-        buildFile.text += '''
-b.outputFile = file('new-output.txt')
-'''
         succeeds "b"
 
         then:
-        skippedTasks.sort() ==  [":a"]
-        nonSkippedTasks.sort() ==  [":b"]
+        skippedTasks.sort() == [":a", ":b"]
 
-        when:
-        outputFileB = file('new-output.txt')
-        then:
-        outputFileB.assertIsFile()
-
-        when:
         // Run with --rerun-tasks command-line options
+        when:
         succeeds "b", "--rerun-tasks"
 
         then:
@@ -311,7 +389,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         outputAFile.assertHasNotChangedSince(aSnapshot)
         outputBFile.assertHasNotChangedSince(bSnapshot)
 
-        // Change content
+        // Change input content
         when:
         file('src/file1.txt').text = 'new content'
         succeeds "b"
@@ -321,10 +399,16 @@ task b(type: DirTransformerTask, dependsOn: a) {
 
         outputAFile.assertHasChangedSince(aSnapshot)
         outputBFile.assertHasChangedSince(bSnapshot)
-        outputAFile.assertContents(equalTo('[new content]'))
-        outputBFile.assertContents(equalTo('[[new content]]'))
+        outputAFile.text == '[new content]'
+        outputBFile.text == '[[new content]]'
 
-        // Add file
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() ==  [":a", ":b"]
+
+        // Add input file
         when:
         file('src/file2.txt').text = 'content2'
         succeeds "b"
@@ -335,14 +419,58 @@ task b(type: DirTransformerTask, dependsOn: a) {
         file('build/a/file2.txt').text == '[content2]'
         file('build/b/file2.txt').text == '[[content2]]'
 
-        // Remove file
         when:
-        file('src/file1.txt').delete()
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() ==  [":a", ":b"]
+
+        // Remove input file
+        when:
+        file('src/file2.txt').delete()
         succeeds "b"
 
         then:
         nonSkippedTasks.sort() ==  [":a"]
         skippedTasks.sort() ==  [":b"]
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() ==  [":a", ":b"]
+
+        // Change intermediate output file
+        when:
+        outputAFile.text = 'changed'
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a"]
+        skippedTasks.sort() ==  [":b"]
+        outputAFile.text == '[new content]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() ==  [":a", ":b"]
+
+        // Remove intermediate output file
+        when:
+        outputAFile.delete()
+        succeeds "b"
+
+        then:
+        nonSkippedTasks.sort() ==  [":a"]
+        skippedTasks.sort() ==  [":b"]
+        outputAFile.text == '[new content]'
+
+        when:
+        succeeds "b"
+
+        then:
+        skippedTasks.sort() ==  [":a", ":b"]
 
         // Output files already exist before using this version of Gradle
         // delete .gradle dir to simulate this
@@ -659,6 +787,101 @@ task generate(type: TransformerTask) {
         skippedTasks.sort() ==  [":build:generate", ":transform"]
     }
 
+    def "task can have outputs and no inputs"() {
+        buildFile << """
+            class TaskA extends DefaultTask {
+                @OutputFile
+                File outputFile
+
+                @TaskAction void exec() {
+                    outputFile.text = "output-file"
+                }
+            }
+
+            task a(type: TaskA) {
+                outputFile = file("output.txt")
+            }
+        """
+
+        when:
+        succeeds "a"
+
+        then:
+        nonSkippedTasks.sort() == [':a']
+        def outputFile = file('output.txt')
+        outputFile.text == 'output-file'
+
+        // No changes
+        when:
+        succeeds "a"
+
+        then:
+        skippedTasks.sort() == [':a']
+
+        // Remove output file
+        when:
+        outputFile.delete()
+        succeeds "a"
+
+        then:
+        nonSkippedTasks.sort() == [':a']
+        outputFile.text == 'output-file'
+
+        when:
+        succeeds "a"
+
+        then:
+        skippedTasks.sort() == [':a']
+
+        // Change output file
+        when:
+        outputFile.text = 'changed'
+        succeeds "a"
+
+        then:
+        nonSkippedTasks.sort() == [':a']
+        outputFile.text == 'output-file'
+
+        when:
+        succeeds "a"
+
+        then:
+        skippedTasks.sort() == [':a']
+    }
+
+    def "task can have inputs and no outputs"() {
+        buildFile << """
+            class TaskA extends DefaultTask {
+                @InputFile
+                File inputFile
+
+                @TaskAction void exec() {
+                    println "file name: \${inputFile.name} content: '\${inputFile.text}'"
+                }
+            }
+
+            task a(type: TaskA) {
+                inputFile = file("input.txt")
+            }
+        """
+        file("input.txt").text = 'input-file'
+
+        when:
+        succeeds "a"
+
+        then:
+        nonSkippedTasks.sort() == [':a']
+        outputContains("file name: input.txt content: 'input-file'")
+
+        // No changes
+        when:
+        succeeds "a"
+
+        then:
+        nonSkippedTasks.sort() == [':a']
+        outputContains("file name: input.txt content: 'input-file'")
+    }
+
     def "can use outputs and inputs from other task"() {
         buildFile << """
             class TaskA extends DefaultTask {
@@ -676,7 +899,7 @@ task generate(type: TransformerTask) {
 
                 @TaskAction void exec() {
                     inputFiles.each { file ->
-                        println "Task '\$name' file '\${file.name}'"
+                        println "Task '\$name' file '\${file.name}' with '\${file.text}'"
                     }
                 }
             }
@@ -698,7 +921,17 @@ task generate(type: TransformerTask) {
         succeeds "b", "b2"
 
         then:
-        output.contains "Task 'b' file 'output.txt'"
-        output.contains "Task 'b2' file 'output.txt'"
+        nonSkippedTasks.sort() == [':a', ':b', ':b2']
+        output.contains "Task 'b' file 'output.txt' with 'output-file'"
+        output.contains "Task 'b2' file 'output.txt' with 'output-file'"
+
+        when:
+        succeeds "b", "b2"
+
+        then:
+        skippedTasks.sort() == [':a']
+        nonSkippedTasks.sort() == [':b', ':b2']
+        output.contains "Task 'b' file 'output.txt' with 'output-file'"
+        output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.internal.serialize.Serializer
 import spock.lang.Specification
 
 class CacheBackedFileSnapshotRepositoryTest extends Specification {
-    final TaskArtifactStateCacheAccess cacheAccess = Mock()
+    final TaskHistoryStore cacheAccess = Mock()
     final PersistentIndexedCache<Object, Object> indexedCache = Mock()
     final IdGenerator<Long> idGenerator = Mock()
     final Serializer<FileCollectionSnapshot> serializer = Mock()

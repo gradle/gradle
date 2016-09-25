@@ -18,11 +18,9 @@ package org.gradle.api.internal.changedetection.state;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-import net.jcip.annotations.NotThreadSafe;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.hash.Hasher;
-import org.gradle.cache.CacheAccess;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.PersistentStore;
 import org.gradle.internal.resource.TextResource;
@@ -33,16 +31,13 @@ import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
 
-@NotThreadSafe
 public class CachingFileSnapshotter implements FileSnapshotter {
     private final PersistentIndexedCache<String, FileInfo> cache;
     private final Hasher hasher;
     private final StringInterner stringInterner;
-    private final CacheAccess cacheAccess;
 
     public CachingFileSnapshotter(Hasher hasher, PersistentStore store, StringInterner stringInterner) {
         this.hasher = hasher;
-        this.cacheAccess = store;
         this.cache = store.createCache("fileHashes", String.class, new FileInfoSerializer());
         this.stringInterner = stringInterner;
     }
@@ -87,10 +82,6 @@ public class CachingFileSnapshotter implements FileSnapshotter {
         info = new FileInfo(hash, length, timestamp);
         cache.put(stringInterner.intern(absolutePath), info);
         return info;
-    }
-
-    public FileSnapshotter createThreadSafeWrapper() {
-        return new CacheAccessingFileSnapshotter(this, cacheAccess);
     }
 
     public static class FileInfo implements FileSnapshot {

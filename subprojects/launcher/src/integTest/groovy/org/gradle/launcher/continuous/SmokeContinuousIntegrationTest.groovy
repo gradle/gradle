@@ -363,6 +363,93 @@ class SmokeContinuousIntegrationTest extends Java7RequiringContinuousIntegration
         executedAndNotSkipped(":a")
     }
 
+    def "gradle cache directory gets ignored"() {
+        given:
+        def aFile = file("A")
+        buildFile << """
+        task a {
+            inputs.dir projectDir
+            doLast {}
+        }
+        """
+
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+
+        when: "file in .gradle directory is changed"
+        file('.gradle/some_file.txt').text = 'content'
+
+        then:
+        noBuildTriggered()
+    }
+
+    def "build directory gets ignored"() {
+        given:
+        def aFile = file("A")
+        buildFile << """
+        task a {
+            inputs.dir projectDir
+            doLast {}
+        }
+        """
+
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+
+        when: "file in build directory is changed"
+        file('build/some_file.txt').text = 'content'
+
+        then:
+        noBuildTriggered()
+    }
+
+    def "git directory gets ignored"() {
+        given:
+        def aFile = file("A")
+        buildFile << """
+        task a {
+            inputs.dir projectDir
+            doLast {}
+        }
+        """
+
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+
+        when: "file in git directory is changed"
+        file('.git/objects/a0/027db87b983bdf5d57e6fafcfa73be40896215').text = 'content'
+
+        then:
+        noBuildTriggered()
+    }
+
+    def "common temp files get ignored"() {
+        given:
+        def aFile = file("A")
+        buildFile << """
+        task a {
+            inputs.dir projectDir
+            doLast {}
+        }
+        """
+
+        expect:
+        succeeds("a")
+        executedAndNotSkipped(":a")
+
+        when: "temp files are written"
+        // default excludes from Ant, https://github.com/apache/ant/blob/b37d64d/src/main/org/apache/tools/ant/DirectoryScanner.java#L149-L195
+        ['some_file~', '#some_file#', '.#somefile', '._otherfile', '%something%', '.DS_Store'].each {
+            file(it).text = 'content'
+        }
+
+        then:
+        noBuildTriggered()
+    }
+
     @Requires(TestPrecondition.NOT_WINDOWS)
     def "exit hint does not mention enter when not on windows"() {
         when:

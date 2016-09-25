@@ -19,8 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
-import java.util.jar.JarOutputStream
-import java.util.zip.ZipEntry
+import static org.gradle.util.JarUtils.jarWithContents
 
 class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
 
@@ -209,21 +208,5 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
                 classpath = files('${dependencies.join("', '")}')
             }
         """
-    }
-
-    def jarWithContents(Map<String, String> contents) {
-        def out = new ByteArrayOutputStream()
-        def jarOut = new JarOutputStream(out)
-        try {
-            contents.each { file, fileContents ->
-                def zipEntry = new ZipEntry(file)
-                zipEntry.setTime(0)
-                jarOut.putNextEntry(zipEntry)
-                jarOut << fileContents
-            }
-        } finally {
-            jarOut.close()
-        }
-        return out.toByteArray()
     }
 }

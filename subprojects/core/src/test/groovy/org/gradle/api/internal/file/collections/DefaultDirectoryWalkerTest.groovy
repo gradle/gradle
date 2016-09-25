@@ -41,7 +41,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
     def rootDirEmpty() {
         given:
         def root = temporaryFolder.createDir("root")
-        def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory)
+        def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory, TestFiles.fileSystem(), false)
 
         when:
         fileTree.visit(visitor)
@@ -54,7 +54,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         given:
         def spec = Mock(Spec)
         def patternSet = Mock(PatternSet)
-        def fileTree = new DirectoryFileTree(new File("root"), patternSet, directoryWalkerFactory)
+        def fileTree = new DirectoryFileTree(new File("root"), patternSet, directoryWalkerFactory, TestFiles.fileSystem(), false)
 
         when:
         fileTree.visit(visitor)
@@ -68,7 +68,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         given:
         def root = temporaryFolder.createDir("root")
         def fileToCopy = root.createFile("file.txt")
-        def fileTree = new DirectoryFileTree(fileToCopy, new PatternSet(), directoryWalkerFactory)
+        def fileTree = new DirectoryFileTree(fileToCopy, new PatternSet(), directoryWalkerFactory, TestFiles.fileSystem(), false)
 
         when:
         visitor.setExpectedVisitations([[fileToCopy]])
@@ -98,7 +98,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         def dirFile2 = dir1.createFile("dirFile2")
         def rootFile2 = root.createFile("rootFile2")
 
-        def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory)
+        def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory, TestFiles.fileSystem(), false)
 
         when:
         visitor.setExpectedVisitations([[rootFile1, rootFile2], [dir1], [dirFile1, dirFile2]])
@@ -117,7 +117,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         def dirFile2 = dir1.createFile("dirFile2")
         def rootFile2 = root.createFile("rootFile2")
 
-        def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory).postfix()
+        def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory, TestFiles.fileSystem(), false).postfix()
 
         when:
         visitor.setExpectedVisitations([[rootFile1, rootFile2], [dirFile2, dirFile1], [dir1]])
@@ -143,7 +143,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         filter.include("dir1/**")
 
         and:
-        DirectoryFileTree fileTree = new DirectoryFileTree(root, patterns, directoryWalkerFactory).filter(filter)
+        DirectoryFileTree fileTree = new DirectoryFileTree(root, patterns, directoryWalkerFactory, TestFiles.fileSystem(), false).filter(filter)
 
         when:
         visitor.setExpectedVisitations([[dir1], [dirFile2]])
@@ -163,7 +163,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         dir1.createDir("dir1Dir").createFile("dir1Dir1File1")
         def rootFile2 = root.createFile("rootFile2")
 
-        def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory)
+        def fileTree = new DirectoryFileTree(root, new PatternSet(), directoryWalkerFactory, TestFiles.fileSystem(), false)
 
         when:
         visitor.setStopOn(rootFile1)
@@ -197,7 +197,7 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
         def patterns = new PatternSet()
         patterns.include("**/*.txt")
         patterns.exclude("subdir1/**")
-        def fileTree = new DirectoryFileTree(rootDir, patterns, directoryWalkerFactory)
+        def fileTree = new DirectoryFileTree(rootDir, patterns, directoryWalkerFactory, TestFiles.fileSystem(), false)
 
         then:
         fileTree.contains(rootTextFile)
@@ -210,13 +210,13 @@ class DefaultDirectoryWalkerTest extends AbstractProjectBuilderSpec {
 
     def hasUsefulDisplayName() {
         given:
-        def treeWithNoIncludesOrExcludes = new DirectoryFileTree(temporaryFolder.getTestDirectory(), new PatternSet(), directoryWalkerFactory)
+        def treeWithNoIncludesOrExcludes = new DirectoryFileTree(temporaryFolder.getTestDirectory(), new PatternSet(), directoryWalkerFactory, TestFiles.fileSystem(), false)
         def includesOnly = new PatternSet()
         includesOnly.include("a/b", "c")
-        def treeWithIncludes = new DirectoryFileTree(temporaryFolder.getTestDirectory(), includesOnly, directoryWalkerFactory)
+        def treeWithIncludes = new DirectoryFileTree(temporaryFolder.getTestDirectory(), includesOnly, directoryWalkerFactory, TestFiles.fileSystem(), false)
         def excludesOnly = new PatternSet()
         excludesOnly.exclude("a/b", "c")
-        def treeWithExcludes = new DirectoryFileTree(temporaryFolder.getTestDirectory(), excludesOnly, directoryWalkerFactory)
+        def treeWithExcludes = new DirectoryFileTree(temporaryFolder.getTestDirectory(), excludesOnly, directoryWalkerFactory, TestFiles.fileSystem(), false)
 
         expect:
         treeWithNoIncludesOrExcludes.getDisplayName() == "directory '${temporaryFolder.getTestDirectory()}'".toString()

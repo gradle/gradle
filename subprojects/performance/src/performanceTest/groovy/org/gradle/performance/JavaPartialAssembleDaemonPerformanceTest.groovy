@@ -57,7 +57,10 @@ class JavaPartialAssembleDaemonPerformanceTest extends AbstractCrossVersionPerfo
         runner.testProject = testProject
         runner.useDaemon = true
         runner.tasksToRun = [":project1:clean", ":project1:assemble"]
-        runner.targetVersions = ['2.11', 'last']
+        // TODO(pepper): Revert this to 'last' when 3.2 is released
+        // The regression was determined acceptable in this discussion:
+        // https://issues.gradle.org/browse/GRADLE-1346
+        runner.targetVersions = ['3.2-20160915000027+0000']
         runner.gradleOpts = ["-Xms1g", "-Xmx1g"]
 
         when:

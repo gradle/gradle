@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.tasks.TaskOutputFilePropertyBuilder;
-import org.gradle.internal.Cast;
 
 import java.io.File;
 import java.util.Collection;
@@ -45,12 +44,7 @@ public abstract class AbstractPluralOutputPropertyAnnotationHandler extends Abst
 
     @Override
     protected void update(final TaskPropertyActionContext context, final TaskInternal task, final Callable<Object> futureValue) {
-        TaskOutputFilePropertyBuilder propertyBuilder;
-        if (Map.class.isAssignableFrom(context.getType())) {
-            propertyBuilder = task.getOutputs().namedFiles(Cast.<Callable<Map<?, ?>>>uncheckedCast(futureValue));
-        } else {
-            propertyBuilder = task.getOutputs().files(futureValue);
-        }
+        TaskOutputFilePropertyBuilder propertyBuilder = createPropertyBuilder(context, task, futureValue);
         propertyBuilder.withPropertyName(context.getName());
         propertyBuilder.withPathSensitivity(getPathSensitivity(context));
         task.prependParallelSafeAction(new Action<Task>() {
@@ -61,6 +55,8 @@ public abstract class AbstractPluralOutputPropertyAnnotationHandler extends Abst
             }
         });
     }
+
+    protected abstract TaskOutputFilePropertyBuilder createPropertyBuilder(TaskPropertyActionContext context, TaskInternal task, Callable<Object> futureValue);
 
     protected abstract void doEnsureExists(File file);
 

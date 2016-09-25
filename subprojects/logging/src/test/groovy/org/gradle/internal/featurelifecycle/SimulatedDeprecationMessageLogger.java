@@ -30,6 +30,6 @@ public class SimulatedDeprecationMessageLogger {
     }
 
     public static DeprecatedFeatureUsage nagUserWith(String message) {
-        return new DeprecatedFeatureUsage(message, SimulatedDeprecationMessageLogger.class);
+        return new DeprecatedFeatureUsage(message, SimulatedDeprecationMessageLogger.class).withStackTrace();
     }
 }

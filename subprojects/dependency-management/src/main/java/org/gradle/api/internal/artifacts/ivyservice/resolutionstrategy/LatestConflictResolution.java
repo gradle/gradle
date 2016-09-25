@@ -22,4 +22,13 @@ import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
  * Latest resolution strategy
  */
 public class LatestConflictResolution implements ConflictResolution {
+    private boolean preferProjectModules;
+
+    public boolean isPreferProjectModules() {
+        return preferProjectModules;
+    }
+
+    public void setPreferProjectModules(boolean preferProjectModules) {
+        this.preferProjectModules = preferProjectModules;
+    }
 }

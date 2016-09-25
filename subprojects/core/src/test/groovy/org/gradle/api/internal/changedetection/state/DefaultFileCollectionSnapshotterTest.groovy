@@ -36,9 +36,8 @@ import static org.gradle.api.internal.changedetection.state.TaskFilePropertyComp
 
 public class DefaultFileCollectionSnapshotterTest extends Specification {
     def fileSnapshotter = Stub(FileSnapshotter)
-    def cacheAccess = Stub(TaskArtifactStateCacheAccess)
     def stringInterner = new StringInterner()
-    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, cacheAccess, stringInterner, TestFiles.fileSystem(), TestFiles.resolver().patternSetFactory)
+    def snapshotter = new DefaultFileCollectionSnapshotter(fileSnapshotter, stringInterner, TestFiles.fileSystem(), TestFiles.directoryFileTreeFactory())
     def listener = Mock(ChangeListener)
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
@@ -53,9 +52,6 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
             return Stub(FileSnapshot) {
                 getHash() >> Files.asByteSource(file).hash(Hashing.md5())
             }
-        }
-        cacheAccess.useCache(_, _) >> { String name, Runnable action ->
-            action.run()
         }
     }
 
@@ -308,6 +304,36 @@ public class DefaultFileCollectionSnapshotterTest extends Specification {
         then:
         snapshot.files.empty
         1 * listener.added(file.path)
+        0 * listener._
+    }
+
+    def "caches file type in memory until notified of potential changes"() {
+        def dir = tmpDir.createDir('dir')
+        def file = tmpDir.createFile('file')
+        def missing = tmpDir.file('missing')
+
+        given:
+        def snapshot = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
+
+        when:
+        dir.deleteDir().createFile()
+        missing.createFile()
+
+        def snapshot2 = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
+        changes(snapshot2, snapshot, listener)
+
+        then:
+        0 * listener._
+
+        when:
+        snapshotter.beforeTaskOutputsGenerated()
+
+        def snapshot3 = snapshotter.snapshot(files(dir, file, missing), UNORDERED, ABSOLUTE)
+        changes(snapshot3, snapshot, listener)
+
+        then:
+        1 * listener.changed(dir.absolutePath)
+        1 * listener.changed(missing.absolutePath)
         0 * listener._
     }
 

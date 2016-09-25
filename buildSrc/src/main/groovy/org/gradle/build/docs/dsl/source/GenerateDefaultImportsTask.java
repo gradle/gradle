@@ -20,9 +20,12 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputFile;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.build.docs.dsl.source.model.ClassMetaData;
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository;
@@ -33,6 +36,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
 
+@CacheableTask
 public class GenerateDefaultImportsTask extends DefaultTask {
     private File metaDataFile;
     private File importsDestFile;
@@ -40,6 +44,7 @@ public class GenerateDefaultImportsTask extends DefaultTask {
     private Set<String> excludePatterns = new HashSet<String>();
     private Set<String> extraPackages = new HashSet<String>();
 
+    @PathSensitive(PathSensitivity.NONE)
     @InputFile
     public File getMetaDataFile() {
         return metaDataFile;

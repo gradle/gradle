@@ -305,7 +305,7 @@ public class TestFile extends File {
      */
     public TestFile makeOlder() {
         // Just move back 2 seconds
-        setLastModified(lastModified() - 2000L);
+        assert setLastModified(lastModified() - 2000L);
         return this;
     }
 
@@ -615,7 +615,7 @@ public class TestFile extends File {
 
     public void assertHasChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertTrue(now.modTime != snapshot.modTime || !Arrays.equals(now.hash, snapshot.hash));
+        assertTrue(String.format("contents or modification time of %s have not changed", this), now.modTime != snapshot.modTime || !Arrays.equals(now.hash, snapshot.hash));
     }
 
     public void assertContentsHaveChangedSince(Snapshot snapshot) {

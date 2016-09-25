@@ -18,6 +18,7 @@ package org.gradle.internal.filewatch.jdk7
 
 import org.gradle.api.internal.file.FileSystemSubset
 import org.gradle.internal.filewatch.jdk7.WatchPointsRegistry.Delta
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -33,7 +34,7 @@ class WatchPointsRegistryTest extends Specification {
     TestFile rootDir
 
     def setup() {
-        registry = new WatchPointsRegistry(true)
+        registry = new WatchPointsRegistry(true, Stub(FileSystem))
         rootDir = testDir.createDir("root")
     }
 
@@ -69,7 +70,7 @@ class WatchPointsRegistryTest extends Specification {
 
     def "child doesn't get added when parent has already been added when createNewStartingPointsUnderExistingRoots==false"() {
         given:
-        registry = new WatchPointsRegistry(false)
+        registry = new WatchPointsRegistry(false, Stub(FileSystem))
         def dirs = [rootDir.createDir("a/b"), rootDir.createDir("a/b/c")]
 
         when:
@@ -230,6 +231,67 @@ class WatchPointsRegistryTest extends Specification {
         then:
         checkWatchPoints delta, [dirs[1]]
         registry.shouldWatch(rootDir.file("src/main"))
+    }
+
+
+    def "ignored directories don't get watched"() {
+        given:
+        def projectRoot = rootDir.createDir("projectRoot")
+
+        when:
+        def delta = appendInput(projectRoot)
+
+        then:
+        checkWatchPoints delta, [projectRoot]
+
+        when:
+        def gradleCacheDir = projectRoot.createDir(".gradle")
+        registry.ignoreDirectory(gradleCacheDir)
+
+        then:
+        !registry.shouldWatch(gradleCacheDir.file("3.2/taskArtifacts/cache.properties.lock"))
+    }
+
+
+    def "ignored directories don't get added as new watchpoints"() {
+        given:
+        def projectRoot = rootDir.createDir("projectRoot")
+
+        when:
+        def delta = appendInput(projectRoot)
+
+        then:
+        checkWatchPoints delta, [projectRoot]
+
+        when:
+        def gradleCacheDir = projectRoot.createDir(".gradle")
+        registry.ignoreDirectory(gradleCacheDir)
+        delta = appendInput(gradleCacheDir)
+
+        then:
+        checkWatchPoints delta, []
+    }
+
+    def "ignored directories don't fire events"() {
+        given:
+        def projectRoot = rootDir.createDir("projectRoot")
+        appendInput(projectRoot)
+        def gradleCacheDir = projectRoot.createDir(".gradle")
+        registry.ignoreDirectory(gradleCacheDir)
+
+        expect:
+        !registry.shouldFire(gradleCacheDir.file("3.2/taskArtifacts/cache.properties.lock"))
+    }
+
+    def "default excluded files or directories don't fire events"() {
+        given:
+        def projectRoot = rootDir.createDir("projectRoot")
+        appendInput(projectRoot)
+
+        expect:
+        ['.git', '.git/objects/a3/c2b9970a20cb63ab0e63c2fb281aa4d6f9b261', 'some_file~', '#some_file#', '.#somefile', '._otherfile', '%something%', '.DS_Store'].each {
+            assert !registry.shouldFire(projectRoot.file(it))
+        }
     }
 
     def "sub directory gets watched when first input is a single file, where useDirectoryTree: #useDirectoryTree"() {

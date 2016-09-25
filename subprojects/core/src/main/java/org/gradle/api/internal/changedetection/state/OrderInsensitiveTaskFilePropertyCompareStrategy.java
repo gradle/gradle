@@ -26,12 +26,15 @@ import org.gradle.api.internal.changedetection.rules.FileChange;
 import org.gradle.api.internal.changedetection.rules.TaskStateChange;
 import org.gradle.api.internal.tasks.cache.TaskCacheKeyBuilder;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropertyCompareStrategy.Impl {
 
@@ -49,7 +52,68 @@ class OrderInsensitiveTaskFilePropertyCompareStrategy implements TaskFilePropert
     }
 
     @Override
-    public Iterator<TaskStateChange> iterateContentChangesSince(final Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType) {
+    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute) {
+        if (pathIsAbsolute) {
+            return iterateChangesForAbsolutePaths(current, previous, fileType);
+        } else {
+            return iterateChangesForRelativePaths(current, previous, fileType);
+        }
+    }
+
+    /**
+     * A more efficient implementation when absolute paths are used.
+     */
+    private Iterator<TaskStateChange> iterateChangesForAbsolutePaths(final Map<String, NormalizedFileSnapshot> current, final Map<String, NormalizedFileSnapshot> previous, final String fileType) {
+        final Set<String> unaccountedForPreviousSnapshots = new LinkedHashSet<String>(previous.keySet());
+        final Iterator<Entry<String, NormalizedFileSnapshot>> currentEntries = current.entrySet().iterator();
+        final List<String> added = new ArrayList<String>();
+        return new AbstractIterator<TaskStateChange>() {
+            private Iterator<String> unaccountedForPreviousSnapshotsIterator;
+            private Iterator<String> addedIterator;
+
+            @Override
+            protected TaskStateChange computeNext() {
+                while (currentEntries.hasNext()) {
+                    Entry<String, NormalizedFileSnapshot> currentEntry = currentEntries.next();
+                    String currentAbsolutePath = currentEntry.getKey();
+                    NormalizedFileSnapshot currentNormalizedSnapshot = currentEntry.getValue();
+                    IncrementalFileSnapshot currentSnapshot = currentNormalizedSnapshot.getSnapshot();
+                    if (unaccountedForPreviousSnapshots.remove(currentAbsolutePath)) {
+                        NormalizedFileSnapshot previousNormalizedSnapshot = previous.get(currentAbsolutePath);
+                        IncrementalFileSnapshot previousSnapshot = previousNormalizedSnapshot.getSnapshot();
+                        if (!currentSnapshot.isContentUpToDate(previousSnapshot)) {
+                            return new FileChange(currentAbsolutePath, ChangeType.MODIFIED, fileType);
+                        }
+                        // else, unchanged; check next file
+                    } else {
+                        added.add(currentAbsolutePath);
+                    }
+                }
+
+                if (unaccountedForPreviousSnapshotsIterator == null) {
+                    unaccountedForPreviousSnapshotsIterator = unaccountedForPreviousSnapshots.iterator();
+                }
+                if (unaccountedForPreviousSnapshotsIterator.hasNext()) {
+                    String previousAbsolutePath = unaccountedForPreviousSnapshotsIterator.next();
+                    return new FileChange(previousAbsolutePath, ChangeType.REMOVED, fileType);
+                }
+
+                if (includeAdded) {
+                    if (addedIterator == null) {
+                        addedIterator = added.iterator();
+                    }
+                    if (addedIterator.hasNext()) {
+                        String newAbsolutePath = addedIterator.next();
+                        return new FileChange(newAbsolutePath, ChangeType.ADDED, fileType);
+                    }
+                }
+
+                return endOfData();
+            }
+        };
+    }
+
+    private Iterator<TaskStateChange> iterateChangesForRelativePaths(final Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, final String fileType) {
         final ListMultimap<NormalizedFileSnapshot, IncrementalFileSnapshotWithAbsolutePath> unaccountedForPreviousSnapshots = MultimapBuilder.hashKeys().linkedListValues().build();
         for (Entry<String, NormalizedFileSnapshot> entry : previous.entrySet()) {
             String absolutePath = entry.getKey();

@@ -35,7 +35,7 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         runner.testId = "build monolithic native project $testProject" + (parallelWorkers ? " (parallel)" : "")
         runner.testProject = testProject
         runner.tasksToRun = ['build']
-        runner.targetVersions = ['3.1-20160823000016+0000']
+        runner.targetVersions = ['last']
         runner.useDaemon = true
         runner.gradleOpts = ["-Xms4g", "-Xmx4g"]
 
@@ -139,9 +139,9 @@ class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionPerforman
         // header file change causes a single project, two source sets, some files to be recompiled.
         // recompile all sources causes all projects, all source sets, all files to be recompiled.
         buildSize | changeType              | changedFile                       | changeClosure        | targetVersions
-        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource  | ['3.1-20160823000016+0000']
-        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader   | ['3.1-20160823000016+0000']
-        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs     | ['3.1-20160823000016+0000']
+        "medium"  | 'source file change'    | 'modules/project5/src/src100_c.c' | this.&changeCSource  | ['last']
+        "medium"  | 'header file change'    | 'modules/project1/src/src50_h.h'  | this.&changeHeader   | ['last']
+        "medium"  | 'recompile all sources' | 'common.gradle'                   | this.&changeArgs     | ['last']
     }
 
     void changeCSource(File file, String originalContent) {

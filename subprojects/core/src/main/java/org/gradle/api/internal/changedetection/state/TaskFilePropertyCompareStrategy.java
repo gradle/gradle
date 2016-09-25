@@ -40,13 +40,13 @@ public enum TaskFilePropertyCompareStrategy {
         this.delegate = delegate;
     }
 
-    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType) {
+    public Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute) {
         // Handle trivial cases with 0 or 1 elements in both current and previous
         Iterator<TaskStateChange> trivialResult = compareTrivialSnapshots(current, previous, fileType, delegate.isIncludeAdded());
         if (trivialResult != null) {
             return trivialResult;
         }
-        return delegate.iterateContentChangesSince(current, previous, fileType);
+        return delegate.iterateContentChangesSince(current, previous, fileType, pathIsAbsolute);
     }
 
     public void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots) {
@@ -54,7 +54,7 @@ public enum TaskFilePropertyCompareStrategy {
     }
 
     interface Impl {
-        Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType);
+        Iterator<TaskStateChange> iterateContentChangesSince(Map<String, NormalizedFileSnapshot> current, Map<String, NormalizedFileSnapshot> previous, String fileType, boolean pathIsAbsolute);
         void appendToCacheKey(TaskCacheKeyBuilder builder, Map<String, NormalizedFileSnapshot> snapshots);
         boolean isIncludeAdded();
     }

@@ -15,13 +15,14 @@
  */
 
 package org.gradle.api.internal.changedetection.state
-import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
+
+import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Ignore
+import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-class InMemoryTaskArtifactsIntegrationTest extends DaemonIntegrationSpec {
-
-
+class TaskEnumTypesInputPropertyIntegrationTest extends AbstractIntegrationSpec {
     def setup(){
         buildFile << """
 task someTask {
@@ -41,12 +42,13 @@ enum SomeEnum {
     }
 
     @Issue("GRADLE-3018")
+    @IgnoreIf({!GradleContextualExecuter.embedded}) // broken across process boundaries
     def "cached task state handles enum input properties"(){
         given:
         run "someTask"
 
         when:
-        run "someTask", "-i"
+        run "someTask"
 
         then:
         skippedTasks.contains(":someTask")

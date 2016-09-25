@@ -16,9 +16,8 @@
 package org.gradle.language.nativeplatform.internal.incremental;
 
 import java.io.File;
-import java.io.Serializable;
 
-public class ResolvedInclude implements Serializable {
+public class ResolvedInclude {
     private final String include;
     private final File dependencyFile;
 

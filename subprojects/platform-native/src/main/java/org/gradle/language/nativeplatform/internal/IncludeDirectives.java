@@ -17,6 +17,9 @@ package org.gradle.language.nativeplatform.internal;
 
 import java.util.List;
 
+/**
+ * An immutable snapshot of the include directives from a source or header file.
+ */
 public interface IncludeDirectives {
     List<Include> getQuotedIncludes();
     List<Include> getSystemIncludes();

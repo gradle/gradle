@@ -26,17 +26,20 @@ import java.util.List;
 public class DeprecatedFeatureUsage {
     private final String message;
     private final List<StackTraceElement> stack;
+    private final Class<?> calledFrom;
 
     public DeprecatedFeatureUsage(String message, Class<?> calledFrom) {
         this.message = message;
-        this.stack = Collections.unmodifiableList(createStackTrace(calledFrom));
+        this.calledFrom = calledFrom;
+        this.stack = Collections.emptyList();
     }
 
-    DeprecatedFeatureUsage(String message, List<StackTraceElement> stack) {
+    DeprecatedFeatureUsage(DeprecatedFeatureUsage usage, List<StackTraceElement> stack) {
         if (stack == null) {
             throw new NullPointerException("stack");
         }
-        this.message = message;
+        this.message = usage.message;
+        this.calledFrom = usage.calledFrom;
         this.stack = Collections.unmodifiableList(new ArrayList<StackTraceElement>(stack));
     }
 
@@ -48,7 +51,15 @@ public class DeprecatedFeatureUsage {
         return stack;
     }
 
-    private static List<StackTraceElement> createStackTrace(Class<?> calledFrom) {
+    /**
+     * Creates a copy of this usage with the stack trace populated. Implementation is a bit limited in that it assumes that
+     * this method is called from the same thread that triggered the usage.
+     */
+    public DeprecatedFeatureUsage withStackTrace() {
+        if (!stack.isEmpty()) {
+            return this;
+        }
+
         StackTraceElement[] originalStack = new Exception().getStackTrace();
         final String calledFromName = calledFrom.getName();
         boolean calledFromFound = false;
@@ -72,8 +83,7 @@ public class DeprecatedFeatureUsage {
         for (; caller < originalStack.length; caller++) {
             result.add(originalStack[caller]);
         }
-
-        return result;
+        return new DeprecatedFeatureUsage(this, result);
     }
 
     private static int skipSystemStackElements(StackTraceElement[] stackTrace, int caller) {

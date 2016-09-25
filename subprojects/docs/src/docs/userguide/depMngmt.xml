@@ -187,6 +187,11 @@
                     See examples in <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>
                 </listitem>
                 <listitem>
+                    Configuring dependency resolution to <emphasis>prefer modules that are part of your build</emphasis> (transitive or not). This approach is useful if your build
+                    contains custom forks of modules (as part of <xref linkend='multi_project_builds'/> or as include in <xref linkend='composite_builds'/>). See examples in
+                    <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/>.
+                </listitem>
+                <listitem>
                     Dependency resolve rules are an <link linkend="feature_lifecycle">incubating</link> feature introduced in Gradle 1.4 which give you fine-grained control over the version selected for a particular dependency.
                 </listitem>
             </itemizedlist>
@@ -1151,6 +1156,13 @@ someroot/[artifact]-[revision].[ext]
                 If a transitive dependency has poor quality metadata that leads to problems at dependency resolution time, you can force Gradle to use a newer, fixed version of this dependency.
                 For an example, see the <apilink class='org.gradle.api.artifacts.ResolutionStrategy'/> class in the API documentation.
                 Note that 'dependency resolve rules' (outlined below) provide a more powerful mechanism for replacing a broken module dependency. See <xref linkend='sec:blacklisting_version'/>.
+            </para>
+        </section>
+        <section id="sec:prefer_project_modules">
+            <title>Preferring modules that are part of the your build</title>
+            <para>Preferring project modules tells Gradle to use the version of a module that is part of the build itself (as part of <xref linkend='multi_project_builds'/>
+                or as includes in <xref linkend='composite_builds'/>). This allows the easy inclusion of an individual fork (e.g. containing a bugfix) of a module - for more
+                information see <xref linkend='sub:version_conflicts'/>.
             </para>
         </section>
         <section id="sec:dependency_resolve_rules">

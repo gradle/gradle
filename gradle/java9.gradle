@@ -19,6 +19,7 @@ task java9IntegTest(type: org.gradle.testing.IntegrationTest) {
 
         // Add a dedicated Findbugs test for Java 9
         "FindBugsIntegrationTest",
+        "FindBugsRelocationIntegrationTest",
 
         // Osgi is broken with a NPE in Processor - need to investigate
         "OsgiPluginIntegrationSpec",

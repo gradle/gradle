@@ -30,6 +30,9 @@
                 <td>failOnVersionConflict</td>
             </tr>
             <tr>
+                <td>preferProjectModules</td>
+            </tr>
+            <tr>
                 <td>force</td>
             </tr>
             <tr>

@@ -138,8 +138,7 @@ class ToolingApiIdeModelCrossVersionPerformanceTest extends AbstractToolingApiCr
         template          | targetGradleVersions
         "smallOldJava"    | ['last']
         "mediumOldJava"   | ['last']
-        // TODO: Restore 'last' when sufficient performance gains are made.
-        "bigOldJava"      | ['3.1-20160818000032+0000']
+        "bigOldJava"      | ['last']
         "lotDependencies" | ['last']
     }
 
