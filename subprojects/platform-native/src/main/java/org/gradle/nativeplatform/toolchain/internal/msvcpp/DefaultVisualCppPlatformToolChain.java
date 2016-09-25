@@ -39,6 +39,7 @@ public class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolC
         tools.put(ToolType.LINKER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.LINKER));
         tools.put(ToolType.STATIC_LIB_ARCHIVER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.STATIC_LIB_ARCHIVER));
         tools.put(ToolType.ASSEMBLER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.ASSEMBLER));
+        tools.put(ToolType.WINDOW_MESSAGES_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.WINDOW_MESSAGES_COMPILER));
         tools.put(ToolType.WINDOW_RESOURCES_COMPILER, instantiator.newInstance(DefaultCommandLineToolConfiguration.class, ToolType.WINDOW_RESOURCES_COMPILER));
     }
 
@@ -50,6 +51,11 @@ public class DefaultVisualCppPlatformToolChain implements VisualCppPlatformToolC
     @Override
     public CommandLineToolConfiguration getCppCompiler() {
         return tools.get(ToolType.CPP_COMPILER);
+    }
+
+    @Override
+    public CommandLineToolConfiguration getMcCompiler() {
+        return tools.get(ToolType.WINDOW_MESSAGES_COMPILER);
     }
 
     @Override

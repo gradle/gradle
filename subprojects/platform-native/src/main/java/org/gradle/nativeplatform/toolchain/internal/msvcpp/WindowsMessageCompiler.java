@@ -15,14 +15,20 @@
  */
 package org.gradle.nativeplatform.toolchain.internal.msvcpp;
 
-import com.google.common.collect.Iterables;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import org.gradle.api.Transformer;
+import org.gradle.internal.FileUtils;
 import org.gradle.internal.operations.BuildOperationProcessor;
+import org.gradle.internal.os.OperatingSystem;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolContext;
 import org.gradle.nativeplatform.toolchain.internal.CommandLineToolInvocationWorker;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsMessageCompileSpec;
 
-import java.util.List;
+import com.google.common.collect.Iterables;
 
 class WindowsMessageCompiler extends VisualCppNativeCompiler<WindowsMessageCompileSpec> {
 
@@ -30,6 +36,24 @@ class WindowsMessageCompiler extends VisualCppNativeCompiler<WindowsMessageCompi
         super(buildOperationProcessor, commandLineTool, invocationContext, new McCompilerArgsTransformer(), specTransformer, objectFileExtension, useCommandFile);
     }
 
+    @Override
+    protected File getOutputFileDir(File sourceFile, File objectFileDir, String fileSuffix) {
+        boolean windowsPathLimitation = OperatingSystem.current().isWindows();
+
+        File outputFile = sourceFile.getParentFile();
+        return windowsPathLimitation ? FileUtils.assertInWindowsPathLengthLimitation(outputFile) : outputFile;
+    }
+
+
+    @Override
+    protected List<String> getOutputArgs(File outputFile) {
+    	List<String> outputArgs = new ArrayList<>();
+    	outputArgs.add("/h");outputArgs.add(outputFile.getAbsolutePath());
+    	outputArgs.add("/r");outputArgs.add(outputFile.getAbsolutePath());
+        return outputArgs;
+    }
+
+    
     @Override
     protected Iterable<String> buildPerFileArgs(List<String> genericArgs, List<String> sourceArgs, List<String> outputArgs, List<String> pchArgs) {
         if (pchArgs != null && !pchArgs.isEmpty()) {
@@ -39,12 +63,7 @@ class WindowsMessageCompiler extends VisualCppNativeCompiler<WindowsMessageCompi
         return Iterables.concat(genericArgs, outputArgs, sourceArgs);
     }
 
-    private static class McCompilerArgsTransformer extends VisualCppCompilerArgsTransformer<WindowsMessageCompileSpec> {
-        @Override
-        protected void addToolSpecificArgs(WindowsMessageCompileSpec spec, List<String> args) {
-            args.add(getLanguageOption());
-            args.add("/nologo");
-        }
+    private static class McCompilerArgsTransformer extends VisualCompilerArgsTransformer<WindowsMessageCompileSpec> {
         @Override
         protected String getLanguageOption() {
             return "/r";

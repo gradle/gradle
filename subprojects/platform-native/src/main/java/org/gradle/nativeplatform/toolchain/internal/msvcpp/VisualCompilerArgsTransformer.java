@@ -27,37 +27,16 @@ import java.util.List;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArg;
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.EscapeUserArgs.escapeUserArgs;
 
-abstract class VisualCppCompilerArgsTransformer<T extends NativeCompileSpec>  extends VisualCompilerArgsTransformer<T> {
+abstract class VisualCompilerArgsTransformer<T extends NativeCompileSpec> implements ArgsTransformer<T> {
     @Override
     public List<String> transform(T spec) {
         List<String> args = Lists.newArrayList();
-        addToolSpecificArgs(spec, args);
-        addMacroArgs(spec, args);
         addUserArgs(spec, args);
-        addIncludeArgs(spec, args);
         return args;
     }
 
     private void addUserArgs(T spec, List<String> args) {
         args.addAll(escapeUserArgs(spec.getAllArgs()));
-    }
-
-    protected void addToolSpecificArgs(T spec, List<String> args) {
-        args.add(getLanguageOption());
-        args.add("/nologo");
-        args.add("/c");
-    }
-
-    protected void addIncludeArgs(T spec, List<String> args) {
-        for (File file : spec.getIncludeRoots()) {
-            args.add("/I" + file.getAbsolutePath());
-        }
-    }
-
-    protected void addMacroArgs(T spec, List<String> args) {
-        for (String macroArg : new MacroArgsConverter().transform(spec.getMacros())) {
-            args.add(escapeUserArg("/D" + macroArg));
-        }
     }
 
     /**

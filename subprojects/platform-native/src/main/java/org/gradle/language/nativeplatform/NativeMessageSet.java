@@ -19,7 +19,7 @@ import org.gradle.api.Incubating;
 import org.gradle.language.base.LanguageSourceSet;
 
 /**
- * A source set that provides resources.
+ * A source set that provides messages.
  */
 @Incubating
 public interface NativeMessageSet extends LanguageSourceSet {

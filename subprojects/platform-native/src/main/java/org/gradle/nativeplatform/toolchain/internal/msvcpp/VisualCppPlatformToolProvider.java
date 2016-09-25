@@ -35,6 +35,7 @@ import org.gradle.nativeplatform.toolchain.internal.compilespec.CppPCHCompileSpe
 import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsResourceCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.tools.CommandLineToolConfigurationInternal;
 import org.gradle.process.internal.ExecActionFactory;
+import org.gradle.nativeplatform.toolchain.internal.compilespec.WindowsMessageCompileSpec;
 
 import java.io.File;
 import java.util.List;
@@ -105,6 +106,18 @@ class VisualCppPlatformToolProvider extends AbstractPlatformToolProvider {
     @Override
     protected Compiler<?> createObjectiveCCompiler() {
         throw unavailableTool("Objective-C is not available on the Visual C++ toolchain");
+    }
+
+    @Override
+    protected Compiler<WindowsMessageCompileSpec> createWindowsMessageCompiler() {
+        CommandLineToolInvocationWorker commandLineTool = tool("Windows message compiler", sdk.getMessageCompiler(targetPlatform));
+        String objectFileExtension = ".h";
+        WindowsMessageCompiler windowsMessageCompiler = new WindowsMessageCompiler(
+        		buildOperationProcessor, commandLineTool, context(commandLineToolConfigurations.get(ToolType.WINDOW_MESSAGES_COMPILER)),
+        		addIncludePathAndDefinitions(WindowsMessageCompileSpec.class), 
+        		objectFileExtension, 
+        		true);
+        return new OutputCleaningCompiler<WindowsMessageCompileSpec>(windowsMessageCompiler, objectFileExtension);
     }
 
     @Override

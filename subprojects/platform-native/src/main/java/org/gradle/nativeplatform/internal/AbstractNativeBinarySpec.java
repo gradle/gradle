@@ -50,11 +50,13 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     private final PreprocessingTool cppCompiler = new DefaultPreprocessingTool();
     private final PreprocessingTool objcCompiler = new DefaultPreprocessingTool();
     private final PreprocessingTool objcppCompiler = new DefaultPreprocessingTool();
+    private final PreprocessingTool mcCompiler = new DefaultPreprocessingTool();
     private final PreprocessingTool rcCompiler = new DefaultPreprocessingTool();
     private final Map<String, Tool> toolsByName = ImmutableMap.<String, Tool>builder()
             .put("assembler", assembler)
             .put("cCompiler", cCompiler)
             .put("cppCompiler", cppCompiler)
+            .put("mcCompiler", mcCompiler)
             .put("objcCompiler", objcCompiler)
             .put("objcppCompiler", objcppCompiler)
             .put("rcCompiler", rcCompiler)
@@ -152,6 +154,11 @@ public abstract class AbstractNativeBinarySpec extends BaseBinarySpec implements
     @Override
     public PreprocessingTool getObjcppCompiler() {
         return objcppCompiler;
+    }
+
+    @Override
+    public PreprocessingTool getMcCompiler() {
+        return mcCompiler;
     }
 
     @Override
