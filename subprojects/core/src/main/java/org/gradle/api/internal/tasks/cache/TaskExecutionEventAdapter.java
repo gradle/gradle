@@ -18,31 +18,20 @@ package org.gradle.api.internal.tasks.cache;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.TaskOutputCacheListener;
-import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionEvent;
-import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatistics;
-import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatisticsListener;
+import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionOutcome;
+import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics;
+import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.BuildCompletionListener;
 
-public class TaskExecutionEventAdapter implements TaskOutputCacheListener, BuildCompletionListener, TaskExecutionListener {
+public class TaskExecutionEventAdapter implements BuildCompletionListener, TaskExecutionListener {
     private final TaskExecutionStatistics statistics;
     private final TaskExecutionStatisticsListener listener;
 
     public TaskExecutionEventAdapter(TaskExecutionStatisticsListener listener) {
         this.listener = listener;
         statistics = new TaskExecutionStatistics();
-    }
-
-    @Override
-    public void fromCache(Task task) {
-        statistics.event(TaskExecutionEvent.CACHED);
-        statistics.taskCacheable(true);
-    }
-
-    @Override
-    public void notCached(Task task, boolean cacheable) {
-        statistics.taskCacheable(cacheable);
     }
 
     @Override
@@ -57,14 +46,19 @@ public class TaskExecutionEventAdapter implements TaskOutputCacheListener, Build
 
     @Override
     public void afterExecute(Task task, TaskState state) {
-        if (state.getUpToDate() && "UP-TO-DATE".equals(state.getSkipMessage())) {
-            statistics.event(TaskExecutionEvent.UP_TO_DATE);
+        if (state.getUpToDate()) {
+            if ("FROM-CACHE".equals(state.getSkipMessage())) {
+                statistics.event(TaskExecutionOutcome.FROM_CACHE);
+            } else {
+                statistics.event(TaskExecutionOutcome.UP_TO_DATE);
+            }
+        } else {
+            if (state.getSkipped()) {
+                statistics.event(TaskExecutionOutcome.SKIPPED);
+            } else {
+                statistics.event(TaskExecutionOutcome.EXECUTED);
+            }
         }
-        if (!state.getUpToDate() && state.getSkipped()) {
-            statistics.event(TaskExecutionEvent.SKIPPED);
-        }
-        if (!state.getUpToDate() && !state.getSkipped()) {
-            statistics.event(TaskExecutionEvent.EXECUTED);
-        }
+        statistics.taskCacheable(((TaskStateInternal) state).isCacheable());
     }
 }

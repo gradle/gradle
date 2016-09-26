@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.api.Project
-import org.gradle.api.execution.TaskOutputCacheListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
@@ -48,10 +47,9 @@ public class SkipCachedTaskExecuterTest extends Specification {
     def taskOutputPacker = Mock(TaskOutputPacker)
     def startParameter = Mock(StartParameter)
     def cacheKey = Mock(TaskCacheKey)
-    def taskOutputCacheListener = Mock(TaskOutputCacheListener)
     def internalTaskExecutionListener = Mock(TaskOutputsGenerationListener)
 
-    def executer = new SkipCachedTaskExecuter(taskCaching, taskOutputPacker, startParameter, taskOutputCacheListener, internalTaskExecutionListener, delegate)
+    def executer = new SkipCachedTaskExecuter(taskCaching, taskOutputPacker, startParameter, internalTaskExecutionListener, delegate)
 
     def "skip task when cached results exist"() {
         when:
@@ -72,7 +70,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         1 * taskOutputCache.getDescription() >> "test"
         1 * taskOutputCache.load(cacheKey, _) >> true
         1 * taskState.upToDate("FROM-CACHE")
-        1 * taskOutputCacheListener.fromCache(task)
+        1 * taskState.setCacheable(true)
         1 * internalTaskExecutionListener.beforeTaskOutputsGenerated()
         0 * _
     }
@@ -99,7 +97,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
-        1 * taskOutputCacheListener.notCached(task, true)
+        1 * taskState.setCacheable(true)
 
         then:
         1 * taskOutputCache.store(cacheKey, _)
@@ -123,7 +121,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
-        1 * taskOutputCacheListener.notCached(task, true)
+        1 * taskState.setCacheable(true)
 
         then:
         1 * taskCaching.getCacheFactory() >> taskOutputCacheFactory
@@ -155,7 +153,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> new RuntimeException()
-        1 * taskOutputCacheListener.notCached(task, true)
+        1 * taskState.setCacheable(true)
         0 * _
     }
 
@@ -169,7 +167,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * taskOutputCacheListener.notCached(task, false)
+        1 * taskState.setCacheable(false)
         0 * _
     }
 
@@ -185,7 +183,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * taskOutputCacheListener.notCached(task, false)
+        1 * taskState.setCacheable(false)
         0 * _
     }
 
@@ -200,7 +198,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
 
         then:
         1 * delegate.execute(task, taskState, taskContext)
-        1 * taskOutputCacheListener.notCached(task, false)
+        1 * taskState.setCacheable(false)
         0 * _
     }
 
@@ -259,7 +257,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
-        1 * taskOutputCacheListener.notCached(task, true)
+        1 * taskState.setCacheable(true)
 
         then:
         1 * taskOutputCache.store(cacheKey, _)
@@ -288,7 +286,7 @@ public class SkipCachedTaskExecuterTest extends Specification {
         then:
         1 * delegate.execute(task, taskState, taskContext)
         1 * taskState.getFailure() >> null
-        1 * taskOutputCacheListener.notCached(task, true)
+        1 * taskState.setCacheable(true)
 
         then:
         1 * taskOutputCache.store(cacheKey, _) >> { throw new RuntimeException("Bad result") }

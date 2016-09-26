@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache.diagnostics
+package org.gradle.api.internal.tasks.cache.statistics
 
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionEvent.*
+import static org.gradle.api.internal.tasks.cache.statistics.TaskExecutionOutcome.*
 
 @Subject(TaskExecutionStatistics)
 class TaskExecutionStatisticsTest extends Specification {
@@ -28,24 +28,24 @@ class TaskExecutionStatisticsTest extends Specification {
     def 'tasks states are counted correctly'() {
         given:
         [
-            CACHED,
-            CACHED,
+            FROM_CACHE,
+            FROM_CACHE,
             EXECUTED,
             SKIPPED,
             UP_TO_DATE,
             SKIPPED,
             UP_TO_DATE,
             UP_TO_DATE,
-            CACHED,
+            FROM_CACHE,
             EXECUTED,
             UP_TO_DATE,
             UP_TO_DATE,
-            CACHED,
+            FROM_CACHE,
             SKIPPED
         ].each { statistics.event(it) }
 
         expect:
-        statistics.cachedTasksCount == 4
+        statistics.fromCacheTasksCount == 4
         statistics.executedTasksCount == 2
         statistics.skippedTasksCount == 3
         statistics.upToDateTasksCount == 5

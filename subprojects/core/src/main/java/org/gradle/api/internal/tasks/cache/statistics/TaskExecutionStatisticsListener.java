@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache.diagnostics;
+package org.gradle.api.internal.tasks.cache.statistics;
 
 public interface TaskExecutionStatisticsListener {
     void buildFinished(TaskExecutionStatistics statistics);

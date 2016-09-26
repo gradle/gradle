@@ -365,6 +365,12 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     def 'task execution statistics are reported'() {
         given:
+        // Force a forking executer
+        // This is necessary since for the embedded executer
+        // the Task statistics are not part of the output
+        // returned by "this.output"
+        executer.requireGradleDistribution()
+
         file("input.txt") << "data"
         buildFile << adHocTaskWithInputs()
         buildFile << """
@@ -377,57 +383,56 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        buildFile << assertStatisticsListener()
+        when:
+        runWithCache 'adHocTask', 'executedTask', 'compileJava'
 
-        expect:
-        runTasksCheckingStatistics(['adHocTask', 'executedTask', 'compileJava'],
-            allTasksCount: 3, cacheableTasksCount: 2, executedTasksCount: 3)
+        then:
+        assertStatistics allTasksCount: 3, cacheableTasksCount: 2, executedTasksCount: 3
 
         when:
         assert file('build/output.txt').delete()
+        runWithCache 'adHocTask', 'executedTask', 'compileJava'
 
         then:
-        runTasksCheckingStatistics(['adHocTask', 'executedTask', 'compileJava'],
-            allTasksCount: 3, cacheableTasksCount: 1, cachedTasksCount: 1, upToDateTasksCount: 1, executedTasksCount: 1)
+        assertStatistics allTasksCount: 3, cacheableTasksCount: 1, fromCacheTasksCount: 1, upToDateTasksCount: 1, executedTasksCount: 1
     }
 
-    private runTasksCheckingStatistics(Map<String, Integer> statistics, List<String> tasks) {
-        runWithCache(*(tasks + statisticsProjectProperties(statistics)))
-    }
-
-    private String assertStatisticsListener() {
-        def counts = [
-            'allTasksCount',
-            'cacheableTasksCount',
-            'skippedTasksCount',
-            'upToDateTasksCount',
-            'executedTasksCount',
-            'cachedTasksCount'
-        ]
-
-        """
-            import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatisticsListener
-            import org.gradle.api.internal.tasks.cache.diagnostics.TaskExecutionStatistics
-
-            gradle.addListener(new TaskExecutionStatisticsListener() {
-                void buildFinished(TaskExecutionStatistics statistics) {
-                ${counts.collect { count -> "assert statistics.${count} == Integer.valueOf(project.${count})" }.join('\n')}
-                }
-            })
-        """
-    }
-
-    private List<String> statisticsProjectProperties(Map options) {
+    void assertStatistics(LinkedHashMap<String, Integer> options) {
         options = [
             allTasksCount: 0,
             cacheableTasksCount: 0,
             skippedTasksCount: 0,
             upToDateTasksCount: 0,
             executedTasksCount: 0,
-            cachedTasksCount: 0
+            fromCacheTasksCount: 0
         ] + options
 
-        options.collect { key, value -> "-P${key}=${value}"}
+        def logOutputToCount = [
+            'executed': 'executed',
+            'loaded from cache': 'fromCache',
+            'up-to-date': 'upToDate',
+            'skipped': 'skipped'
+        ]
+
+        List<String> statisticsOutput = output.readLines().dropWhile { String line ->
+            !line.contains('tasks in build, out of which')
+        }
+
+        def firstLineMatcher = statisticsOutput[0] =~ /(\d+) tasks in build, out of which (\d+) \(\d+%\) were cacheable/
+        Map loggedStatistics = [
+            allTasksCount: Integer.parseInt(firstLineMatcher[0][1]),
+            cacheableTasksCount: Integer.parseInt(firstLineMatcher[0][2])
+        ]
+
+        loggedStatistics += statisticsOutput.drop(1).collectEntries { String line ->
+            def matcher = line =~ /(\d+)\s+\(\d+%\) (.*)/
+            matcher.matches() ? [("${logOutputToCount[matcher[0][2]]}TasksCount".toString()): Integer.parseInt(matcher[0][1])] : null
+        }
+
+        options.each { count, value ->
+            assert (loggedStatistics[count] ?: 0) == value
+        }
+
     }
 
     String adHocTaskWithInputs() {

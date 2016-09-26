@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.cache.diagnostics;
+package org.gradle.api.internal.tasks.cache.statistics;
 
-public enum TaskExecutionEvent {
-    CACHED,
+public enum TaskExecutionOutcome {
+    FROM_CACHE,
     UP_TO_DATE,
     SKIPPED,
     EXECUTED
