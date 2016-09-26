@@ -21,7 +21,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.RemovalCause;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
-import org.gradle.api.internal.cache.HeapProportionalCacheSizer;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -40,43 +39,21 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class InMemoryTaskArtifactCache implements CacheDecorator {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
-    private static final Map<String, Integer> CACHE_CAPS = new CacheCapSizer().calculateCaps();
+    private final Map<String, Integer> cacheCaps;
+    private final Cache<String, Cache<Object, Object>> cache;
+    private final Object lock = new Object();
+    private final Map<String, AtomicReference<FileLock.State>> states = new HashMap<String, AtomicReference<FileLock.State>>();
 
-    static class CacheCapSizer {
-        private static final Map<String, Integer> DEFAULT_CAP_SIZES = new HashMap<String, Integer>();
-
-        static {
-            DEFAULT_CAP_SIZES.put("fileSnapshots", 10000);
-            DEFAULT_CAP_SIZES.put("taskArtifacts", 2000);
-            DEFAULT_CAP_SIZES.put("fileHashes", 400000);
-            DEFAULT_CAP_SIZES.put("compilationState", 1000);
-        }
-
-        final HeapProportionalCacheSizer sizer;
-
-        CacheCapSizer(int maxHeapMB) {
-            this.sizer = maxHeapMB > 0 ? new HeapProportionalCacheSizer(maxHeapMB) : new HeapProportionalCacheSizer();
-        }
-
-        CacheCapSizer() {
-            this(0);
-        }
-
-        public Map<String, Integer> calculateCaps() {
-            Map<String, Integer> capSizes = new HashMap<String, Integer>();
-            for (Map.Entry<String, Integer> entry : DEFAULT_CAP_SIZES.entrySet()) {
-                capSizes.put(entry.getKey(), sizer.scaleCacheSize(entry.getValue()));
-            }
-            return capSizes;
-        }
+    public InMemoryTaskArtifactCache() {
+        this(new CacheCapSizer());
     }
 
-    private final Object lock = new Object();
-    private final Cache<String, Cache<Object, Object>> cache = CacheBuilder.newBuilder()
-            .maximumSize(CACHE_CAPS.size() * 2) //X2 to factor in a child build (for example buildSrc)
-            .build();
-
-    private final Map<String, AtomicReference<FileLock.State>> states = new HashMap<String, AtomicReference<FileLock.State>>();
+    InMemoryTaskArtifactCache(CacheCapSizer cacheCapSizer) {
+        this.cacheCaps = cacheCapSizer.calculateCaps();
+        this.cache = CacheBuilder.newBuilder()
+                .maximumSize(cacheCaps.size() * 2) //X2 to factor in a child build (for example buildSrc)
+                .build();
+    }
 
     public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> original, AsyncCacheAccess asyncCacheAccess) {
         return new InMemoryDecoratedCache<K, V>(asyncCacheAccess, original, loadData(cacheId, cacheName), cacheId, getFileLockStateReference(cacheId));
@@ -100,7 +77,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             if (theData != null) {
                 LOG.info("In-memory cache of {}: Size{{}}, {}", cacheId, theData.size() , theData.stats());
             } else {
-                Integer maxSize = CACHE_CAPS.get(cacheName);
+                Integer maxSize = cacheCaps.get(cacheName);
                 assert maxSize != null : "Unknown cache.";
                 LOG.debug("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
                 LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
