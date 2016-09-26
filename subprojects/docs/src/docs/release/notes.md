@@ -121,6 +121,7 @@ We would like to thank the following community members for making contributions 
 - [Sandu Turcan](https://github.com/idlsoft) - Added `preferProjectModules()` option to dependency resolution strategy
 - [Oliver Trosien](https://github.com/otrosien) - Wrong location of test resources in documentation
 - [Andreas Schmidt](https://github.com/remigius42) - Fixed grammatical errors in documentation
+- [Jörn Huxhorn](https://github.com/huxi) – Remove output files after task lost its source files
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
