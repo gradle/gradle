@@ -32,20 +32,30 @@ class CacheCapSizer {
     }
 
     final HeapProportionalCacheSizer sizer;
+    private final Map<String, Integer> capSizes;
 
     CacheCapSizer(int maxHeapMB) {
         this.sizer = maxHeapMB > 0 ? new HeapProportionalCacheSizer(maxHeapMB) : new HeapProportionalCacheSizer();
+        this.capSizes = calculateCaps();
     }
 
     CacheCapSizer() {
         this(0);
     }
 
-    public Map<String, Integer> calculateCaps() {
+    private Map<String, Integer> calculateCaps() {
         Map<String, Integer> capSizes = new HashMap<String, Integer>();
         for (Map.Entry<String, Integer> entry : DEFAULT_CAP_SIZES.entrySet()) {
             capSizes.put(entry.getKey(), sizer.scaleCacheSize(entry.getValue()));
         }
         return capSizes;
+    }
+
+    public Integer getMaxSize(String cacheName) {
+        return capSizes.get(cacheName);
+    }
+
+    public int getNumberOfCaches() {
+        return capSizes.size();
     }
 }

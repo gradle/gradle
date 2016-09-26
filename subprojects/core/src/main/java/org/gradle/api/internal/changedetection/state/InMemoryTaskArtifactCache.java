@@ -39,19 +39,19 @@ import java.util.concurrent.atomic.AtomicReference;
  */
 public class InMemoryTaskArtifactCache implements CacheDecorator {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
-    private final Map<String, Integer> cacheCaps;
     private final Cache<String, Cache<Object, Object>> cache;
     private final Object lock = new Object();
     private final Map<String, AtomicReference<FileLock.State>> states = new HashMap<String, AtomicReference<FileLock.State>>();
+    private final CacheCapSizer cacheCapSizer;
 
     public InMemoryTaskArtifactCache() {
         this(new CacheCapSizer());
     }
 
     InMemoryTaskArtifactCache(CacheCapSizer cacheCapSizer) {
-        this.cacheCaps = cacheCapSizer.calculateCaps();
+        this.cacheCapSizer = cacheCapSizer;
         this.cache = CacheBuilder.newBuilder()
-                .maximumSize(cacheCaps.size() * 2) //X2 to factor in a child build (for example buildSrc)
+                .maximumSize(cacheCapSizer.getNumberOfCaches() * 2) //X2 to factor in a child build (for example buildSrc)
                 .build();
     }
 
@@ -77,7 +77,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             if (theData != null) {
                 LOG.info("In-memory cache of {}: Size{{}}, {}", cacheId, theData.size() , theData.stats());
             } else {
-                Integer maxSize = cacheCaps.get(cacheName);
+                Integer maxSize = cacheCapSizer.getMaxSize(cacheName);
                 assert maxSize != null : "Unknown cache.";
                 LOG.debug("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
                 LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
