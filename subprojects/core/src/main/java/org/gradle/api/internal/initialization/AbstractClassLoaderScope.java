@@ -19,7 +19,7 @@ package org.gradle.api.internal.initialization;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 
 /**
- * Provides common {@code toString} and {@code createChild} behaviour for {@see ClassLoaderScope} implementations.
+ * Provides common {@link #getPath} and {@link #createChild} behaviour for {@link ClassLoaderScope} implementations.
  */
 public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
 
@@ -31,16 +31,18 @@ public abstract class AbstractClassLoaderScope implements ClassLoaderScope {
         this.classLoaderCache = classLoaderCache;
     }
 
+    /**
+     * A string representing the path of this {@link ClassLoaderScope} in the {@link ClassLoaderScope} graph.
+     */
+    public String getPath() {
+        return id.getPath();
+    }
+
     @Override
     public ClassLoaderScope createChild(String name) {
         if (name == null) {
             throw new IllegalArgumentException("'name' cannot be null");
         }
         return new DefaultClassLoaderScope(id.child(name), this, classLoaderCache);
-    }
-
-    @Override
-    public String toString() {
-        return super.toString() + "{id=" + id.toString() + "}";
     }
 }
