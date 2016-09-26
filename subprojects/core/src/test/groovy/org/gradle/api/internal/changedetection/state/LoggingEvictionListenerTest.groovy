@@ -24,7 +24,7 @@ class LoggingEvictionListenerTest extends Specification {
 
     def "test logging eviction listener"() {
         given:
-        InMemoryTaskArtifactCache.LoggingEvictionListener evictionListener = new InMemoryTaskArtifactCache.LoggingEvictionListener("cacheId", 1000)
+        LoggingEvictionListener evictionListener = new LoggingEvictionListener("cacheId", 1000)
         def logger = Mock(Logger)
         if (replaceLogger) {
             evictionListener.logger = logger

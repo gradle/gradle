@@ -18,10 +18,6 @@ package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalCause;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.AsyncCacheAccess;
@@ -95,33 +91,4 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         }
     }
 
-    private static class LoggingEvictionListener implements RemovalListener<Object, Object> {
-        private static Logger logger = Logging.getLogger(LoggingEvictionListener.class);
-        private static final String EVICTION_MITIGATION_MESSAGE = "\nPerformance may suffer from in-memory cache misses. Increase max heap size of Gradle build process to reduce cache misses.";
-        volatile int evictionCounter;
-        private final String cacheId;
-        private Cache<Object, Object> cache;
-        private final int maxSize;
-        private final int logInterval;
-
-        private LoggingEvictionListener(String cacheId, int maxSize) {
-            this.cacheId = cacheId;
-            this.maxSize = maxSize;
-            this.logInterval = maxSize / 10;
-        }
-
-        public void setCache(Cache<Object, Object> cache) {
-            this.cache = cache;
-        }
-
-        @Override
-        public void onRemoval(RemovalNotification<Object, Object> notification) {
-            if (notification.getCause() == RemovalCause.SIZE) {
-                if (evictionCounter % logInterval == 0) {
-                    logger.log(LogLevel.INFO, "Cache entries evicted. In-memory cache of {}: Size{{}} MaxSize{{}}, {} {}", cacheId, cache.size(), maxSize, cache.stats(), EVICTION_MITIGATION_MESSAGE);
-                }
-                evictionCounter++;
-            }
-        }
-    }
 }
