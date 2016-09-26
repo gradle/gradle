@@ -22,16 +22,16 @@ import java.util.concurrent.Callable;
 
 public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePersistentIndexedCache<K, V> {
     private final AsyncCacheAccess asyncCacheAccess;
-    private final MultiProcessSafePersistentIndexedCache<K, V> original;
+    private final MultiProcessSafePersistentIndexedCache<K, V> persistentCache;
 
-    public AsyncCacheAccessDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafePersistentIndexedCache<K, V> original) {
+    public AsyncCacheAccessDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafePersistentIndexedCache<K, V> persistentCache) {
         this.asyncCacheAccess = asyncCacheAccess;
-        this.original = original;
+        this.persistentCache = persistentCache;
     }
 
     @Override
     public void close() {
-        original.close();
+        persistentCache.close();
     }
 
     @Nullable
@@ -40,7 +40,7 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
         return asyncCacheAccess.read(new Callable<V>() {
             @Override
             public V call() throws Exception {
-                return original.get(key);
+                return persistentCache.get(key);
             }
         });
     }
@@ -50,7 +50,7 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
         asyncCacheAccess.enqueue(new Runnable() {
             @Override
             public void run() {
-                original.put(key, value);
+                persistentCache.put(key, value);
             }
         });
     }
@@ -60,18 +60,18 @@ public class AsyncCacheAccessDecoratedCache<K, V> implements MultiProcessSafePer
         asyncCacheAccess.enqueue(new Runnable() {
             @Override
             public void run() {
-                original.remove(key);
+                persistentCache.remove(key);
             }
         });
     }
 
     @Override
     public void onStartWork(String operationDisplayName, FileLock.State currentCacheState) {
-        original.onStartWork(operationDisplayName, currentCacheState);
+        persistentCache.onStartWork(operationDisplayName, currentCacheState);
     }
 
     @Override
     public void onEndWork(FileLock.State currentCacheState) {
-        original.onEndWork(currentCacheState);
+        persistentCache.onEndWork(currentCacheState);
     }
 }

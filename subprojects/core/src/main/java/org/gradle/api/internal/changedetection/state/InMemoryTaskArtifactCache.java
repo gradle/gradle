@@ -36,8 +36,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class InMemoryTaskArtifactCache implements CacheDecorator {
     private final static Logger LOG = Logging.getLogger(InMemoryTaskArtifactCache.class);
     private final Cache<String, Cache<Object, Object>> cache;
-    private final Object lock = new Object();
-    private final Map<String, AtomicReference<FileLock.State>> states = new HashMap<String, AtomicReference<FileLock.State>>();
+    private final Map<String, AtomicReference<FileLock.State>> fileLockStates = new HashMap<String, AtomicReference<FileLock.State>>();
     private final CacheCapSizer cacheCapSizer;
 
     public InMemoryTaskArtifactCache() {
@@ -51,38 +50,33 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
                 .build();
     }
 
-    public <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> original, AsyncCacheAccess asyncCacheAccess) {
-        return new InMemoryDecoratedCache<K, V>(asyncCacheAccess, original, loadData(cacheId, cacheName), cacheId, getFileLockStateReference(cacheId));
+    public synchronized <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, AsyncCacheAccess asyncCacheAccess) {
+        return new InMemoryDecoratedCache<K, V>(asyncCacheAccess, persistentCache, createInMemoryCache(cacheId, cacheName), cacheId, getFileLockStateReference(cacheId));
     }
 
     private AtomicReference<FileLock.State> getFileLockStateReference(String cacheId) {
-        synchronized (lock) {
-            AtomicReference<FileLock.State> fileLockStateReference = states.get(cacheId);
-            if (fileLockStateReference == null) {
-                fileLockStateReference = new AtomicReference<FileLock.State>(null);
-                states.put(cacheId, fileLockStateReference);
-            }
-            return fileLockStateReference;
+        AtomicReference<FileLock.State> fileLockStateReference = fileLockStates.get(cacheId);
+        if (fileLockStateReference == null) {
+            fileLockStateReference = new AtomicReference<FileLock.State>(null);
+            fileLockStates.put(cacheId, fileLockStateReference);
         }
+        return fileLockStateReference;
     }
 
-    private Cache<Object, Object> loadData(String cacheId, String cacheName) {
-        Cache<Object, Object> theData;
-        synchronized (lock) {
-            theData = this.cache.getIfPresent(cacheId);
-            if (theData != null) {
-                LOG.info("In-memory cache of {}: Size{{}}, {}", cacheId, theData.size() , theData.stats());
-            } else {
-                Integer maxSize = cacheCapSizer.getMaxSize(cacheName);
-                assert maxSize != null : "Unknown cache.";
-                LOG.debug("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
-                LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
-                theData = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener).build();
-                evictionListener.setCache(theData);
-                this.cache.put(cacheId, theData);
-            }
+    private Cache<Object, Object> createInMemoryCache(String cacheId, String cacheName) {
+        Cache<Object, Object> inMemoryCache = this.cache.getIfPresent(cacheId);
+        if (inMemoryCache != null) {
+            LOG.info("In-memory cache of {}: Size{{}}, {}", cacheId, inMemoryCache.size(), inMemoryCache.stats());
+        } else {
+            Integer maxSize = cacheCapSizer.getMaxSize(cacheName);
+            assert maxSize != null : "Unknown cache.";
+            LOG.debug("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
+            LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
+            inMemoryCache = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener).build();
+            evictionListener.setCache(inMemoryCache);
+            this.cache.put(cacheId, inMemoryCache);
         }
-        return theData;
+        return inMemoryCache;
     }
 
     public void invalidateAll() {
