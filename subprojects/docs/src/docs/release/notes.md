@@ -113,7 +113,7 @@ for the left shift operation. Please use the existing methods `doFirst` and `doL
 We would like to thank the following community members for making contributions to this release of Gradle.
 
 - [Shintaro Katafuchi](https://github.com/hotchemi) - Fixed typo in `ShadedJar.java` under `buildSrc`
-- [Jörn Huxhorn](https://github.com/huxi) - Show location in build file for deprecation warning
+- [Jörn Huxhorn](https://github.com/huxi) - Show location in build file for deprecation warning, remove output files when task loses all its source files
 - [Jeff Baranski](https://github.com/jbaranski) - Fix doc bug with turning off daemon in a .bat file
 - [Justin Sievenpiper](https://github.com/jsievenpiper) - Prevent navigating down to JDK classes when detecting the parent test class
 - [Alex Proca](https://github.com/alexproca) - Limit Unix Start Scripts to use POSIX standard sh
@@ -121,7 +121,6 @@ We would like to thank the following community members for making contributions 
 - [Sandu Turcan](https://github.com/idlsoft) - Added `preferProjectModules()` option to dependency resolution strategy
 - [Oliver Trosien](https://github.com/otrosien) - Wrong location of test resources in documentation
 - [Andreas Schmidt](https://github.com/remigius42) - Fixed grammatical errors in documentation
-- [Jörn Huxhorn](https://github.com/huxi) – Remove output files after task lost its source files
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
