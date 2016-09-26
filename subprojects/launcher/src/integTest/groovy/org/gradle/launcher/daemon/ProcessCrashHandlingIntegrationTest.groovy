@@ -17,21 +17,18 @@
 package org.gradle.launcher.daemon
 
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.launcher.daemon.client.DaemonDisappearedException
 import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.server.http.CyclicBarrierHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
-import spock.lang.Ignore
 
 class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
     @Rule CyclicBarrierHttpServer server = new CyclicBarrierHttpServer()
 
-    @Ignore
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "tears down the daemon process when the client disconnects and build does not cancel in a timely manner"() {
         buildFile << """
             task block {
@@ -42,10 +39,10 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         """
 
         when:
-        def build = executer.withTasks("block").start()
+        def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
         server.waitFor()
         daemons.daemon.assertBusy()
-        build.abort().waitForFailure()
+        client.kill()
 
         then:
         daemons.daemon.becomesCanceled()
@@ -54,8 +51,6 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.stops()
     }
 
-    @Ignore
-    @Requires(TestPrecondition.NOT_WINDOWS)
     def "daemon is idle after the client disconnects and build cancels in a timely manner"() {
         buildFile << """
             task block {
@@ -66,10 +61,10 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         """
 
         when:
-        def build = executer.withTasks("block").start()
+        def client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
         server.waitFor()
         daemons.daemon.assertBusy()
-        build.abort().waitForFailure()
+        client.kill()
 
         then:
         daemons.daemon.becomesCanceled()
@@ -99,14 +94,13 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         """
 
         when:
-        args("--debug")
-        def build = executer.withTasks("block").start()
+        DaemonClientFixture client = new DaemonClientFixture(executer.withArgument("--debug").withTasks("block").start())
         server.waitFor()
         daemons.daemon.assertBusy()
 
         then:
-        def clientSid = getSid(getPidFromOutput(build))
-        def daemonSid = getSid(daemons.daemon.context.pid as String)
+        def clientSid = getSid(client.process.pid)
+        def daemonSid = getSid(daemons.daemon.context.pid)
         clientSid != daemonSid
 
         cleanup:
@@ -165,17 +159,8 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         return output.toString()
     }
 
-    String getPidFromOutput(GradleHandle build) {
-        def matcher = (build.standardOutput =~ /Executing build [^\s]+ in daemon client \{pid=(\d+)\}/)
-        if (matcher.size() > 0) {
-            return matcher[0][1]
-        } else {
-            throw new IllegalStateException("Could not infer pid from test output")
-        }
-    }
-
-    String getSid(String pid) {
-        return resultOf("getSid/build/install/getSid/lib/getSid", pid).trim()
+    String getSid(Long pid) {
+        return resultOf("getSid/build/install/getSid/lib/getSid", pid as String).trim()
     }
 
     void withGetSidProject() {
