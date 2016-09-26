@@ -120,6 +120,7 @@ We would like to thank the following community members for making contributions 
 - [Spencer Allain](https://github.com/merscwog) - Do not require a password when using custom `javax.net.ssl.trustStore` for HTTP resource access over TLS 
 - [Sandu Turcan](https://github.com/idlsoft) - Added `preferProjectModules()` option to dependency resolution strategy
 - [Oliver Trosien](https://github.com/otrosien) - Wrong location of test resources in documentation
+- [Andreas Schmidt](https://github.com/remigius42) - Fixed grammatical errors in documentation
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
