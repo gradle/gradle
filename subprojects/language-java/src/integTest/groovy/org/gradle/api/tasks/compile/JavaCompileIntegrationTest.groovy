@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Ignore
 import spock.lang.Issue
 
 import static org.gradle.util.JarUtils.jarWithContents
@@ -210,7 +211,8 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    def "can compile after package rename"() {
+    @Ignore
+    def "can compile after package case-rename"() {
         buildFile << """
             apply plugin: "java"
 
