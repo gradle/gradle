@@ -46,9 +46,13 @@ class CacheCapSizer {
     private Map<String, Integer> calculateCaps() {
         Map<String, Integer> capSizes = new HashMap<String, Integer>();
         for (Map.Entry<String, Integer> entry : DEFAULT_CAP_SIZES.entrySet()) {
-            capSizes.put(entry.getKey(), sizer.scaleCacheSize(entry.getValue()));
+            capSizes.put(entry.getKey(), scaleCacheSize(entry.getValue()));
         }
         return capSizes;
+    }
+
+    protected int scaleCacheSize(int referenceValue) {
+        return sizer.scaleCacheSize(referenceValue);
     }
 
     public Integer getMaxSize(String cacheName) {

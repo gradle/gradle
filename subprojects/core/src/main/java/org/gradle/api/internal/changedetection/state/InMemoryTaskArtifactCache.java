@@ -45,13 +45,23 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
 
     InMemoryTaskArtifactCache(CacheCapSizer cacheCapSizer) {
         this.cacheCapSizer = cacheCapSizer;
-        this.cache = CacheBuilder.newBuilder()
-                .maximumSize(cacheCapSizer.getNumberOfCaches() * 2) //X2 to factor in a child build (for example buildSrc)
+        final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder()
+                .maximumSize(cacheCapSizer.getNumberOfCaches() * 2);
+        configureCacheHolderCache(cacheBuilder);
+        this.cache = cacheBuilder //X2 to factor in a child build (for example buildSrc)
                 .build();
     }
 
+    protected void configureCacheHolderCache(CacheBuilder<Object, Object> cacheBuilder) {
+
+    }
+
     public synchronized <K, V> MultiProcessSafePersistentIndexedCache<K, V> decorate(String cacheId, String cacheName, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, AsyncCacheAccess asyncCacheAccess) {
-        return new InMemoryDecoratedCache<K, V>(asyncCacheAccess, persistentCache, createInMemoryCache(cacheId, cacheName), cacheId, getFileLockStateReference(cacheId));
+        return createInMemoryDecoratedCache(asyncCacheAccess, persistentCache, createInMemoryCache(cacheId, cacheName), cacheId, getFileLockStateReference(cacheId));
+    }
+
+    protected <K, V> InMemoryDecoratedCache<K, V> createInMemoryDecoratedCache(AsyncCacheAccess asyncCacheAccess, MultiProcessSafePersistentIndexedCache<K, V> persistentCache, Cache<Object, Object> inMemoryCache, String cacheId, AtomicReference<FileLock.State> fileLockStateReference) {
+        return new InMemoryDecoratedCache<K, V>(asyncCacheAccess, persistentCache, inMemoryCache, cacheId, fileLockStateReference);
     }
 
     private AtomicReference<FileLock.State> getFileLockStateReference(String cacheId) {
@@ -72,11 +82,17 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
             assert maxSize != null : "Unknown cache.";
             LOG.debug("Creating In-memory cache of {}: MaxSize{{}}", cacheId, maxSize);
             LoggingEvictionListener evictionListener = new LoggingEvictionListener(cacheId, maxSize);
-            inMemoryCache = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener).build();
+            final CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder().maximumSize(maxSize).recordStats().removalListener(evictionListener);
+            configureInMemoryCache(cacheBuilder, cacheId, cacheName);
+            inMemoryCache = cacheBuilder.build();
             evictionListener.setCache(inMemoryCache);
             this.cache.put(cacheId, inMemoryCache);
         }
         return inMemoryCache;
+    }
+
+    protected void configureInMemoryCache(CacheBuilder<Object, Object> cacheBuilder, String cacheId, String cacheName) {
+
     }
 
     public void invalidateAll() {
@@ -85,4 +101,7 @@ public class InMemoryTaskArtifactCache implements CacheDecorator {
         }
     }
 
+    public void onFlush() {
+        // do nothing by default on flush
+    }
 }

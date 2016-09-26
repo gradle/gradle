@@ -31,6 +31,7 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.CacheAccessingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.CachingFileSnapshotter;
 import org.gradle.api.internal.changedetection.state.InMemoryTaskArtifactCache;
+import org.gradle.api.internal.changedetection.state.SoftInMemoryTaskArtifactCache;
 import org.gradle.api.internal.classpath.DefaultModuleRegistry;
 import org.gradle.api.internal.classpath.DefaultPluginModuleRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -262,7 +263,12 @@ public class GlobalScopeServices {
     }
 
     InMemoryTaskArtifactCache createInMemoryTaskArtifactCache() {
-        return new InMemoryTaskArtifactCache();
+        if(environment.isLongLivingProcess()) {
+            return new InMemoryTaskArtifactCache();
+        } else {
+            // drop caches on memory pressure
+            return new SoftInMemoryTaskArtifactCache();
+        }
     }
 
     DefaultFileLockContentionHandler createFileLockContentionHandler(ExecutorFactory executorFactory, InetAddressFactory inetAddressFactory) {
