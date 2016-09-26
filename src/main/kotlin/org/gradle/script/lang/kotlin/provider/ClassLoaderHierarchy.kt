@@ -16,6 +16,7 @@
 
 package org.gradle.script.lang.kotlin.provider
 
+import org.gradle.api.internal.initialization.AbstractClassLoaderScope
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
 import org.gradle.internal.classloader.ClassLoaderVisitor
@@ -65,6 +66,10 @@ fun writeClassLoaderHierarchyJsonTo(writer: PrintStream,
                                     classLoaders: List<ClassLoaderNode>,
                                     scopes: List<ClassLoaderScope>,
                                     pathFormatter: PathStringFormatter) {
+
+    fun labelFor(scope: ClassLoaderScope) =
+        pathFormatter(if (scope is AbstractClassLoaderScope) scope.path else scope.toString())
+
     writer.run {
         println("{")
         println("\"classLoaders\": [")
@@ -84,7 +89,7 @@ fun writeClassLoaderHierarchyJsonTo(writer: PrintStream,
         for ((i, scope) in scopes.withIndex()) {
             if (i > 0) println(",")
             print("""
-                { "label": "${pathFormatter(scope.toString())}"
+                { "label": "${labelFor(scope)}"
                 , "localClassLoader": "${idOf(scope.localClassLoader)}"
                 , "exportClassLoader": "${idOf(scope.exportClassLoader)}"
                 , "isLocked": "${scope.isLocked}"

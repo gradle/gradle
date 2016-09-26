@@ -4,6 +4,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
+import org.gradle.api.internal.initialization.AbstractClassLoaderScope
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
 
@@ -32,10 +33,11 @@ class ClassLoaderHierarchyTest : TestWithTempFiles() {
         val loader = PostDelegatingClassLoader(getSystemClassLoader(), DefaultClassPath.of(listOf(jar)))
         val klass = loader.loadClass(DeepThought::class.qualifiedName)
 
-        val targetScope = mock<ClassLoaderScope>() {
+        val targetScope = mock<AbstractClassLoaderScope>() {
             on { localClassLoader } doReturn loader
             on { exportClassLoader } doReturn loader.parent
             on { parent }.then { it.mock }
+            on { path }.then { "the path" }
         }
 
         val json = classLoaderHierarchyJsonFor(klass, targetScope)
@@ -46,6 +48,7 @@ class ClassLoaderHierarchyTest : TestWithTempFiles() {
         assertThat(hierarchy.classLoaders.size, equalTo(3))
         assertThat(hierarchy.scopes.size, equalTo(1))
         assertThat(hierarchy.classLoaders[0].parents, hasItem(hierarchy.classLoaders[1].id))
+        assertThat(hierarchy.scopes[0].label, equalTo("the path"))
         assertThat(hierarchy.scopes[0].localClassLoader, equalTo(hierarchy.classLoaders[0].id))
         assertThat(hierarchy.scopes[0].exportClassLoader, equalTo(hierarchy.classLoaders[1].id))
     }
