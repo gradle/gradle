@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.cache.statistics;
 
 import com.google.common.base.Functions;
 import com.google.common.collect.Maps;
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 
 import java.util.Arrays;
 import java.util.Map;

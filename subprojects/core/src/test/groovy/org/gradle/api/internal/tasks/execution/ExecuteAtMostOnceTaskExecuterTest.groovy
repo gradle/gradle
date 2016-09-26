@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 
@@ -44,7 +45,9 @@ class ExecuteAtMostOnceTaskExecuterTest extends Specification {
         then:
         1 * state.getExecuted() >> false
         1 * target.execute(task, state, executionContext)
-        1 * state.executed()
+
+        then:
+        1 * state.getExecuted() >> true
         0 * _
     }
 
@@ -58,7 +61,10 @@ class ExecuteAtMostOnceTaskExecuterTest extends Specification {
         then:
         1 * state.getExecuted() >> false
         1 * target.execute(task, state, executionContext) >> { throw failure }
-        1 * state.executed()
+
+        then:
+        1 * state.getExecuted() >> false
+        1 * state.setOutcome(TaskExecutionOutcome.EXECUTED)
         0 * _
 
         RuntimeException exception = thrown()

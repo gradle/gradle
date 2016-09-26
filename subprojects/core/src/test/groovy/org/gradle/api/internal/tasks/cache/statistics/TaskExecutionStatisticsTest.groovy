@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.cache.statistics
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.api.internal.tasks.cache.statistics.TaskExecutionOutcome.*
+import static org.gradle.api.internal.tasks.TaskExecutionOutcome.*
 
 @Subject(TaskExecutionStatistics)
 class TaskExecutionStatisticsTest extends Specification {

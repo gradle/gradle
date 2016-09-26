@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.execution
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 
@@ -35,7 +36,19 @@ class PostExecutionAnalysisTaskExecuterTest extends Specification {
         then:
         1 * target.execute(task, state, context)
         1 * state.didWork >> false
-        1 * state.upToDate()
+        1 * state.getFailure() >> null
+        1 * state.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
+        0 * _
+    }
+
+    def 'does not mark test as up to date when it did not do work and failed'() {
+        when:
+        executer.execute(task, state, context)
+
+        then:
+        1 * target.execute(task, state, context)
+        1 * state.didWork >> false
+        1 * state.getFailure() >> new RuntimeException()
         0 * _
     }
 

@@ -19,6 +19,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecutionContext;
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -44,9 +45,7 @@ public class SkipTaskWithNoActionsExecuter implements TaskExecuter {
                     break;
                 }
             }
-            if (upToDate) {
-                state.upToDate();
-            }
+            state.setOutcome(upToDate ? TaskExecutionOutcome.UP_TO_DATE : TaskExecutionOutcome.EXECUTED);
             return;
         }
         executer.execute(task, state, context);

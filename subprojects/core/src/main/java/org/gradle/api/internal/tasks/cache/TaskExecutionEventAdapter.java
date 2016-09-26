@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.cache;
 
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
+import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatistics;
 import org.gradle.api.internal.tasks.cache.statistics.TaskExecutionStatisticsListener;
 import org.gradle.api.tasks.TaskState;

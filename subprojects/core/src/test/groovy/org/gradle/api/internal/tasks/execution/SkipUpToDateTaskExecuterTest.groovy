@@ -24,6 +24,7 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskArtifactState
 import org.gradle.api.internal.tasks.TaskExecuter
 import org.gradle.api.internal.tasks.TaskExecutionContext
+import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
 import spock.lang.Specification
 
@@ -46,7 +47,7 @@ public class SkipUpToDateTaskExecuterTest extends Specification {
         then:
         1 * taskContext.taskArtifactState >> taskArtifactState
         1 * taskArtifactState.isUpToDate(_) >> true
-        1 * taskState.upToDate()
+        1 * taskState.setOutcome(TaskExecutionOutcome.UP_TO_DATE)
         1 * taskArtifactState.finished()
         0 * _
     }
