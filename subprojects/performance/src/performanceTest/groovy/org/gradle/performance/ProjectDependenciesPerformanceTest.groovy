@@ -29,9 +29,11 @@ class ProjectDependenciesPerformanceTest extends AbstractCrossVersionPerformance
         runner.tasksToRun = ['resolveDependencies']
         runner.useDaemon = true
         // TODO(pepper): Revert this to 'last' when 3.2 is released
-        // The regression was determined acceptable in this discussion:
-        // https://issues.gradle.org/browse/GRADLE-1346
-        runner.targetVersions = ['3.2-20160915000027+0000']
+        // The regression was introduced by some code which makes parallel
+        // execution and cases work much better. That is currently a more
+        // important use case, so we are accepting the performance regression
+        // in these non-parallel case.
+        runner.targetVersions = ['3.2-20160922000020+0000']
 
         when:
         def result = runner.run()
